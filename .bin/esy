@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+# Had to remove this so that we could just use one command `esy` which we
+# forward everything to.
+# We'll have to reimplement v that feature in the actual js impl.
+# CURDIR=`pwd`
+# while [ ! -e "$CURDIR/package.json" ]; do
+#     if [ "$CURDIR" == "/" ]; then
+#         echo "Cannot find package.json" >&2
+#         exit 1
+#     fi
+#     CURDIR=`cd $CURDIR/..; pwd`
+# done
+
+
+# Capture the error output
+# Capturing stderr is very important to prevent nodejs from setting
+# stderr to nonblocking mode
+SETENVCMD=$($SCRIPTDIR/esy.js "$@" $CURDIR 2>&1)
+if [ $? -ne 0 ]; then
+    echo "Failed to get dependency:"
+    printf "%s\n" "$SETENVCMD" >&2
+    exit 1
+fi
+# Use like this:
+# $(esy) && command
+echo "$SETENVCMD"
+

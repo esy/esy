@@ -6,6 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "esy": ".bin/esy",
+    "esy.js": ".bin/esy.js",
+    "esyEnv.js": ".bin/esyEnv.js"
+  },
+  "dependencies": {
+    "path-is-inside": "^1.0.2",
+    "resolve": "^1.1.7"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/jordwalke/esy.git"
@@ -19,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/jordwalke/esy/issues"
   },
-  "homepage": "https://github.com/jordwalke/esy#readme"
+  "homepage": "https://github.com/jordwalke/esy#readme",
+  "engines": {
+    "npm": ">=3.10.0"
+  }
 }

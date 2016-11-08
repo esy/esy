@@ -1,0 +1,40 @@
+{
+  "name": "PackageA",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "PackageB": "../PackageB"
+  },
+  "exportedEnvVars" : {
+    "PACKAGEA__dynamicVar": {
+      "val": "$CUR__ROOT"
+    },
+    "PACKAGEA__LOCALVAR": {
+      "val": "$packagea_root/package.json"
+    },
+    "GLOBAL_TEST_VAR_CLOBBER": {
+      "global": true,
+      "val": "$packagea_root/package.json"
+    },
+    "GLOBAL_TEST_VAR_JOIN": {
+      "global": true,
+      "val": "$PACKAGEA__root/package.json:$GLOBAL_TEST_VAR_JOIN"
+    },
+    "GLOBAL_TEST_VAR_PACKAGEA": {
+      "global": true,
+      "val": "$PACKAGEA__root/package.json",
+      "exclusive": true,
+      "note": "setting to fail, because there should be no conflict",
+      "note": "unless there are *two* versions we resolve to globally",
+      "note": "and in that case we *should fail*.",
+      "note": "This is why it's important to only set global variables",
+      "note": "transitively for buildTimeOnlyDependencies intelligently."
+    }
+  },
+  "scripts": {
+    "test": "./test.sh"
+  },
+  "author": "",
+  "license": "ISC"
+}

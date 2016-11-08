@@ -1,0 +1,44 @@
+{
+  "name": "PackageB",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "PackageC": "../PackageC"
+  },
+  "exportedEnvVars" : {
+    "PACKAGEB__dynamicVar": {
+      "val": "$CUR__ROOT"
+    },
+    "PACKAGEB__LOCALVAR": {
+      "val": "$PACKAGEB_ROOT/package.json"
+    },
+    "LOOKSLIKE__ANOTHER_PACKAGE": {
+      "global": true,
+      "val": "$PACKAGEB_ROOT/package.json"
+    },
+    "GLOBAL_TEST_VAR_CLOBBER": {
+      "global": true,
+      "val": "$PACKAGEB_ROOT/package.json"
+    },
+    "GLOBAL_TEST_VAR_JOIN": {
+      "global": true,
+      "val": "$PACKAGEB__ROOT/package.json:$GLOBAL_TEST_VAR_JOIN"
+    },
+    "GLOBAL_TEST_VAR_PACKAGEB": {
+      "global": true,
+      "val": "$PACKAGEB__ROOT/package.json",
+      "exclusive": true,
+      "note": "setting to fail, because there should be no conflict",
+      "note": "unless there are *two* versions we resolve to globally",
+      "note": "and in that case we *should fail*.",
+      "note": "This is why it's important to only set global variables",
+      "note": "transitively for buildTimeOnlyDependencies intelligently."
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
