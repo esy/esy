@@ -65,3 +65,8 @@ tests, even if they don't work correctly yet.
   variables.
 - Automatically set up `_build` and `_install` directories, populate variables
   accordingly.
+
+
+#### Origins
+
+This is a fork of [`dependency-env`](https://github.com/reasonml/dependency-env) which is more stable.
