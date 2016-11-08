@@ -124,6 +124,18 @@ function traverseSync(packageJsonPathOnEjectingHost, handler) {
   handler(packageJsonPathOnEjectingHost, pkg);
 }
 
+function getScopes(config) {
+  if (!config.scope) {
+    return {};
+  }
+  var scopes = (config.scope || '').split('|');
+  var scopeObj = {};
+  for (var i = 0; i < scopes.length; i++) {
+    scopeObj[scopes[i]] = true;
+  }
+  return scopeObj;
+}
+
 /**
  * Validates env vars that were configured in package.json as opposed to
  * automatically created.
@@ -131,7 +143,14 @@ function traverseSync(packageJsonPathOnEjectingHost, handler) {
 var validatePackageJsonExportedEnvVar = (envVar, config, inPackageName, envVarConfigPrefix) => {
   let beginsWithPackagePrefix = envVar.indexOf(envVarConfigPrefix) === 0;
   var ret = [];
-  if (!config.global) {
+  if (config.scopes !== undefined) {
+    ret.push(
+         envVar + " has a field 'scopes' (plural). You probably meant 'scope'. " +
+        "The owner of " + inPackageName + " likely made a mistake"
+    );
+  }
+  let scopeObj = getScopes(config);
+  if (!scopeObj.global) {
     if (!beginsWithPackagePrefix) {
       if (envVar.toUpperCase().indexOf(envVarConfigPrefix) === 0) {
         ret.push(
@@ -329,7 +348,7 @@ exports.print = (groups) => {
 };
 
 exports.loadIntoProcess = (groups) => {
-  
+
 };
 
 

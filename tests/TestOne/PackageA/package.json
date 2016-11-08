@@ -14,15 +14,15 @@
       "val": "$packagea_root/package.json"
     },
     "GLOBAL_TEST_VAR_CLOBBER": {
-      "global": true,
+      "scope": "global",
       "val": "$packagea_root/package.json"
     },
     "GLOBAL_TEST_VAR_JOIN": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEA__root/package.json:$GLOBAL_TEST_VAR_JOIN"
     },
     "GLOBAL_TEST_VAR_PACKAGEA": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEA__root/package.json",
       "exclusive": true,
       "note": "setting to fail, because there should be no conflict",

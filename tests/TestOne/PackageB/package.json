@@ -14,19 +14,19 @@
       "val": "$PACKAGEB_ROOT/package.json"
     },
     "LOOKSLIKE__ANOTHER_PACKAGE": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEB_ROOT/package.json"
     },
     "GLOBAL_TEST_VAR_CLOBBER": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEB_ROOT/package.json"
     },
     "GLOBAL_TEST_VAR_JOIN": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEB__ROOT/package.json:$GLOBAL_TEST_VAR_JOIN"
     },
     "GLOBAL_TEST_VAR_PACKAGEB": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEB__ROOT/package.json",
       "exclusive": true,
       "note": "setting to fail, because there should be no conflict",

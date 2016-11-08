@@ -16,15 +16,15 @@
       "val": "$PACKAGEC__ROOT/package.json"
     },
     "GLOBAL_TEST_VAR_CLOBBER": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEC__ROOT/package.json"
     },
     "GLOBAL_TEST_VAR_JOIN": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEC__ROOT/package.json:$GLOBAL_TEST_VAR_JOIN"
     },
     "GLOBAL_TEST_VAR_PACKAGEC": {
-      "global": true,
+      "scope": "global",
       "val": "$PACKAGEC__ROOT/package.json",
       "exclusive": true,
       "note": "setting to fail, because there should be no conflict",
