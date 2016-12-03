@@ -251,7 +251,14 @@ function computeEnvVarsForPackage(realPathSandboxRootOnEjectingHost, packageJson
    */
   globalSeenVars = nextSeenVars;
   globalGroups.push({
-    packageJsonPath: relativeToSandbox(realPathSandboxRootOnEjectingHost, packageJsonFilePath),
+    root: relativeToSandbox(
+      realPathSandboxRootOnEjectingHost,
+      path.dirname(packageJsonFilePath)
+    ),
+    packageJsonPath: relativeToSandbox(
+      realPathSandboxRootOnEjectingHost,
+      packageJsonFilePath
+    ),
     packageJson: packageJson,
     envVars: nextNormalizedEnvVars,
     errors: nextNextErrors

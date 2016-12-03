@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "PackageC": "../PackageC"
+    "PackageC": "../PackageC",
+    "buildtool": "../buildtool"
+  },
+  "pjc": {
+    "build": "$buildtool__root/bin/buildtool"
   },
   "exportedEnvVars" : {
     "PACKAGEB__dynamicVar": {

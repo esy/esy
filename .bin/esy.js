@@ -134,7 +134,10 @@ var esyEnv = require('./esyEnv.js');
 var curDir = process.cwd();
 
 var builtInCommands = {
-  "build": true,
+  "build": function(env, args) {
+    var build = require('./esyBuildCommand');
+    build(curDir, env, args);
+  },
   "shell": true,
   "deshell": true
 };
@@ -149,9 +152,9 @@ if (actualArgs.length === 0) {
 } else {
   var builtInCommand = builtInCommands[actualArgs[0]];
   if (builtInCommand) {
-    builtInCommand.apply(null, process.argv.slice(3));
+    builtInCommand(envForThisPackageScripts, process.argv.slice(3));
   } else {
     let command = actualArgs.join(' ');
   }
 }
-
+ 

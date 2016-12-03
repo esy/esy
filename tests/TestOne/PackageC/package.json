@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "buildtool": "../buildtool"
+  },
+  "pjc": {
+    "build": "$buildtool__root/bin/buildtool"
   },
   "exportedEnvVars" : {
     "CUR__ROOT": {

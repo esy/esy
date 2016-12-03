@@ -1,0 +1,83 @@
+#!/bin/sh -e -x
+#
+# This is a very simple pjc-aware ocamlfind-based build tool.
+
+export OCAMLFIND_CONF=$cur_target_dir/findlib.conf
+
+# Build
+
+DEPENDS=""
+for p in $cur_depends; do
+  if [ "$p" != "buildtool" ]; then
+    DEPENDS="$DEPENDS $p"
+  fi
+done
+
+echo "Build location: $cur_target_dir"
+
+mkdir -p $cur_target_dir/lib
+mkdir -p $cur_target_dir/bin
+
+## Traverse dependencies and include all findlib roots
+
+FINDLIB_PATH="/Users/andreypopp/.opam/4.03.0/lib"
+
+## Write down findlib.conf
+
+cat <<EOF > $cur_target_dir/findlib.conf
+path = "$FINDLIB_PATH:$cur_depends_install_closed"
+destdir = "$cur_install"
+EOF
+
+## Prepare ocamlfind options
+
+OCAMLFIND_ARGS=""
+
+for p in $DEPENDS; do
+  OCAMLFIND_ARGS="$OCAMLFIND_ARGS -package $p"
+done
+
+## Build modules
+
+for src in `find $cur_root/lib -name "*.ml"`; do
+  ocamlfind ocamlc -c $OCAMLFIND_ARGS $src -o $cur_target_dir/lib/`basename $src`
+done
+
+for src in `find $cur_root/bin -name "*.ml"`; do
+  ocamlfind ocamlc -c $OCAMLFIND_ARGS $src -o $cur_target_dir/bin/`basename $src`
+done
+
+## Link executables
+
+for obj in `find $cur_target_dir/bin -name "*.cmo"`; do
+  target=$cur_target_dir/`basename ${src%.*}`
+  ocamlfind ocamlc \
+    -verbose \
+    -linkpkg $OCAMLFIND_ARGS \
+    $obj -o $target
+done
+
+## Produce archive
+
+ocamlc -a -o $cur_target_dir/lib/$cur_name.cma `find $cur_root/lib -name "*.cmo"`
+
+## Write META for findlib installation
+
+cat <<EOF > "$cur_target_dir"/lib/META
+pkgname = "$cur_name"
+version = "$cur_version"
+archive(byte) = "$cur_name.cma"
+requires = "$DEPENDS"
+EOF
+
+# Install
+
+echo "Install location: $cur_install"
+
+mkdir -p $cur_install
+
+ocamlfind install $cur_name \
+  "$cur_target_dir"/lib/META \
+  "$cur_target_dir"/lib/*.cma \
+  "$cur_target_dir"/lib/*.cmi \
+  "$cur_target_dir"/lib/*.cmo

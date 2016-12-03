@@ -1,0 +1,6 @@
+{
+  "name": "buildtool",
+  "version": "1.0.0",
+  "description": "Dummy buildtool for testing esy's pjc implementation",
+  "license": "ISC"
+}
