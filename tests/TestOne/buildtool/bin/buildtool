@@ -1,4 +1,4 @@
-#!/bin/sh -e -x
+#!/bin/sh -e
 #
 # This is a very simple pjc-aware ocamlfind-based build tool.
 
@@ -39,7 +39,6 @@ done
 for obj in `find $cur_target_dir/bin -name "*.cmo"`; do
   target=$cur_target_dir/`basename ${src%.*}`
   ocamlfind ocamlc \
-    -verbose \
     -linkpkg $OCAMLFIND_ARGS \
     $obj -o $target
 done
