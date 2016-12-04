@@ -1,4 +1,5 @@
 const path = require('path');
+const childProcess = require('child_process');
 
 function buildCommand(curDir, env, args) {
 
@@ -14,9 +15,11 @@ function buildCommand(curDir, env, args) {
   let rules = env
     .map(pkg => generateMakeRule(builtIns, envMap, pkg))
     .filter(rule => rule != null);
-  console.log(rules
+  let renderedRules = rules
     .map(rule => renderMakeRule(rule))
-    .join('\n\n'));
+    .join('\n\n');
+
+  console.log(renderedRules);
 }
 
 function generateMakeRule(builtIns, envMap, pkg) {
