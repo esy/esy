@@ -1,16 +1,16 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const ESY_SANDBOX_REF = '$(ESY_SANDBOX)';
+const ESY_SANDBOX_REF = '$(ESY__SANDBOX)';
 
 function installDir(pkgName, ...args) {
   return path.join(
-    '$(ESY_SANDBOX)', '_install', 'node_modules', pkgName, ...args);
+    '$(ESY__SANDBOX)', '_install', 'node_modules', pkgName, ...args);
 }
 
 function buildDir(pkgName, ...args) {
   return path.join(
-    '$(ESY_SANDBOX)', '_build', 'node_modules', pkgName, ...args);
+    '$(ESY__SANDBOX)', '_build', 'node_modules', pkgName, ...args);
 }
 
 function envToEnvList(env) {
@@ -36,7 +36,7 @@ function buildCommand(curDir, env, args) {
   let prelude = [
     {
       type: 'define',
-      name: 'ESY_SANDBOX',
+      name: 'ESY__SANDBOX',
       value: '$(PWD)',
       assignment: '?=',
     },
@@ -75,7 +75,7 @@ destdir = "${installDir(info.name, 'lib')}"
       target: buildDir(info.name, 'findlib.conf'),
       dependencies: [],
       env: {},
-      export: [`${info.name}__FINDLIB_CONF`],
+      export: ['ESY__SANDBOX', `${info.name}__FINDLIB_CONF`],
       command: `
 mkdir -p $(@D)
 echo "$${info.name}__FINDLIB_CONF" > $(@);
@@ -94,6 +94,7 @@ echo "$${info.name}__FINDLIB_CONF" > $(@);
         name: ` *** Build ${info.name} ***`,
         target: info.name,
         dependencies: dependencies,
+        export: ['ESY__SANDBOX'],
         env: []
           .concat(envToEnvList(builtIns))
           .concat(getBuildEnv(envMap, pkg))
@@ -106,6 +107,7 @@ echo "$${info.name}__FINDLIB_CONF" > $(@);
         type: 'rule',
         name: ` *** Build ${info.name} ***`,
         target: info.name,
+        export: ['ESY__SANDBOX'],
         dependencies: info.dependencies != null
           ? Object.keys(info.dependencies)
           : [],

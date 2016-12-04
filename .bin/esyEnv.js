@@ -270,7 +270,6 @@ function computeEnvVarsForPackage(realPathSandboxRootOnEjectingHost, packageJson
  * For a given *real* physical, absolute path on *this* host
  * (`realPathSandboxRootOnEjectingHost`), compute the environment
  * variable setup in terms of a hypothetical root
- * `ESY_DYNAMICALLY_SET_ME_TO_SANDBOX_ROOT_ON_HOST`
  */
 exports.getRelativizedEnv = (realPathSandboxRootOnEjectingHost, currentlyBuildingPackageRoot) => {
   /**
@@ -283,12 +282,6 @@ exports.getRelativizedEnv = (realPathSandboxRootOnEjectingHost, currentlyBuildin
   globalSeenVars = {};
   function setUpBuiltinVariables(seenVars, errors, normalizedEnvVars) {
     var sandboxExportedEnvVars = {
-      ESY__SANDBOX: {
-        __BUILT_IN_DO_NOT_USE_OR_YOU_WILL_BE_PIPd: true,
-        global: true,
-        val: "$ESY_DYNAMICALLY_SET_ME_TO_SANDBOX_ROOT_ON_HOST",
-        exclusive: true
-      }
     };
     let {seenVars: nextSeenVars, errors:nextErrors, normalizedEnvVars:nextNormalizedEnvVars} =
       addEnvConfigForPackage(seenVars, errors, normalizedEnvVars, realPathSandboxRootOnEjectingHost, "EsySandBox", curRootPackageJsonOnEjectingHost, sandboxExportedEnvVars);
