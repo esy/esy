@@ -36,8 +36,6 @@ done
 
 ## Link executables
 
-
-cat $OCAMLFIND_CONF
 for obj in `find $cur_target_dir/bin -name "*.cmo"`; do
   target=$cur_target_dir/`basename ${src%.*}`
   ocamlfind ocamlc \
@@ -48,7 +46,7 @@ done
 
 ## Produce archive
 
-ocamlc -a -o $cur_target_dir/lib/$cur_name.cma `find $cur_root/lib -name "*.cmo"`
+ocamlc -a -o $cur_target_dir/lib/$cur_name.cma `find $cur_target_dir/lib -name "*.cmo"`
 
 ## Write META for findlib installation
 
