@@ -13,6 +13,13 @@ function buildDir(pkgName, ...args) {
     '$(ESY_SANDBOX)', '_build', 'node_modules', pkgName, ...args);
 }
 
+function envToEnvList(env) {
+  return env.envVars.map(env => ({
+    name: env.name,
+    value: env.normalizedVal
+  }));
+}
+
 function buildCommand(curDir, env, args) {
 
   // first group is a shared (built-in) env
@@ -61,6 +68,7 @@ destdir = "${installDir(info.name, 'lib')}"
       env: {},
       command: null,
     });
+
     rules.push({
       type: 'rule',
       name: null,
@@ -73,56 +81,40 @@ mkdir -p $(@D)
 echo "$${info.name}__FINDLIB_CONF" > $(@);
       `.trim(),
     });
+
+    if (info.pjc && info.pjc.build) {
+      let dependencies = [
+        `${info.name}__findlib.conf`
+      ];
+      if (info.dependencies) {
+        dependencies = dependencies.concat(Object.keys(info.dependencies));
+      }
+      rules.push({
+        type: 'rule',
+        name: ` *** Build ${info.name} ***`,
+        target: info.name,
+        dependencies: dependencies,
+        env: []
+          .concat(envToEnvList(builtIns))
+          .concat(getBuildEnv(envMap, pkg))
+          .concat(envToEnvList(pkg)),
+        command: info.pjc.build,
+      });
+    } else {
+      // TODO: Returning an empty rule. Is that really what we want here?
+      rules.push({
+        type: 'rule',
+        name: ` *** Build ${info.name} ***`,
+        target: info.name,
+        dependencies: info.dependencies != null
+          ? Object.keys(info.dependencies)
+          : [],
+        command: null,
+      });
+    }
   });
 
-  rules = rules.concat(env
-    .map(pkg => generateMakeRule(builtIns, envMap, pkg))
-    .filter(rule => rule != null));
-
   console.log(renderMake(prelude.concat(rules)));
-}
-
-function generateMakeRule(builtIns, envMap, pkg) {
-
-  function envToEnvList(env) {
-    return env.envVars.map(env => ({
-      name: env.name,
-      value: env.normalizedVal
-    }));
-  }
-
-  let info = pkg.packageJson;
-
-  if (info.pjc && info.pjc.build) {
-    let dependencies = [
-      `${info.name}__findlib.conf`
-    ];
-    if (info.dependencies) {
-      dependencies = dependencies.concat(Object.keys(info.dependencies));
-    }
-    return {
-      type: 'rule',
-      name: ` *** Build ${info.name} ***`,
-      target: info.name,
-      dependencies: dependencies,
-      env: []
-        .concat(envToEnvList(builtIns))
-        .concat(getBuildEnv(envMap, pkg))
-        .concat(envToEnvList(pkg)),
-      command: info.pjc.build,
-    };
-  } else {
-    // TODO: Returning an empty rule. Is that really what we want here?
-    return {
-      type: 'rule',
-      name: ` *** Build ${info.name} ***`,
-      target: info.name,
-      dependencies: info.dependencies != null
-        ? Object.keys(info.dependencies)
-        : [],
-      command: null,
-    };
-  }
 }
 
 function getPkgEnv(envMap, pkg, current = false) {
