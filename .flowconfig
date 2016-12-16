@@ -1,0 +1,8 @@
+[ignore]
+<PROJECT_ROOT>/node_modules/flow-remove-types/.*\.js$
+
+[include]
+
+[libs]
+
+[options]

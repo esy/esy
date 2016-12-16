@@ -1,20 +1,23 @@
-#!/bin/sh -e
+#!/bin/bash -e
 #
 # This is a very simple pjc-aware ocamlfind-based build tool.
 
 # Build
 
 DEPENDS=""
-for p in $cur_depends; do
-  if [ "$p" != "buildtool" ]; then
+for p in $cur__depends; do
+  if [ "$p" != "buildtool" ] && \
+     [ "$p" != "ocaml" ] && \
+     [ "$p" != "@esy-ocaml/ocaml" ] && \
+     [ "$p" != "ocamlfind" ]; then
     DEPENDS="$DEPENDS $p"
   fi
 done
 
-echo "Build location: $cur_target_dir"
+echo "Build location: $cur__target_dir"
 
-mkdir -p $cur_target_dir/lib
-mkdir -p $cur_target_dir/bin
+mkdir -p $cur__target_dir/lib
+mkdir -p $cur__target_dir/bin
 
 ## Prepare ocamlfind options
 
@@ -26,18 +29,18 @@ done
 
 ## Build modules
 
-for src in `find $cur_root/lib -name "*.ml"`; do
-  ocamlfind ocamlc -c $OCAMLFIND_ARGS $src -o $cur_target_dir/lib/`basename $src`
+for src in `find $cur__root/lib -name "*.ml"`; do
+  ocamlfind ocamlc -c $OCAMLFIND_ARGS $src -o $cur__target_dir/lib/`basename $src`
 done
 
-for src in `find $cur_root/bin -name "*.ml"`; do
-  ocamlfind ocamlc -c $OCAMLFIND_ARGS $src -o $cur_target_dir/bin/`basename $src`
+for src in `find $cur__root/bin -name "*.ml"`; do
+  ocamlfind ocamlc -c $OCAMLFIND_ARGS $src -o $cur__target_dir/bin/`basename $src`
 done
 
 ## Link executables
 
-for obj in `find $cur_target_dir/bin -name "*.cmo"`; do
-  target=$cur_target_dir/`basename ${src%.*}`
+for obj in `find $cur__target_dir/bin -name "*.cmo"`; do
+  target=$cur__target_dir/`basename ${src%.*}`
   ocamlfind ocamlc \
     -linkpkg $OCAMLFIND_ARGS \
     $obj -o $target
@@ -45,25 +48,30 @@ done
 
 ## Produce archive
 
-ocamlc -a -o $cur_target_dir/lib/$cur_name.cma `find $cur_target_dir/lib -name "*.cmo"`
+ocamlc -a \
+  -o $cur__target_dir/lib/$cur__name.cma \
+  `find $cur__target_dir/lib -name "*.cmo"`
 
 ## Write META for findlib installation
 
-cat <<EOF > "$cur_target_dir"/lib/META
-pkgname = "$cur_name"
-version = "$cur_version"
-archive(byte) = "$cur_name.cma"
+cat <<EOF > "$cur__target_dir"/lib/META
+pkgname = "$cur__name"
+version = "$cur__version"
+archive(byte) = "$cur__name.cma"
 requires = "$DEPENDS"
 EOF
 
 # Install
 
-echo "Install location: $cur_install"
+echo "Install location: $cur__install"
 
-mkdir -p $cur_install
+rm -rf $cur__install/lib
+mkdir -p $cur__install/lib
 
-ocamlfind install $cur_name \
-  "$cur_target_dir"/lib/META \
-  "$cur_target_dir"/lib/*.cma \
-  "$cur_target_dir"/lib/*.cmi \
-  "$cur_target_dir"/lib/*.cmo
+echo $OCAMLFIND_CONF
+cat $cur__target_dir/findlib.conf
+ocamlfind install $cur__name \
+  "$cur__target_dir"/lib/META \
+  "$cur__target_dir"/lib/*.cma \
+  "$cur__target_dir"/lib/*.cmi \
+  "$cur__target_dir"/lib/*.cmo

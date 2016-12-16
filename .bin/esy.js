@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 
-var esyEnv = require('./esyEnv.js');
+let Module = require('module');
+let childProcess = require('child_process');
+let removeTypes = require('flow-remove-types');
 
+let super_compile = Module.prototype._compile;
+Module.prototype._compile = function _compile(source, filename) {
+  let transformedSource = removeTypes(source)
+  super_compile.call(this, transformedSource, filename);
+};
+
+const PackageEnvironment = require('../lib/PackageEnvironment');
+const PackageDb = require('../lib/PackageDb');
 
 /**
  * Each package can configure exportedEnvVars with:
@@ -128,33 +138,32 @@ var esyEnv = require('./esyEnv.js');
  *  true/false flag and it doesn't take into account scope.
  */
 
-/**
- * Need to change this to climb to closest package.json.
- */
-var curDir = process.cwd();
-
-var builtInCommands = {
-  "build": function(env, args) {
-    var build = require('./esyBuildCommand');
-    build(curDir, env, args);
+const builtInCommands = {
+  "build-eject": function(...args) {
+    let build = require('../lib/esyBuildEjectCommand');
+    build(...args);
   },
-  "shell": true,
-  "deshell": true
 };
-var actualArgs = process.argv.slice(2);
 
-let envForThisPackageScripts = esyEnv.getRelativizedEnv(curDir, curDir);
+// TODO: Need to change this to climb to closest package.json.
+const curDir = process.cwd();
+const actualArgs = process.argv.slice(2);
+const packageDb = PackageDb.fromDirectory(curDir);
+
 if (actualArgs.length === 0) {
   // It's just a status command. Print the command that would be
   // used to setup the environment along with status of
   // the build processes, staleness, package validity etc.
-  console.log(esyEnv.print(envForThisPackageScripts));
+  let envForThisPackageScripts = PackageEnvironment.calculateEnvironment(
+    packageDb,
+    packageDb.rootPackageName
+  );
+  console.log(PackageEnvironment.printEnvironment(envForThisPackageScripts));
 } else {
   var builtInCommand = builtInCommands[actualArgs[0]];
   if (builtInCommand) {
-    builtInCommand(envForThisPackageScripts, process.argv.slice(3));
+    builtInCommand(packageDb, process.argv.slice(3));
   } else {
     let command = actualArgs.join(' ');
   }
 }
- 

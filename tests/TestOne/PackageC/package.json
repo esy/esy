@@ -6,30 +6,30 @@
   "dependencies": {
     "buildtool": "../buildtool"
   },
+  "peerDependencies": {
+    "ocaml": "andreypopp/ocaml#trunk"
+  },
   "pjc": {
-    "build": "$buildtool__root/bin/buildtool"
+    "build": "buildtool"
   },
   "exportedEnvVars" : {
-    "CUR__ROOT": {
-      "val": "$CUR__ROOT"
+    "packagec__dynamicVar": {
+      "val": "$cur__root"
     },
-    "PACKAGEC__dynamicVar": {
-      "val": "$CUR__ROOT"
-    },
-    "PACKAGEC__LOCALVAR": {
-      "val": "$PACKAGEC__ROOT/package.json"
+    "packagec__LOCALVAR": {
+      "val": "$packagec__root/package.json"
     },
     "GLOBAL_TEST_VAR_CLOBBER": {
       "scope": "global",
-      "val": "$PACKAGEC__ROOT/package.json"
+      "val": "$packagec__root/package.json"
     },
     "GLOBAL_TEST_VAR_JOIN": {
       "scope": "global",
-      "val": "$PACKAGEC__ROOT/package.json:$GLOBAL_TEST_VAR_JOIN"
+      "val": "$packagec__root/package.json:$GLOBAL_TEST_VAR_JOIN"
     },
     "GLOBAL_TEST_VAR_PACKAGEC": {
       "scope": "global",
-      "val": "$PACKAGEC__ROOT/package.json",
+      "val": "$packagec__root/package.json",
       "exclusive": true,
       "note": "setting to fail, because there should be no conflict",
       "note": "unless there are *two* versions we resolve to globally",

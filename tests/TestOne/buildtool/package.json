@@ -2,5 +2,11 @@
   "name": "buildtool",
   "version": "1.0.0",
   "description": "Dummy buildtool for testing esy's pjc implementation",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ocamlfind": "andreypopp/ocamlfind"
+  },
+  "pjc": {
+    "build": "cp -r bin/buildtool $cur__bin/buildtool"
+  }
 }

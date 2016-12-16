@@ -1,3 +1,5 @@
+npm install andreypopp/ocaml#trunk
+
 cd ../
 pushd PackageC && rm -rf node_modules && popd && \
 pushd PackageB && rm -rf node_modules && popd && \
@@ -10,4 +12,4 @@ cd ../PackageB && npm link buildtool && npm link PackageC && npm install && npm 
 cd ../buildtool && npm install && npm link && \
 cd ../PackageA && npm link PackageC && npm link PackageB && npm link buildtool && npm install
 
-../../../.bin/esy $1
+../../../.bin/esy build

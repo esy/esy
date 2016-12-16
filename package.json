@@ -7,12 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "esy": ".bin/esy",
-    "esy.js": ".bin/esy.js",
-    "esyEnv.js": ".bin/esyEnv.js"
+    "esy": ".bin/esy"
   },
   "dependencies": {
+    "flow-remove-types": "^1.0.5",
     "mkdirp": "^0.5.1",
+    "outdent": "^0.3.0",
     "path-is-inside": "^1.0.2",
     "resolve": "^1.1.7"
   },
@@ -32,5 +32,8 @@
   "homepage": "https://github.com/jordwalke/esy#readme",
   "engines": {
     "npm": ">=3.10.0"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.36.0"
   }
 }
