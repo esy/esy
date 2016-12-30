@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @flow
 
 let Module = require('module');
 let childProcess = require('child_process');
@@ -11,7 +12,7 @@ Module.prototype._compile = function _compile(source, filename) {
 };
 
 const PackageEnvironment = require('../lib/PackageEnvironment');
-const PackageDb = require('../lib/PackageDb');
+const Sandbox = require('../lib/Sandbox');
 
 /**
  * Each package can configure exportedEnvVars with:
@@ -148,21 +149,21 @@ const builtInCommands = {
 // TODO: Need to change this to climb to closest package.json.
 const curDir = process.cwd();
 const actualArgs = process.argv.slice(2);
-const packageDb = PackageDb.fromDirectory(curDir);
+const sandbox = Sandbox.fromDirectory(curDir);
 
 if (actualArgs.length === 0) {
   // It's just a status command. Print the command that would be
   // used to setup the environment along with status of
   // the build processes, staleness, package validity etc.
   let envForThisPackageScripts = PackageEnvironment.calculateEnvironment(
-    packageDb,
-    packageDb.rootPackageName
+    sandbox,
+    sandbox.packageInfo
   );
   console.log(PackageEnvironment.printEnvironment(envForThisPackageScripts));
 } else {
   var builtInCommand = builtInCommands[actualArgs[0]];
   if (builtInCommand) {
-    builtInCommand(packageDb, process.argv.slice(3));
+    builtInCommand(sandbox, process.argv.slice(3));
   } else {
     let command = actualArgs.join(' ');
   }

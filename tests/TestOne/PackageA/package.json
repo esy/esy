@@ -4,39 +4,33 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "PackageB": "../PackageB",
-    "buildtool": "../buildtool"
+    "PackageB": "file:../PackageB",
+    "buildtool": "file:../buildtool",
+    "ocaml": "https://github.com/andreypopp/ocaml.git#esy"
   },
-  "peerDependencies": {
-    "ocaml": "andreypopp/ocaml#trunk"
-  },
-  "pjc": {
-    "build": "buildtool"
-  },
-  "exportedEnvVars" : {
-    "packagea__dynamicVar": {
-      "val": "$cur__root"
-    },
-    "packagea__LOCALVAR": {
-      "val": "$packagea__root/package.json"
-    },
-    "GLOBAL_TEST_VAR_CLOBBER": {
-      "scope": "global",
-      "val": "$packagea__root/package.json"
-    },
-    "GLOBAL_TEST_VAR_JOIN": {
-      "scope": "global",
-      "val": "$packagea__root/package.json:$GLOBAL_TEST_VAR_JOIN"
-    },
-    "GLOBAL_TEST_VAR_PACKAGEA": {
-      "scope": "global",
-      "val": "$packagea__root/package.json",
-      "exclusive": true,
-      "note": "setting to fail, because there should be no conflict",
-      "note": "unless there are *two* versions we resolve to globally",
-      "note": "and in that case we *should fail*.",
-      "note": "This is why it's important to only set global variables",
-      "note": "transitively for buildTimeOnlyDependencies intelligently."
+  "esy": {
+    "build": "buildtool",
+    "exportedEnv": {
+      "packagea__dynamicVar": {
+        "val": "$cur__root"
+      },
+      "packagea__LOCALVAR": {
+        "val": "$packagea__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_CLOBBER": {
+        "scope": "global",
+        "val": "$packagea__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_JOIN": {
+        "scope": "global",
+        "val": "$packagea__root/package.json:$GLOBAL_TEST_VAR_JOIN"
+      },
+      "GLOBAL_TEST_VAR_PACKAGEA": {
+        "scope": "global",
+        "val": "$packagea__root/package.json",
+        "exclusive": true,
+        "note": "transitively for buildTimeOnlyDependencies intelligently."
+      }
     }
   },
   "scripts": {

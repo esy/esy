@@ -68,8 +68,6 @@ echo "Install location: $cur__install"
 rm -rf $cur__install/lib
 mkdir -p $cur__install/lib
 
-echo $OCAMLFIND_CONF
-cat $cur__target_dir/findlib.conf
 ocamlfind install $cur__name \
   "$cur__target_dir"/lib/META \
   "$cur__target_dir"/lib/*.cma \

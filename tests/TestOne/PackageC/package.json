@@ -4,38 +4,36 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "buildtool": "../buildtool"
+    "buildtool": "file:../buildtool",
+    "ocaml": "https://github.com/andreypopp/ocaml.git#esy"
   },
-  "peerDependencies": {
-    "ocaml": "andreypopp/ocaml#trunk"
-  },
-  "pjc": {
-    "build": "buildtool"
-  },
-  "exportedEnvVars" : {
-    "packagec__dynamicVar": {
-      "val": "$cur__root"
-    },
-    "packagec__LOCALVAR": {
-      "val": "$packagec__root/package.json"
-    },
-    "GLOBAL_TEST_VAR_CLOBBER": {
-      "scope": "global",
-      "val": "$packagec__root/package.json"
-    },
-    "GLOBAL_TEST_VAR_JOIN": {
-      "scope": "global",
-      "val": "$packagec__root/package.json:$GLOBAL_TEST_VAR_JOIN"
-    },
-    "GLOBAL_TEST_VAR_PACKAGEC": {
-      "scope": "global",
-      "val": "$packagec__root/package.json",
-      "exclusive": true,
-      "note": "setting to fail, because there should be no conflict",
-      "note": "unless there are *two* versions we resolve to globally",
-      "note": "and in that case we *should fail*.",
-      "note": "This is why it's important to only set global variables",
-      "note": "transitively for buildTimeOnlyDependencies intelligently."
+  "esy": {
+    "build": "buildtool",
+    "exportedEnv" : {
+      "packagec__dynamicVar": {
+        "val": "$cur__root"
+      },
+      "packagec__LOCALVAR": {
+        "val": "$packagec__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_CLOBBER": {
+        "scope": "global",
+        "val": "$packagec__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_JOIN": {
+        "scope": "global",
+        "val": "$packagec__root/package.json:$GLOBAL_TEST_VAR_JOIN"
+      },
+      "GLOBAL_TEST_VAR_PACKAGEC": {
+        "scope": "global",
+        "val": "$packagec__root/package.json",
+        "exclusive": true,
+        "note": "setting to fail, because there should be no conflict",
+        "note": "unless there are *two* versions we resolve to globally",
+        "note": "and in that case we *should fail*.",
+        "note": "This is why it's important to only set global variables",
+        "note": "transitively for buildTimeOnlyDependencies intelligently."
+      }
     }
   },
   "scripts": {
