@@ -13,6 +13,12 @@ let build = esy.build || 'true';
 build = Array.isArray(build) ? build.join(' && ') : build;
 build;"
 
+ESY__SANDBOX_COMMAND=""
+
+if [[ "$esy__platform" == "darwin" ]]; then
+  ESY__SANDBOX_COMMAND="sandbox-exec -f $cur__target_dir/_esy_sandbox.sb"
+fi
+
 esy-prepare-install-tree () {
   mkdir -p $cur__target_dir
   mkdir -p          \
@@ -27,8 +33,8 @@ esy-prepare-install-tree () {
 }
 
 esy-shell () {
-  /bin/bash \
-    --noprofile \
+  $ESY__SANDBOX_COMMAND /bin/bash   \
+    --noprofile                     \
     --rcfile <(echo "
       export PS1=\"[$cur__name sandbox] $ \";
       source $ESY__RUNTIME;
@@ -43,10 +49,10 @@ esy-build-command () {
   BUILD_LOG="$cur__target_dir/_esy_build.log"
   BUILD_CMD=`node -p "$ESY__BUILD_COMMAND"`
   set +e
-  /bin/bash             \
-    --noprofile --norc  \
-    -e -u -o pipefail   \
-    -c "$BUILD_CMD"     \
+  $ESY__SANDBOX_COMMAND /bin/bash   \
+    --noprofile --norc              \
+    -e -u -o pipefail               \
+    -c "$BUILD_CMD"                 \
     > "$BUILD_LOG" 2>&1
   BUILD_RETURN_CODE="$?"
   set -e
