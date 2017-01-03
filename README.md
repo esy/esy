@@ -66,6 +66,9 @@ tests, even if they don't work correctly yet.
 - Automatically set up `_build` and `_install` directories, populate variables
   accordingly.
 
+#### Try it out on a sample project
+
+https://github.com/andreypopp/esy-ocaml-project
 
 #### Origins
 
