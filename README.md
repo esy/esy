@@ -39,7 +39,7 @@ Built In Commands
 |Command                  | Meaning                                                                                               | Implemented |
 |-------------------------|------------------------------------------------                                                       |-------------|
 |`esy`                    | Print the environment variables for current directory as sandbox root and `cur` root.                 | Started     |
-|`esy build`              | Implements `pjc build` command from `PackageJsonForCompilers` proposal. Should generate `Makefile`    | No          |
+|`esy build`              | Implements `pjc build` command from `PackageJsonForCompilers` proposal. Should generate `Makefile`    | Yes          |
 |`esy any command here`   | Executes `any command here` but in the sandbox that would be printed via `esy`                        | No          |
 
 
