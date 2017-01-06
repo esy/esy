@@ -7,12 +7,6 @@ FG_GREEN='\033[0;32m'
 FG_WHITE='\033[1;37m'
 FG_RESET='\033[0m'
 
-ESY__BUILD_COMMAND="
-let esy = require(\"$cur__root/package.json\").esy || {};
-let build = esy.build || 'true';
-build = Array.isArray(build) ? build.join(' && ') : build;
-build;"
-
 ESY__SANDBOX_COMMAND=""
 
 if [[ "$esy__platform" == "darwin" ]]; then
@@ -47,12 +41,11 @@ esy-shell () {
 esy-build-command () {
   echo -e "${FG_WHITE}*** $cur__name: building from source...${FG_RESET}"
   BUILD_LOG="$cur__target_dir/_esy_build.log"
-  BUILD_CMD=`node -p "$ESY__BUILD_COMMAND"`
   set +e
   $ESY__SANDBOX_COMMAND /bin/bash   \
     --noprofile --norc              \
     -e -u -o pipefail               \
-    -c "$BUILD_CMD"                 \
+    -c "$esy_build__command"        \
     > "$BUILD_LOG" 2>&1
   BUILD_RETURN_CODE="$?"
   set -e
