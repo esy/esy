@@ -46,10 +46,17 @@ else
     exit 1
   fi
 
+  if [ -z "${ESY__SANDBOX+x}" ]; then
+    export ESY__SANDBOX="$PWD"
+  fi
+  if [ -z "${ESY__STORE+x}" ]; then
+    export ESY__STORE="$HOME/.esy/store"
+  fi
+  if [ -z "${ESY__RUNTIME+x}" ]; then
+    export ESY__RUNTIME="$HOME/.esy/runtime.sh"
+  fi
+
   if [ "$1" != "" ]; then
-    export ESY__SANDBOX=$PWD
-    export ESY__STORE=$HOME/.esy/store
-    export ESY__RUNTIME=$HOME/.esy/runtime.sh
     eval "$SETENVCMD"
     exec "$@"
   else

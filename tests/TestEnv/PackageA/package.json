@@ -1,0 +1,31 @@
+{
+  "name": "PackageA",
+  "version": "1.0.0",
+  "dependencies": {
+    "PackageB": "file:../PackageB"
+  },
+  "esy": {
+    "exportedEnv": {
+      "packagea__dynamicVar": {
+        "val": "$cur__root"
+      },
+      "packagea__LOCALVAR": {
+        "val": "$packagea__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_CLOBBER": {
+        "scope": "global",
+        "val": "$packagea__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_JOIN": {
+        "scope": "global",
+        "val": "$packagea__root/package.json:$GLOBAL_TEST_VAR_JOIN"
+      },
+      "GLOBAL_TEST_VAR_PACKAGEA": {
+        "scope": "global",
+        "val": "$packagea__root/package.json",
+        "exclusive": true,
+        "note": "transitively for buildTimeOnlyDependencies intelligently."
+      }
+    }
+  }
+}

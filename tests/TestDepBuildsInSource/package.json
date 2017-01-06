@@ -1,0 +1,7 @@
+{
+  "name": "TestDepOutOfSourceBuildIsFalse",
+  "version": "1.0.0",
+  "dependencies": {
+    "dep": "file:./node_modules/dep"
+  }
+}

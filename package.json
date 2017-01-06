@@ -4,7 +4,7 @@
   "description": "Easy Package.json Sandboxes For Compilers",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest tests/*/test.js"
   },
   "bin": {
     "esy": ".bin/esy"
@@ -34,6 +34,7 @@
     "npm": ">=3.10.0"
   },
   "devDependencies": {
-    "flow-bin": "^0.36.0"
+    "flow-bin": "^0.36.0",
+    "jest": "^18.1.0"
   }
 }

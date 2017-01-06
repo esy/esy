@@ -1,0 +1,39 @@
+{
+  "name": "PackageB",
+  "version": "1.0.0",
+  "dependencies": {
+    "PackageC": "file:../PackageC"
+  },
+  "esy": {
+    "exportedEnv" : {
+      "packageb__dynamicVar": {
+        "val": "$cur__root"
+      },
+      "packageb__LOCALVAR": {
+        "val": "$packageb__root/package.json"
+      },
+      "LOOKSLIKE__ANOTHER_PACKAGE": {
+        "scope": "global",
+        "val": "$packageb__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_CLOBBER": {
+        "scope": "global",
+        "val": "$packageb__root/package.json"
+      },
+      "GLOBAL_TEST_VAR_JOIN": {
+        "scope": "global",
+        "val": "$packageb__root/package.json:$GLOBAL_TEST_VAR_JOIN"
+      },
+      "GLOBAL_TEST_VAR_PACKAGEB": {
+        "scope": "global",
+        "val": "$packageb__root/package.json",
+        "exclusive": true,
+        "note": "setting to fail, because there should be no conflict",
+        "note": "unless there are *two* versions we resolve to globally",
+        "note": "and in that case we *should fail*.",
+        "note": "This is why it's important to only set global variables",
+        "note": "transitively for buildTimeOnlyDependencies intelligently."
+      }
+    }
+  }
+}

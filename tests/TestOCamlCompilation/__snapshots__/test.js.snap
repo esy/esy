@@ -1,0 +1,201 @@
+exports[`test build 1`] = `
+"[1;37m*** ocaml: building from source...[0m
+[0;32m*** ocaml: build complete[0m
+[1;37m*** ocamlfind: building from source...[0m
+[0;32m*** ocamlfind: build complete[0m
+[1;37m*** buildtool: building from source...[0m
+[0;32m*** buildtool: build complete[0m
+[1;37m*** PackageC: building from source...[0m
+[0;32m*** PackageC: build complete[0m
+[1;37m*** PackageB: building from source...[0m
+[0;32m*** PackageB: build complete[0m
+[1;37m*** PackageA: building from source...[0m
+[0;32m*** PackageA: build complete[0m
+"
+`;
+
+exports[`test build 2`] = `
+"Hello, I\'m PackageC!!!!
+PackageB, PackageB, PackageB
+Hello, I\'m PackageA
+"
+`;
+
+exports[`test env 1`] = `
+"
+# EsySandboxVariables 
+export PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"
+export SHELL=\"env -i /bin/bash --norc --noprofile\"
+export esy__platform=\"platform\"
+export esy__architecture=\"architecture\"
+export esy__target_platform=\"platform\"
+export esy__target_architecture=\"architecture\"
+# [BuiltIns]
+export esy__sandbox=\"$ESY__SANDBOX\"
+export esy__store=\"$ESY__STORE\"
+export esy__install_tree=\"$esy__sandbox/_install\"
+export esy__build_tree=\"$esy__sandbox/_build\"
+export cur__name=\"PackageA\"
+export cur__version=\"1.0.0\"
+export cur__source_root=\"$esy__sandbox\"
+export cur__root=\"$esy__sandbox\"
+export cur__depends=\"PackageB buildtool ocaml\"
+export cur__target_dir=\"$esy__sandbox/_build\"
+export cur__install=\"$esy__sandbox/_install\"
+export cur__bin=\"$cur__install/bin\"
+export cur__sbin=\"$cur__install/sbin\"
+export cur__lib=\"$cur__install/lib\"
+export cur__man=\"$cur__install/man\"
+export cur__doc=\"$cur__install/doc\"
+export cur__stublibs=\"$cur__install/stublibs\"
+export cur__toplevel=\"$cur__install/toplevel\"
+export cur__share=\"$cur__install/share\"
+export cur__etc=\"$cur__install/etc\"
+# [Custom Variables]
+export OCAMLFIND_CONF=\"$cur__target_dir/_esy_findlib.conf\"
+export PATH=\"$esy__store/_install/packageb-1.0.0/bin:$esy__store/_install/packagec-1.0.0/bin:$esy__store/_install/buildtool-1.0.0/bin:$esy__store/_install/ocamlfind-1.6.2/bin:$esy__store/_install/ocaml-4.2.3/bin:$PATH\"
+export MAN_PATH=\"$esy__store/_install/packageb-1.0.0/man:$esy__store/_install/packagec-1.0.0/man:$esy__store/_install/buildtool-1.0.0/man:$esy__store/_install/ocamlfind-1.6.2/man:$esy__store/_install/ocaml-4.2.3/man:$MAN_PATH\"
+
+# ocaml@4.2.3 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocaml/package.json
+# [BuiltIns]
+export ocaml__name=\"ocaml\"
+export ocaml__version=\"4.2.3\"
+export ocaml__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocaml\"
+export ocaml__root=\"$esy__store/_build/ocaml-4.2.3\"
+export ocaml__depends=\"\"
+export ocaml__target_dir=\"$esy__store/_build/ocaml-4.2.3\"
+export ocaml__install=\"$esy__store/_install/ocaml-4.2.3\"
+export ocaml__bin=\"$ocaml__install/bin\"
+export ocaml__sbin=\"$ocaml__install/sbin\"
+export ocaml__lib=\"$ocaml__install/lib\"
+export ocaml__man=\"$ocaml__install/man\"
+export ocaml__doc=\"$ocaml__install/doc\"
+export ocaml__stublibs=\"$ocaml__install/stublibs\"
+export ocaml__toplevel=\"$ocaml__install/toplevel\"
+export ocaml__share=\"$ocaml__install/share\"
+export ocaml__etc=\"$ocaml__install/etc\"
+# [Custom Variables]
+export OCAMLLIB=\"$ocaml__install/lib/ocaml\"
+export CAML_LD_LIBRARY_PATH=\"$ocaml__install/lib/ocaml/stublibs:$ocaml__install/lib/ocaml:$CAML_LD_LIBRARY_PATH\"
+export OCAML_TOPLEVEL_PATH=\"$ocaml__install/lib/ocaml\"
+
+# ocamlfind@1.6.2 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocamlfind/package.json
+# [BuiltIns]
+export ocamlfind__name=\"ocamlfind\"
+export ocamlfind__version=\"1.6.2\"
+export ocamlfind__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocamlfind\"
+export ocamlfind__root=\"$esy__store/_build/ocamlfind-1.6.2\"
+export ocamlfind__depends=\"ocaml\"
+export ocamlfind__target_dir=\"$esy__store/_build/ocamlfind-1.6.2\"
+export ocamlfind__install=\"$esy__store/_install/ocamlfind-1.6.2\"
+export ocamlfind__bin=\"$ocamlfind__install/bin\"
+export ocamlfind__sbin=\"$ocamlfind__install/sbin\"
+export ocamlfind__lib=\"$ocamlfind__install/lib\"
+export ocamlfind__man=\"$ocamlfind__install/man\"
+export ocamlfind__doc=\"$ocamlfind__install/doc\"
+export ocamlfind__stublibs=\"$ocamlfind__install/stublibs\"
+export ocamlfind__toplevel=\"$ocamlfind__install/toplevel\"
+export ocamlfind__share=\"$ocamlfind__install/share\"
+export ocamlfind__etc=\"$ocamlfind__install/etc\"
+# [Custom Variables]
+export ocamlfind_installed=\"true\"
+export ocamlfind_enable=\"enable\"
+export PATH=\"$ocamlfind__bin:$PATH\"
+
+# buildtool@1.0.0 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/package.json
+# [BuiltIns]
+export buildtool__name=\"buildtool\"
+export buildtool__version=\"1.0.0\"
+export buildtool__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool\"
+export buildtool__root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool\"
+export buildtool__depends=\"ocamlfind ocaml\"
+export buildtool__target_dir=\"$esy__store/_build/buildtool-1.0.0\"
+export buildtool__install=\"$esy__store/_install/buildtool-1.0.0\"
+export buildtool__bin=\"$buildtool__install/bin\"
+export buildtool__sbin=\"$buildtool__install/sbin\"
+export buildtool__lib=\"$buildtool__install/lib\"
+export buildtool__man=\"$buildtool__install/man\"
+export buildtool__doc=\"$buildtool__install/doc\"
+export buildtool__stublibs=\"$buildtool__install/stublibs\"
+export buildtool__toplevel=\"$buildtool__install/toplevel\"
+export buildtool__share=\"$buildtool__install/share\"
+export buildtool__etc=\"$buildtool__install/etc\"
+
+# PackageC@1.0.0 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/package.json
+# [BuiltIns]
+export packagec__name=\"PackageC\"
+export packagec__version=\"1.0.0\"
+export packagec__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC\"
+export packagec__root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC\"
+export packagec__depends=\"buildtool ocaml\"
+export packagec__target_dir=\"$esy__store/_build/packagec-1.0.0\"
+export packagec__install=\"$esy__store/_install/packagec-1.0.0\"
+export packagec__bin=\"$packagec__install/bin\"
+export packagec__sbin=\"$packagec__install/sbin\"
+export packagec__lib=\"$packagec__install/lib\"
+export packagec__man=\"$packagec__install/man\"
+export packagec__doc=\"$packagec__install/doc\"
+export packagec__stublibs=\"$packagec__install/stublibs\"
+export packagec__toplevel=\"$packagec__install/toplevel\"
+export packagec__share=\"$packagec__install/share\"
+export packagec__etc=\"$packagec__install/etc\"
+# [Custom Variables]
+export packagec__dynamicVar=\"$cur__root\"
+export packagec__LOCALVAR=\"$packagec__root/package.json\"
+export GLOBAL_TEST_VAR_CLOBBER=\"$packagec__root/package.json\"
+export GLOBAL_TEST_VAR_JOIN=\"$packagec__root/package.json:$GLOBAL_TEST_VAR_JOIN\"
+export GLOBAL_TEST_VAR_PACKAGEC=\"$packagec__root/package.json\"
+
+# PackageB@1.0.0 $esy__sandbox/node_modules/PackageB/package.json
+# [ERROR] LOOKSLIKE__ANOTHER_PACKAGE looks like it\'s trying to step on another package because it has a double underscore - which is how we express namespaced env vars. The package owner for PackageB likely made a mistake
+# [BuiltIns]
+export packageb__name=\"PackageB\"
+export packageb__version=\"1.0.0\"
+export packageb__source_root=\"$esy__sandbox/node_modules/PackageB\"
+export packageb__root=\"$esy__sandbox/node_modules/PackageB\"
+export packageb__depends=\"PackageC buildtool ocaml\"
+export packageb__target_dir=\"$esy__store/_build/packageb-1.0.0\"
+export packageb__install=\"$esy__store/_install/packageb-1.0.0\"
+export packageb__bin=\"$packageb__install/bin\"
+export packageb__sbin=\"$packageb__install/sbin\"
+export packageb__lib=\"$packageb__install/lib\"
+export packageb__man=\"$packageb__install/man\"
+export packageb__doc=\"$packageb__install/doc\"
+export packageb__stublibs=\"$packageb__install/stublibs\"
+export packageb__toplevel=\"$packageb__install/toplevel\"
+export packageb__share=\"$packageb__install/share\"
+export packageb__etc=\"$packageb__install/etc\"
+# [Custom Variables]
+export packageb__dynamicVar=\"$cur__root\"
+export packageb__LOCALVAR=\"$packageb__root/package.json\"
+export LOOKSLIKE__ANOTHER_PACKAGE=\"$packageb__root/package.json\"
+export GLOBAL_TEST_VAR_CLOBBER=\"$packageb__root/package.json\"
+export GLOBAL_TEST_VAR_JOIN=\"$packageb__root/package.json:$GLOBAL_TEST_VAR_JOIN\"
+export GLOBAL_TEST_VAR_PACKAGEB=\"$packageb__root/package.json\"
+
+# PackageA@1.0.0 $esy__sandbox/package.json
+# [BuiltIns]
+export packagea__name=\"PackageA\"
+export packagea__version=\"1.0.0\"
+export packagea__source_root=\"$esy__sandbox\"
+export packagea__root=\"$esy__sandbox\"
+export packagea__depends=\"PackageB buildtool ocaml\"
+export packagea__target_dir=\"$esy__sandbox/_build\"
+export packagea__install=\"$esy__sandbox/_install\"
+export packagea__bin=\"$packagea__install/bin\"
+export packagea__sbin=\"$packagea__install/sbin\"
+export packagea__lib=\"$packagea__install/lib\"
+export packagea__man=\"$packagea__install/man\"
+export packagea__doc=\"$packagea__install/doc\"
+export packagea__stublibs=\"$packagea__install/stublibs\"
+export packagea__toplevel=\"$packagea__install/toplevel\"
+export packagea__share=\"$packagea__install/share\"
+export packagea__etc=\"$packagea__install/etc\"
+# [Custom Variables]
+export packagea__dynamicVar=\"$cur__root\"
+export packagea__LOCALVAR=\"$packagea__root/package.json\"
+export GLOBAL_TEST_VAR_CLOBBER=\"$packagea__root/package.json\"
+export GLOBAL_TEST_VAR_JOIN=\"$packagea__root/package.json:$GLOBAL_TEST_VAR_JOIN\"
+export GLOBAL_TEST_VAR_PACKAGEA=\"$packagea__root/package.json\"
+"
+`;
