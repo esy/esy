@@ -15,9 +15,9 @@ exports[`test build 1`] = `
 `;
 
 exports[`test build 2`] = `
-"Hello, I\'m PackageC!!!!
+"Hello, I'm PackageC!!!!
 PackageB, PackageB, PackageB
-Hello, I\'m PackageA
+Hello, I'm PackageA
 "
 `;
 
@@ -37,7 +37,6 @@ export esy__install_tree=\"$esy__sandbox/_install\"
 export esy__build_tree=\"$esy__sandbox/_build\"
 export cur__name=\"PackageA\"
 export cur__version=\"1.0.0\"
-export cur__source_root=\"$esy__sandbox\"
 export cur__root=\"$esy__sandbox\"
 export cur__depends=\"PackageB buildtool ocaml\"
 export cur__target_dir=\"$esy__sandbox/_build\"
@@ -60,7 +59,6 @@ export MAN_PATH=\"$esy__store/_install/packageb-1.0.0/man:$esy__store/_install/p
 # [BuiltIns]
 export ocaml__name=\"ocaml\"
 export ocaml__version=\"4.2.3\"
-export ocaml__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocaml\"
 export ocaml__root=\"$esy__store/_build/ocaml-4.2.3\"
 export ocaml__depends=\"\"
 export ocaml__target_dir=\"$esy__store/_build/ocaml-4.2.3\"
@@ -83,7 +81,6 @@ export OCAML_TOPLEVEL_PATH=\"$ocaml__install/lib/ocaml\"
 # [BuiltIns]
 export ocamlfind__name=\"ocamlfind\"
 export ocamlfind__version=\"1.6.2\"
-export ocamlfind__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocamlfind\"
 export ocamlfind__root=\"$esy__store/_build/ocamlfind-1.6.2\"
 export ocamlfind__depends=\"ocaml\"
 export ocamlfind__target_dir=\"$esy__store/_build/ocamlfind-1.6.2\"
@@ -106,7 +103,6 @@ export PATH=\"$ocamlfind__bin:$PATH\"
 # [BuiltIns]
 export buildtool__name=\"buildtool\"
 export buildtool__version=\"1.0.0\"
-export buildtool__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool\"
 export buildtool__root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool\"
 export buildtool__depends=\"ocamlfind ocaml\"
 export buildtool__target_dir=\"$esy__store/_build/buildtool-1.0.0\"
@@ -125,7 +121,6 @@ export buildtool__etc=\"$buildtool__install/etc\"
 # [BuiltIns]
 export packagec__name=\"PackageC\"
 export packagec__version=\"1.0.0\"
-export packagec__source_root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC\"
 export packagec__root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC\"
 export packagec__depends=\"buildtool ocaml\"
 export packagec__target_dir=\"$esy__store/_build/packagec-1.0.0\"
@@ -151,7 +146,6 @@ export GLOBAL_TEST_VAR_PACKAGEC=\"$packagec__root/package.json\"
 # [BuiltIns]
 export packageb__name=\"PackageB\"
 export packageb__version=\"1.0.0\"
-export packageb__source_root=\"$esy__sandbox/node_modules/PackageB\"
 export packageb__root=\"$esy__sandbox/node_modules/PackageB\"
 export packageb__depends=\"PackageC buildtool ocaml\"
 export packageb__target_dir=\"$esy__store/_build/packageb-1.0.0\"
@@ -177,7 +171,6 @@ export GLOBAL_TEST_VAR_PACKAGEB=\"$packageb__root/package.json\"
 # [BuiltIns]
 export packagea__name=\"PackageA\"
 export packagea__version=\"1.0.0\"
-export packagea__source_root=\"$esy__sandbox\"
 export packagea__root=\"$esy__sandbox\"
 export packagea__depends=\"PackageB buildtool ocaml\"
 export packagea__target_dir=\"$esy__sandbox/_build\"
