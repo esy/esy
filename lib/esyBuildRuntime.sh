@@ -62,25 +62,49 @@ esy-build-command () {
   else
     echo -e "${FG_GREEN}*** $cur__name: build complete${FG_RESET}"
   fi
+
+}
+
+esy-copy-permissions () {
+  chmod `stat -f '%p' "$1"` "${@:2}"
+}
+
+esy-replace-string () {
+  FILE="$1"
+  SRC_STRING="$2"
+  DEST_STRING="$3"
+  # TODO: get rid of python here
+  python -c "
+with open('$FILE', 'r') as input_file:
+  data = input_file.read()
+data = data.replace('$SRC_STRING', '$DEST_STRING')
+with open('$FILE', 'w') as output_file:
+  output_file.write(data)
+  "
+}
+
+esy-commit-install () {
+  for filename in `find $cur__install -type f`; do
+    esy-replace-string "$filename" "$cur__install" "$esy_build__install"
+  done
+  mv $cur__install $esy_build__install
 }
 
 esy-clean () {
-  rm -rf $cur__install
+  rm -rf $esy_build__install
 }
 
 esy-build () {
-  # TODO: that's a fragile check, we need to build in another location and then
-  # mv to the $cur__install. Why we don't do this now is because we don't
-  # assume everything we build is relocatable.
-  if [ ! -d "$cur__install" ]; then
+  if [ ! -d "$esy_build__install" ]; then
     esy-prepare-install-tree
-    # TODO: we need proper locking mechanism here
     esy-build-command
+    esy-commit-install
   fi
 }
 
 esy-force-build () {
   esy-prepare-install-tree
-  # TODO: we need proper locking mechanism here
   esy-build-command
+  esy-clean
+  esy-commit-install
 }
