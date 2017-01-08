@@ -14,7 +14,7 @@ if (process.platform === 'darwin') {
     ../../.bin/esy build`
     );
     expect(res.status).not.toBe(0);
-    expect(sandbox.readFile('should_be_GOOD')).toBe('GOOD');
+    expect(sandbox.readFile('node_modules', 'should_be_GOOD')).toBe('GOOD');
   });
 
 }

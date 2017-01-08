@@ -2,6 +2,6 @@
   "name": "TestSandboxing",
   "version": "1.0.0",
   "esy": {
-    "build": "echo BAD > $cur__root/should_be_GOOD"
+    "build": "echo BAD > $cur__root/node_modules/should_be_GOOD"
   }
 }
