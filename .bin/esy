@@ -32,7 +32,7 @@ EJECT_PATH="$PWD/node_modules/.cache/esy"
 
 EJECT_MAKEFILE="
 eject: $EJECT_PATH
-$EJECT_PATH: $PWD/package.json \$(wildcard $PWD/node_modules/*)
+$EJECT_PATH: $PWD/package.json \$(shell find $PWD/node_modules -name 'package.json')
 	rm -rf \$(@)
 	mkdir -p \$(@D)
 	/usr/bin/env node $SCRIPTDIR/esy.js build-eject \$(@)
