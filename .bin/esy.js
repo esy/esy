@@ -141,8 +141,8 @@ const Sandbox = require('../lib/Sandbox');
 
 const builtInCommands = {
   "build-eject": function(...args) {
-    let build = require('../lib/esyBuildEjectCommand');
-    build(...args);
+    let buildEject = require('../lib/esyBuildEjectCommand');
+    buildEject(...args);
   },
 };
 

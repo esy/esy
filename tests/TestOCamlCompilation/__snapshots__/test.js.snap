@@ -15,9 +15,9 @@ exports[`test build 1`] = `
 `;
 
 exports[`test build 2`] = `
-"Hello, I'm PackageC!!!!
+"Hello, I\'m PackageC!!!!
 PackageB, PackageB, PackageB
-Hello, I'm PackageA
+Hello, I\'m PackageA
 "
 `;
 
@@ -51,7 +51,7 @@ export cur__toplevel=\"$cur__install/toplevel\"
 export cur__share=\"$cur__install/share\"
 export cur__etc=\"$cur__install/etc\"
 # [Custom Variables]
-export OCAMLFIND_CONF=\"$cur__target_dir/_esy_findlib.conf\"
+export OCAMLFIND_CONF=\"$cur__target_dir/_esy/findlib.conf\"
 export PATH=\"$esy__store/_install/packageb-1.0.0/bin:$esy__store/_install/packagec-1.0.0/bin:$esy__store/_install/buildtool-1.0.0/bin:$esy__store/_install/ocamlfind-1.6.2/bin:$esy__store/_install/ocaml-4.2.3/bin:$PATH\"
 export MAN_PATH=\"$esy__store/_install/packageb-1.0.0/man:$esy__store/_install/packagec-1.0.0/man:$esy__store/_install/buildtool-1.0.0/man:$esy__store/_install/ocamlfind-1.6.2/man:$esy__store/_install/ocaml-4.2.3/man:$MAN_PATH\"
 

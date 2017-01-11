@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -26,20 +28,28 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # Capturing stderr is very important to prevent nodejs from setting
 # stderr to nonblocking mode
 
+EJECT_PATH="$PWD/node_modules/.cache/esy"
+
+esy-eject () {
+  mkdir -p `dirname $EJECT_PATH`
+  rm -rf $EJECT_PATH
+  exec /usr/bin/env node $SCRIPTDIR/esy.js build-eject $EJECT_PATH
+}
+
 if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
-  MAKEFILE=`/usr/bin/env node $SCRIPTDIR/esy.js build-eject $CURDIR 2>&1`
+  EJECT_LOG=`esy-eject 2>&1`
   if [ $? -ne 0 ]; then
-    echo "Failed to get dependency:"
-    printf "%s\n" "$MAKEFILE" >&2
+    echo "Failed prepare build environment:"
+    printf "%s\n" "$EJECT_LOG" >&2
     exit 1
   fi
-  make -j -s -f <(echo "$MAKEFILE") "$1"
+  make -j -s -f "$EJECT_PATH/Makefile" "$1"
 
 elif [ "$1" == "build-eject" ]; then
-  exec /usr/bin/env node $SCRIPTDIR/esy.js build-eject $CURDIR
+  esy-eject
 
 else
-  SETENVCMD=$(/usr/bin/env node $SCRIPTDIR/esy.js $CURDIR 2>&1)
+  SETENVCMD=$(/usr/bin/env node $SCRIPTDIR/esy.js 2>&1)
   if [ $? -ne 0 ]; then
     echo "Failed to get dependency:"
     printf "%s\n" "$SETENVCMD" >&2
@@ -50,10 +60,7 @@ else
     export ESY__SANDBOX="$PWD"
   fi
   if [ -z "${ESY__STORE+x}" ]; then
-    export ESY__STORE="$HOME/.esy/store"
-  fi
-  if [ -z "${ESY__RUNTIME+x}" ]; then
-    export ESY__RUNTIME="$HOME/.esy/runtime.sh"
+    export ESY__STORE="$HOME/.esy"
   fi
 
   if [ "$1" != "" ]; then

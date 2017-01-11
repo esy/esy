@@ -28,7 +28,7 @@ export cur__toplevel=\"$cur__install/toplevel\"
 export cur__share=\"$cur__install/share\"
 export cur__etc=\"$cur__install/etc\"
 # [Custom Variables]
-export OCAMLFIND_CONF=\"$cur__target_dir/_esy_findlib.conf\"
+export OCAMLFIND_CONF=\"$cur__target_dir/_esy/findlib.conf\"
 
 # TestBuildsInSource@1.0.0 $esy__sandbox/package.json
 # [BuiltIns]
