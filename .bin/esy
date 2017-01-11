@@ -30,14 +30,20 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 EJECT_PATH="$PWD/node_modules/.cache/esy"
 
-esy-eject () {
-  mkdir -p `dirname $EJECT_PATH`
-  rm -rf $EJECT_PATH
-  exec /usr/bin/env node $SCRIPTDIR/esy.js build-eject $EJECT_PATH
+EJECT_MAKEFILE="
+eject: $EJECT_PATH
+$EJECT_PATH: $PWD/package.json \$(wildcard $PWD/node_modules/*)
+	rm -rf \$(@)
+	mkdir -p \$(@D)
+	/usr/bin/env node $SCRIPTDIR/esy.js build-eject \$(@)
+"
+
+eject () {
+  make -s -f <(echo "$EJECT_MAKEFILE") eject
 }
 
 if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
-  EJECT_LOG=`esy-eject 2>&1`
+  EJECT_LOG=`eject 2>&1`
   if [ $? -ne 0 ]; then
     echo "Failed prepare build environment:"
     printf "%s\n" "$EJECT_LOG" >&2
@@ -46,7 +52,7 @@ if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
   make -j -s -f "$EJECT_PATH/Makefile" "$1"
 
 elif [ "$1" == "build-eject" ]; then
-  esy-eject
+  eject
 
 else
   SETENVCMD=$(/usr/bin/env node $SCRIPTDIR/esy.js 2>&1)
