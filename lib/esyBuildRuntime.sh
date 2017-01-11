@@ -19,6 +19,8 @@ fi
 
 _esy-prepare-build-env () {
 
+  rm -rf $cur__install
+
   # prepare build and installation directory
   mkdir -p                \
     $cur__target_dir      \
