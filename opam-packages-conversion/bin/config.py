@@ -49,8 +49,6 @@ OVERRIDE = {
     'typerex-build': {
         'version': drop_beta_from_version,
         "build": [
-            "(cd $cur__root/tools/ocp-autoconf/skeleton && mv .npmignore .gitignore)",
-            "(cd $cur__root/tools/ocp-autoconf/skeleton/autoconf && mv .npmignore .gitignore)",
             "./configure --prefix $cur__install",
             "make",
             "make install",
