@@ -38,7 +38,7 @@
     "npm": ">=3.10.0"
   },
   "devDependencies": {
-    "flow-bin": "^0.36.0",
+    "flow-bin": "^0.38.0",
     "jest": "^18.1.0"
   }
 }
