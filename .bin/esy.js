@@ -3,13 +3,8 @@
 
 let Module = require('module');
 let childProcess = require('child_process');
-let removeTypes = require('flow-remove-types');
 
-let super_compile = Module.prototype._compile;
-Module.prototype._compile = function _compile(source, filename) {
-  let transformedSource = removeTypes(source)
-  super_compile.call(this, transformedSource, filename);
-};
+require('babel-register')
 
 const PackageEnvironment = require('../lib/PackageEnvironment');
 const Sandbox = require('../lib/Sandbox');
