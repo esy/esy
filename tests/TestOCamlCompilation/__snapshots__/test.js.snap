@@ -37,7 +37,7 @@ export esy__install_tree=\"$esy__sandbox/_install\"
 export esy__build_tree=\"$esy__sandbox/_build\"
 export cur__name=\"PackageA\"
 export cur__version=\"1.0.0\"
-export cur__root=\"$esy__sandbox\"
+export cur__root=\"$esy__sandbox/\"
 export cur__depends=\"PackageB buildtool ocaml\"
 export cur__target_dir=\"$esy__sandbox/_build\"
 export cur__install=\"$esy__sandbox/_install\"
@@ -55,7 +55,7 @@ export OCAMLFIND_CONF=\"$cur__target_dir/_esy/findlib.conf\"
 export PATH=\"$esy__store/_install/packageb-1.0.0/bin:$esy__store/_install/packagec-1.0.0/bin:$esy__store/_install/buildtool-1.0.0/bin:$esy__store/_install/ocamlfind-1.6.2/bin:$esy__store/_install/ocaml-4.2.3/bin:$PATH\"
 export MAN_PATH=\"$esy__store/_install/packageb-1.0.0/man:$esy__store/_install/packagec-1.0.0/man:$esy__store/_install/buildtool-1.0.0/man:$esy__store/_install/ocamlfind-1.6.2/man:$esy__store/_install/ocaml-4.2.3/man:$MAN_PATH\"
 
-# ocaml@4.2.3 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocaml/package.json
+# ocaml@4.2.3 $esy__sandbox/../buildtool/node_modules/ocaml/package.json
 # [BuiltIns]
 export ocaml__name=\"ocaml\"
 export ocaml__version=\"4.2.3\"
@@ -77,7 +77,7 @@ export OCAMLLIB=\"$ocaml__install/lib/ocaml\"
 export CAML_LD_LIBRARY_PATH=\"$ocaml__install/lib/ocaml/stublibs:$ocaml__install/lib/ocaml:$CAML_LD_LIBRARY_PATH\"
 export OCAML_TOPLEVEL_PATH=\"$ocaml__install/lib/ocaml\"
 
-# ocamlfind@1.6.2 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/node_modules/ocamlfind/package.json
+# ocamlfind@1.6.2 $esy__sandbox/../buildtool/node_modules/ocamlfind/package.json
 # [BuiltIns]
 export ocamlfind__name=\"ocamlfind\"
 export ocamlfind__version=\"1.6.2\"
@@ -99,11 +99,11 @@ export ocamlfind_installed=\"true\"
 export ocamlfind_enable=\"enable\"
 export PATH=\"$ocamlfind__bin:$PATH\"
 
-# buildtool@1.0.0 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool/package.json
+# buildtool@1.0.0 $esy__sandbox/../buildtool/package.json
 # [BuiltIns]
 export buildtool__name=\"buildtool\"
 export buildtool__version=\"1.0.0\"
-export buildtool__root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC/node_modules/buildtool\"
+export buildtool__root=\"$esy__sandbox/../buildtool\"
 export buildtool__depends=\"ocamlfind ocaml\"
 export buildtool__target_dir=\"$esy__store/_build/buildtool-1.0.0\"
 export buildtool__install=\"$esy__store/_install/buildtool-1.0.0\"
@@ -117,11 +117,11 @@ export buildtool__toplevel=\"$buildtool__install/toplevel\"
 export buildtool__share=\"$buildtool__install/share\"
 export buildtool__etc=\"$buildtool__install/etc\"
 
-# PackageC@1.0.0 $esy__sandbox/node_modules/PackageB/node_modules/PackageC/package.json
+# PackageC@1.0.0 $esy__sandbox/../PackageC/package.json
 # [BuiltIns]
 export packagec__name=\"PackageC\"
 export packagec__version=\"1.0.0\"
-export packagec__root=\"$esy__sandbox/node_modules/PackageB/node_modules/PackageC\"
+export packagec__root=\"$esy__sandbox/../PackageC\"
 export packagec__depends=\"buildtool ocaml\"
 export packagec__target_dir=\"$esy__store/_build/packagec-1.0.0\"
 export packagec__install=\"$esy__store/_install/packagec-1.0.0\"
@@ -141,12 +141,12 @@ export GLOBAL_TEST_VAR_CLOBBER=\"$packagec__root/package.json\"
 export GLOBAL_TEST_VAR_JOIN=\"$packagec__root/package.json:$GLOBAL_TEST_VAR_JOIN\"
 export GLOBAL_TEST_VAR_PACKAGEC=\"$packagec__root/package.json\"
 
-# PackageB@1.0.0 $esy__sandbox/node_modules/PackageB/package.json
+# PackageB@1.0.0 $esy__sandbox/../PackageB/package.json
 # [ERROR] LOOKSLIKE__ANOTHER_PACKAGE looks like it\'s trying to step on another package because it has a double underscore - which is how we express namespaced env vars. The package owner for PackageB likely made a mistake
 # [BuiltIns]
 export packageb__name=\"PackageB\"
 export packageb__version=\"1.0.0\"
-export packageb__root=\"$esy__sandbox/node_modules/PackageB\"
+export packageb__root=\"$esy__sandbox/../PackageB\"
 export packageb__depends=\"PackageC buildtool ocaml\"
 export packageb__target_dir=\"$esy__store/_build/packageb-1.0.0\"
 export packageb__install=\"$esy__store/_install/packageb-1.0.0\"
@@ -171,7 +171,7 @@ export GLOBAL_TEST_VAR_PACKAGEB=\"$packageb__root/package.json\"
 # [BuiltIns]
 export packagea__name=\"PackageA\"
 export packagea__version=\"1.0.0\"
-export packagea__root=\"$esy__sandbox\"
+export packagea__root=\"$esy__sandbox/\"
 export packagea__depends=\"PackageB buildtool ocaml\"
 export packagea__target_dir=\"$esy__sandbox/_build\"
 export packagea__install=\"$esy__sandbox/_install\"

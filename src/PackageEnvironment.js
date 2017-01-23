@@ -102,7 +102,7 @@ function relativeToSandbox(realFromPath, toPath) {
     ? realToPath
     : toPath;
   let ret = path.relative(realFromPath, toPathToUse);
-  return (ret == '0') ? "$esy__sandbox" : path.join("$esy__sandbox", ret);
+  return (ret == '0') ? "$esy__sandbox" : `$esy__sandbox/${ret}`;
 }
 
 function getScopes(config) {
