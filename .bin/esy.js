@@ -136,12 +136,12 @@ const Sandbox = require('../lib/Sandbox');
 
 const builtInCommands = {
   "build-eject": function(curDir, ...args) {
-    let buildEject = require('../lib/esyBuildEjectCommand');
+    let buildEject = require('../lib/buildEjectCommand');
     const sandbox = Sandbox.fromDirectory(curDir);
     buildEject(sandbox, ...args);
   },
   "install": function(curDir, ...args) {
-    let install = require('../lib/esyInstallCommand').default;
+    let install = require('../lib/installCommand').default;
     install(curDir, ...args);
   },
 };
