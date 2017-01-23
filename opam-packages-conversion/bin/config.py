@@ -31,7 +31,8 @@ OPAM_DEPOPT_BLACKLIST = {
     "mirage-xen-ocaml",
     "tyxml",
     "reactiveData",
-    "deriving"
+    "deriving",
+    "ocamlbuild",
     }
 
 GH_USER = os.environ.get('GH_USER', '')
@@ -184,4 +185,6 @@ OVERRIDE = {
 }
 
 def is_dep_allowed(name, dep):
+    if dep == 'ocamlbuild':
+        return False
     return not (dep in OVERRIDE.get(name, {}).get('exclude_dependencies', set()))
