@@ -43,7 +43,7 @@ def build_package_version_from_git_repo(repo_dir, ref, orig_ref):
 
     package_json = read_package_json(repo_dir)
     branch_name = capture('git symbolic-ref --short HEAD')
-    patch = capture('git diff %s..%s | filterdiff -p 1 -x package.json -x .gitignore', orig_ref, ref)
+    patch = capture('git diff %s..%s | filterdiff -p 1 --clean -x package.json -x .gitignore', orig_ref, ref)
     package_json.setdefault('opam', {})['patch'] = patch
     pkg_versions = {package_json['version']: package_json}
     package_name = package_json['name']
