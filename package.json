@@ -10,6 +10,7 @@
     "esy": ".bin/esy"
   },
   "dependencies": {
+    "@andreypopp/pnpm": "^0.50.0-f3f9bd",
     "babel-cli": "^6.22.2",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.22.0",
