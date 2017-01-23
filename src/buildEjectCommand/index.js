@@ -146,6 +146,7 @@ function buildEjectCommand(
       type: 'rule',
       target: '$(ESY__ROOT)/bin/realpath',
       dependencies: ['$(ESY__ROOT)/bin/realpath.c'],
+      shell: '/bin/bash',
       command: 'gcc -o $(@) -x c $(<) 2> /dev/null',
     },
     {

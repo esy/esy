@@ -19,6 +19,7 @@ export type MakeRule = {
   dependencies?: Array<string>;
   env?: Env;
   exportEnv?: Array<string>;
+  shell?: string
 };
 
 export type MakeDefine = {
@@ -101,6 +102,7 @@ function renderMakeRule(rule) {
     phony,
     env,
     exportEnv,
+    shell
   } = rule;
   let header = `${target}: ${dependencies.join(' ')}`;
 
@@ -113,6 +115,10 @@ function renderMakeRule(rule) {
 
   if (phony) {
     prelude = prelude + `.PHONY: ${target}\n`;
+  }
+
+  if (shell != null) {
+    prelude = prelude = `${target}: SHELL=${shell}\n`;
   }
 
   if (command != null) {
