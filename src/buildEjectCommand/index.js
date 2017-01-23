@@ -42,7 +42,6 @@ function buildEjectCommand(
     mkdirp(path.dirname(filename));
     fs.writeFileSync(filename, file.contents);
     if (file.executable) {
-      // $FlowFixMe: fs.constants is not in built-in decls?
       let mode = fs.constants.S_IRWXU;
       fs.chmodSync(filename, mode);
     }

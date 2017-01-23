@@ -2,3 +2,4 @@ node_modules
 **/*.pyc
 _build
 _install
+lib/

@@ -9,13 +9,13 @@
   "bin": {
     "esy": ".bin/esy"
   },
+  "files": [
+    "lib/",
+    ".bin/",
+    "opam-packages/"
+  ],
   "dependencies": {
     "@andreypopp/pnpm": "^0.50.0",
-    "babel-cli": "^6.22.2",
-    "babel-plugin-transform-flow-strip-types": "^6.22.0",
-    "babel-plugin-transform-object-rest-spread": "^6.22.0",
-    "babel-preset-env": "^1.1.8",
-    "babel-register": "^6.22.0",
     "bole": "^3.0.2",
     "chalk": "^1.1.3",
     "execa": "^0.6.0",
@@ -48,6 +48,11 @@
   },
   "devDependencies": {
     "flow-bin": "^0.38.0",
-    "jest": "^18.1.0"
+    "jest": "^18.1.0",
+    "babel-cli": "^6.22.2",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.22.0",
+    "babel-preset-env": "^1.1.8",
+    "babel-register": "^6.22.0"
   }
 }
