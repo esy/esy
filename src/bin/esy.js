@@ -2,7 +2,6 @@
  * @flow
  */
 
-let Module = require('module');
 let childProcess = require('child_process');
 
 import chalk from 'chalk';
