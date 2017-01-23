@@ -142,6 +142,18 @@ function buildEjectCommand(
       phony: true,
       dependencies: ['$(ESY__STORE)/_install',  '$(ESY__STORE)/_build', '$(ESY__STORE)/_insttmp'],
     },
+    {
+      type: 'rule',
+      target: '$(ESY__ROOT)/bin/realpath',
+      dependencies: ['$(ESY__ROOT)/bin/realpath.c'],
+      command: 'gcc -o $(@) -x c $(<) 2> /dev/null',
+    },
+    {
+      type: 'rule',
+      target: 'esy-root',
+      phony: true,
+      dependencies: ['$(ESY__ROOT)/bin/realpath'],
+    },
   ];
 
   traversePackageDependencyTree(
@@ -181,7 +193,7 @@ function buildEjectCommand(
         rules.push({
           type: 'rule',
           target: packageTarget(target),
-          dependencies: ['esy-store', ...dependencies],
+          dependencies: ['esy-store', 'esy-root', ...dependencies],
           phony: true,
           command: [
             outdent`
@@ -318,30 +330,29 @@ function buildEjectCommand(
   let allRules = [].concat(prelude).concat(rules);
 
   emitFile({
+    filename: ['bin', 'realpath.c'],
+    contents: outdent`
+      #include<stdlib.h>
+
+      main(int cc, char**vargs) {
+        puts(realpath(vargs[1], 0));
+      }
+    `,
+  });
+
+  emitFile({
     filename: ['bin/render-env'],
     executable: true,
     contents: outdent`
       #!/bin/bash
 
-      # allowed to fail
-      which realpath 2>&1 > /dev/null
-      HAS_REALPATH="$?"
-
       set -e
       set -o pipefail
 
-      safe_realpath () {
-        if [ "$HAS_REALPATH" == "0" ]; then
-          realpath "$1"
-        else
-          readlink -f "$1"
-        fi
-      }
-
-      _TMPDIR_GLOBAL=$(safe_realpath "/tmp")
+      _TMPDIR_GLOBAL=$($ESY__ROOT/bin/realpath "/tmp")
 
       if [ -d "$TMPDIR" ]; then
-        _TMPDIR=$(safe_realpath "$TMPDIR")
+        _TMPDIR=$($ESY__ROOT/bin/realpath "$TMPDIR")
       else
         _TMPDIR="/does/not/exist"
       fi
