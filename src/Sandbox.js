@@ -32,6 +32,7 @@ const {mapObject} = require('./Utility');
 export type Sandbox = {
   env: Environment;
   packageInfo: PackageInfo;
+  errors: Array<{message: string}>;
 };
 
 /**
@@ -100,7 +101,7 @@ function fromDirectory(directory: string): Sandbox {
     packageJson.peerDependencies
   );
   if (depSpecList.length > 0) {
-    const dependencyTree = buildDependencyTree(
+    const [dependencyTree, errors] = buildDependencyTree(
       source,
       depSpecList,
       {
@@ -110,6 +111,7 @@ function fromDirectory(directory: string): Sandbox {
     );
     return {
       env,
+      errors,
       packageInfo: {
         source: `local:${fs.realpathSync(source)}`,
         sourceType: 'local',
@@ -122,6 +124,7 @@ function fromDirectory(directory: string): Sandbox {
   } else {
     return {
       env,
+      errors: [],
       packageInfo: {
         source: `local:${fs.realpathSync(source)}`,
         sourceType: 'local',
@@ -213,22 +216,42 @@ function buildDependencyTree(
     packageDependencyTrace: Array<string>;
     packageCache: Map<string, PackageInfo>;
   }
-): DependencyTree {
+): [DependencyTree, Array<{message: string}>] {
   let dependencyTree: {[name: string]: PackageInfo} = {};
+  let errors = [];
+  let missingPackages = [];
+
   for (let dependencySpec of dependencySpecList) {
     const {name} = parseDependencySpec(dependencySpec);
-    const dependencyPackageJsonPath  = fs.realpathSync(resolveSync(
-      `${name}/package.json`, {basedir: baseDir}));
+
+    let dependencyPackageJsonPath = '/does/not/exists';
+    try {
+      dependencyPackageJsonPath = resolveSync(`${name}/package.json`, {basedir: baseDir});
+    } catch (_err) {
+      missingPackages.push(name);
+      continue;
+    }
+    dependencyPackageJsonPath = fs.realpathSync(dependencyPackageJsonPath);
 
     let packageInfo = context.packageCache.get(dependencyPackageJsonPath);
 
     if (packageInfo == null) {
       const dependencyBaseDir = path.dirname(dependencyPackageJsonPath);
       const packageJson = readPackageJson(dependencyPackageJsonPath);
-      const depSpecList = objectToDependencySpecList(
-        packageJson.dependencies,
-        packageJson.peerDependencies
+
+      const [packageDependencyTree, packageErrors] = buildDependencyTree(
+        dependencyBaseDir,
+        objectToDependencySpecList(
+          packageJson.dependencies,
+          packageJson.peerDependencies
+        ),
+        {
+          packageCache: context.packageCache,
+          packageDependencyTrace: context.packageDependencyTrace.concat(packageJson.name),
+        }
       );
+
+      errors = errors.concat(packageErrors);
 
       packageInfo = {
         version: packageJson.version,
@@ -237,15 +260,7 @@ function buildDependencyTree(
         rootDirectory: dependencyBaseDir,
         packageJson,
         normalizedName: normalizeName(packageJson.name),
-        dependencyTree: depSpecList.length > 0
-          ? buildDependencyTree(
-              dependencyBaseDir,
-              depSpecList,
-              {
-                packageCache: context.packageCache,
-                packageDependencyTrace: context.packageDependencyTrace.concat(packageJson.name),
-              })
-          : {}
+        dependencyTree: packageDependencyTree,
       };
 
       context.packageCache.set(dependencyPackageJsonPath, packageInfo);
@@ -253,7 +268,27 @@ function buildDependencyTree(
 
     dependencyTree[name] = packageInfo;
   }
-  return dependencyTree;
+
+  if (missingPackages.length > 0) {
+    errors.push({
+      message: formatMissingPackagesError(missingPackages, context)
+    });
+  }
+
+  return [dependencyTree, errors];
+}
+
+function formatMissingPackagesError(missingPackages, context) {
+  let packagesToReport = missingPackages.slice(0, 3);
+  let packagesMessage = packagesToReport.map(p => `"${p}"`).join(', ');
+  let extraPackagesMessage = missingPackages.length > packagesToReport.length
+    ? ` (and ${missingPackages.length - packagesToReport.length} more)`
+    : '';
+  return outdent`
+    Cannot resolve ${packagesMessage}${extraPackagesMessage} packages
+      At ${context.packageDependencyTrace.join(' -> ')}
+      Did you forget to run "esy install" command?
+  `
 }
 
 function readJson(filename) {

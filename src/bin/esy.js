@@ -5,6 +5,7 @@
 let Module = require('module');
 let childProcess = require('child_process');
 
+import chalk from 'chalk';
 const PackageEnvironment = require('../PackageEnvironment');
 const Sandbox = require('../Sandbox');
 
@@ -133,10 +134,25 @@ const Sandbox = require('../Sandbox');
  *  true/false flag and it doesn't take into account scope.
  */
 
+function formatError(message: string) {
+  return `${chalk.red('ERROR')} ${message}`;
+}
+
+function getValidSandbox(directory) {
+  const sandbox = Sandbox.fromDirectory(directory);
+  if (sandbox.errors.length > 0) {
+    sandbox.errors.forEach(error => {
+      console.log(formatError(error.message));
+    });
+    process.exit(1);
+  }
+  return sandbox;
+}
+
 const builtInCommands = {
   "build-eject": function(curDir, ...args) {
     let buildEject = require('../buildEjectCommand');
-    const sandbox = Sandbox.fromDirectory(curDir);
+    const sandbox = getValidSandbox(curDir);
     buildEject(sandbox, ...args);
   },
   "install": function(curDir, ...args) {
@@ -150,7 +166,7 @@ const curDir = process.cwd();
 const actualArgs = process.argv.slice(2);
 
 if (actualArgs.length === 0) {
-  const sandbox = Sandbox.fromDirectory(curDir);
+  const sandbox = getValidSandbox(curDir);
   // It's just a status command. Print the command that would be
   // used to setup the environment along with status of
   // the build processes, staleness, package validity etc.

@@ -58,7 +58,7 @@ elif [ "$1" == "install" ]; then
 else
   SETENVCMD=$(/usr/bin/env node $SCRIPTDIR/esy.js 2>&1)
   if [ $? -ne 0 ]; then
-    echo "Failed to get dependency:"
+    echo "Failed to get environment:"
     printf "%s\n" "$SETENVCMD" >&2
     exit 1
   fi
