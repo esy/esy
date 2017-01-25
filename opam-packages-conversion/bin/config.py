@@ -111,8 +111,6 @@ OVERRIDE = {
     'async_unix': export_caml_ld_library_path('async_unix', stublibs=True),
     'inotify': export_caml_ld_library_path('inotify', stublibs=False),
     'io-page': export_caml_ld_library_path('io-page', stublibs=False),
-    'mtime': export_caml_ld_library_path('mtime', stublibs=True),
-    'nocrypto': export_caml_ld_library_path('nocrypto', stublibs=False),
     'pcre': export_caml_ld_library_path('pcre', stublibs=False),
     'ppx_expect': export_caml_ld_library_path('ppx_expect', stublibs=True),
     'cohttp': {
@@ -134,10 +132,16 @@ OVERRIDE = {
         }
     },
     'nocrypto': {
-        'exclude_dependencies': {'mirage-xen', 'mirage-entropy-xen', 'zarith-xen'}
+        'exclude_dependencies': {'mirage-xen', 'mirage-entropy-xen', 'zarith-xen'},
+        'exportedEnv': {
+            'CAML_LD_LIBRARY_PATH': caml_ld_library_path('nocrypto', stublibs=False),
+        }
     },
     'mtime': {
-        'exclude_dependencies': {'js_of_ocaml'}
+        'exclude_dependencies': {'js_of_ocaml'},
+        'exportedEnv': {
+            'CAML_LD_LIBRARY_PATH': caml_ld_library_path('mtime', stublibs=True),
+        }
     },
 }
 
