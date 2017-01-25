@@ -34,7 +34,8 @@ OPAM_DEPOPT_BLACKLIST = {
     "reactiveData",
     "deriving",
     "ocamlbuild",
-    }
+    "js_of_ocaml",
+}
 
 GH_USER = os.environ.get('GH_USER', '')
 GH_TOKEN = os.environ.get('GH_TOKEN', '')
@@ -175,7 +176,10 @@ OVERRIDE = {
         'exclude_dependencies': {'xen-evtchn', 'xen-gnt'}
     },
     'nocrypto': {
-        'exclude_dependencies': {'mirage-entropy-xen', 'zarith-xen'}
+        'exclude_dependencies': {'mirage-xen', 'mirage-entropy-xen', 'zarith-xen'}
+    },
+    'mtime': {
+        'exclude_dependencies': {'js_of_ocaml'}
     },
 }
 
