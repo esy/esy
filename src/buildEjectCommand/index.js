@@ -374,14 +374,24 @@ function buildEjectCommand(
       #!/usr/bin/env python
 
       import sys
+      import os
+      import stat
 
       filename, src, dest = sys.argv[1:4]
+      filename_stage = filename + '.esy_rewrite'
+
+      filestat = os.stat(filename)
 
       with open(filename, 'r') as input_file:
         data = input_file.read()
+
       data = data.replace(src, dest)
-      with open(filename, 'w') as output_file:
+
+      with open(filename_stage, 'w') as output_file:
         output_file.write(data)
+
+      os.rename(filename_stage, filename)
+      os.chmod(filename, stat.S_IMODE(filestat.st_mode))
     `
   });
 
