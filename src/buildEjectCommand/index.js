@@ -28,7 +28,7 @@ const curWorkingDirectory = process.cwd();
 
 function buildEjectCommand(
   sandbox: Sandbox,
-  args: Array<string>
+  ...args: Array<string>
 ) {
 
   let defaultEjectDirectory = path.join(sandbox.packageInfo.rootDirectory, '_esy');
