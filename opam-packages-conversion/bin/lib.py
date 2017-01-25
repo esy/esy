@@ -234,8 +234,8 @@ def generate_package_json(name, version, directory):
         packageJSON["esy"]["build"] = createPostInstallCommand(
             buildFlatList(d["substs"]), breakList(d["build"]) + breakList(d["install"]))
     packageJSON["dependencies"] = {
-        "substs": "%s/substs" % (config.GH_ORG_NAME,),
-        "opam-installer-bin": "andreypopp/opam-installer-bin",
+        "substs": "esy-ocaml/substs",
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin",
     }
 
     for (dep, range) in buildFlatList(d["depends"]):
