@@ -48,7 +48,7 @@ drop_beta_from_version = lambda version: version.replace('-beta', '')
 def export_caml_ld_library_path(name, stublibs=False):
     return {
         'exportedEnv': {
-            'CAML_LD_LIBRARY_PATH': caml_ld_library_path(name),
+            'CAML_LD_LIBRARY_PATH': caml_ld_library_path(name, stublibs=stublibs),
         }
     }
 
