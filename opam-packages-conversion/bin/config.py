@@ -59,16 +59,6 @@ OVERRIDE = {
     'ocamlbuild': {
         'build': 'true',
     },
-    'ocamlfind': {
-        'build': [
-            cleanup,
-            './configure -bindir $cur__bin -sitelib $cur__lib -mandir $cur__man -config $cur__lib/findlib.conf -no-custom -no-topfind -no-camlp4',
-            'make all',
-            'make opt',
-            'make install',
-            opam_install
-        ],
-    },
     'cppo': {
         'build': [
             cleanup,
