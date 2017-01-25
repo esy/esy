@@ -13,10 +13,9 @@ import tempfile from 'tempfile';
 import chalk from 'chalk';
 import ndjson from 'ndjson';
 import bole from 'bole';
-
+import mkdirp from 'mkdirp-then';
 import * as pnpm from '@andreypopp/pnpm';
-import mkdirp from '@andreypopp/pnpm/lib/fs/mkdirp';
-import {fetchFromTarball} from '@andreypopp/pnpm/lib/install/fetchResolution';
+
 import {hash} from '../Utility';
 import initLogger from './logger';
 
@@ -26,11 +25,17 @@ export type PackageJsonCollection = {
   }
 };
 
+type File = {
+  name: string;
+  content: string;
+};
+
 export type PackageJson = {
   name: string;
   version: string;
   opam: {
     url: string;
+    files?: Array<File>;
     patch?: string;
   }
 };
@@ -76,7 +81,7 @@ const installationSpec = {
         // fallback to pnpm's fetching algo
         return false;
       } else {
-        await fetchFromTarball(target, {tarball: resolution.tarball}, opts);
+        await fetchFromOpam(target, resolution);
         return true;
       }
     },
@@ -97,6 +102,7 @@ const installationSpec = {
         packageJson = {...packageJson, _resolved: resolution.id};
         writeJson(packageJsonFilename, packageJson);
 
+        await putFiles(packageJson, target);
         await applyPatch(packageJson, target);
       }
     },
@@ -108,6 +114,13 @@ async function applyPatch(packageJson: PackageJson, target: string) {
     const patchFilename = path.join(target, '_esy_patch');
     await fs.writeFile(patchFilename, packageJson.opam.patch, 'utf8');
     await execa.shell('patch -p1 < _esy_patch', {cwd: target});
+  }
+}
+
+async function putFiles(packageJson: PackageJson, target: string) {
+  if (packageJson.opam.files) {
+    await Promise.all(packageJson.opam.files.map(file =>
+      fs.writeFile(path.join(target, file.name), file.content, 'utf8')));
   }
 }
 
@@ -132,6 +145,33 @@ async function lookupPackageCollection(packageName: string): Promise<PackageJson
   return await readJson(packageRecordFilename);
 }
 
+async function fetchFromOpam(target, resolution) {
+  if (resolution.tarball === 'empty') {
+    await mkdirp(target);
+  } else {
+    const filename = path.basename(resolution.tarball);
+    const stage  = tempfile(filename);
+    await mkdirp(stage);
+    await mkdirp(target);
+    await execa('wget', [resolution.tarball], {cwd: stage});
+    if (filename.endsWith('.tar.gz') || filename.endsWith('.tgz')) {
+      await execa(
+        'tar',
+        ['-xzf', filename, '--strip-components', '1', '-C', target],
+        {cwd: stage}
+      );
+    } else if (filename.endsWith('.tbz') || filename.endsWith('.tar.bz2')) {
+      await execa(
+        'tar',
+        ['-xjf', filename, '--strip-components', '1', '-C', target],
+        {cwd: stage}
+      );
+    } else {
+      throw new Error(`unknown tarball type: ${filename}`);
+    }
+  }
+}
+
 async function resolveFromOpam(spec, opts): Promise<any> {
   let [_opamScope, packageName] = spec.name.split('/')
   let packageCollection = await lookupPackageCollection(packageName);
@@ -151,7 +191,7 @@ async function resolveFromOpam(spec, opts): Promise<any> {
     let resolution = {
       type: 'tarball',
       id,
-      tarball: `file:${require.resolve('./empty.tar.gz')}`,
+      tarball: 'empty',
       opam: {name: packageName, version: packageJson.version},
     }
     return {resolution}
