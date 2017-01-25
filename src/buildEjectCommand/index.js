@@ -382,6 +382,9 @@ function buildEjectCommand(
 
       filestat = os.stat(filename)
 
+      # TODO: we probably should handle symlinks too in a special way,
+      # to modify their location to a rewritten path
+
       with open(filename, 'r') as input_file:
         data = input_file.read()
 
