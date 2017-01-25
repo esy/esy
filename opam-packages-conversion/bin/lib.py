@@ -133,6 +133,11 @@ def generate_package_json(name, version, directory):
         else:
             return version
 
+    def normalize_var_name(name):
+        if '+' in name:
+            name, _ = name.split('+', 1)
+        return name.replace('-', '_')
+
     def cmdToStrings(cmd):
         return re.findall(r"\"[^\"]+\"|\S+", cmd)
 
@@ -143,10 +148,10 @@ def generate_package_json(name, version, directory):
                 return builtInVars[var]
             g = re.search(r"(.*):enable", var)
             if g:
-                return "${%s_enable:-disable}" % g.group(1).replace("-", "_")
+                return "${%s_enable:-disable}" % normalize_var_name(g.group(1))
             g = re.search(r"(.*):installed", var)
             if g:
-                return "${%s_installed:-false}" % g.group(1).replace("-", "_")
+                return "${%s_installed:-false}" % normalize_var_name(g.group(1))
             raise Exception("Cannot expand variable %s" % var)
         return re.sub(r"%\{(.*?)\}%", escape, s)
 
