@@ -137,6 +137,11 @@ function formatError(message: string) {
   return `${chalk.red('ERROR')} ${message}`;
 }
 
+function error(message: string) {
+  console.log(formatError(message));
+  process.exit(1);
+}
+
 function getValidSandbox(directory) {
   const sandbox = Sandbox.fromDirectory(directory);
   if (sandbox.errors.length > 0) {
@@ -155,8 +160,15 @@ const builtInCommands = {
     buildEject(sandbox, ...args);
   },
   "install": function(curDir, ...args) {
-    let install = require('../installCommand').default;
-    install(curDir, ...args);
+    let {esyInstallCommand} = require('../installCommand');
+    esyInstallCommand(curDir, ...args);
+  },
+  "add": function(curDir, ...args) {
+    if (args.length === 0) {
+      error('provide packages to install');
+    }
+    let {esyAddCommand} = require('../installCommand');
+    esyAddCommand(curDir, ...args);
   },
 };
 
@@ -178,7 +190,7 @@ if (actualArgs.length === 0) {
   let builtInCommandName = actualArgs[0];
   let builtInCommand = builtInCommands[builtInCommandName];
   if (builtInCommand) {
-    builtInCommand(curDir, process.argv.slice(3));
+    builtInCommand(curDir, ...process.argv.slice(3));
   } else {
     console.error(`unknown command: ${builtInCommandName}`);
   }

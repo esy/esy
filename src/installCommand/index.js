@@ -181,13 +181,33 @@ function resolveVersion(packageCollection: PackageJsonCollection, spec): Package
   }
 }
 
-export default function esyInstallCommand() {
+function initLogging() {
   let streamParser = ndjson.parse();
   initLogger(streamParser);
   bole.output([
     {level: 'debug', stream: streamParser}
   ]);
+}
+
+export function esyInstallCommand() {
+  initLogging();
   pnpm.install(installationSpec).then(
+    () => {
+      console.log(chalk.green('*** installation finished'));
+    },
+    (err) => {
+      console.error(chalk.red(err.stack || err));
+      process.exit(1);
+    }
+  );
+}
+
+export function esyAddCommand(...installPackages: Array<string>) {
+  initLogging();
+  pnpm.installPkgs(installPackages, {
+    ...installationSpec,
+    save: true
+  }).then(
     () => {
       console.log(chalk.green('*** installation finished'));
     },
