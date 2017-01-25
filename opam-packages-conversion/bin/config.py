@@ -28,6 +28,7 @@ OPAM_DEPOPT_BLACKLIST = {
     "conf-libev",
     "lablgtk",
     "ssl",
+    "mirage-xen",
     "mirage-xen-ocaml",
     "tyxml",
     "reactiveData",
@@ -158,11 +159,23 @@ OVERRIDE = {
             }
         }
     },
+    'cohttp': {
+        'exclude_dependencies': {'mirage-net'},
+    },
+    'conduit': {
+        'exclude_dependencies': {'mirage-dns'},
+    },
     'ocamlgraph': {
         'exclude_dependencies': {'conf-gnomecanvas'},
     },
     'utop': {
         'exclude_dependencies': {'camlp4'},
+    },
+    'vchan': {
+        'exclude_dependencies': {'xen-evtchn', 'xen-gnt'}
+    },
+    'nocrypto': {
+        'exclude_dependencies': {'mirage-entropy-xen', 'zarith-xen'}
     },
 }
 
