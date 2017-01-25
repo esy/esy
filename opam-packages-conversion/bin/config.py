@@ -81,14 +81,6 @@ OVERRIDE = {
         ],
     },
     'lwt': {
-        'build': [
-            cleanup,
-            "mkdir -p src/unix/jobs-unix",
-            "./configure --prefix $cur__install --${conf_libev_enable:-disable}-libev --${camlp4_enable:-disable}-camlp4 --${react_enable:-disable}-react --${ssl_enable:-disable}-ssl --${base_unix_enable:-disable}-unix --${base_threads_enable:-disable}-preemptive --${lablgtk_enable:-disable}-glib --${ppx_tools_enable:-disable}-ppx",
-            "make build",
-            "make install",
-            opam_install
-        ],
         'exportedEnv': {
             'CAML_LD_LIBRARY_PATH': {
                 'scope': 'global',

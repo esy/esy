@@ -15,7 +15,7 @@ conf-which 1
 cppo 1.4.1
 easy-format 1.2.0
 lambda-term 1.9
-lwt 2.5.2
+lwt 2.5.2 2.7.0
 menhir 20161115
 merlin 2.5.3
 merlin-extend 0.3
