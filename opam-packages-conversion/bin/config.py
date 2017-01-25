@@ -45,18 +45,20 @@ opam_install = '(opam-installer --prefix=$cur__install || true)'
 
 drop_beta_from_version = lambda version: version.replace('-beta', '')
 
-def export_caml_ld_library_path(name):
+def export_caml_ld_library_path(name, stublibs=False):
     return {
         'exportedEnv': {
             'CAML_LD_LIBRARY_PATH': caml_ld_library_path(name),
         }
     }
 
-def caml_ld_library_path(name):
-    name = name.replace('-', '_')
+def caml_ld_library_path(name, stublibs=False):
+    norm_name = name.replace('-', '_')
     return {
         'scope': 'global',
-        'val': '$opam_%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (name, name),
+        'val': '$opam_%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (
+            norm_name,
+            'stublibs' if stublibs else name),
     }
 
 OVERRIDE = {
@@ -91,28 +93,28 @@ OVERRIDE = {
             opam_install
         ],
     },
-    'ctypes': export_caml_ld_library_path('ctypes'),
-    'zarith': export_caml_ld_library_path('zarith'),
-    'cstruct': export_caml_ld_library_path('cstruct'),
-    'launchd': export_caml_ld_library_path('launchd'),
-    'lwt': export_caml_ld_library_path('lwt'),
-    'lambda-term': export_caml_ld_library_path('lambda-term'),
-    'bin_prot': export_caml_ld_library_path('bin_prot'),
-    'core_kernel': export_caml_ld_library_path('core_kernel'),
-    'core': export_caml_ld_library_path('core'),
-    'async_extra': export_caml_ld_library_path('async_extra'),
-    'async_ssl': export_caml_ld_library_path('async_ssl'),
-    'jenga': export_caml_ld_library_path('jenga'),
-    're2': export_caml_ld_library_path('re2'),
-    'ppx_expect': export_caml_ld_library_path('ppx_expect'),
-    'ocaml_plugin': export_caml_ld_library_path('ocaml_plugin'),
-    'async_unix': export_caml_ld_library_path('async_unix'),
-    'inotify': export_caml_ld_library_path('inotify'),
-    'io-page': export_caml_ld_library_path('io-page'),
-    'mtime': export_caml_ld_library_path('mtime'),
-    'nocrypto': export_caml_ld_library_path('nocrypto'),
-    'pcre': export_caml_ld_library_path('pcre'),
-    'ppx_expect': export_caml_ld_library_path('ppx_expect'),
+    'ctypes': export_caml_ld_library_path('ctypes', stublibs=False),
+    'zarith': export_caml_ld_library_path('zarith', stublibs=False),
+    'cstruct': export_caml_ld_library_path('cstruct', stublibs=False),
+    'launchd': export_caml_ld_library_path('launchd', stublibs=False),
+    'lwt': export_caml_ld_library_path('lwt', stublibs=False),
+    'lambda-term': export_caml_ld_library_path('lambda-term', stublibs=False),
+    'bin_prot': export_caml_ld_library_path('bin_prot', stublibs=True),
+    'core_kernel': export_caml_ld_library_path('core_kernel', stublibs=True),
+    'core': export_caml_ld_library_path('core', stublibs=True),
+    'async_extra': export_caml_ld_library_path('async_extra', stublibs=True),
+    'async_ssl': export_caml_ld_library_path('async_ssl', stublibs=True),
+    'jenga': export_caml_ld_library_path('jenga', stublibs=True),
+    're2': export_caml_ld_library_path('re2', stublibs=True),
+    'ppx_expect': export_caml_ld_library_path('ppx_expect', stublibs=True),
+    'ocaml_plugin': export_caml_ld_library_path('ocaml_plugin', stublibs=True),
+    'async_unix': export_caml_ld_library_path('async_unix', stublibs=True),
+    'inotify': export_caml_ld_library_path('inotify', stublibs=False),
+    'io-page': export_caml_ld_library_path('io-page', stublibs=False),
+    'mtime': export_caml_ld_library_path('mtime', stublibs=True),
+    'nocrypto': export_caml_ld_library_path('nocrypto', stublibs=False),
+    'pcre': export_caml_ld_library_path('pcre', stublibs=False),
+    'ppx_expect': export_caml_ld_library_path('ppx_expect', stublibs=True),
     'cohttp': {
         'exclude_dependencies': {'mirage-net'},
     },
@@ -128,7 +130,7 @@ OVERRIDE = {
     'vchan': {
         'exclude_dependencies': {'xen-evtchn', 'xen-gnt'},
         'exportedEnv': {
-            'CAML_LD_LIBRARY_PATH': caml_ld_library_path('vchan'),
+            'CAML_LD_LIBRARY_PATH': caml_ld_library_path('vchan', stublibs=False,),
         }
     },
     'nocrypto': {
