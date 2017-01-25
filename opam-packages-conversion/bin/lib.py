@@ -9,6 +9,7 @@ import config
 
 def generate_package_json(name, version, directory):
     opam_file = os.path.join(directory, 'opam')
+    files_directory = os.path.join(directory, 'files')
 
     package_url = None
     version_file = os.path.join(directory, 'url')
@@ -268,7 +269,26 @@ def generate_package_json(name, version, directory):
     else:
         packageJSON["peerDependencies"]["ocaml"] = ">= 4.2.3"
 
-    packageJSON["opam"] = {'url': package_url}
+    opamINFO = {
+        'url': package_url,
+        'files': [],
+    }
+
+    if os.path.exists(files_directory):
+        for filename in os.listdir(files_directory):
+            abs_filename = os.path.join(files_directory, filename)
+            with open(abs_filename, 'r') as f:
+                content = f.read()
+            # loosy check for binary
+            if '\0' in content:
+                raise Exception('trying to include a binary file: %s' % abs_filename)
+            opamINFO['files'].append({
+                'name': filename,
+                'content': content
+            })
+
+    packageJSON["opam"] = opamINFO
+
     packageJSON["esy"]["buildsInSource"] = True
     packageJSON["esy"]["exportedEnv"] = {
         "%s_version" % name.replace("-", "_"): {
