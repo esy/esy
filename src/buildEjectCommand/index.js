@@ -219,6 +219,7 @@ function buildEjectCommand(
       let dependencies = Object
         .keys(packageInfo.dependencyTree)
         .map(dep => packageTarget('build', dep));
+
       let allDependencies = collectTransitiveDependencies(packageInfo);
 
       let packageEnv = `${packageJson.name}__env`;
@@ -228,11 +229,21 @@ function buildEjectCommand(
         contents: renderEnv(buildEnvironment),
       });
 
+      let findLibDestination =
+        installTmpPath(packageInfo, 'lib');
+
+      // Note that some packages can query themselves via ocamlfind during its
+      // own build, this is why we include `findLibDestination` in the path too.
+      let findLibPath =
+        allDependencies.map(dep => installPath(dep, 'lib'))
+        .concat(findLibDestination)
+        .join(':');
+
       emitPackageFile({
         filename: 'findlib.conf.in',
         contents: outdent`
-          path = "${allDependencies.map(dep => installPath(dep, 'lib')).join(':')}"
-          destdir = "${installTmpPath(packageInfo, 'lib')}"
+          path = "${findLibPath}"
+          destdir = "${findLibDestination}"
           ldconf = "ignore"
           ocamlc = "ocamlc.opt"
           ocamldep = "ocamldep.opt"
