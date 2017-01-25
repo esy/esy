@@ -3,11 +3,29 @@
  */
 
 const crypto = require('crypto');
-const fs = require('fs');
+const fs = require('mz/fs');
 const path = require('path');
 const outdent = require('outdent');
-const resolveSync = require('resolve').sync;
+const resolveBase = require('resolve');
 const {mapObject} = require('./Utility');
+
+async function resolve(packageName, baseDirectory): Promise<string> {
+  return new Promise((resolve, reject) => {
+    resolveBase(packageName, {basedir: baseDirectory}, (err, resolution) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(resolution);
+      }
+    });
+  });
+}
+
+async function resolveToRealpath(packageName, baseDirectory) {
+  let resolution = await resolve(packageName, baseDirectory);
+  resolution = await fs.realpath(resolution);
+  return resolution;
+}
 
 /**
  * Represents sandbox state.
@@ -32,7 +50,6 @@ const {mapObject} = require('./Utility');
 export type Sandbox = {
   env: Environment;
   packageInfo: PackageInfo;
-  errors: Array<{message: string}>;
 };
 
 /**
@@ -47,6 +64,7 @@ export type PackageInfo = {
   rootDirectory: string;
   packageJson: PackageJson;
   dependencyTree: DependencyTree;
+  errors: Array<{message: string}>;
 
   __cachedPackageHash?: string;
 };
@@ -92,46 +110,81 @@ export type DependencyTree = {
   [dependencyName: string]: PackageInfo;
 };
 
-function fromDirectory(directory: string): Sandbox {
+
+type SandboxBuildContext = {
+  packageDependencyTrace: Array<string>;
+  buildPackageInfo: (string, SandboxBuildContext) => Promise<PackageInfo>;
+  resolve: (string, string) => Promise<string>;
+};
+
+async function fromDirectory(directory: string): Promise<Sandbox> {
   const source = path.resolve(directory);
   const env = getEnvironment();
-  const packageJson = readPackageJson(path.join(directory, 'package.json'));
+  const packageJson = await readPackageJson(path.join(directory, 'package.json'));
   const depSpecList = objectToDependencySpecList(
     packageJson.dependencies,
     packageJson.peerDependencies
   );
+
   if (depSpecList.length > 0) {
-    const [dependencyTree, errors] = buildDependencyTree(
+
+    const resolveCache: Map<string, Promise<string>> = new Map();
+
+    async function resolveWithCache(packageName, baseDir): Promise<string> {
+      let key = `${baseDir}__${packageName}`;
+      let resolution = resolveCache.get(key);
+      if (resolution == null) {
+        resolution = resolveToRealpath(packageName, baseDir);
+        resolveCache.set(key, resolution);
+      }
+      resolution = await resolution;
+      return resolution;
+    }
+
+    const packageInfoCache: Map<string, Promise<PackageInfo>> = new Map();
+
+    async function buildPackageInfoWithCache(baseDirectory, context) {
+      let packageInfo = packageInfoCache.get(baseDirectory);
+      if (packageInfo == null) {
+        packageInfo = buildPackageInfo(baseDirectory, context);
+        packageInfoCache.set(baseDirectory, packageInfo);
+      }
+      return await packageInfo;
+    }
+
+    const [dependencyTree, errors] = await buildDependencyTree(
       source,
       depSpecList,
       {
+        resolve: resolveWithCache,
+        buildPackageInfo: buildPackageInfoWithCache,
         packageDependencyTrace: [packageJson.name],
-        packageCache: new Map()
       }
     );
+
     return {
       env,
-      errors,
       packageInfo: {
-        source: `local:${fs.realpathSync(source)}`,
+        source: `local:${await fs.realpath(source)}`,
         sourceType: 'local',
         normalizedName: normalizeName(packageJson.name),
         rootDirectory: source,
         packageJson,
         dependencyTree,
+        errors,
       }
     };
   } else {
     return {
       env,
-      errors: [],
       packageInfo: {
-        source: `local:${fs.realpathSync(source)}`,
+        source: `local:${await fs.realpath(source)}`,
         sourceType: 'local',
         normalizedName: normalizeName(packageJson.name),
         rootDirectory: source,
         packageJson,
-        dependencyTree: {}
+        dependencyTree: {},
+        errors: [],
       }
     };
   }
@@ -209,14 +262,11 @@ function getEnvironment() {
   };
 }
 
-function buildDependencyTree(
+async function buildDependencyTree(
   baseDir: string,
   dependencySpecList: Array<string>,
-  context: {
-    packageDependencyTrace: Array<string>;
-    packageCache: Map<string, PackageInfo>;
-  }
-): [DependencyTree, Array<{message: string}>] {
+  context: SandboxBuildContext
+): Promise<[DependencyTree, Array<{message: string}>]> {
   let dependencyTree: {[name: string]: PackageInfo} = {};
   let errors = [];
   let missingPackages = [];
@@ -224,48 +274,24 @@ function buildDependencyTree(
   for (let dependencySpec of dependencySpecList) {
     const {name} = parseDependencySpec(dependencySpec);
 
+    if (context.packageDependencyTrace.indexOf(name) > -1) {
+      errors.push({
+        message: formatCircularDependenciesError(name, context)
+      });
+      continue;
+    }
+
     let dependencyPackageJsonPath = '/does/not/exists';
     try {
-      dependencyPackageJsonPath = resolveSync(`${name}/package.json`, {basedir: baseDir});
+      dependencyPackageJsonPath = await context.resolve(`${name}/package.json`, baseDir);
     } catch (_err) {
       missingPackages.push(name);
       continue;
     }
-    dependencyPackageJsonPath = fs.realpathSync(dependencyPackageJsonPath);
 
-    let packageInfo = context.packageCache.get(dependencyPackageJsonPath);
+    const packageInfo = await context.buildPackageInfo(dependencyPackageJsonPath, context);
 
-    if (packageInfo == null) {
-      const dependencyBaseDir = path.dirname(dependencyPackageJsonPath);
-      const packageJson = readPackageJson(dependencyPackageJsonPath);
-
-      const [packageDependencyTree, packageErrors] = buildDependencyTree(
-        dependencyBaseDir,
-        objectToDependencySpecList(
-          packageJson.dependencies,
-          packageJson.peerDependencies
-        ),
-        {
-          packageCache: context.packageCache,
-          packageDependencyTrace: context.packageDependencyTrace.concat(packageJson.name),
-        }
-      );
-
-      errors = errors.concat(packageErrors);
-
-      packageInfo = {
-        version: packageJson.version,
-        source: packageJson._resolved || `local:${fs.realpathSync(dependencyBaseDir)}`,
-        sourceType: packageJson._resolved ? 'remote' : 'local',
-        rootDirectory: dependencyBaseDir,
-        packageJson,
-        normalizedName: normalizeName(packageJson.name),
-        dependencyTree: packageDependencyTree,
-      };
-
-      context.packageCache.set(dependencyPackageJsonPath, packageInfo);
-    };
-
+    errors = errors.concat(packageInfo.errors);
     dependencyTree[name] = packageInfo;
   }
 
@@ -276,6 +302,32 @@ function buildDependencyTree(
   }
 
   return [dependencyTree, errors];
+}
+
+async function buildPackageInfo(baseDirectory, context) {
+  const dependencyBaseDir = path.dirname(baseDirectory);
+  const packageJson = await readPackageJson(baseDirectory);
+  const [packageDependencyTree, packageErrors] = await buildDependencyTree(
+    dependencyBaseDir,
+    objectToDependencySpecList(
+      packageJson.dependencies,
+      packageJson.peerDependencies
+    ),
+    {
+      ...context,
+      packageDependencyTrace: context.packageDependencyTrace.concat(packageJson.name),
+    }
+  );
+  return {
+    errors: packageErrors,
+    version: packageJson.version,
+    source: packageJson._resolved || `local:${await fs.realpath(dependencyBaseDir)}`,
+    sourceType: packageJson._resolved ? 'remote' : 'local',
+    rootDirectory: dependencyBaseDir,
+    packageJson,
+    normalizedName: normalizeName(packageJson.name),
+    dependencyTree: packageDependencyTree,
+  };
 }
 
 function formatMissingPackagesError(missingPackages, context) {
@@ -291,13 +343,21 @@ function formatMissingPackagesError(missingPackages, context) {
   `
 }
 
-function readJson(filename) {
-  const data = fs.readFileSync(filename, 'utf8');
+function formatCircularDependenciesError(dependency, context) {
+  return outdent`
+    Circular dependency "${dependency} detected
+      At ${context.packageDependencyTrace.join(' -> ')}
+  `
+}
+
+
+async function readJson(filename) {
+  const data = await fs.readFile(filename, 'utf8');
   return JSON.parse(data);
 }
 
-function readPackageJson(filename): PackageJson {
-  const packageJson = readJson(filename);
+async function readPackageJson(filename): Promise<PackageJson> {
+  const packageJson = await readJson(filename);
   if (packageJson.esy == null) {
     packageJson.esy = {
       build: null,

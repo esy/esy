@@ -142,10 +142,10 @@ function error(message: string) {
   process.exit(1);
 }
 
-function getValidSandbox(directory) {
-  const sandbox = Sandbox.fromDirectory(directory);
-  if (sandbox.errors.length > 0) {
-    sandbox.errors.forEach(error => {
+async function getValidSandbox(directory) {
+  const sandbox = await Sandbox.fromDirectory(directory);
+  if (sandbox.packageInfo.errors.length > 0) {
+    sandbox.packageInfo.errors.forEach(error => {
       console.log(formatError(error.message));
     });
     process.exit(1);
@@ -154,9 +154,9 @@ function getValidSandbox(directory) {
 }
 
 const builtInCommands = {
-  "build-eject": function(curDir, ...args) {
+  "build-eject": async function(curDir, ...args) {
     let buildEject = require('../buildEjectCommand');
-    const sandbox = getValidSandbox(curDir);
+    const sandbox = await getValidSandbox(curDir);
     buildEject(sandbox, ...args);
   },
   "install": function(curDir, ...args) {
@@ -176,22 +176,27 @@ const builtInCommands = {
 const curDir = process.cwd();
 const actualArgs = process.argv.slice(2);
 
-if (actualArgs.length === 0) {
-  const sandbox = getValidSandbox(curDir);
-  // It's just a status command. Print the command that would be
-  // used to setup the environment along with status of
-  // the build processes, staleness, package validity etc.
-  let envForThisPackageScripts = PackageEnvironment.calculateEnvironment(
-    sandbox,
-    sandbox.packageInfo
-  );
-  console.log(PackageEnvironment.printEnvironment(envForThisPackageScripts));
-} else {
-  let builtInCommandName = actualArgs[0];
-  let builtInCommand = builtInCommands[builtInCommandName];
-  if (builtInCommand) {
-    builtInCommand(curDir, ...process.argv.slice(3));
+async function main() {
+
+  if (actualArgs.length === 0) {
+    const sandbox = await getValidSandbox(curDir);
+    // It's just a status command. Print the command that would be
+    // used to setup the environment along with status of
+    // the build processes, staleness, package validity etc.
+    let envForThisPackageScripts = PackageEnvironment.calculateEnvironment(
+      sandbox,
+      sandbox.packageInfo
+    );
+    console.log(PackageEnvironment.printEnvironment(envForThisPackageScripts));
   } else {
-    console.error(`unknown command: ${builtInCommandName}`);
+    let builtInCommandName = actualArgs[0];
+    let builtInCommand = builtInCommands[builtInCommandName];
+    if (builtInCommand) {
+      builtInCommand(curDir, ...process.argv.slice(3));
+    } else {
+      console.error(`unknown command: ${builtInCommandName}`);
+    }
   }
 }
+
+main().catch(error);
