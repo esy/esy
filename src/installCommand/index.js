@@ -153,7 +153,7 @@ async function fetchFromOpam(target, resolution) {
     const stage  = tempfile(filename);
     await mkdirp(stage);
     await mkdirp(target);
-    await execa('wget', [resolution.tarball], {cwd: stage});
+    await execa('wget', ['--timeout=15', resolution.tarball], {cwd: stage});
     if (filename.endsWith('.tar.gz') || filename.endsWith('.tgz')) {
       await execa(
         'tar',
