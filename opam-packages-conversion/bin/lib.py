@@ -12,11 +12,13 @@ def generate_package_json(name, version, directory):
     files_directory = os.path.join(directory, 'files')
 
     package_url = None
+    package_checksum = None
     version_file = os.path.join(directory, 'url')
     if os.path.exists(version_file):
         with open(version_file, 'r') as f:
             content = f.read()
             package_url = re.search(r"(archive:\s*|http:\s*|src:\s*)\"(.*)\"", content).group(2)
+            package_checksum = re.search(r"checksum:\s*\"([a-f0-9]+)\"", content).group(1)
 
     def prefixWithScope(name):
         return "%s/%s" % (config.GH_ORG_NAME, name)
@@ -276,6 +278,7 @@ def generate_package_json(name, version, directory):
 
     opamINFO = {
         'url': package_url,
+        'checksum': package_checksum,
         'files': [],
     }
 
