@@ -2,7 +2,7 @@ SRC = $(shell find src -type f)
 LIB = $(SRC:src/%=lib/%)
 
 convert-opam-packages:
-	@$(MAKE) -C opam-packages-conversion/ convert
+	@$(MAKE) -C opam-packages-conversion/ convert || true # some conversions fail now
 	@rm -rf opam-packages/
 	@mv opam-packages-conversion/output opam-packages
 
@@ -11,7 +11,7 @@ prepare-release: build
 build:
 	@$(MAKE) -j $(LIB)
 
-release: build
+release: convert-opam-packages build
 	@rm -rf .tmp
 	@mkdir .tmp
 	@mv node_modules/ .tmp/node_modules
