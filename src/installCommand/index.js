@@ -6,6 +6,7 @@ import type {Sandbox} from '../Sandbox';
 
 import {tmpdir} from 'os';
 import path from 'path';
+import crypto  from 'crypto';
 import fs from 'mz/fs';
 import execa from 'execa';
 import semver from 'semver';
@@ -36,6 +37,7 @@ export type PackageJson = {
   opam: {
     url: string;
     files?: Array<File>;
+    checksum?: string;
     patch?: string;
   }
 };
@@ -149,27 +151,50 @@ async function fetchFromOpam(target, resolution) {
   if (resolution.tarball === 'empty') {
     await mkdirp(target);
   } else {
-    const filename = path.basename(resolution.tarball);
-    const stage  = tempfile(filename);
+    const basename = path.basename(resolution.tarball);
+    const stage = tempfile(basename);
     await mkdirp(stage);
     await mkdirp(target);
-    await execa('wget', ['--timeout=15', resolution.tarball], {cwd: stage});
-    if (filename.endsWith('.tar.gz') || filename.endsWith('.tgz')) {
-      await execa(
-        'tar',
-        ['-xzf', filename, '--strip-components', '1', '-C', target],
-        {cwd: stage}
-      );
-    } else if (filename.endsWith('.tbz') || filename.endsWith('.tar.bz2')) {
-      await execa(
-        'tar',
-        ['-xjf', filename, '--strip-components', '1', '-C', target],
-        {cwd: stage}
-      );
-    } else {
-      throw new Error(`unknown tarball type: ${filename}`);
+    await wgetTarball(resolution.tarball, stage);
+    let filename = path.join(stage, basename);
+    if (resolution.checksum != null) {
+      let checksum = await checksumTarball(filename);
+      if (checksum !== resolution.checksum) {
+        throw new Error(`invalid checksum for ${resolution.tarball}`);
+      }
     }
+    await unpackTarball(filename, target);
   }
+}
+
+async function wgetTarball(tarball, directory) {
+  await execa('wget', [
+    '--directory-prefix', directory,
+    '--timeout', '15',
+    tarball
+  ]);
+}
+
+async function checksumTarball(filename) {
+  let data = await fs.readFile(filename);
+  let hasher = crypto.createHash('md5');
+  hasher.update(data);
+  return hasher.digest('hex');
+}
+
+async function unpackTarball(filename, target) {
+  let isGzip = filename.endsWith('.tar.gz') || filename.endsWith('.tgz');
+  let isBzip2 = filename.endsWith('.tbz') || filename.endsWith('.tar.bz2');
+  if (!isGzip && !isBzip2) {
+    throw new Error(`unknown tarball type: ${filename}`);
+  }
+  await execa('tar', [
+    '-x',
+    isGzip ? '-z' : '-j',
+    '-f', filename,
+    '--strip-components', '1',
+    '-C', target
+  ]);
 }
 
 async function resolveFromOpam(spec, opts): Promise<any> {
@@ -183,6 +208,7 @@ async function resolveFromOpam(spec, opts): Promise<any> {
       type: 'tarball',
       id,
       tarball: opamInfo.url,
+      checksum: opamInfo.checksum || null,
       opam: {name: packageName, version: packageJson.version},
     }
     return {resolution}
