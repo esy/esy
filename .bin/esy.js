@@ -135,18 +135,23 @@ const Sandbox = require('../lib/Sandbox');
  */
 
 const builtInCommands = {
-  "build-eject": function(...args) {
+  "build-eject": function(curDir, ...args) {
     let buildEject = require('../lib/esyBuildEjectCommand');
-    buildEject(...args);
+    const sandbox = Sandbox.fromDirectory(curDir);
+    buildEject(sandbox, ...args);
+  },
+  "install": function(curDir, ...args) {
+    let install = require('../lib/esyInstallCommand').default;
+    install(curDir, ...args);
   },
 };
 
 // TODO: Need to change this to climb to closest package.json.
 const curDir = process.cwd();
 const actualArgs = process.argv.slice(2);
-const sandbox = Sandbox.fromDirectory(curDir);
 
 if (actualArgs.length === 0) {
+  const sandbox = Sandbox.fromDirectory(curDir);
   // It's just a status command. Print the command that would be
   // used to setup the environment along with status of
   // the build processes, staleness, package validity etc.
@@ -156,10 +161,11 @@ if (actualArgs.length === 0) {
   );
   console.log(PackageEnvironment.printEnvironment(envForThisPackageScripts));
 } else {
-  var builtInCommand = builtInCommands[actualArgs[0]];
+  let builtInCommandName = actualArgs[0];
+  let builtInCommand = builtInCommands[builtInCommandName];
   if (builtInCommand) {
-    builtInCommand(sandbox, process.argv.slice(3));
+    builtInCommand(curDir, process.argv.slice(3));
   } else {
-    let command = actualArgs.join(' ');
+    console.error(`unknown command: ${builtInCommandName}`);
   }
 }

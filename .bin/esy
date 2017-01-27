@@ -36,12 +36,12 @@ $EJECT_PATH: $PWD/package.json \$(shell find $PWD/node_modules -name 'package.js
 	/usr/bin/env node $SCRIPTDIR/esy.js build-eject \$(@)
 "
 
-eject () {
+builtInEject () {
   make -s -f <(echo "$EJECT_MAKEFILE") eject
 }
 
 if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
-  EJECT_LOG=`eject 2>&1`
+  EJECT_LOG=`builtInEject 2>&1`
   if [ $? -ne 0 ]; then
     echo "Failed prepare build environment:"
     printf "%s\n" "$EJECT_LOG" >&2
@@ -50,7 +50,10 @@ if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
   make -j -s -f "$EJECT_PATH/Makefile" "$1"
 
 elif [ "$1" == "build-eject" ]; then
-  eject
+  builtInEject
+
+elif [ "$1" == "install" ]; then
+	/usr/bin/env node $SCRIPTDIR/esy.js install $@
 
 else
   SETENVCMD=$(/usr/bin/env node $SCRIPTDIR/esy.js 2>&1)
