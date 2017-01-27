@@ -83,7 +83,7 @@ const installationSpec = {
         // fallback to pnpm's fetching algo
         return false;
       } else {
-        await fetchFromOpam(target, resolution);
+        await fetchFromOpam(target, resolution, opts.got);
         return true;
       }
     },
@@ -147,39 +147,51 @@ async function lookupPackageCollection(packageName: string): Promise<PackageJson
   return await readJson(packageRecordFilename);
 }
 
-async function fetchFromOpam(target, resolution) {
+async function fetchFromOpam(target, resolution, fetcher) {
   if (resolution.tarball === 'empty') {
     await mkdirp(target);
   } else {
     const basename = path.basename(resolution.tarball);
     const stage = tempfile(basename);
+
     await mkdirp(stage);
     await mkdirp(target);
-    await wgetTarball(resolution.tarball, stage);
-    let filename = path.join(stage, basename);
-    if (resolution.checksum != null) {
-      let checksum = await checksumTarball(filename);
-      if (checksum !== resolution.checksum) {
-        throw new Error(`invalid checksum for ${resolution.tarball}`);
-      }
-    }
+
+    const filename = path.join(stage, basename);
+    const stream = await fetcher.getStream(resolution.tarball);
+    await saveStreamToFile(stream, filename, resolution.checksum);
     await unpackTarball(filename, target);
   }
 }
 
-async function wgetTarball(tarball, directory) {
-  await execa('wget', [
-    '--directory-prefix', directory,
-    '--timeout', '15',
-    tarball
-  ]);
-}
-
-async function checksumTarball(filename) {
-  let data = await fs.readFile(filename);
+async function saveStreamToFile(stream, filename, md5checksum = null) {
   let hasher = crypto.createHash('md5');
-  hasher.update(data);
-  return hasher.digest('hex');
+  return new Promise((resolve, reject) => {
+    let out = fs.createWriteStream(filename);
+    stream
+      .on('data', chunk => {
+        if (md5checksum != null) {
+          hasher.update(chunk);
+        }
+      })
+      .pipe(out)
+      .on('error', err => {
+        reject(err);
+      })
+      .on('finish', () => {
+        let actualChecksum = hasher.digest('hex');
+        if (md5checksum != null) {
+          if (actualChecksum !== md5checksum) {
+            reject(new Error(`Incorrect md5sum (expected ${md5checksum}, got ${actualChecksum})`))
+            return;
+          }
+        }
+        resolve();
+      })
+    if (stream.resume) {
+      stream.resume();
+    }
+  });
 }
 
 async function unpackTarball(filename, target) {
