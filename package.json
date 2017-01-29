@@ -15,11 +15,6 @@
     "opam-packages/"
   ],
   "dependencies": {
-    "babel-register": "^6.22.0",
-    "babel-cli": "^6.22.2",
-    "babel-plugin-transform-flow-strip-types": "^6.22.0",
-    "babel-plugin-transform-object-rest-spread": "^6.22.0",
-    "babel-preset-env": "^1.1.8",
     "@andreypopp/pnpm": "^0.50.0",
     "bole": "^3.0.2",
     "chalk": "^1.1.3",
@@ -53,6 +48,11 @@
     "npm": ">=3.10.0"
   },
   "devDependencies": {
+    "babel-register": "^6.22.0",
+    "babel-cli": "^6.22.2",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.22.0",
+    "babel-preset-env": "^1.1.8",
     "flow-bin": "^0.38.0",
     "jest": "^18.1.0"
   }
