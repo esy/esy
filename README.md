@@ -73,3 +73,7 @@ https://github.com/andreypopp/esy-ocaml-project
 #### Origins
 
 This is a fork of [`dependency-env`](https://github.com/reasonml/dependency-env) which is more stable.
+
+
+#### Developing
+When developing `esy` (or cloning the repo to use locally), you must have `filterdiff` installed (which you can obtain via `brew install patchutils`).
