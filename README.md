@@ -2,6 +2,12 @@
 Easy Sandboxes For Compiled Languages
 -------------------------------------
 
+## Install
+
+npm install -g git://github.com/jordwalke/esy.git#beta-v0.0.2
+
+### About
+
 Rough sketch start of implementation for
 [PackageJsonForCompilers](https://github.com/jordwalke/PackageJsonForCompilers)
 concept. (Here, the name is `esy` instead of `pjc`).
@@ -76,4 +82,33 @@ This is a fork of [`dependency-env`](https://github.com/reasonml/dependency-env)
 
 
 #### Developing
+
 When developing `esy` (or cloning the repo to use locally), you must have `filterdiff` installed (which you can obtain via `brew install patchutils`).
+
+
+To make changes to `esy` and test them locally, check out and build the `esy` repo as such:
+
+    git clone git@github.com:jordwalke/esy.git
+    cd esy
+    npm install
+    git submodule init
+    git submodule update
+    make  convert-opam-packages
+
+Then you may "point" to that built version of esy by simply referencing its path.
+
+    /path/to/esy/.bin/esy build
+
+#### Pushing a Beta Release
+
+On a clean branch off of `origin/master`, run
+
+    # Substitute your version number below
+    make beta-release VERSION=0.0.2
+
+Then follow the instructions for pushing a tagged release to github.
+
+Once pushed, other people can install that tagged release globally like this:
+
+    npm install -g git://github.com/jordwalke/esy.git#beta-v0.0.2
+
