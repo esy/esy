@@ -31,7 +31,8 @@ beta-release: check-version convert-opam-packages build
 	@echo "--------------------------------------"
 	@git diff --exit-code || (echo "You have unstaged changes. Please clean up first." && exit 1)
 	@git diff --cached --exit-code || (echo "You have staged changes. Please reset them or commit them first." && exit 1)
-	@git add lib/*
+	@git add -f lib/*
+	@git add -f opam-packages/*
 	@git commit -m "Preparing beta release beta-v$(VERSION)"
 	@# Return code is inverted to receive boolean return value
 	@(git tag --delete beta-v$(VERSION) &> /dev/null)|| echo "Tag beta-v$(VERSION) doesn't yet exist, creating it now."
