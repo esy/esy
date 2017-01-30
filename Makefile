@@ -21,7 +21,7 @@ endif
 # - We *don't* push a copy of node_modules
 # - We *do* require all source files be preprocessed by babel and put into lib/
 beta-release: check-version convert-opam-packages build
-	# Program "fails" if unstaged changes.
+	@# Program "fails" if unstaged changes.
 	@echo "Preparing beta release beta-$(VERSION)"
 	@echo "--------------------------------------"
 	@echo "- Will convert opam package meta-data to package.json"
@@ -33,27 +33,18 @@ beta-release: check-version convert-opam-packages build
 	@git diff --cached --exit-code || (echo "You have staged changes. Please reset them or commit them first." && exit 1)
 	@git add lib/*
 	@git commit -m "Preparing beta release beta-v$(VERSION)"
-	# Return code is inverted to receive boolean return value
+	@# Return code is inverted to receive boolean return value
 	@(git tag --delete beta-v$(VERSION) &> /dev/null)|| echo "Tag beta-v$(VERSION) doesn't yet exist, creating it now."
 	@git tag -a beta-v$(VERSION) -m "beta-v$(VERSION)"
+	@echo "----------------------------------------------------"
 	@echo '!!!Almost Done. Complete the following two steps!!!'
+	@echo "----------------------------------------------------"
 	@echo '1. git show HEAD'
 	@echo "  - Make sure you approve of what will be pushed to tag beta-v$(VERSION)"
 	@echo "2. git push origin HEAD:beta-v$(VERSION)"
 	@echo "3. Switch back to another branch (git checkout -b ANOTHERBRANCH origin/master)"
 	@echo ""
 	@echo "> Note: If you are pushing an update to an existing tag, you might need to add -f to the push command."
-
-  # Backup node_modules so that we don't push them to the release.
-	# @mv node_modules/ .tmp/node_modules
-	# @npm install --production --ignore-scripts
-	# @mv node_modules lib/node_modules;
-	# @cp package.json .tmp/package.json
-	# @node ./scripts/rewriteDependencies.js
-	# @npm publish --access public
-	# @cp .tmp/package.json package.json
-	# @mv .tmp/node_modules node_modules
-	# @rm -rf lib
 
 release: convert-opam-packages build
 	@rm -rf .tmp
