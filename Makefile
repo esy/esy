@@ -32,6 +32,7 @@ beta-release: check-version convert-opam-packages build
 	@git diff --exit-code || (echo "You have unstaged changes. Please clean up first." && exit 1)
 	@git diff --cached --exit-code || (echo "You have staged changes. Please reset them or commit them first." && exit 1)
 	@git rm ./.gitmodules
+	@git rm -r ./opam-packages-conversion
 	@git add -f lib/*
 	@git add -f opam-packages/*
 	@git commit -m "Preparing beta release beta-v$(VERSION)"
