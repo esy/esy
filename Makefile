@@ -31,6 +31,7 @@ beta-release: check-version convert-opam-packages build
 	@echo "--------------------------------------"
 	@git diff --exit-code || (echo "You have unstaged changes. Please clean up first." && exit 1)
 	@git diff --cached --exit-code || (echo "You have staged changes. Please reset them or commit them first." && exit 1)
+	@git rm ./.gitmodules
 	@git add -f lib/*
 	@git add -f opam-packages/*
 	@git commit -m "Preparing beta release beta-v$(VERSION)"
@@ -42,8 +43,11 @@ beta-release: check-version convert-opam-packages build
 	@echo "----------------------------------------------------"
 	@echo '1. git show HEAD'
 	@echo "  - Make sure you approve of what will be pushed to tag beta-v$(VERSION)"
-	@echo "2. git push origin HEAD:beta-v$(VERSION)"
-	@echo "3. Switch back to another branch (git checkout -b ANOTHERBRANCH origin/master)"
+	@echo "2. Push to a new branch (if you like):"
+	@echo "     git push origin HEAD:branch-beta-v$(VERSION)"
+	@echo "3. Push the individual tag (mandatory):"
+	@echo "     git push origin beta-v$(VERSION)"
+	@echo "4. Switch back to another branch (git checkout -b ANOTHERBRANCH origin/master)"
 	@echo ""
 	@echo "> Note: If you are pushing an update to an existing tag, you might need to add -f to the push command."
 
