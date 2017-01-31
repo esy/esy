@@ -27,17 +27,29 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # stderr to nonblocking mode
 
 EJECT_PATH="$PWD/node_modules/.cache/esy"
+ENV_PATH="$PWD/node_modules/.cache/esy-env"
 
 EJECT_MAKEFILE="
+DEPS=\$(shell find $PWD/node_modules -name 'package.json')
+
 eject: $EJECT_PATH
-$EJECT_PATH: $PWD/package.json \$(shell find $PWD/node_modules -name 'package.json')
+$EJECT_PATH: $PWD/package.json \$(DEPS)
 	rm -rf \$(@)
 	mkdir -p \$(@D)
 	/usr/bin/env node $SCRIPTDIR/esy.js build-eject \$(@)
+
+env: $ENV_PATH
+$ENV_PATH: $PWD/package.json \$(DEPS)
+	mkdir -p \$(@D)
+	/usr/bin/env node $SCRIPTDIR/esy.js 2>&1 > \$(@)
 "
 
 builtInEject () {
   make -s -f <(echo "$EJECT_MAKEFILE") eject
+}
+
+builtInEnv () {
+  make -s -f <(echo "$EJECT_MAKEFILE") env
 }
 
 builtIn() {
@@ -60,7 +72,7 @@ elif [ "$1" == "install" ] || [ "$1" == "add" ]; then
   builtIn $@
 
 else
-  SETENVCMD=$(/usr/bin/env node $SCRIPTDIR/esy.js 2>&1)
+  SETENVCMD=`builtInEnv 2>&1`
   if [ $? -ne 0 ]; then
     echo "Failed to get environment:"
     printf "%s\n" "$SETENVCMD" >&2
@@ -75,9 +87,9 @@ else
   fi
 
   if [ "$1" != "" ]; then
-    eval "$SETENVCMD"
+    source "$ENV_PATH"
     exec "$@"
   else
-    echo "$SETENVCMD"
+    cat "$ENV_PATH"
   fi
 fi
