@@ -29,27 +29,59 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 EJECT_PATH="$PWD/node_modules/.cache/esy"
 ENV_PATH="$PWD/node_modules/.cache/esy-env"
 
-EJECT_MAKEFILE="
-DEPS=\$(shell find $PWD/node_modules -name 'package.json')
+if [ -d "$PWD/node_modules" ]; then
+  DEPENDENCIES_PACKAGE_JSON=`find $PWD/node_modules -name 'package.json'`
+else
+  DEPENDENCIES_PACKAGE_JSON=""
+fi
 
-eject: $EJECT_PATH
-$EJECT_PATH: $PWD/package.json \$(DEPS)
-	rm -rf \$(@)
-	mkdir -p \$(@D)
-	/usr/bin/env node $SCRIPTDIR/esy.js build-eject \$(@)
+needRebuildTarget () {
+  TARGET="$1"
+  NEED_REBUILD="false"
 
-env: $ENV_PATH
-$ENV_PATH: $PWD/package.json \$(DEPS)
-	mkdir -p \$(@D)
-	/usr/bin/env node $SCRIPTDIR/esy.js 2>&1 > \$(@)
-"
+  # check if target exist
+  if [ ! -f "$TARGET" ]; then
+    NEED_REBUILD="true"
+  else
+    # check sandbox package.json
+    if [ "$TARGET" -ot "$PWD/package.json" ]; then
+      NEED_REBUILD="true"
+    else
+      # check each dependencies' package.json
+      for dep in $DEPENDENCIES_PACKAGE_JSON; do
+        if [ "$TARGET" -ot "$dep" ]; then
+          NEED_REBUILD="true"
+          break
+        fi
+      done
+    fi
+  fi
+
+  echo "$NEED_REBUILD"
+}
 
 builtInEject () {
-  make -s -f <(echo "$EJECT_MAKEFILE") eject
+  if [ `needRebuildTarget "$EJECT_PATH/Makefile"` == "true" ]; then
+    EJECT_LOG=`node $SCRIPTDIR/esy.js build-eject "$EJECT_PATH" 2>&1`
+    if [ $? -ne 0 ]; then
+      echo "Failed to prepare build environment:"
+      printf "%s\n" "$EJECT_LOG" >&2
+      exit 1
+    fi
+  fi
 }
 
 builtInEnv () {
-  make -s -f <(echo "$EJECT_MAKEFILE") env
+  if [ `needRebuildTarget "$ENV_PATH"` == "true" ]; then
+    EJECTED_ENV=`node $SCRIPTDIR/esy.js 2>&1`
+    if [ $? -ne 0 ]; then
+      echo "Failed to get environment:"
+      printf "%s\n" "$EJECTED_ENV" >&2
+      exit 1
+    else
+      echo "$EJECTED_ENV" > "$ENV_PATH"
+    fi
+  fi
 }
 
 builtIn() {
@@ -57,12 +89,7 @@ builtIn() {
 }
 
 if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
-  EJECT_LOG=`builtInEject 2>&1`
-  if [ $? -ne 0 ]; then
-    echo "Failed prepare build environment:"
-    printf "%s\n" "$EJECT_LOG" >&2
-    exit 1
-  fi
+  builtInEject
   make -j -s -f "$EJECT_PATH/Makefile" "$1"
 
 elif [ "$1" == "build-eject" ]; then
@@ -72,19 +99,14 @@ elif [ "$1" == "install" ] || [ "$1" == "add" ]; then
   builtIn $@
 
 else
-  SETENVCMD=`builtInEnv 2>&1`
-  if [ $? -ne 0 ]; then
-    echo "Failed to get environment:"
-    printf "%s\n" "$SETENVCMD" >&2
-    exit 1
-  fi
-
   if [ -z "${ESY__SANDBOX+x}" ]; then
     export ESY__SANDBOX="$PWD"
   fi
   if [ -z "${ESY__STORE+x}" ]; then
     export ESY__STORE="$HOME/.esy"
   fi
+
+  builtInEnv
 
   if [ "$1" != "" ]; then
     source "$ENV_PATH"
