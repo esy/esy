@@ -23,8 +23,7 @@ async function resolve(packageName, baseDirectory): Promise<string> {
 
 async function resolveToRealpath(packageName, baseDirectory) {
   let resolution = await resolve(packageName, baseDirectory);
-  resolution = await fs.realpath(resolution);
-  return resolution;
+  return fs.realpath(resolution);
 }
 
 /**
@@ -137,19 +136,18 @@ async function fromDirectory(directory: string): Promise<Sandbox> {
         resolution = resolveToRealpath(packageName, baseDir);
         resolveCache.set(key, resolution);
       }
-      resolution = await resolution;
       return resolution;
     }
 
     const packageInfoCache: Map<string, Promise<PackageInfo>> = new Map();
 
-    async function buildPackageInfoWithCache(baseDirectory, context) {
+    async function buildPackageInfoWithCache(baseDirectory, context): Promise<PackageInfo> {
       let packageInfo = packageInfoCache.get(baseDirectory);
       if (packageInfo == null) {
         packageInfo = buildPackageInfo(baseDirectory, context);
         packageInfoCache.set(baseDirectory, packageInfo);
       }
-      return await packageInfo;
+      return packageInfo;
     }
 
     const [dependencyTree, errors] = await buildDependencyTree(

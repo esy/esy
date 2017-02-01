@@ -144,7 +144,7 @@ async function lookupPackageCollection(packageName: string): Promise<PackageJson
     throw new Error(`No package found: @opam/${packageName}`)
   }
 
-  return await readJson(packageRecordFilename);
+  return readJson(packageRecordFilename);
 }
 
 async function fetchFromOpam(target, resolution, fetcher) {
