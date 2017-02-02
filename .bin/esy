@@ -26,11 +26,18 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # Capturing stderr is very important to prevent nodejs from setting
 # stderr to nonblocking mode
 
-EJECT_PATH="$PWD/node_modules/.cache/esy"
-ENV_PATH="$PWD/node_modules/.cache/esy-env"
+if [ -z "${ESY__SANDBOX+x}" ]; then
+  export ESY__SANDBOX="$PWD"
+fi
+if [ -z "${ESY__STORE+x}" ]; then
+  export ESY__STORE="$HOME/.esy"
+fi
 
-if [ -d "$PWD/node_modules" ]; then
-  DEPENDENCIES_PACKAGE_JSON=`find $PWD/node_modules -name 'package.json'`
+EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/esy"
+ENV_PATH="$ESY__SANDBOX/node_modules/.cache/esy-env"
+
+if [ -d "$ESY__SANDBOX/node_modules" ]; then
+  DEPENDENCIES_PACKAGE_JSON=`find $ESY__SANDBOX/node_modules -name 'package.json'`
 else
   DEPENDENCIES_PACKAGE_JSON=""
 fi
@@ -44,7 +51,7 @@ needRebuildTarget () {
     NEED_REBUILD="true"
   else
     # check sandbox package.json
-    if [ "$TARGET" -ot "$PWD/package.json" ]; then
+    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ]; then
       NEED_REBUILD="true"
     else
       # check each dependencies' package.json
@@ -79,6 +86,7 @@ builtInEnv () {
       printf "%s\n" "$EJECTED_ENV" >&2
       exit 1
     else
+      mkdir -p `dirname $ENV_PATH`
       echo "$EJECTED_ENV" > "$ENV_PATH"
     fi
   fi
@@ -99,12 +107,6 @@ elif [ "$1" == "install" ] || [ "$1" == "add" ]; then
   builtIn $@
 
 else
-  if [ -z "${ESY__SANDBOX+x}" ]; then
-    export ESY__SANDBOX="$PWD"
-  fi
-  if [ -z "${ESY__STORE+x}" ]; then
-    export ESY__STORE="$HOME/.esy"
-  fi
 
   builtInEnv
 
