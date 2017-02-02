@@ -54,8 +54,9 @@ const OPAM_METADATA_STORE = path.join(__dirname, '..', '..', 'opam-packages');
 const USER_HOME: string = (process.env.HOME: any)
 
 const STORE_PATH = (
-  process.env.ESY__STORE ||
-  path.join(USER_HOME, '.esy', '_fetch')
+  process.env.ESY__STORE != null
+    ?  path.join(process.env.ESY__STORE, '_fetch')
+    :  path.join(USER_HOME, '.esy', '_fetch')
 );
 
 const installationSpec = {
