@@ -103,6 +103,10 @@ Then you may "point" to that built version of esy by simply referencing its path
 
 On a clean branch off of `origin/master`, run
 
+    # npm install if needed.
+    npm install
+    git submodule init
+    git submodule update
     # Substitute your version number below
     make beta-release VERSION=0.0.2
 
