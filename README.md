@@ -99,6 +99,18 @@ Then you may "point" to that built version of esy by simply referencing its path
 
     /path/to/esy/.bin/esy build
 
+#### Supporting More OPAM packages
+
+- Add the OPAM package name and versions to
+  ./opam-packages-conversion/convertedPackages.txt
+- If the package/version was recently added to `OPAM`, you should update the
+  `.gitmodules` `opam-packages-conversion/opam-repository` `branch` field to
+  reflect the version of the OPAM universe that contains the package you want.
+- Push the update to `esy` `master`.
+- Clone a *fresh* new clone of `esy` (so that the submodules initialize
+  correctly), then publish a new beta release as described next.
+  
+
 #### Pushing a Beta Release
 
 On a clean branch off of `origin/master`, run
