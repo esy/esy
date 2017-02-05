@@ -101,11 +101,15 @@ Then you may "point" to that built version of esy by simply referencing its path
 
 #### Supporting More OPAM packages
 
+- Make sure you've ran `git submodule init` and `git submodule update`.
 - Add the OPAM package name and versions to
   ./opam-packages-conversion/convertedPackages.txt
-- If the package/version was recently added to `OPAM`, you should update the
-  `.gitmodules` `opam-packages-conversion/opam-repository` `branch` field to
-  reflect the version of the OPAM universe that contains the package you want.
+- If the package/version was recently added to `OPAM`, you should `cd` into
+  `opam-packages-conversion/opam-repository`, `git fetch --all`, and then `git
+  checkout origin/master` to make sure you've got the latest OPAM universe that
+  you will convert from. `cd` back into the `esy` project root, and then `git
+  status` will show git changes for you to commit.
+- Make a new commit with all the above changes.
 - Push the update to `esy` `master`.
 - Clone a *fresh* new clone of `esy` (so that the submodules initialize
   correctly), then publish a new beta release as described next.
