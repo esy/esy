@@ -7,4 +7,4 @@
 [submodule "opam-packages-conversion/opam-repository"]
 	path = opam-packages-conversion/opam-repository
 	url = https://github.com/ocaml/opam-repository.git
-  branch = b225586fad7d1d77aab5008bb751671e5e76f6af
+	branch = b225586fad7d1d77aab5008bb751671e5e76f6af
