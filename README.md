@@ -132,3 +132,11 @@ Once pushed, other people can install that tagged release globally like this:
 
     npm install -g git://github.com/jordwalke/esy.git#beta-v0.0.2
 
+
+#### Debugging Failed `esy build`
+
+When  debugging esy build — do the following:
+
+1. `esy build-eject creates node_modules/.cache/esy/Makefile`
+2. `make -f ./node_modules/.cache/esy/Makefile PKG_NAME.shell` will put you in a build env shell
+3. Try to run commands specified in `package.json's` esy build config and see what goes wrong.
