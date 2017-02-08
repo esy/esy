@@ -4,7 +4,7 @@ Easy Sandboxes For Compiled Languages
 
 ## Install
 
-npm install -g git://github.com/jordwalke/esy.git#beta-v0.0.2
+`npm install -g "git://github.com/jordwalke/esy.git#beta-v0.0.2"`
 
 ### About
 
