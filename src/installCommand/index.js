@@ -269,6 +269,11 @@ function initLogging() {
 }
 
 export function esyInstallCommand() {
+  // This is set during installation so that postinstall scripts can
+  // be made to work with *either* npm or esy. You still need to create
+  // an `esy` && `esy.build` section in your `package.json`.
+  // "postinstall": "if [ $esy__installing != '' ]; then exit 0; fi && ..."
+  process.env['esy__installing'] = '1';
   initLogging();
   pnpm.install(installationSpec).then(
     () => {
