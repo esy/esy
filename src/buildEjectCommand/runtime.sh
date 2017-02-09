@@ -63,11 +63,11 @@ _esy-perform-build () {
   set -e
   if [ "$BUILD_RETURN_CODE" != "0" ]; then
     if [ "$esy_build__source_type" == "local" ] || [ ! -z "${CI+x}" ] ; then
-      echo -e "${FG_RED}*** $cur__name: build failied:\n"
+      echo -e "${FG_RED}*** $cur__name: build failed:\n"
       cat "$BUILD_LOG" | sed  's/^/  /'
       echo -e "${FG_RESET}"
     else
-      echo -e "${FG_RED}*** $cur__name: build failied, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
+      echo -e "${FG_RED}*** $cur__name: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
     fi
     esy-clean
     exit 1
