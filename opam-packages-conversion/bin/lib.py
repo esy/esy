@@ -191,7 +191,7 @@ def generate_package_json(name, version, directory):
         return [unescapeBuiltinVariables(cmd) for cmd in build]
 
     def scoped(name):
-        return '@%s/%s' % (config.NPM_SCOPE, name)
+        return '@%s/%s' % ("opam-alpha", name)
 
     def opamVersionToNpmVersion(v):
         v = v.group(0).strip("\"")

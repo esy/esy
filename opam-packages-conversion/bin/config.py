@@ -5,7 +5,6 @@ __dir__ = os.path.dirname(os.path.realpath(__file__))
 os.environ['PATH'] = '%s:%s' % (__dir__, os.environ['PATH'])
 
 GH_ORG_NAME = 'esy-ocaml'
-NPM_SCOPE = 'opam-alpha'
 
 OPAM_PACKAGES = os.path.join(os.path.dirname(__file__), '..', 'opam-repository', 'packages')
 
@@ -54,9 +53,10 @@ def export_caml_ld_library_path(name, stublibs=False):
 
 def caml_ld_library_path(name, stublibs=False):
     norm_name = name.replace('-', '_')
+    # Note that opam_alpha comes from opam-alpha prefix that we use.
     return {
         'scope': 'global',
-        'val': '$opam_%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (
+        'val': '$opam_alpha_%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (
             norm_name,
             'stublibs' if stublibs else name),
     }
