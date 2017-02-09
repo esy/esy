@@ -5,7 +5,7 @@ __dir__ = os.path.dirname(os.path.realpath(__file__))
 os.environ['PATH'] = '%s:%s' % (__dir__, os.environ['PATH'])
 
 GH_ORG_NAME = 'esy-ocaml'
-NPM_SCOPE = 'opam'
+NPM_SCOPE = 'opam-alpha'
 
 OPAM_PACKAGES = os.path.join(os.path.dirname(__file__), '..', 'opam-repository', 'packages')
 

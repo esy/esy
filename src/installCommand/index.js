@@ -70,7 +70,7 @@ const installationSpec = {
         case 'range':
         case 'version':
         case 'tag': {
-          if (spec.scope === '@opam') {
+          if (spec.scope === '@opam-alpha') {
             return resolveFromOpam(spec, opts);
           }
         }
@@ -142,7 +142,7 @@ async function lookupPackageCollection(packageName: string): Promise<PackageJson
   const packageRecordFilename = path.join(OPAM_METADATA_STORE, `${packageName}.json`)
 
   if (!await fs.exists(packageRecordFilename)) {
-    throw new Error(`No package found: @opam/${packageName}`)
+    throw new Error(`No package found: @opam-alpha/${packageName}`)
   }
 
   return readJson(packageRecordFilename);
