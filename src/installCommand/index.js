@@ -70,7 +70,7 @@ const installationSpec = {
         case 'range':
         case 'version':
         case 'tag': {
-          if (spec.scope === '@opam') {
+          if (spec.scope === '@opam' || spec.scope === '@opam-alpha') {
             return resolveFromOpam(spec, opts);
           }
         }
