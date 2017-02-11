@@ -24,8 +24,6 @@ Hello, I\'m PackageA
 exports[`test env 1`] = `
 "
 # EsySandboxVariables 
-export PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"
-export SHELL=\"env -i /bin/bash --norc --noprofile\"
 export esy__platform=\"platform\"
 export esy__architecture=\"architecture\"
 export esy__target_platform=\"platform\"

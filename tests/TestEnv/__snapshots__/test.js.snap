@@ -1,8 +1,6 @@
 exports[`test environment for PackageA 1`] = `
 "
 # EsySandboxVariables 
-export PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"
-export SHELL=\"env -i /bin/bash --norc --noprofile\"
 export esy__platform=\"platform\"
 export esy__architecture=\"architecture\"
 export esy__target_platform=\"platform\"
@@ -111,8 +109,6 @@ export GLOBAL_TEST_VAR_PACKAGEA=\"$packagea__root/package.json\"
 exports[`test environment for PackageB 1`] = `
 "
 # EsySandboxVariables 
-export PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"
-export SHELL=\"env -i /bin/bash --norc --noprofile\"
 export esy__platform=\"platform\"
 export esy__architecture=\"architecture\"
 export esy__target_platform=\"platform\"
@@ -197,8 +193,6 @@ export GLOBAL_TEST_VAR_PACKAGEB=\"$packageb__root/package.json\"
 exports[`test environment for PackageC 1`] = `
 "
 # EsySandboxVariables 
-export PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\"
-export SHELL=\"env -i /bin/bash --norc --noprofile\"
 export esy__platform=\"platform\"
 export esy__architecture=\"architecture\"
 export esy__target_platform=\"platform\"
