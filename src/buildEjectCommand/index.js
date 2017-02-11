@@ -119,7 +119,7 @@ function buildEjectCommand(
     },
     {
       type: 'rule',
-      target: 'shell',
+      target: 'build-shell',
       phony: true,
       dependencies: [`${sandboxPackageName}.shell`],
     },

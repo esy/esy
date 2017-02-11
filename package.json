@@ -53,7 +53,7 @@
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.22.0",
     "babel-preset-env": "^1.1.8",
-    "flow-bin": "^0.38.0",
+    "flow-bin": "^0.39.0",
     "jest": "^18.1.0"
   }
 }

@@ -365,6 +365,7 @@ function targetPath(sandbox, packageInfo, tree: '_install' | '_build', ...path) 
 
 type PackageEnvironmentOptions = {
   installDirectory?: string;
+  useLooseEnvironment?: boolean;
 };
 
 /**
@@ -443,7 +444,7 @@ function calculateEnvironment(
       sandbox.packageInfo.rootDirectory,
       "EsySandBox",
       curRootPackageJsonOnEjectingHost,
-      mapObject(sandbox.env, env => ({
+      mapObject(options.useLooseEnvironment ? sandbox.looseEnv : sandbox.env, env => ({
         val: env,
         exclusive: false,
         __BUILT_IN_DO_NOT_USE_OR_YOU_WILL_BE_PIPd: false

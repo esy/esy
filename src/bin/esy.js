@@ -185,7 +185,8 @@ async function main() {
     // the build processes, staleness, package validity etc.
     let envForThisPackageScripts = PackageEnvironment.calculateEnvironment(
       sandbox,
-      sandbox.packageInfo
+      sandbox.packageInfo,
+      {useLooseEnvironment: true}
     );
     console.log(PackageEnvironment.printEnvironment(envForThisPackageScripts));
   } else {

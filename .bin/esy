@@ -78,7 +78,7 @@ builtInEject () {
   fi
 }
 
-builtInEnv () {
+ensureEnvEjected () {
   if [ `needRebuildTarget "$ENV_PATH"` == "true" ]; then
     EJECTED_ENV=`node $SCRIPTDIR/esy.js 2>&1`
     if [ $? -ne 0 ]; then
@@ -96,19 +96,24 @@ builtIn() {
 	node $SCRIPTDIR/esy.js $@
 }
 
-if [ "$1" == "build" ] || [ "$1" == "shell" ] || [ "$1" == "clean" ]; then
+if [ "$1" == "build" ] || [ "$1" == "build-shell" ] || [ "$1" == "clean" ]; then
   builtInEject
   make -j -s -f "$EJECT_PATH/Makefile" "$1"
 
 elif [ "$1" == "build-eject" ]; then
   builtInEject
 
+elif [ "$1" == "shell" ]; then
+  ensureEnvEjected
+  source "$ENV_PATH"
+  $SHELL
+
 elif [ "$1" == "install" ] || [ "$1" == "add" ]; then
   builtIn $@
 
 else
 
-  builtInEnv
+  ensureEnvEjected
 
   if [ "$1" != "" ]; then
     source "$ENV_PATH"

@@ -48,6 +48,7 @@ async function resolveToRealpath(packageName, baseDirectory) {
  */
 export type Sandbox = {
   env: Environment;
+  looseEnv: Environment;
   packageInfo: PackageInfo;
 };
 
@@ -119,6 +120,9 @@ type SandboxBuildContext = {
 async function fromDirectory(directory: string): Promise<Sandbox> {
   const source = path.resolve(directory);
   const env = getEnvironment();
+  const looseEnv = {...env};
+  delete looseEnv.PATH;
+  delete looseEnv.SHELL;
   const packageJson = await readPackageJson(path.join(directory, 'package.json'));
   const depSpecList = objectToDependencySpecList(
     packageJson.dependencies,
@@ -162,6 +166,7 @@ async function fromDirectory(directory: string): Promise<Sandbox> {
 
     return {
       env,
+      looseEnv,
       packageInfo: {
         source: `local:${await fs.realpath(source)}`,
         sourceType: 'local',
@@ -175,6 +180,7 @@ async function fromDirectory(directory: string): Promise<Sandbox> {
   } else {
     return {
       env,
+      looseEnv,
       packageInfo: {
         source: `local:${await fs.realpath(source)}`,
         sourceType: 'local',
