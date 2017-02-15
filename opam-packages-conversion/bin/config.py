@@ -21,11 +21,11 @@ OPAM_PACKAGES_BLACKLIST = {
 
 ESY_EXTRA_DEP = {
     "camomile": { 
-        'cppo'  : '*',
-        'camlp4': '*',
+        "@opam-alpha/cppo"  : "*",
+        "@opam-alpha/camlp4": "*",
     },
     "conf-pkg-config": {
-        'yarn-pkg-config' : 'bsansouci/yarn-pkg-config#esy',
+        "yarn-pkg-config": "reasonml/yarn-pkg-config#esy",
     }
 }
 
