@@ -257,8 +257,9 @@ def generate_package_json(name, version, directory):
         npm_range = opamRangeToNpmRange(range)
         packageJSON["dependencies"][scoped(dep)] = npm_range
     if name in config.ESY_EXTRA_DEP:
-        for dep in config.ESY_EXTRA_DEP.get(name, {}):
-            packageJSON["dependencies"][scoped(dep)] = '*'
+        for deps in config.ESY_EXTRA_DEP[name]:
+            for dep_name in deps:
+                packageJSON["dependencies"][scoped(dep_name)] = deps[dep_name]
 
     for (dep, range) in buildFlatList(d["depopts"]):
         dep = dep.strip("\" ")
