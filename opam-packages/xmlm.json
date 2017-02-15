@@ -1,0 +1,136 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/xmlm/releases/xmlm-1.1.1.tbz", 
+        "checksum": "357025dd1a9fc87b6e50ac21eb0eb2b1", 
+        "files": [
+          {
+            "content": "bin: [\"_build/test/xmltrip.native\" {\"xmltrip\"}]\n", 
+            "name": "xmlm.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmlm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmlm_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "xmlm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.10.0"
+      }, 
+      "name": "@opam-alpha/xmlm"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/xmlm/releases/xmlm-1.1.0.tbz", 
+        "checksum": "443bb4e06ee5f88bbd2bafd5641f903d", 
+        "files": [
+          {
+            "content": "bin: [\"_build/test/xmltrip.native\" {\"xmltrip\"}]\n", 
+            "name": "xmlm.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmlm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmlm_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "xmlm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xmlm"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/xmlm/releases/xmlm-1.2.0.tbz", 
+        "checksum": "7e6d3363c2395d84274f1b480e4b6003", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmlm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmlm_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "xmlm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xmlm"
+    }
+  }
+}

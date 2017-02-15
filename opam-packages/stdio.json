@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.1.alpha1": {
+      "version": "0.1.alpha1", 
+      "opam": {
+        "url": "https://github.com/janestreet/stdio/archive/0.1.alpha1.tar.gz", 
+        "checksum": "5000bebc638cb68d52c8a68ba76a0c87", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "jbuilder build-package stdio -j 4", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stdio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stdio_version": {
+            "scope": "global", 
+            "val": "0.1.alpha1"
+          }, 
+          "stdio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/jbuilder": "*", 
+        "@opam-alpha/base": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/stdio"
+    }
+  }
+}

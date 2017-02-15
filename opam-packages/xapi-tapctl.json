@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "https://github.com/xapi-project/tapctl/archive/v0.9.2.tar.gz", 
+        "checksum": "ff83a10ad2fd71119d25b54e67f4b966", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_tapctl_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }, 
+          "xapi_tapctl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_tapctl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xapi-stdext": ">= 0.13.0 < 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xapi-forkexecd": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-tapctl"
+    }
+  }
+}

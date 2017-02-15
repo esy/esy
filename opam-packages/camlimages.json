@@ -1,0 +1,333 @@
+{
+  "versions": {
+    "4.0.1": {
+      "version": "4.0.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/v4.0.1.tar.gz", 
+        "checksum": "d6b9494b56a72b65fd302d1858efff7c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/omake": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "<= 4.01.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.0.2": {
+      "version": "4.0.2", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.0.2.tar.gz", 
+        "checksum": "a22b2d457cf538e40bf1897adf42317f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "<= 4.01.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.1.0": {
+      "version": "4.1.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.1.0.tar.gz", 
+        "checksum": "4caf56fa615f25dda92b9c7b1ad45849", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake --configure INCLUDES=/usr/include/libexif", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 <= 4.01.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.1.1": {
+      "version": "4.1.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.1.1.tar.gz", 
+        "checksum": "d5d383dff1b124f58c7934d1ffe84b1b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake --configure", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1 <= 4.01.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.1.2": {
+      "version": "4.1.2", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.1.2.tar.gz", 
+        "checksum": "91a07717d4682018ee536731078bb453", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake --configure", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.2.2": {
+      "version": "4.2.2", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.2.2.tar.gz", 
+        "checksum": "3c4aa0153ca2d91ec2a0798d74648581", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake --configure", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.2.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.2.1": {
+      "version": "4.2.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.2.1.tar.gz", 
+        "checksum": "7ce29544e2a2945b4899f3c6f05859a0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake --configure", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }, 
+    "4.2.0": {
+      "version": "4.2.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/camlimages/get/4.2.0.tar.gz", 
+        "checksum": "2060b7c7f8f8e1863142f0d67edc9926", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake --configure", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlimages_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlimages_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlimages_version": {
+            "scope": "global", 
+            "val": "4.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/camlimages"
+    }
+  }
+}

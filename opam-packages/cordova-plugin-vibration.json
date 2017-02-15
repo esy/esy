@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-vibration/archive/v1.0.tar.gz", 
+        "checksum": "51679c10586816405f18f286b8dda7b9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_vibration_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_plugin_vibration_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cordova_plugin_vibration_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-vibration"
+    }
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "0.18.0": {
+      "version": "0.18.0", 
+      "opam": {
+        "url": "https://bitbucket.org/gds/objsize/get/0.18.tar.bz2", 
+        "checksum": "dc02c207bb6ff90ee5f21fd2b44c7438", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "objsize_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "objsize_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "objsize_version": {
+            "scope": "global", 
+            "val": "0.18.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/objsize"
+    }, 
+    "0.17.0": {
+      "version": "0.17.0", 
+      "opam": {
+        "url": "https://bitbucket.org/gds/objsize/get/0.17.tar.bz2", 
+        "checksum": "fa3e3f30fa9da04c7634738ec9726720", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "objsize_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "objsize_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "objsize_version": {
+            "scope": "global", 
+            "val": "0.17.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/objsize"
+    }, 
+    "0.16.0": {
+      "version": "0.16.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/442/objsize-0.16.tar.gz", 
+        "checksum": "66f550c611d3a3499454ff906d60b42d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "objsize_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "objsize_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "objsize_version": {
+            "scope": "global", 
+            "val": "0.16.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/objsize"
+    }
+  }
+}

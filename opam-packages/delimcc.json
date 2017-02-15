@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "0.0.0": {
+      "version": "0.0.0", 
+      "opam": {
+        "url": "http://okmij.org/ftp/continuations/caml-shift.tar.gz", 
+        "checksum": "35c6ecfaa438669aa7f30b071cffd8b7", 
+        "files": [
+          {
+            "content": "diff --git a/Makefile b/Makefile\nindex dd6d95a..b96f091 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -41,25 +41,27 @@\n #OCAMLINCLUDES=./ocaml-byterun-3.09\n #OCAMLINCLUDES=./ocaml-byterun-3.10\n OCAMLINCLUDES=./ocaml-byterun-3.11\n-# Directory of your OCAML executables...\n-#OCAMLBIN=../../bin\n-OCAMLBIN := $(shell dirname `which ocaml`)\n-OCAMLC=$(OCAMLBIN)/ocamlc\n+\n LIBDIR := $(shell ocamlc -where)\n \n+# Richard Mortier <mort@cantab.net>, 2013-03-19\n+#\n+# simplify tool discovery\n+\n+OCAMLC=ocamlc\n+\n # The following Makefile.config will set ARCH, MODEL, SYSTEM\n include $(LIBDIR)/Makefile.config\n \n-# CFLAGS=$(FLAGS) -O $(NATIVECCCOMPOPTS)\n-# DFLAGS=$(FLAGS) -g -DDEBUG $(NATIVECCCOMPOPTS)\n+OCAMLOPT=ocamlopt\n+OCAMLTOP=ocaml\n+OCAMLMKLIB=ocamlmklib\n+OCAMLMKTOP=ocamlmktop\n+OCAMLFIND=ocamlfind\n \n-OCAMLOPT=$(OCAMLBIN)/ocamlopt\n-OCAMLTOP=$(OCAMLBIN)/ocaml\n-OCAMLMKLIB=$(OCAMLBIN)/ocamlmklib\n-OCAMLMKTOP=$(OCAMLBIN)/ocamlmktop\n-OCAMLFIND=$(OCAMLBIN)/ocamlfind\n OCAMLFIND_INSTFLAGS=\n DESTDIR=\n+\n STDINCLUDES=$(LIBDIR)/caml\n STUBLIBDIR=$(LIBDIR)/stublibs\n # CC=$(NATIVECC)\n@@ -101,7 +103,7 @@ install:\n \tif test -f delimcc.cmxa; then cp delimcc.cmxa $(DESTDIR)$(LIBDIR); fi\n \n findlib-install: META dlldelimcc.so libdelimcc.a delimcc.cma delimcc.cmi \\\n-\tdlldelimccopt.so libdelimccopt.a delimcc.cmxa\n+\tdlldelimccopt.so libdelimccopt.a delimcc.cmxa delimcc.a delimcc.mli\n \t$(OCAMLFIND) install $(OCAMLFIND_INSTFLAGS) delimcc $^\n \n \n", 
+            "name": "makefile_fix.patch"
+          }, 
+          {
+            "content": "diff --git a/caml-shift/Makefile b/caml-shift/Makefile\nindex 098390f..886fb36 100644\n--- a/caml-shift/Makefile\n+++ b/caml-shift/Makefile\n@@ -44,7 +44,7 @@\n #OCAMLINCLUDES=../../byterun\n #OCAMLINCLUDES=./ocaml-byterun-3.09\n #OCAMLINCLUDES=./ocaml-byterun-3.10\n-OCAMLINCLUDES=./ocaml-byterun-3.11\n+#OCAMLINCLUDES=./ocaml-byterun-3.11\n \n LIBDIR := $(shell ocamlc -where)\n \n@@ -70,7 +70,7 @@ STDINCLUDES=$(LIBDIR)/caml\n STUBLIBDIR=$(LIBDIR)/stublibs\n # CC=$(NATIVECC)\n CC=gcc\n-CFLAGS=-fPIC -Wall -I$(OCAMLINCLUDES) -I$(STDINCLUDES) -O2\n+CFLAGS=-fPIC -Wall -I$(STDINCLUDES) -O2\n NATIVEFLAGS=-DCAML_NAME_SPACE -DNATIVE_CODE \\\n        -DTARGET_$(ARCH) -DSYS_$(SYSTEM)\n RANLIB=ranlib\n@@ -124,7 +124,7 @@ delimcc.cmo: delimcc.cmi\n # When using GCC 4.7, add the flag -fno-ipa-sra\n stacks-native.o: stacks-native.c\n \t$(CC) -c $(NATIVEFLAGS) -O2 -fPIC -Wall \\\n-\t-I$(OCAMLINCLUDES) -I$(STDINCLUDES) stacks-native.c\n+\t-I$(STDINCLUDES) stacks-native.c\n \n top:\tlibdelimcc.a delimcc.cma\n \t$(OCAMLMKTOP) -o ocamltopcc delimcc.cma\ndiff --git a/caml-shift/delim_serialize.c b/caml-shift/delim_serialize.c\nindex 7ac2ef2..97c5574 100644\n--- a/caml-shift/delim_serialize.c\n+++ b/caml-shift/delim_serialize.c\n@@ -12,7 +12,9 @@\n \n  *------------------------------------------------------------------------\n  */\n+#define CAML_INTERNALS\n \n+#include <stdint.h>\n #include <string.h>\n #include \"misc.h\"\n #include <alloc.h>\n@@ -355,7 +357,7 @@ static value abs_rec(value global_data_arr, value v)\n   if(Tag_val(v) == Custom_tag && Wosize_val(v) == 2 &&\n      strcmp(Custom_ops_val(v)->identifier,\"delimcc_gdix\") == 0)\n   {\n-    const int32 i = *((int32 *) Data_custom_val(v));\n+    const int32_t i = *((int32_t *) Data_custom_val(v));\n     value f;\n #if defined(DEBUG_SER) && DEBUG_SER\n     fprintf(stderr, \"absolutizing %d\\n\",i);\n@@ -366,7 +368,7 @@ static value abs_rec(value global_data_arr, value v)\n     {\n       const value f1 = Field(f,1);\n       myassert( Is_block(f1) && Wosize_val(f1) == 2 &&\n-\t\t*((int32 *) Data_custom_val(f1)) == i);\n+\t\t*((int32_t *) Data_custom_val(f1)) == i);\n     }\n     v = Field(f,0);\n     myassert( Is_block(v) && Is_in_heap(v) && Tag_val(v) == Closure_tag );\n@@ -483,20 +485,20 @@ value output_delim_value(value global_data_arr,\n \n \n /* Implementing the custom data type global_data_ix\n-   The contents is the int32 index in the global data table.\n+   The contents is the int32_t index in the global data table.\n    Don't forget to invoke global_data_register_custom_ops ()\n    somewhere in the initialization code.\n */\n \n static void gdix_serialize(value v, uintnat * wsize_32, uintnat * wsize_64)\n {\n-  caml_serialize_int_4((*((int32 *) Data_custom_val(v))));\n+  caml_serialize_int_4((*((int32_t *) Data_custom_val(v))));\n   *wsize_32 = *wsize_64 = 4;\n }\n \n static uintnat gdix_deserialize(void * dst)\n {\n-  *((int32 *) dst) = caml_deserialize_sint_4();\n+  *((int32_t *) dst) = caml_deserialize_sint_4();\n   return 4;\n }\n \n@@ -519,7 +521,7 @@ CAMLexport value global_data_ix_make(value i) /* int->global_data_idx */\n {\n   value res = caml_alloc_custom(&global_data_ix_ops, 4, 0, 1);\n   myassert( Is_long(i) );\n-  (*((int32 *) Data_custom_val(res))) = Long_val(i);\n+  (*((int32_t *) Data_custom_val(res))) = Long_val(i);\n   return res;\n }\n \ndiff --git a/caml-shift/stacks-native.c b/caml-shift/stacks-native.c\nindex 23f197f..47c0c8b 100644\n--- a/caml-shift/stacks-native.c\n+++ b/caml-shift/stacks-native.c\n@@ -127,6 +127,7 @@ Thanks to Anthony Tavener for investigation.\n \n */\n \n+#define CAML_INTERNALS\n \n #include \"misc.h\"\n #include \"memory.h\"\ndiff --git a/caml-shift/stacks.c b/caml-shift/stacks.c\nindex 3d498ff..cb3b76f 100644\n--- a/caml-shift/stacks.c\n+++ b/caml-shift/stacks.c\n@@ -60,6 +60,8 @@\n  *------------------------------------------------------------------------\n  */\n \n+#define CAML_INTERNALS\n+\n #include <string.h>\n #include \"misc.h\"\n #include <alloc.h>\n", 
+            "name": "ocaml.4.04.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make findlib-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "delimcc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "delimcc_version": {
+            "scope": "global", 
+            "val": "0.0.0"
+          }, 
+          "delimcc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0 >= 4.04.0"
+      }, 
+      "name": "@opam-alpha/delimcc"
+    }
+  }
+}

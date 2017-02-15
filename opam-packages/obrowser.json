@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "http://ocsigen.org/download/obrowser-1.1.1.tar.gz", 
+        "checksum": "c2b67241ad48f6e1a207dfda9773b535", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obrowser_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obrowser_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obrowser_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/obrowser"
+    }
+  }
+}

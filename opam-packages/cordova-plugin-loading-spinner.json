@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-loading-spinner/archive/v1.0.tar.gz", 
+        "checksum": "3f86d155fbb58320cef560b9854d684f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_loading_spinner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cordova_plugin_loading_spinner_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "cordova_plugin_loading_spinner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-loading-spinner"
+    }
+  }
+}

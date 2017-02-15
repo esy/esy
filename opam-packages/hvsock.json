@@ -1,0 +1,396 @@
+{
+  "versions": {
+    "0.10.0": {
+      "version": "0.10.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-hvsock/archive/v0.10.0.tar.gz", 
+        "checksum": "936d43f968b1888658488373107e457b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.10.0"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-flow": "<=1.1.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-hvsock/archive/v0.8.1.tar.gz", 
+        "checksum": "1e9e78e1d243b990d9928332e469145c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-flow": "<=1.1.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-hvsock/archive/v0.6.tar.gz", 
+        "checksum": "a0ae59e4223f3815b93011c974fb29f1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-flow": "<=1.1.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-hvsock/archive/v0.11.0.tar.gz", 
+        "checksum": "f18b0f7cbc13718736cb460206c5c62e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${alcotest_enable:-disable}-tests", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.0.0 <3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-flow": "<=1.1.0", 
+        "@opam-alpha/logs": "*", 
+        "@opam-alpha/duration": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.11.1": {
+      "version": "0.11.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-hvsock/archive/v0.11.1.tar.gz", 
+        "checksum": "f0d70ff045c9b7d345d33b682900e218", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${alcotest_enable:-disable}-tests", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.11.1"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.0.0 <3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-flow": "<=1.1.0", 
+        "@opam-alpha/logs": "*", 
+        "@opam-alpha/duration": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-hvsock/archive/v0.7.tar.gz", 
+        "checksum": "66a16fb255ccf4bc729693c406882807", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-flow": "<=1.1.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-hvsock/archive/v0.4.tar.gz", 
+        "checksum": "d81a19266e6b313b5b9dbb8c569f0f27", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-hvsock/archive/v0.5.tar.gz", 
+        "checksum": "234ac9563aa79d3f8074964c1d91a5a4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hvsock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hvsock_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "hvsock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hvsock"
+    }
+  }
+}

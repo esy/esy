@@ -1,0 +1,166 @@
+{
+  "versions": {
+    "2.01.0": {
+      "version": "2.01.0", 
+      "opam": {
+        "url": "http://hevea.inria.fr/old/hevea-2.01.tar.gz", 
+        "checksum": "81f6fba8918ccc319e508983eff374fb", 
+        "files": [
+          {
+            "content": "bin: [\n  \"imagen\"\n  \"_build/hevea.native\" {\"hevea\"}\n  \"_build/hacha.native\" {\"hacha\"}\n  \"_build/esponja.native\" {\"esponja\"}\n  \"_build/bibhva.native\" {\"bibhva\"}\n]\n", 
+            "name": "hevea.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hevea_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hevea_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hevea_version": {
+            "scope": "global", 
+            "val": "2.01.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/hevea"
+    }, 
+    "2.28.0": {
+      "version": "2.28.0", 
+      "opam": {
+        "url": "http://hevea.inria.fr/old/hevea-2.28.tar.gz", 
+        "checksum": "7164a099279739cdef9037612d4a134c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hevea_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hevea_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hevea_version": {
+            "scope": "global", 
+            "val": "2.28.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/hevea"
+    }, 
+    "2.25.0": {
+      "version": "2.25.0", 
+      "opam": {
+        "url": "http://hevea.inria.fr/old/hevea-2.25.tar.gz", 
+        "checksum": "973cdef711b00f9afb92f3c1fe009904", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hevea_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hevea_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hevea_version": {
+            "scope": "global", 
+            "val": "2.25.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/hevea"
+    }, 
+    "2.29.0": {
+      "version": "2.29.0", 
+      "opam": {
+        "url": "http://hevea.inria.fr/old/hevea-2.29.tar.gz", 
+        "checksum": "20a73c7f8afa3f3edd63ce4e25dbf7d9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hevea_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hevea_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hevea_version": {
+            "scope": "global", 
+            "val": "2.29.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/hevea"
+    }
+  }
+}

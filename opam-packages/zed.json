@@ -1,0 +1,133 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://github.com/diml/zed/archive/1.4.tar.gz", 
+        "checksum": "47661250ed1b3e12c886d19c1a019675", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zed_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zed_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zed_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": ">= 0.8.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/react": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/zed"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://github.com/diml/zed/archive/1.3.tar.gz", 
+        "checksum": "59f1d4b08f4b156f21d2378d34fc5b7d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zed_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zed_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zed_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": ">= 0.8.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/react": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/zed"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/944/zed-1.2.tar.gz", 
+        "checksum": "c5e2a5e223a7ed39faf74512343cef11", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zed_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zed_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zed_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": ">= 0.8.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/react": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/zed"
+    }
+  }
+}

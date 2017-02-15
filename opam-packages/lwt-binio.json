@@ -1,0 +1,131 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://0ok.org/ocaml/archive/lwt-binio-0.1.0.tar.gz", 
+        "checksum": "9f068980f4e50d4cc3e460dcdf9b008f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lwt_binio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lwt_binio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lwt_binio_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ocplib-endian": "< 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/lwt-binio"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/hcarty/lwt-binio/archive/v0.2.1.tar.gz", 
+        "checksum": "828973efee1b92fc2a1b53b6a69a543f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lwt_binio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lwt_binio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lwt_binio_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/lwt-binio"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/hcarty/lwt-binio/archive/v0.2.0.tar.gz", 
+        "checksum": "00c333485eef326b6870109d9af35259", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lwt_binio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lwt_binio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lwt_binio_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/lwt-binio"
+    }
+  }
+}

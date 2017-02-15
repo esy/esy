@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/hcarty/ocaml-testsimple/archive/v0.3.1.tar.gz", 
+        "checksum": "44412a6418b819f247b89439b7a6386d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "testsimple_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "testsimple_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "testsimple_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/testsimple"
+    }
+  }
+}

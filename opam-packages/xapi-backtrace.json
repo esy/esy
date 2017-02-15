@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/xapi-project/backtrace/archive/v0.2.tar.gz", 
+        "checksum": "b699d78ad34cf6637c37c57e6df00768", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_backtrace_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_backtrace_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "xapi_backtrace_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/rpc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/xapi-backtrace"
+    }
+  }
+}

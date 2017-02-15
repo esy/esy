@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/cakeplus/pa_qualified/archive/0.6.tar.gz", 
+        "checksum": "aa92760a461340c1085b40c546dc5145", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_qualified_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_qualified_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pa_qualified_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/pa_qualified"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/cakeplus/pa_qualified/archive/0.5.tar.gz", 
+        "checksum": "ae26fa6f0f4814a58fdbe2d852c41bff", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_qualified_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_qualified_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pa_qualified_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/pa_qualified"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://www.lri.fr/~filliatr/ftp/ocaml/misc/ocamlwc-0.3.tar.gz", 
+        "checksum": "72bb9e8c0dad08735b62dabe216967d6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlwc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlwc_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ocamlwc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlwc"
+    }
+  }
+}

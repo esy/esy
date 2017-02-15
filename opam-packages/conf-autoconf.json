@@ -1,0 +1,43 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "which autoconf", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_autoconf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "conf_autoconf_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "conf_autoconf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-which": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-autoconf"
+    }
+  }
+}

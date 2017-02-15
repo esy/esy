@@ -1,0 +1,52 @@
+{
+  "versions": {
+    "0.22.1": {
+      "version": "0.22.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/ocaml-containers/archive/0.22.1.tar.gz", 
+        "checksum": "491e2095ac76bdf97d8a8179712cc973", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${base_threads_enable:-disable}-thread --disable-bench --disable-tests --${base_bigarray_enable:-disable}-bigarray --${sequence_enable:-disable}-advanced --${base_unix_enable:-disable}-unix --enable-docs", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "containers_version": {
+            "scope": "global", 
+            "val": "0.22.1"
+          }, 
+          "containers_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "containers_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/base-threads": "*", 
+        "@opam-alpha/sequence": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qtest": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-bigarray": "*", 
+        "@opam-alpha/cppo": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/containers"
+    }
+  }
+}

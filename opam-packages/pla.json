@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/modlfo/pla/archive/v1.1.tar.gz", 
+        "checksum": "c308189bcd816f4e07d7d8282adc46f8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pla_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pla_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pla_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cppo": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/pla"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/modlfo/pla/archive/v1.0.tar.gz", 
+        "checksum": "bede16ce7fc0cd11578fa187557642a2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pla_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pla_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pla_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cppo": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/pla"
+    }
+  }
+}

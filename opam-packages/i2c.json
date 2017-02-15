@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.1-0": {
+      "version": "0.1.1-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-i2c/archive/0.1.1.tar.gz", 
+        "checksum": "00021a581cc0115c8137fd4d4938ef56", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "i2c_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "i2c_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "i2c_version": {
+            "scope": "global", 
+            "val": "0.1.1-0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/i2c"
+    }
+  }
+}

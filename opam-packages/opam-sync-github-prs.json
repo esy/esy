@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/avsm/opam-sync-github-prs/archive/v1.1.0.tar.gz", 
+        "checksum": "fa6d18a09ff3a5dabdf9173ca91fc29b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opam_sync_github_prs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "opam_sync_github_prs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opam_sync_github_prs_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/github": ">= 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/core": ">= 109.53.01"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/opam-sync-github-prs"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/avsm/opam-sync-github-prs/archive/v1.0.0.tar.gz", 
+        "checksum": "5ddc2ebf373a6a8cf9847e933bc0ee53", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opam_sync_github_prs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "opam_sync_github_prs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opam_sync_github_prs_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/github": ">= 0.8.0 < 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/core": ">= 109.53.01"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/opam-sync-github-prs"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "109.38.alpha1": {
+      "version": "109.38.alpha1", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/alpha-packages/109.38.alpha1/individual/krb5-109.38.alpha1.tar.gz", 
+        "checksum": "e31093911c4e65cd0c8f8a1eeb18c91e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "krb5_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "krb5_version": {
+            "scope": "global", 
+            "val": "109.38.alpha1"
+          }, 
+          "krb5_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 109.20.00 <= 109.53.00", 
+        "@opam-alpha/async": ">= 109.38.00 <= 109.53.00", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 109.38.00 <= 109.53.01"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/krb5"
+    }
+  }
+}

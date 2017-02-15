@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#!/bin/sh\n\n# check that objdump is installed, if several objdumps are installed\n# then collect all possible objdump targets, where a target of an\n# objdump is defined syntactically <target>-objdump.\n# all found targets are written into config file in OCaml list syntax\n# Note: we specifically remove \"llvm-objdump\" as it is not a part of\n# binutils.\n\nTARGETS=\nFOUND=\nOBJDUMP=\nOBJDUMPS=\n\ncheck_objdump() {\n    [ -n \"$OBJDUMP\" ] && FOUND=1\n}\n\n\nadd_target() {\n    if [ -z \"$TARGETS\" ]; then\n        TARGETS=\"\\\\\\\"${1}\\\\\\\"\"\n    else\n        TARGETS=\"\\\\\\\"${1}\\\\\\\"; $TARGETS\"\n    fi\n}\n\n\ncollect_targets() {\n    IFS=\"\n\"\n   for path in $OBJDUMPS; do\n        file=`basename \"${path}\"`\n        pref=${file%-objdump}\n        if [ $pref -a -f $path -a -x $path -a \"x${pref}\" != \"xllvm\" -a \"x${pref}\" != \"xobjdump\" ]; then\n            if [ `which ${file}`  ]; then\n                FOUND=1\n                add_target $pref\n            fi\n        fi\n    done\n}\n\n\nif   [ \"is_$1\" = \"is_linux\" ]; then\n    OBJDUMP=`which objdump`\n    OBJDUMPS=`locate -r 'objdump$'`\nelif [ \"is_$1\" = \"is_darwin\" ]; then\n    OBJDUMP=`which gobjdump`\n    OBJDUMPS=`mdfind -name objdump`\nelse\n    echo \"unsupported OS\"\n    exit 1\nfi\n\ncheck_objdump\ncollect_targets\n\nif [ -z \"$FOUND\" ]; then\n    echo \"Failed to find objdump executable(s)\"\n    exit 1\nfi\n\n\n\n\ncat > conf-binutils.config <<EOF\nobjdump: \"${OBJDUMP}\"\ntargets: \"[${TARGETS}]\"\nEOF\n", 
+            "name": "configure.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -x configure.sh os", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_binutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_binutils_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "conf_binutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-binutils"
+    }
+  }
+}

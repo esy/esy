@@ -1,0 +1,218 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uunf/releases/uunf-0.9.0.tbz", 
+        "checksum": "96ce8b6826d2707b7a81b91379d9bee7", 
+        "files": [
+          {
+            "content": "bin: [\"_build/test/unftrip.native\" {\"unftrip\"}]\n", 
+            "name": "uunf.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uunf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uunf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uunf_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/uunf"
+    }, 
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/uunf/releases/uunf-0.9.2.tbz", 
+        "checksum": "ca312a45f473a66fe2d18492b09e11a0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true ${uutf_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uunf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uunf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uunf_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/uunf"
+    }, 
+    "0.9.3": {
+      "version": "0.9.3", 
+      "opam": {
+        "url": "http://erratique.ch/software/uunf/releases/uunf-0.9.3.tbz", 
+        "checksum": "81831c9b035df6b1d9fb6b9ff3da286b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true ${uutf_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uunf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uunf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uunf_version": {
+            "scope": "global", 
+            "val": "0.9.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/uunf"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uunf/releases/uunf-1.0.0.tbz", 
+        "checksum": "019a0f195dc59f1a9befb2857544e16a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true uutf=${uutf_installed:-false} cmdliner=${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uunf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uunf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uunf_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uunf"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uunf/releases/uunf-2.0.0.tbz", 
+        "checksum": "bf3d9b38e5a0a07a95dd0bda0eadb6dd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-uutf ${uutf_installed:-false} --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uunf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uunf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uunf_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uchar": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uunf"
+    }
+  }
+}

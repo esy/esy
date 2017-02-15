@@ -1,0 +1,100 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/nv-vn/otp/archive/0.3.tar.gz", 
+        "checksum": "4e5b7d75e1af7a19f404b2989754eff7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_json_types_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ppx_json_types_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_json_types_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": ">= 1.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.19.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.4.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_json_types"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/nv-vn/otp/archive/0.2.tar.gz", 
+        "checksum": "5253cc3e8050efb453b843c4bfdc4000", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_json_types_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "ppx_json_types_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_json_types_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": ">= 1.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.19.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.4.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_json_types"
+    }
+  }
+}

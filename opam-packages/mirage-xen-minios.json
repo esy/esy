@@ -1,0 +1,348 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.3/mirage-xen-minios-v0.3.tar.bz2", 
+        "checksum": "6135a0307759148207138283ca4334c2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.6.0/mirage-xen-minios-v0.6.0.tar.bz2", 
+        "checksum": "30a80c1c770e474e79a8cb12fd6649b6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.8.0/mirage-xen-minios-v0.8.0.tar.bz2", 
+        "checksum": "0a0600f77d147a4b3745d6f5161b7fc6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/minios-xen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.7.0/mirage-xen-minios-v0.7.0.tar.bz2", 
+        "checksum": "254d22077237ce9f75537a9a6f1c9589", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.2/mirage-xen-minios-v0.2.tar.bz2", 
+        "checksum": "563dcbd137b1d9e9a14e3fcfb6068924", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.4.1/mirage-xen-minios-v0.4.1.tar.bz2", 
+        "checksum": "d83f3053ead2ee87713b4e16b59e0f09", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.4/mirage-xen-minios-v0.4.tar.bz2", 
+        "checksum": "a72ff79c42ee30baf60a97a3ebc6ed59", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.4.2/mirage-xen-minios-v0.4.2.tar.bz2", 
+        "checksum": "478177b8865b05aecc371b757af28f77", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-xen-minios/releases/download/v0.5.0/mirage-xen-minios-v0.5.0.tar.bz2", 
+        "checksum": "da1939899f15ad2bf374a18b826693fc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_minios_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_minios_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "mirage_xen_minios_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-xen-minios"
+    }
+  }
+}

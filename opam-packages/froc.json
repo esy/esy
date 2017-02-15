@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.2.2": {
+      "version": "0.2.2", 
+      "opam": {
+        "url": "https://github.com/jaked/froc/archive/6068a1fab883ed9254bfeb53a1f9c15e8af0bb20.tar.gz", 
+        "checksum": "59a485f97dde415dd0059ed3ec5a3170", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "froc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "froc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "froc_version": {
+            "scope": "global", 
+            "val": "0.2.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/delimcc": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/froc"
+    }
+  }
+}

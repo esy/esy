@@ -1,0 +1,62 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/gildor478/opam-build-revdeps/releases/download/0.1.0/opam-build-revdeps-0.1.0.tar.gz", 
+        "checksum": "07d04ea5b2df5f18e9a12bc5db43855f", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "opam-build-revdeps.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opam_build_revdeps_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "opam_build_revdeps_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opam_build_revdeps_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlify": "*", 
+        "@opam-alpha/re": ">= 1.7.0", 
+        "@opam-alpha/ocamlfind": ">= 1.3.1", 
+        "@opam-alpha/jingoo": ">= 1.2.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fileutils": ">= 0.5.1", 
+        "@opam-alpha/opam-lib": "= 1.2.2", 
+        "@opam-alpha/uuidm": ">= 0.9.6", 
+        "@opam-alpha/cmdliner": ">= 0.9.0", 
+        "@opam-alpha/calendar": ">= 2.03.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/opam-build-revdeps"
+    }
+  }
+}

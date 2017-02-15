@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/ibnfirnas/caravan/archive/0.0.2.tar.gz", 
+        "checksum": "d8a6d1f1685b0b48585d46a935b9cf4d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "caravan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "caravan_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "caravan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/textutils": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/caravan"
+    }
+  }
+}

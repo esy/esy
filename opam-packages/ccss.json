@@ -1,0 +1,140 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1257/ccss-1.4.tgz", 
+        "checksum": "021a10e1efec7e4ae6ebffcdf6111903", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ccss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ccss_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "ccss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/batteries": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ccss"
+    }, 
+    "1.6.0": {
+      "version": "1.6.0", 
+      "opam": {
+        "url": "https://github.com/darioteixeira/ccss/archive/v1.6.tar.gz", 
+        "checksum": "e444cc42df4609054d1004dda54df37c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ccss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ccss_version": {
+            "scope": "global", 
+            "val": "1.6.0"
+          }, 
+          "ccss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sedlex": "*", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ccss"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1407/ccss-1.5.tgz", 
+        "checksum": "6fd7d056ef01baca3e356c7493764a79", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ccss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ccss_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }, 
+          "ccss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/batteries": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ccss"
+    }
+  }
+}

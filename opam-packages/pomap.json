@@ -1,0 +1,250 @@
+{
+  "versions": {
+    "3.0.6": {
+      "version": "3.0.6", 
+      "opam": {
+        "url": "https://github.com/mmottl/pomap/releases/download/v3.0.6/pomap-3.0.6.tar.gz", 
+        "checksum": "899aa41641b0961ae0b03c62950365c0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pomap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pomap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pomap_version": {
+            "scope": "global", 
+            "val": "3.0.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/pomap"
+    }, 
+    "3.0.4": {
+      "version": "3.0.4", 
+      "opam": {
+        "url": "https://github.com/mmottl/pomap/releases/download/v3.0.4/pomap-3.0.4.tar.gz", 
+        "checksum": "8a858bbd4e2241391ce4b3fd4ef8e7ab", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pomap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pomap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pomap_version": {
+            "scope": "global", 
+            "val": "3.0.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/pomap"
+    }, 
+    "3.0.5": {
+      "version": "3.0.5", 
+      "opam": {
+        "url": "https://github.com/mmottl/pomap/releases/download/v3.0.5/pomap-3.0.5.tar.gz", 
+        "checksum": "91351b96311f77f1bac08c1eb60bb76e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pomap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pomap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pomap_version": {
+            "scope": "global", 
+            "val": "3.0.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.04.0"
+      }, 
+      "name": "@opam-alpha/pomap"
+    }, 
+    "3.0.2": {
+      "version": "3.0.2", 
+      "opam": {
+        "url": "https://github.com/mmottl/pomap/archive/v3.0.2.tar.gz", 
+        "checksum": "99356e4bb14416ca698f9adfa3f0d0fa", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pomap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pomap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pomap_version": {
+            "scope": "global", 
+            "val": "3.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/pomap"
+    }, 
+    "3.0.3": {
+      "version": "3.0.3", 
+      "opam": {
+        "url": "https://github.com/mmottl/pomap/archive/v3.0.3.tar.gz", 
+        "checksum": "3aee29183fe599a5354277d2e3fa6799", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pomap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pomap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pomap_version": {
+            "scope": "global", 
+            "val": "3.0.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/pomap"
+    }, 
+    "3.0.1": {
+      "version": "3.0.1", 
+      "opam": {
+        "url": "https://github.com/mmottl/pomap/archive/v3.0.1.tar.gz", 
+        "checksum": "235050feb3893dc556aebabb804dc952", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pomap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pomap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pomap_version": {
+            "scope": "global", 
+            "val": "3.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.01.0"
+      }, 
+      "name": "@opam-alpha/pomap"
+    }
+  }
+}

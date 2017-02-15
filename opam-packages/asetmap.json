@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/asetmap/releases/asetmap-0.8.1.tbz", 
+        "checksum": "9e4a518bfb6350e2f296c7f3147989c7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "asetmap_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "asetmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "asetmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/asetmap"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/asetmap/releases/asetmap-0.8.0.tbz", 
+        "checksum": "5bebd8ab267d3b9d10f83ae8739a09c2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "asetmap_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "asetmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "asetmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/asetmap"
+    }
+  }
+}

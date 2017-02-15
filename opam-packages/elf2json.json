@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://github.com/m4b/elf2json/archive/v1.0.0.tar.gz", 
+        "checksum": "5c0e113305839b7825d7edc888f962be", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "elf2json.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "elf2json_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "elf2json_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "elf2json_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base64": "*", 
+        "@opam-alpha/rdr": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/elf2json"
+    }
+  }
+}

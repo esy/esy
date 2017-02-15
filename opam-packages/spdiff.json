@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/jespera/spdiff/archive/0.1.tar.gz", 
+        "checksum": "d523b48a5e7b4d392cf7fcc7a2a07553", 
+        "files": [
+          {
+            "content": "bin: [\n  \"spdiff.opt\" {\"spdiff\"}\n]\n", 
+            "name": "spdiff.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make depend", 
+          "make opt", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "spdiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "spdiff_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "spdiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": "<= 20140422.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/spdiff"
+    }
+  }
+}

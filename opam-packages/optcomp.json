@@ -1,0 +1,130 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1011/optcomp-1.4.tar.gz", 
+        "checksum": "696e603c47c9e02554ab659b57d1da56", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "optcomp_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "optcomp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "optcomp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/optcomp"
+    }, 
+    "1.6.0": {
+      "version": "1.6.0", 
+      "opam": {
+        "url": "https://github.com/diml/optcomp/archive/1.6.tar.gz", 
+        "checksum": "d3587244dba1b8b10f24d0b60a8c700d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "optcomp_version": {
+            "scope": "global", 
+            "val": "1.6.0"
+          }, 
+          "optcomp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "optcomp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/optcomp"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "https://github.com/diml/optcomp/archive/1.5.tar.gz", 
+        "checksum": "06e70c9c886b2f8663a736a99a2b933b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "optcomp_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }, 
+          "optcomp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "optcomp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/optcomp"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/pqwy/mirage-os-shim/releases/download/v0.0.1/mirage-os-shim-0.0.1.tbz", 
+        "checksum": "e9fe8b2703a664aa854c82b0a47dd82d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-mirage-unix ${mirage_unix_installed:-false} --with-mirage-xen ${mirage_xen_installed:-false} --with-mirage-solo5 ${mirage_solo5_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_os_shim_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_os_shim_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "mirage_os_shim_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-solo5": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">=2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/mirage-os-shim"
+    }
+  }
+}

@@ -1,0 +1,591 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v1.1.tar.gz", 
+        "checksum": "37c65b96337fcbe98e1ab2efa3a3f675", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "3.1.0": {
+      "version": "3.1.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v3.1.tar.gz", 
+        "checksum": "3dd0359d08051ab8801c8dbc02ac13d8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "3.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v1.0.tar.gz", 
+        "checksum": "41a13e34721d2e251202ec39526467d5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "4.0.0": {
+      "version": "4.0.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v4.0.tar.gz", 
+        "checksum": "19b995a263b20eb176d5e019947046f2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "4.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_tools": ">= 4.02.3", 
+        "@opam-alpha/cppo": ">= 1.2.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "3.0.0": {
+      "version": "3.0.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v3.0.tar.gz", 
+        "checksum": "32907f30e2b3439230fefe3ca320d11f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "3.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v2.0.tar.gz", 
+        "checksum": "c15ad1c87f88a5876389fe28d05d925c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v0.3.tar.gz", 
+        "checksum": "168decb43a51c7b9e3a0c8c46221a7bc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "3.3.0": {
+      "version": "3.3.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v3.3.tar.gz", 
+        "checksum": "c4a15d783a76912a1244a95aebb5935c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "3.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 4.02.3", 
+        "@opam-alpha/cppo": ">= 1.2.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "3.2.0": {
+      "version": "3.2.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v3.2.tar.gz", 
+        "checksum": "8f782748c5e544860293266a7291921c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "3.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v2.2.tar.gz", 
+        "checksum": "b6e0b4440d5e0af23a4d02aa5b25f4b9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v0.2.tar.gz", 
+        "checksum": "c36bfc351b67f42793b849a6d18ea2e8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v0.1.tar.gz", 
+        "checksum": "ae5248b550d04b767ab85ba79aba08f4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "4.1.0": {
+      "version": "4.1.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v4.1.tar.gz", 
+        "checksum": "6a0cf323c97434c5a6d8529ea7e084db", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "4.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_tools": ">= 4.02.3", 
+        "@opam-alpha/cppo": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_deriving/archive/v2.1.1.tar.gz", 
+        "checksum": "c0fcaa6552eaaa3ded86f561c59bc173", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_deriving_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_deriving"
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "versions": {
+    "2.6.0": {
+      "version": "2.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.6.0.tar.gz", 
+        "checksum": "e9d5ec80ae06b42658e48af130aea7c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_version": {
+            "scope": "global", 
+            "val": "2.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/mirage-xen-ocaml": ">=2.6.0", 
+        "@opam-alpha/xen-gnt": ">= 2.0.0", 
+        "@opam-alpha/minios-xen": ">= 0.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.5", 
+        "@opam-alpha/io-page": ">= 1.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-clock-xen": ">= 1.0.0", 
+        "@opam-alpha/xen-evtchn": ">= 0.9.9", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen"
+    }, 
+    "2.4.1": {
+      "version": "2.4.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.4.0.tar.gz", 
+        "checksum": "cc474641b52985f6dea8e8e5b773de78", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_version": {
+            "scope": "global", 
+            "val": "2.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/mirage-xen-ocaml": "*", 
+        "@opam-alpha/xen-gnt": ">= 2.0.0", 
+        "@opam-alpha/minios-xen": ">= 0.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.5", 
+        "@opam-alpha/io-page": ">= 1.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-clock-xen": ">= 1.0.0", 
+        "@opam-alpha/xen-evtchn": ">= 0.9.9", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 <4.03.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen"
+    }, 
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.4.0.tar.gz", 
+        "checksum": "cc474641b52985f6dea8e8e5b773de78", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_xen_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/mirage-xen-ocaml": "*", 
+        "@opam-alpha/xen-gnt": ">= 2.0.0", 
+        "@opam-alpha/minios-xen": ">= 0.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.5", 
+        "@opam-alpha/io-page": ">= 1.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-clock-xen": ">= 1.0.0", 
+        "@opam-alpha/xen-evtchn": ">= 0.9.9", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 <4.03.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://www.lri.fr/~filliatr/ftp/ocaml/cgi/cgi-0.8.tar.gz", 
+        "checksum": "87e1e239dfb9af15f6c8ed469dca313a", 
+        "files": [
+          {
+            "content": "diff -u -r -N cgi-0.8-orig/META cgi-0.8/META\n--- cgi-0.8-orig/META\t1970-01-01 01:00:00.000000000 +0100\n+++ cgi-0.8/META\t2013-02-18 13:29:47.000000000 +0100\n@@ -0,0 +1,5 @@\n+description = \"Objective Caml library for writing CGIs\"\n+version = \"0.8\"\n+requires = \"str\"\n+archive(byte) = \"cgi.cmo\"\n+archive(native) = \"cgi.cmx\"\ndiff -u -r -N cgi-0.8-orig/Makefile.in cgi-0.8/Makefile.in\n--- cgi-0.8-orig/Makefile.in\t2013-02-18 13:29:26.000000000 +0100\n+++ cgi-0.8/Makefile.in\t2013-02-18 13:30:40.000000000 +0100\n@@ -3,8 +3,6 @@\n # Configuration part\n ###################################################################\n \n-TARGETDIR = @OCAMLLIB@\n-\n CAMLC   = @OCAMLC@ -g\n CAMLOPT = @OCAMLOPT@\n CAMLDEP = @OCAMLDEP@\n@@ -28,20 +26,17 @@\n # Installation and export\n ###################################################################\n \n-COMMFILES = $(MLI) $(CMI)\n+COMMFILES = META $(MLI) $(CMI)\n BYTEFILES = cgi.cmo\n OPTFILES  = cgi.cmx cgi.o\n \n install: install-@OCAMLBEST@\n \n-install-common:\n-\tcp $(COMMFILES) $(TARGETDIR)\n-\n-install-byte: install-common\n-\tcp $(BYTEFILES) $(TARGETDIR)\n+install-byte:\n+\tocamlfind install cgi $(COMMFILES) $(BYTEFILES)\n \n-install-opt: install-common install-byte\n-\tcp $(OPTFILES) $(TARGETDIR)\n+install-opt:\n+\tocamlfind install cgi $(COMMFILES) $(BYTEFILES) $(OPTFILES)\n \n MAJORVN=0\n MINORVN=8\ndiff -u -r -N cgi-0.8-orig/cgi-0.8/META cgi-0.8/cgi-0.8/META\n--- cgi-0.8-orig/cgi-0.8/META\t1970-01-01 01:00:00.000000000 +0100\n+++ cgi-0.8/cgi-0.8/META\t2013-02-18 13:29:44.000000000 +0100\n@@ -0,0 +1,5 @@\n+description = \"Objective Caml library for writing CGIs\"\n+version = \"0.8\"\n+requires = \"str\"\n+archive(byte) = \"cgi.cmo\"\n+archive(native) = \"cgi.cmx\"\n", 
+            "name": "ocamlfind.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cgi_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "cgi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cgi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cgi"
+    }
+  }
+}

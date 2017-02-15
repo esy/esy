@@ -1,0 +1,170 @@
+{
+  "versions": {
+    "2.7.1-cvs4": {
+      "version": "2.7.1-cvs4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1663/ocamlfuse-2.7.1-cvs4.tar.gz", 
+        "checksum": "bc8e70d6886fd6a45387c3a7992a31cb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlfuse_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlfuse_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlfuse_version": {
+            "scope": "global", 
+            "val": "2.7.1-cvs4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.08.0"
+      }, 
+      "name": "@opam-alpha/ocamlfuse"
+    }, 
+    "2.7.1-cvs": {
+      "version": "2.7.1-cvs", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1074/ocamlfuse-2.7.1-cvs.tar.gz", 
+        "checksum": "3e9e7ee2fd89e033a265840ca5aa4d44", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C lib INCDIRS=$cur__lib/camlidl", 
+          "make -C lib install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlfuse_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlfuse_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlfuse_version": {
+            "scope": "global", 
+            "val": "2.7.1-cvs"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlfuse"
+    }, 
+    "2.7.1-cvs3": {
+      "version": "2.7.1-cvs3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1662/ocamlfuse-2.7.1-cvs3.tar.gz", 
+        "checksum": "96217775a14e5c91f1267a2cdf42cfeb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlfuse_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlfuse_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlfuse_version": {
+            "scope": "global", 
+            "val": "2.7.1-cvs3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.08.0"
+      }, 
+      "name": "@opam-alpha/ocamlfuse"
+    }, 
+    "2.7.1-cvs2": {
+      "version": "2.7.1-cvs2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1369/ocamlfuse-2.7.1_cvs2.tar.gz", 
+        "checksum": "639c41e535acb1d983d16e67e2d015db", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C lib INCDIRS=$cur__lib/camlidl", 
+          "make -C lib install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlfuse_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlfuse_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlfuse_version": {
+            "scope": "global", 
+            "val": "2.7.1-cvs2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.08.0"
+      }, 
+      "name": "@opam-alpha/ocamlfuse"
+    }
+  }
+}

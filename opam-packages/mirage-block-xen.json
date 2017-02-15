@@ -1,0 +1,395 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/v1.4.0.tar.gz", 
+        "checksum": "4e34cb99edab0d33539ef571356d567f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.0.1", 
+        "@opam-alpha/io-page": ">= 1.4.0", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/v1.1.0.tar.gz", 
+        "checksum": "7534c0af1b13e227ab79a4d554a6c942", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.0.1", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 <= 2.2.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/v1.0.0.tar.gz", 
+        "checksum": "c2d18a5defa8069b435dc55bf7e77ecc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 0.9.9", 
+        "@opam-alpha/mirage-types": ">= 0.5.0 < 1.1.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/0.3.1.tar.gz", 
+        "checksum": "9bfb6541332b0878f70213518ea668ae", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 0.8.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 0.9.9", 
+        "@opam-alpha/mirage-types": "= 0.3.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "1.3.1": {
+      "version": "1.3.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/v1.3.1.tar.gz", 
+        "checksum": "966e9401f5e4d44e47b1d94c530bba8f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "1.3.1"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.0.1", 
+        "@opam-alpha/io-page": ">= 1.4.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/v1.3.0.tar.gz", 
+        "checksum": "eb4c40337747dd0c6c61c9a0414c4bc8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.0.1", 
+        "@opam-alpha/io-page": ">= 1.4.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 <= 2.2.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/v1.2.0.tar.gz", 
+        "checksum": "e8af54601155b8b0e290353133fe600a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.0.1", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 <= 2.2.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-block-xen/archive/0.4.0.tar.gz", 
+        "checksum": "0e5aec9845340464c2890ac1f73fda44", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_block_xen_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "mirage_block_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_block_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 0.8.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 0.9.9", 
+        "@opam-alpha/mirage-types": ">= 0.4.0 < 1.1.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-block-xen"
+    }
+  }
+}

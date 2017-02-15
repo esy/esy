@@ -1,0 +1,43 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "pkg-config libpcre", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_libpcre_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_libpcre_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "conf_libpcre_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-libpcre"
+    }
+  }
+}

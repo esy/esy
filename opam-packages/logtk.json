@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/logtk/archive/0.8.1.tar.gz", 
+        "checksum": "4d20e91b06d20a256d5939ac0c0fec68", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${menhir_enable:-disable}-meta --disable-qcheck --disable-docs --${menhir_enable:-disable}-parsers --disable-solving --disable-tests --disable-tools --enable-meta", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logtk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logtk_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "logtk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/containers": ">= 0.3.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/sequence": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/msat": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/logtk"
+    }
+  }
+}

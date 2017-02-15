@@ -1,0 +1,472 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/liquidsoap/1.1.1/liquidsoap-1.1.1.tar.bz2", 
+        "checksum": "f0c1ed15a03537b09cadb77916bcf8ce", 
+        "files": [
+          {
+            "content": "commit 76357b981692072e0cf5d5a03820b79289d23c20\nAuthor: Romain Beauxis <toots@rastageeks.org>\nDate:   Wed Oct 16 20:49:36 2013 -0500\n\n    Added verb and chunked options.\n\ndiff --git a/configure.ac b/configure.ac\nindex 05831fa..d42b57f 100644\n--- a/configure.ac\n+++ b/configure.ac\n@@ -324,7 +324,7 @@ fi\n # Cry\n #\n \n-AC_CHECK_OCAML_BINDING([cry],[0.2.2])\n+AC_CHECK_OCAML_BINDING([cry],[0.3.0])\n \n # ocaml-mm\n #\ndiff --git a/src/lang/builtins_cry.ml b/src/lang/builtins_cry.ml\nindex 2017217..fa5acb3 100644\n--- a/src/lang/builtins_cry.ml\n+++ b/src/lang/builtins_cry.ml\n@@ -82,7 +82,7 @@ let () =\n         let v = List.assoc \"protocol\" p in\n         match Lang.to_string v with\n           | \"icy\"  -> Cry.Icy\n-          | \"http\" -> Cry.Http\n+          | \"http\" -> Cry.Http Cry.Source (* Verb doesn't matter here. *)\n           | _      -> \n               raise (Lang.Invalid_value (v, \"protocol should be one of: \\\n                                              'icy' or 'http'.\"))\ndiff --git a/src/outputs/harbor_output.camlp4 b/src/outputs/harbor_output.camlp4\nindex 3cd7eda..ddc15e5 100644\n--- a/src/outputs/harbor_output.camlp4\n+++ b/src/outputs/harbor_output.camlp4\n@@ -305,16 +305,12 @@ class output ~kind p =\n \n   let metaint = Lang.to_int (List.assoc \"metaint\" p) in\n \n-  let _,encoder_factory, \n-      format,icecast_info,icy_metadata,\n-      ogg =\n-    encoder_data p\n-  in\n+  let data = encoder_data p in\n \n   let out_enc =\n     match Lang.to_string (List.assoc \"encoding\" p) with\n       | \"\" ->\n-         if icy_metadata then\n+         if data.icy_metadata then\n            \"ISO-8859-1\"\n          else\n            \"UTF-8\"\n@@ -445,7 +441,7 @@ object (self)\n     let meta = Hashtbl.create (Hashtbl.length m) in\n     let f = Configure.recode_tag ~out_enc in\n     Hashtbl.iter (fun a b -> Hashtbl.add meta a (f b)) m ;\n-    if icy_metadata then\n+    if data.icy_metadata then\n       Tutils.mutexify metadata.metadata_m\n         (fun () -> \n           metadata.metadata <- Some meta) ()\n@@ -461,7 +457,7 @@ object (self)\n     in\n     let metaint,icyheader = \n       try\n-        assert(List.assoc \"Icy-MetaData\" headers = \"1\" && icy_metadata);\n+        assert(List.assoc \"Icy-MetaData\" headers = \"1\" && data.icy_metadata);\n         metaint,Printf.sprintf \"icy-metaint: %d\\r\\n\" metaint\n       with\n         | _ -> -1,\"\"\n@@ -473,7 +469,7 @@ object (self)\n     in\n     let reply = \n       Printf.sprintf \"%s 200 OK\\r\\nContent-type: %s\\r\\n%s%s\\r\\n\" \n-         protocol format icyheader extra_headers\n+         protocol data.format icyheader extra_headers\n     in\n     let buffer = Buffer.create buflen in\n     begin\n@@ -642,7 +638,7 @@ object (self)\n \n   method output_start =\n     assert (encoder = None) ;\n-    let enc = encoder_factory self#id in\n+    let enc = data.factory self#id in\n     encoder <- \n        Some (enc (Encoder.Meta.empty_metadata)) ;\n     let handler ~protocol ~data ~headers ~socket\ndiff --git a/src/outputs/harbor_output.ml b/src/outputs/harbor_output.ml\nindex e2270cf..57953d7 100644\n--- a/src/outputs/harbor_output.ml\n+++ b/src/outputs/harbor_output.ml\n@@ -265,14 +265,12 @@ class output ~kind p =\n                 (Lang.apply ~t: Lang.unit_t on_disconnect\n                    [ (\"\", (Lang.string s)) ])\n             in let metaint = Lang.to_int (List.assoc \"metaint\" p)\n-              in\n-                let (_, encoder_factory, format, icecast_info, icy_metadata,\n-                     ogg) =\n-                  encoder_data p\n+              in let data = encoder_data p\n                 in\n                   let out_enc =\n                     match Lang.to_string (List.assoc \"encoding\" p) with\n-                    | \"\" -> if icy_metadata then \"ISO-8859-1\" else \"UTF-8\"\n+                    | \"\" ->\n+                        if data.icy_metadata then \"ISO-8859-1\" else \"UTF-8\"\n                     | s -> String.uppercase s\n                   in let timeout = Lang.to_float (List.assoc \"timeout\" p)\n                     in let buflen = Lang.to_int (List.assoc \"buffer\" p)\n@@ -521,6 +519,7 @@ class output ~kind p =\n                                                                     a (\n                                                                     f b)) m;\n                                                                     if\n+                                                                    data.\n                                                                     icy_metadata\n                                                                     then\n                                                                     Tutils.\n@@ -572,6 +571,7 @@ class output ~kind p =\n                                                                     \"Icy-MetaData\"\n                                                                     headers)\n                                                                     = \"1\") &&\n+                                                                    data.\n                                                                     icy_metadata);\n                                                                     (metaint,\n                                                                     (Printf.\n@@ -601,6 +601,7 @@ class output ~kind p =\n                                                                     sprintf\n                                                                     \"%s 200 OK\\r\\nContent-type: %s\\r\\n%s%s\\r\\n\"\n                                                                     protocol\n+                                                                    data.\n                                                                     format\n                                                                     icyheader\n                                                                     extra_headers in\n@@ -1044,7 +1045,8 @@ class output ~kind p =\n                                                                     = None);\n                                                                    let enc \n                                                                     =\n-                                                                    encoder_factory\n+                                                                    data.\n+                                                                    factory\n                                                                     self#id\n                                                                    in\n                                                                     (encoder\ndiff --git a/src/outputs/icecast2.ml b/src/outputs/icecast2.ml\nindex 452c559..80ae4a7 100644\n--- a/src/outputs/icecast2.ml\n+++ b/src/outputs/icecast2.ml\n@@ -42,14 +42,6 @@ type icecast_info =\n \n module Icecast = \n struct\n-\n-  type protocol = Cry.protocol\n-\n-  let protocol_of_icecast_protocol = \n-    function\n-      | Icecast_utils.Http -> Cry.Http\n-      | Icecast_utils.Icy -> Cry.Icy \n-\n   type content = Cry.content_type\n \n   let format_of_content x =\n@@ -187,6 +179,17 @@ let proto kind =\n            for \\\"http\\\" protocol and \\\"ISO-8859-1\\\" for \\\"icy\\\" \\\n            protocol.\" ;\n     \"genre\", Lang.string_t, Some (Lang.string \"Misc\"), None ;\n+    \"protocol\", Lang.string_t, (Some (Lang.string \"http\")),\n+     Some \"Protocol of the streaming server: \\\n+          'http' for Icecast, 'icy' for shoutcast.\" ;\n+    \"verb\", Lang.string_t, (Some (Lang.string \"SOURCE\")),\n+     Some \"Verb to use with the 'http' protocol. One of: \\\n+           'SOURCE', 'PUT' or 'POST'.\";\n+    \"chunked\", Lang.string_t, (Some (Lang.bool false)),\n+     Some \"Used cunked transfer with the 'http' protocol.\";\n+    \"icy_metadata\", Lang.string_t, Some (Lang.string \"guess\"),\n+     Some \"Send new metadata using the ICY protocol. \\\n+           One of: \\\"guess\\\", \\\"true\\\", \\\"false\\\"\";\n     \"url\", Lang.string_t, Some (Lang.string \"http://savonet.sf.net\"), None ;\n     (\"description\", Lang.string_t,\n      Some (Lang.string \"Liquidsoap Radio!\"), None) ;\n@@ -230,10 +233,38 @@ class output ~kind p =\n     Lang.to_float (Lang.apply ~t:Lang.unit_t on_error [\"\", Lang.string msg]) \n   in\n \n-  let protocol,encoder_factory, \n-      format,icecast_info,\n-      icy_metadata,ogg =\n-    encoder_data p\n+  let data = encoder_data p in\n+\n+  let chunked = Lang.to_bool (List.assoc \"chunked\" p) in\n+\n+  let protocol = \n+    let verb =\n+      let v = List.assoc \"verb\" p in\n+      match Lang.to_string v with\n+        | \"SOURCE\" -> Cry.Source\n+        | \"PUT\"    -> Cry.Put\n+        | \"POST\"   -> Cry.Post\n+        | _ -> raise (Lang.Invalid_value\n+                   (v, \"Valid values are: 'SOURCE' \\\n+                       'PUT' or 'POST'.\")) \n+    in  \n+    let v = List.assoc \"protocol\" p in\n+    match Lang.to_string v with\n+      | \"http\" -> Cry.Http verb\n+      | \"icy\" -> Cry.Icy\n+      | _ ->\n+          raise (Lang.Invalid_value\n+                   (v, \"Valid values are 'http' (icecast) \\\n+                        and 'icy' (shoutcast)\"))\n+  in\n+  let icy_metadata = Lang.to_bool (List.assoc \"icy_metadata\" p) in\n+\n+  let ogg =\n+    match data.format with\n+     | x when x = Cry.ogg_application -> true\n+     | x when x = Cry.ogg_audio -> true\n+     | x when x = Cry.ogg_video -> true\n+     | _ -> false\n   in\n \n   let out_enc =\n@@ -450,7 +481,7 @@ object (self)\n \n   method icecast_start =\n     assert (encoder = None) ;\n-    let enc = encoder_factory self#id in\n+    let enc = data.factory self#id in\n     encoder <- \n        Some (enc (Encoder.Meta.empty_metadata)) ; \n     assert (Cry.get_status connection = Cry.Disconnected) ;\n@@ -465,10 +496,10 @@ object (self)\n         | Some q -> Hashtbl.add audio_info y (z q)\n         | None -> ()\n     in\n-      f icecast_info.bitrate \"bitrate\" string_of_int;\n-      f icecast_info.quality \"quality\" (fun x -> x);\n-      f icecast_info.samplerate \"samplerate\" string_of_int;\n-      f icecast_info.channels \"channels\" string_of_int;\n+      f data.info.bitrate \"bitrate\" string_of_int;\n+      f data.info.quality \"quality\" (fun x -> x);\n+      f data.info.samplerate \"samplerate\" string_of_int;\n+      f data.info.channels \"channels\" string_of_int;\n       let user_agent =\n         try\n           List.assoc \"User-Agent\" headers\n@@ -478,8 +509,8 @@ object (self)\n       let source = \n         Cry.connection ~host ~port ~user ~password\n                        ~genre ~url ~description ~name\n-                       ~public ~protocol ~mount  \n-                       ~audio_info ~user_agent ~content_type:format ()\n+                       ~public ~protocol ~mount ~chunked \n+                       ~audio_info ~user_agent ~content_type:data.format ()\n       in\n       List.iter (fun (x,y) -> \n                       (* User-Agent has already been passed to Cry.. *)\ndiff --git a/src/tools/icecast_utils.ml b/src/tools/icecast_utils.ml\nindex 85a27df..a15242c 100644\n--- a/src/tools/icecast_utils.ml\n+++ b/src/tools/icecast_utils.ml\n@@ -29,26 +29,14 @@ let aac_mime = \"audio/aac\"\n let aacplus_mime = \"audio/aacp\"\n let flac_mime = \"audio/x-flac\"\n \n-type icecast_protocol = Http | Icy\n-\n let base_proto kind = \n-    [(\"protocol\", Lang.string_t, (Some (Lang.string \"http\")),\n-      Some \"Protocol of the streaming server: \\\n-           'http' for Icecast, 'icy' for shoutcast.\") ;\n-      \"icy_metadata\", Lang.string_t, Some (Lang.string \"guess\"),\n-      Some \"Send new metadata using the ICY protocol. \\\n-            One of: \\\"guess\\\", \\\"true\\\", \\\"false\\\"\";\n-     (\"format\", Lang.string_t, Some (Lang.string \"\"),\n+    [\"format\", Lang.string_t, Some (Lang.string \"\"),\n       Some \"Format, e.g. \\\"audio/ogg\\\". \\\n-      When empty, the encoder is used to guess.\") ;\n-      \"\", Lang.format_t kind, None, Some \"Encoding format.\"]\n+      When empty, the encoder is used to guess.\" ;\n+     \"\", Lang.format_t kind, None, Some \"Encoding format.\"]\n \n module type Icecast_t =\n sig\n-  type protocol\n-\n-  val protocol_of_icecast_protocol : icecast_protocol -> protocol\n-\n   type content\n \n   val format_of_content : string -> content\n@@ -56,12 +44,16 @@ sig\n   type info\n \n   val info_of_encoder : Encoder.format -> info\n-\n end\n \n module Icecast_v(M:Icecast_t) = \n struct\n-  type icy_metadata = Guess | True | False\n+  type encoder_data = {\n+    factory      : string -> Encoder.Meta.export_metadata -> Encoder.encoder;\n+    format       : M.content;\n+    icy_metadata : bool;\n+    info         : M.info;\n+  }\n \n   let mpeg = M.format_of_content mpeg_mime\n   let ogg_application = M.format_of_content ogg_application_mime\n@@ -73,15 +65,6 @@ struct\n   let aacplus = M.format_of_content aacplus_mime\n   let flac = M.format_of_content flac_mime\n \n-  let protocol p =\n-    let v = List.assoc \"protocol\" p in\n-      match Lang.to_string v with\n-        | \"http\" -> Http\n-        | \"icy\" -> Icy\n-        | _ ->\n-            raise (Lang.Invalid_value\n-                     (v, \"Valid values are 'http' (icecast) \\\n-                          and 'icy' (shoutcast)\"))\n   let format_of_encoder =\n     function\n       | Encoder.MP3 _ -> Some mpeg\n@@ -95,19 +78,15 @@ struct\n       | Encoder.WAV _ -> Some wav\n       | Encoder.Ogg _ -> Some ogg\n \n-  let is_ogg =\n+  let icy_metadata =\n     function\n       | Encoder.Ogg _ -> true\n       | _ -> false\n \n   let encoder_data p =\n-    let protocol = protocol p in\n     let v = Lang.assoc \"\" 1 p in\n     let enc = Lang.to_format v in\n     let info,format =\n-       if (is_ogg enc) && (protocol = Icy) then\n-         raise (Lang.Invalid_value\n-               (v, \"icy protocol (shoutcast) does not support Ogg\")) ;\n        M.info_of_encoder enc,format_of_encoder enc\n     in\n     let encoder_factory =\n@@ -125,39 +104,9 @@ struct\n                                                  \"No format (mime) found, \\\n                                                   please specify one.\"))\n     in\n-    let icy_metadata =\n-      let v = List.assoc \"icy_metadata\" p in\n-      match Lang.to_string v with\n-        | \"guess\" -> Guess\n-        | \"true\"  -> True\n-        | \"false\" -> False\n-        | _ ->\n-              raise (Lang.Invalid_value\n-                       (v, \"Valid values are 'guess', \\\n-                            'true' or 'false'\"))\n-    in\n-    let icy_metadata =\n-      match format, icy_metadata with\n-        | _, True -> true\n-        | _, False -> false\n-        | x, _ when x = mpeg ||\n-                    x = wav ||\n-                    x = aac ||\n-                    x = aacplus ||\n-                    x = flac -> true\n-        | x, _ when x = ogg_application ||\n-                    x = ogg_audio ||\n-                    x = ogg_video -> false\n-        | _, Guess ->\n-             raise (Lang.Invalid_value\n-                      (List.assoc \"icy_metadata\" p,\n-                       \"Could not guess icy_metadata for this format, \\\n-                        please specify either 'true' or 'false'.\"))\n-    in\n-    let ogg = is_ogg enc in\n-    (M.protocol_of_icecast_protocol protocol),\n-    encoder_factory, format, info,\n-    icy_metadata, ogg\n-\n+    { factory      = encoder_factory;\n+      format       = format;\n+      icy_metadata = icy_metadata enc;\n+      info         = info }\n end\n \n", 
+            "name": "cry.patch"
+          }, 
+          {
+            "content": "bin: [\n  \"src/liquidsoap\"\n  \"?gui/liguidsoap\"\n]\n", 
+            "name": "liquidsoap.install"
+          }, 
+          {
+            "content": "commit f7018163d9f83bc350911d76226d2cef2290e72d\nAuthor: Romain Beauxis <toots@rastageeks.org>\nDate:   Sun Sep 22 22:19:38 2013 -0400\n\n    * Changed types to match new ocaml-ogg's API.\n      Should be fully backward compatible.\n\ndiff --git a/src/ogg_formats/ogg_muxer.ml b/src/ogg_formats/ogg_muxer.ml\nindex 2a75910..350b84c 100644\n--- a/src/ogg_formats/ogg_muxer.ml\n+++ b/src/ogg_formats/ogg_muxer.ml\n@@ -42,16 +42,16 @@ type track_data =\n \n type position = Unknown | Time of float\n \n-type 'a track_encoder = 'a data -> Ogg.Stream.t -> (Ogg.Page.t -> unit) -> unit\n+type 'a track_encoder = 'a data -> Ogg.Stream.stream -> (Ogg.Page.t -> unit) -> unit\n type page_end_time = Ogg.Page.t -> position\n-type header_encoder = Ogg.Stream.t -> Ogg.Page.t\n-type fisbone_packet = Ogg.Stream.t -> Ogg.Stream.packet option\n-type stream_start = Ogg.Stream.t -> Ogg.Page.t list\n-type end_of_stream = Ogg.Stream.t -> unit\n+type header_encoder = Ogg.Stream.stream -> Ogg.Page.t\n+type fisbone_packet = Ogg.Stream.stream -> Ogg.Stream.packet option\n+type stream_start = Ogg.Stream.stream -> Ogg.Page.t list\n+type end_of_stream = Ogg.Stream.stream -> unit\n \n type 'a stream = \n   {\n-    os                : Ogg.Stream.t;\n+    os                : Ogg.Stream.stream;\n     encoder           : 'a track_encoder;\n     end_pos           : page_end_time;\n     page_fill         : int option;\n@@ -76,7 +76,7 @@ type state = Eos | Streaming | Bos\n type t =\n   {\n     id               : string;\n-    mutable skeleton : Ogg.Stream.t option;\n+    mutable skeleton : Ogg.Stream.stream option;\n     header           : Buffer.t;\n     encoded          : Buffer.t;\n     mutable position : float;\ndiff --git a/src/ogg_formats/ogg_muxer.mli b/src/ogg_formats/ogg_muxer.mli\nindex 6b25ef5..72071df 100644\n--- a/src/ogg_formats/ogg_muxer.mli\n+++ b/src/ogg_formats/ogg_muxer.mli\n@@ -53,11 +53,11 @@ type track_data =\n   * If the encoding process outputs ogg pages, then\n   * the encoder should use the last argument to add its pages\n   * to the stream. *)\n-type 'a track_encoder = 'a data -> Ogg.Stream.t -> (Ogg.Page.t -> unit) -> unit\n+type 'a track_encoder = 'a data -> Ogg.Stream.stream -> (Ogg.Page.t -> unit) -> unit\n \n (** Returns the first page of the stream,\n   * to be placed at the very beginning. *)\n-type header_encoder = Ogg.Stream.t -> Ogg.Page.t\n+type header_encoder = Ogg.Stream.stream -> Ogg.Page.t\n \n (** Return the end time of a page, in milliseconds. *)\n type position = Unknown | Time of float\n@@ -69,13 +69,13 @@ type page_end_time = Ogg.Page.t -> position\n   * will contain the data for this stream to\n   * put in the ogg skeleton, if enabled in\n   * the encoder. *)\n-type fisbone_packet = Ogg.Stream.t -> Ogg.Stream.packet option\n+type fisbone_packet = Ogg.Stream.stream -> Ogg.Stream.packet option\n \n (** Returns the remaining header data, before data encoding starts. *)\n-type stream_start = Ogg.Stream.t -> Ogg.Page.t list\n+type stream_start = Ogg.Stream.stream -> Ogg.Page.t list\n \n (** Ends the track. *)\n-type end_of_stream = Ogg.Stream.t -> unit\n+type end_of_stream = Ogg.Stream.stream -> unit\n \n (** A data encoder is an encoder for either a audio or a video track. *)\n type data_encoder =\n@@ -171,4 +171,4 @@ val end_of_stream : t -> unit\n   (** {2 Utils} *)\n \n (** flush all availables pages from an ogg stream *)\n-val flush_pages : Ogg.Stream.t -> Ogg.Page.t list\n+val flush_pages : Ogg.Stream.stream -> Ogg.Page.t list\n", 
+            "name": "ogg.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "./configure --prefix $cur__install --sbindir=$cur__lib/liquidsoap/sbin --libexecdir=$cur__lib/liquidsoap/libexec --sysconfdir=$cur__lib/liquidsoap/etc --sharedstatedir=$cur__lib/liquidsoap/com --localstatedir=$cur__lib/liquidsoap/var --libdir=$cur__lib/liquidsoap/lib --includedir=$cur__lib/liquidsoap/include --datarootdir=$cur__lib/liquidsoap/share --disable-graphics --with-user=dummy --with-group=dummy", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "liquidsoap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/gavl": "*", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "@opam-alpha/lastfm": "*", 
+        "@opam-alpha/camomile": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/aacplus": "*", 
+        "@opam-alpha/mad": "*", 
+        "@opam-alpha/mm": ">= 0.2.1", 
+        "@opam-alpha/samplerate": "*", 
+        "@opam-alpha/cry": "*", 
+        "@opam-alpha/bjack": "*", 
+        "@opam-alpha/dssi": "*", 
+        "@opam-alpha/pulseaudio": "*", 
+        "@opam-alpha/schroedinger": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/duppy": ">= 0.5.0", 
+        "@opam-alpha/taglib": "*", 
+        "@opam-alpha/flac": "*", 
+        "@opam-alpha/ao": "*", 
+        "@opam-alpha/faad": "*", 
+        "@opam-alpha/inotify": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/soundtouch": "*", 
+        "@opam-alpha/lo": "*", 
+        "@opam-alpha/speex": "*", 
+        "@opam-alpha/theora": "*", 
+        "@opam-alpha/vorbis": "*", 
+        "@opam-alpha/frei0r": "*", 
+        "@opam-alpha/opus": "*", 
+        "@opam-alpha/alsa": "*", 
+        "@opam-alpha/ffmpeg": "*", 
+        "@opam-alpha/dtools": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "@opam-alpha/voaacenc": "*", 
+        "@opam-alpha/portaudio": "*", 
+        "@opam-alpha/lame": "*", 
+        "@opam-alpha/ogg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/liquidsoap"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/liquidsoap/1.1.0/liquidsoap-1.1.0.tar.bz2", 
+        "checksum": "43a282c44b6744e80fb8850738194b9d", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/liquidsoap\"\n  \"?gui/liguidsoap\"\n]\n", 
+            "name": "liquidsoap.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "./configure --prefix $cur__install --sbindir=$cur__lib/liquidsoap/sbin --libexecdir=$cur__lib/liquidsoap/libexec --sysconfdir=$cur__lib/liquidsoap/etc --sharedstatedir=$cur__lib/liquidsoap/com --localstatedir=$cur__lib/liquidsoap/var --libdir=$cur__lib/liquidsoap/lib --includedir=$cur__lib/liquidsoap/include --datarootdir=$cur__lib/liquidsoap/share --disable-graphics --with-user=dummy --with-group=dummy", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "liquidsoap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/gavl": "*", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "@opam-alpha/lastfm": "*", 
+        "@opam-alpha/camomile": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/aacplus": "*", 
+        "@opam-alpha/mad": "*", 
+        "@opam-alpha/mm": ">= 0.2.1", 
+        "@opam-alpha/samplerate": "*", 
+        "@opam-alpha/cry": "*", 
+        "@opam-alpha/bjack": "*", 
+        "@opam-alpha/dssi": "*", 
+        "@opam-alpha/pulseaudio": "*", 
+        "@opam-alpha/schroedinger": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/duppy": ">= 0.5.0", 
+        "@opam-alpha/taglib": "*", 
+        "@opam-alpha/flac": "*", 
+        "@opam-alpha/ao": "*", 
+        "@opam-alpha/faad": "*", 
+        "@opam-alpha/inotify": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/soundtouch": "*", 
+        "@opam-alpha/lo": "*", 
+        "@opam-alpha/speex": "*", 
+        "@opam-alpha/theora": "*", 
+        "@opam-alpha/vorbis": "*", 
+        "@opam-alpha/frei0r": "*", 
+        "@opam-alpha/opus": "*", 
+        "@opam-alpha/alsa": "*", 
+        "@opam-alpha/ffmpeg": "*", 
+        "@opam-alpha/dtools": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "@opam-alpha/voaacenc": "*", 
+        "@opam-alpha/portaudio": "*", 
+        "@opam-alpha/lame": "*", 
+        "@opam-alpha/ogg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0"
+      }, 
+      "name": "@opam-alpha/liquidsoap"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/liquidsoap/1.0.1/liquidsoap-1.0.1.tar.bz2", 
+        "checksum": "c3a05596056d1c3f256e9c2e00f4ff27", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/liquidsoap\"\n  \"gui/liguidsoap\"\n]\n", 
+            "name": "liquidsoap.install"
+          }, 
+          {
+            "content": "diff -u liquidsoap.1.0.1.orig/configure.ac liquidsoap.1.0.1/configure.ac\n--- liquidsoap.1.0.1.orig/configure.ac\t2013-02-22 10:09:51.000000000 +0100\n+++ liquidsoap.1.0.1/configure.ac\t2013-02-22 10:10:41.000000000 +0100\n@@ -246,14 +246,8 @@\n AC_MSG_CHECKING([for ocamlc version])\n AC_MSG_RESULT([$OCAML_MAJOR.$OCAML_MINOR.$OCAML_REVISION])\n \n-# Variables for support of TCP_NODELAY:\n-if test $OCAML_MAJOR -ge 3 -a $OCAML_MINOR -ge 11 ; then\n-  NEED_TCP_NODELAY=\n-  TCP_NODELAY_VALUE='let set_tcp_nodelay fd v = Unix.setsockopt fd Unix.TCP_NODELAY v'\n-else\n-  NEED_TCP_NODELAY=yes\n-  TCP_NODELAY_VALUE='external set_tcp_nodelay : Unix.file_descr -> bool -> unit = \"stub_set_tcp_nodelay\"'\n-fi\n+NEED_TCP_NODELAY=\n+TCP_NODELAY_VALUE='let set_tcp_nodelay fd v = Unix.setsockopt fd Unix.TCP_NODELAY v'\n AC_SUBST(NEED_TCP_NODELAY)\n AC_SUBST(TCP_NODELAY_VALUE)\n \nCommon subdirectories: liquidsoap.1.0.1.orig/doc and liquidsoap.1.0.1/doc\nCommon subdirectories: liquidsoap.1.0.1.orig/examples and liquidsoap.1.0.1/examples\nCommon subdirectories: liquidsoap.1.0.1.orig/gui and liquidsoap.1.0.1/gui\nCommon subdirectories: liquidsoap.1.0.1.orig/m4 and liquidsoap.1.0.1/m4\nCommon subdirectories: liquidsoap.1.0.1.orig/scripts and liquidsoap.1.0.1/scripts\nCommon subdirectories: liquidsoap.1.0.1.orig/src and liquidsoap.1.0.1/src\n", 
+            "name": "ocaml4.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "./configure --prefix $cur__install --sbindir=$cur__lib/liquidsoap/sbin --libexecdir=$cur__lib/liquidsoap/libexec --sysconfdir=$cur__lib/liquidsoap/etc --sharedstatedir=$cur__lib/liquidsoap/com --localstatedir=$cur__lib/liquidsoap/var --libdir=$cur__lib/liquidsoap/lib --includedir=$cur__lib/liquidsoap/include --datarootdir=$cur__lib/liquidsoap/share --disable-graphics --with-user=dummy --with-group=dummy", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "liquidsoap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/gavl": "*", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "@opam-alpha/lastfm": "*", 
+        "@opam-alpha/camomile": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/aacplus": "*", 
+        "@opam-alpha/mad": "*", 
+        "@opam-alpha/mm": "= 0.2.0", 
+        "@opam-alpha/samplerate": "*", 
+        "@opam-alpha/cry": "*", 
+        "@opam-alpha/bjack": "*", 
+        "@opam-alpha/dssi": "*", 
+        "@opam-alpha/pulseaudio": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/duppy": "= 0.4.2", 
+        "@opam-alpha/taglib": "*", 
+        "@opam-alpha/flac": "*", 
+        "@opam-alpha/ao": "*", 
+        "@opam-alpha/faad": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lo": "*", 
+        "@opam-alpha/theora": "*", 
+        "@opam-alpha/vorbis": "*", 
+        "@opam-alpha/frei0r": "*", 
+        "@opam-alpha/opus": "*", 
+        "@opam-alpha/alsa": "*", 
+        "@opam-alpha/ffmpeg": "*", 
+        "@opam-alpha/dtools": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "@opam-alpha/portaudio": "*", 
+        "@opam-alpha/lame": "*", 
+        "@opam-alpha/ogg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0"
+      }, 
+      "name": "@opam-alpha/liquidsoap"
+    }, 
+    "1.0.1-full": {
+      "version": "1.0.1-full", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/liquidsoap/1.0.1/liquidsoap-1.0.1-full.tar.bz2", 
+        "checksum": "79e834e7443e3cd7e77c4e62e758c9da", 
+        "files": [
+          {
+            "content": "bin: [\n  \"liquidsoap-1.0.1/src/liquidsoap\"\n  \"liquidsoap-1.0.1/gui/liguidsoap\"\n]\n", 
+            "name": "liquidsoap.install"
+          }, 
+          {
+            "content": "diff -ru liquidsoap.1.0.1-full/liquidsoap-1.0.1/Makefile.defs.in liquidsoap.1.0.1-full/liquidsoap-1.0.1/Makefile.defs.in\n--- liquidsoap.1.0.1-full/liquidsoap-1.0.1/Makefile.defs.in\t2012-07-04 00:03:59.000000000 +0200\n+++ liquidsoap.1.0.1-full/liquidsoap-1.0.1/Makefile.defs.in\t2012-10-08 10:54:46.293963450 +0200\n@@ -32,7 +32,7 @@\n CAMLP4O = @CAMLP4O@\n \n liquidsoap_ocamlcflags= @liquidsoap_ocamlcflags@\n-liquidsoap_ocamllflags= @liquidsoap_ocamllflags@  -cclib \"$(LDFLAGS)\"\n+liquidsoap_ocamllflags= @liquidsoap_ocamllflags@  -I %{lib}%/camlidl -cclib \"$(LDFLAGS)\"\n _DEP_OPTS= @_DEP_OPTS@\n \n # Make the building quiet\ndiff -ru liquidsoap.1.0.1-full/ocaml-gstreamer-0.1.0/src/Makefile.in liquidsoap.1.0.1-full/ocaml-gstreamer-0.1.0/src/Makefile.in\n--- liquidsoap.1.0.1-full/ocaml-gstreamer-0.1.0/src/Makefile.in\t2011-10-04 11:21:52.000000000 +0200\n+++ liquidsoap.1.0.1-full/ocaml-gstreamer-0.1.0/src/Makefile.in\t2012-10-08 10:54:46.329964544 +0200\n@@ -37,7 +37,7 @@\n CC = @CC@\n CFLAGS = @CFLAGS@ -Wall -DNATIVE_CODE\n CPPFLAGS = @CPPFLAGS@\n-INCDIRS = @INC@\n+INCDIRS = %{lib}%/camlidl\n NO_CUSTOM = yes\n OCAMLFLAGS = @OCAMLFLAGS@\n CAMLIDLFLAGS = -no-include\ndiff -ru liquidsoap.1.0.1-full/PACKAGES.default liquidsoap.1.0.1-full/PACKAGES.default\n--- liquidsoap.1.0.1-full/PACKAGES.default\t2012-07-04 00:03:47.000000000 +0200\n+++ liquidsoap.1.0.1-full/PACKAGES.default\t2012-10-08 10:54:46.257962362 +0200\n@@ -53,7 +53,7 @@\n ocaml-lame\n \n # AACPLUS is for AAC+ encoding.\n-ocaml-aacplus\n+#ocaml-aacplus\n \n # OGG is for ogg/vorbis and ogg/theora encoding and decoding\n ocaml-ogg\n@@ -89,7 +89,7 @@\n # ============================================================================\n \n # LADSPA are audio plugins providing sound effects\n-ocaml-ladspa\n+#ocaml-ladspa\n \n # SoundTouch is for changing pitch and tempo of sound\n ocaml-soundtouch\n@@ -112,18 +112,18 @@\n # ============================================================================\n \n # DSSI is a standard for synthesizer plugins\n-ocaml-dssi\n+#ocaml-dssi\n \n # ============================================================================\n # Various modules\n # ============================================================================\n \n # Xmlplaylist allow support for various xml format, such as rss, podcast, etc..\n-ocaml-xmlplaylist\n+#ocaml-xmlplaylist\n \n # Lastfm allow support for lastfm radios and the audioscrobbler protocol\n # It should be listed *after* ocaml-xmlplaylist in this file\n-ocaml-lastfm\n+#ocaml-lastfm\n \n # A library supporting the OSC protocol to have external controls\n # such as faders\n", 
+            "name": "opam.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs opam.patch.in", 
+          "mv PACKAGES.default PACKAGES", 
+          "./bootstrap", 
+          "./configure --prefix $cur__install --sbindir=$cur__lib/liquidsoap/sbin --libexecdir=$cur__lib/liquidsoap/libexec --sysconfdir=$cur__lib/liquidsoap/etc --sharedstatedir=$cur__lib/liquidsoap/com --localstatedir=$cur__lib/liquidsoap/var --libdir=$cur__lib/liquidsoap/lib --includedir=$cur__lib/liquidsoap/include --datarootdir=$cur__lib/liquidsoap/share --disable-graphics", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_version": {
+            "scope": "global", 
+            "val": "1.0.1-full"
+          }, 
+          "liquidsoap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/liquidsoap"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/savonet/liquidsoap/releases/download/1.2.0/liquidsoap-1.2.0.tar.bz2", 
+        "checksum": "a462d5a6325b1ab646f2b22761709f70", 
+        "files": [
+          {
+            "content": "diff --git a/src/lang/lang_builtins.ml b/src/lang/lang_builtins.ml\nindex 5512adf..e48fbde 100644\n--- a/src/lang/lang_builtins.ml\n+++ b/src/lang/lang_builtins.ml\n@@ -1289,7 +1289,7 @@ let () =\n       Shutdown.restart := true ;\n       Tutils.shutdown () ;\n       Lang.unit);\n-  add_builtin \"exit\" ~cat:Sys ~flags:[Hidden]\n+  add_builtin \"exit\" ~cat:Sys ~flags:[Lang.Hidden]\n     ~descr:\"Immediately stop the application. This should only be used in extreme cases or to specify an exit value. The recommended way of stopping Liquidsoap is to use shutdown.\"\n     [\"\", Lang.int_t, None, Some \"Exit value.\"] Lang.unit_t\n     (fun p ->\n", 
+            "name": "lang_builtins.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/liquidsoap/sbin --libexecdir=$cur__lib/liquidsoap/libexec --sysconfdir=$cur__lib/liquidsoap/etc --sharedstatedir=$cur__lib/liquidsoap/com --localstatedir=$cur__lib/liquidsoap/var --libdir=$cur__lib/liquidsoap/lib --includedir=$cur__lib/liquidsoap/include --datarootdir=$cur__lib/liquidsoap/share --disable-graphics --with-user=dummy --with-group=dummy", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "liquidsoap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/gavl": "*", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "@opam-alpha/lastfm": "*", 
+        "@opam-alpha/camomile": "*", 
+        "@opam-alpha/fdkaac": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/aacplus": "*", 
+        "@opam-alpha/mad": "*", 
+        "@opam-alpha/mm": ">= 0.2.1", 
+        "@opam-alpha/samplerate": "*", 
+        "@opam-alpha/cry": "*", 
+        "@opam-alpha/bjack": "*", 
+        "@opam-alpha/dssi": "*", 
+        "@opam-alpha/pulseaudio": "*", 
+        "@opam-alpha/schroedinger": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/duppy": ">= 0.5.0", 
+        "@opam-alpha/taglib": "*", 
+        "@opam-alpha/flac": "*", 
+        "@opam-alpha/ao": "*", 
+        "@opam-alpha/faad": "*", 
+        "@opam-alpha/inotify": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/soundtouch": "*", 
+        "@opam-alpha/lo": "*", 
+        "@opam-alpha/speex": "*", 
+        "@opam-alpha/theora": "*", 
+        "@opam-alpha/vorbis": "*", 
+        "@opam-alpha/frei0r": "*", 
+        "@opam-alpha/opus": "*", 
+        "@opam-alpha/alsa": "*", 
+        "@opam-alpha/ffmpeg": "*", 
+        "@opam-alpha/dtools": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "@opam-alpha/voaacenc": "*", 
+        "@opam-alpha/portaudio": "*", 
+        "@opam-alpha/lame": "*", 
+        "@opam-alpha/ogg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0"
+      }, 
+      "name": "@opam-alpha/liquidsoap"
+    }, 
+    "1.2.1": {
+      "version": "1.2.1", 
+      "opam": {
+        "url": "https://github.com/savonet/liquidsoap/releases/download/1.2.1/liquidsoap-1.2.1.tar.bz2", 
+        "checksum": "49a61b5aa5ff84d821edf31ae87e6c4e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/liquidsoap/sbin --libexecdir=$cur__lib/liquidsoap/libexec --sysconfdir=$cur__lib/liquidsoap/etc --sharedstatedir=$cur__lib/liquidsoap/com --localstatedir=$cur__lib/liquidsoap/var --libdir=$cur__lib/liquidsoap/lib --includedir=$cur__lib/liquidsoap/include --datarootdir=$cur__lib/liquidsoap/share --disable-graphics --with-user=dummy --with-group=dummy", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_version": {
+            "scope": "global", 
+            "val": "1.2.1"
+          }, 
+          "liquidsoap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/gavl": "*", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "@opam-alpha/lastfm": "*", 
+        "@opam-alpha/camomile": "*", 
+        "@opam-alpha/fdkaac": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/aacplus": "*", 
+        "@opam-alpha/mad": "*", 
+        "@opam-alpha/mm": ">= 0.2.1", 
+        "@opam-alpha/samplerate": "*", 
+        "@opam-alpha/cry": "*", 
+        "@opam-alpha/bjack": "*", 
+        "@opam-alpha/dssi": "*", 
+        "@opam-alpha/pulseaudio": "*", 
+        "@opam-alpha/schroedinger": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/duppy": ">= 0.5.0", 
+        "@opam-alpha/taglib": "*", 
+        "@opam-alpha/flac": "*", 
+        "@opam-alpha/ao": "*", 
+        "@opam-alpha/faad": "*", 
+        "@opam-alpha/inotify": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/soundtouch": "*", 
+        "@opam-alpha/lo": "*", 
+        "@opam-alpha/speex": "*", 
+        "@opam-alpha/theora": "*", 
+        "@opam-alpha/vorbis": "*", 
+        "@opam-alpha/frei0r": "*", 
+        "@opam-alpha/opus": "*", 
+        "@opam-alpha/alsa": "*", 
+        "@opam-alpha/ffmpeg": "*", 
+        "@opam-alpha/dtools": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "@opam-alpha/voaacenc": "*", 
+        "@opam-alpha/portaudio": "*", 
+        "@opam-alpha/lame": "*", 
+        "@opam-alpha/ogg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/liquidsoap"
+    }
+  }
+}

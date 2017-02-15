@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "113.00.00": {
+      "version": "113.00.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.00/files/comparelib-113.00.00.tar.gz", 
+        "checksum": "bdb4f44831e0ba7325a9d0ec2540fa48", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "comparelib_version": {
+            "scope": "global", 
+            "val": "113.00.00"
+          }, 
+          "comparelib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "comparelib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": ">= 113.00.00 < 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/comparelib"
+    }
+  }
+}

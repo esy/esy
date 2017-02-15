@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.3.1-0": {
+      "version": "0.3.1-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-math/archive/0.3.1.tar.gz", 
+        "checksum": "e8d78f61e19f52f492b08ce77b6e519b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_math_version": {
+            "scope": "global", 
+            "val": "0.3.1-0"
+          }, 
+          "posix_math_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_math_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-math"
+    }, 
+    "0.3.0-0": {
+      "version": "0.3.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-math/archive/0.3.0.tar.gz", 
+        "checksum": "d95810bdc1cb02f69bb452fed1c3721b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_math_version": {
+            "scope": "global", 
+            "val": "0.3.0-0"
+          }, 
+          "posix_math_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_math_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-math"
+    }
+  }
+}

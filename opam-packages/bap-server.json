@@ -1,0 +1,56 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap-server/archive/v0.1.0.tar.gz", 
+        "checksum": "9bb465ad8f216009cfb0eda23509e02e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_server_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_server_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "bap_server_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": ">= 0.4.0 < 0.4.4", 
+        "@opam-alpha/core_kernel": ">= 113.33.00", 
+        "@opam-alpha/cohttp": ">= 0.20.0 <= 0.21.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": "= 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/core-lwt": "*", 
+        "@opam-alpha/bap-arm": "*", 
+        "@opam-alpha/bap-std": "*", 
+        "@opam-alpha/regular": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/bap-server"
+    }
+  }
+}

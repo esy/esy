@@ -1,0 +1,53 @@
+{
+  "versions": {
+    "1.4.1": {
+      "version": "1.4.1", 
+      "opam": {
+        "url": "https://github.com/mjambon/cppo/archive/v1.4.1.tar.gz", 
+        "checksum": "2100b34907caa350d3026a3ed13b08d5", 
+        "files": [
+          {
+            "content": "bin: [\"cppo\"]\n", 
+            "name": "cppo.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(make clean || true)", 
+          "make all", 
+          "make opt", 
+          "make ocamlbuild", 
+          "make LIBDIR=$cur__lib install-lib", 
+          "make BINDIR=$cur__bin install-bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cppo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cppo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cppo_version": {
+            "scope": "global", 
+            "val": "1.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cppo"
+    }
+  }
+}

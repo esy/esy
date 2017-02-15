@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/722/odb-server_0.1.tar.gz", 
+        "checksum": "235044aa3ab5e9052e8938a054c43bff", 
+        "files": [
+          {
+            "content": "diff -ru odb-server.0.1/Makefile odb-server.0.1/Makefile\n--- odb-server.0.1/Makefile\t2011-11-09 14:17:39.000000000 +0100\n+++ odb-server.0.1/Makefile\t2012-10-05 18:14:58.789856354 +0200\n@@ -135,7 +135,7 @@\n \t$(MKDIR) $(INSTALLDIR)\n \t$(CP) $(LIB_CMIFILES) $(LIB) $(LIB_BYTE) $(LIB:.cmxa=.a) \\\n \t`ls $(SERVER_CMIFILES) | grep -v server.cmi` $(INSTALLDIR)\n-\t$(CP) $(SERVER) $(CLIENT)  `dirname \\`which $(OCAMLC)\\``/\n+\t$(CP) $(SERVER) $(CLIENT)  %{bin}%\n \n ####\n oug:\n@@ -214,4 +214,4 @@\n .depend depend:\n \tocamldep -pp $(CAMLP4O) *.ml > .depend\n \n-include .depend\n\\ Pas de fin de ligne \u00e0 la fin du fichier\n+include .depend\n", 
+            "name": "opam.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs opam.patch.in", 
+          "mkdir -p $cur__bin", 
+          "make", 
+          "make install OCAMLLIB=$cur__lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "odb_server_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "odb_server_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "odb_server_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/odb-server"
+    }
+  }
+}

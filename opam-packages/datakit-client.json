@@ -1,0 +1,148 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/docker/datakit/releases/download/0.6.0/datakit-0.6.0.tbz", 
+        "checksum": "a502b86cea0f7f515776bc9901b36515", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false -n datakit-client", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datakit_client_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datakit_client_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "datakit_client_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/protocol-9p": ">= 0.7.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datakit-client"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/docker/datakit/releases/download/0.8.0/datakit-0.8.0.tbz", 
+        "checksum": "eee43f96d223465e4759015aba3ffa00", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false -n datakit-client", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datakit_client_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datakit_client_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "datakit_client_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/protocol-9p": ">= 0.7.4", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datakit-client"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/docker/datakit/releases/download/0.7.0/datakit-0.7.0.tbz", 
+        "checksum": "0576d33105586cf656d73d431ba4045f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false -n datakit-client", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datakit_client_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datakit_client_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "datakit_client_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/protocol-9p": ">= 0.7.4", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datakit-client"
+    }
+  }
+}

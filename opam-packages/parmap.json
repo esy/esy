@@ -1,0 +1,407 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/tarball/0.9.1", 
+        "checksum": "e39f254dc7282f89317c18a597b95595", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.03.0": {
+      "version": "1.03.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/archive/1.0rc3.tar.gz", 
+        "checksum": "748eba498cdc6e985b85f708b5fb16a2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.03.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.06.0": {
+      "version": "1.06.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/archive/1.0-rc6.tar.gz", 
+        "checksum": "2259db16f3655e5ecff4fb641eb08f24", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.06.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.02.0": {
+      "version": "1.02.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/tarball/1.0-rc2", 
+        "checksum": "1d68204d3bae2b8e6119528cf69552c4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.02.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.0-rc7.1": {
+      "version": "1.0-rc7.1", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/archive/1.0-rc7-fix-for4.03+3.tar.gz", 
+        "checksum": "ea5f9179ff5d1126fd01bc04888dcc54", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.0-rc7.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.07.0": {
+      "version": "1.07.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/archive/1.0-rc7.tar.gz", 
+        "checksum": "f78aa871ac23d321d28905d83027db4c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.07.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.01.0": {
+      "version": "1.01.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/tarball/1.0-rc1", 
+        "checksum": "b13c17d88cedb929d2921a9dc50ff223", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.01.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.04.0": {
+      "version": "1.04.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/archive/1.0-rc4.tar.gz", 
+        "checksum": "5b803ca609852efdef5f3589bdcac73e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.04.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }, 
+    "1.05.0": {
+      "version": "1.05.0", 
+      "opam": {
+        "url": "https://github.com/rdicosmo/parmap/archive/1.0-rc5.tar.gz", 
+        "checksum": "8c802fb9717af13dc69d3c4de9879be0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "aclocal -I m4", 
+          "autoconf", 
+          "autoheader", 
+          "./configure", 
+          "make DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "parmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "parmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "parmap_version": {
+            "scope": "global", 
+            "val": "1.05.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/parmap"
+    }
+  }
+}

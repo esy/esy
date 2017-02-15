@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "https://github.com/hcarty/indexmap/archive/v0.0.3.tar.gz", 
+        "checksum": "1bc63fdf2a063f555c2cb15aaf6b4700", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "indexmap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "indexmap_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "indexmap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/indexmap"
+    }
+  }
+}

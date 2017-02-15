@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/let-def/merlin-extend/archive/v0.3.tar.gz", 
+        "checksum": "9c6dfd4f53328f02f12fcc265f4e2dda", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "merlin_extend_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "merlin_extend_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "merlin_extend_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cppo": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/merlin-extend"
+    }
+  }
+}

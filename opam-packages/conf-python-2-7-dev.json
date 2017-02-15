@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#include \"python2.7/Python.h\"\n\nint main() {\n  return 0;\n}\n", 
+            "name": "test.c"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cc test.c", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_python_2_7_dev_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_python_2_7_dev_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "conf_python_2_7_dev_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-python-2-7-dev"
+    }
+  }
+}

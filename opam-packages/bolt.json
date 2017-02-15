@@ -1,0 +1,149 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1043/bolt-1.4.tar.gz", 
+        "checksum": "26d10d36debfabbc6782d442d5d852d6", 
+        "files": [
+          {
+            "content": "--- bolt-1.4/META\t2012-10-26 21:19:41.000000000 +0200\n+++ bolt-1.4.patched/META\t2013-09-30 12:52:31.948110819 +0200\n@@ -1,6 +1,6 @@\n description=\"logging tool\"\n requires=\"camlp4,unix,dynlink\"\n-version=\"1.3\"\n+version=\"1.4\"\n \n archive(syntax,preprocessor)=\"bolt_pp.cmo\"\n \n", 
+            "name": "opam.bolt.META.patch"
+          }, 
+          {
+            "content": "--- bolt-1.4/Makefile\t2012-10-26 21:19:41.000000000 +0200\n+++ bolt-1.4.patched/Makefile\t2013-09-27 15:36:15.556186869 +0200\n@@ -31,7 +31,7 @@\n # DEFINITIONS\n \n PROJECT_NAME=bolt\n-OCAMLBUILD=$(PATH_OCAML_PREFIX)/bin/ocamlbuild\n+OCAMLBUILD=ocamlbuild\n OCAMLBUILD_ENV=WARNINGS=$(WARNINGS) PATH_OCAML_PREFIX=$(PATH_OCAML_PREFIX)\n OCAMLBUILD_FLAGS=-classic-display -no-links\n MODULES_ODOCL=$(PROJECT_NAME).odocl\n@@ -101,7 +101,7 @@\n \n generate: FORCE\n \techo '$(PROJECT_NAME).cma' > $(PROJECT_NAME).itarget\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamljava && echo '$(PROJECT_NAME).cmjo' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamljava && echo '$(PROJECT_NAME).cmjo' >> $(PROJECT_NAME).itarget) || true\n \n FORCE:\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -ocaml-prefix $cur__install -ocamlfind $cur__bin/ocamlfind", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bolt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bolt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bolt_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bolt"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/974/bolt-1.3.tar.gz", 
+        "checksum": "5e3fd4038e5ad4d9954cbcfde385d2b8", 
+        "files": [
+          {
+            "content": "diff -ru bolt.1.3/Makefile bolt.1.3/Makefile\n--- bolt.1.3/Makefile\t2012-08-15 19:38:52.000000000 +0200\n+++ bolt.1.3/Makefile\t2012-10-05 18:14:41.949347320 +0200\n@@ -31,7 +31,7 @@\n # DEFINITIONS\n \n PROJECT_NAME=bolt\n-OCAMLBUILD=$(PATH_OCAML_PREFIX)/bin/ocamlbuild\n+OCAMLBUILD=ocamlbuild\n OCAMLBUILD_FLAGS=-classic-display -no-links\n MODULES_ODOCL=$(PROJECT_NAME).odocl\n MODULES_MLPACK=$(PROJECT_NAME).mlpack\n@@ -100,7 +100,7 @@\n \n generate: FORCE\n \techo '$(PROJECT_NAME).cma' > $(PROJECT_NAME).itarget\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamljava && echo '$(PROJECT_NAME).cmjo' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamljava && echo '$(PROJECT_NAME).cmjo' >> $(PROJECT_NAME).itarget) || true\n \n FORCE:\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -ocaml-prefix $cur__install -ocamlfind $cur__bin/ocamlfind", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bolt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bolt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bolt_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bolt"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://bolt.x9c.fr/distrib/bolt-1.2.tar.gz", 
+        "checksum": "3cf14ece1f1b60be7e25dfe9613dc0dd", 
+        "files": [
+          {
+            "content": "diff -ru bolt.1.2/Makefile bolt.1.2/Makefile\n--- bolt.1.2/Makefile\t2011-08-15 16:00:48.000000000 +0200\n+++ bolt.1.2/Makefile\t2012-10-05 18:14:41.501333785 +0200\n@@ -31,7 +31,7 @@\n # DEFINITIONS\n \n PROJECT_NAME=bolt\n-OCAMLBUILD=$(PATH_OCAML_PREFIX)/bin/ocamlbuild\n+OCAMLBUILD=ocamlbuild\n OCAMLBUILD_FLAGS=-classic-display -no-links\n MODULES_ODOCL=$(PROJECT_NAME).odocl\n MODULES_MLPACK=$(PROJECT_NAME).mlpack\n@@ -100,7 +100,7 @@\n \n generate: FORCE\n \techo '$(PROJECT_NAME).cma' > $(PROJECT_NAME).itarget\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamljava && echo '$(PROJECT_NAME).cmjo' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamljava && echo '$(PROJECT_NAME).cmjo' >> $(PROJECT_NAME).itarget) || true\n \n FORCE:\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh configure -ocaml-prefix $cur__install -ocamlfind $cur__bin/ocamlfind", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bolt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bolt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bolt_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/bolt"
+    }
+  }
+}

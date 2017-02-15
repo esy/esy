@@ -1,0 +1,92 @@
+{
+  "versions": {
+    "0.10.1": {
+      "version": "0.10.1", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xcp-rrd/archive/v0.10.1.tar.gz", 
+        "checksum": "8237f7d60b3169085831e521c3bc813b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_rrd_version": {
+            "scope": "global", 
+            "val": "0.10.1"
+          }, 
+          "xapi_rrd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_rrd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/xapi-rrd"
+    }, 
+    "0.12.0": {
+      "version": "0.12.0", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xcp-rrd/archive/v0.12.0.tar.gz", 
+        "checksum": "a51c3d90d07ee770f418d856bc0cdffe", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_rrd_version": {
+            "scope": "global", 
+            "val": "0.12.0"
+          }, 
+          "xapi_rrd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_rrd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/xapi-rrd"
+    }
+  }
+}

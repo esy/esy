@@ -1,0 +1,180 @@
+{
+  "versions": {
+    "0.24.0": {
+      "version": "0.24.0", 
+      "opam": {
+        "url": "http://www.cl.cam.ac.uk/~pes20/ott/ott_distro_0.24.tar.gz", 
+        "checksum": "6512a2b737cb8408348306378fc46553", 
+        "files": [
+          {
+            "content": "diff -u -r ott.0.24-orig/src/grammar_typecheck.ml ott.0.24/src/grammar_typecheck.ml\n--- ott.0.24-orig/src/grammar_typecheck.ml\t2014-01-30 18:54:47.000000000 +0100\n+++ ott.0.24/src/grammar_typecheck.ml\t2014-08-28 17:35:37.000000000 +0200\n@@ -86,7 +86,7 @@\n avoid spurious conflicts.\n \n Generation of aux rules is controlled by a command-line option\n--generate_aux_rules {true|false}, which one might (eg) set to false\n+-generate_aux_rules {true | false}, which one might (eg) set to false\n for latex output and true for OCaml output.\n \n *)\n", 
+            "name": "new-string-syntax.diff"
+          }, 
+          {
+            "content": "bin: [\"src/ott\"]\ndoc: [\"doc/ott_manual_0.24.pdf\" \"doc/ott_manual_0.24.html\"]\nshare: [\"emacs/ottmode.el\" {\"emacs/ottmode.el\"} \"tex/ottlayout.sty\" {\"tex/ottlayout.sty\"}]\n", 
+            "name": "ott.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make world", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ott_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ott_version": {
+            "scope": "global", 
+            "val": "0.24.0"
+          }, 
+          "ott_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ott"
+    }, 
+    "0.21.2": {
+      "version": "0.21.2", 
+      "opam": {
+        "url": "http://www.cl.cam.ac.uk/~pes20/ott/ott_distro_0.21.2.tar.gz", 
+        "checksum": "e9a5dae61b0aa5c33c3445e8e8a92b6a", 
+        "files": [
+          {
+            "content": "bin: [\"src/ott\"]\n", 
+            "name": "ott.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make world", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ott_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ott_version": {
+            "scope": "global", 
+            "val": "0.21.2"
+          }, 
+          "ott_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ott"
+    }, 
+    "0.23.0": {
+      "version": "0.23.0", 
+      "opam": {
+        "url": "http://www.cl.cam.ac.uk/~pes20/ott/ott_distro_0.23.tar.gz", 
+        "checksum": "b57a197c6d413117440eaa9547772774", 
+        "files": [
+          {
+            "content": "bin: [\"src/ott\"]\n", 
+            "name": "ott.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make world", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ott_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ott_version": {
+            "scope": "global", 
+            "val": "0.23.0"
+          }, 
+          "ott_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ott"
+    }, 
+    "0.25.0": {
+      "version": "0.25.0", 
+      "opam": {
+        "url": "https://github.com/ott-lang/ott/archive/0.25.tar.gz", 
+        "checksum": "2b888fee23b1aa4537f5bd638d502664", 
+        "files": [
+          {
+            "content": "bin: [\"src/ott\"]\ndoc: [\"doc/ott_manual_0.25.pdf\" \"doc/ott_manual_0.25.html\"]\nshare: [\"emacs/ottmode.el\" {\"emacs/ottmode.el\"} \"tex/ottlayout.sty\" {\"tex/ottlayout.sty\"}]\n", 
+            "name": "ott.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make world", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ott_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ott_version": {
+            "scope": "global", 
+            "val": "0.25.0"
+          }, 
+          "ott_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ott"
+    }
+  }
+}

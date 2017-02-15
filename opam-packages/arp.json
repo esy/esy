@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/hannesm/arp/releases/download/0.1.1/arp-0.1.1.tbz", 
+        "checksum": "44ae38c452ff02c9e1424650c68e6361", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-mirage ${mirage_types_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "arp_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "arp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "arp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 2.2.0", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-types": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/tcpip": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/arp"
+    }
+  }
+}

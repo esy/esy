@@ -1,0 +1,665 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.9.1.tar.gz", 
+        "checksum": "03358b606f87fd947a2e0a290f1ccca7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.19.0", 
+        "@opam-alpha/ocplib-endian": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.2.0 < 0.4.0", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.9.2.tar.gz", 
+        "checksum": "312edb3914ae616caf7634aa7aedc040", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.19.0", 
+        "@opam-alpha/ocplib-endian": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.2.0 < 0.4.0", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "0.9.3": {
+      "version": "0.9.3", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.9.3.tar.gz", 
+        "checksum": "b4515352a346371bebf45c05a6269c22", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.9.3"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.14.0 < 0.19.0", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.4.0 < 0.5.0", 
+        "@opam-alpha/lwt": ">= 2.4.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.0.0.tar.gz", 
+        "checksum": "ddd432e906e2acf3f4a30754d15b3399", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/nocrypto": ">= 0.4.0", 
+        "@opam-alpha/cohttp": ">= 0.17.1 < 0.19.0", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/lwt": ">= 2.4.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.3.tar.gz", 
+        "checksum": "3fc6097d21a7f453342adb010575b20f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false} async=${async_installed:-false} async_ssl=${async_ssl_installed:-false} nocrypto=${nocrypto_installed:-false} cryptokit=${cryptokit_installed:-false} test=false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/async_ssl": "*", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/cohttp": ">= 0.17.1", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/cppo": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.6.0": {
+      "version": "2.6.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.6.tar.gz", 
+        "checksum": "7e7789c16f7855f764eb77a6d7fea99c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false} async=${async_installed:-false} async_ssl=${async_ssl_installed:-false} nocrypto=${nocrypto_installed:-false} cryptokit=${cryptokit_installed:-false} test=false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.6.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/async_ssl": "*", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/cohttp": ">= 0.17.1", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/cppo": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.6.tar.gz", 
+        "checksum": "196f865283e1a9439da735c1495fb4b9", 
+        "files": [
+          {
+            "content": "bin: [\"_build/tests/wscat.native\" {\"wscat\"}]\n", 
+            "name": "websocket.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.9.10 < 0.10.0", 
+        "@opam-alpha/ocplib-endian": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.8.1.tar.gz", 
+        "checksum": "91a2c23b73fc80837661d50cf9b42b88", 
+        "files": [
+          {
+            "content": "bin: [\"_build/tests/wscat.native\" {\"wscat\"}]\n", 
+            "name": "websocket.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.10.0 < 0.12.0", 
+        "@opam-alpha/optcomp": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.8.tar.gz", 
+        "checksum": "a969e0ce62d59e08a323f532e25e7664", 
+        "files": [
+          {
+            "content": "bin: [\"_build/tests/wscat.native\" {\"wscat\"}]\n", 
+            "name": "websocket.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.10.0 < 0.12.0", 
+        "@opam-alpha/optcomp": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/0.7.tar.gz", 
+        "checksum": "704d85937525321521d5c6cc99569570", 
+        "files": [
+          {
+            "content": "bin: [\"_build/tests/wscat.native\" {\"wscat\"}]\n", 
+            "name": "websocket.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cohttp": ">= 0.10.0 < 0.12.0", 
+        "@opam-alpha/optcomp": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.2.tar.gz", 
+        "checksum": "844c388129b99d21ff60a2e2582bdb43", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false} async=${async_ssl_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/async_ssl": "*", 
+        "@opam-alpha/nocrypto": ">= 0.5.0", 
+        "@opam-alpha/cohttp": ">= 0.19.0", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/lwt": ">= 2.4.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.1.tar.gz", 
+        "checksum": "ba058ac4d3bffbc16e50f7b8d3af061e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/nocrypto": ">= 0.5.0", 
+        "@opam-alpha/cohttp": ">= 0.17.1 < 0.19.0", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/lwt": ">= 2.4.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.4.tar.gz", 
+        "checksum": "dabc33be718520c0f414e62f830a36b7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false} async=${async_installed:-false} async_ssl=${async_ssl_installed:-false} nocrypto=${nocrypto_installed:-false} cryptokit=${cryptokit_installed:-false} test=false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/async_ssl": "*", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/cohttp": ">= 0.17.1", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/cppo": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }, 
+    "2.5.0": {
+      "version": "2.5.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-websocket/archive/2.5.tar.gz", 
+        "checksum": "a9f82b24cae26e6243b34eacd82c5851", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true lwt=${lwt_installed:-false} async=${async_installed:-false} async_ssl=${async_ssl_installed:-false} nocrypto=${nocrypto_installed:-false} cryptokit=${cryptokit_installed:-false} test=false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "websocket_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "websocket_version": {
+            "scope": "global", 
+            "val": "2.5.0"
+          }, 
+          "websocket_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/containers": ">= 0.10.0", 
+        "@opam-alpha/async_ssl": "*", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/cohttp": ">= 0.17.1", 
+        "@opam-alpha/ocplib-endian": ">= 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 2.0.0", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/conduit": ">= 0.8.3", 
+        "@opam-alpha/cppo": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">=4.02.0"
+      }, 
+      "name": "@opam-alpha/websocket"
+    }
+  }
+}

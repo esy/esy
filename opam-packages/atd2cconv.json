@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.0.0": {
+      "version": "0.0.0", 
+      "opam": {
+        "url": "https://github.com/smondet/atd2cconv/archive/atd2cconv.0.0.0.tar.gz", 
+        "checksum": "7fa2ec65acf3a2eed28322afd3cecebf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -f Makefile-ocamlbuild", 
+          "make -f Makefile-ocamlbuild install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "atd2cconv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "atd2cconv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "atd2cconv_version": {
+            "scope": "global", 
+            "val": "0.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/atd": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/smart-print": "*", 
+        "@opam-alpha/nonstd": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/atd2cconv"
+    }
+  }
+}

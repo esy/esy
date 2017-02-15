@@ -1,0 +1,478 @@
+{
+  "versions": {
+    "8.44.0": {
+      "version": "8.44.0", 
+      "opam": {
+        "url": "http://coq.inria.fr/distrib/V8.4pl4/files/coq-8.4pl4.tar.gz", 
+        "checksum": "6a9f61cf0ece644b170f722fbc8cf2a1", 
+        "files": [
+          {
+            "content": "--- Makefile\t2012-05-29 13:22:26.000000000 +0200\n+++ Makefile\t2013-04-12 19:02:49.019720957 +0200\n@@ -96,7 +96,7 @@\n  $(strip $(foreach f, $(1), $(if $(filter $(f),$(2)),,$f)))\n endef\n \n-export MLEXTRAFILES := $(GENMLFILES) $(GENML4FILES) $(GENPLUGINSMOD)\n+export MLEXTRAFILES := $(GENMLFILES)\n export MLSTATICFILES := $(call diff, $(EXISTINGML), $(MLEXTRAFILES))\n export MLIFILES := $(sort $(GENMLIFILES) $(EXISTINGMLI))\n \n--- Makefile.build\t2012-10-29 15:46:37.000000000 +0100\n+++ Makefile.build\t2013-04-12 18:59:45.199717036 +0200\n@@ -39,7 +39,8 @@\n MLFILES:=$(MLSTATICFILES) $(MLEXTRAFILES)\n \n ALLDEPS:=$(addsuffix .d, \\\n-  $(ML4FILES) $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES) $(VFILES))\n+  $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES))\n+\n \n .SECONDARY: $(ALLDEPS) $(GENFILES) $(ML4FILES:.ml4=.ml)\n \n@@ -327,13 +328,13 @@\n coqide-opt:  $(COQIDEBYTE) $(COQIDEOPT) $(COQIDE)\n coqide-files: $(IDEFILES)\n \n-$(COQIDEOPT): $(LINKIDEOPT) | $(COQTOPOPT)\n+$(COQIDEOPT): $(LINKIDEOPT) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLOPT -o $@'\n \t$(HIDE)$(OCAMLOPT) $(COQIDEFLAGS) $(OPTFLAGS) -o $@ unix.cmxa threads.cmxa \\\n \t\tlablgtk.cmxa $(IDEOPTFLAGS) gtkThread.cmx str.cmxa $(LINKIDEOPT)\n \t$(STRIP) $@\n \n-$(COQIDEBYTE): $(LINKIDE) | $(COQTOPBYTE)\n+$(COQIDEBYTE): $(LINKIDE) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLC -o $@'\n \t$(HIDE)$(OCAMLC) $(COQIDEFLAGS) $(BYTEFLAGS) -o $@ unix.cma threads.cma lablgtk.cma gtkThread.cmo\\\n \t\tstr.cma $(COQRUNBYTEFLAGS) $(LINKIDE)\n--- Makefile.common\t2012-10-29 15:46:40.000000000 +0100\n+++ Makefile.common\t2013-04-12 19:00:55.099718527 +0200\n@@ -269,7 +269,7 @@\n \n ## we now retrieve the names of .vo file to compile in */vo.itarget files\n \n-cat_vo_itarget = $(addprefix $(1)/,$(shell cat $(1)/vo.itarget))\n+cat_vo_itarget =\n \n ## Theories\n \n", 
+            "name": "MAKEFILE_remove_useless_for_coqide.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc --prefix $cur__install --usecamlp5 --camlp5dir $cur__lib/camlp5", 
+          "make -j4 parsing/tok.cmo", 
+          "make -j4 parsing/tok.cmx", 
+          "make -j4 parsing/tok.cmi", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-coqide", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.44.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/coq": "= 8.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": ">= 2.12.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.4.5": {
+      "version": "8.4.5", 
+      "opam": {
+        "url": "http://coq.inria.fr/distrib/8.4pl5/files/coq-8.4pl5.tar.gz", 
+        "checksum": "7839005b48527a85149da950bd2ac006", 
+        "files": [
+          {
+            "content": "--- Makefile\t2012-05-29 13:22:26.000000000 +0200\n+++ Makefile\t2013-04-12 19:02:49.019720957 +0200\n@@ -96,7 +96,7 @@\n  $(strip $(foreach f, $(1), $(if $(filter $(f),$(2)),,$f)))\n endef\n \n-export MLEXTRAFILES := $(GENMLFILES) $(GENML4FILES) $(GENPLUGINSMOD)\n+export MLEXTRAFILES := $(GENMLFILES)\n export MLSTATICFILES := $(call diff, $(EXISTINGML), $(MLEXTRAFILES))\n export MLIFILES := $(sort $(GENMLIFILES) $(EXISTINGMLI))\n \n--- Makefile.build\t2012-10-29 15:46:37.000000000 +0100\n+++ Makefile.build\t2013-04-12 18:59:45.199717036 +0200\n@@ -39,7 +39,8 @@\n MLFILES:=$(MLSTATICFILES) $(MLEXTRAFILES)\n \n ALLDEPS:=$(addsuffix .d, \\\n-  $(ML4FILES) $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES) $(VFILES))\n+  $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES))\n+\n \n .SECONDARY: $(ALLDEPS) $(GENFILES) $(ML4FILES:.ml4=.ml)\n \n@@ -327,13 +328,13 @@\n coqide-opt:  $(COQIDEBYTE) $(COQIDEOPT) $(COQIDE)\n coqide-files: $(IDEFILES)\n \n-$(COQIDEOPT): $(LINKIDEOPT) | $(COQTOPOPT)\n+$(COQIDEOPT): $(LINKIDEOPT) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLOPT -o $@'\n \t$(HIDE)$(OCAMLOPT) $(COQIDEFLAGS) $(OPTFLAGS) -o $@ unix.cmxa threads.cmxa \\\n \t\tlablgtk.cmxa $(IDEOPTFLAGS) gtkThread.cmx str.cmxa $(LINKIDEOPT)\n \t$(STRIP) $@\n \n-$(COQIDEBYTE): $(LINKIDE) | $(COQTOPBYTE)\n+$(COQIDEBYTE): $(LINKIDE) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLC -o $@'\n \t$(HIDE)$(OCAMLC) $(COQIDEFLAGS) $(BYTEFLAGS) -o $@ unix.cma threads.cma lablgtk.cma gtkThread.cmo\\\n \t\tstr.cma $(COQRUNBYTEFLAGS) $(LINKIDE)\n--- Makefile.common\t2012-10-29 15:46:40.000000000 +0100\n+++ Makefile.common\t2013-04-12 19:00:55.099718527 +0200\n@@ -269,7 +269,7 @@\n \n ## we now retrieve the names of .vo file to compile in */vo.itarget files\n \n-cat_vo_itarget = $(addprefix $(1)/,$(shell cat $(1)/vo.itarget))\n+cat_vo_itarget =\n \n ## Theories\n \n", 
+            "name": "MAKEFILE_remove_useless_for_coqide.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc --prefix $cur__install --usecamlp5 --camlp5dir $cur__lib/camlp5", 
+          "make -j4 parsing/tok.cmo", 
+          "make -j4 parsing/tok.cmx", 
+          "make -j4 parsing/tok.cmi", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-coqide", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.4.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/coq": "= 8.4.5", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": ">= 2.12.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.5.1": {
+      "version": "8.5.1", 
+      "opam": {
+        "url": "https://github.com/coq/coq/archive/V8.5pl1.tar.gz", 
+        "checksum": "5b608a502e3e0b1f2120ccf092509c14", 
+        "files": [
+          {
+            "content": "bin: [\n  \"bin/coqide\"\n]\nshare_root: [\n  \"ide/coq.lang\" {\"coq/coq.lang\"}\n  \"ide/coq-ssreflect.lang\" {\"coq/coq-ssreflect.lang\"}\n  \"ide/coq.png\" {\"coq/coq.png\"}\n  \"ide/coq_style.xml\" {\"coq/coq_style.xml\"}\n]\n", 
+            "name": "coqide.install"
+          }, 
+          {
+            "content": "commit 1cc70be070e1df522b1539892958496a77710331\nAuthor: Gabriel Scherer <gabriel.scherer@gmail.com>\nDate:   Tue Jun 28 14:45:37 2016 -0400\n\n    fix coqide double module linking (error on OCaml 4.03)\n    \n    Linking the same module twice in OCaml can have problematic unintended\n    consequences and lead to hard-to-understand bugs, see\n      http://caml.inria.fr/mantis/view.php?id=4231\n      http://caml.inria.fr/mantis/view.php?id=5461\n    \n    OCaml has long warned when double-linking happens\n    \n      Warning 31: files FOO and BAR both define a module named Baz\n    \n    In 4.03 this error was turned into a warning by default.\n    \n    Coqide does double-linking by passing both\n    xml_{lexer,parser,printer}.cmo and lib/clib.cma that already contains\n    these compilation units to bin/coqide.byte. To fix compilation of\n    Coqide under 4.03, the present patch removes the .cmo from the\n    command-line arguments.\n    \n    P.S.: I checked that this patch applies cleanly to the current trunk\n    (b161ad97fdc01ac8816341a089365657cebc6d2b). It should also be possible\n    to add it as a patch on top of the 8.5 archives (for example those\n    distributed through OPAM) to make them compile under 4.03.\n\ndiff --git a/Makefile.build b/Makefile.build\nindex 0f85608..b5c933a 100644\n--- a/Makefile.build\n+++ b/Makefile.build\n@@ -653,7 +653,7 @@ $(COQWORKMGR): $(addsuffix $(BESTOBJ), stm/coqworkmgrApi tools/coqworkmgr) \\\n # fake_ide : for debugging or test-suite purpose, a fake ide simulating\n # a connection to coqtop -ideslave\n \n-$(FAKEIDE): lib/clib$(BESTLIB) lib/xml_lexer$(BESTOBJ) lib/xml_parser$(BESTOBJ) lib/xml_printer$(BESTOBJ) lib/errors$(BESTOBJ) lib/spawn$(BESTOBJ) ide/document$(BESTOBJ) ide/xmlprotocol$(BESTOBJ) tools/fake_ide$(BESTOBJ) | $(IDETOPLOOPCMA:.cma=$(BESTDYN))\n+$(FAKEIDE): lib/clib$(BESTLIB) lib/errors$(BESTOBJ) lib/spawn$(BESTOBJ) ide/document$(BESTOBJ) ide/xmlprotocol$(BESTOBJ) tools/fake_ide$(BESTOBJ) | $(IDETOPLOOPCMA:.cma=$(BESTDYN))\n \t$(SHOW)'OCAMLBEST -o $@'\n \t$(HIDE)$(call bestocaml,-I ide,str unix threads)\n \ndiff --git a/Makefile.common b/Makefile.common\nindex 1a90353..0dfd5de 100644\n--- a/Makefile.common\n+++ b/Makefile.common\n@@ -231,7 +231,7 @@ endif\n LINKCMO:=$(CORECMA) $(STATICPLUGINS)\n LINKCMX:=$(CORECMA:.cma=.cmxa) $(STATICPLUGINS:.cma=.cmxa)\n \n-IDEDEPS:=lib/clib.cma lib/xml_lexer.cmo lib/xml_parser.cmo lib/xml_printer.cmo lib/errors.cmo lib/spawn.cmo\n+IDEDEPS:=lib/clib.cma lib/errors.cmo lib/spawn.cmo\n IDECMA:=ide/ide.cma\n IDETOPLOOPCMA=ide/coqidetop.cma\n \n", 
+            "name": "fix-idedeps-double-linking.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc -prefix $cur__install -usecamlp5 -camlp5dir $cur__lib/camlp5", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-ide-bin install-ide-files install-ide-info install-ide-devfiles", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.5.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.5.1", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.5.2": {
+      "version": "8.5.2", 
+      "opam": {
+        "url": "https://github.com/coq/coq/archive/V8.5pl2.tar.gz", 
+        "checksum": "e7570f73e69a6b7490c31df392ed98f7", 
+        "files": [
+          {
+            "content": "bin: [\n  \"bin/coqide\"\n]\nshare_root: [\n  \"ide/coq.lang\" {\"coq/coq.lang\"}\n  \"ide/coq-ssreflect.lang\" {\"coq/coq-ssreflect.lang\"}\n  \"ide/coq.png\" {\"coq/coq.png\"}\n  \"ide/coq_style.xml\" {\"coq/coq_style.xml\"}\n]\n", 
+            "name": "coqide.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc -prefix $cur__install -usecamlp5 -camlp5dir $cur__lib/camlp5", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-ide-bin install-ide-files install-ide-info install-ide-devfiles", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.5.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.5.2", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.4.6": {
+      "version": "8.4.6", 
+      "opam": {
+        "url": "https://coq.inria.fr/distrib/V8.4pl6/files/coq-8.4pl6.tar.gz", 
+        "checksum": "2334a98b64578cb81d2b4127e327b368", 
+        "files": [
+          {
+            "content": "--- Makefile\t2012-05-29 13:22:26.000000000 +0200\n+++ Makefile\t2013-04-12 19:02:49.019720957 +0200\n@@ -96,7 +96,7 @@\n  $(strip $(foreach f, $(1), $(if $(filter $(f),$(2)),,$f)))\n endef\n \n-export MLEXTRAFILES := $(GENMLFILES) $(GENML4FILES) $(GENPLUGINSMOD)\n+export MLEXTRAFILES := $(GENMLFILES)\n export MLSTATICFILES := $(call diff, $(EXISTINGML), $(MLEXTRAFILES))\n export MLIFILES := $(sort $(GENMLIFILES) $(EXISTINGMLI))\n \n--- Makefile.build\t2012-10-29 15:46:37.000000000 +0100\n+++ Makefile.build\t2013-04-12 18:59:45.199717036 +0200\n@@ -39,7 +39,8 @@\n MLFILES:=$(MLSTATICFILES) $(MLEXTRAFILES)\n \n ALLDEPS:=$(addsuffix .d, \\\n-  $(ML4FILES) $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES) $(VFILES))\n+  $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES))\n+\n \n .SECONDARY: $(ALLDEPS) $(GENFILES) $(ML4FILES:.ml4=.ml)\n \n@@ -327,13 +328,13 @@\n coqide-opt:  $(COQIDEBYTE) $(COQIDEOPT) $(COQIDE)\n coqide-files: $(IDEFILES)\n \n-$(COQIDEOPT): $(LINKIDEOPT) | $(COQTOPOPT)\n+$(COQIDEOPT): $(LINKIDEOPT) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLOPT -o $@'\n \t$(HIDE)$(OCAMLOPT) $(COQIDEFLAGS) $(OPTFLAGS) -o $@ unix.cmxa threads.cmxa \\\n \t\tlablgtk.cmxa $(IDEOPTFLAGS) gtkThread.cmx str.cmxa $(LINKIDEOPT)\n \t$(STRIP) $@\n \n-$(COQIDEBYTE): $(LINKIDE) | $(COQTOPBYTE)\n+$(COQIDEBYTE): $(LINKIDE) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLC -o $@'\n \t$(HIDE)$(OCAMLC) $(COQIDEFLAGS) $(BYTEFLAGS) -o $@ unix.cma threads.cma lablgtk.cma gtkThread.cmo\\\n \t\tstr.cma $(COQRUNBYTEFLAGS) $(LINKIDE)\n--- Makefile.common\t2012-10-29 15:46:40.000000000 +0100\n+++ Makefile.common\t2013-04-12 19:00:55.099718527 +0200\n@@ -269,7 +269,7 @@\n \n ## we now retrieve the names of .vo file to compile in */vo.itarget files\n \n-cat_vo_itarget = $(addprefix $(1)/,$(shell cat $(1)/vo.itarget))\n+cat_vo_itarget =\n \n ## Theories\n \n", 
+            "name": "MAKEFILE_remove_useless_for_coqide.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc --prefix $cur__install --usecamlp5 --camlp5dir $cur__lib/camlp5", 
+          "make -j4 parsing/tok.cmo", 
+          "make -j4 parsing/tok.cmx", 
+          "make -j4 parsing/tok.cmi", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-coqide", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.4.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/coq": "= 8.4.6", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": ">= 2.12.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.5.3": {
+      "version": "8.5.3", 
+      "opam": {
+        "url": "https://github.com/coq/coq/archive/V8.5pl3.tar.gz", 
+        "checksum": "66cf2161bbca229c071a0c5132623f15", 
+        "files": [
+          {
+            "content": "bin: [\n  \"bin/coqide\"\n]\nshare_root: [\n  \"ide/coq.lang\" {\"coq/coq.lang\"}\n  \"ide/coq-ssreflect.lang\" {\"coq/coq-ssreflect.lang\"}\n  \"ide/coq.png\" {\"coq/coq.png\"}\n  \"ide/coq_style.xml\" {\"coq/coq_style.xml\"}\n]\n", 
+            "name": "coqide.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc -prefix $cur__install -usecamlp5 -camlp5dir $cur__lib/camlp5", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-ide-bin install-ide-files install-ide-info install-ide-devfiles", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.5.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.5.3", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.6.0": {
+      "version": "8.6.0", 
+      "opam": {
+        "url": "https://github.com/coq/coq/archive/V8.6.tar.gz", 
+        "checksum": "d60092c39f0cf428b35efff71641c3eb", 
+        "files": [
+          {
+            "content": "bin: [\n  \"bin/coqide\"\n]\nshare_root: [\n  \"ide/coq.lang\" {\"coq/coq.lang\"}\n  \"ide/coq-ssreflect.lang\" {\"coq/coq-ssreflect.lang\"}\n  \"ide/coq.png\" {\"coq/coq.png\"}\n  \"ide/coq_style.xml\" {\"coq/coq_style.xml\"}\n]\n", 
+            "name": "coqide.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc -prefix $cur__install -usecamlp5 -camlp5dir $cur__lib/camlp5", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-ide-bin install-ide-files install-ide-info install-ide-devfiles", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.6.0", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.5.0": {
+      "version": "8.5.0", 
+      "opam": {
+        "url": "https://github.com/coq/coq/archive/V8.5.tar.gz", 
+        "checksum": "8ee5081f50277c531a0467299ee8c02d", 
+        "files": [
+          {
+            "content": "bin: [\n  \"bin/coqide\"\n]\nshare_root: [\n  \"ide/coq.lang\" {\"coq/coq.lang\"}\n  \"ide/coq-ssreflect.lang\" {\"coq/coq-ssreflect.lang\"}\n  \"ide/coq.png\" {\"coq/coq.png\"}\n  \"ide/coq_style.xml\" {\"coq/coq_style.xml\"}\n]\n", 
+            "name": "coq-coqide.install"
+          }, 
+          {
+            "content": "commit 2bd33495267e1d5c7eae507c25d4d7a49b3b61f4\nAuthor: Maxime D\u00e9n\u00e8s <mail@maximedenes.fr>\nDate:   Fri Mar 4 17:40:10 2016 +0100\n\n    Rename Ephemeron -> CEphemeron.\n    \n    Fixes compilation of Coq with OCaml 4.03 beta 1.\n\ndiff --git a/checker/check.mllib b/checker/check.mllib\nindex 0d36e3a..902ab9d 100644\n--- a/checker/check.mllib\n+++ b/checker/check.mllib\n@@ -32,7 +32,7 @@ CStack\n Util\n Ppstyle\n Errors\n-Ephemeron\n+CEphemeron\n Future\n CUnix\n System\ndiff --git a/dev/printers.mllib b/dev/printers.mllib\nindex ab7e9fc..ad9a5d7 100644\n--- a/dev/printers.mllib\n+++ b/dev/printers.mllib\n@@ -48,7 +48,7 @@ Rtree\n Heap\n Genarg\n Stateid\n-Ephemeron\n+CEphemeron\n Future\n RemoteCounter\n Monad\ndiff --git a/kernel/csymtable.ml b/kernel/csymtable.ml\nindex fc7e1b9..7e1a5d5 100644\n--- a/kernel/csymtable.ml\n+++ b/kernel/csymtable.ml\n@@ -131,8 +131,8 @@ let key rk =\n   match !rk with\n   | None -> raise NotEvaluated\n   | Some k ->\n-      try Ephemeron.get k\n-      with Ephemeron.InvalidKey -> raise NotEvaluated\n+      try CEphemeron.get k\n+      with CEphemeron.InvalidKey -> raise NotEvaluated\n \n (************************)\n (* traduction des patch *)\n@@ -171,7 +171,7 @@ let rec slot_for_getglobal env kn =\n \t | BCconstant -> set_global (val_of_constant kn)\n     in\n (*Pp.msgnl(str\"value stored at: \"++int pos);*)\n-    rk := Some (Ephemeron.create pos);\n+    rk := Some (CEphemeron.create pos);\n     pos\n \n and slot_for_fv env fv =\ndiff --git a/kernel/entries.mli b/kernel/entries.mli\nindex b2a77dd..f94068f 100644\n--- a/kernel/entries.mli\n+++ b/kernel/entries.mli\n@@ -104,7 +104,7 @@ type side_eff =\n   | SEscheme of (inductive * constant * Declarations.constant_body * seff_env) list * string\n \n type side_effect = {\n-  from_env : Declarations.structure_body Ephemeron.key;\n+  from_env : Declarations.structure_body CEphemeron.key;\n   eff      : side_eff;\n }\n \ndiff --git a/kernel/pre_env.ml b/kernel/pre_env.ml\nindex e1fe025..df34955 100644\n--- a/kernel/pre_env.ml\n+++ b/kernel/pre_env.ml\n@@ -25,7 +25,7 @@ open Declarations\n (* The key attached to each constant is used by the VM to retrieve previous *)\n (* evaluations of the constant. It is essentially an index in the symbols table *)\n (* used by the VM. *)\n-type key = int Ephemeron.key option ref \n+type key = int CEphemeron.key option ref \n \n (** Linking information for the native compiler. *)\n \n@@ -50,17 +50,17 @@ type stratification = {\n }\n \n type val_kind =\n-    | VKvalue of (values * Id.Set.t) Ephemeron.key\n+    | VKvalue of (values * Id.Set.t) CEphemeron.key\n     | VKnone\n \n type lazy_val = val_kind ref\n \n let force_lazy_val vk = match !vk with\n | VKnone -> None\n-| VKvalue v -> try Some (Ephemeron.get v) with Ephemeron.InvalidKey -> None\n+| VKvalue v -> try Some (CEphemeron.get v) with CEphemeron.InvalidKey -> None\n \n let dummy_lazy_val () = ref VKnone\n-let build_lazy_val vk key = vk := VKvalue (Ephemeron.create key)\n+let build_lazy_val vk key = vk := VKvalue (CEphemeron.create key)\n \n type named_vals = (Id.t * lazy_val) list\n \ndiff --git a/kernel/pre_env.mli b/kernel/pre_env.mli\nindex 23f9a3f..99d3e2e 100644\n--- a/kernel/pre_env.mli\n+++ b/kernel/pre_env.mli\n@@ -19,7 +19,7 @@ type link_info =\n   | LinkedInteractive of string\n   | NotLinked\n \n-type key = int Ephemeron.key option ref \n+type key = int CEphemeron.key option ref \n \n type constant_key = constant_body * (link_info ref * key)\n \ndiff --git a/kernel/safe_typing.ml b/kernel/safe_typing.ml\nindex 4c32648..0926d35 100644\n--- a/kernel/safe_typing.ml\n+++ b/kernel/safe_typing.ml\n@@ -231,11 +231,11 @@ let constant_entry_of_private_constant = function\n \n let private_con_of_con env c =\n   let cbo = Environ.lookup_constant c env.env in\n-  { Entries.from_env = Ephemeron.create env.revstruct;\n+  { Entries.from_env = CEphemeron.create env.revstruct;\n     Entries.eff      = Entries.SEsubproof (c,cbo,get_opaque_body env.env cbo) }\n \n let private_con_of_scheme ~kind env cl =\n-  { Entries.from_env = Ephemeron.create env.revstruct;\n+  { Entries.from_env = CEphemeron.create env.revstruct;\n     Entries.eff      = Entries.SEscheme(\n       List.map (fun (i,c) ->\n         let cbo = Environ.lookup_constant c env.env in\ndiff --git a/kernel/term_typing.ml b/kernel/term_typing.ml\nindex 510f435..fdbd1e3 100644\n--- a/kernel/term_typing.ml\n+++ b/kernel/term_typing.ml\n@@ -126,14 +126,14 @@ let check_signatures curmb sl =\n     | None -> None, None\n     | Some curmb ->\n         try\n-          let mb = Ephemeron.get mb in\n+          let mb = CEphemeron.get mb in\n           match sl with\n           | None -> sl, None\n           | Some n ->\n               if List.length mb >= how_many && CList.skipn how_many mb == curmb\n               then Some (n + how_many), Some mb\n               else None, None\n-        with Ephemeron.InvalidKey -> None, None in\n+        with CEphemeron.InvalidKey -> None, None in\n   let sl, _ = List.fold_left is_direct_ancestor (Some 0,Some curmb) sl in\n   sl\n \ndiff --git a/lib/cEphemeron.ml b/lib/cEphemeron.ml\nnew file mode 100644\nindex 0000000..a38ea11\n--- /dev/null\n+++ b/lib/cEphemeron.ml\n@@ -0,0 +1,89 @@\n+(************************************************************************)\n+(*  v      *   The Coq Proof Assistant  /  The Coq Development Team     *)\n+(* <O___,, *   INRIA - CNRS - LIX - LRI - PPS - Copyright 1999-2016     *)\n+(*   \\VV/  **************************************************************)\n+(*    //   *      This file is distributed under the terms of the       *)\n+(*         *       GNU Lesser General Public License Version 2.1        *)\n+(************************************************************************)\n+\n+type key_type = int\n+\n+type boxed_key = key_type ref ref\n+\n+let mk_key : unit -> boxed_key =\n+  (* TODO: take a random value here. Is there a random function in OCaml? *) \n+  let bid = ref 0 in\n+  (* According to OCaml Gc module documentation, Pervasives.ref is one of the\n+     few ways of getting a boxed value the compiler will never alias. *)\n+  fun () -> incr bid; Pervasives.ref (Pervasives.ref !bid)\n+\n+(* A phantom type to preserve type safety *)\n+type 'a key = boxed_key\n+\n+(* Comparing keys with == grants that if a key is unmarshalled (in the same\n+   process where it was created or in another one) it is not mistaken for\n+   an already existing one (unmarshal has no right to alias).  If the initial\n+   value of bid is taken at random, then one also avoids potential collisions *)\n+module HT = Hashtbl.Make(struct\n+  type t = key_type ref\n+  let equal k1 k2 = k1 == k2\n+  let hash id = !id\n+end)\n+\n+(* A key is the (unique) value inside a boxed key, hence it does not\n+   keep its corresponding boxed key reachable (replacing key_type by boxed_key\n+   would make the key always reachable) *)\n+let values : Obj.t HT.t = HT.create 1001\n+\n+(* To avoid a race contidion between the finalization function and\n+   get/create on the values hashtable, the finalization function just\n+   enqueues in an imperative list the item to be collected.  Being the list\n+   imperative, even if the Gc enqueue an item while run_collection is operating,\n+   the tail of the list is eventually set to Empty on completion.\n+   Kudos to the authors of Why3 that came up with this solution for their\n+   implementation of weak hash tables! *)\n+type imperative_list = cell ref\n+and cell = Empty | Item of key_type ref * imperative_list\n+\n+let collection_queue : imperative_list ref = ref (ref Empty)\n+\n+let enqueue x = collection_queue := ref (Item (!x, !collection_queue))\n+\n+let run_collection () =\n+  let rec aux l = match !l with\n+    | Empty -> ()\n+    | Item (k, tl) -> HT.remove values k; aux tl in\n+  let l = !collection_queue in\n+  aux l;\n+  l := Empty\n+\n+(* The only reference to the boxed key is the one returned, when the user drops\n+   it the value eventually disappears from the values table above *)\n+let create (v : 'a) : 'a key =\n+  run_collection ();\n+  let k = mk_key () in\n+  HT.add values !k (Obj.repr v);\n+  Gc.finalise enqueue k;\n+  k\n+\n+(* Avoid raising Not_found *)\n+exception InvalidKey\n+let get (k : 'a key) : 'a =\n+  run_collection ();\n+  try Obj.obj (HT.find values !k)\n+  with Not_found -> raise InvalidKey\n+\n+(* Simple utils *)\n+let default k v =\n+  try get k\n+  with InvalidKey -> v\n+\n+let iter_opt k f =\n+  match\n+    try Some (get k)\n+    with InvalidKey -> None\n+  with\n+  | None -> ()\n+  | Some v -> f v\n+\n+let clear () = run_collection ()\ndiff --git a/lib/cEphemeron.mli b/lib/cEphemeron.mli\nnew file mode 100644\nindex 0000000..1200e4e\n--- /dev/null\n+++ b/lib/cEphemeron.mli\n@@ -0,0 +1,52 @@\n+(************************************************************************)\n+(*  v      *   The Coq Proof Assistant  /  The Coq Development Team     *)\n+(* <O___,, *   INRIA - CNRS - LIX - LRI - PPS - Copyright 1999-2016     *)\n+(*   \\VV/  **************************************************************)\n+(*    //   *      This file is distributed under the terms of the       *)\n+(*         *       GNU Lesser General Public License Version 2.1        *)\n+(************************************************************************)\n+\n+(* Use case:\n+     You have a data structure that needs to be marshalled but it contains\n+     unmarshallable data (like a closure, or a file descriptor).  Actually\n+     you don't need this data to be preserved by marshalling, it just happens\n+     to be there.\n+     You could produced a trimmed down data structure, but then, once\n+     unmarshalled, you can't used the very same code to process it, unless you\n+     re-inject the trimmed down data structure into the standard one, using\n+     dummy values for the unmarshallable stuff.\n+     Similarly you could change your data structure turning all types [bad]\n+     into [bad option], then just before marshalling you set all values of type\n+     [bad option] to [None].  Still this pruning may be expensive and you have\n+     to code it.\n+\n+   Desiderata:\n+     The marshalling operation automatically discards values that cannot be\n+     marshalled or cannot be properly unmarshalled.\n+\n+   Proposed solution:\n+     Turn all occurrences of [bad] into [bad key] in your data structure.\n+     Use [crate bad_val] to obtain a unique key [k] for [bad_val], and store\n+     [k] in the data structure.  Use [get k] to obtain [bad_val].\n+\n+     An ['a key] can always be marshalled.  When marshalled, a key loses its\n+     value.  The function [get] raises Not_found on unmarshalled keys.\n+     \n+     If a key is garbage collected, the corresponding value is garbage\n+     collected too (unless extra references to it exist).\n+     In short no memory management hassle, keys can just replace their\n+     corresponding value in the data structure.  *)\n+\n+type 'a key\n+\n+val create : 'a -> 'a key\n+\n+(* May raise InvalidKey *)\n+exception InvalidKey\n+val get : 'a key -> 'a\n+\n+(* These never fail. *)\n+val iter_opt : 'a key -> ('a -> unit) -> unit\n+val default : 'a key -> 'a -> 'a\n+\n+val clear : unit -> unit\ndiff --git a/lib/ephemeron.ml b/lib/ephemeron.ml\ndeleted file mode 100644\nindex a38ea11..0000000\n--- a/lib/ephemeron.ml\n+++ /dev/null\n@@ -1,89 +0,0 @@\n-(************************************************************************)\n-(*  v      *   The Coq Proof Assistant  /  The Coq Development Team     *)\n-(* <O___,, *   INRIA - CNRS - LIX - LRI - PPS - Copyright 1999-2016     *)\n-(*   \\VV/  **************************************************************)\n-(*    //   *      This file is distributed under the terms of the       *)\n-(*         *       GNU Lesser General Public License Version 2.1        *)\n-(************************************************************************)\n-\n-type key_type = int\n-\n-type boxed_key = key_type ref ref\n-\n-let mk_key : unit -> boxed_key =\n-  (* TODO: take a random value here. Is there a random function in OCaml? *) \n-  let bid = ref 0 in\n-  (* According to OCaml Gc module documentation, Pervasives.ref is one of the\n-     few ways of getting a boxed value the compiler will never alias. *)\n-  fun () -> incr bid; Pervasives.ref (Pervasives.ref !bid)\n-\n-(* A phantom type to preserve type safety *)\n-type 'a key = boxed_key\n-\n-(* Comparing keys with == grants that if a key is unmarshalled (in the same\n-   process where it was created or in another one) it is not mistaken for\n-   an already existing one (unmarshal has no right to alias).  If the initial\n-   value of bid is taken at random, then one also avoids potential collisions *)\n-module HT = Hashtbl.Make(struct\n-  type t = key_type ref\n-  let equal k1 k2 = k1 == k2\n-  let hash id = !id\n-end)\n-\n-(* A key is the (unique) value inside a boxed key, hence it does not\n-   keep its corresponding boxed key reachable (replacing key_type by boxed_key\n-   would make the key always reachable) *)\n-let values : Obj.t HT.t = HT.create 1001\n-\n-(* To avoid a race contidion between the finalization function and\n-   get/create on the values hashtable, the finalization function just\n-   enqueues in an imperative list the item to be collected.  Being the list\n-   imperative, even if the Gc enqueue an item while run_collection is operating,\n-   the tail of the list is eventually set to Empty on completion.\n-   Kudos to the authors of Why3 that came up with this solution for their\n-   implementation of weak hash tables! *)\n-type imperative_list = cell ref\n-and cell = Empty | Item of key_type ref * imperative_list\n-\n-let collection_queue : imperative_list ref = ref (ref Empty)\n-\n-let enqueue x = collection_queue := ref (Item (!x, !collection_queue))\n-\n-let run_collection () =\n-  let rec aux l = match !l with\n-    | Empty -> ()\n-    | Item (k, tl) -> HT.remove values k; aux tl in\n-  let l = !collection_queue in\n-  aux l;\n-  l := Empty\n-\n-(* The only reference to the boxed key is the one returned, when the user drops\n-   it the value eventually disappears from the values table above *)\n-let create (v : 'a) : 'a key =\n-  run_collection ();\n-  let k = mk_key () in\n-  HT.add values !k (Obj.repr v);\n-  Gc.finalise enqueue k;\n-  k\n-\n-(* Avoid raising Not_found *)\n-exception InvalidKey\n-let get (k : 'a key) : 'a =\n-  run_collection ();\n-  try Obj.obj (HT.find values !k)\n-  with Not_found -> raise InvalidKey\n-\n-(* Simple utils *)\n-let default k v =\n-  try get k\n-  with InvalidKey -> v\n-\n-let iter_opt k f =\n-  match\n-    try Some (get k)\n-    with InvalidKey -> None\n-  with\n-  | None -> ()\n-  | Some v -> f v\n-\n-let clear () = run_collection ()\ndiff --git a/lib/ephemeron.mli b/lib/ephemeron.mli\ndeleted file mode 100644\nindex 1200e4e..0000000\n--- a/lib/ephemeron.mli\n+++ /dev/null\n@@ -1,52 +0,0 @@\n-(************************************************************************)\n-(*  v      *   The Coq Proof Assistant  /  The Coq Development Team     *)\n-(* <O___,, *   INRIA - CNRS - LIX - LRI - PPS - Copyright 1999-2016     *)\n-(*   \\VV/  **************************************************************)\n-(*    //   *      This file is distributed under the terms of the       *)\n-(*         *       GNU Lesser General Public License Version 2.1        *)\n-(************************************************************************)\n-\n-(* Use case:\n-     You have a data structure that needs to be marshalled but it contains\n-     unmarshallable data (like a closure, or a file descriptor).  Actually\n-     you don't need this data to be preserved by marshalling, it just happens\n-     to be there.\n-     You could produced a trimmed down data structure, but then, once\n-     unmarshalled, you can't used the very same code to process it, unless you\n-     re-inject the trimmed down data structure into the standard one, using\n-     dummy values for the unmarshallable stuff.\n-     Similarly you could change your data structure turning all types [bad]\n-     into [bad option], then just before marshalling you set all values of type\n-     [bad option] to [None].  Still this pruning may be expensive and you have\n-     to code it.\n-\n-   Desiderata:\n-     The marshalling operation automatically discards values that cannot be\n-     marshalled or cannot be properly unmarshalled.\n-\n-   Proposed solution:\n-     Turn all occurrences of [bad] into [bad key] in your data structure.\n-     Use [crate bad_val] to obtain a unique key [k] for [bad_val], and store\n-     [k] in the data structure.  Use [get k] to obtain [bad_val].\n-\n-     An ['a key] can always be marshalled.  When marshalled, a key loses its\n-     value.  The function [get] raises Not_found on unmarshalled keys.\n-     \n-     If a key is garbage collected, the corresponding value is garbage\n-     collected too (unless extra references to it exist).\n-     In short no memory management hassle, keys can just replace their\n-     corresponding value in the data structure.  *)\n-\n-type 'a key\n-\n-val create : 'a -> 'a key\n-\n-(* May raise InvalidKey *)\n-exception InvalidKey\n-val get : 'a key -> 'a\n-\n-(* These never fail. *)\n-val iter_opt : 'a key -> ('a -> unit) -> unit\n-val default : 'a key -> 'a -> 'a\n-\n-val clear : unit -> unit\ndiff --git a/lib/future.ml b/lib/future.ml\nindex 5cd2beb..e8f33db 100644\n--- a/lib/future.ml\n+++ b/lib/future.ml\n@@ -62,7 +62,7 @@ and 'a comp =\n   | Exn of Exninfo.iexn  (* Invariant: this exception is always \"fixed\" as in fix_exn *)\n \n and 'a comput =\n-  | Ongoing of string * (UUID.t * fix_exn * 'a comp ref) Ephemeron.key\n+  | Ongoing of string * (UUID.t * fix_exn * 'a comp ref) CEphemeron.key\n   | Finished of 'a\n \n and 'a computation = 'a comput ref\n@@ -70,13 +70,13 @@ and 'a computation = 'a comput ref\n let unnamed = \"unnamed\"\n \n let create ?(name=unnamed) ?(uuid=UUID.fresh ()) f x =\n-  ref (Ongoing (name, Ephemeron.create (uuid, f, Pervasives.ref x)))\n+  ref (Ongoing (name, CEphemeron.create (uuid, f, Pervasives.ref x)))\n let get x =\n   match !x with\n   | Finished v -> unnamed, UUID.invalid, id, ref (Val (v,None))\n   | Ongoing (name, x) ->\n-      try let uuid, fix, c = Ephemeron.get x in name, uuid, fix, c\n-      with Ephemeron.InvalidKey ->\n+      try let uuid, fix, c = CEphemeron.get x in name, uuid, fix, c\n+      with CEphemeron.InvalidKey ->\n         name, UUID.invalid, id, ref (Exn (NotHere name, Exninfo.null))\n \n type 'a value = [ `Val of 'a | `Exn of Exninfo.iexn  ]\ndiff --git a/lib/lib.mllib b/lib/lib.mllib\nindex f3f6ad8..6805ce4 100644\n--- a/lib/lib.mllib\n+++ b/lib/lib.mllib\n@@ -15,6 +15,6 @@ Rtree\n Heap\n Unionfind\n Genarg\n-Ephemeron\n+CEphemeron\n Future\n RemoteCounter\ndiff --git a/plugins/funind/functional_principles_types.ml b/plugins/funind/functional_principles_types.ml\nindex c47602b..1820030 100644\n--- a/plugins/funind/functional_principles_types.ml\n+++ b/plugins/funind/functional_principles_types.ml\n@@ -291,7 +291,7 @@ let build_functional_principle (evd:Evd.evar_map ref) interactive_proof old_prin\n     (* \t  let dur1 = System.time_difference tim1 tim2 in *)\n     (* \t  Pp.msgnl (str (\"Time to compute proof: \") ++ str (string_of_float dur1)); *)\n     (* \tend; *)\n-    get_proof_clean true, Ephemeron.create hook\n+    get_proof_clean true, CEphemeron.create hook\n   end\n \n \ndiff --git a/plugins/funind/indfun_common.ml b/plugins/funind/indfun_common.ml\nindex aa47e26..2449678 100644\n--- a/plugins/funind/indfun_common.ml\n+++ b/plugins/funind/indfun_common.ml\n@@ -163,7 +163,7 @@ let save with_clean id const (locality,_,kind) hook =\n \t(locality, ConstRef kn)\n   in\n   if with_clean then  Pfedit.delete_current_proof ();\n-  Ephemeron.iter_opt hook (fun f -> Lemmas.call_hook fix_exn f l r);\n+  CEphemeron.iter_opt hook (fun f -> Lemmas.call_hook fix_exn f l r);\n   definition_message id\n \n \ndiff --git a/plugins/funind/indfun_common.mli b/plugins/funind/indfun_common.mli\nindex 23f1da1..e5c756f 100644\n--- a/plugins/funind/indfun_common.mli\n+++ b/plugins/funind/indfun_common.mli\n@@ -47,7 +47,7 @@ val jmeq : unit -> Term.constr\n val jmeq_refl : unit -> Term.constr\n \n val save : bool -> Id.t -> Safe_typing.private_constants Entries.definition_entry  -> Decl_kinds.goal_kind ->\n-  unit Lemmas.declaration_hook Ephemeron.key -> unit\n+  unit Lemmas.declaration_hook CEphemeron.key -> unit\n \n (* [get_proof_clean do_reduce] : returns the proof name, definition, kind and hook and\n    abort the proof\ndiff --git a/proofs/proof_global.ml b/proofs/proof_global.ml\nindex f22cdbc..541f299 100644\n--- a/proofs/proof_global.ml\n+++ b/proofs/proof_global.ml\n@@ -36,7 +36,7 @@ let find_proof_mode n =\n     Errors.error (Format.sprintf \"No proof mode named \\\"%s\\\".\" n)\n \n let register_proof_mode ({name = n} as m) =\n-  Hashtbl.add proof_modes n (Ephemeron.create m)\n+  Hashtbl.add proof_modes n (CEphemeron.create m)\n \n (* initial mode: standard mode *)\n let standard = { name = \"No\" ; set = (fun ()->()) ; reset = (fun () -> ()) }\n@@ -52,7 +52,7 @@ let _ =\n     optname = \"default proof mode\" ;\n     optkey = [\"Default\";\"Proof\";\"Mode\"] ;\n     optread = begin fun () ->\n-      (Ephemeron.default !default_proof_mode standard).name\n+      (CEphemeron.default !default_proof_mode standard).name\n     end;\n     optwrite = begin fun n ->\n       default_proof_mode := find_proof_mode n\n@@ -83,12 +83,12 @@ type closed_proof = proof_object * proof_terminator\n \n type pstate = {\n   pid : Id.t;\n-  terminator : proof_terminator Ephemeron.key;\n+  terminator : proof_terminator CEphemeron.key;\n   endline_tactic : Tacexpr.raw_tactic_expr option;\n   section_vars : Context.section_context option;\n   proof : Proof.proof;\n   strength : Decl_kinds.goal_kind;\n-  mode : proof_mode Ephemeron.key;\n+  mode : proof_mode CEphemeron.key;\n   universe_binders: universe_binders option;\n }\n \n@@ -103,11 +103,11 @@ let current_proof_mode = ref !default_proof_mode\n let update_proof_mode () =\n   match !pstates with\n   | { mode = m } :: _ ->\n-      Ephemeron.iter_opt !current_proof_mode (fun x -> x.reset ());\n+      CEphemeron.iter_opt !current_proof_mode (fun x -> x.reset ());\n       current_proof_mode := m;\n-      Ephemeron.iter_opt !current_proof_mode (fun x -> x.set ())\n+      CEphemeron.iter_opt !current_proof_mode (fun x -> x.set ())\n   | _ ->\n-      Ephemeron.iter_opt !current_proof_mode (fun x -> x.reset ());\n+      CEphemeron.iter_opt !current_proof_mode (fun x -> x.reset ());\n       current_proof_mode := find_proof_mode \"No\"\n \n (* combinators for the current_proof lists *)\n@@ -215,9 +215,9 @@ let set_proof_mode mn =\n   set_proof_mode (find_proof_mode mn) (get_current_proof_name ())\n \n let activate_proof_mode mode =\n-  Ephemeron.iter_opt (find_proof_mode mode) (fun x -> x.set ())\n+  CEphemeron.iter_opt (find_proof_mode mode) (fun x -> x.set ())\n let disactivate_proof_mode mode =\n-  Ephemeron.iter_opt (find_proof_mode mode) (fun x -> x.reset ())\n+  CEphemeron.iter_opt (find_proof_mode mode) (fun x -> x.reset ())\n \n (** [start_proof sigma id str goals terminator] starts a proof of name\n     [id] with goals [goals] (a list of pairs of environment and\n@@ -230,7 +230,7 @@ let disactivate_proof_mode mode =\n let start_proof sigma id ?pl str goals terminator =\n   let initial_state = {\n     pid = id;\n-    terminator = Ephemeron.create terminator;\n+    terminator = CEphemeron.create terminator;\n     proof = Proof.start sigma goals;\n     endline_tactic = None;\n     section_vars = None;\n@@ -242,7 +242,7 @@ let start_proof sigma id ?pl str goals terminator =\n let start_dependent_proof id ?pl str goals terminator =\n   let initial_state = {\n     pid = id;\n-    terminator = Ephemeron.create terminator;\n+    terminator = CEphemeron.create terminator;\n     proof = Proof.dependent_start goals;\n     endline_tactic = None;\n     section_vars = None;\n@@ -375,7 +375,7 @@ let close_proof ~keep_body_ucst_separate ?feedback_id ~now fpl =\n   in\n   { id = pid; entries = entries; persistence = strength;\n     universes = (universes, binders) },\n-  fun pr_ending -> Ephemeron.get terminator pr_ending\n+  fun pr_ending -> CEphemeron.get terminator pr_ending\n \n type closed_proof_output = (Term.constr * Safe_typing.private_constants) list * Evd.evar_universe_context\n \n@@ -423,11 +423,11 @@ let close_proof ~keep_body_ucst_separate fix_exn =\n \n (** Gets the current terminator without checking that the proof has\n     been completed. Useful for the likes of [Admitted]. *)\n-let get_terminator () = Ephemeron.get ( cur_pstate() ).terminator\n+let get_terminator () = CEphemeron.get ( cur_pstate() ).terminator\n let set_terminator hook =\n   match !pstates with\n   | [] -> raise NoCurrentProof\n-  | p :: ps -> pstates := { p with terminator = Ephemeron.create hook } :: ps\n+  | p :: ps -> pstates := { p with terminator = CEphemeron.create hook } :: ps\n \n \n \ndiff --git a/stm/asyncTaskQueue.ml b/stm/asyncTaskQueue.ml\nindex cc97326..5f018ec 100644\n--- a/stm/asyncTaskQueue.ml\n+++ b/stm/asyncTaskQueue.ml\n@@ -314,7 +314,7 @@ module Make(T : Task) = struct\n         let response = slave_respond request in\n         report_status \"Idle\";\n         marshal_response (Option.get !slave_oc) response;\n-        Ephemeron.clear ()\n+        CEphemeron.clear ()\n       with\n       | MarshalError s ->\n         pr_err (\"Fatal marshal error: \" ^ s); flush_all (); exit 2\ndiff --git a/toplevel/obligations.ml b/toplevel/obligations.ml\nindex 314789c..26aa7f9 100644\n--- a/toplevel/obligations.ml\n+++ b/toplevel/obligations.ml\n@@ -323,11 +323,11 @@ type program_info_aux = {\n   prg_sign: named_context_val;\n }\n \n-type program_info = program_info_aux Ephemeron.key\n+type program_info = program_info_aux CEphemeron.key\n \n let get_info x =\n-  try Ephemeron.get x\n-  with Ephemeron.InvalidKey ->\n+  try CEphemeron.get x\n+  with CEphemeron.InvalidKey ->\n     Errors.anomaly Pp.(str \"Program obligation can't be accessed by a worker\")\n \n let assumption_message = Declare.assumption_message\n@@ -460,7 +460,7 @@ let subst_deps_obl obls obl =\n \n module ProgMap = Map.Make(Id)\n \n-let map_replace k v m = ProgMap.add k (Ephemeron.create v) (ProgMap.remove k m)\n+let map_replace k v m = ProgMap.add k (CEphemeron.create v) (ProgMap.remove k m)\n \n let map_keys m = ProgMap.fold (fun k _ l -> k :: l) m []\n \n@@ -674,7 +674,7 @@ let init_prog_info ?(opaque = false) sign n b t ctx deps fixkind notations obls\n let map_cardinal m =\n   let i = ref 0 in\n   ProgMap.iter (fun _ v ->\n-\t\tif snd (Ephemeron.get v).prg_obligations > 0 then incr i) m;\n+\t\tif snd (CEphemeron.get v).prg_obligations > 0 then incr i) m;\n   !i\n \n exception Found of program_info\n@@ -682,7 +682,7 @@ exception Found of program_info\n let map_first m =\n   try\n     ProgMap.iter (fun _ v ->\n-\t\t  if snd (Ephemeron.get v).prg_obligations > 0 then\n+\t\t  if snd (CEphemeron.get v).prg_obligations > 0 then\n \t\t    raise (Found v)) m;\n     assert(false)\n   with Found x -> x\n@@ -1008,7 +1008,7 @@ let add_definition n ?term t ctx ?(implicits=[]) ?(kind=Global,false,Definition)\n   else (\n     let len = Array.length obls in\n     let _ = Flags.if_verbose msg_info (info ++ str \", generating \" ++ int len ++ str \" obligation(s)\") in\n-      progmap_add n (Ephemeron.create prg);\n+      progmap_add n (CEphemeron.create prg);\n       let res = auto_solve_obligations (Some n) tactic in\n \tmatch res with\n \t| Remain rem -> Flags.if_verbose (fun () -> show_obligations ~msg:false (Some n)) (); res\n@@ -1022,7 +1022,7 @@ let add_mutual_definitions l ctx ?tactic ?(kind=Global,false,Definition) ?(reduc\n     (fun  (n, b, t, imps, obls) ->\n      let prg = init_prog_info sign ~opaque n (Some b) t ctx deps (Some fixkind)\n        notations obls imps kind reduce hook \n-     in progmap_add n (Ephemeron.create prg)) l;\n+     in progmap_add n (CEphemeron.create prg)) l;\n     let _defined =\n       List.fold_left (fun finished x ->\n \tif finished then finished\n", 
+            "name": "ephemeron-rename.patch"
+          }, 
+          {
+            "content": "commit 1cc70be070e1df522b1539892958496a77710331\nAuthor: Gabriel Scherer <gabriel.scherer@gmail.com>\nDate:   Tue Jun 28 14:45:37 2016 -0400\n\n    fix coqide double module linking (error on OCaml 4.03)\n    \n    Linking the same module twice in OCaml can have problematic unintended\n    consequences and lead to hard-to-understand bugs, see\n      http://caml.inria.fr/mantis/view.php?id=4231\n      http://caml.inria.fr/mantis/view.php?id=5461\n    \n    OCaml has long warned when double-linking happens\n    \n      Warning 31: files FOO and BAR both define a module named Baz\n    \n    In 4.03 this error was turned into a warning by default.\n    \n    Coqide does double-linking by passing both\n    xml_{lexer,parser,printer}.cmo and lib/clib.cma that already contains\n    these compilation units to bin/coqide.byte. To fix compilation of\n    Coqide under 4.03, the present patch removes the .cmo from the\n    command-line arguments.\n    \n    P.S.: I checked that this patch applies cleanly to the current trunk\n    (b161ad97fdc01ac8816341a089365657cebc6d2b). It should also be possible\n    to add it as a patch on top of the 8.5 archives (for example those\n    distributed through OPAM) to make them compile under 4.03.\n\ndiff --git a/Makefile.build b/Makefile.build\nindex 0f85608..b5c933a 100644\n--- a/Makefile.build\n+++ b/Makefile.build\n@@ -653,7 +653,7 @@ $(COQWORKMGR): $(addsuffix $(BESTOBJ), stm/coqworkmgrApi tools/coqworkmgr) \\\n # fake_ide : for debugging or test-suite purpose, a fake ide simulating\n # a connection to coqtop -ideslave\n \n-$(FAKEIDE): lib/clib$(BESTLIB) lib/xml_lexer$(BESTOBJ) lib/xml_parser$(BESTOBJ) lib/xml_printer$(BESTOBJ) lib/errors$(BESTOBJ) lib/spawn$(BESTOBJ) ide/document$(BESTOBJ) ide/xmlprotocol$(BESTOBJ) tools/fake_ide$(BESTOBJ) | $(IDETOPLOOPCMA:.cma=$(BESTDYN))\n+$(FAKEIDE): lib/clib$(BESTLIB) lib/errors$(BESTOBJ) lib/spawn$(BESTOBJ) ide/document$(BESTOBJ) ide/xmlprotocol$(BESTOBJ) tools/fake_ide$(BESTOBJ) | $(IDETOPLOOPCMA:.cma=$(BESTDYN))\n \t$(SHOW)'OCAMLBEST -o $@'\n \t$(HIDE)$(call bestocaml,-I ide,str unix threads)\n \ndiff --git a/Makefile.common b/Makefile.common\nindex 1a90353..0dfd5de 100644\n--- a/Makefile.common\n+++ b/Makefile.common\n@@ -231,7 +231,7 @@ endif\n LINKCMO:=$(CORECMA) $(STATICPLUGINS)\n LINKCMX:=$(CORECMA:.cma=.cmxa) $(STATICPLUGINS:.cma=.cmxa)\n \n-IDEDEPS:=lib/clib.cma lib/xml_lexer.cmo lib/xml_parser.cmo lib/xml_printer.cmo lib/errors.cmo lib/spawn.cmo\n+IDEDEPS:=lib/clib.cma lib/errors.cmo lib/spawn.cmo\n IDECMA:=ide/ide.cma\n IDETOPLOOPCMA=ide/coqidetop.cma\n \n", 
+            "name": "fix-idedeps-double-linking.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc -prefix $cur__install -usecamlp5 -camlp5dir $cur__lib/camlp5", 
+          "make -j4 coqide-files", 
+          "make -j4 coqide-binaries", 
+          "make install-ide-bin install-ide-files install-ide-info install-ide-devfiles", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.5.0", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }, 
+    "8.42.0": {
+      "version": "8.42.0", 
+      "opam": {
+        "url": "http://coq.inria.fr/distrib/V8.4pl2/files/coq-8.4pl2.tar.gz", 
+        "checksum": "7fd98da8db35a89b9718333a31af6153", 
+        "files": [
+          {
+            "content": "--- configure\t2012-12-22 11:06:16.000000000 +0100\n+++ configure\t2013-01-18 16:30:02.110785838 +0100\n@@ -887,7 +887,7 @@\n     */true/*/*) COQRUNBYTEFLAGS=\"-dllib -lcoqrun -dllpath '$COQTOP'/kernel/byterun\";;\n     *)\n         COQRUNBYTEFLAGS=\"-dllib -lcoqrun -dllpath '$LIBDIR'\"\n-        BUILDLDPATH=\"export CAML_LD_LIBRARY_PATH='$COQTOP'/kernel/byterun\";;\n+        BUILDLDPATH=\"export CAML_LD_LIBRARY_PATH='$COQTOP'/kernel/byterun:$CAML_LD_LIBRARY_PATH\";;\n esac\n case $coqtoolsbyteflags_spec/$custom_spec/$CUSTOM_OS in\n     yes/*/*) COQTOOLSBYTEFLAGS=\"$coqtoolsbyteflags\";;\n", 
+            "name": "CAML_LD_LIBRARY_PATH.patch"
+          }, 
+          {
+            "content": "$NetBSD: patch-configure,v 1.1 2013/10/26 19:44:34 asau Exp $\n\nAccept GNU Make 4 and later.\n\n--- configure.orig\t2013-10-26 19:28:30.000000000 +0000\n+++ configure\n@@ -335,7 +335,7 @@ if [ \"$MAKE\" != \"\" ]; then\n   MAKEVERSION=`$MAKE -v | head -1 | cut -d\" \" -f3`\n   MAKEVERSIONMAJOR=`echo $MAKEVERSION | cut -d. -f1`\n   MAKEVERSIONMINOR=`echo $MAKEVERSION | cut -d. -f2`\n-  if [ \"$MAKEVERSIONMAJOR\" -eq 3 -a \"$MAKEVERSIONMINOR\" -ge 81 ]; then\n+  if [ \"$MAKEVERSIONMAJOR\" -gt 3 -o \"$MAKEVERSIONMAJOR\" -eq 3 -a \"$MAKEVERSIONMINOR\" -ge 81 ]; then\n       echo \"You have GNU Make $MAKEVERSION. Good!\"\n   else\n       OK=\"no\"\n", 
+            "name": "CONFIGURE_allow_make4.patch"
+          }, 
+          {
+            "content": "--- Makefile\t2012-05-29 13:22:26.000000000 +0200\n+++ Makefile\t2013-04-12 19:02:49.019720957 +0200\n@@ -96,7 +96,7 @@\n  $(strip $(foreach f, $(1), $(if $(filter $(f),$(2)),,$f)))\n endef\n \n-export MLEXTRAFILES := $(GENMLFILES) $(GENML4FILES) $(GENPLUGINSMOD)\n+export MLEXTRAFILES := $(GENMLFILES)\n export MLSTATICFILES := $(call diff, $(EXISTINGML), $(MLEXTRAFILES))\n export MLIFILES := $(sort $(GENMLIFILES) $(EXISTINGMLI))\n \n--- Makefile.build\t2012-10-29 15:46:37.000000000 +0100\n+++ Makefile.build\t2013-04-12 18:59:45.199717036 +0200\n@@ -39,7 +39,8 @@\n MLFILES:=$(MLSTATICFILES) $(MLEXTRAFILES)\n \n ALLDEPS:=$(addsuffix .d, \\\n-  $(ML4FILES) $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES) $(VFILES))\n+  $(MLFILES) $(MLIFILES) $(CFILES) $(MLLIBFILES))\n+\n \n .SECONDARY: $(ALLDEPS) $(GENFILES) $(ML4FILES:.ml4=.ml)\n \n@@ -327,13 +328,13 @@\n coqide-opt:  $(COQIDEBYTE) $(COQIDEOPT) $(COQIDE)\n coqide-files: $(IDEFILES)\n \n-$(COQIDEOPT): $(LINKIDEOPT) | $(COQTOPOPT)\n+$(COQIDEOPT): $(LINKIDEOPT) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLOPT -o $@'\n \t$(HIDE)$(OCAMLOPT) $(COQIDEFLAGS) $(OPTFLAGS) -o $@ unix.cmxa threads.cmxa \\\n \t\tlablgtk.cmxa $(IDEOPTFLAGS) gtkThread.cmx str.cmxa $(LINKIDEOPT)\n \t$(STRIP) $@\n \n-$(COQIDEBYTE): $(LINKIDE) | $(COQTOPBYTE)\n+$(COQIDEBYTE): $(LINKIDE) | $(LIBCOQRUN)\n \t$(SHOW)'OCAMLC -o $@'\n \t$(HIDE)$(OCAMLC) $(COQIDEFLAGS) $(BYTEFLAGS) -o $@ unix.cma threads.cma lablgtk.cma gtkThread.cmo\\\n \t\tstr.cma $(COQRUNBYTEFLAGS) $(LINKIDE)\n--- Makefile.common\t2012-10-29 15:46:40.000000000 +0100\n+++ Makefile.common\t2013-04-12 19:00:55.099718527 +0200\n@@ -269,7 +269,7 @@\n \n ## we now retrieve the names of .vo file to compile in */vo.itarget files\n \n-cat_vo_itarget = $(addprefix $(1)/,$(shell cat $(1)/vo.itarget))\n+cat_vo_itarget =\n \n ## Theories\n \n", 
+            "name": "MAKEFILE_remove_useless_for_coqide.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -configdir $cur__lib/coq/config -mandir $cur__man -docdir $cur__doc --prefix $cur__install --usecamlp5 --camlp5dir $cur__lib/camlp5", 
+          "make coqide-files coqide-binaries", 
+          "make install-coqide", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coqide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coqide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "coqide_version": {
+            "scope": "global", 
+            "val": "8.42.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp5": "*", 
+        "@opam-alpha/coq": "= 8.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": ">= 2.12.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/coqide"
+    }
+  }
+}

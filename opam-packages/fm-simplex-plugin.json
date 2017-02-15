@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "1.01.0": {
+      "version": "1.01.0", 
+      "opam": {
+        "url": "http://alt-ergo.ocamlpro.com/http/alt-ergo-1.01/alt-ergo-1.01.tar.gz", 
+        "checksum": "9fbf8e42bec2a171dc9422f9dcea9519", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make fm-simplex", 
+          "make install-fm-simplex MANDIR=$cur__man/man1", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fm_simplex_plugin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fm_simplex_plugin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fm_simplex_plugin_version": {
+            "scope": "global", 
+            "val": "1.01.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/alt-ergo": "= 1.01.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fm-simplex-plugin"
+    }, 
+    "1.30.0": {
+      "version": "1.30.0", 
+      "opam": {
+        "url": "http://alt-ergo.ocamlpro.com/http/alt-ergo-1.30/alt-ergo-1.30.tar.gz", 
+        "checksum": "c7100ebd625fbd7d3e5247dbac689748", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make fm-simplex", 
+          "make install-fm-simplex MANDIR=$cur__man/man1", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fm_simplex_plugin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fm_simplex_plugin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fm_simplex_plugin_version": {
+            "scope": "global", 
+            "val": "1.30.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/alt-ergo": "= 1.30.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/ocplib-simplex": "= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/fm-simplex-plugin"
+    }
+  }
+}

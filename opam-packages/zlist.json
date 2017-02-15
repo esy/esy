@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://gitlab.com/jhaberku/Zlist/uploads/40bc789f3d176514d07b068b936543b6/zlist-0.1.2.tbz", 
+        "checksum": "bdade429cbb5150067407dccb353525e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zlist_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zlist_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zlist_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.2", 
+        "@opam-alpha/alcotest": ">= 0.7.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": ">= 0.7.8"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zlist"
+    }
+  }
+}

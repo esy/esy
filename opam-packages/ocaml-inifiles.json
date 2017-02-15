@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://archive.ubuntu.com/ubuntu/pool/universe/o/ocaml-inifiles/ocaml-inifiles_1.2.orig.tar.gz", 
+        "checksum": "9deb802bdf98f5ead88598752d9ea5ac", 
+        "files": [
+          {
+            "content": "--- inifiles.ml.orig\t2012-10-05 17:05:39.000000000 -0700\n+++ inifiles.ml\t2012-10-05 17:05:44.000000000 -0700\n@@ -257,7 +257,7 @@\n        func\n        initial\n        (List.rev_map\n-\t  (new inifile)\n+\t  (fun x -> new inifile x)\n \t  (List.filter\n \t     check_file\n \t     (List.rev_map\n", 
+            "name": "ocaml-inifiles.diff"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_inifiles_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "ocaml_inifiles_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_inifiles_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-inifiles"
+    }
+  }
+}

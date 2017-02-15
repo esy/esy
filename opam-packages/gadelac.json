@@ -1,0 +1,92 @@
+{
+  "versions": {
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "https://bitbucket.org/Abdallah/gadelac/get/v0.6.1.tar.gz", 
+        "checksum": "e2de253e8ab8fc2cbcb81734f594ef5d", 
+        "files": [
+          {
+            "content": "bin: [\"Src/_build/Main.native\" {\"gadelac\"}]", 
+            "name": "gadelac.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make gadelac", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gadelac_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gadelac_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "gadelac_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/gadelac"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://bitbucket.org/Abdallah/gadelac/get/v0.6.tar.gz", 
+        "checksum": "5ca184e4b13042288aa407f39fabf625", 
+        "files": [
+          {
+            "content": "bin: [\"Src/_build/Main.native\" {\"gadelac\"}]", 
+            "name": "gadelac.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make gadelac", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gadelac_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gadelac_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "gadelac_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/gadelac"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-unistd/archive/0.3.0.tar.gz", 
+        "checksum": "277130ca906f7f4aeb983ec3d61a1ad6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_unistd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_unistd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unix_unistd_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ctypes-build": "*", 
+        "@opam-alpha/posix-types": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-unistd"
+    }
+  }
+}

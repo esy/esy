@@ -1,0 +1,550 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v1.0.0.tar.gz", 
+        "checksum": "41dbd9d245dc31603cbe02958fef2a71", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": ">= 1.1.3 < 2.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.4", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "0.9.5": {
+      "version": "0.9.5", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v0.9.5.tar.gz", 
+        "checksum": "975a917d48037ebb928bf66eb62a0a21", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "0.9.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": ">= 1.1.3 < 2.0.0", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "2.0.1": {
+      "version": "2.0.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v2.0.1.tar.gz", 
+        "checksum": "02c801b4f6205725de83ebd406e0462c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "2.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.4 < 2.5.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v2.0.0.tar.gz", 
+        "checksum": "49df9c44330e25f12e63c94527420933", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.4 < 2.5.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "0.9.6": {
+      "version": "0.9.6", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v0.9.6.tar.gz", 
+        "checksum": "58e798b7120f5bd910846dec17336b96", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "0.9.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": ">= 1.1.3 < 2.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.4", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "0.9.7": {
+      "version": "0.9.7", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v0.9.7.tar.gz", 
+        "checksum": "639be3c17c11337cc99bc87036d2d27c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "0.9.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": ">= 1.1.3 < 2.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.4", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v2.2.0.tar.gz", 
+        "checksum": "63c9419ffdea9652f282042323d59599", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${xen_evtchn_enable:-disable}-xenctrl --${mirage_xen_enable:-disable}-xen", 
+          "make build", 
+          "make install", 
+          "make js-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/io-page": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "2.0.3": {
+      "version": "2.0.3", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v2.0.3.tar.gz", 
+        "checksum": "bd8760290707a8fd7fdc45dd4e7068c3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make build", 
+          "make install", 
+          "make js-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "2.0.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v2.1.0.tar.gz", 
+        "checksum": "10fbee67b96dbc3b324a64d560f21438", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make build", 
+          "make install", 
+          "make js-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/io-page": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }, 
+    "2.0.2": {
+      "version": "2.0.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vchan/archive/v2.0.2.tar.gz", 
+        "checksum": "3a52e32fd51c1c9887681c94f7b581ed", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_vchan__lib/vchan:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "vchan_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vchan_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vchan_version": {
+            "scope": "global", 
+            "val": "2.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.4 < 2.5.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/vchan"
+    }
+  }
+}

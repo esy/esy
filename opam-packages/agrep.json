@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/330/ocamlagrep-1.0.tar.gz", 
+        "checksum": "39cd65a26a0976fbe046db6b441f49b1", 
+        "files": [
+          {
+            "content": "# We prefer to install with findlib so that it's easier to remove.\ndiff -Naur ocamlagrep-1.0/Makefile ocamlagrep-1.0-findinstall/Makefile\n--- ocamlagrep-1.0/Makefile\n+++ ocamlagrep-1.0-findinstall/Makefile\n@@ -1,5 +1,7 @@\n CAMLSTDLIB=`ocamlc -where`\n DESTDIR=$(CAMLSTDLIB)/agrep\n+STUBDESTDIR=$(CAMLSTDLIB)/stublibs\n+LIB_EXT=so\n \n OCAMLC=ocamlc -g\n OCAMLOPT=ocamlopt\n@@ -25,11 +27,15 @@\n \tmkdir -p $(DESTDIR)\n \tcp agrep.cmi agrep.cma agrep.cmxa $(DESTDIR)\n \tcp libagrep.a $(DESTDIR)\n-\tif test -f dllagrep.so; then cp dllagrep.so $(DESTDIR); fi\n+\tif test -f dllagrep.$(LIB_EXT); then cp dllagrep.$(LIB_EXT) $(STUBDESTDIR); fi\n \tdestdir=$(DESTDIR); ldconf=$(CAMLSTDLIB)/ld.conf; \\\n         if test `grep -s -c '^'$$destdir'$$' $$ldconf || :` = 0; \\\n         then echo $$destdir >> $$ldconf; fi\n \n+find-install:\n+\tocamlfind install agrep \\\n+\t  agrep.cma agrep.cmi agrep.cmxa libagrep.a dllagrep.$(LIB_EXT) META\n+\n testagrep: testagrep.ml agrep.cma libagrep.a\n \t$(OCAMLC) -I . -custom -o $@ agrep.cma testagrep.ml\n \n", 
+            "name": "find-install.patch"
+          }, 
+          {
+            "content": "name = \"agrep\"\ndescription = \"string searching with errors\"\nversion = \"1.0\"\narchive(byte) = \"agrep.cma\"\narchive(native) = \"agrep.cmxa\"\n", 
+            "name": "META"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make find-install", 
+          "make find-install LIB_EXT=dll", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "agrep_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "agrep_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "agrep_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/agrep"
+    }
+  }
+}

@@ -1,0 +1,323 @@
+{
+  "versions": {
+    "0.1.8": {
+      "version": "0.1.8", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.8.tar.gz", 
+        "checksum": "5178265fec699c2c7da1cd7bd739996c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.1.tar.gz", 
+        "checksum": "9a1f3ad23063612639f46c925f9daf5d", 
+        "files": [
+          {
+            "content": "bin: [\n  \"dist/build/obuild/obuild\"\n  \"dist/build/obuild-simple/obuild-simple\"\n]\n", 
+            "name": "obuild.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.2.tar.gz", 
+        "checksum": "c73f1478484d2ee7591a20bbb0ca9233", 
+        "files": [
+          {
+            "content": "bin: [\n  \"dist/build/obuild/obuild\"\n  \"dist/build/obuild-simple/obuild-simple\"\n]\n", 
+            "name": "obuild.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.3.tar.gz", 
+        "checksum": "6d0ee8f7db9513e383af1148b4187b4c", 
+        "files": [
+          {
+            "content": "bin: [\n  \"dist/build/obuild/obuild\"\n  \"dist/build/obuild-simple/obuild-simple\"\n]\n", 
+            "name": "obuild.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.4": {
+      "version": "0.1.4", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.4.tar.gz", 
+        "checksum": "b323f202f29f05eec5a6aee6679f0047", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.5": {
+      "version": "0.1.5", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.5.tar.gz", 
+        "checksum": "049268cf62e51da405f8198ff5465170", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.6": {
+      "version": "0.1.6", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.6.tar.gz", 
+        "checksum": "f56a076664448f78e59f2122186e776c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }, 
+    "0.1.7": {
+      "version": "0.1.7", 
+      "opam": {
+        "url": "https://github.com/ocaml-obuild/obuild/archive/obuild-v0.1.7.tar.gz", 
+        "checksum": "7df458da991e8c3534ebcca02670e67d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./bootstrap", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obuild_version": {
+            "scope": "global", 
+            "val": "0.1.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obuild"
+    }
+  }
+}

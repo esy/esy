@@ -1,0 +1,97 @@
+{
+  "versions": {
+    "0.9.4.2": {
+      "version": "0.9.4.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1170/bes-0.9.4.2.tar.gz", 
+        "checksum": "5ab46d03b38ea244e2f41705bc27ebe0", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/frontend.byte\" {\"bes\"}\n  \"?_build/src/frontend.native\" {\"bes\"}\n]\n", 
+            "name": "bes.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bes_version": {
+            "scope": "global", 
+            "val": "0.9.4.2"
+          }, 
+          "bes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/ospec": ">= 0.3.0", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bes"
+    }, 
+    "0.9.3": {
+      "version": "0.9.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1041/bes-0.9.3.tar.gz", 
+        "checksum": "4c25d97ef216ebc686c84cf56a6fda9a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bes_version": {
+            "scope": "global", 
+            "val": "0.9.3"
+          }, 
+          "bes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/ospec": ">= 0.3.0", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bes"
+    }
+  }
+}

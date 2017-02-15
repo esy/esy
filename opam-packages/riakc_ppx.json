@@ -1,0 +1,229 @@
+{
+  "versions": {
+    "3.1.3": {
+      "version": "3.1.3", 
+      "opam": {
+        "url": "http://github.com/struktured/riakc_ppx/archive/3.1.3.zip", 
+        "checksum": "acaa64e2331db904b9d72101b7e693ca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_ppx_version": {
+            "scope": "global", 
+            "val": "3.1.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bitstring": ">= 2.0.4", 
+        "@opam-alpha/core": ">= 109.12.00 < 112.35.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/riakc_ppx"
+    }, 
+    "3.1.2": {
+      "version": "3.1.2", 
+      "opam": {
+        "url": "https://github.com/struktured/riakc_ppx/archive/3.1.2.zip", 
+        "checksum": "f070c3232075da0f35e7c0798b74cba9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_ppx_version": {
+            "scope": "global", 
+            "val": "3.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bitstring": ">= 2.0.4", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.02.2"
+      }, 
+      "name": "@opam-alpha/riakc_ppx"
+    }, 
+    "3.1.1": {
+      "version": "3.1.1", 
+      "opam": {
+        "url": "https://github.com/struktured/riakc_ppx/archive/3.1.1.zip", 
+        "checksum": "f319a8dedf5f78afc3e6f2b14793056b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_ppx_version": {
+            "scope": "global", 
+            "val": "3.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bitstring": ">= 2.0.4", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/riakc_ppx"
+    }, 
+    "3.1.0": {
+      "version": "3.1.0", 
+      "opam": {
+        "url": "https://github.com/struktured/riakc_ppx/archive/3.1.0.zip", 
+        "checksum": "5a9a7070749e31ecab6bc59a2fbb9072", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_ppx_version": {
+            "scope": "global", 
+            "val": "3.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/riakc_ppx"
+    }, 
+    "3.1.4": {
+      "version": "3.1.4", 
+      "opam": {
+        "url": "http://github.com/struktured/riakc_ppx/archive/3.1.4.zip", 
+        "checksum": "ed8c2538cbd00b1119b422d6d6de030d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_ppx_version": {
+            "scope": "global", 
+            "val": "3.1.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bitstring": ">= 2.0.4", 
+        "@opam-alpha/core": ">= 113.00.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/riakc_ppx"
+    }
+  }
+}

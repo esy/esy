@@ -1,0 +1,553 @@
+{
+  "versions": {
+    "2.9.0": {
+      "version": "2.9.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.9.0.tar.gz", 
+        "checksum": "d888922a18f4341b9ef9a7c9b5696464", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/mirage-types": ">= 2.8.0 < 3.0.0", 
+        "@opam-alpha/ipaddr": ">= 2.6.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/functoria": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.9.1": {
+      "version": "2.9.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.9.1.tar.gz", 
+        "checksum": "80381a9fa7ff30af04f75335c3f19cad", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.9.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/mirage-types": ">= 2.8.0 < 3.0.0", 
+        "@opam-alpha/ipaddr": ">= 2.6.0", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/functoria": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.3.0.tar.gz", 
+        "checksum": "ed9e97a0da0d635371095497d1e044f4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": ">= 2.3.0 < 3.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/re": ">= 1.2.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/crunch": ">= 1.2.2", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/io-page": ">= 1.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.6.0": {
+      "version": "2.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.6.0.tar.gz", 
+        "checksum": "018f3b5496be49932ed6d71118b10ded", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/mirage-types": ">= 2.6.0 < 3.0.0", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.8.0": {
+      "version": "2.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.8.0.tar.gz", 
+        "checksum": "41360785ca35994c447df887c70ca1aa", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/mirage-types": ">= 2.8.0 < 3.0.0", 
+        "@opam-alpha/ipaddr": ">= 2.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/functoria": "= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.7.0": {
+      "version": "2.7.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.7.0.tar.gz", 
+        "checksum": "f1547f5de31192dd51bb1fde82006a41", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/functoria": "= 1.0.0", 
+        "@opam-alpha/ipaddr": ">= 2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.7.3": {
+      "version": "2.7.3", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.7.3.tar.gz", 
+        "checksum": "263e7459868e71f36047389a15c1a4ba", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.7.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/mirage-types": ">= 2.6.0 < 3.0.0", 
+        "@opam-alpha/ipaddr": ">= 2.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/functoria": "= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.6.1": {
+      "version": "2.6.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.6.1.tar.gz", 
+        "checksum": "ea36ea537a4a419aada9007a1e0a3134", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.6.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/mirage-types": ">= 2.6.0 < 3.0.0", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.2.1": {
+      "version": "2.2.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.2.1.tar.gz", 
+        "checksum": "c9411bd913eec79fb689af26e7f05c8f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": ">= 2.2.0 < 3.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/re": ">= 1.2.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/crunch": ">= 1.2.2", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.2.0.tar.gz", 
+        "checksum": "cc8b4c8cfa1d8af5657029ae61159aa2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": ">= 2.2.0 < 2.3.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/re": ">= 1.2.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/crunch": ">= 1.2.2", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.4.0.tar.gz", 
+        "checksum": "c0043f0732e48c7981fd0c604ce08d24", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.3.0 < 3.0.0", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }, 
+    "2.5.0": {
+      "version": "2.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage/archive/v2.5.0.tar.gz", 
+        "checksum": "d9d74745e38dd03d080e28c4cda2f23c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_version": {
+            "scope": "global", 
+            "val": "2.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.3.0 < 3.0.0", 
+        "@opam-alpha/cmdliner": ">= 0.9.2", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage"
+    }
+  }
+}

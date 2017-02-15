@@ -1,0 +1,204 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/arlencox/mlbdd/archive/v0.1.tar.gz", 
+        "checksum": "e17cee66ef7f74f578b17ad905effc55", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlbdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlbdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mlbdd_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mlbdd"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/arlencox/mlbdd/archive/v0.4.tar.gz", 
+        "checksum": "f9288299c170e26f9d49ee3a05e7ae0a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlbdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlbdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mlbdd_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mlbdd"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/arlencox/mlbdd/archive/v0.3.tar.gz", 
+        "checksum": "d46ecf5b91b46f00fc1c995b749371e6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlbdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlbdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mlbdd_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mlbdd"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/arlencox/mlbdd/archive/v0.5.tar.gz", 
+        "checksum": "f9b516bb0531501a09c7e9c533be3e25", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlbdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlbdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mlbdd_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mlbdd"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/arlencox/mlbdd/archive/v0.2.tar.gz", 
+        "checksum": "a1211a2f6132bbc5fb8d6e2ce0fdfe7c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlbdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlbdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mlbdd_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mlbdd"
+    }
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "versions": {
+    "0.6.3": {
+      "version": "0.6.3", 
+      "opam": {
+        "url": "https://github.com/mirage/orm/tarball/orm-0.6.3", 
+        "checksum": "2ae25f4a3fcfe33804db502a23482a8f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "orm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "orm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "orm_version": {
+            "scope": "global", 
+            "val": "0.6.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/dyntype": ">= 0.8.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/sqlite3": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/orm"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/mirage/orm/tarball/orm-0.7.1", 
+        "checksum": "15cd87fb3ade1521f0ff8ed843f97f17", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "orm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "orm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "orm_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/dyntype": ">= 0.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/sqlite3": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/orm"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/mirage/orm/tarball/orm-0.7.0", 
+        "checksum": "effe34f86035a515a79a75e34d1a8131", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "orm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "orm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "orm_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/dyntype": ">= 0.9.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/sqlite3": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/orm"
+    }, 
+    "0.6.4": {
+      "version": "0.6.4", 
+      "opam": {
+        "url": "https://github.com/mirage/orm/tarball/orm-0.6.4", 
+        "checksum": "3ce4a7f9c0f152c50fa64855aa0626b4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "orm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "orm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "orm_version": {
+            "scope": "global", 
+            "val": "0.6.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/dyntype": ">= 0.8.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/sqlite3": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/orm"
+    }
+  }
+}

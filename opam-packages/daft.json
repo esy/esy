@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/UnixJunkie/daft/archive/v0.0.2.tar.gz", 
+        "checksum": "ba3b26d2389cf7ca139d8c48d0d64dca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "cp daft daft_ds daft_mds $cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "daft_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "daft_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "daft_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/dolog": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/obuild": "*", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/zmq": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cryptokit": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/daft"
+    }
+  }
+}

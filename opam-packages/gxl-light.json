@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/amal029/ocaml-gxl-light/archive/v1_0.tar.gz", 
+        "checksum": "0c0c769ee90613e9dd7e063648bb5671", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gxl_light_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gxl_light_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "gxl_light_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gxl-light"
+    }
+  }
+}

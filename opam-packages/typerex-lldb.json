@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://github.com/OCamlPro/typerex-lldb/archive/1.1.tar.gz", 
+        "checksum": "617009098286552502f2728d6793d4c4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerex_lldb_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "typerex_lldb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerex_lldb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.11 < 1.99.17", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-lldb": "= 3.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/typerex-lldb"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://github.com/OCamlPro/typerex-lldb/archive/1.0.tar.gz", 
+        "checksum": "c482eb4ad86655a852591d6a7da9927b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerex_lldb_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "typerex_lldb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerex_lldb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.11 < 1.99.17", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-lldb": "= 3.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/typerex-lldb"
+    }
+  }
+}

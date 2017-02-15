@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "3.5.150925": {
+      "version": "3.5.150925", 
+      "opam": {
+        "url": "https://github.com/Kappa-Dev/KaSim/archive/v3.5-250915.tar.gz", 
+        "checksum": "fa9998f9b31e033b16113e11deecc97b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "cp KaSim $cur__bin/", 
+          "cp KaSim.exe $cur__bin/", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "KaSim_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "KaSim_version": {
+            "scope": "global", 
+            "val": "3.5.150925"
+          }, 
+          "KaSim_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/KaSim"
+    }
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/mransan/ocaml-protoc/archive/0.1.1.2.tar.gz", 
+        "checksum": "e86800b09eeb978a3234fc91385cc690", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make lib.byte", 
+          "make lib.native", 
+          "make bin.native", 
+          "make lib.install", 
+          "make bin.install PREFIX=$cur__install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_protoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_protoc_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "ocaml_protoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_deriving_protobuf": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-protoc"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/mransan/ocaml-protoc/archive/0.1.2.1.tar.gz", 
+        "checksum": "f944b45ebc78a663770e6ff765c5f07c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make lib.byte", 
+          "make lib.native", 
+          "make bin.native", 
+          "make lib.install", 
+          "make bin.install PREFIX=$cur__install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_protoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_protoc_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "ocaml_protoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_deriving_protobuf": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-protoc"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "https://github.com/mransan/ocaml-protoc/archive/0.1.3.1.tar.gz", 
+        "checksum": "ba6021835e243d9049898d6e445c6e95", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make lib.byte", 
+          "make lib.native", 
+          "make bin.native", 
+          "make lib.install", 
+          "make bin.install PREFIX=$cur__install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_protoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_protoc_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }, 
+          "ocaml_protoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_deriving_protobuf": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-protoc"
+    }, 
+    "0.1.3.2": {
+      "version": "0.1.3.2", 
+      "opam": {
+        "url": "https://github.com/mransan/ocaml-protoc/archive/0.1.3.2.tar.gz", 
+        "checksum": "4ca58ccc7719d28fc1d682b6914fc7d8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make lib.byte", 
+          "make lib.native", 
+          "make bin.native", 
+          "make lib.install", 
+          "make bin.install PREFIX=$cur__install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_protoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_protoc_version": {
+            "scope": "global", 
+            "val": "0.1.3.2"
+          }, 
+          "ocaml_protoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_deriving_protobuf": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-protoc"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/lindig/ocaml-ago/archive/v0.3.zip", 
+        "checksum": "90ec7d951bed891920f6f5b05f6e7455", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ago_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ago_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ago_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ago"
+    }
+  }
+}

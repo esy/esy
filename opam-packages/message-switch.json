@@ -1,0 +1,154 @@
+{
+  "versions": {
+    "0.10.5.1": {
+      "version": "0.10.5.1", 
+      "opam": {
+        "url": "https://github.com/djs55/message-switch/archive/v0.10.5.1.tar.gz", 
+        "checksum": "a3ac04c4a2d8b11cd16f3306f0d5c4fc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "message_switch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "message_switch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "message_switch_version": {
+            "scope": "global", 
+            "val": "0.10.5.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/syslog": "*", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.15.0 < 0.19.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/message-switch"
+    }, 
+    "0.10.3": {
+      "version": "0.10.3", 
+      "opam": {
+        "url": "https://github.com/xapi-project/message-switch/archive/v0.10.3/message-switch-0.10.3.tar.gz", 
+        "checksum": "b4b74c6a445077d6abdd2f1d3524576f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make configure", 
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "message_switch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "message_switch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "message_switch_version": {
+            "scope": "global", 
+            "val": "0.10.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/syslog": "*", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0 < 0.12.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/oclock": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/message-switch"
+    }, 
+    "0.10.4": {
+      "version": "0.10.4", 
+      "opam": {
+        "url": "https://github.com/djs55/message-switch/archive/v0.10.4.tar.gz", 
+        "checksum": "39009e2643f17f56d0e76fc6f85e48f7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "message_switch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "message_switch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "message_switch_version": {
+            "scope": "global", 
+            "val": "0.10.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/syslog": "*", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.11.0 < 0.12.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/message-switch"
+    }
+  }
+}

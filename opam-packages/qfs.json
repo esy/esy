@@ -1,0 +1,174 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/ahrefs/ocaml-qfs/archive/0.1.tar.gz", 
+        "checksum": "7499c3fc918b626462664b76a0288ac5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qfs_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "qfs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "qfs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/qfs"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/ahrefs/ocaml-qfs/archive/0.4.tar.gz", 
+        "checksum": "f1fdbc75ef2f930d55e61ac4c3076235", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qfs_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "qfs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "qfs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/qfs"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/ahrefs/ocaml-qfs/archive/0.6.tar.gz", 
+        "checksum": "fd4865f5ca848002b8821c1d5ade4168", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qfs_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "qfs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "qfs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/lwt": ">= 2.4.6", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/qfs"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/ahrefs/ocaml-qfs/archive/0.5.tar.gz", 
+        "checksum": "0d932738cb8cabac807b50a0b9a6b144", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qfs_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "qfs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "qfs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/lwt": ">= 2.4.6", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/qfs"
+    }
+  }
+}

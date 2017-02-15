@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/mfp/obigstore/archive/obigstore-0.9.1.tar.gz", 
+        "checksum": "6a044a490d820271f0bae1da5a1ea7e5", 
+        "files": [
+          {
+            "content": "diff -r -u obigstore-obigstore-0.9.1.orig/OMakefile obigstore-obigstore-0.9.1/OMakefile\n--- obigstore-obigstore-0.9.1.orig/OMakefile\t2014-01-08 08:00:20.000000000 -0500\n+++ obigstore-obigstore-0.9.1/OMakefile\t2015-04-07 14:25:59.056019978 -0400\n@@ -31,7 +31,7 @@\n .PHONY: install\n .PHONY: uninstall\n \n-OCAMLFLAGS     = -g -thread -w +a-4-6-9-27..29-32..99 -warn-error +a-4-6-9-18-27-28-29..99\n+OCAMLFLAGS     = -g -thread -w +a-4-6-9-27..29-32..99 -warn-error -a\n OCAMLFINDFLAGS = -syntax camlp4o -ppopt -lwt-debug\n CFLAGS         = -g -Wall -O2 -fPIC\n \n", 
+            "name": "obigstore-unset-warn-error.diff"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake -j9", 
+          "omake install prefix=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obigstore_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obigstore_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "obigstore_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/lwt": "< 2.4.7", 
+        "@opam-alpha/extprot": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/leveldb": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/obigstore"
+    }
+  }
+}

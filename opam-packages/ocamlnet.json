@@ -1,0 +1,262 @@
+{
+  "versions": {
+    "4.0.1": {
+      "version": "4.0.1", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/ocamlnet-4.0.1.tar.gz", 
+        "checksum": "d5cc75bbbd1fe7b2a55cfb55beca9a85", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/rpc-generator/ocamlrpcgen\"\n  \"src/netplex/netplex-admin\"\n]\n", 
+            "name": "ocamlnet.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -${conf_gssapi_enable:-disable}-gssapi -${conf_gnutls_enable:-disable}-gnutls -${pcre_enable:-disable}-pcre -${lablgtk_enable:-disable}-gtk2 -${camlzip_enable:-disable}-zip -with-nethttpd", 
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlnet_version": {
+            "scope": "global", 
+            "val": "4.0.1"
+          }, 
+          "ocamlnet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlnet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gnutls": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/conf-gssapi": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0 >= 4.00.0"
+      }, 
+      "name": "@opam-alpha/ocamlnet"
+    }, 
+    "3.7.7": {
+      "version": "3.7.7", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/ocamlnet-3.7.7.tar.gz", 
+        "checksum": "e15e0961d09057f0bbe4f69d6055506c", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/rpc-generator/ocamlrpcgen\"\n  \"src/netplex/netplex-admin\"\n]\n", 
+            "name": "ocamlnet.install"
+          }, 
+          {
+            "content": "diff --git a/src/equeue-ssl/https_client.ml b/src/equeue-ssl/https_client.ml\nindex a1e7028..986cc2d 100644\n--- a/src/equeue-ssl/https_client.ml\n+++ b/src/equeue-ssl/https_client.ml\n@@ -15,6 +15,7 @@ object\n                    string -> int -> Unixqueue.event_system ->\n                    exn option ->\n                    Uq_engines.multiplex_controller\n+  method default_port : int option\n end\n \n \n@@ -64,5 +65,7 @@ let https_transport_channel_type ?(verify = fun _ _ _ -> ())\n             ~ssl_socket\n \t    fd ctx esys in\n \t(mplex :> Uq_engines.multiplex_controller)\n+\n+      method default_port = Some 443\n     end\n   )\ndiff --git a/src/equeue-ssl/https_client.mli b/src/equeue-ssl/https_client.mli\nindex 446b031..cbbca97 100644\n--- a/src/equeue-ssl/https_client.mli\n+++ b/src/equeue-ssl/https_client.mli\n@@ -16,6 +16,7 @@ object\n                    string -> int -> Unixqueue.event_system ->\n                    exn option ->\n                    Uq_engines.multiplex_controller\n+  method default_port : int option\n end\n (** Same as {!Http_client.transport_channel_type} *)\t  \n \ndiff --git a/src/netclient/http_client.ml b/src/netclient/http_client.ml\nindex 23b4051..e708254 100644\n--- a/src/netclient/http_client.ml\n+++ b/src/netclient/http_client.ml\n@@ -2840,6 +2840,7 @@ let test_http_1_1 proto_str =\n let transmitter\n   peer_is_proxy\n   proxy_auth_state\n+  default_port\n   (m : http_call) \n   (f_done : http_call -> unit)\n   options\n@@ -2943,8 +2944,12 @@ let transmitter\n \t  let rh = msg # request_header `Effective in\n \t  let host = msg # get_host() in\n \t  let port = msg # get_port() in\n-\t  let host_str = host ^ (if port = 80 then \"\" \n-\t\t\t\t else \":\" ^ string_of_int port) in\n+          let include_port = match default_port with\n+            | None -> true\n+            | Some p -> p <> port in\n+          let host_str =\n+            host ^ (if include_port then \":\" ^ string_of_int port\n+                    else \"\") in\n \t  rh # update_field \"Host\" host_str;\n \t  \n \t  if close_flag then\n@@ -3573,9 +3578,10 @@ object\n                    string -> int -> Unixqueue.event_system ->\n                    Http_client_conncache.private_data ->\n                      Uq_engines.multiplex_controller\n+  method default_port : int option\n end\n \n-let http_transport_channel_type : transport_channel_type =\n+let simple_transport_channel_type default_port : transport_channel_type =\n   ( object(self)\n       method continue fd cb tmo tmo_x host port esys priv_data =\n         if priv_data <> None then raise Not_found;\n@@ -3587,9 +3593,16 @@ let http_transport_channel_type : transport_channel_type =\n       method setup_e fd cb tmo tmo_x host port esys =\n \tlet mplex = self # continue fd cb tmo tmo_x host port esys None in\n \teps_e (`Done(mplex,None)) esys\n+      method default_port = default_port\n     end\n   )\n \n+let http_transport_channel_type =\n+  simple_transport_channel_type (Some 80)\n+\n+let proxy_transport_channel_type =\n+  simple_transport_channel_type None\n+\n \n (**********************************************************************)\n \n@@ -3597,6 +3610,7 @@ let fragile_pipeline\n        esys  cb\n        cache_peer\n        proxy_auth_state proxy_auth_handler_opt\n+       default_port\n        fd mplex priv_data connect_time no_pipelining conn_cache\n        auth_cache\n        counters options =\n@@ -3740,8 +3754,9 @@ let fragile_pipeline\n \t * queues:\n \t *)\n \tlet trans = \n-\t  transmitter peer_is_proxy proxy_auth_state m f_done options in\n-\t\n+          transmitter peer_is_proxy proxy_auth_state default_port\n+                      m f_done options in\n+\n (* (* would not work, so leave disabled *)\n \tif !proxy_auth_state = `None then (\n \t  match proxy_auth_handler_opt with\n@@ -4525,6 +4540,7 @@ let robust_pipeline\n       esys tp cb\n       peer\n       proxy_auth_handler_opt\n+      default_port\n       conn_cache conn_owner \n       auth_cache\n       counters options =\n@@ -4670,6 +4686,7 @@ let robust_pipeline\n \t\t      fragile_pipeline\n \t\t\tesys cb cache_peer\n \t\t\tproxy_auth_state proxy_auth_handler_opt\n+                        default_port\n \t\t\tfd mplex priv_data t no_pipelining conn_cache\n \t\t\tauth_cache\n \t\t\tcounters options in\n@@ -4901,7 +4918,7 @@ class pipeline =\n \n     initializer (\n       Hashtbl.add transports http_cb_id http_transport_channel_type;\n-      Hashtbl.add transports proxy_only_cb_id http_transport_channel_type;\n+      Hashtbl.add transports proxy_only_cb_id proxy_transport_channel_type;\n     )\n \n     method event_system = esys\n@@ -5134,6 +5151,7 @@ class pipeline =\n \t                     esys tp cb\n \t                     peer\n \t                     proxy_auth_handler_opt\n+                             tp#default_port\n \t\t\t     conn_cache\n \t\t\t     (self :> < >)\n \t\t\t     auth_cache\ndiff --git a/src/netclient/http_client.mli b/src/netclient/http_client.mli\nindex 9934f5f..5231083 100644\n--- a/src/netclient/http_client.mli\n+++ b/src/netclient/http_client.mli\n@@ -761,6 +761,9 @@ object\n \n       If it is not possible to continue, the method may raise [Not_found].\n    *)\n+\n+  method default_port : int option\n+  (** If set, the [Host] header omits this port number *)\n end\n \n \n", 
+            "name": "robust-host.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -${pcre_enable:-disable}-pcre -${lablgtk_enable:-disable}-gtk2 -${ssl_enable:-disable}-ssl -${camlzip_enable:-disable}-zip -${cryptokit_enable:-disable}-crypto -with-nethttpd", 
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlnet_version": {
+            "scope": "global", 
+            "val": "3.7.7"
+          }, 
+          "ocamlnet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlnet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/cryptokit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocamlnet"
+    }, 
+    "4.0.2": {
+      "version": "4.0.2", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/ocamlnet-4.0.2.tar.gz", 
+        "checksum": "44dbf979e2786bdda8b902e471ffc905", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/rpc-generator/ocamlrpcgen\"\n  \"src/netplex/netplex-admin\"\n]\n", 
+            "name": "ocamlnet.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -${conf_gssapi_enable:-disable}-gssapi -${conf_gnutls_enable:-disable}-gnutls -${pcre_enable:-disable}-pcre -${lablgtk_enable:-disable}-gtk2 -${camlzip_enable:-disable}-zip -with-nethttpd", 
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlnet_version": {
+            "scope": "global", 
+            "val": "4.0.2"
+          }, 
+          "ocamlnet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlnet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gnutls": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/conf-gssapi": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0 >= 4.00.0"
+      }, 
+      "name": "@opam-alpha/ocamlnet"
+    }, 
+    "4.0.4": {
+      "version": "4.0.4", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/ocamlnet-4.0.4.tar.gz", 
+        "checksum": "3196b85e1e329bfb0665f54723e0dffb", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/rpc-generator/ocamlrpcgen\"\n  \"src/netplex/netplex-admin\"\n]\n", 
+            "name": "ocamlnet.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -${conf_gssapi_enable:-disable}-gssapi -${conf_gnutls_enable:-disable}-gnutls -${pcre_enable:-disable}-pcre -${lablgtk_enable:-disable}-gtk2 -${camlzip_enable:-disable}-zip -with-nethttpd", 
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlnet_version": {
+            "scope": "global", 
+            "val": "4.0.4"
+          }, 
+          "ocamlnet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlnet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gnutls": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/conf-gssapi": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0 >= 4.00.0"
+      }, 
+      "name": "@opam-alpha/ocamlnet"
+    }, 
+    "4.1.2": {
+      "version": "4.1.2", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/ocamlnet-4.1.2.tar.gz", 
+        "checksum": "cc8b3434119e51b0e855b33a687e9c4b", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/rpc-generator/ocamlrpcgen\"\n  \"src/netplex/netplex-admin\"\n]\n", 
+            "name": "ocamlnet.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -${conf_gssapi_enable:-disable}-gssapi -${conf_gnutls_enable:-disable}-gnutls -${pcre_enable:-disable}-pcre -${lablgtk_enable:-disable}-gtk2 -${camlzip_enable:-disable}-zip -with-nethttpd", 
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlnet_version": {
+            "scope": "global", 
+            "val": "4.1.2"
+          }, 
+          "ocamlnet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlnet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gnutls": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/conf-gssapi": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/ocamlnet"
+    }
+  }
+}

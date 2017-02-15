@@ -1,0 +1,114 @@
+{
+  "versions": {
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/nojb/ocaml-bt/archive/v0.1.2.tar.gz", 
+        "checksum": "97e7d562c19a6e129aeda3fa007ac346", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/otorrent/otorrent.byte\" {\"otorrent\"}\n  \"?_build/otorrent/otorrent.native\" {\"otorrent\"}\n]\n", 
+            "name": "bt.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bt_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "bt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/lwt": "< 2.4.7", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": "*", 
+        "@opam-alpha/cohttp": ">= 0.11.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bt"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/nojb/ocaml-bt/archive/v0.2.tar.gz", 
+        "checksum": "79877dd825fa6933b73fa5cb237a5238", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/otorrent/otorrent.byte\" {\"otorrent\"}\n  \"?_build/otorrent/otorrent.native\" {\"otorrent\"}\n]\n", 
+            "name": "bt.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bt_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "bt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/lwt": "< 2.4.7", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": "*", 
+        "@opam-alpha/cohttp": ">= 0.11.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bt"
+    }
+  }
+}

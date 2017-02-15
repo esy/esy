@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/dbousque/lymp/archive/0.1.tar.gz", 
+        "checksum": "7ff14aaecb3a82e81ea5dbf987b0a3bf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lymp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lymp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lymp_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/bson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/lymp"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/dbousque/lymp/archive/0.1.2.tar.gz", 
+        "checksum": "ab7a28e1263d3b9f29d349084311a6c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lymp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lymp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lymp_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/bson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/lymp"
+    }
+  }
+}

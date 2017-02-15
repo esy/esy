@@ -1,0 +1,133 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/orbitz/ocaml-riakc/archive/1.0.0.tar.gz", 
+        "checksum": "1858e6560d0cedebb60ddde28edd00ca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/async": "< 109.58.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/protobuf": "*", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/riakc"
+    }, 
+    "0.0.0": {
+      "version": "0.0.0", 
+      "opam": {
+        "url": "https://github.com/orbitz/ocaml-riakc/archive/0.0.0.tar.gz", 
+        "checksum": "3dc29bb78e59857fa309550a6de5d9e9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_version": {
+            "scope": "global", 
+            "val": "0.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/async": "< 109.58.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/protobuf": "*", 
+        "@opam-alpha/core": "= 108.08.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/riakc"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/orbitz/ocaml-riakc/archive/2.0.0.tar.gz", 
+        "checksum": "49d0325faf9195abefd5081a65f5ca33", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "riakc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "riakc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "riakc_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/async": "< 109.58.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/protobuf": "*", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/riakc"
+    }
+  }
+}

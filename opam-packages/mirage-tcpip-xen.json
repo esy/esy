@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.9.5": {
+      "version": "0.9.5", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v0.9.5.tar.gz", 
+        "checksum": "181072757691c47d1d9973fd5d766828", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make OS=xen", 
+          "make install OS=xen", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_tcpip_xen_version": {
+            "scope": "global", 
+            "val": "0.9.5"
+          }, 
+          "mirage_tcpip_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_tcpip_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ipaddr": ">= 1.0.0 < 2.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-net-xen": ">= 0.9.0", 
+        "@opam-alpha/mirage-types": "= 0.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-clock-xen": ">= 1.0.0 <1.2.0", 
+        "@opam-alpha/mirage-xen": "= 0.9.9", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-tcpip-xen"
+    }
+  }
+}

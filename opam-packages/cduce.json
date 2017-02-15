@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "0.5.5": {
+      "version": "0.5.5", 
+      "opam": {
+        "url": "http://www.cduce.org/download/cduce-0.5.5.tar.gz", 
+        "checksum": "bf9726a9cbc6287c807a8b1113f1e71f", 
+        "files": [
+          {
+            "content": "bin: [\"cduce\"]\n", 
+            "name": "cduce.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --mandir=$cur__doc/cduce --mliface=$cur__lib/ocaml-src ${ocaml_src_installed:-false} & ocaml-version = 3.12.1 }", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cduce_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cduce_version": {
+            "scope": "global", 
+            "val": "0.5.5"
+          }, 
+          "cduce_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocaml-src": "*", 
+        "@opam-alpha/ocamlnet": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pxp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/cduce"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/avsm/http2https/archive/v1.0.0.tar.gz", 
+        "checksum": "01ba4654c8c4ac355bc09aecec6051a8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "http2https_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "http2https_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "http2https_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">=0.19.3", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/http2https"
+    }
+  }
+}

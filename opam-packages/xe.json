@@ -1,0 +1,149 @@
+{
+  "versions": {
+    "0.6.3": {
+      "version": "0.6.3", 
+      "opam": {
+        "url": "https://github.com/djs55/xapi-xe/archive/0.6.3.tar.gz", 
+        "checksum": "43869fe5717e5478d2e4d8bc6a35d308", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xe_version": {
+            "scope": "global", 
+            "val": "0.6.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.14.0", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xe"
+    }, 
+    "0.6.2": {
+      "version": "0.6.2", 
+      "opam": {
+        "url": "https://github.com/djs55/xapi-xe/archive/0.6.2.tar.gz", 
+        "checksum": "d7f2b3d0e088984f83417d1edaf3200e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xe_version": {
+            "scope": "global", 
+            "val": "0.6.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0 < 0.12.0", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xe"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/djs55/xapi-xe/archive/0.6.0.tar.gz", 
+        "checksum": "771c18c2f5d244980b197b98c650f504", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xe_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0 < 0.12.0", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xe"
+    }
+  }
+}

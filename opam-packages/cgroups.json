@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/Gbury/ocaml-cgroups/archive/v0.1.tar.gz", 
+        "checksum": "4d2c9c0723061eef4220098e3d3ab790", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make lib", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cgroups_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cgroups_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "cgroups_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/cgroups"
+    }
+  }
+}

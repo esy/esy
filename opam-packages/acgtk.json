@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "http://calligramme.loria.fr/acg/software/acg-1.3.0-20160909.tar.gz", 
+        "checksum": "829d35110953a6ed94d9ba2aee84b05d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make all", 
+          "make install-all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "acgtk_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "acgtk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "acgtk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocf": "*", 
+        "@opam-alpha/cairo2": "*", 
+        "@opam-alpha/ANSITerminal": ">=0.7.0", 
+        "@opam-alpha/bolt": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/dypgen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/acgtk"
+    }
+  }
+}

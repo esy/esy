@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/xvw/ppx_measure/releases/download/v1.1/ppx_measure.tar.gz", 
+        "checksum": "7352313b647117197361fe816711c073", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_measure_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_measure_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_measure_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_measure"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/xvw/ppx_measure/releases/download/v1.0/ppx_measure.tar.gz", 
+        "checksum": "a020fcedfb77070b054f04262a06dd9d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_measure_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_measure_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_measure_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_measure"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1247/ocaml-geoip-0.0.2.tar.gz", 
+        "checksum": "baae04937a9d0fd02cc531b600a080b2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "geoip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "geoip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "geoip_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/geoip"
+    }
+  }
+}

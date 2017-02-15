@@ -1,0 +1,453 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/xapi-project/ocaml-gnt/archive/v1.0.0.tar.gz", 
+        "checksum": "29f719f45d73cc1e80c21e8e296041f2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v1.0.1.tar.gz", 
+        "checksum": "89d9db50eaf268552cb8c422358b55ed", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v1.0.2.tar.gz", 
+        "checksum": "544543dcf8fabcb9249212dc5121eaf9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v2.0.0.tar.gz", 
+        "checksum": "436965e25b5754071c684c4a77bf6797", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "0.9.9": {
+      "version": "0.9.9", 
+      "opam": {
+        "url": "https://github.com/xapi-project/ocaml-gnt/archive/v0.9.9.tar.gz", 
+        "checksum": "600cbf5c1b15e0427686eb90f4bbc44f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "0.9.9"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "1.0.3": {
+      "version": "1.0.3", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v1.0.3.tar.gz", 
+        "checksum": "64f41450945db1a2d071298fd45bc501", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "1.0.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "2.2.1": {
+      "version": "2.2.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v2.2.1.tar.gz", 
+        "checksum": "2c043c42a298ff163ff0e58d5da3c71e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "2.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/io-page": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v2.2.0.tar.gz", 
+        "checksum": "9a5fce3a7a7c9fd375218d8c315a05b8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/io-page": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "2.2.3": {
+      "version": "2.2.3", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v2.2.3.tar.gz", 
+        "checksum": "eb0252c3b57c56b1ff813c6eaf358f38", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make TESTS_FLAG=--disable-tests", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "2.2.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/io-page": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">=2.4.3", 
+        "@opam-alpha/mirage-profile": ">=0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-gnt/archive/v2.1.0.tar.gz", 
+        "checksum": "43a329be84825764b0d0a8f9020c60c7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_gnt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_gnt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_gnt_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/io-page": "< 1.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xen-gnt"
+    }
+  }
+}

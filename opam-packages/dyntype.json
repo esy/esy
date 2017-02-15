@@ -1,0 +1,214 @@
+{
+  "versions": {
+    "0.8.5": {
+      "version": "0.8.5", 
+      "opam": {
+        "url": "https://github.com/mirage/dyntype/tarball/dyntype-0.8.5", 
+        "checksum": "d1910c5dfd835a2315d84a30b6872b66", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dyntype_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dyntype_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dyntype_version": {
+            "scope": "global", 
+            "val": "0.8.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "= 108.00.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dyntype"
+    }, 
+    "0.8.4": {
+      "version": "0.8.4", 
+      "opam": {
+        "url": "https://github.com/mirage/dyntype/tarball/dyntype-0.8.4", 
+        "checksum": "40b4d77c3288f65107410da629536c43", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dyntype_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dyntype_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dyntype_version": {
+            "scope": "global", 
+            "val": "0.8.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "= 108.00.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dyntype"
+    }, 
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/mirage/dyntype/archive/dyntype-0.9.0.tar.gz", 
+        "checksum": "9635842d60ec7112dace5106e1f0bddd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dyntype_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dyntype_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dyntype_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dyntype"
+    }, 
+    "0.8.3": {
+      "version": "0.8.3", 
+      "opam": {
+        "url": "https://github.com/mirage/dyntype/tarball/dyntype-0.8.3", 
+        "checksum": "1eb647f02797d1d91b8674b38975cd1e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dyntype_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dyntype_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dyntype_version": {
+            "scope": "global", 
+            "val": "0.8.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "= 108.00.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dyntype"
+    }, 
+    "0.8.2": {
+      "version": "0.8.2", 
+      "opam": {
+        "url": "https://github.com/mirage/dyntype/tarball/dyntype-0.8.2", 
+        "checksum": "bcba157bb85737ce845147fac501e134", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dyntype_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dyntype_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dyntype_version": {
+            "scope": "global", 
+            "val": "0.8.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "= 108.00.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/dyntype"
+    }
+  }
+}

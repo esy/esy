@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/gtktop/gtktop-2.0.tar.gz", 
+        "checksum": "c77091dcddc63711c370370a6860dbb3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gtktop_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gtktop_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "gtktop_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-glade": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lablgtk": ">= 2.16.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk-extras": ">= 1.2.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/gtktop"
+    }
+  }
+}

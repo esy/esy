@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "113.33.03": {
+      "version": "113.33.03", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/variantslib-113.33.03.tar.gz", 
+        "checksum": "f8e9d6362f6dd0ba92ee706e584d4790", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "variantslib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "variantslib_version": {
+            "scope": "global", 
+            "val": "113.33.03"
+          }, 
+          "variantslib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/js-build-tools": ">= 113.33.04 < 113.34.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/variantslib"
+    }
+  }
+}

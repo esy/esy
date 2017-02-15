@@ -1,0 +1,52 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/afiniate/vrt/archive/0.1.0.tar.gz", 
+        "checksum": "be3bd2fdc543d2dab7accd7390d3b1e4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vrt_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "vrt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vrt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/async_unix": "*", 
+        "@opam-alpha/async_shell": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/core_extended": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/async_extra": "*", 
+        "@opam-alpha/async_find": "*", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/vrt"
+    }
+  }
+}

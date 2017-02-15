@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "0.11.2": {
+      "version": "0.11.2", 
+      "opam": {
+        "url": "https://github.com/ocamllabs/ocaml-ctypes/archive/0.11.2.tar.gz", 
+        "checksum": "72055750770278a84965bb81aec68d87", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make XEN=${mirage_xen_enable:-disable} libffi.config", 
+          "touch libffi.config", 
+          "make XEN=${mirage_xen_enable:-disable} ctypes-base ctypes-stubs", 
+          "make XEN=${mirage_xen_enable:-disable} ctypes-foreign", 
+          "make install XEN=${mirage_xen_enable:-disable}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ctypes_version": {
+            "scope": "global", 
+            "val": "0.11.2"
+          }, 
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_ctypes__lib/ctypes:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "ctypes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ctypes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ctypes"
+    }
+  }
+}

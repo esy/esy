@@ -1,0 +1,207 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uucp/releases/uucp-0.9.0.tbz", 
+        "checksum": "01fcb3e8a7b41b56d66022f3ffbaf1c0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uucp_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "uucp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uucp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uucp"
+    }, 
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/uucp/releases/uucp-0.9.1.tbz", 
+        "checksum": "b4139f11b140820b911e5fad06a173bd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uucp_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "uucp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uucp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/uucp"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uucp/releases/uucp-2.0.0.tbz", 
+        "checksum": "a6a9d74f56d7ca56c823d9b89af39d75", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uucp_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "uucp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uucp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/uucd": "test}  0.0.0 {test", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uchar": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uucp"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uucp/releases/uucp-1.0.0.tbz", 
+        "checksum": "229455ecbee6cd4b7d6082371307fd01", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uucp_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "uucp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uucp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uucp"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uucp/releases/uucp-1.1.0.tbz", 
+        "checksum": "6079d81270286956e7c01e32edc773cd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uucp_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "uucp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uucp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/uucp"
+    }
+  }
+}

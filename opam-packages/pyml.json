@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "20161224.0.0": {
+      "version": "20161224.0.0", 
+      "opam": {
+        "url": "http://pyml.gforge.inria.fr/pyml-20161224.tar.gz", 
+        "checksum": "ea8f445792ba5c8a7d5b6f4bf6bb31cd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pyml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pyml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pyml_version": {
+            "scope": "global", 
+            "val": "20161224.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/pyml"
+    }
+  }
+}

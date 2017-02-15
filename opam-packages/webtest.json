@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/johnelse/ocaml-webtest/archive/1.0.0.tar.gz", 
+        "checksum": "a43606cb7b47a9c7948884f590773fbe", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --enable-docs", 
+          "make build", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webtest_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "webtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/webtest"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/johnelse/ocaml-webtest/archive/1.0.2.tar.gz", 
+        "checksum": "d388b7caa56cc45b4d4f1c5b26b5dd76", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --enable-docs", 
+          "make build", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webtest_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }, 
+          "webtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/js_of_ocaml": ">= 2.7.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/webtest"
+    }
+  }
+}

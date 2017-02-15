@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/ujamjar/sattools/archive/v0.1.0.tar.gz", 
+        "checksum": "3f1f15d5a738ce95c92214a71c532620", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sattools_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sattools_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sattools_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/sattools"
+    }
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "versions": {
+    "1.9.0": {
+      "version": "1.9.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1229/cryptokit-1.9.tar.gz", 
+        "checksum": "4432a426c9d260822f4ff2b0750413de", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cryptokit_version": {
+            "scope": "global", 
+            "val": "1.9.0"
+          }, 
+          "cryptokit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cryptokit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/cryptokit"
+    }, 
+    "1.6.0": {
+      "version": "1.6.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/891/cryptokit-1.6.tar.gz", 
+        "checksum": "341a4ca2db7fc7755b08d2e54a6874e1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cryptokit_version": {
+            "scope": "global", 
+            "val": "1.6.0"
+          }, 
+          "cryptokit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cryptokit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/cryptokit"
+    }, 
+    "1.11.0": {
+      "version": "1.11.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1618/cryptokit-1.11.tar.gz", 
+        "checksum": "931f8240ad30d9930d0f584f2921de69", 
+        "files": [
+          {
+            "content": "From ac8c748268091d98d341ad38a5a8a83832f53a46 Mon Sep 17 00:00:00 2001\nFrom: Etienne Millon <etienne@cryptosense.com>\nDate: Mon, 21 Nov 2016 15:32:32 +0100\nSubject: [PATCH] Align key_schedule on a 16 byte boundary\n\nMemory access to/from XMM registers require the memory operand to be\naligned in order to have good performance (using the `MOVDQA`\noperation). To ensure that, the compiler is supposed to align stack\nvariables, but it can not always do that. In particular, old GCC\nversions (4.4.7, present in Centos 6) fail to do that. It is thus\nnecessary to align it manually using extra space.\n---\n src/aesni.c | 16 ++++++++++++++--\n 1 file changed, 14 insertions(+), 2 deletions(-)\n\ndiff --git a/src/aesni.c b/src/aesni.c\nindex f2ff483..fde8669 100644\n--- a/src/aesni.c\n+++ b/src/aesni.c\n@@ -19,6 +19,7 @@\n #ifdef __AES__\n #include <wmmintrin.h>\n #include <cpuid.h>\n+#include <stdint.h>\n \n int aesni_available = -1;\n \n@@ -216,11 +217,21 @@ static int aesni_key_expansion(const unsigned char * userkey,\n   }\n }\n \n+static __m128i *align16(__m128i *p)\n+{\n+  uintptr_t n = (uintptr_t) p;\n+  if (n & 0xf) {\n+    n = n + 16 - (n & 0xf);\n+  }\n+  return (__m128i *) n;\n+}\n+\n int aesniKeySetupEnc(unsigned char * ckey,\n                      const unsigned char * key,\n                      int keylength)\n {\n-  __m128i key_schedule[15];\n+  __m128i unaligned_key_schedule[15 + 15];\n+  __m128i *key_schedule = align16(unaligned_key_schedule);\n   int nrounds, i;\n \n   nrounds = aesni_key_expansion(key, keylength, key_schedule);\n@@ -234,7 +245,8 @@ int aesniKeySetupDec(unsigned char * ckey,\n                      const unsigned char * key,\n                      int keylength)\n {\n-  __m128i key_schedule[15];\n+  __m128i unaligned_key_schedule[15 + 15];\n+  __m128i *key_schedule = align16(unaligned_key_schedule);\n   int nrounds, i;\n \n   nrounds = aesni_key_expansion(key, keylength, key_schedule);\n-- \n2.10.2\n\n", 
+            "name": "aesni-align.patch"
+          }, 
+          {
+            "content": "From 933fcba1f1851dc3a0e254746373c5c8fb87131c Mon Sep 17 00:00:00 2001\nFrom: Etienne Millon <etienne@cryptosense.com>\nDate: Fri, 18 Nov 2016 16:15:56 +0100\nSubject: [PATCH] Reliably detect AES-NI\n\nAs reported in [1], the original detection code fails on 32 bit\ntargets. This improves the patch a bit by falling back to the software\nimplementation if CPUID fails.\n\n[1]: https://forge.ocamlcore.org/tracker/index.php?func=detail&aid=1646&group_id=133&atid=628\n---\n src/aesni.c | 13 ++++++++-----\n 1 file changed, 8 insertions(+), 5 deletions(-)\n\ndiff --git a/src/aesni.c b/src/aesni.c\nindex 57a8ae7..f2ff483 100644\n--- a/src/aesni.c\n+++ b/src/aesni.c\n@@ -18,16 +18,19 @@\n \n #ifdef __AES__\n #include <wmmintrin.h>\n+#include <cpuid.h>\n \n int aesni_available = -1;\n \n int aesni_check_available(void)\n {\n-  unsigned int ax, bx, cx, dx;\n-  __asm__ __volatile__ (\"cpuid\"\n-                        : \"=a\" (ax), \"=b\" (bx), \"=c\" (cx), \"=d\" (dx)\n-                        : \"a\" (1));\n-  return (aesni_available = (cx & 0x2000000) != 0);\n+  unsigned int eax, ebx, ecx, edx;\n+  if(__get_cpuid(1, &eax, &ebx, &ecx, &edx)) {\n+    aesni_available = (ecx & 0x2000000) != 0;\n+  } else {\n+    aesni_available = 0;\n+  }\n+  return aesni_available;\n }\n \n static inline __m128i aesni_128_assist(__m128i t1, __m128i t2)\n-- \n2.10.2\n\n", 
+            "name": "aesni-detect.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cryptokit_version": {
+            "scope": "global", 
+            "val": "1.11.0"
+          }, 
+          "cryptokit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cryptokit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": ">= 1.4.0", 
+        "@opam-alpha/conf-gmp-powm-sec": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-zlib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/cryptokit"
+    }, 
+    "1.10.0": {
+      "version": "1.10.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1493/cryptokit-1.10.tar.gz", 
+        "checksum": "aa697b894f87cc19643543ad1dae6c3f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cryptokit_version": {
+            "scope": "global", 
+            "val": "1.10.0"
+          }, 
+          "cryptokit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cryptokit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-zlib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cryptokit"
+    }, 
+    "1.7.0": {
+      "version": "1.7.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1166/cryptokit-1.7.tar.gz", 
+        "checksum": "93db223a3d832cf047d56596de23d470", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cryptokit_version": {
+            "scope": "global", 
+            "val": "1.7.0"
+          }, 
+          "cryptokit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cryptokit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/cryptokit"
+    }
+  }
+}

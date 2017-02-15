@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_getenv/archive/v1.1.tar.gz", 
+        "checksum": "97ec66c3f86f7b56b4d4afc73adc550e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_getenv_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "ppx_getenv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_getenv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.1", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ppx_getenv"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_getenv/archive/v1.0.tar.gz", 
+        "checksum": "0af72aeb30007cca21f95eef91808293", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_getenv_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ppx_getenv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_getenv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": ">= 0.99.1", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ppx_getenv"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ppx_getenv/archive/v1.2.tar.gz", 
+        "checksum": "1bf49cd42863004902b4262cdf177a25", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_getenv_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "ppx_getenv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_getenv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cppo": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ppx_getenv"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/xen-org/cdrom/archive/cdrom-0.9.1.tar.gz", 
+        "checksum": "1427ab8e636c240a073665de9daa5c19", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cdrom_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cdrom_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "cdrom_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/obuild": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cdrom"
+    }
+  }
+}

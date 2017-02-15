@@ -1,0 +1,180 @@
+{
+  "versions": {
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "http://nberth.space/pool/bddapron/bddapron-2.3.0.tar.gz", 
+        "checksum": "ed99c950ff143acd7fa53eafc132db7a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --docdir $cur__doc", 
+          "make JOBS=4", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bddapron_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bddapron_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }, 
+          "bddapron_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mlcuddidl": ">= 2.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/apron": ">= 20151015.0.0", 
+        "@opam-alpha/camllib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/bddapron"
+    }, 
+    "2.2.4": {
+      "version": "2.2.4", 
+      "opam": {
+        "url": "http://nberth.space/pool/bddapron/bddapron-2.2.4.tar.gz", 
+        "checksum": "b7133a7ecd7fa2f4699b44cd2534a9fd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --docdir $cur__doc", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bddapron_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bddapron_version": {
+            "scope": "global", 
+            "val": "2.2.4"
+          }, 
+          "bddapron_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mlcuddidl": ">= 2.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/apron": ">= 20151015.0.0", 
+        "@opam-alpha/camllib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/bddapron"
+    }, 
+    "2.2.3": {
+      "version": "2.2.3", 
+      "opam": {
+        "url": "http://nberth.space/pool/bddapron/bddapron-2.2.3.tar.gz", 
+        "checksum": "c81ca435bc6a43f7ef42f1466e10a513", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --docdir $cur__doc", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bddapron_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bddapron_version": {
+            "scope": "global", 
+            "val": "2.2.3"
+          }, 
+          "bddapron_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mlcuddidl": ">= 2.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/apron": ">= 20151015.0.0", 
+        "@opam-alpha/camllib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/bddapron"
+    }, 
+    "2.3.1": {
+      "version": "2.3.1", 
+      "opam": {
+        "url": "http://nberth.space/pool/bddapron/bddapron-2.3.1.tar.gz", 
+        "checksum": "4a4eef2d83c071576571ed4addd7aa92", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --docdir $cur__doc", 
+          "make JOBS=4", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bddapron_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bddapron_version": {
+            "scope": "global", 
+            "val": "2.3.1"
+          }, 
+          "bddapron_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mlcuddidl": ">= 2.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/apron": ">= 20151015.0.0", 
+        "@opam-alpha/camllib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/bddapron"
+    }
+  }
+}

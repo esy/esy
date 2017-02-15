@@ -1,0 +1,41 @@
+{
+  "versions": {
+    "0.0.0": {
+      "version": "0.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "base_threads_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "base_threads_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "base_threads_version": {
+            "scope": "global", 
+            "val": "0.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/base-threads"
+    }
+  }
+}

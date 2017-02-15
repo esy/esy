@@ -1,0 +1,129 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/talex5/mini-os/archive/v0.9.tar.gz", 
+        "checksum": "8f30d651d16f9e7b6b0f2296cd71cec0", 
+        "files": [
+          {
+            "content": "#!/bin/sh -ex\n\n# The MiniOS build is sensitive to some external variables\n# like EXTRA_DEPS being set, even to blank values.\n# See: https://github.com/mirage/mirage-xen-minios/issues/15\n# This wrapper script explicitly unexports them from the\n# environment before invoking Make\n\nunset EXTRA_DEPS\n\nmake debug=n CONFIG_VERBOSE_BOOT=n\n", 
+            "name": "build-opam.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -ex ./build-opam.sh", 
+          "make install LIBDIR=$cur__install/lib INCLUDEDIR=$cur__install/include", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "minios_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "minios_xen_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "minios_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/minios-xen"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/talex5/mini-os/archive/v0.8.tar.gz", 
+        "checksum": "c60c9fd38452673fc1af75a1f6acfa89", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make debug=n CONFIG_VERBOSE_BOOT=n", 
+          "make install LIBDIR=$cur__install/lib INCLUDEDIR=$cur__install/include", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "minios_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "minios_xen_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "minios_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/minios-xen"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/talex5/mini-os/archive/v0.7.tar.gz", 
+        "checksum": "5d317b28e6e540fb027f9f8be871c4af", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make debug=n", 
+          "make install LIBDIR=$cur__install/lib INCLUDEDIR=$cur__install/include", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "minios_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "minios_xen_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "minios_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/minios-xen"
+    }
+  }
+}

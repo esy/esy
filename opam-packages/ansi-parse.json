@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/jdjakub/ansi-parse/releases/download/v0.3.0/ansi-parse-0.3.0.tbz", 
+        "checksum": "b69eb4375c918be7cddd2e744eec636d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ansi_parse_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ansi_parse_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ansi_parse_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": "*", 
+        "@opam-alpha/tyxml": ">= 4.0.0", 
+        "@opam-alpha/angstrom": "<0.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ansi-parse"
+    }
+  }
+}

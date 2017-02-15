@@ -1,0 +1,53 @@
+{
+  "versions": {
+    "201206191.0.0": {
+      "version": "201206191.0.0", 
+      "opam": {
+        "url": "http://dypgen.free.fr/dypgen-20120619-1.tar.bz2", 
+        "checksum": "f12c4756b6cfd74247aae2c876c1e591", 
+        "files": [
+          {
+            "content": "bin: [\n  \"dypgen/dypgen.opt\"\n  \"dypgen/dypgen\"\n  \"dyp2gram.pl\" {\"dyp2gram\"}\n]\n", 
+            "name": "dypgen.install"
+          }, 
+          {
+            "content": "--- dypgen.20120619-1/Makefile.orig\t2013-04-02 16:17:00.000000000 +0200\n+++ dypgen.20120619-1/Makefile\t2013-04-02 16:21:59.000000000 +0200\n@@ -22,20 +22,24 @@\n \n #install with ocaml-findlib\n install: install_opt\n-\tinstall -D --mode=755 dypgen/dypgen $(BINDIR)\n-\tinstall -D --mode=755 dyp2gram.pl $(BINDIR)/dyp2gram\n-\tinstall -D --mode=644 doc/dypgen.1 $(MANDIR)/dypgen.1\n-\tinstall -D --mode=644 doc/dypgen.1 $(MANDIR)/dypgen.opt.1\n-\tinstall -D --mode=644 doc/dypgen.1 $(MANDIR)/dyp2gram.1\n+\tinstall -d $(BINDIR)\n+\tinstall -m 755 dypgen/dypgen $(BINDIR)\n+\tinstall -m 755 dyp2gram.pl $(BINDIR)/dyp2gram\n+\tinstall -d $(MANDIR)\n+\tinstall -m 644 doc/dypgen.1 $(MANDIR)/dypgen.1\n+\tinstall -m 644 doc/dypgen.1 $(MANDIR)/dypgen.opt.1\n+\tinstall -m 644 doc/dypgen.1 $(MANDIR)/dyp2gram.1\n \tcd dyplib; $(MAKE) install\n \n #install without ocaml-findlib\n install2: install_opt\n-\tinstall -D --mode=755 dypgen/dypgen $(BINDIR)\n-\tinstall -D --mode=755 dyp2gram.pl $(BINDIR)/dyp2gram\n-\tinstall -D --mode=644 doc/dypgen.1 $(MANDIR)/dypgen.1\n-\tinstall -D --mode=644 doc/dypgen.1 $(MANDIR)/dypgen.opt.1\n-\tinstall -D --mode=644 doc/dypgen.1 $(MANDIR)/dyp2gram.1\n+\tinstall -d $(BINDIR)\n+\tinstall -m 755 dypgen/dypgen $(BINDIR)\n+\tinstall -m 755 dyp2gram.pl $(BINDIR)/dyp2gram\n+\tinstall -d $(MANDIR)\n+\tinstall -m 644 doc/dypgen.1 $(MANDIR)/dypgen.1\n+\tinstall -m 644 doc/dypgen.1 $(MANDIR)/dypgen.opt.1\n+\tinstall -m 644 doc/dypgen.1 $(MANDIR)/dyp2gram.1\n \tcd dyplib; $(MAKE) install2\n \n ifdef CAMLOPT\n--- dypgen.20120619-1/dyplib/Makefile.orig\t2013-04-02 16:15:48.000000000 +0200\n+++ dypgen.20120619-1/dyplib/Makefile\t2013-04-02 16:16:41.000000000 +0200\n@@ -28,15 +28,18 @@\n \t- $(OCAMLFIND) remove -destdir $(DYPGENLIBDIR) dyp\n \n install2: install_dyp install_opt\n-\tinstall -D --mode=644 dyp.cmi $(DYPGENLIBDIR)/dyp\n+\tinstall -d $(DYPGENLIBDIR)/dyp\n+\tinstall -m 644 dyp.cmi $(DYPGENLIBDIR)/dyp\n \n install_dyp:\n-\tinstall -D --mode=644 dyp.cma $(DYPGENLIBDIR)/dyp\n+\tinstall -d $(DYPGENLIBDIR)/dyp\n+\tinstall -m 644 dyp.cma $(DYPGENLIBDIR)/dyp\n \n ifdef CAMLOPT\n install_opt:\n-\tinstall -D --mode=644 dyp.cmxa $(DYPGENLIBDIR)/dyp\n-\tinstall -D --mode=644 dyp.a $(DYPGENLIBDIR)/dyp\n+\tinstall -d $(DYPGENLIBDIR)/dyp\n+\tinstall -m 644 dyp.cmxa $(DYPGENLIBDIR)/dyp\n+\tinstall -m 644 dyp.a $(DYPGENLIBDIR)/dyp\n else\n install_opt:\n endif\n", 
+            "name": "install-bsd-compatible.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install DYPGENLIBDIR=$cur__lib BINDIR=$cur__bin MANDIR=$cur__man/man1", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dypgen_version": {
+            "scope": "global", 
+            "val": "201206191.0.0"
+          }, 
+          "dypgen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dypgen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dypgen"
+    }
+  }
+}

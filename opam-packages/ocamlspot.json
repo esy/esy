@@ -1,0 +1,129 @@
+{
+  "versions": {
+    "4.00.1.2.1.4": {
+      "version": "4.00.1.2.1.4", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ocamlspot/get/4.00.1.2.1.4.tar.gz", 
+        "checksum": "1a713a74884b694af8c86e57636740f1", 
+        "files": [
+          {
+            "content": "lib: [\n  \"ocamlspot.vim\"\n  \"ocamlspot.el\"\n]\n", 
+            "name": "ocamlspot.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all opt install BINDIR=$cur__bin PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlspot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlspot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlspot_version": {
+            "scope": "global", 
+            "val": "4.00.1.2.1.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.00.1"
+      }, 
+      "name": "@opam-alpha/ocamlspot"
+    }, 
+    "4.02.1.2.3.0": {
+      "version": "4.02.1.2.3.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ocamlspot/get/4.02.1.2.3.0.tar.gz", 
+        "checksum": "2a68af48bf52b3b0ab3bc719cd9c611c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all opt BINDIR=$cur__bin PREFIX=$cur__install", 
+          "make install BINDIR=$cur__bin PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlspot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlspot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlspot_version": {
+            "scope": "global", 
+            "val": "4.02.1.2.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocamlspot"
+    }, 
+    "4.01.0.2.2.0": {
+      "version": "4.01.0.2.2.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ocamlspot/get/4.01.0.2.2.0.tar.gz", 
+        "checksum": "7679c9daa1bb248517f0f6b74381fe11", 
+        "files": [
+          {
+            "content": "lib: [\n  \"ocamlspot.vim\"\n  \"ocamlspot.el\"\n]\n", 
+            "name": "ocamlspot.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all opt install BINDIR=$cur__bin PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlspot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlspot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlspot_version": {
+            "scope": "global", 
+            "val": "4.01.0.2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ocamlspot"
+    }
+  }
+}

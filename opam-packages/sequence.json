@@ -1,0 +1,511 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.9.tar.gz", 
+        "checksum": "d8304c09a19ff45b925d6193d60477e7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert --${base_bigarray_enable:-disable}-bigarray", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-bigarray": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.6.tar.gz", 
+        "checksum": "5ebfa57dda39e30fe28dd474a04ccacb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert --${base_bigarray_enable:-disable}-bigarray", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-bigarray": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.8.tar.gz", 
+        "checksum": "2501d15e53088fdf2663bde9c274985a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert --${base_bigarray_enable:-disable}-bigarray", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-bigarray": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.7.tar.gz", 
+        "checksum": "8147da28cb5680ef68133442f51abf0e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert --${base_bigarray_enable:-disable}-bigarray", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-bigarray": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.5.4": {
+      "version": "0.5.4", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.5.4.tar.gz", 
+        "checksum": "e7041f75add746c3aaef1840825df180", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert --disable-bigarray", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.5.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.5.5": {
+      "version": "0.5.5", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.5.5.2.tar.gz", 
+        "checksum": "5df331503f005790fba5674baa693ea6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert --${base_bigarray_enable:-disable}-bigarray", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.5.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-bigarray": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.4.1.tar.gz", 
+        "checksum": "0f641e4ae3f09d490e3ca05ae0520a23", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.4.tar.gz", 
+        "checksum": "55f3d4d198502c38347c6e2aa5299e50", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.5.tar.gz", 
+        "checksum": "809d29163439763031d78506b6787864", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.5.1.tar.gz", 
+        "checksum": "1eb4b9d6fb1f8a7fd5ce279818bdcfe0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.5.2": {
+      "version": "0.5.2", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.5.2.tar.gz", 
+        "checksum": "8477834a1f49f522eeffaa5f837ea68e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.5.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }, 
+    "0.5.3": {
+      "version": "0.5.3", 
+      "opam": {
+        "url": "https://github.com/c-cube/sequence/archive/0.5.3.tar.gz", 
+        "checksum": "1bcbf1efed1d9aa9422a1401a81b2598", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-docs --${delimcc_enable:-disable}-invert", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequence_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sequence_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequence_version": {
+            "scope": "global", 
+            "val": "0.5.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/delimcc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sequence"
+    }
+  }
+}

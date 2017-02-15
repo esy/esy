@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "20160505.0.0": {
+      "version": "20160505.0.0", 
+      "opam": {
+        "url": "https://lama.univ-savoie.fr/~raffalli/gles3/gles3-20160505.alpha.tar.gz", 
+        "checksum": "f69ee4f6933304ead70b09e5ae5192e9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gles3_version": {
+            "scope": "global", 
+            "val": "20160505.0.0"
+          }, 
+          "gles3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gles3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/gles3"
+    }, 
+    "20160307.0.0": {
+      "version": "20160307.0.0", 
+      "opam": {
+        "url": "https://lama.univ-savoie.fr/~raffalli/gles3/gles3-20160307.alpha.tar.gz", 
+        "checksum": "86b0d72e42fd3e7eed18f3ced34de66a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gles3_version": {
+            "scope": "global", 
+            "val": "20160307.0.0"
+          }, 
+          "gles3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gles3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/gles3"
+    }
+  }
+}

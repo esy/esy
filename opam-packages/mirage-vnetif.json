@@ -1,0 +1,94 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/MagnusS/mirage-vnetif/archive/0.1.tar.gz", 
+        "checksum": "2a68bf60f3b8b0e88746bf2647aeafa8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_vnetif_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_vnetif_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_vnetif_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": "< 3.0.0", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-vnetif"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/MagnusS/mirage-vnetif/archive/0.2.0.tar.gz", 
+        "checksum": "712966a3d9ad813145f0b67af8b3d8ae", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_vnetif_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_vnetif_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_vnetif_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": "< 3.0.0", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-vnetif"
+    }
+  }
+}

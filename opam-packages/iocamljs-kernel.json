@@ -1,0 +1,290 @@
+{
+  "versions": {
+    "0.4.8": {
+      "version": "0.4.8", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamljs/archive/v0.4.8.tar.gz", 
+        "checksum": "eb2997a038b854eab821504b42f695a8", 
+        "files": [
+          {
+            "content": "share: [\n  \"static/services/kernels/js/kernel.min.js\"  { \"profile/static/services/kernels/js/kernel.min.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.full.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.js\" }\n  \"static/custom/custom.js\"                   { \"profile/static/custom/custom.js\" }\n  \"static/custom/iocamljsnblogo.png\"          { \"profile/static/custom/iocamljsnblogo.png\" }\n]\nlib: [\n  \"META\"\n  \"exec.cmi\"\n  \"iocaml.cmi\"\n  \"iocaml_main.cmi\"\n  \"iocamljs.cma\"\n  \"kernel.js\"\n]\n", 
+            "name": "iocamljs-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make clean min", 
+          "make clean full", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocamljs_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.8"
+          }, 
+          "iocamljs_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocamljs_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/js_of_ocaml": ">= 2.6.0 < 2.8.4", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/optcomp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocamljs-kernel"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamljs/releases/download/v0.4/static.tar.gz", 
+        "checksum": "1aa9be6036263e9768a9901890f3ec6b", 
+        "files": [
+          {
+            "content": "share: [ \n    \"services/kernels/js/kernel.min.js\"  { \"profile/static/services/kernels/js/kernel.min.js\" }\n    \"services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.full.js\" }\n    \"services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.js\" }\n    \"custom/custom.js\"                   { \"profile/static/custom/custom.js\" }\n    \"custom/iocamljsnblogo.png\"          { \"profile/static/custom/iocamljsnblogo.png\" }\n]\n", 
+            "name": "iocamljs-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocamljs_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "iocamljs_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocamljs_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocamljs-kernel"
+    }, 
+    "0.4.3": {
+      "version": "0.4.3", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamljs/archive/v0.4.3.tar.gz", 
+        "checksum": "62c684971ae7a9498f95f6253b00b9ae", 
+        "files": [
+          {
+            "content": "share: [ \n    \"static/services/kernels/js/kernel.min.js\"  { \"profile/static/services/kernels/js/kernel.min.js\" }\n    \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.full.js\" }\n    \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.js\" }\n    \"static/custom/custom.js\"                   { \"profile/static/custom/custom.js\" }\n    \"static/custom/iocamljsnblogo.png\"          { \"profile/static/custom/iocamljsnblogo.png\" }\n]\n", 
+            "name": "iocamljs-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make clean min", 
+          "make clean full", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocamljs_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.3"
+          }, 
+          "iocamljs_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocamljs_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "@opam-alpha/js_of_ocaml": ">= 2.0.0 < 2.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocamljs-kernel"
+    }, 
+    "0.4.5": {
+      "version": "0.4.5", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamljs/archive/v0.4.5.tar.gz", 
+        "checksum": "700688f162309e7734ec3b4a07b351ef", 
+        "files": [
+          {
+            "content": "share: [\n  \"static/services/kernels/js/kernel.min.js\" { \"profile/static/services/kernels/js/kernel.min.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.full.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.js\" }\n  \"static/custom/custom.js\" { \"profile/static/custom/custom.js\" }\n  \"static/custom/iocamljsnblogo.png\" { \"profile/static/custom/iocamljsnblogo.png\" }\n]\n", 
+            "name": "iocamljs-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make clean min", 
+          "make clean full", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocamljs_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.5"
+          }, 
+          "iocamljs_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocamljs_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "@opam-alpha/js_of_ocaml": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocamljs-kernel"
+    }, 
+    "0.4.4": {
+      "version": "0.4.4", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamljs/archive/v0.4.4.tar.gz", 
+        "checksum": "0d77da3097b00e6d1a5972c966275789", 
+        "files": [
+          {
+            "content": "share: [\n  \"static/services/kernels/js/kernel.min.js\" { \"profile/static/services/kernels/js/kernel.min.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.full.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.js\" }\n  \"static/custom/custom.js\" { \"profile/static/custom/custom.js\" }\n  \"static/custom/iocamljsnblogo.png\" { \"profile/static/custom/iocamljsnblogo.png\" }\n]\n", 
+            "name": "iocamljs-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make clean min", 
+          "make clean full", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocamljs_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.4"
+          }, 
+          "iocamljs_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocamljs_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "@opam-alpha/js_of_ocaml": ">= 2.0.0 <= 2.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocamljs-kernel"
+    }, 
+    "0.4.6": {
+      "version": "0.4.6", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamljs/archive/v0.4.6.tar.gz", 
+        "checksum": "9726642275e289f5a559966fbbcbdb67", 
+        "files": [
+          {
+            "content": "diff --git a/exec.ml b/exec.ml\nindex e989440..b44e927 100644\n--- a/exec.ml\n+++ b/exec.ml\n@@ -1,13 +1,22 @@\n type ('a,'b) status = Ok of 'a | Error of 'b\n \n let get_error_loc = function \n+#if ocaml_version > (4,0)\n     | Syntaxerr.Error(x) -> Some(Syntaxerr.location_of_error x)\n-    | Lexer.Error(_, loc) \n-    | Typecore.Error(loc, _, _) \n+#endif\n+    | Lexer.Error(_, loc)\n+#if ocaml_version < (4,1)\n+    | Typecore.Error(loc, _)\n+    | Typetexp.Error(loc, _) \n+    | Typeclass.Error(loc, _) \n+    | Typemod.Error(loc, _) \n+#else\n+    | Typecore.Error(loc, _, _)\n     | Typetexp.Error(loc, _, _) \n-    | Typedecl.Error(loc, _) \n     | Typeclass.Error(loc, _, _) \n     | Typemod.Error(loc, _, _) \n+#endif\n+    | Typedecl.Error(loc, _) \n     | Translcore.Error(loc, _) \n     | Translclass.Error(loc, _) \n     | Translmod.Error(loc, _) -> Some(loc)\n@@ -60,8 +69,7 @@ let run_cell_lb execution_count lb =\n                 | Ok(false) -> Error(Buffer.contents buffer) :: out_messages\n                 | Error(Sys.Break) -> Error(\"Interrupted.\") :: out_messages\n                 | Error(exn) -> \n-                    Error(try get_error_info exn \n-                          with _ -> (\"IOcaml execution error: \" ^ Printexc.to_string exn)) :: out_messages\n+                    Error(try get_error_info exn with _ -> \"Execution error.\") :: out_messages\n             end\n         in\n         List.rev (run [] phrases)\n", 
+            "name": "4.00.1.patch"
+          }, 
+          {
+            "content": "share: [\n  \"static/services/kernels/js/kernel.min.js\"  { \"profile/static/services/kernels/js/kernel.min.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.full.js\" }\n  \"static/services/kernels/js/kernel.full.js\" { \"profile/static/services/kernels/js/kernel.js\" }\n  \"static/custom/custom.js\"                   { \"profile/static/custom/custom.js\" }\n  \"static/custom/iocamljsnblogo.png\"          { \"profile/static/custom/iocamljsnblogo.png\" }\n]\nlib: [\n  \"META\"\n  \"exec.cmi\"\n  \"iocaml.cmi\"\n  \"iocaml_main.cmi\"\n  \"iocamljs.cma\"\n  \"kernel.js\"\n]\n", 
+            "name": "iocamljs-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make clean min", 
+          "make clean full", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocamljs_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.6"
+          }, 
+          "iocamljs_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocamljs_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/js_of_ocaml": ">= 2.4.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/optcomp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocamljs-kernel"
+    }
+  }
+}

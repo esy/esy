@@ -1,0 +1,562 @@
+{
+  "versions": {
+    "0.7.5": {
+      "version": "0.7.5", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocurl/ocurl-0.7.5.tar.gz", 
+        "checksum": "a42248f9320d6cf1d65e1e0620961391", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.5"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-libcurl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.8": {
+      "version": "0.7.8", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocurl/ocurl-0.7.8.tar.gz", 
+        "checksum": "6a0a062f55edd6c5df09d4e506645d6c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.8"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-libcurl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.9": {
+      "version": "0.7.9", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocurl/ocurl-0.7.9.tar.gz", 
+        "checksum": "3ffd81825e4c6f139942a2d6e7543378", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.9"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-libcurl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.6": {
+      "version": "0.7.6", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocurl/ocurl-0.7.6.tar.gz", 
+        "checksum": "9ee5eff26a7c378d121a6af86624b76f", 
+        "files": [
+          {
+            "content": "commit 52dac4419fe23c7bbfc27bee060ed38d0153be98\nAuthor: ygrek <ygrek@autistici.org>\nDate:   Sun Nov 8 18:07:08 2015 -0800\n\n    do not build examples by default (fix #10)\n\ndiff --git a/Makefile.in b/Makefile.in\nindex 3f93a2f..9374397 100644\n--- a/Makefile.in\n+++ b/Makefile.in\n@@ -49,7 +49,7 @@ endif\n \n all:\n \t\t@$(MAKE) depend\n-\t\t@$(MAKE) targets\n+\t\t@$(MAKE) $(TARGETS)\n \n build: all\n \n@@ -75,8 +75,6 @@ else\n \t\tocamldoc -html -d doc curl.mli\n endif\n \n-targets:\t$(TARGETS) examples\n-\n examples:\n \t\t(cd examples; $(MAKE))\n \n", 
+            "name": "examples.diff"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.6"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-libcurl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.7": {
+      "version": "0.7.7", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocurl/ocurl-0.7.7.tar.gz", 
+        "checksum": "077f42f5b35adae5f2b881ce411171cd", 
+        "files": [
+          {
+            "content": "commit fbe426ff8543050b6acd00ca0572024d656b4694 (HEAD, master)\nAuthor: ygrek <ygrek@autistici.org>\nDate:   Mon May 16 23:06:29 2016 +0300\n\n    Makefile: fix build on OCaml < 4.02.0\n\ndiff --git a/Makefile.in b/Makefile.in\nindex 8990bdf..dc1d2f0 100644\n--- a/Makefile.in\n+++ b/Makefile.in\n@@ -158,7 +158,7 @@ distclean: clean\n \t\t@rm -f Makefile\n \n depend:\n-\t\t@$(OCAMLDEP) *.mli *.ml > .depend\n+\t\t@$(OCAMLDEP) *.mli $(filter-out errors.ml print_ext.ml, $(wildcard *.ml)) > .depend\n \n ifeq ($(wildcard .depend),.depend)\n ifneq ($(MAKECMDGOALS),clean)\n", 
+            "name": "fix_depend.diff"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.7"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/conf-libcurl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1374/ocurl-0.6.1.tar.gz", 
+        "checksum": "637336f41eb047b246e30a4c3caddc94", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1238/ocurl-0.6.0.tar.gz", 
+        "checksum": "21575e86b390c6c182a8dee42e8db1f3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.2": {
+      "version": "0.7.2", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocurl/ocurl-0.7.2.tar.gz", 
+        "checksum": "9e96300f39b03c53b605de303fafc45d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.2"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1382/ocurl-0.7.0.tar.gz", 
+        "checksum": "8502e3e5e578e2d9b82ade73d16dd894", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1400/ocurl-0.7.1.tar.gz", 
+        "checksum": "d138fd78538ae3bd008d6e9c2993d240", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.5.4": {
+      "version": "0.5.4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1106/ocurl-0.5.4.tar.gz", 
+        "checksum": "3829652064722d8ed490486a2570fe8d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.5.4"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.5.5": {
+      "version": "0.5.5", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1117/ocurl-0.5.5.tar.gz", 
+        "checksum": "5bb45c4e25691675f186096be4ae1df6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.5.5"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }, 
+    "0.5.6": {
+      "version": "0.5.6", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1134/ocurl-0.5.6.tar.gz", 
+        "checksum": "7c613c097b98e446c8f4c859865de167", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocurl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocurl_version": {
+            "scope": "global", 
+            "val": "0.5.6"
+          }, 
+          "ocurl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocurl"
+    }
+  }
+}

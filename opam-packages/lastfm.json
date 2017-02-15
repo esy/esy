@@ -1,0 +1,92 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-lastfm/0.3.0/ocaml-lastfm-0.3.0.tar.gz", 
+        "checksum": "b93778a4b67696b9bc22e3d68f8d0f5d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lastfm_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "lastfm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lastfm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lastfm"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-lastfm/releases/download/0.3.1/ocaml-lastfm-0.3.1.tar.gz", 
+        "checksum": "a36c07e5222cfa2181a321fe6d5a31e7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lastfm_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "lastfm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lastfm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlplaylist": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lastfm"
+    }
+  }
+}

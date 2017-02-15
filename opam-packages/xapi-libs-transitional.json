@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.9.6": {
+      "version": "0.9.6", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xen-api-libs-transitional/archive/v0.9.6.tar.gz", 
+        "checksum": "a6d57a9fb3763c8df66fee9844c896fa", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_libs_transitional_version": {
+            "scope": "global", 
+            "val": "0.9.6"
+          }, 
+          "xapi_libs_transitional_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_libs_transitional_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xapi-stdext": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xapi-forkexecd": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-libs-transitional"
+    }
+  }
+}

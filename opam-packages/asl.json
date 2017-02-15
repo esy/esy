@@ -1,0 +1,171 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-asl/archive/v0.9.tar.gz", 
+        "checksum": "8d5638d957386255900ed365308d231f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "asl_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "asl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "asl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/logs": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/asl"
+    }, 
+    "0.10.0": {
+      "version": "0.10.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-asl/archive/v0.10.tar.gz", 
+        "checksum": "74ade9e7a2015bbfa54d220ec4dcb7af", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "asl_version": {
+            "scope": "global", 
+            "val": "0.10.0"
+          }, 
+          "asl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "asl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/logs": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/asl"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-asl/archive/v0.6.tar.gz", 
+        "checksum": "74024efaf14c56f724d8519450ec7233", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "asl_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "asl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "asl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/asl"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-asl/archive/v0.8.tar.gz", 
+        "checksum": "9a15d71b31bf71476dc853a242ca0903", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "asl_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "asl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "asl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/logs": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/asl"
+    }
+  }
+}

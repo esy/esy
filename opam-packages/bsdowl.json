@@ -1,0 +1,149 @@
+{
+  "versions": {
+    "3.0.0-20150401": {
+      "version": "3.0.0-20150401", 
+      "opam": {
+        "url": "https://github.com/michipili/bsdowl/releases/download/v3.0.0-20150401/bsdowl-3.0.0-20150401.tar.gz", 
+        "checksum": "2c92358b7c5c6d802e7b953bd955d757", 
+        "files": [
+          {
+            "content": "# Usage: remove PREFIX\n#  Remove BSD Owl Scripts\nfind \"$1/share/bsdowl\" \"$1/bin\" -type f \\\n    | xargs grep -l 'This file is part of BSD Owl Scripts' \\\n    | xargs rm -v -f\n", 
+            "name": "remove.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "conf-bmake:path -r build", 
+          "conf-bmake:path install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bsdowl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bsdowl_version": {
+            "scope": "global", 
+            "val": "3.0.0-20150401"
+          }, 
+          "bsdowl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-bmake": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bsdowl"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/michipili/bsdowl/releases/download/v2.2/bsdowl-2.2.tar.gz", 
+        "checksum": "fe10948b14127bb8dd73ceb55da185a7", 
+        "files": [
+          {
+            "content": "share: [\n  \"bps/bps.autoconf.mk\"\n  \"bps/bps.credentials.mk\"\n  \"bps/bps.clean.mk\"\n  \"bps/bps.usertarget.mk\"\n  \"bps/bps.files.mk\"\n  \"bps/bps.init.mk\"\n  \"bps/bps.objdir.mk\"\n  \"bps/bps.own.mk\"\n  \"bps/bps.project.mk\"\n  \"bps/bps.subdir.mk\"\n  \"misc/conf.freebsd.mk\"\n  \"misc/misc.dotfile.mk\"\n  \"misc/misc.elisp.mk\"\n  \"misc/misc.script.mk\"\n  \"noweb/noweb.latex.mk\"\n  \"noweb/noweb.main.mk\"\n  \"ocaml/ocaml.build.mk\"\n  \"ocaml/ocaml.find.mk\"\n  \"ocaml/ocaml.depend.mk\"\n  \"ocaml/ocaml.init.mk\"\n  \"ocaml/ocaml.tools.mk\"\n  \"ocaml/ocaml.lex.mk\"\n  \"ocaml/ocaml.lib.mk\"\n  \"ocaml/ocaml.main.mk\"\n  \"ocaml/ocaml.manual.mk\"\n  \"ocaml/ocaml.meta.mk\"\n  \"ocaml/ocaml.object.mk\"\n  \"ocaml/ocaml.odoc.mk\"\n  \"ocaml/ocaml.source.mk\"\n  \"ocaml/ocaml.pack.mk\"\n  \"ocaml/ocaml.prog.mk\"\n  \"ocaml/ocaml.compile.mk\"\n  \"ocaml/ocaml.dirs.mk\"\n  \"ocaml/ocaml.yacc.mk\"\n  \"ocaml/ocaml.toplevel.mk\"\n  \"test/www/Mk/scroll.mk\"\n  \"texmf/latex.bibtex.mk\"\n  \"texmf/latex.doc.post.mk\"\n  \"texmf/latex.doc.mk\"\n  \"texmf/tex.device.pdf.mk\"\n  \"texmf/latex.doc.pre.mk\"\n  \"texmf/tex.device.dvi.mk\"\n  \"texmf/tex.mpost.mk\"\n  \"texmf/tex.device.ps.mk\"\n  \"texmf/tex.doc.main.mk\"\n  \"texmf/tex.doc.mk\"\n  \"texmf/tex.doc.post.mk\"\n  \"texmf/tex.doc.pre.mk\"\n  \"texmf/tex.driver.dvi.mk\"\n  \"texmf/tex.driver.dvips.mk\"\n  \"texmf/tex.files.main.mk\"\n  \"texmf/tex.init.mk\"\n  \"texmf/tex.files.mk\"\n  \"texmf/texmf.init.mk\"\n  \"texmf/tex.driver.pdftex.mk\"\n  \"www/www.files.mk\"\n  \"www/www.sgml.mk\"\n]\n", 
+            "name": "bsdowl.install"
+          }, 
+          {
+            "content": "# Usage: remove PREFIX\n#  Remove BSD OWl\nfind \"$1/share/mk\" -type f \\\n    | xargs grep -l 'This file is part of BSD Owl Scripts' \\\n    | xargs rm -v -f\n", 
+            "name": "remove.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "conf-bmake:path -r build", 
+          "conf-bmake:path install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bsdowl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bsdowl_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }, 
+          "bsdowl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-bmake": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bsdowl"
+    }, 
+    "3.0.0-20150830": {
+      "version": "3.0.0-20150830", 
+      "opam": {
+        "url": "https://github.com/michipili/bsdowl/releases/download/v3.0.0-20150830/bsdowl-3.0.0-20150830.tar.gz", 
+        "checksum": "cc233c29bfdda7f0c6951db88f5a3293", 
+        "files": [
+          {
+            "content": "# Usage: remove PREFIX\n#  Remove BSD Owl Scripts\nfind \"$1/share/bsdowl\" \"$1/bin\" -type f \\\n    | xargs grep -l 'This file is part of BSD Owl Scripts' \\\n    | xargs rm -v -f\n", 
+            "name": "remove.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "conf-bmake:path -r build", 
+          "conf-bmake:path install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bsdowl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bsdowl_version": {
+            "scope": "global", 
+            "val": "3.0.0-20150830"
+          }, 
+          "bsdowl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-bmake": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bsdowl"
+    }
+  }
+}

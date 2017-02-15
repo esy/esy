@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "0.7.2": {
+      "version": "0.7.2", 
+      "opam": {
+        "url": "https://github.com/xapi-project/rrd-transport/archive/0.7.2.tar.gz", 
+        "checksum": "7e1cd3c16c28ba62fc9afa61aa066ab2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_rrd_transport_version": {
+            "scope": "global", 
+            "val": "0.7.2"
+          }, 
+          "xapi_rrd_transport_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_rrd_transport_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/crc": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/xapi-idl": "= 0.9.19", 
+        "@opam-alpha/io-page": "= 1.2.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xen-gnt": "*", 
+        "@opam-alpha/xapi-rrd": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-rrd-transport"
+    }
+  }
+}

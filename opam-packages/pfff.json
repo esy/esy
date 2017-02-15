@@ -1,0 +1,189 @@
+{
+  "versions": {
+    "0.27.3": {
+      "version": "0.27.3", 
+      "opam": {
+        "url": "https://github.com/facebook/pfff/archive/v0.27.3.tar.gz", 
+        "checksum": "98b133830db8fd6a16cffe00cf14c790", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --novisual --nocmt --nobytecode", 
+          "make depend", 
+          "make", 
+          "make opt", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pfff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pfff_version": {
+            "scope": "global", 
+            "val": "0.27.3"
+          }, 
+          "pfff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/pfff"
+    }, 
+    "0.25.1": {
+      "version": "0.25.1", 
+      "opam": {
+        "url": "https://github.com/facebook/pfff/archive/v0.25.1.tar.gz", 
+        "checksum": "b0bc6f8d1b79c3b19e808921d2ec6949", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --novisual", 
+          "make depend", 
+          "make", 
+          "make opt", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pfff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pfff_version": {
+            "scope": "global", 
+            "val": "0.25.1"
+          }, 
+          "pfff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/pfff"
+    }, 
+    "0.27.1": {
+      "version": "0.27.1", 
+      "opam": {
+        "url": "https://github.com/facebook/pfff/archive/v0.27.2.tar.gz", 
+        "checksum": "de8b70fe8faa57dd6de20bc813b226d3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --novisual --nocmt --nobytecode", 
+          "make depend", 
+          "make", 
+          "make opt", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pfff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pfff_version": {
+            "scope": "global", 
+            "val": "0.27.1"
+          }, 
+          "pfff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/pfff"
+    }, 
+    "0.29.0": {
+      "version": "0.29.0", 
+      "opam": {
+        "url": "https://github.com/facebook/pfff/archive/v0.29.tar.gz", 
+        "checksum": "b5be003671e6667dcb121104bc92fb72", 
+        "files": [
+          {
+            "content": "From 90424f6a206b32c0995e043fe404e694c884b5d3 Mon Sep 17 00:00:00 2001\nFrom: Juergen Hoetzel <juergen@archlinux.org>\nDate: Mon, 24 Aug 2015 13:55:44 +0200\nSubject: [PATCH] * lang_js/analyze/module_js.ml: Fix invalid documentation\n comments. Refs #130\n\nSee: http://caml.inria.fr/mantis/view.php?id=6916\n---\n lang_js/analyze/module_js.ml | 22 +++++++++++-----------\n 1 file changed, 11 insertions(+), 11 deletions(-)\n\ndiff --git a/lang_js/analyze/module_js.ml b/lang_js/analyze/module_js.ml\nindex 1433bf0..3bf63b3 100644\n--- a/lang_js/analyze/module_js.ml\n+++ b/lang_js/analyze/module_js.ml\n@@ -48,50 +48,50 @@ type shape =\n \t| LiteralShape\n \t| ArrayShape\n \n-\t(** _((id,container,maps) ref) **)\n+\t(* _((id,container,maps) ref) *)\n \t(* this is a ref to allow extensible representations *)\n \t(* id is unique, and is used to prune infinite recursion *)\n \t(* maps is an ObjectShape list *)\n \t| ObjectShape of (int * shape smap * shape list) ref\n \n-\t(** _(block,constructor) **)\n+\t(* _(block,constructor) *)\n \t(* block is an ObjectShape *)\n \t(* constructor is a ClassShape *)\n     | FunctionShape of shape Common.smap ref * shape\n \n-\t(** _(module) **)\n+\t(* _(module) *)\n \t| RequireShape of module_\n \n-\t(** _(reason) **)\n+\t(* _(reason) *)\n \t| UnknownShape of string\n \n-\t(** _(instance, static) **)\n+\t(* _(instance, static) *)\n \t(* instance is a ObjectShape *)\n \t(* static is a ObjectShape where static.prototype is a ObjectShape *)\n \t| ClassShape of shape * shape\n \n-\t(** _(class) **)\n+\t(* _(class) *)\n \t(* class is a ClassShape *)\n \t(* returns an ObjectShape *)\n \t| NewShape of shape\n \n-\t(** _(maps) **)\n+\t(* _(maps) *)\n \t(* maps is an ObjectShape *)\n \t(* returns a ClassShape *)\n \t| MixinShape of shape\n \n-\t(** _(class,mixin) **)\n+\t(* _(class,mixin) *)\n \t(* class is a ClassShape, mixin is a ClassShape *)\n \t(* returns a ClassShape *)\n \t| ClassWithMixinShape of shape * shape\n \n-\t(** _(object,prop) **)\n+\t(* _(object,prop) *)\n \t| PropertyShape of shape * string\n \n-\t(** _(function) **)\n+\t(* _(function) *)\n \t| ApplyShape of shape\n \n-\t(** _(array) **)\n+\t(* _(array) *)\n \t| ElementShape of shape\n \n let fresh_id =\n-- \n2.5.0\n\n", 
+            "name": "lang_js-analyze-module_js.ml-Fix-invalid-documentati.patch"
+          }, 
+          {
+            "content": "From 1658a7f55af6884644909901523a28d2df7416d7 Mon Sep 17 00:00:00 2001\nFrom: pad <yoann.padioleau@gmail.com>\nDate: Thu, 20 Aug 2015 09:58:29 -0700\nSubject: [PATCH 68/72] * lang_js/analyze/utils_js.mli: fix issue #130\n\n---\n lang_js/analyze/utils_js.mli | 9 +++++----\n 1 file changed, 5 insertions(+), 4 deletions(-)\n\ndiff --git a/lang_js/analyze/utils_js.mli b/lang_js/analyze/utils_js.mli\nindex 637b832..19a8cbb 100644\n--- a/lang_js/analyze/utils_js.mli\n+++ b/lang_js/analyze/utils_js.mli\n@@ -1,8 +1,9 @@\n \n-(** print utils **)\n+(* print utils *)\n val string_of_any : Ast_js.any -> string\n \n-(** Example: load file task **)\n-(** if file exists, unmarshal data in the file and return it **)\n-(** otherwise, run task to generate data, store it in the file, and return it **)\n+(* Example: load file task\n+ * if file exists, unmarshal data in the file and return it\n+ * otherwise, run task to generate data, store it in the file, and return it \n+ *)\n val load : Common.filename -> (unit -> 'a) -> 'a\n-- \n2.5.0\n\n", 
+            "name": "lang_js-analyze-utils_js.mli.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --novisual --nocmt --nobytecode", 
+          "make depend", 
+          "make", 
+          "make opt", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pfff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pfff_version": {
+            "scope": "global", 
+            "val": "0.29.0"
+          }, 
+          "pfff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/pfff"
+    }
+  }
+}

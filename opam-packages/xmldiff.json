@@ -1,0 +1,214 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xmldiff/xmldiff-0.1.tar.gz", 
+        "checksum": "5c9401877fd2319f0268cf4f97bb9472", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmldiff_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "xmldiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmldiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xmldiff"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xmldiff/xmldiff-0.4.0.tar.gz", 
+        "checksum": "db17c01285d7276f52e3269aa91f284d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmldiff_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "xmldiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmldiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": ">= 1.1.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/xmldiff"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xmldiff/xmldiff-0.3.0.tar.gz", 
+        "checksum": "35e5edf18412617a2ce7fd68099d9ddb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmldiff_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "xmldiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmldiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": ">= 1.1.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/xmldiff"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xmldiff/xmldiff-0.5.0.tar.gz", 
+        "checksum": "f2881ff25230e0c90dc7fb041a71b7a1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmldiff_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "xmldiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmldiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": ">= 1.1.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/xmldiff"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xmldiff/xmldiff-0.2.tar.gz", 
+        "checksum": "116bd5f107eb77cdc81f50c7f3b1b277", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xmldiff_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "xmldiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xmldiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/xmldiff"
+    }
+  }
+}

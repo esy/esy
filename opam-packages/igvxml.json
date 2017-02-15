@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "0.0.6": {
+      "version": "0.0.6", 
+      "opam": {
+        "url": "https://github.com/hammerlab/igvxml/archive/0.0.6.tar.gz", 
+        "checksum": "f965fb3cd1266c1e57da65aed097925b", 
+        "files": [
+          {
+            "content": "bin: [\n     \"igvxml\"\n]", 
+            "name": "igvxml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "igvxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "igvxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "igvxml_version": {
+            "scope": "global", 
+            "val": "0.0.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sosa": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/nonstd": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/igvxml"
+    }
+  }
+}

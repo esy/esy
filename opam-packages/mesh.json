@@ -1,0 +1,465 @@
+{
+  "versions": {
+    "0.8.6": {
+      "version": "0.8.6", 
+      "opam": {
+        "url": "https://github.com/Chris00/mesh/releases/download/0.8.6/mesh-0.8.6.tar.gz", 
+        "checksum": "405e622e77f0403cffa6714f121f6a49", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.6"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.7.6": {
+      "version": "0.7.6", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1158/mesh-0.7.6.tar.gz", 
+        "checksum": "fe281014b6873f762f05ceb02f7be7c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.7.6"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.4": {
+      "version": "0.8.4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1396/mesh-0.8.4.tar.gz", 
+        "checksum": "c39186607ba6a3dd6286307ec6db30c4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.4"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.7.4": {
+      "version": "0.7.4", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1115/mesh-0.7.4.tar.gz", 
+        "checksum": "6bf3328d554ccf7fc35bcba036194083", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.7.4"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.7.5": {
+      "version": "0.7.5", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1116/mesh-0.7.5.tar.gz", 
+        "checksum": "fe9756bd9c8966ccef43eef820cb2d43", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.7.5"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1361/mesh-0.8.1.tar.gz", 
+        "checksum": "bc3af5c0fbe13e8bbf01e221f6ad8502", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1360/mesh-0.8.tar.gz", 
+        "checksum": "3c8a03793a5cc906bd2ae20ed091620d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.3": {
+      "version": "0.8.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1365/mesh-0.8.3.tar.gz", 
+        "checksum": "b3de98c6be5a870458393a74c25ca0af", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.3"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.2": {
+      "version": "0.8.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1362/mesh-0.8.2.tar.gz", 
+        "checksum": "26a3f8f495e5f5c38e1f97bf5ff29f2e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.2"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.5": {
+      "version": "0.8.5", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1454/mesh-0.8.5.tar.gz", 
+        "checksum": "91417a9793b38594d8e2b8abb8ba9f51", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.5"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }, 
+    "0.8.7": {
+      "version": "0.8.7", 
+      "opam": {
+        "url": "https://github.com/Chris00/mesh/releases/download/0.8.7/mesh-0.8.7.tar.gz", 
+        "checksum": "eec68a09280a9c1440170715c7432166", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mesh_version": {
+            "scope": "global", 
+            "val": "0.8.7"
+          }, 
+          "mesh_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mesh_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mesh"
+    }
+  }
+}

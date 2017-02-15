@@ -1,0 +1,104 @@
+{
+  "versions": {
+    "0.3.4": {
+      "version": "0.3.4", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/676/ocaml-gettext-0.3.4.tar.gz", 
+        "checksum": "2c588ba92e9a809f2885ecacc48069a9", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/bin/ocaml-gettext\"\n  \"_build/bin/ocaml-xgettext\"\n]\n", 
+            "name": "gettext.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-doc --prefix $cur__install --sbindir=$cur__lib/gettext/sbin --libexecdir=$cur__lib/gettext/libexec --sysconfdir=$cur__lib/gettext/etc --sharedstatedir=$cur__lib/gettext/com --localstatedir=$cur__lib/gettext/var --libdir=$cur__lib/gettext/lib --includedir=$cur__lib/gettext/include --datarootdir=$cur__lib/gettext/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gettext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gettext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "gettext_version": {
+            "scope": "global", 
+            "val": "0.3.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fileutils": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/gettext"
+    }, 
+    "0.3.5": {
+      "version": "0.3.5", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1433/ocaml-gettext-0.3.5.tar.gz", 
+        "checksum": "3c3c5156578104819b486584aa14f807", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/bin/ocaml-gettext\"\n  \"_build/bin/ocaml-xgettext\"\n]\n", 
+            "name": "gettext.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-doc --prefix $cur__install --sbindir=$cur__lib/gettext/sbin --libexecdir=$cur__lib/gettext/libexec --sysconfdir=$cur__lib/gettext/etc --sharedstatedir=$cur__lib/gettext/com --localstatedir=$cur__lib/gettext/var --libdir=$cur__lib/gettext/lib --includedir=$cur__lib/gettext/include --datarootdir=$cur__lib/gettext/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gettext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gettext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "gettext_version": {
+            "scope": "global", 
+            "val": "0.3.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fileutils": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gettext"
+    }
+  }
+}

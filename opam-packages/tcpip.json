@@ -1,0 +1,700 @@
+{
+  "versions": {
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.3.0.tar.gz", 
+        "checksum": "21d99349807ceca09937f9cb7ada75b0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.2.0 < 2.6.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.3.1": {
+      "version": "2.3.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.3.1.tar.gz", 
+        "checksum": "5775a2c56e46d452e95fffc6958322f0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.3.1"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.2.0 < 2.6.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.7.0": {
+      "version": "2.7.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.7.0.tar.gz", 
+        "checksum": "2cafb834f1440088ca9689577a7dc3e6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen --${mirage_net_unix_enable:-disable}-unix", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.7.0"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/channel": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-types": ">= 2.6.0 <3.0.0", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-net-unix": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/mirage-profile": ">= 0.5.0", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.8.1": {
+      "version": "2.8.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.8.1.tar.gz", 
+        "checksum": "1704b769cc0debc071bd50fcd4e8379c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen --${mirage_net_unix_enable:-disable}-unix", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.8.1"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/channel": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-types": ">= 2.8.0 <3.0.0", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/mirage-net-unix": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/mirage-profile": ">= 0.5.0", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.8.0": {
+      "version": "2.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.8.0.tar.gz", 
+        "checksum": "b384d0ec817e0501c0d5651311d38df2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen --${mirage_net_unix_enable:-disable}-unix", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.8.0"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/channel": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-types": ">= 2.8.0 <3.0.0", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/mirage-net-unix": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/mirage-profile": ">= 0.5.0", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.6.1": {
+      "version": "2.6.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.6.1.tar.gz", 
+        "checksum": "128a4250716424d32c6e84f35502925a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.6.1"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/channel": "*", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-types": ">= 2.6.0 <3.0.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-profile": ">= 0.5.0", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.6.0": {
+      "version": "2.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.6.0.tar.gz", 
+        "checksum": "311adb394a328fbebdecd552a572b588", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.6.0"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/channel": "*", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-types": ">= 2.6.0 <3.0.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-profile": ">= 0.5.0", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.4.3": {
+      "version": "2.4.3", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.4.3.tar.gz", 
+        "checksum": "03b2cb4e689ef690a301616ce0d1b201", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_flow_enable:-disable}-tests --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.4.3"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.2.0 < 2.6.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.4.2": {
+      "version": "2.4.2", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.4.2.tar.gz", 
+        "checksum": "a0806a884441de94a5c2cb904ecae229", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_flow_enable:-disable}-tests --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.4.2"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.2.0 < 2.6.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.4.1": {
+      "version": "2.4.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.4.1.tar.gz", 
+        "checksum": "d6bc770cbd079429066195a9b8d2b7e9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.4.1"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.2.0 < 2.6.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.4.0.tar.gz", 
+        "checksum": "dc132f2b17a6afd486dcc04a45088d45", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.2.0 < 2.6.0", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.5.0": {
+      "version": "2.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.5.0.tar.gz", 
+        "checksum": "b07935f47816488428995121f301d3ac", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.5.0"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.3.0 < 2.6.0", 
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-profile": "*", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }, 
+    "2.5.1": {
+      "version": "2.5.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-tcpip/archive/v2.5.1.tar.gz", 
+        "checksum": "58ebf095c4563956ceac67ae16ca937c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcpip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcpip_version": {
+            "scope": "global", 
+            "val": "2.5.1"
+          }, 
+          "tcpip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.3.0 < 2.6.0", 
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <= 1.9.0", 
+        "@opam-alpha/ipaddr": ">= 2.2.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/channel": "*", 
+        "@opam-alpha/mirage-net-unix": ">= 1.1.0", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/mirage-clock-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0 <= 2.6.0", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/mirage-console": "*", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/mirage-profile": ">= 0.5.0", 
+        "@opam-alpha/mirage-vnetif": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcpip"
+    }
+  }
+}

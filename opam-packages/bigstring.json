@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/ocaml-bigstring/archive/0.1.1.tar.gz", 
+        "checksum": "a5b9a609e8f2c09d8d4c984c2ce9a504", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bigstring_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bigstring_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "bigstring_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bigstring"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.01.0": {
+      "version": "1.01.0", 
+      "opam": {
+        "url": "https://github.com/HappyCrow/ocamlmpi/archive/opam_package_v00.tar.gz", 
+        "checksum": "bca4a7d120756555d1adb20762db75cf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpi_version": {
+            "scope": "global", 
+            "val": "1.01.0"
+          }, 
+          "mpi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpi"
+    }
+  }
+}

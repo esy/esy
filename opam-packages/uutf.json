@@ -1,0 +1,173 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/uutf/releases/uutf-0.9.1.tbz", 
+        "checksum": "620ecc58549aac0cc27e09f62147f445", 
+        "files": [
+          {
+            "content": "bin: [\"_build/test/utftrip.native\" {\"utftrip\"}]\n", 
+            "name": "uutf.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uutf_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "uutf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uutf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/uutf"
+    }, 
+    "0.9.3": {
+      "version": "0.9.3", 
+      "opam": {
+        "url": "http://erratique.ch/software/uutf/releases/uutf-0.9.3.tbz", 
+        "checksum": "708c0421e158b390c7cc341f37b40add", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uutf_version": {
+            "scope": "global", 
+            "val": "0.9.3"
+          }, 
+          "uutf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uutf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uutf"
+    }, 
+    "0.9.4": {
+      "version": "0.9.4", 
+      "opam": {
+        "url": "http://erratique.ch/software/uutf/releases/uutf-0.9.4.tbz", 
+        "checksum": "bf5880a8f2e75d0a9152d896ea288ba7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true cmdliner=${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uutf_version": {
+            "scope": "global", 
+            "val": "0.9.4"
+          }, 
+          "uutf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uutf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/uutf"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uutf/releases/uutf-1.0.0.tbz", 
+        "checksum": "049059a17f8dcec74183f9912bedb7ea", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uutf_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "uutf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uutf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uchar": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uutf"
+    }
+  }
+}

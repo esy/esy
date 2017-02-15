@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "### detect_program.sh -- Detect program and save its path\n\nwlog()\n{\n    { printf \"$@\"; printf '\\n'; } 1>&2\n}\n\ndetect_which()\n{\n    ( IFS=':'\n      for path_elt in ${PATH}; do\n          wlog 'Debug: Looking for %s in %s' \"$1\" \"${path_elt}\"\n          if [ -x \"${path_elt}/$1\" ]; then\n              printf '%s' \"${path_elt}/$1\"\n              exit 0\n          fi\n      done\n\n      printf 'false'\n      exit 1 )\n}\n\ndetect_config()\n{\n    local program_path\n\n    program_path=$(detect_which \"$2\")\n\n    if [ \"${program_path}\" = 'false' ]; then\n        wlog 'Debug: %s: Not found in PATH.' \"$2\"\n        exit 1\n    fi\n\n    cat > \"$1\" <<EOF\npath: \"${program_path}\"\nEOF\n}\n\nwlog 'Debug: program: %s' \"$2\"\nwlog 'Debug: output: %s' \"$1\"\nwlog 'Debug: pwd: %s' \"$(pwd)\"\n\ndetect_config \"$1\" \"$2\"\n", 
+            "name": "detect_program.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh ./detect_program.sh ./conf-bmake.config bmake", 
+          "sh ./detect_program.sh ./conf-bmake.config make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_bmake_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "conf_bmake_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "conf_bmake_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-bmake"
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "versions": {
+    "0.3.2": {
+      "version": "0.3.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1220/ospec-0.3.2.tar.gz", 
+        "checksum": "b91a37fbc0f3cf2e50097142568e0d9c", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ospec.byte\" {\"ospec\"}]\n", 
+            "name": "ospec.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ospec_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ospec_version": {
+            "scope": "global", 
+            "val": "0.3.2"
+          }, 
+          "ospec_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ospec"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/andrenth/ospec/tarball/release-0.3.0", 
+        "checksum": "86d85a45980bd8142cef557cc1757e90", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ospec.byte\" {\"ospec\"}]\n", 
+            "name": "ospec.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ospec_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ospec_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ospec_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/ospec"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1211/ospec-0.3.1.tar.gz", 
+        "checksum": "b60505aa89c177e9b2ff3dd019f408ef", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ospec.byte\" {\"ospec\"}]\n", 
+            "name": "ospec.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ospec_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ospec_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "ospec_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ospec"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/831/ospec-0.2.1.tar.gz", 
+        "checksum": "ce216b17ee6c62b1ce879cd667cb1a20", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ospec\"]\n", 
+            "name": "ospec.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ospec_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ospec_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "ospec_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/ospec"
+    }
+  }
+}

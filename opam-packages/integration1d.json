@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1149/integration1d-0.4.1.tar.gz", 
+        "checksum": "3eb445621ae233a4296ce3b74d46661f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "integration1d_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }, 
+          "integration1d_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "integration1d_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/integration1d"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1022/integration1d-0.4.tar.gz", 
+        "checksum": "4e65ab6fa30ad39690f6c6df37087cdc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "integration1d_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "integration1d_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "integration1d_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/integration1d"
+    }
+  }
+}

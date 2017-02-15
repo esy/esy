@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/727/melt-1.4.0.tgz", 
+        "checksum": "ba26ca7b21d255d3c4ddfaac54ae5d71", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/meltpp/main.native\" {\"meltpp\"}\n  \"_build/melt/tool.native\" {\"meltbuild\"}\n  \"_build/latop/latop.native\" {\"latop\"}\n]\n", 
+            "name": "melt.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml configure.ml -INSTALLBIN $cur__bin -INSTALLLIB $cur__lib/melt -INSTALLMAN $cur__man/man1", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "melt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "melt_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "melt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cairo": "= 1.2.0", 
+        "@opam-alpha/mlpost": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/melt"
+    }
+  }
+}

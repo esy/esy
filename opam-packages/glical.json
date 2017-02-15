@@ -1,0 +1,247 @@
+{
+  "versions": {
+    "0.0.5": {
+      "version": "0.0.5", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/glical/glical-0.0.5.tar.gz", 
+        "checksum": "33fbcffd83d7109beb3162326f737e77", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glical_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glical_version": {
+            "scope": "global", 
+            "val": "0.0.5"
+          }, 
+          "glical_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/glical"
+    }, 
+    "0.0.4": {
+      "version": "0.0.4", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/glical/glical-0.0.4.tar.gz", 
+        "checksum": "a40bb6d2a9801f43300404fe017e5722", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glical_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glical_version": {
+            "scope": "global", 
+            "val": "0.0.4"
+          }, 
+          "glical_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/glical"
+    }, 
+    "0.0.7": {
+      "version": "0.0.7", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/glical/glical-0.0.7.tar.gz", 
+        "checksum": "61fd3daacea83cc5399345711983af57", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glical_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glical_version": {
+            "scope": "global", 
+            "val": "0.0.7"
+          }, 
+          "glical_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/glical"
+    }, 
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/glical/glical-0.0.1.tar.gz", 
+        "checksum": "c4c53088559797ce7956aff1658e46c2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glical_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glical_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "glical_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/glical"
+    }, 
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/glical/glical-0.0.3.tar.gz", 
+        "checksum": "3277552ee387d0fa35db96d9fd79f04a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glical_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glical_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "glical_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/glical"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/glical/glical-0.0.2.tar.gz", 
+        "checksum": "e0abc6b8188cfd75263ad151acb68337", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glical_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glical_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "glical_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/glical"
+    }
+  }
+}

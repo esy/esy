@@ -1,0 +1,60 @@
+{
+  "versions": {
+    "0.0.m8": {
+      "version": "0.0.m8", 
+      "opam": {
+        "url": "https://github.com/protz/mezzo/archive/m8.tar.gz", 
+        "checksum": "37b91c299133cc0e5c8fa8977ac293e1", 
+        "files": [
+          {
+            "content": "bin: [ \"_build/mezzo.native\" { \"mezzo\" } ]\n", 
+            "name": "mezzo.install"
+          }, 
+          {
+            "content": "diff --git a/myocamlbuild.pre.ml b/myocamlbuild.pre.ml\nindex 24b1d3c..1bf6c8e 100644\n--- a/myocamlbuild.pre.ml\n+++ b/myocamlbuild.pre.ml\n@@ -28,7 +28,7 @@ let _ =\n     match event with\n     | After_rules ->\n         flag [\"ocaml\"; \"compile\"; \"my_warnings\"]\n-          (S[A \"-w\"; A \"@1..3@8..12@14..21@23..40-41@43\"]);\n+          (S[A \"-w\"; A \"@1-2+3@8..12@14..21@23..40-41@43\"]);\n     | _ -> ()\n   );\n ;;\n", 
+            "name": "no-deprecated-fatal-warning.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mezzo_version": {
+            "scope": "global", 
+            "val": "0.0.m8"
+          }, 
+          "mezzo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mezzo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/functory": "*", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/pprint": "*", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fix": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/mezzo"
+    }
+  }
+}

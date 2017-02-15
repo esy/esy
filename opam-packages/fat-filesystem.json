@@ -1,0 +1,488 @@
+{
+  "versions": {
+    "0.10.1": {
+      "version": "0.10.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.10.1.tar.gz", 
+        "checksum": "1838106922cd0b82cde5e27dcec7ea26", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.10.1"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 2.3.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 1.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.10.0": {
+      "version": "0.10.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.10.0.tar.gz", 
+        "checksum": "c0103ebeefe8ab296c324f2bcd9936fd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.10.0"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-unix": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 0.5.0 < 1.1.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 1.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.10.3": {
+      "version": "0.10.3", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/v0.10.3.tar.gz", 
+        "checksum": "f5fab31a18edff7e77b93c56311cb64d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.10.3"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 1.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 < 2.6.0", 
+        "@opam-alpha/io-page": ">= 1.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.10.2": {
+      "version": "0.10.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.10.2.tar.gz", 
+        "checksum": "b67da2b8bf87f6abceb5614aac1fe865", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.10.2"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 2.3.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 1.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "@opam-alpha/io-page": ">= 1.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.6.2": {
+      "version": "0.6.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.6.2.tar.gz", 
+        "checksum": "1730fab0abd18a98d9c50cf0c7a7c549", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.6.2"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-unix": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 0.8.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": "= 0.3.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 0.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.6.0.tar.gz", 
+        "checksum": "8b49244b6f173b02865ebc7a6c21e63e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-unix": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 0.8.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": "= 0.3.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 0.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.11.0.tar.gz", 
+        "checksum": "e9c4de414d2fa1b77bb132ddb4b14062", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 2.6.1 < 3.0.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 1.2.0", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3 < 2.6.0", 
+        "@opam-alpha/io-page": ">= 1.6.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.8.0.tar.gz", 
+        "checksum": "ec43b7a45dfc20bd78975d155ecfeb7e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-unix": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 0.5.0 < 1.1.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 0.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.7.0.tar.gz", 
+        "checksum": "8b4f7df5b2b77b03c3bd6d0a85a226c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-unix": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 0.4.0 < 1.1.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 0.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }, 
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-fat/archive/0.9.0.tar.gz", 
+        "checksum": "54b2f66fe5e5916da1358f6c77ac7124", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fat_filesystem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fat_filesystem_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "fat_filesystem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-unix": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 1.0.1 <2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">= 0.5.0 < 1.1.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": ">= 0.2.0", 
+        "@opam-alpha/lwt": ">= 2.4.3 <2.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/fat-filesystem"
+    }
+  }
+}

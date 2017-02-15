@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.0.3": {
+      "version": "1.0.3", 
+      "opam": {
+        "url": "http://ocaml.phauna.org/distfiles/ocaml-curses-1.0.3.ogunden1.tar.gz", 
+        "checksum": "58f22c4884f17d82024c68d82f1c3d61", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --enable-widec", 
+          "make OCAMLMAKEFILE=OCamlMakefile byte", 
+          "make OCAMLMAKEFILE=OCamlMakefile opt", 
+          "make OCAMLMAKEFILE=OCamlMakefile install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "curses_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "curses_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "curses_version": {
+            "scope": "global", 
+            "val": "1.0.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/curses"
+    }
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "http://oqamldebug.forge.ocamlcore.org/oqamldebug-0.9.1.tar.gz", 
+        "checksum": "418d2292a6441bb974451a1351266cb0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "qmake CONFIG-=app_bundle CONFIG+=release PREFIX_BIN=$cur__bin/ CONFIG-=debug oqamldebug.pro", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oqamldebug_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "oqamldebug_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oqamldebug_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oqamldebug"
+    }, 
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "http://oqamldebug.forge.ocamlcore.org/oqamldebug-0.9.2.tar.gz", 
+        "checksum": "1037eefe46132300dd872ba6b0c25e58", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "qmake CONFIG-=app_bundle CONFIG+=release PREFIX_BIN=$cur__bin/ CONFIG-=debug oqamldebug.pro", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oqamldebug_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }, 
+          "oqamldebug_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oqamldebug_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oqamldebug"
+    }, 
+    "0.9.3": {
+      "version": "0.9.3", 
+      "opam": {
+        "url": "http://oqamldebug.forge.ocamlcore.org/oqamldebug-0.9.3.tar.gz", 
+        "checksum": "e7af5a5b24da9a0435e184628248c292", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "qmake CONFIG-=app_bundle CONFIG+=release PREFIX_BIN=$cur__bin/ CONFIG-=debug oqamldebug.pro", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oqamldebug_version": {
+            "scope": "global", 
+            "val": "0.9.3"
+          }, 
+          "oqamldebug_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oqamldebug_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oqamldebug"
+    }, 
+    "0.9.4": {
+      "version": "0.9.4", 
+      "opam": {
+        "url": "http://oqamldebug.forge.ocamlcore.org/oqamldebug-0.9.4.tar.gz", 
+        "checksum": "57d9ae1b8e051f6dca2a10aaf50253b3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "qmake CONFIG-=app_bundle CONFIG+=release PREFIX_BIN=$cur__bin/ CONFIG-=debug oqamldebug.pro", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oqamldebug_version": {
+            "scope": "global", 
+            "val": "0.9.4"
+          }, 
+          "oqamldebug_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oqamldebug_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oqamldebug"
+    }, 
+    "0.9.5": {
+      "version": "0.9.5", 
+      "opam": {
+        "url": "http://oqamldebug.forge.ocamlcore.org/oqamldebug-0.9.5.tar.gz", 
+        "checksum": "fd50ab57cfd3e48d8061a1c06b411ecd", 
+        "files": [
+          {
+            "content": "bin: [\"oqamldebug\"]\n", 
+            "name": "oqamldebug.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "qmake CONFIG-=app_bundle CONFIG+=release PREFIX_BIN=$cur__bin/ CONFIG-=debug LIBS+=-lX11 oqamldebug.pro", 
+          "make", 
+          "strip oqamldebug", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oqamldebug_version": {
+            "scope": "global", 
+            "val": "0.9.5"
+          }, 
+          "oqamldebug_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oqamldebug_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oqamldebug"
+    }
+  }
+}

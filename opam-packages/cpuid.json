@@ -1,0 +1,87 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/pqwy/cpuid/releases/download/v0.1.0/cpuid-0.1.0.tbz", 
+        "checksum": "3455fc5b92033168608ca11d58424e9f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --tests false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cpuid_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "cpuid_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cpuid_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocb-stubblr": ">= 0.1.0", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/cpuid"
+    }, 
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/pqwy/cpuid/releases/download/v0.0.1/cpuid-0.0.1.tbz", 
+        "checksum": "163387039f01a369796eb21866ce21a7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cpuid_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "cpuid_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cpuid_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/cpuid"
+    }
+  }
+}

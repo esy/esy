@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "2.01.0": {
+      "version": "2.01.0", 
+      "opam": {
+        "url": "https://github.com/pirbo/lablGtkOSXApplication/releases/download/v2.01/lablgtkosx-2.01.tar.bz2", 
+        "checksum": "6af612785ec4e1c34b9d80f0db705193", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lablgtkosx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lablgtkosx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lablgtkosx_version": {
+            "scope": "global", 
+            "val": "2.01.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lablgtkosx"
+    }, 
+    "2.00.0": {
+      "version": "2.00.0", 
+      "opam": {
+        "url": "https://github.com/pirbo/lablGtkOSXApplication/releases/download/v2.00/lablgtkosx-2.00.tar.bz2", 
+        "checksum": "20bb494f1c05e8f1f152439df2e9d674", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lablgtkosx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lablgtkosx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lablgtkosx_version": {
+            "scope": "global", 
+            "val": "2.00.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lablgtk": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lablgtkosx"
+    }
+  }
+}

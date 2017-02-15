@@ -1,0 +1,309 @@
+{
+  "versions": {
+    "109.17.00": {
+      "version": "109.17.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.17.00/individual/zero-109.17.00.tar.gz", 
+        "checksum": "71f9e63911618fd9b6410eb4786eb228", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.17.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.17.00", 
+        "@opam-alpha/fieldslib": "= 109.15.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.15.00 <= 109.18.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 109.17.00 <= 109.18.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zero"
+    }, 
+    "109.15.00": {
+      "version": "109.15.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.15.00/individual/zero-109.15.00.tar.gz", 
+        "checksum": "9d5762649cfba2470db01cd5d4482b49", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.15.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.15.00", 
+        "@opam-alpha/fieldslib": "= 109.15.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": "= 109.15.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 109.15.00 <= 109.15.01"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zero"
+    }, 
+    "109.20.00": {
+      "version": "109.20.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.20.00/individual/zero-109.20.00.tar.gz", 
+        "checksum": "cc8092b8043b0662f2d30067263c0f11", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.20.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.20.00", 
+        "@opam-alpha/fieldslib": "= 109.20.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.15.00 <= 109.18.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "= 109.20.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/zero"
+    }, 
+    "109.27.00": {
+      "version": "109.27.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.27.00/individual/zero-109.27.00.tar.gz", 
+        "checksum": "4acb2cbb3c0bb2e4a0b1039339ce29a2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.27.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.20.00", 
+        "@opam-alpha/fieldslib": "= 109.20.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": "= 109.27.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 109.27.00 <= 109.28.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/zero"
+    }, 
+    "109.21.00": {
+      "version": "109.21.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.21.00/individual/zero-109.21.00.tar.gz", 
+        "checksum": "5a2b53f4b51256acbe4803d30ab64b93", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.21.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.20.00", 
+        "@opam-alpha/fieldslib": "= 109.20.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.15.00 <= 109.18.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 109.21.00 <= 109.24.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/zero"
+    }, 
+    "109.28.00": {
+      "version": "109.28.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.28.00/individual/zero-109.28.00.tar.gz", 
+        "checksum": "c5fc9d5c3e35784fe644c66d03b383f3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.28.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/zero"
+    }, 
+    "109.19.00": {
+      "version": "109.19.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.19.00/individual/zero-109.19.00.tar.gz", 
+        "checksum": "b48e5399d030722ef999ee69d9e0c0b6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zero_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zero_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zero_version": {
+            "scope": "global", 
+            "val": "109.19.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.17.00", 
+        "@opam-alpha/fieldslib": "= 109.19.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.15.00 <= 109.18.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "= 109.19.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/zero"
+    }
+  }
+}

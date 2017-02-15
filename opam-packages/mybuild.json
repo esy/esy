@@ -1,0 +1,164 @@
+{
+  "versions": {
+    "5.0.0": {
+      "version": "5.0.0", 
+      "opam": {
+        "url": "https://github.com/ygrek/mybuild/archive/v5.tar.gz", 
+        "checksum": "1f21366ca52e39409770cb54a0d7b584", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mybuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mybuild_version": {
+            "scope": "global", 
+            "val": "5.0.0"
+          }, 
+          "mybuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mybuild"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/ygrek/mybuild/archive/v1.tar.gz", 
+        "checksum": "2b9f19cbe098ec74f49f18da66e6cabf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mybuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mybuild_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "mybuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mybuild"
+    }, 
+    "3.0.0": {
+      "version": "3.0.0", 
+      "opam": {
+        "url": "https://github.com/ygrek/mybuild/archive/v3.tar.gz", 
+        "checksum": "095e78b61fb826793ccbc276cc759651", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mybuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mybuild_version": {
+            "scope": "global", 
+            "val": "3.0.0"
+          }, 
+          "mybuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mybuild"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/ygrek/mybuild/archive/v2.tar.gz", 
+        "checksum": "b0afa351ba4f09775c23df91fa9e10bf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mybuild_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mybuild_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "mybuild_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mybuild"
+    }
+  }
+}

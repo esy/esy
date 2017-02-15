@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/Khady/ocamlbuild-protoc/archive/v0.1.zip", 
+        "checksum": "ed20fb2bb19189ff4f89296b48b89670", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlbuild_protoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlbuild_protoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlbuild_protoc_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocaml-protoc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ocamlbuild-protoc"
+    }
+  }
+}

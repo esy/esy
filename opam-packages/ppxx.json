@@ -1,0 +1,305 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.1.0.tar.gz", 
+        "checksum": "d61d5d2784d9b1b7932105e1f556be44", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.0.0.tar.gz", 
+        "checksum": "84c6a889457dcfe20f8dbac5be9d52e7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }, 
+    "1.3.2": {
+      "version": "1.3.2", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.3.2.tar.gz", 
+        "checksum": "042e3b6a40e69ca037a638dfef8d9b69", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.3.2"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": ">= 5.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.04.0 < 4.05.0"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }, 
+    "1.3.1": {
+      "version": "1.3.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.3.1.tar.gz", 
+        "checksum": "bd8ee112707425bb4be5bda7896c1d55", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.3.1"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": ">= 5.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.04.0 < 4.05.0"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.3.0.tar.gz", 
+        "checksum": "938fa0db49e6e0ff7d7b11b9ecd4fb01", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": ">= 4.03.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.2.0.tar.gz", 
+        "checksum": "82a755f9923514f529b5ed33aee76369", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }, 
+    "1.2.1": {
+      "version": "1.2.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppxx/get/1.2.1.tar.gz", 
+        "checksum": "200af7ddfd8100160eed312bd9c4dc8e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppxx_version": {
+            "scope": "global", 
+            "val": "1.2.1"
+          }, 
+          "ppxx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppxx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/ppxx"
+    }
+  }
+}

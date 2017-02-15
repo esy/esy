@@ -1,0 +1,149 @@
+{
+  "versions": {
+    "1.2.1": {
+      "version": "1.2.1", 
+      "opam": {
+        "url": "https://github.com/mirage/xen-disk/archive/v1.2.1.tar.gz", 
+        "checksum": "9b376514dc63123166bb0d1cdb7a14c8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_disk_version": {
+            "scope": "global", 
+            "val": "1.2.1"
+          }, 
+          "xen_disk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_disk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 2.3.0", 
+        "@opam-alpha/xen-gnt": ">= 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/vhd-format": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-xen": ">= 1.1.0 < 1.2.0", 
+        "@opam-alpha/xen-evtchn": ">= 1.0.1", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xen-disk"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/mirage/xen-disk/archive/1.0.2.tar.gz", 
+        "checksum": "e36a653bcff2c8b22d3f66c51a6bb7c6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_disk_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }, 
+          "xen_disk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_disk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xenctrl": ">= 0.9.7", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": "*", 
+        "@opam-alpha/vhd-format": "*", 
+        "@opam-alpha/obuild": "*", 
+        "@opam-alpha/xen-block-driver": ">= 0.2.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xen-disk"
+    }, 
+    "1.0.3": {
+      "version": "1.0.3", 
+      "opam": {
+        "url": "https://github.com/mirage/xen-disk/archive/1.0.3.tar.gz", 
+        "checksum": "3b9637fb67235403299a4a06dc41aafe", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_disk_version": {
+            "scope": "global", 
+            "val": "1.0.3"
+          }, 
+          "xen_disk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xen_disk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xenctrl": ">= 0.9.7", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": ">= 1.2.2", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": "*", 
+        "@opam-alpha/vhd-format": "*", 
+        "@opam-alpha/obuild": "*", 
+        "@opam-alpha/xen-block-driver": ">= 0.2.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xen-disk"
+    }
+  }
+}

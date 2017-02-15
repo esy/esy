@@ -1,0 +1,133 @@
+{
+  "versions": {
+    "0.67.2": {
+      "version": "0.67.2", 
+      "opam": {
+        "url": "https://github.com/MassD/mongo/archive/v0.67.2.tar.gz", 
+        "checksum": "d2a8a75154def57e8f567ab39c395dff", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${lwt_enable:-disable}-lwt --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mongo_version": {
+            "scope": "global", 
+            "val": "0.67.2"
+          }, 
+          "mongo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mongo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/bson": ">= 0.89.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mongo"
+    }, 
+    "0.67.1": {
+      "version": "0.67.1", 
+      "opam": {
+        "url": "https://github.com/MassD/mongo/archive/v0.67.1.tar.gz", 
+        "checksum": "f28fadbaa18092b5f82d31600dafad39", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${lwt_enable:-disable}-lwt --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mongo_version": {
+            "scope": "global", 
+            "val": "0.67.1"
+          }, 
+          "mongo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mongo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/bson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mongo"
+    }, 
+    "0.67.0": {
+      "version": "0.67.0", 
+      "opam": {
+        "url": "https://github.com/MassD/mongo/archive/v0.67.0.tar.gz", 
+        "checksum": "758c7d8280721fb7850c6032bc30208f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${lwt_enable:-disable}-lwt --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mongo_version": {
+            "scope": "global", 
+            "val": "0.67.0"
+          }, 
+          "mongo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mongo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/bson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mongo"
+    }
+  }
+}

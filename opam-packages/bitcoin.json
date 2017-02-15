@@ -1,0 +1,185 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1189/ocaml-bitcoin-1.1.1.tgz", 
+        "checksum": "ab90771221b720f96bcdc816ebca4f03", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --docdir $cur__doc/bitcoin --${ocsigenserver_enable:-disable}-ocsigen --${ocamlnet_enable:-disable}-ocamlnet", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bitcoin_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "bitcoin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bitcoin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "< 4.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocsigenserver": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bitcoin"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1119/ocaml-bitcoin-1.1.tgz", 
+        "checksum": "68406609e42a40e0fe2642330bf35887", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --docdir $cur__doc/bitcoin --${ocsigenserver_enable:-disable}-ocsigen --${ocamlnet_enable:-disable}-ocamlnet", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bitcoin_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "bitcoin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bitcoin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "< 4.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocsigenserver": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bitcoin"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1042/ocaml-bitcoin-1.0.tgz", 
+        "checksum": "6f8ec4b5d677935e443907b6a6c47b0c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bitcoin_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "bitcoin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bitcoin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlnet": "< 4.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocsigenserver": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bitcoin"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/darioteixeira/ocaml-bitcoin/archive/v2.0.tar.gz", 
+        "checksum": "3e9f640e64edac79a7d080f0f384800e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --docdir $cur__doc/bitcoin --${ocsigenserver_enable:-disable}-ocsigen --${ocamlnet_enable:-disable}-ocamlnet --${cohttp_enable:-disable}-cohttp --${ocurl_enable:-disable}-ocurl", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bitcoin_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "bitcoin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bitcoin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "*", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocurl": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bitcoin"
+    }
+  }
+}

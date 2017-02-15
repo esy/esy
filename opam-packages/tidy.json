@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0-2009-0.1.1": {
+      "version": "0-2009-0.1.1", 
+      "opam": {
+        "url": "https://bitbucket.org/zandoye/ocaml-tidy/get/ver.2009-0.1.1.tar.gz", 
+        "checksum": "b2528479f6acd0b00c5185b124311614", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tidy_version": {
+            "scope": "global", 
+            "val": "0-2009-0.1.1"
+          }, 
+          "tidy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tidy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/core_kernel": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tidy"
+    }, 
+    "1-4.9.30-0.1.1": {
+      "version": "1-4.9.30-0.1.1", 
+      "opam": {
+        "url": "https://bitbucket.org/zandoye/ocaml-tidy/get/ver.4.9.30-0.1.1.tar.gz", 
+        "checksum": "547e329166ed612acb088a864c072283", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tidy_version": {
+            "scope": "global", 
+            "val": "1-4.9.30-0.1.1"
+          }, 
+          "tidy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tidy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/core_kernel": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tidy"
+    }
+  }
+}

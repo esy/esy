@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/graphicspdf/archive/v1.1.tar.gz", 
+        "checksum": "29c0d6e7983e435c4e3dd65c6b023038", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "graphicspdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "graphicspdf_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "graphicspdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlpdf": "< 2.2.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/graphicspdf"
+    }, 
+    "2.2.1": {
+      "version": "2.2.1", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/graphicspdf/archive/v2.2.1.zip", 
+        "checksum": "97299c417316693bbf9413a5345bf3f8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "graphicspdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "graphicspdf_version": {
+            "scope": "global", 
+            "val": "2.2.1"
+          }, 
+          "graphicspdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlpdf": ">= 2.2.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/graphicspdf"
+    }
+  }
+}

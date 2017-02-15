@@ -1,0 +1,183 @@
+{
+  "versions": {
+    "0.4.18": {
+      "version": "0.4.18", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1610/archimedes-0.4.18.tar.gz", 
+        "checksum": "2013720e3df3fa3eaa098710a64dbf1d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${ocamlfind_enable:-disable}-graphics --enable-cairo2 ${cairo_installed:-false} | ${cairo2_installed:-false} }", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "archimedes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "archimedes_version": {
+            "scope": "global", 
+            "val": "0.4.18"
+          }, 
+          "archimedes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cairo2": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/archimedes"
+    }, 
+    "0.4.13": {
+      "version": "0.4.13", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/817/archimedes-0.4.13.tar.gz", 
+        "checksum": "430a3824720b57deb1cc3888a1cc65c9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "archimedes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "archimedes_version": {
+            "scope": "global", 
+            "val": "0.4.13"
+          }, 
+          "archimedes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/graphics": "*", 
+        "@opam-alpha/cairo2": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/archimedes"
+    }, 
+    "0.4.15": {
+      "version": "0.4.15", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1025/archimedes-0.4.15.tar.gz", 
+        "checksum": "a61aca722e8b3e2218edc8c7f01cd43d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "archimedes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "archimedes_version": {
+            "scope": "global", 
+            "val": "0.4.15"
+          }, 
+          "archimedes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/graphics": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/cairo2": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/archimedes"
+    }, 
+    "0.4.17": {
+      "version": "0.4.17", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1270/archimedes-0.4.17.tar.gz", 
+        "checksum": "14b6cf3d52326af03952c2b5038d1d29", 
+        "files": [
+          {
+            "content": "share: [\n  \"src/archimedes_cairo.dep\"\n  \"src/archimedes_graphics.dep\"\n]\n", 
+            "name": "archimedes.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${graphics_enable:-disable}-graphics --enable-cairo2 ${cairo2_installed:-false} }", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "archimedes_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "archimedes_version": {
+            "scope": "global", 
+            "val": "0.4.17"
+          }, 
+          "archimedes_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/graphics": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/cairo2": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/archimedes"
+    }
+  }
+}

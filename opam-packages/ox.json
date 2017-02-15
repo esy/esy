@@ -1,0 +1,185 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/frenetic-lang/ox/archive/v1.1.1.tar.gz", 
+        "checksum": "65818239705a9434cbf8db82fee90a22", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ox_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ox_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ox_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/openflow": ">= 0.5.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/packet": ">= 0.2.1", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ox"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/frenetic-lang/ox/archive/v1.1.0.tar.gz", 
+        "checksum": "4fd0be6e3486f0057ee7e42da4d13dc5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ox_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ox_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ox_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/openflow": ">= 0.4.0 < 0.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/packet": ">= 0.2.1", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ox"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://people.cs.umass.edu/~arjun/download/ox.1.0.tar.gz", 
+        "checksum": "ff90432a72ae48d52505968df2723ba1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ox_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ox_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ox_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/openflow": "= 0.1.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/packet": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ox"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/frenetic-lang/ox/archive/ox-1.0.1.tar.gz", 
+        "checksum": "f2b498e678b935d433ec33fc429507af", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ox_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ox_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ox_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/openflow": "= 0.1.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/packet": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ox"
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "versions": {
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/astring/releases/astring-0.8.1.tbz", 
+        "checksum": "f93bc586a1383848ca0d5d9b1779aea2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "astring_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "astring_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "astring_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/astring"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/astring/releases/astring-0.8.0.tbz", 
+        "checksum": "02da9b4c13457174e00908edd729d1c3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "astring_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "astring_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "astring_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/astring"
+    }, 
+    "0.8.3": {
+      "version": "0.8.3", 
+      "opam": {
+        "url": "http://erratique.ch/software/astring/releases/astring-0.8.3.tbz", 
+        "checksum": "c5bf6352b9ac27fbeab342740f4fa870", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "astring_version": {
+            "scope": "global", 
+            "val": "0.8.3"
+          }, 
+          "astring_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "astring_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/astring"
+    }, 
+    "0.8.2": {
+      "version": "0.8.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/astring/releases/astring-0.8.2.tbz", 
+        "checksum": "533f5b9a7c99b591043f69782123bd78", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "astring_version": {
+            "scope": "global", 
+            "val": "0.8.2"
+          }, 
+          "astring_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "astring_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/astring"
+    }
+  }
+}

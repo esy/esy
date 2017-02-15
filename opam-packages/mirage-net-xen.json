@@ -1,0 +1,624 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v0.9.0.tar.gz", 
+        "checksum": "a6ed3e87c508f3a22b8bc12363f877f7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">= 0.9.9", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 0.5.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 0.9.9", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.1.0.tar.gz", 
+        "checksum": "1706ed41e7c47a0754513c71469e53e0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.1.1.tar.gz", 
+        "checksum": "65bf3e74a38be93ee4888157a2ed4cf8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.1.2": {
+      "version": "1.1.2", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.1.2.tar.gz", 
+        "checksum": "84eb04c1f38e1bdc0d9c92fe8ad9f2a1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.4.0.tar.gz", 
+        "checksum": "981c7d09af7600ed74bae2f4d36c80d6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.4.1": {
+      "version": "1.4.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.4.1.tar.gz", 
+        "checksum": "621be0dd240525931049770dc1668523", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.4.2": {
+      "version": "1.4.2", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.4.2.tar.gz", 
+        "checksum": "80531dea04e72d64bf1290c8d56df199", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.4.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/camlp4": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.6.1": {
+      "version": "1.6.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.6.1.tar.gz", 
+        "checksum": "32bd4658383e831f57e68fa35669dbd8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.6.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/sexplib": ">= 113.01.00", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/shared-memory-ring": ">= 1.1.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.1.3": {
+      "version": "1.1.3", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.1.3.tar.gz", 
+        "checksum": "c0424606233ef006f5042aea350df152", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.1.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.5.0.tar.gz", 
+        "checksum": "0134047dd2f130814b51eae5b3fe4d3d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.7.1", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/shared-memory-ring": ">= 1.1.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.6.0": {
+      "version": "1.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.6.0.tar.gz", 
+        "checksum": "f53888dfd5585fa3f98d4830169dcaa8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/sexplib": ">= 113.01.00", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "@opam-alpha/shared-memory-ring": ">= 1.1.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.3.0.tar.gz", 
+        "checksum": "19153a5375f0322adebcb28e4efa88a5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-xen/archive/v1.2.0.tar.gz", 
+        "checksum": "219c2d66ef283b84f7906194b6d346ae", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_xen_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.1.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.0.0 < 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 0.0.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-xen"
+    }
+  }
+}

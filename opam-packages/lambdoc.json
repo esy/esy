@@ -1,0 +1,182 @@
+{
+  "versions": {
+    "1.04.0": {
+      "version": "1.04.0", 
+      "opam": {
+        "url": "https://github.com/darioteixeira/lambdoc/archive/v1.0-beta4.tar.gz", 
+        "checksum": "a1409daed14f5469cc98fff08def0c9e", 
+        "files": [
+          {
+            "content": "share: [\n\"css/boxout-warning.png\" {\"css/boxout-warning.png\"}\n\"css/lambdoc.css\" {\"css/lambdoc.css\"}\n\"css/boxout-tip.png\" {\"css/boxout-tip.png\"}\n\"css/src/boxout-warning.svg\" {\"css/src/boxout-warning.svg\"}\n\"css/src/lambdoc_custom.ccss\" {\"css/src/lambdoc_custom.ccss\"}\n\"css/src/lambdoc_config.ccss\" {\"css/src/lambdoc_config.ccss\"}\n\"css/src/lambdoc_valid.ccss\" {\"css/src/lambdoc_valid.ccss\"}\n\"css/src/lambdoc_invalid.ccss\" {\"css/src/lambdoc_invalid.ccss\"}\n\"css/src/lambdoc_reset.ccss\" {\"css/src/lambdoc_reset.ccss\"}\n\"css/src/lambdoc_root.ccss\" {\"css/src/lambdoc_root.ccss\"}\n\"css/src/boxout-tip.svg\" {\"css/src/boxout-tip.svg\"}\n\"css/src/Makefile\" {\"css/src/Makefile\"}\n\"examples/serialisation/sample.lambtex\" {\"examples/serialisation/sample.lambtex\"}\n\"examples/serialisation/Makefile\" {\"examples/serialisation/Makefile\"}\n\"examples/serialisation/serialisation_test.ml\" {\"examples/serialisation/serialisation_test.ml\"}\n\"examples/lambcmd-with-bookaml/lambcmd.ml\" {\"examples/lambcmd-with-bookaml/lambcmd.ml\"}\n\"examples/lambcmd-with-bookaml/language.ml\" {\"examples/lambcmd-with-bookaml/language.ml\"}\n\"examples/lambcmd-with-bookaml/markup.ml\" {\"examples/lambcmd-with-bookaml/markup.ml\"}\n\"examples/lambcmd-with-bookaml/options.mli\" {\"examples/lambcmd-with-bookaml/options.mli\"}\n\"examples/lambcmd-with-bookaml/options.ml\" {\"examples/lambcmd-with-bookaml/options.ml\"}\n\"examples/lambcmd-with-bookaml/Makefile\" {\"examples/lambcmd-with-bookaml/Makefile\"}\n\"examples/lambcmd-with-bookaml/_tags\" {\"examples/lambcmd-with-bookaml/_tags\"}\n\"examples/markups/lambtex/square.svg\" {\"examples/markups/lambtex/square.svg\"}\n\"examples/markups/lambtex/triangle.svg\" {\"examples/markups/lambtex/triangle.svg\"}\n\"examples/markups/lambtex/sample.lambtex\" {\"examples/markups/lambtex/sample.lambtex\"}\n\"examples/markups/lambtex/circle-big.png\" {\"examples/markups/lambtex/circle-big.png\"}\n\"examples/markups/lambtex/square-big.png\" {\"examples/markups/lambtex/square-big.png\"}\n\"examples/markups/lambtex/circle-small.png\" {\"examples/markups/lambtex/circle-small.png\"}\n\"examples/markups/lambtex/triangle-huge.png\" {\"examples/markups/lambtex/triangle-huge.png\"}\n\"examples/markups/lambtex/index.html\" {\"examples/markups/lambtex/index.html\"}\n\"examples/markups/lambtex/Makefile\" {\"examples/markups/lambtex/Makefile\"}\n\"examples/markups/lambtex/square-small.png\" {\"examples/markups/lambtex/square-small.png\"}\n\"examples/markups/lambtex/circle.svg\" {\"examples/markups/lambtex/circle.svg\"}\n\"examples/markups/lambtex/circle-tiny.png\" {\"examples/markups/lambtex/circle-tiny.png\"}\n\"examples/markups/markdown/sample.md\" {\"examples/markups/markdown/sample.md\"}\n\"examples/markups/markdown/index.html\" {\"examples/markups/markdown/index.html\"}\n\"examples/markups/markdown/Makefile\" {\"examples/markups/markdown/Makefile\"}\n\"examples/markups/lambxml/sample.lambxml\" {\"examples/markups/lambxml/sample.lambxml\"}\n\"examples/markups/lambxml/index.html\" {\"examples/markups/lambxml/index.html\"}\n\"examples/markups/lambxml/Makefile\" {\"examples/markups/lambxml/Makefile\"}\n\"examples/markups/lambwiki/sample.lambwiki\" {\"examples/markups/lambwiki/sample.lambwiki\"}\n\"examples/markups/lambwiki/index.html\" {\"examples/markups/lambwiki/index.html\"}\n\"examples/markups/lambwiki/Makefile\" {\"examples/markups/lambwiki/Makefile\"}\n\"examples/extensions/ocsigen_test.ml\" {\"examples/extensions/ocsigen_test.ml\"}\n\"examples/extensions/sample.tex\" {\"examples/extensions/sample.tex\"}\n\"examples/extensions/Makefile\" {\"examples/extensions/Makefile\"}\n\"examples/extensions/META.ocsigen_test\" {\"examples/extensions/META.ocsigen_test\"}\n\"examples/extensions/ocsigen.conf\" {\"examples/extensions/ocsigen.conf\"}\n\"examples/extensions/sample.xml\" {\"examples/extensions/sample.xml\"}\n\"examples/tutorial/01-basic/ocsigen_test.ml\" {\"examples/tutorial/01-basic/ocsigen_test.ml\"}\n\"examples/tutorial/01-basic/sample.lambtex\" {\"examples/tutorial/01-basic/sample.lambtex\"}\n\"examples/tutorial/01-basic/Makefile\" {\"examples/tutorial/01-basic/Makefile\"}\n\"examples/tutorial/01-basic/META.ocsigen_test\" {\"examples/tutorial/01-basic/META.ocsigen_test\"}\n\"examples/tutorial/01-basic/ocsigen.conf\" {\"examples/tutorial/01-basic/ocsigen.conf\"}\n\"examples/tutorial/02-restricted/ocsigen_test.ml\" {\"examples/tutorial/02-restricted/ocsigen_test.ml\"}\n\"examples/tutorial/02-restricted/sample.lambtex\" {\"examples/tutorial/02-restricted/sample.lambtex\"}\n\"examples/tutorial/02-restricted/Makefile\" {\"examples/tutorial/02-restricted/Makefile\"}\n\"examples/tutorial/02-restricted/META.ocsigen_test\" {\"examples/tutorial/02-restricted/META.ocsigen_test\"}\n\"examples/tutorial/02-restricted/ocsigen.conf\" {\"examples/tutorial/02-restricted/ocsigen.conf\"}\n\"examples/tutorial/03-multimarkup/ocsigen_test.ml\" {\"examples/tutorial/03-multimarkup/ocsigen_test.ml\"}\n\"examples/tutorial/03-multimarkup/sample.lambtex\" {\"examples/tutorial/03-multimarkup/sample.lambtex\"}\n\"examples/tutorial/03-multimarkup/Makefile\" {\"examples/tutorial/03-multimarkup/Makefile\"}\n\"examples/tutorial/03-multimarkup/META.ocsigen_test\" {\"examples/tutorial/03-multimarkup/META.ocsigen_test\"}\n\"examples/tutorial/03-multimarkup/ocsigen.conf\" {\"examples/tutorial/03-multimarkup/ocsigen.conf\"}\n\"examples/tutorial/04-banner-extension/ocsigen_test.ml\" {\"examples/tutorial/04-banner-extension/ocsigen_test.ml\"}\n\"examples/tutorial/04-banner-extension/sample.lambtex\" {\"examples/tutorial/04-banner-extension/sample.lambtex\"}\n\"examples/tutorial/04-banner-extension/Makefile\" {\"examples/tutorial/04-banner-extension/Makefile\"}\n\"examples/tutorial/04-banner-extension/META.ocsigen_test\" {\"examples/tutorial/04-banner-extension/META.ocsigen_test\"}\n\"examples/tutorial/04-banner-extension/ocsigen.conf\" {\"examples/tutorial/04-banner-extension/ocsigen.conf\"}\n\"examples/tutorial/05-inline-note-extension/ocsigen_test.ml\" {\"examples/tutorial/05-inline-note-extension/ocsigen_test.ml\"}\n\"examples/tutorial/05-inline-note-extension/sample.lambtex\" {\"examples/tutorial/05-inline-note-extension/sample.lambtex\"}\n\"examples/tutorial/05-inline-note-extension/Makefile\" {\"examples/tutorial/05-inline-note-extension/Makefile\"}\n\"examples/tutorial/05-inline-note-extension/META.ocsigen_test\" {\"examples/tutorial/05-inline-note-extension/META.ocsigen_test\"}\n\"examples/tutorial/05-inline-note-extension/ocsigen.conf\" {\"examples/tutorial/05-inline-note-extension/ocsigen.conf\"}\n\"examples/tutorial/06-embedded-markup/ocsigen_test.ml\" {\"examples/tutorial/06-embedded-markup/ocsigen_test.ml\"}\n\"examples/tutorial/06-embedded-markup/sample.lambtex\" {\"examples/tutorial/06-embedded-markup/sample.lambtex\"}\n\"examples/tutorial/06-embedded-markup/Makefile\" {\"examples/tutorial/06-embedded-markup/Makefile\"}\n\"examples/tutorial/06-embedded-markup/META.ocsigen_test\" {\"examples/tutorial/06-embedded-markup/META.ocsigen_test\"}\n\"examples/tutorial/06-embedded-markup/ocsigen.conf\" {\"examples/tutorial/06-embedded-markup/ocsigen.conf\"}\n\"examples/tutorial/07-bold-counter/ocsigen_test.ml\" {\"examples/tutorial/07-bold-counter/ocsigen_test.ml\"}\n\"examples/tutorial/07-bold-counter/sample.lambtex\" {\"examples/tutorial/07-bold-counter/sample.lambtex\"}\n\"examples/tutorial/07-bold-counter/Makefile\" {\"examples/tutorial/07-bold-counter/Makefile\"}\n\"examples/tutorial/07-bold-counter/META.ocsigen_test\" {\"examples/tutorial/07-bold-counter/META.ocsigen_test\"}\n\"examples/tutorial/07-bold-counter/ocsigen.conf\" {\"examples/tutorial/07-bold-counter/ocsigen.conf\"}\n\"examples/tutorial/08-link-validation/ocsigen_test.ml\" {\"examples/tutorial/08-link-validation/ocsigen_test.ml\"}\n\"examples/tutorial/08-link-validation/sample.lambtex\" {\"examples/tutorial/08-link-validation/sample.lambtex\"}\n\"examples/tutorial/08-link-validation/Makefile\" {\"examples/tutorial/08-link-validation/Makefile\"}\n\"examples/tutorial/08-link-validation/META.ocsigen_test\" {\"examples/tutorial/08-link-validation/META.ocsigen_test\"}\n\"examples/tutorial/08-link-validation/ocsigen.conf\" {\"examples/tutorial/08-link-validation/ocsigen.conf\"}\n\"examples/tutorial/09-document-transformation/ocsigen_test.ml\" {\"examples/tutorial/09-document-transformation/ocsigen_test.ml\"}\n\"examples/tutorial/09-document-transformation/sample.lambtex\" {\"examples/tutorial/09-document-transformation/sample.lambtex\"}\n\"examples/tutorial/09-document-transformation/Makefile\" {\"examples/tutorial/09-document-transformation/Makefile\"}\n\"examples/tutorial/09-document-transformation/META.ocsigen_test\" {\"examples/tutorial/09-document-transformation/META.ocsigen_test\"}\n\"examples/tutorial/09-document-transformation/ocsigen.conf\" {\"examples/tutorial/09-document-transformation/ocsigen.conf\"}\n]\n", 
+            "name": "lambdoc.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --docdir $cur__doc/lambdoc --${alcotest_enable:-disable}-tests", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdoc_version": {
+            "scope": "global", 
+            "val": "1.04.0"
+          }, 
+          "lambdoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xstrp4": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/pxp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/tyxml": ">= 3.2.0 < 3.6.0", 
+        "@opam-alpha/omd": ">= 1.0.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "@opam-alpha/menhir": "*", 
+        "@opam-alpha/blahcaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/camlhighlight": ">= 3.0.0 < 4.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/lambdoc"
+    }, 
+    "1.03.0": {
+      "version": "1.03.0", 
+      "opam": {
+        "url": "https://github.com/darioteixeira/lambdoc/archive/v1.0-beta3.tar.gz", 
+        "checksum": "95246e9eda90fcfce3bb866ec2f301a1", 
+        "files": [
+          {
+            "content": "share: [\n\"css/boxout-warning.png\" {\"css/boxout-warning.png\"}\n\"css/lambdoc.css\" {\"css/lambdoc.css\"}\n\"css/boxout-tip.png\" {\"css/boxout-tip.png\"}\n\"css/src/boxout-warning.svg\" {\"css/src/boxout-warning.svg\"}\n\"css/src/lambdoc_custom.ccss\" {\"css/src/lambdoc_custom.ccss\"}\n\"css/src/lambdoc_config.ccss\" {\"css/src/lambdoc_config.ccss\"}\n\"css/src/lambdoc_valid.ccss\" {\"css/src/lambdoc_valid.ccss\"}\n\"css/src/lambdoc_invalid.ccss\" {\"css/src/lambdoc_invalid.ccss\"}\n\"css/src/lambdoc_reset.ccss\" {\"css/src/lambdoc_reset.ccss\"}\n\"css/src/lambdoc_root.ccss\" {\"css/src/lambdoc_root.ccss\"}\n\"css/src/boxout-tip.svg\" {\"css/src/boxout-tip.svg\"}\n\"css/src/Makefile\" {\"css/src/Makefile\"}\n\"examples/serialisation/sample.lambtex\" {\"examples/serialisation/sample.lambtex\"}\n\"examples/serialisation/Makefile\" {\"examples/serialisation/Makefile\"}\n\"examples/serialisation/serialisation_test.ml\" {\"examples/serialisation/serialisation_test.ml\"}\n\"examples/lambcmd-with-bookaml/language.ml\" {\"examples/lambcmd-with-bookaml/language.ml\"}\n\"examples/lambcmd-with-bookaml/options.mli\" {\"examples/lambcmd-with-bookaml/options.mli\"}\n\"examples/lambcmd-with-bookaml/lambcmd.ml\" {\"examples/lambcmd-with-bookaml/lambcmd.ml\"}\n\"examples/lambcmd-with-bookaml/markup.ml\" {\"examples/lambcmd-with-bookaml/markup.ml\"}\n\"examples/lambcmd-with-bookaml/Makefile\" {\"examples/lambcmd-with-bookaml/Makefile\"}\n\"examples/lambcmd-with-bookaml/_tags\" {\"examples/lambcmd-with-bookaml/_tags\"}\n\"examples/lambcmd-with-bookaml/options.ml\" {\"examples/lambcmd-with-bookaml/options.ml\"}\n\"examples/markups/lambtex/square.svg\" {\"examples/markups/lambtex/square.svg\"}\n\"examples/markups/lambtex/triangle.svg\" {\"examples/markups/lambtex/triangle.svg\"}\n\"examples/markups/lambtex/sample.lambtex\" {\"examples/markups/lambtex/sample.lambtex\"}\n\"examples/markups/lambtex/circle-big.png\" {\"examples/markups/lambtex/circle-big.png\"}\n\"examples/markups/lambtex/square-big.png\" {\"examples/markups/lambtex/square-big.png\"}\n\"examples/markups/lambtex/circle-small.png\" {\"examples/markups/lambtex/circle-small.png\"}\n\"examples/markups/lambtex/triangle-huge.png\" {\"examples/markups/lambtex/triangle-huge.png\"}\n\"examples/markups/lambtex/index.html\" {\"examples/markups/lambtex/index.html\"}\n\"examples/markups/lambtex/Makefile\" {\"examples/markups/lambtex/Makefile\"}\n\"examples/markups/lambtex/square-small.png\" {\"examples/markups/lambtex/square-small.png\"}\n\"examples/markups/lambtex/circle.svg\" {\"examples/markups/lambtex/circle.svg\"}\n\"examples/markups/lambtex/circle-tiny.png\" {\"examples/markups/lambtex/circle-tiny.png\"}\n\"examples/markups/markdown/sample.md\" {\"examples/markups/markdown/sample.md\"}\n\"examples/markups/markdown/index.html\" {\"examples/markups/markdown/index.html\"}\n\"examples/markups/markdown/Makefile\" {\"examples/markups/markdown/Makefile\"}\n\"examples/markups/lambxml/sample.lambxml\" {\"examples/markups/lambxml/sample.lambxml\"}\n\"examples/markups/lambxml/index.html\" {\"examples/markups/lambxml/index.html\"}\n\"examples/markups/lambxml/Makefile\" {\"examples/markups/lambxml/Makefile\"}\n\"examples/markups/lambwiki/sample.lambwiki\" {\"examples/markups/lambwiki/sample.lambwiki\"}\n\"examples/markups/lambwiki/index.html\" {\"examples/markups/lambwiki/index.html\"}\n\"examples/markups/lambwiki/Makefile\" {\"examples/markups/lambwiki/Makefile\"}\n\"examples/extensions/ocsigen_test.ml\" {\"examples/extensions/ocsigen_test.ml\"}\n\"examples/extensions/sample.tex\" {\"examples/extensions/sample.tex\"}\n\"examples/extensions/Makefile\" {\"examples/extensions/Makefile\"}\n\"examples/extensions/META.ocsigen_test\" {\"examples/extensions/META.ocsigen_test\"}\n\"examples/extensions/ocsigen.conf\" {\"examples/extensions/ocsigen.conf\"}\n\"examples/extensions/sample.xml\" {\"examples/extensions/sample.xml\"}\n\"examples/tutorial/3-multimarkup/ocsigen_test.ml\" {\"examples/tutorial/3-multimarkup/ocsigen_test.ml\"}\n\"examples/tutorial/3-multimarkup/sample.lambtex\" {\"examples/tutorial/3-multimarkup/sample.lambtex\"}\n\"examples/tutorial/3-multimarkup/Makefile\" {\"examples/tutorial/3-multimarkup/Makefile\"}\n\"examples/tutorial/3-multimarkup/META.ocsigen_test\" {\"examples/tutorial/3-multimarkup/META.ocsigen_test\"}\n\"examples/tutorial/3-multimarkup/ocsigen.conf\" {\"examples/tutorial/3-multimarkup/ocsigen.conf\"}\n\"examples/tutorial/1-basic/ocsigen_test.ml\" {\"examples/tutorial/1-basic/ocsigen_test.ml\"}\n\"examples/tutorial/1-basic/sample.lambtex\" {\"examples/tutorial/1-basic/sample.lambtex\"}\n\"examples/tutorial/1-basic/Makefile\" {\"examples/tutorial/1-basic/Makefile\"}\n\"examples/tutorial/1-basic/META.ocsigen_test\" {\"examples/tutorial/1-basic/META.ocsigen_test\"}\n\"examples/tutorial/1-basic/ocsigen.conf\" {\"examples/tutorial/1-basic/ocsigen.conf\"}\n\"examples/tutorial/2-restricted/ocsigen_test.ml\" {\"examples/tutorial/2-restricted/ocsigen_test.ml\"}\n\"examples/tutorial/2-restricted/sample.lambtex\" {\"examples/tutorial/2-restricted/sample.lambtex\"}\n\"examples/tutorial/2-restricted/Makefile\" {\"examples/tutorial/2-restricted/Makefile\"}\n\"examples/tutorial/2-restricted/META.ocsigen_test\" {\"examples/tutorial/2-restricted/META.ocsigen_test\"}\n\"examples/tutorial/2-restricted/ocsigen.conf\" {\"examples/tutorial/2-restricted/ocsigen.conf\"}\n\"examples/tutorial/4-banner-extension/ocsigen_test.ml\" {\"examples/tutorial/4-banner-extension/ocsigen_test.ml\"}\n\"examples/tutorial/4-banner-extension/sample.lambtex\" {\"examples/tutorial/4-banner-extension/sample.lambtex\"}\n\"examples/tutorial/4-banner-extension/Makefile\" {\"examples/tutorial/4-banner-extension/Makefile\"}\n\"examples/tutorial/4-banner-extension/META.ocsigen_test\" {\"examples/tutorial/4-banner-extension/META.ocsigen_test\"}\n\"examples/tutorial/4-banner-extension/ocsigen.conf\" {\"examples/tutorial/4-banner-extension/ocsigen.conf\"}\n\"examples/tutorial/6-embedded-markup/ocsigen_test.ml\" {\"examples/tutorial/6-embedded-markup/ocsigen_test.ml\"}\n\"examples/tutorial/6-embedded-markup/sample.lambtex\" {\"examples/tutorial/6-embedded-markup/sample.lambtex\"}\n\"examples/tutorial/6-embedded-markup/Makefile\" {\"examples/tutorial/6-embedded-markup/Makefile\"}\n\"examples/tutorial/6-embedded-markup/META.ocsigen_test\" {\"examples/tutorial/6-embedded-markup/META.ocsigen_test\"}\n\"examples/tutorial/6-embedded-markup/ocsigen.conf\" {\"examples/tutorial/6-embedded-markup/ocsigen.conf\"}\n\"examples/tutorial/5-inline-note-extension/ocsigen_test.ml\" {\"examples/tutorial/5-inline-note-extension/ocsigen_test.ml\"}\n\"examples/tutorial/5-inline-note-extension/sample.lambtex\" {\"examples/tutorial/5-inline-note-extension/sample.lambtex\"}\n\"examples/tutorial/5-inline-note-extension/Makefile\" {\"examples/tutorial/5-inline-note-extension/Makefile\"}\n\"examples/tutorial/5-inline-note-extension/META.ocsigen_test\" {\"examples/tutorial/5-inline-note-extension/META.ocsigen_test\"}\n\"examples/tutorial/5-inline-note-extension/ocsigen.conf\" {\"examples/tutorial/5-inline-note-extension/ocsigen.conf\"}\n]\n", 
+            "name": "lambdoc.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --docdir $cur__doc/lambdoc", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdoc_version": {
+            "scope": "global", 
+            "val": "1.03.0"
+          }, 
+          "lambdoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xstrp4": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/pxp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/tyxml": ">= 3.2.0 < 4.0.0", 
+        "@opam-alpha/omd": ">= 1.0.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "@opam-alpha/menhir": "*", 
+        "@opam-alpha/blahcaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/camlhighlight": ">= 3.0.0 < 4.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/lambdoc"
+    }, 
+    "1.02.0": {
+      "version": "1.02.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1459/lambdoc-1.0-beta2.tgz", 
+        "checksum": "d6e5607ceff3642914a5b8b9ecdba7e2", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/_build/lambcmd/lambcmd.native\"\n  \"src/_build/lambcmd/lambcmd.byte\"\n]\n\n", 
+            "name": "lambdoc.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdoc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdoc_version": {
+            "scope": "global", 
+            "val": "1.02.0"
+          }, 
+          "lambdoc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xstrp4": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pxp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/tyxml": ">= 3.2.0 < 4.0.0", 
+        "@opam-alpha/omd": ">= 1.0.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "@opam-alpha/menhir": "*", 
+        "@opam-alpha/blahcaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/camlhighlight": ">= 3.0.0 < 4.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/lambdoc"
+    }
+  }
+}

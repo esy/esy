@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "https://github.com/xapi-project/forkexecd/archive/0.9.2/forkexecd-0.9.2.tar.gz", 
+        "checksum": "442c4d08b0723c143bb01288a9fecf5e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin SBINDIR=$cur__bin ETCDIR=$cur__install/etc", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_forkexecd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_forkexecd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_forkexecd_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/fd-send-recv": "*", 
+        "@opam-alpha/syslog": "*", 
+        "@opam-alpha/xapi-stdext": "< 2.0.0", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xapi-idl": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-forkexecd"
+    }
+  }
+}

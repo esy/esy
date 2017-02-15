@@ -1,0 +1,242 @@
+{
+  "versions": {
+    "0.2.5": {
+      "version": "0.2.5", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-xen-block-driver/archive/0.2.5.tar.gz", 
+        "checksum": "62e6904c7f940dc7f91fd8ad7319a0ba", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_block_driver_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_block_driver_version": {
+            "scope": "global", 
+            "val": "0.2.5"
+          }, 
+          "xen_block_driver_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.1", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/xenctrl": ">= 0.9.8", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-unix": "= 0.9.7", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": "= 0.9.7", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xen-block-driver"
+    }, 
+    "0.2.4": {
+      "version": "0.2.4", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-xen-block-driver/archive/0.2.4.tar.gz", 
+        "checksum": "7f78c07c2248b16cf818e2371658a7ef", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_block_driver_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_block_driver_version": {
+            "scope": "global", 
+            "val": "0.2.4"
+          }, 
+          "xen_block_driver_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": "= 0.7.1", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/xenctrl": ">= 0.9.8", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-unix": "= 0.9.7", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": "= 0.9.7", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xen-block-driver"
+    }, 
+    "0.2.3": {
+      "version": "0.2.3", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-xen-block-driver/archive/0.2.3.tar.gz", 
+        "checksum": "99086a8d8608a34607e4e4423934e7aa", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_block_driver_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_block_driver_version": {
+            "scope": "global", 
+            "val": "0.2.3"
+          }, 
+          "xen_block_driver_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": "= 0.7.1", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/xenctrl": ">= 0.9.8", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-unix": "= 0.9.7", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": "= 0.9.7", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xen-block-driver"
+    }, 
+    "0.2.2": {
+      "version": "0.2.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-xen-block-driver/archive/0.2.2.tar.gz", 
+        "checksum": "de18fa92cea916eba39aad035d74290d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_block_driver_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_block_driver_version": {
+            "scope": "global", 
+            "val": "0.2.2"
+          }, 
+          "xen_block_driver_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": ">= 0.9.4 < 0.9.8", 
+        "@opam-alpha/cstruct": "= 0.7.1", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 0.9.4 < 0.9.8", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": ">= 0.4.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xen-block-driver"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-xen-block-driver/archive/0.2.0.tar.gz", 
+        "checksum": "2f2937c25a5e0d51bc171d37916e3c73", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xen_block_driver_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xen_block_driver_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "xen_block_driver_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": "= 0.9.2", 
+        "@opam-alpha/cstruct": "= 0.7.1", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": "= 0.9.2", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": "= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xen-block-driver"
+    }
+  }
+}

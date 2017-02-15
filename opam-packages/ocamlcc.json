@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://raw.github.com/ocaml-bytes/ocamlcc/master/dist/ocamlcc-1.0.tar.bz2", 
+        "checksum": "7b065f5c7b3f0b29aebb5f15f8d3ecbe", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlcc_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ocamlcc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlcc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlclean": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0 < 4.01.0"
+      }, 
+      "name": "@opam-alpha/ocamlcc"
+    }
+  }
+}

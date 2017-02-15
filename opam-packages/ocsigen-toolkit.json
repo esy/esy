@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.99.0": {
+      "version": "0.99.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/ocsigen-toolkit/archive/v0.99.tar.gz", 
+        "checksum": "4f854228c0b3770ef7dd083a830d277b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocsigen_toolkit_version": {
+            "scope": "global", 
+            "val": "0.99.0"
+          }, 
+          "ocsigen_toolkit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocsigen_toolkit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/eliom": ">= 6.0.0", 
+        "@opam-alpha/calendar": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocsigen-toolkit"
+    }
+  }
+}

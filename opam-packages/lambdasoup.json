@@ -1,0 +1,166 @@
+{
+  "versions": {
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "https://github.com/aantron/lambda-soup/archive/0.6.1.tar.gz", 
+        "checksum": "35d7c9c98fcf55a8b0f8e5dfe1e901b5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make ocamlfind-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdasoup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdasoup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lambdasoup_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/markup": ">= 0.7.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lambdasoup"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/aantron/lambda-soup/archive/0.6.tar.gz", 
+        "checksum": "b9eb4f7da7b8de3ec069155711011e23", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make ocamlfind-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdasoup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdasoup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lambdasoup_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/markup": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lambdasoup"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/aantron/lambda-soup/archive/0.5.tar.gz", 
+        "checksum": "21c0238bda7f38b3607b6615f06cbae5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make ocamlfind-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdasoup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdasoup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lambdasoup_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lambdasoup"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/aantron/lambda-soup/archive/0.5.1.tar.gz", 
+        "checksum": "2cec1e6325c48f23f3a952c6a55876e8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make ocamlfind-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lambdasoup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambdasoup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lambdasoup_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lambdasoup"
+    }
+  }
+}

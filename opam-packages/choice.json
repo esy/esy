@@ -1,0 +1,94 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/choice/archive/0.1.tar.gz", 
+        "checksum": "d1187a03ba4165218bbbdac3182e26db", 
+        "files": [
+          {
+            "content": "commit d883bc9d8488e1d9ba090f14bcd2b3299cfaf868\nAuthor: Gabriel Scherer <gabriel.scherer@gmail.com>\nDate:   Fri Aug 12 16:53:34 2016 +0200\n\n    minor document change to fix an ocamldoc failure under OCaml 3.12.1\n    \n    ```\n    + /home/gasche/.opam/3.12.1/bin/ocamlfind ocamldoc -dump choice.odoc choice.mli\n    /tmp/choice/_build/choice.mli : Syntax error in text:\n    Call the function to get alternative choices.\n          Example:\n          {[let r = ref 0 in Choice.run_n 10\n            (Choice.filter\n              (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n    line 5, character 8:\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n            ^\n    /tmp/choice/_build/choice.mli : Syntax error in text:\n    Call the function to get alternative choices.\n          Example:\n          {[let r = ref 0 in Choice.run_n 10\n            (Choice.filter\n              (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n    line 5, character 8:\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n            ^\n    2 error(s) encountered\n    Command exited with code 1.\n    ```\n\ndiff --git a/choice.mli b/choice.mli\nindex 06e804a..463b0c0 100644\n--- a/choice.mli\n+++ b/choice.mli\n@@ -85,8 +85,9 @@ val from_fun : (unit -> 'a option) -> 'a t\n       Example:\n       {[let r = ref 0 in Choice.run_n 10\n         (Choice.filter\n-          (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;\n-      - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]} *)\n+          (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;]}\n+      yields\n+      {[- : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]} *)\n \n val delay : (unit -> 'a t) -> 'a t\n   (** Delay the computation (the closure will be called in each branch\n", 
+            "name": "ocamldoc-3.12.1-fix.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "choice_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "choice_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "choice_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/choice"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/choice/archive/0.2.tar.gz", 
+        "checksum": "ce9cfb1f6731c51b7b86fc6c269c327f", 
+        "files": [
+          {
+            "content": "commit d883bc9d8488e1d9ba090f14bcd2b3299cfaf868\nAuthor: Gabriel Scherer <gabriel.scherer@gmail.com>\nDate:   Fri Aug 12 16:53:34 2016 +0200\n\n    minor document change to fix an ocamldoc failure under OCaml 3.12.1\n    \n    ```\n    + /home/gasche/.opam/3.12.1/bin/ocamlfind ocamldoc -dump choice.odoc choice.mli\n    /tmp/choice/_build/choice.mli : Syntax error in text:\n    Call the function to get alternative choices.\n          Example:\n          {[let r = ref 0 in Choice.run_n 10\n            (Choice.filter\n              (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n    line 5, character 8:\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n            ^\n    /tmp/choice/_build/choice.mli : Syntax error in text:\n    Call the function to get alternative choices.\n          Example:\n          {[let r = ref 0 in Choice.run_n 10\n            (Choice.filter\n              (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n    line 5, character 8:\n          - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]}\n            ^\n    2 error(s) encountered\n    Command exited with code 1.\n    ```\n\ndiff --git a/choice.mli b/choice.mli\nindex 06e804a..463b0c0 100644\n--- a/choice.mli\n+++ b/choice.mli\n@@ -85,8 +85,9 @@ val from_fun : (unit -> 'a option) -> 'a t\n       Example:\n       {[let r = ref 0 in Choice.run_n 10\n         (Choice.filter\n-          (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;\n-      - : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]} *)\n+          (Choice.from_fun (fun () -> incr r; Some !r)) (fun x -> x mod 3 = 0));;]}\n+      yields\n+      {[- : int list = [30; 27; 24; 21; 18; 15; 12; 9; 6; 3] ]} *)\n \n val delay : (unit -> 'a t) -> 'a t\n   (** Delay the computation (the closure will be called in each branch\n", 
+            "name": "ocamldoc-3.12.1-fix.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "choice_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "choice_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "choice_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/choice"
+    }
+  }
+}

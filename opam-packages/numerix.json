@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.22.0": {
+      "version": "0.22.0", 
+      "opam": {
+        "url": "http://pauillac.inria.fr/~quercia/cdrom/bibs/numerix.tar.gz", 
+        "checksum": "a2169c2251508ee2fb891f878e17ef96", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --enable-sse2 --disable-lang --enable-ocaml --enable-clong --enable-dlong --enable-slong --enable-gmp --enable-ocaml_bignum", 
+          "make clean lib examples test", 
+          "make install", 
+          "mkdir -p $cur__install/doc/numerix/", 
+          "cp doc/english/numerix.pdf $cur__install/doc/numerix/numerix-en.pdf", 
+          "cp doc/francais/numerix.pdf $cur__install/doc/numerix/numerix-fr.pdf", 
+          "echo *** Check that $cur__lib is in your LD_LIBRARY_PATH ***", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "numerix_version": {
+            "scope": "global", 
+            "val": "0.22.0"
+          }, 
+          "numerix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "numerix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-gmp": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/numerix"
+    }
+  }
+}

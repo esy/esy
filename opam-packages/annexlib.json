@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.13.5": {
+      "version": "0.13.5", 
+      "opam": {
+        "url": "http://godi-backup2.camlcity.org/godi-backup/annexlib-0.13.5.tar.gz", 
+        "checksum": "6ea5faffaabd94caa102677f13653dbf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "annexlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "annexlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "annexlib_version": {
+            "scope": "global", 
+            "val": "0.13.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/annexlib"
+    }
+  }
+}

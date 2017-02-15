@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ocamldot/ocamldot-1.0.tar.gz", 
+        "checksum": "4aac21782a00e5db8e823732304e7db9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamldot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamldot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamldot_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-gnomecanvas": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamldot"
+    }
+  }
+}

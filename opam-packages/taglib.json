@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "0.3.2": {
+      "version": "0.3.2", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-taglib/releases/download/0.3.2/ocaml-taglib-0.3.2.tar.gz", 
+        "checksum": "67d7274db0626d21f8a2f780d413616b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "taglib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "taglib_version": {
+            "scope": "global", 
+            "val": "0.3.2"
+          }, 
+          "taglib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/taglib"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-taglib/0.3.0/ocaml-taglib-0.3.0.tar.gz", 
+        "checksum": "6537ae1592eae3b4cf7ad38ea59440b1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "taglib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "taglib_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "taglib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/taglib"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-taglib/0.2.0/ocaml-taglib-0.2.0.tar.gz", 
+        "checksum": "3e15260d935ce1791edc39b512391b24", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "taglib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "taglib_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "taglib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/taglib"
+    }
+  }
+}

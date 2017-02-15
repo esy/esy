@@ -1,0 +1,178 @@
+{
+  "versions": {
+    "0.9.9": {
+      "version": "0.9.9", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v0.9.9.tar.gz", 
+        "checksum": "9628ac0871182f5bc3ade47190edcdab", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_xen_version": {
+            "scope": "global", 
+            "val": "0.9.9"
+          }, 
+          "mirage_console_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">=0.9.9", 
+        "@opam-alpha/mirage-types": "=0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">=0.9.9 <2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-xen"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v1.0.0.tar.gz", 
+        "checksum": "50fe098cd7d56013f4f963a90e5320b5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_xen_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "mirage_console_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">=0.9.9", 
+        "@opam-alpha/mirage-types": "=0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-xen": ">=0.9.9 <2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">=0.9.9 <2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-xen"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v1.0.1.tar.gz", 
+        "checksum": "568f5a590464ed598d71c33209e25b9c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_xen_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "mirage_console_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">=0.9.9", 
+        "@opam-alpha/mirage-types": "=0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-xen": ">=0.9.9 <2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">=0.9.9 <2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-xen"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v1.0.2.tar.gz", 
+        "checksum": "5d4223f9c9d768d0543a634879826d0d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-build", 
+          "make xen-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_xen_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }, 
+          "mirage_console_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/io-page-xen": ">=0.9.9", 
+        "@opam-alpha/mirage-types": ">=1.1.0 < 2.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">=1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-xen"
+    }
+  }
+}

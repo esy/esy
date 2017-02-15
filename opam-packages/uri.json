@@ -1,0 +1,280 @@
+{
+  "versions": {
+    "1.9.1": {
+      "version": "1.9.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-uri/archive/v1.9.1.tar.gz", 
+        "checksum": "44a36ed3da245f1fdd5623d17f3d16c5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uri_version": {
+            "scope": "global", 
+            "val": "1.9.1"
+          }, 
+          "uri_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uri_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": ">= 109.53.00 < 113.01.00", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/stringext": ">= 1.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uri"
+    }, 
+    "1.9.0": {
+      "version": "1.9.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-uri/archive/v1.9.0.tar.gz", 
+        "checksum": "147c62e3a15e495bb3ad0a4a94a9426d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uri_version": {
+            "scope": "global", 
+            "val": "1.9.0"
+          }, 
+          "uri_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uri_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": ">= 109.53.00 < 113.01.00", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uri"
+    }, 
+    "1.9.2": {
+      "version": "1.9.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-uri/archive/v1.9.2.tar.gz", 
+        "checksum": "e6dd39352b1b501cb905ef7d198d38f0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uri_version": {
+            "scope": "global", 
+            "val": "1.9.2"
+          }, 
+          "uri_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uri_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": ">= 109.53.00", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/stringext": ">= 1.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_sexp_conv": ">= 113.33.01", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/uri"
+    }, 
+    "1.8.0": {
+      "version": "1.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-uri/archive/v1.8.0.tar.gz", 
+        "checksum": "0af2dba0068ff5c83961f533f092d201", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uri_version": {
+            "scope": "global", 
+            "val": "1.8.0"
+          }, 
+          "uri_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uri_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": ">= 109.53.00 < 113.01.00", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uri"
+    }, 
+    "1.7.2": {
+      "version": "1.7.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-uri/archive/v1.7.2.tar.gz", 
+        "checksum": "057267a916711f4c2367fc2cd7839ac7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uri_version": {
+            "scope": "global", 
+            "val": "1.7.2"
+          }, 
+          "uri_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uri_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": ">= 109.53.00 < 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uri"
+    }, 
+    "1.7.1": {
+      "version": "1.7.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-uri/archive/v1.7.1.tar.gz", 
+        "checksum": "cc639df833530a4d2d8a407ddd445af0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uri_version": {
+            "scope": "global", 
+            "val": "1.7.1"
+          }, 
+          "uri_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uri_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": ">= 109.53.00 < 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uri"
+    }
+  }
+}

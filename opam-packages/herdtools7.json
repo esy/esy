@@ -1,0 +1,121 @@
+{
+  "versions": {
+    "7.43.0": {
+      "version": "7.43.0", 
+      "opam": {
+        "url": "https://github.com/herd/herdtools7/archive/7.43.tar.gz", 
+        "checksum": "3b8988523ae24e46377457b42d963357", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./build.sh $cur__install", 
+          "./install.sh $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "herdtools7_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "herdtools7_version": {
+            "scope": "global", 
+            "val": "7.43.0"
+          }, 
+          "herdtools7_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/herdtools7"
+    }, 
+    "7.42.0": {
+      "version": "7.42.0", 
+      "opam": {
+        "url": "https://github.com/herd/herdtools7/archive/7.42.tar.gz", 
+        "checksum": "033c4a9fef494cb08ccc07e8f111415a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./build.sh $cur__install", 
+          "./install.sh $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "herdtools7_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "herdtools7_version": {
+            "scope": "global", 
+            "val": "7.42.0"
+          }, 
+          "herdtools7_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/herdtools7"
+    }, 
+    "7.42-beta.3": {
+      "version": "7.42-beta.3", 
+      "opam": {
+        "url": "https://github.com/herd/herdtools7/archive/7.42-beta.3.tar.gz", 
+        "checksum": "0ed28e0eb623b252a2621027b1633656", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./build.sh $cur__install", 
+          "./install.sh $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "herdtools7_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "herdtools7_version": {
+            "scope": "global", 
+            "val": "7.42-beta.3"
+          }, 
+          "herdtools7_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/herdtools7"
+    }
+  }
+}

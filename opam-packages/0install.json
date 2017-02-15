@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "2.12.0": {
+      "version": "2.12.0", 
+      "opam": {
+        "url": "https://github.com/0install/0install/archive/v2.12-1.tar.gz", 
+        "checksum": "b314e3964858d56ea8da42816dd5ae87", 
+        "files": [
+          {
+            "content": "bin: [\n  \"dist/files/0install\"\n  \"dist/files/0install\" {\"0launch\"}\n  \"dist/files/0install\" {\"0store\"}\n  \"dist/files/0install\" {\"0store-secure-add\"}\n  \"dist/files/0install\" {\"0desktop\"}\n  \"dist/files/0install\" {\"0alias\"}\n]\nlib: [\n  \"?dist/files/gui_gtk.cmxs\"\n  \"?dist/files/gui_gtk.cma\"\n]\nman: [\n  \"0launch.1\" {\"man1/0launch.1\"}\n  \"0store-secure-add.1\" {\"man1/0store-secure-add.1\"}\n  \"0store.1\" {\"man1/0store.1\"}\n  \"0desktop.1\" {\"man1/0desktop.1\"}\n  \"0install.1\" {\"man1/0install.1\"}\n]\n", 
+            "name": "0install.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "0install_version": {
+            "scope": "global", 
+            "val": "2.12.0"
+          }, 
+          "0install_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "0install_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/react": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/sha": "*", 
+        "@opam-alpha/ounit": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/obus": "*", 
+        "@opam-alpha/ocurl": "*", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/0install"
+    }
+  }
+}

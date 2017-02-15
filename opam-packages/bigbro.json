@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "2.0.4-rev3": {
+      "version": "2.0.4-rev3", 
+      "opam": {
+        "url": "http://cristal.inria.fr/~fpottier/bigbro/bigbro-2.0.4-rev3.tar.gz", 
+        "checksum": "f4f87b505041fe8a79c8c614fa171022", 
+        "files": [
+          {
+            "content": "bin: [\"bigbro\"]\n", 
+            "name": "bigbro.install"
+          }, 
+          {
+            "content": "diff -ru bigbro.2.0.4-rev3/Makefile bigbro.2.0.4-rev3/Makefile\n--- bigbro.2.0.4-rev3/Makefile\t2006-02-13 22:36:08.000000000 +0100\n+++ bigbro.2.0.4-rev3/Makefile\t2012-10-05 18:14:40.413300886 +0200\n@@ -28,10 +28,10 @@\n CAMLC=ocamlfind ocamlc\n CAMLDEP=ocamldep\n CAMLMKTOP=ocamlfind ocamlmktop\n-CAMLP4=camlp4o\n+CAMLP4=camlp5o\n P4INCLUDE:=-I $(shell $(CAMLP4) -where)\n INCLUDE=-package \"unix threads pcre\"\n-COMPFLAGS=-thread -g -pp $(CAMLP4) $(INCLUDE)\n+COMPFLAGS=-thread -g -pp \"$(CAMLP4) -loc _loc\" $(INCLUDE)\n \n # ---------------------------------------------------------------------------------------------------------------------\n # The list of bytecode files to be linked.\n@@ -98,10 +98,10 @@\n # The usual way to compile O'Caml programs.\n \n .generated-dependencies: *.ml *.mli\n-\t$(CAMLC) -pp $(CAMLP4) $(P4INCLUDE) -c $(GRAMMAR).ml\n+\t$(CAMLC) -pp \"$(CAMLP4) -loc _loc\" $(P4INCLUDE) -c $(GRAMMAR).ml\n \trm -rf .generated-dependencies\n \tfor i in *.mli *.ml ; do \\\n-\t\t$(CAMLP4) pr_depend.cmo $$i >> .generated-dependencies; \\\n+\t\t$(CAMLP4) pr_depend.cmo -loc _loc $$i >> .generated-dependencies; \\\n \tdone\n \n ifneq ($(MAKECMDGOALS),clean)\ndiff -ru bigbro.2.0.4-rev3/pcreg.ml bigbro.2.0.4-rev3/pcreg.ml\n--- bigbro.2.0.4-rev3/pcreg.ml\t2006-02-13 22:36:08.000000000 +0100\n+++ bigbro.2.0.4-rev3/pcreg.ml\t2012-10-05 18:14:40.449301975 +0200\n@@ -21,7 +21,7 @@\n (* This function allows registering a new global declaration. It can be called within a grammar rule. *)\n \n let dummy_loc = \n-  Lexing.dummy_pos, Lexing.dummy_pos\n+  Ploc.dummy\n \n let declare (item : MLast.str_item) =\n   globals := (item, dummy_loc) :: !globals\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install PREFIX=$cur__install MANDIR=$cur__man/man1", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bigbro_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bigbro_version": {
+            "scope": "global", 
+            "val": "2.0.4-rev3"
+          }, 
+          "bigbro_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/camlp5": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bigbro"
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "versions": {
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "https://github.com/msimon/the_movie_db/archive/v0.8.tar.gz", 
+        "checksum": "2f8905655b59e704ba20caaca1f91cdb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${ounit_enable:-disable}-utest --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "themoviedb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "themoviedb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "themoviedb_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocsigenserver": "*", 
+        "@opam-alpha/deriving-yojson": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/themoviedb"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/msimon/the_movie_db/archive/v0.8.tar.gz", 
+        "checksum": "2f8905655b59e704ba20caaca1f91cdb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${ounit_enable:-disable}-utest --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "themoviedb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "themoviedb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "themoviedb_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocsigenserver": "*", 
+        "@opam-alpha/deriving-yojson": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/themoviedb"
+    }
+  }
+}

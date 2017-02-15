@@ -1,0 +1,635 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v1.1.0.tar.gz", 
+        "checksum": "92e7f703d58ce1835bfeeed9ec523242", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/bap-callsites": "= 1.1.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bap-demangle": "= 1.1.0", 
+        "@opam-alpha/bap-std": "= 1.1.0", 
+        "@opam-alpha/bap-traces": "= 1.1.0", 
+        "@opam-alpha/bap-c": "= 1.1.0", 
+        "@opam-alpha/bap-abi": "= 1.1.0", 
+        "@opam-alpha/bap-print": "= 1.1.0", 
+        "@opam-alpha/bap-warn-unused": "= 1.1.0", 
+        "@opam-alpha/bap-taint": "= 1.1.0", 
+        "@opam-alpha/bap-objdump": "= 1.1.0", 
+        "@opam-alpha/bap-llvm": "= 1.1.0", 
+        "@opam-alpha/bap-frontc": "= 1.1.0", 
+        "@opam-alpha/bap-dump-symbols": "= 1.1.0", 
+        "@opam-alpha/bap-cache": "= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bap-trace": "= 1.1.0", 
+        "@opam-alpha/bap-arm": "= 1.1.0", 
+        "@opam-alpha/bap-byteweight": "= 1.1.0", 
+        "@opam-alpha/bap-x86": "= 1.1.0", 
+        "@opam-alpha/bap-taint-propagator": "= 1.1.0", 
+        "@opam-alpha/bap-frontend": "= 1.1.0", 
+        "@opam-alpha/bap-api": "= 1.1.0", 
+        "@opam-alpha/bap-symbol-reader": "= 1.1.0", 
+        "@opam-alpha/bap-mc": "= 1.1.0", 
+        "@opam-alpha/bap-term-mapper": "= 1.1.0", 
+        "@opam-alpha/bap-microx": "= 1.1.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.1.tar.gz", 
+        "checksum": "f0e9d067bceb7a9d01eced6668de214c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++`", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "= 1.7.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.2.tar.gz", 
+        "checksum": "5e16b1a878a29802f148b4f4837f3a7e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++`", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "= 1.7.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.3": {
+      "version": "0.9.3", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.3.tar.gz", 
+        "checksum": "2bfc5ee5068e741efab52d6418ad55c6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --enable-docs --docdir=$cur__doc/bap --mandir=$cur__man/bap", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "= 1.7.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.4": {
+      "version": "0.9.4", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.4.tar.gz", 
+        "checksum": "8b7081e41efa7dfdf0f363646ab119ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --enable-docs --docdir=$cur__doc/bap --mandir=$cur__man", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "cp bapbuild $cur__bin/bapbuild", 
+          "cp baptop $cur__bin/baptop", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocurl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.5": {
+      "version": "0.9.5", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.5.tar.gz", 
+        "checksum": "cd93875129d1d2c1f86fa05716c259d5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --enable-docs --docdir=$cur__doc/bap --mandir=$cur__man", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "= 0.9.6", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocurl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.6": {
+      "version": "0.9.6", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.6.tar.gz", 
+        "checksum": "51d81262bf1a78541aff93ccc8f82a11", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --docdir=$cur__doc/bap --mandir=$cur__man", 
+          "make", 
+          "make install", 
+          "bap-byteweight update", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/piqi": "= 0.7.4", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "= 0.9.6", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocurl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.7": {
+      "version": "0.9.7", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.7.tar.gz", 
+        "checksum": "68cef05086f75c4b06105455c3a1372c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --mandir=$cur__man", 
+          "make", 
+          "make install", 
+          "bap-byteweight update", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": "= 111.28.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/piqi": "= 0.7.4", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "= 0.9.6", 
+        "@opam-alpha/uri": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocurl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.01.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.8": {
+      "version": "0.9.8", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.8.tar.gz", 
+        "checksum": "a0a2a91dc1aec506d240e5ac4300b046", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --mandir=$cur__man", 
+          "make", 
+          "make install", 
+          "bap-byteweight update", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": "= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": ">= 111.28.0 < 112.35.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": "= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/piqi": ">= 0.7.4", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": "= 0.9.6", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocurl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "0.9.9": {
+      "version": "0.9.9", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v0.9.9.tar.gz", 
+        "checksum": "38bd9e8790c11707272e5808c97166a1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --with-cxx=`which clang++` --mandir=$cur__man", 
+          "make", 
+          "make install", 
+          "bap-byteweight update", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "0.9.9"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ezjsonm": ">= 0.4.0", 
+        "@opam-alpha/faillib": "*", 
+        "@opam-alpha/core_kernel": ">= 111.28.0 <= 112.35.0", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/utop": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/cohttp": ">= 0.15.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0 < 0.4.7", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/piqi": ">= 0.7.4", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cmdliner": ">= 0.9.6", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocurl": "<= 0.7.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/bap"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/BinaryAnalysisPlatform/bap/archive/v1.0.0.tar.gz", 
+        "checksum": "07dce66dd871e448652d8885283c6631", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bap_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/bap-callsites": "= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bap-demangle": "= 1.0.0", 
+        "@opam-alpha/bap-std": "= 1.0.0", 
+        "@opam-alpha/bap-traces": "= 1.0.0", 
+        "@opam-alpha/bap-c": "= 1.0.0", 
+        "@opam-alpha/bap-abi": "= 1.0.0", 
+        "@opam-alpha/bap-print": "= 1.0.0", 
+        "@opam-alpha/bap-warn-unused": "= 1.0.0", 
+        "@opam-alpha/bap-taint": "= 1.0.0", 
+        "@opam-alpha/bap-objdump": "= 1.0.0", 
+        "@opam-alpha/bap-llvm": "= 1.0.0", 
+        "@opam-alpha/bap-frontc": "= 1.0.0", 
+        "@opam-alpha/bap-dump-symbols": "= 1.0.0", 
+        "@opam-alpha/bap-cache": "= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/bap-trace": "= 1.0.0", 
+        "@opam-alpha/bap-arm": "= 1.0.0", 
+        "@opam-alpha/bap-byteweight": "= 1.0.0", 
+        "@opam-alpha/bap-x86": "= 1.0.0", 
+        "@opam-alpha/bap-taint-propagator": "= 1.0.0", 
+        "@opam-alpha/bap-frontend": "= 1.0.0", 
+        "@opam-alpha/bap-api": "= 1.0.0", 
+        "@opam-alpha/bap-symbol-reader": "= 1.0.0", 
+        "@opam-alpha/bap-mc": "= 1.0.0", 
+        "@opam-alpha/bap-term-mapper": "= 1.0.0", 
+        "@opam-alpha/bap-microx": "= 1.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/bap"
+    }
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ojs-base/ojs-base-0.1.0.tar.gz", 
+        "checksum": "350993860f89177bb4db86b3247fab95", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojs_base_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ojs_base_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ojs_base_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 0.8.1", 
+        "@opam-alpha/yojson": ">= 1.1.8", 
+        "@opam-alpha/js_of_ocaml": ">= 2.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 1.1.0 < 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.6", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ojs-base"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ojs-base/ojs-base-0.4.0.tar.gz", 
+        "checksum": "2761e50b1bea173dbf6c0c95678c76a9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojs_base_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "ojs_base_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ojs_base_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 2.1.0", 
+        "@opam-alpha/yojson": ">= 1.1.8", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.18.2", 
+        "@opam-alpha/magic-mime": ">= 1.0.0", 
+        "@opam-alpha/xtmpl": ">= 0.13.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base64": ">= 2.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ojs-base"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ojs-base/ojs-base-0.3.0.tar.gz", 
+        "checksum": "6075c2d55eaac6d1121085923bd73b4e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojs_base_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ojs_base_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ojs_base_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 2.1.0", 
+        "@opam-alpha/yojson": ">= 1.1.8", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.18.2", 
+        "@opam-alpha/magic-mime": ">= 1.0.0", 
+        "@opam-alpha/xtmpl": ">= 0.12.0 < 0.13.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base64": ">= 2.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ojs-base"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://zoggy.github.io/ojs-base/ojs-base-0.5.0.tar.gz", 
+        "checksum": "7e01fb0baa6d7f16551e4a901fc5fff7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojs_base_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "ojs_base_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ojs_base_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 2.6.0", 
+        "@opam-alpha/yojson": ">= 1.1.8", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.19.3", 
+        "@opam-alpha/magic-mime": ">= 1.0.0", 
+        "@opam-alpha/xtmpl": ">= 0.15.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base64": ">= 2.0.0", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ojs-base"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ojs-base/ojs-base-0.2.0.tar.gz", 
+        "checksum": "23e81210cba9f43542884e99ba8857b8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojs_base_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "ojs_base_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ojs_base_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 0.8.1", 
+        "@opam-alpha/yojson": ">= 1.1.8", 
+        "@opam-alpha/js_of_ocaml": ">= 2.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.6", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ojs-base"
+    }
+  }
+}

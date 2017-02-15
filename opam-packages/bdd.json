@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://www.lri.fr/~filliatr/ftp/ocaml/bdd/bdd-0.3.tar.gz", 
+        "checksum": "56834a743f15b1569712125660aa4af4", 
+        "files": [
+          {
+            "content": "Name: BDD\nVersion: 0.3\nAuthors: Jean-Christophe Filliatre\nLicense: GPL\nSynopsis: quick implementation of a Binary Decision Diagrams (BDD) library\nobuild-ver: 1\n\nlibrary bdd\n  oflags: -annot -w +27 -warn-error +8\n  modules: Bdd\n  src-dir: .\n\n# executable check\n#   oflags: -annot -w +27 -warn-error +8\n#   src-dir: .\n#   main-is: check.ml\n\n# executable bench\n#   oflags: -annot -w +27 -warn-error +8\n#   src-dir: .\n#   main-is: bench_prop.ml\n\n# executable sat\n#   oflags: -annot -w +27 -warn-error +8\n#   src-dir: .\n#   main-is: bdd_sat.ml\n#   build-deps: unix\n\n# executable queen\n#   oflags: -annot -w +27 -warn-error +8\n#   src-dir: .\n#   main-is: queen.ml\n", 
+            "name": "bdd.obuild"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "obuild configure", 
+          "obuild build", 
+          "obuild install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bdd_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "bdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/obuild": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bdd"
+    }
+  }
+}

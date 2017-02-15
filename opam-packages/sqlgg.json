@@ -1,0 +1,148 @@
+{
+  "versions": {
+    "0.2.5": {
+      "version": "0.2.5", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/sqlgg/sqlgg-0.2.5.tar.gz", 
+        "checksum": "6d0076ab3b7c655a188e93db8c424304", 
+        "files": [
+          {
+            "content": "bin: [\"src/_build/sqlgg.byte\" {\"sqlgg\"}]\n", 
+            "name": "sqlgg.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sqlgg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sqlgg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sqlgg_version": {
+            "scope": "global", 
+            "val": "0.2.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/deriving": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sqlgg"
+    }, 
+    "0.2.4": {
+      "version": "0.2.4", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/sqlgg/sqlgg-0.2.4.tar.gz", 
+        "checksum": "776e54a1f33b1a94490583d73b07465a", 
+        "files": [
+          {
+            "content": "bin: [\"src/_build/sqlgg.byte\" {\"sqlgg\"}]\n", 
+            "name": "sqlgg.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sqlgg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sqlgg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sqlgg_version": {
+            "scope": "global", 
+            "val": "0.2.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/deriving": "*", 
+        "@opam-alpha/ounit": "< 2.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sqlgg"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/sqlgg/sqlgg-0.3.0.tar.gz", 
+        "checksum": "d2cad313ad67365e86e6a7e85f002216", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sqlgg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sqlgg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sqlgg_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/deriving": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/extlib-compat": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sqlgg"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "versions": {
+    "1.1.2": {
+      "version": "1.1.2", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/886/ounit-1.1.2.tar.gz", 
+        "checksum": "14e4d8ee551004dbcc1607f438ef7d83", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ounit_version": {
+            "scope": "global", 
+            "val": "1.1.2"
+          }, 
+          "ounit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ounit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ounit"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1258/ounit-2.0.0.tar.gz", 
+        "checksum": "2e0a24648c55005978d4923eb4925b28", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ounit_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "ounit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ounit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ounit"
+    }
+  }
+}

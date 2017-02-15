@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://github.com/OCamlPro/typerex-system/archive/1.0.tar.gz", 
+        "checksum": "f30e5b32b60685121a858cbd1f70e630", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --with-ocamldir=$cur__install/lib --with-metadir=$cur__install/lib", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerex_system_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "typerex_system_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "typerex_system_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/typerex-clibs": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocp-build": ">= 1.99.17"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/typerex-system"
+    }
+  }
+}

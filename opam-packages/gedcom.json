@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/sagotch/gedcom.ml/archive/v1.0.0.tar.gz", 
+        "checksum": "ec7976dadcdbb807c8a3f17540ab5131", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src/ build", 
+          "make -C src/ install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gedcom_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gedcom_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "gedcom_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/gedcom"
+    }
+  }
+}

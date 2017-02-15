@@ -1,0 +1,118 @@
+{
+  "versions": {
+    "0.93.2": {
+      "version": "0.93.2", 
+      "opam": {
+        "url": "https://github.com/mlin/twt/archive/v0.93.2.tar.gz", 
+        "checksum": "c32680fee22207efda24500180c7fc0d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_twt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_twt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_twt_version": {
+            "scope": "global", 
+            "val": "0.93.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-twt"
+    }, 
+    "0.94.0": {
+      "version": "0.94.0", 
+      "opam": {
+        "url": "https://github.com/mlin/twt/archive/v0.94.0.tar.gz", 
+        "checksum": "1e7eba2b15defe01d383e2ebfdae0893", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_twt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_twt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_twt_version": {
+            "scope": "global", 
+            "val": "0.94.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-twt"
+    }, 
+    "0.93.0": {
+      "version": "0.93.0", 
+      "opam": {
+        "url": "http://github.com/mlin/twt/tarball/v0.93.1", 
+        "checksum": "c0d88ff49ec3ea48475aed67bcaeff75", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_twt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_twt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_twt_version": {
+            "scope": "global", 
+            "val": "0.93.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-twt"
+    }
+  }
+}

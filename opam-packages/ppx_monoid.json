@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/bobatkey/ppx-monoid/archive/0.1.zip", 
+        "checksum": "010f9d8ea76a5272b7fd34800e6cd1c3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_monoid_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_monoid_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_monoid_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_monoid"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/bobatkey/ppx-monoid/archive/0.2.zip", 
+        "checksum": "7ea2104cd9ab0be870340a54e367e5e7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_monoid_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_monoid_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_monoid_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.2"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_monoid"
+    }
+  }
+}

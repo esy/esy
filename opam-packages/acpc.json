@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "1.2.2": {
+      "version": "1.2.2", 
+      "opam": {
+        "url": "https://github.com/UnixJunkie/ACPC/archive/v1.2.2.tar.gz", 
+        "checksum": "496e6f17cc60935205c8353d02b5ccde", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "obuild configure", 
+          "obuild build", 
+          "cp dist/build/acpc/acpc dist/build/acpc_par/acpc_par dist/build/acpc_consrank/acpc_consrank dist/build/acpc_scorer/acpc_scorer dist/build/acpc_ertool/acpc_ertool dist/build/acpc_auctool/acpc_auctool dist/build/acpc_mol2reader/acpc_mol2reader dist/build/acpc_codec/acpc_codec dist/build/acpc_mol2tool/acpc_mol2tool dist/build/acpc_pqrtool/acpc_pqrtool dist/build/acpc_pltool/acpc_pltool $cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "acpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "acpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "acpc_version": {
+            "scope": "global", 
+            "val": "1.2.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lacc": "*", 
+        "@opam-alpha/dolog": "> 0.6.0", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/conf-gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/obuild": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/itv-tree": "*", 
+        "@opam-alpha/parmap": "*", 
+        "@opam-alpha/batteries": "*", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "@opam-alpha/vector3": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/acpc"
+    }
+  }
+}

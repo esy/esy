@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "109.38.alpha1": {
+      "version": "109.38.alpha1", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/alpha-packages/109.38.alpha1/individual/lz4-109.38.alpha1.tar.gz", 
+        "checksum": "15c6a257035928b8b65d8c84771d7feb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "js_lz4_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "js_lz4_version": {
+            "scope": "global", 
+            "val": "109.38.alpha1"
+          }, 
+          "js_lz4_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.36.00 <= 109.53.00", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/core": ">= 109.38.00 <= 111.21.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/js-lz4"
+    }
+  }
+}

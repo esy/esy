@@ -1,0 +1,326 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.3.tar.gz", 
+        "checksum": "5b38b1d3dbb94262a6c0ad731900d750", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.3.1.tar.gz", 
+        "checksum": "4593fb543801cd089194680d432bc8a9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.4.1.tar.gz", 
+        "checksum": "149f1150c67025b9b219ad8d5ef9341f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.2.tar.gz", 
+        "checksum": "37aca35052b69db16f70e6663802a213", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.1.tar.gz", 
+        "checksum": "9d4cc94bb277665c41d2319ab14ec6ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.4.tar.gz", 
+        "checksum": "bf6c9ca945e29cc4d5dc05662499b89f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.5.tar.gz", 
+        "checksum": "383a0589cca14bccda4586564acca263", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin --docdir $cur__doc", 
+          "make all install_file", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/datalog/archive/0.5.1.tar.gz", 
+        "checksum": "73edeb1cc13db48c19cab9a8c50b5c79", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin --docdir $cur__doc/datalog/", 
+          "make all install_file doc man", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datalog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datalog_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }, 
+          "datalog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/datalog"
+    }
+  }
+}

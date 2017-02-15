@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/tel/ocaml-fstreams/archive/0.2.1.tar.gz", 
+        "checksum": "3564f973697f3ba032d39e02db56e8ba", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fstreams_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "fstreams_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fstreams_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fstreams"
+    }
+  }
+}

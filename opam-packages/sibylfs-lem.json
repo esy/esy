@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://bitbucket.org/dsheets/lem/get/0.4.0.tar.gz", 
+        "checksum": "9306b3bdc99638d5895156c840033b86", 
+        "files": [
+          {
+            "content": "#!/bin/sh -ex\n\necho \"bin: [\"                                  > sibylfs-lem.install\necho \"  \\\"src/main.native\\\" {\\\"lem\\\"}\"        >> sibylfs-lem.install\nprintf \"]\\nlib: [\\n\"                          >> sibylfs-lem.install\n\nls -1 library/*.* hol-lib/*.* isabelle-lib/*.* coq-lib/*.* ocaml-lib/*.* \\\n| sed -e \"s/\\\\(.*\\\\)/  \\\"\\1\\\" \\{ \\\"\\1\\\" \\}/\"  >> sibylfs-lem.install\necho \"]\"                                      >> sibylfs-lem.install\n", 
+            "name": "generate_install_manifest.sh"
+          }, 
+          {
+            "content": "#!/bin/sh -ex\n\nocamlfind install sibylfs-lem ocaml-lib/META \\\n  ocaml-lib/_build/extract.a \\\n  ocaml-lib/_build/extract.cma \\\n  ocaml-lib/_build/extract.cmxa \\\n  ocaml-lib/_build/*.mli \\\n  ocaml-lib/_build/*.cmi\n", 
+            "name": "ocamlfind_install.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -e", 
+          "make ocaml-libs", 
+          "make coq-libs", 
+          "sh -ex ./generate_install_manifest.sh", 
+          "sh -ex ./ocamlfind_install.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sibylfs_lem_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "sibylfs_lem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sibylfs_lem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/coq": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sibylfs-lem"
+    }
+  }
+}

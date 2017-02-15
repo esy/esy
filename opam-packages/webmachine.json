@@ -1,0 +1,496 @@
+{
+  "versions": {
+    "0.3.2": {
+      "version": "0.3.2", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.3.2.tar.gz", 
+        "checksum": "9eaef8a4ed3dd13aa8e5a8363b81b339", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.3.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": ">= 0.3.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.3.0.tar.gz", 
+        "checksum": "00f6a619231a2b6ac9276ed58e9d743d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": ">= 0.3.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.3.1.tar.gz", 
+        "checksum": "54999011dc5b7872395dfec8cc5770ad", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": ">= 0.3.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.2.4": {
+      "version": "0.2.4", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.2.4.tar.gz", 
+        "checksum": "e64b742e3cc32a1406e278d8a0273f46", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.2.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": ">= 0.3.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.2.3": {
+      "version": "0.2.3", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.2.3.tar.gz", 
+        "checksum": "a228d587dfa545fd79a0d67fc28d4917", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.2.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": ">= 0.3.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.2.2": {
+      "version": "0.2.2", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.2.2.tar.gz", 
+        "checksum": "ba99a7b66803e0d726ca263e98e71a7a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.2.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": "= 0.2.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.2.1.tar.gz", 
+        "checksum": "52ea3d2709629e5deccbc30d224a073d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": "= 0.2.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.2.0.tar.gz", 
+        "checksum": "f1a5124f3f2b6666442df6340748d2a3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/dispatch": "< 0.2.0", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.1.0.tar.gz", 
+        "checksum": "dae09666b75ee036e9a01257835cf5b2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.1.1.tar.gz", 
+        "checksum": "a56ae76d547b77f275ec7ac0a1b4bcbf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-webmachine/archive/0.1.2.tar.gz", 
+        "checksum": "f806af6419ed826f71e218e2d0592d23", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webmachine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webmachine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "webmachine_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.3.0", 
+        "@opam-alpha/ounit": ">= 1.0.2", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webmachine"
+    }
+  }
+}

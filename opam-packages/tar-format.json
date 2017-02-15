@@ -1,0 +1,531 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.6.0.tar.gz", 
+        "checksum": "95bd70a1a61b0e9fc95af83bcc51b0bb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/0.3.0.tar.gz", 
+        "checksum": "efe2d24c3b5aba013e6bfd602b6a7b37", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0 < 2.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/0.2.0.tar.gz", 
+        "checksum": "f8a9e01165f63f1cbcf49023816d0699", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0 < 2.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.6.1.tar.gz", 
+        "checksum": "bc6475a9ece5d914213e1d2275667418", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/0.2.1.tar.gz", 
+        "checksum": "29e4617c2ee177b921086edce28910ac", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0 < 2.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.4.0.tar.gz", 
+        "checksum": "ccd03014845ab9264ac98f24df617d9a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_enable:-disable}-mirage --${ounit_enable:-disable}-tests", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.6.0 < 2.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-types": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.4.1.tar.gz", 
+        "checksum": "0af2219c4f5cacf9a2d51ee84a983c2e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 0.6.0 < 2.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/0.1.1.tar.gz", 
+        "checksum": "8f097a4b13bcff4dc0c97cb4faf20ead", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.4.2.tar.gz", 
+        "checksum": "4ac2ead30f94db430682d9cb70fcff76", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 0.6.0 <= 1.9.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.5.0.tar.gz", 
+        "checksum": "e3f9c2396ee47785c096c978cd987b6c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-tar/archive/v0.5.1.tar.gz", 
+        "checksum": "4919ee2ed71b8a889e778abd9945a181", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwtunix --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tar_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tar_format_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }, 
+          "tar_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-block-unix": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tar-format"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "versions": {
+    "6.0.0": {
+      "version": "6.0.0", 
+      "opam": {
+        "url": "https://gmplib.org/download/gmp/gmp-6.0.0a.tar.xz", 
+        "checksum": "1e6da4e434553d2811437aa42c7f7c76", 
+        "files": [
+          {
+            "content": "--- gmp-6.0.0.orig.orig/config.guess\t2014-03-25 14:37:55.000000000 +0000\n+++ gmp-6.0.0.orig/config.guess\t2014-09-16 15:46:57.457485087 +0000\n@@ -173,7 +173,7 @@\n   ;;\n \n arm*-*-*)\n-  cpu_code=`sed -n 's/^CPU part.*\\(0x.*\\)$/\\1/p' /proc/cpuinfo 2>/dev/null`\n+  cpu_code=`sed -n 's/^CPU part.*\\(0x.*\\)$/\\1/p' /proc/cpuinfo | head -1 2>/dev/null`\n   case \"$cpu_code\" in\n       0xa10 | 0xa11 | 0xb11)\t\t\t# v4 strongarm/sa1100\n \t\texact_cpu=\"armsa1\";;\n@@ -200,7 +200,7 @@\n       0xc15)\texact_cpu=\"armcortexr5\";;\t# v7r\n       0xc23)\texact_cpu=\"armcortexm3\";;\t# v7m\n   esac\n-  exact_cpu=\"${exact_cpu}`sed -n 's;^Features.*\\(neon\\).*;\\1;p' /proc/cpuinfo 2>/dev/null`\"\n+  exact_cpu=\"${exact_cpu}`sed -n 's;^Features.*\\(neon\\).*;\\1;p' /proc/cpuinfo | head -1 2>/dev/null`\"\n   ;;\n \n ia64*-*-*)\n", 
+            "name": "gmp-6a.diff"
+          }, 
+          {
+            "content": "libdir=${pcfiledir}/../gmp-xen\nincludedir=${libdir}/include\n\nName: gmp-xen\nVersion: 6.0.0\nURL: https://gmplib.org\nDescription: The GNU Multiple Precision Arithmetic Library\nCflags: -I${includedir}\nLibs: -L${libdir} -lgmp-xen\n", 
+            "name": "gmp-xen.pc"
+          }, 
+          {
+            "content": "#!/bin/sh -ex\nif [ -z \"$PREFIX\" ]; then\n\tPREFIX=\"`opam config var prefix`/lib/gmp-xen\"\nfi\n\nPKG_CONFIG_DEPS=\"mirage-xen-posix\"\ncheck_deps () {\n  pkg-config --print-errors --exists ${PKG_CONFIG_DEPS}\n}\n\nif ! check_deps 2>/dev/null; then\n  # rely on `opam` if deps are unavailable\n  export PKG_CONFIG_PATH=\"`opam config var prefix`/lib/pkgconfig\"\nfi\ncheck_deps || exit 1\n\nCPPFLAGS=\"$CPPFLAGS `pkg-config $PKG_CONFIG_DEPS --cflags` -O2 -pedantic -fomit-frame-pointer -fno-builtin -D_FORTIFY_SOURCE=0 -Wmissing-prototypes --std=gnu99\"\n# Use different --host and --build to trigger cross-compilation mode (don't try to test binaries during configure)\n# Set CC to stop it trying to find a separate compiler for HOST.\n# Pass CPPFLAGS (not just CFLAGS) to stop it finding the Linux headers (just generates warnings).\n# Use -Werror=missing-prototypes because we're not running the tests due to cross-compiling.\nHOST=\"`uname -m`-unknown-none\"\nBUILD=`./config.guess`\n./configure --host=\"$HOST\" --build=\"$BUILD\" --enable-fat CC=gcc --prefix=\"$PREFIX\" --disable-shared CPPFLAGS=\"$CPPFLAGS\"\n# Because we're cross-compiling, configurate can't tell whether a function\n# actually exists and just assumes they all do. For localeconv, this is wrong.\nsed -e '/HAVE_LOCALECONV/d'  \\\n    -e '/HAVE_OBSTACK_VPRINTF/d'\\\n    -i config.status\n./config.status\nmake\n", 
+            "name": "mirage-build.sh"
+          }, 
+          {
+            "content": "#!/bin/sh -ex\nif [ -z \"$PREFIX\" ]; then\n\tPREFIX=`opam config var prefix`\nfi\nLIBDIR=\"$PREFIX/lib/gmp-xen\"\nPKG_CONFIG_PATH=\"$PREFIX/lib/pkgconfig\"\nexport PKG_CONFIG_PATH\n\nmake install\nmkdir -p \"$PKG_CONFIG_PATH\"\ncp gmp-xen.pc \"$PKG_CONFIG_PATH/\"\nmkdir -p \"$LIBDIR\"\ncp .libs/libgmp.a \"$LIBDIR/libgmp-xen.a\"\n", 
+            "name": "mirage-install.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -ex ./mirage-build.sh", 
+          "sh -ex ./mirage-install.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gmp_xen_version": {
+            "scope": "global", 
+            "val": "6.0.0"
+          }, 
+          "gmp_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "gmp_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen-posix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gmp-xen"
+    }
+  }
+}

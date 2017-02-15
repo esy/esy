@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#!/bin/sh\n\n# if LLVM_CONFIG variable doesn't explicitly specify which llvm-config\n# we should use, then we will search across all possible llvm-configs\n# that might work for us.  Our search strategy is to try to pick up\n# 3.4, then 3.8, and, if neither found, fallback to any llvm-config.\n#\n# Note1 - suffix `-mp-` stands for macports, and will work on macs\n# ifused with macports.\n#\n# Note2 - the LLVM_CONFIG variable is a fallback for debugging or\n# workarounds. The recommended way to install a desired <version> of\n# llvm is to use `llvm-conf.<version>` package.\n\n\nconfigs=\"llvm-config-3.4 llvm-config-mp-3.4 llvm-config-3.8 llvm-config-mp-3.8 llvm-config\"\nconfig=${LLVM_CONFIG}\n\n\nif ! which \"$config\"; then\n    for c in $configs; do\n        if which $c; then\n            config=$c\n            break\n        fi\n    done\nfi\n\nif ! which \"$config\" ; then\n    exit 1\nelse\n    version=`$config --version`\nfi\n\ncat > conf-bap-llvm.config <<EOF\nconfig: \"$config\"\nversion: \"$version\"\nEOF\n", 
+            "name": "configure"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -x configure os", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_bap_llvm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_bap_llvm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "conf_bap_llvm_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-which": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-bap-llvm"
+    }
+  }
+}

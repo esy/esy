@@ -1,0 +1,101 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/hammerlab/hlarp/archive/0.0.1.tar.gz", 
+        "checksum": "dac2b38bbd475533593422a2b0726ef9", 
+        "files": [
+          {
+            "content": "bin: [\n     \"hlarp\"\n]", 
+            "name": "hlarp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hlarp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hlarp_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "hlarp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/nonstd": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/hlarp"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/hammerlab/hlarp/archive/0.0.2.tar.gz", 
+        "checksum": "ec60ea38f2624aa513a32484aa1aca8e", 
+        "files": [
+          {
+            "content": "bin: [\n     \"hlarp\"\n]", 
+            "name": "hlarp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hlarp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hlarp_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "hlarp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/nonstd": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/hlarp"
+    }
+  }
+}

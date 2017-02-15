@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "1.9.0": {
+      "version": "1.9.0", 
+      "opam": {
+        "url": "https://github.com/diml/lambda-term/archive/1.9.tar.gz", 
+        "checksum": "17a9f8b56f9a10a7ed4cfa48ae6c3e39", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/tools/lambda_term_actions.byte\" {\"lambda-term-actions\"}\n  \"?_build/tools/lambda_term_actions.native\" {\"lambda-term-actions\"}\n]\n", 
+            "name": "lambda-term.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_lambda_term__lib/lambda-term:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "lambda_term_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lambda_term_version": {
+            "scope": "global", 
+            "val": "1.9.0"
+          }, 
+          "lambda_term_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/react": ">= 1.0.0", 
+        "@opam-alpha/zed": ">= 1.2.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/lambda-term"
+    }
+  }
+}

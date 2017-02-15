@@ -1,0 +1,65 @@
+{
+  "versions": {
+    "0.9.44.1": {
+      "version": "0.9.44.1", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xenopsd/archive/v0.9.44.1.tar.gz", 
+        "checksum": "8c7a018f9553765b486de37a60c691f4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --bindir $cur__bin --sbindir $cur__bin --libexecdir $cur__bin --scriptsdir $cur__bin --etcdir $cur__install/etc --mandir $cur__man", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_xenopsd_version": {
+            "scope": "global", 
+            "val": "0.9.44.1"
+          }, 
+          "xapi_xenopsd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_xenopsd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/fd-send-recv": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/xenctrl": ">= 0.9.25", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/libvirt": "*", 
+        "@opam-alpha/xapi-idl": "= 0.9.19", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "@opam-alpha/oclock": "*", 
+        "@opam-alpha/xapi-forkexecd": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/oasis": "*", 
+        "@opam-alpha/qmp": "*", 
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xapi-inventory": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/uri": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/xapi-xenopsd"
+    }
+  }
+}

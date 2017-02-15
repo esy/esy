@@ -1,0 +1,111 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://bisect.x9c.fr/distrib/bisect-1.1.tar.gz", 
+        "checksum": "6e4be9696c902f74908fd835a84353e9", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/src/report/report.native\" {\"bisect-report.opt\"}\n  \"_build/src/report/report.byte\" {\"bisect-report\"}\n]\n", 
+            "name": "bisect.install"
+          }, 
+          {
+            "content": "diff -ru bisect.1.1/Makefile bisect.1.1/Makefile\n--- bisect.1.1/Makefile\t2011-02-12 14:40:23.000000000 +0100\n+++ bisect.1.1/Makefile\t2012-10-05 18:14:41.313328109 +0200\n@@ -31,7 +31,7 @@\n # DEFINITIONS\n \n PROJECT_NAME=bisect\n-OCAMLBUILD=$(PATH_OCAML_PREFIX)/bin/ocamlbuild\n+OCAMLBUILD=ocamlbuild\n OCAMLBUILD_FLAGS=-classic-display -no-links\n MODULES_ODOCL=$(PROJECT_NAME).odocl\n MODULES_MLPACK=$(PROJECT_NAME).mlpack\n@@ -75,7 +75,7 @@\n \n install: all\n \tcp $(PATH_BUILD)/src/report/report.byte $(PATH_OCAML_PREFIX)/bin/bisect-report; \\\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && cp $(PATH_BUILD)/src/report/report.native $(PATH_OCAML_PREFIX)/bin/bisect-report.opt || true); \\\n+\t(which ocamlopt && cp $(PATH_BUILD)/src/report/report.native $(PATH_OCAML_PREFIX)/bin/bisect-report.opt || true); \\\n \tif [ -x \"$(PATH_OCAMLFIND)\" ]; then \\\n \t  $(PATH_OCAMLFIND) query $(PROJECT_NAME) && $(PATH_OCAMLFIND) remove $(PROJECT_NAME) || true; \\\n \t  $(PATH_OCAMLFIND) install $(PROJECT_NAME) META -optional \\\n@@ -101,7 +101,7 @@\n \n generate: FORCE\n \techo '$(PROJECT_NAME).cma' > $(PROJECT_NAME).itarget\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamljava && echo '$(PROJECT_NAME).cmja' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamljava && echo '$(PROJECT_NAME).cmja' >> $(PROJECT_NAME).itarget) || true\n \n FORCE:\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh configure -ocaml-prefix $cur__install -ocamlfind $cur__bin/ocamlfind", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bisect_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bisect_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "bisect_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/bisect"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "http://bisect.x9c.fr/distrib/bisect-1.3.tar.gz", 
+        "checksum": "8481342a3d9f17d5502bc84c04c206e3", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/src/report/report.native\" {\"bisect-report.opt\"}\n  \"_build/src/report/report.byte\" {\"bisect-report\"}\n]\n", 
+            "name": "bisect.install"
+          }, 
+          {
+            "content": "diff --git a/Makefile b/Makefile\nindex 4a8ce17..3a184a1 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -89,10 +89,11 @@ install: FORCE\n \t  $(PATH_OCAMLFIND) query $(PROJECT_NAME) && $(PATH_OCAMLFIND) remove $(PROJECT_NAME) || true; \\\n \t  $(PATH_OCAMLFIND) install $(PROJECT_NAME) META -optional \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME)_pp.cmo \\\n-\t    $(PATH_BUILD)/src/$(PROJECT_NAME)Thread.cm* \\\n-\t    $(PATH_BUILD)/src/$(PROJECT_NAME)Thread.o \\\n-\t    $(PATH_BUILD)/src/$(PROJECT_NAME)Thread.jo \\\n+\t    $(PATH_BUILD)/src/threads/$(PROJECT_NAME)Thread.cm* \\\n+\t    $(PATH_BUILD)/src/threads/$(PROJECT_NAME)Thread.o \\\n+\t    $(PATH_BUILD)/src/threads/$(PROJECT_NAME)Thread.jo \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).a \\\n+\t    $(PATH_BUILD)/$(PROJECT_NAME).o \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).cma \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).cmi \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).cmo \\\n@@ -106,7 +107,7 @@ install: FORCE\n \t    cp $(PATH_BUILD)/$(PROJECT_NAME)_pp.cmo $(PATH_INSTALL); \\\n \t  fi; \\\n \t  for ext in cmi cmo cmx o cmj jo; do \\\n-\t    test -f $(PATH_BUILD)/src/$(PROJECT_NAME)Thread.$$ext && cp $(PATH_BUILD)/src/$(PROJECT_NAME)Thread.$$ext $(PATH_INSTALL) || true; \\\n+\t    test -f $(PATH_BUILD)/src/threads/$(PROJECT_NAME)Thread.$$ext && cp $(PATH_BUILD)/src/threads/$(PROJECT_NAME)Thread.$$ext $(PATH_INSTALL) || true; \\\n \t  done; \\\n \t  for ext in a cmi cmo cmx cma cmxa cmja ja; do \\\n \t    test -f $(PATH_BUILD)/$(PROJECT_NAME).$$ext && cp $(PATH_BUILD)/$(PROJECT_NAME).$$ext $(PATH_INSTALL) || true; \\\n", 
+            "name": "install-thread.patch"
+          }, 
+          {
+            "content": "diff --git a/Makefile b/Makefile\nindex b86448a..81e29a0 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -31,7 +31,7 @@ PATH_INSTALL=$(PATH_OCAML_PREFIX)/lib/ocaml/bisect\n # DEFINITIONS\n \n PROJECT_NAME=bisect\n-OCAMLBUILD=$(PATH_OCAML_PREFIX)/bin/ocamlbuild\n+OCAMLBUILD=ocamlbuild\n OCAMLBUILD_ENV=WARNINGS=$(WARNINGS) PATH_OCAML_PREFIX=$(PATH_OCAML_PREFIX)\n OCAMLBUILD_FLAGS=-classic-display -no-links\n MODULES_ODOCL=$(PROJECT_NAME).odocl\n@@ -84,7 +84,7 @@ install: FORCE\n \tif [ \"$(PPX)\" = \"TRUE\" ]; then \\\n \t  cp $(PATH_BUILD)/src/syntax/bisect_ppx.byte $(PATH_OCAML_PREFIX)/bin; \\\n \tfi; \\\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && cp $(PATH_BUILD)/src/report/report.native $(PATH_OCAML_PREFIX)/bin/bisect-report.opt || true); \\\n+\t(which ocamlopt && cp $(PATH_BUILD)/src/report/report.native $(PATH_OCAML_PREFIX)/bin/bisect-report.opt || true); \\\n \tif [ -x \"$(PATH_OCAMLFIND)\" ]; then \\\n \t  $(PATH_OCAMLFIND) query $(PROJECT_NAME) && $(PATH_OCAMLFIND) remove $(PROJECT_NAME) || true; \\\n \t  $(PATH_OCAMLFIND) install $(PROJECT_NAME) META -optional \\\n@@ -115,7 +115,7 @@ install: FORCE\n \n generate: FORCE\n \techo '$(PROJECT_NAME).cma' > $(PROJECT_NAME).itarget\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamljava && echo '$(PROJECT_NAME).cmja' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n+\t(which ocamljava && echo '$(PROJECT_NAME).cmja' >> $(PROJECT_NAME).itarget) || true\n \n FORCE:\ndiff --git a/myocamlbuild.ml b/myocamlbuild.ml\nindex 8aa25fd..2ef7428 100644\n--- a/myocamlbuild.ml\n+++ b/myocamlbuild.ml\n@@ -68,11 +68,7 @@ let () =\n     cp src dst in\n   dispatch begin function\n     | After_rules ->\n-        let camlp4of =\n-          try\n-            let path_bin = Filename.concat (Sys.getenv \"PATH_OCAML_PREFIX\") \"bin\" in\n-            Filename.concat path_bin \"camlp4of\"\n-          with _ -> \"camlp4of\" in\n+        let camlp4of = \"camlp4of\" in\n         flag [\"ocaml\"; \"compile\"; \"pp_camlp4of\"] (S[A\"-pp\"; A camlp4of]);\n         flag [\"ocaml\"; \"pp:dep\"; \"pp_camlp4of\"] (S[A camlp4of]);\n         flag [\"ocaml\"; \"compile\"; \"use_compiler_libs\"] (S[A\"-I\"; A\"+compiler-libs\"]);\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh configure -ocaml-prefix $cur__install -ocamlfind $cur__bin/ocamlfind", 
+          "sh configure -ocaml-prefix $cur__install -ocamlfind $cur__bin/ocamlfind -ppx", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bisect_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bisect_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "bisect_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bisect"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/xguerin/netml/archive/v0.1.0.tar.gz", 
+        "checksum": "048962205912576e5cd30a20b3fded63", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "netml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "netml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "netml_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/ppx_deriving_yojson": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": "*", 
+        "@opam-alpha/core": "*", 
+        "@opam-alpha/ppx_bitstring": ">= 1.3.1", 
+        "@opam-alpha/js-build-tools": "*", 
+        "@opam-alpha/bitstring": ">= 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/netml"
+    }
+  }
+}

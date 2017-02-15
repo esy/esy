@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "20120615.0.0": {
+      "version": "20120615.0.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/896/ocaml-getopt-20120615.tar.gz", 
+        "checksum": "ebd953313fa183d596704e41b90178ee", 
+        "files": [
+          {
+            "content": "bin: [\"_build/sample.byte\" {\"getopt-sample\"}]\n", 
+            "name": "getopt.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "getopt_version": {
+            "scope": "global", 
+            "val": "20120615.0.0"
+          }, 
+          "getopt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "getopt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/getopt"
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/900/ocaml-markdown-0.1.0.tar.gz", 
+        "checksum": "49486e7285bd1a6abc62b3e24680c50a", 
+        "files": [
+          {
+            "content": "diff -ru ocaml-markdown.0.1.0/_oasis ocaml-markdown.0.1.0/_oasis\n--- ocaml-markdown.0.1.0/_oasis\t2012-06-15 20:37:55.000000000 +0200\n+++ ocaml-markdown.0.1.0/_oasis\t2012-10-05 18:14:56.449785619 +0200\n@@ -20,7 +20,7 @@\n   FindlibParent: markdown\n   Path:          src\n   Modules:       MarkdownHTML\n-  BuildDepends:  markdown, ocsigen.xhtml\n+  BuildDepends:  markdown, tyxml\n   \n Executable test\n   Path:         test\ndiff -ru ocaml-markdown.0.1.0/setup.ml ocaml-markdown.0.1.0/setup.ml\n--- ocaml-markdown.0.1.0/setup.ml\t2012-06-15 20:37:55.000000000 +0200\n+++ ocaml-markdown.0.1.0/setup.ml\t2012-10-05 18:14:56.501787191 +0200\n@@ -5695,7 +5695,7 @@\n                       bs_build_depends =\n                         [\n                            InternalLibrary \"markdown\";\n-                           FindlibPackage (\"ocsigen.xhtml\", None)\n+                           FindlibPackage (\"tyxml\", None)\n                         ];\n                       bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\ndiff -ru ocaml-markdown.0.1.0/src/MarkdownHTML.ml ocaml-markdown.0.1.0/src/MarkdownHTML.ml\n--- ocaml-markdown.0.1.0/src/MarkdownHTML.ml\t2012-06-15 20:37:55.000000000 +0200\n+++ ocaml-markdown.0.1.0/src/MarkdownHTML.ml\t2012-10-05 18:14:56.577789494 +0200\n@@ -1,7 +1,7 @@\n (* Copyright (C) 2009 Mauricio Fernandez <mfp@acm.org> *)\n \n open Markdown\n-open XHTML.M\n+open Xhtml.M\n \n let rec elm_to_html ~render_pre ~render_link ~render_img elm =\n   let self = elm_to_html ~render_pre ~render_link ~render_img in\n@@ -35,7 +35,7 @@\n   | Code s -> code [pcdata s]\n   | Anchor id ->\n       (*  would like to do\n-            a ~a:[XHTML.M_01_00.a_name_01_00 id] []\n+            a ~a:[Xhtml.M_01_00.a_name_01_00 id] []\n           but that'd require switching to M_01_00 everywhere, so cheap hack *)\n       b ~a:[a_id id] []\n   | Link href -> begin match href.href_target with\ndiff -ru ocaml-markdown.0.1.0/_tags ocaml-markdown.0.1.0/_tags\n--- ocaml-markdown.0.1.0/_tags\t2012-06-15 20:37:55.000000000 +0200\n+++ ocaml-markdown.0.1.0/_tags\t2012-10-05 18:14:56.537788281 +0200\n@@ -18,7 +18,7 @@\n # Library html\n \"src/html.cmxs\": use_html\n <src/*.ml{,i}>: use_markdown\n-<src/*.ml{,i}>: pkg_ocsigen.xhtml\n+<src/*.ml{,i}>: pkg_tyxml\n <src/*.ml{,i}>: pkg_extlib\n <src/*.ml{,i}>: pkg_str\n <src/*.ml{,i}>: pkg_sexplib\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_markdown_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_markdown_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_markdown_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tyxml": "< 3.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "= 1.5.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-markdown"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1196/ocaml-markdown-0.1.1.tar.gz", 
+        "checksum": "9884d41e3aa587676bff5183532c694c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_markdown_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_markdown_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_markdown_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tyxml": "< 3.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "= 1.5.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-markdown"
+    }
+  }
+}

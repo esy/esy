@@ -1,0 +1,121 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/npy-ocaml/archive/0.0.2.tar.gz", 
+        "checksum": "7725372d7a3cfee9eedb4e3cf3766b60", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make npy.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "npy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "npy_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "npy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/npy"
+    }, 
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/npy-ocaml/archive/0.0.4.tar.gz", 
+        "checksum": "e6c8da8473610cccb4c2d3e48e1a1957", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make npy.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "npy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "npy_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "npy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/npy"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/npy-ocaml/archive/0.0.3.tar.gz", 
+        "checksum": "c1bb7d987a2b005da7ab6d279c3572b5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make npy.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "npy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "npy_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "npy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/npy"
+    }
+  }
+}

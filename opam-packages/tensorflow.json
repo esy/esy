@@ -1,0 +1,266 @@
+{
+  "versions": {
+    "0.0.5": {
+      "version": "0.0.5", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/tensorflow-ocaml/archive/0.0.5.tar.gz", 
+        "checksum": "4c0d003479d100e3eabd2c88575f6aac", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tensorflow.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tensorflow_version": {
+            "scope": "global", 
+            "val": "0.0.5"
+          }, 
+          "tensorflow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tensorflow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ctypes": ">= 0.5.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/tensorflow"
+    }, 
+    "0.0.4": {
+      "version": "0.0.4", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/tensorflow-ocaml/archive/0.0.4.tar.gz", 
+        "checksum": "9d9f6706b6630225c41db66c8c3e6a76", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tensorflow.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tensorflow_version": {
+            "scope": "global", 
+            "val": "0.0.4"
+          }, 
+          "tensorflow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tensorflow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ctypes": ">= 0.5.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 != 4.03.0"
+      }, 
+      "name": "@opam-alpha/tensorflow"
+    }, 
+    "0.0.7": {
+      "version": "0.0.7", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/tensorflow-ocaml/archive/0.0.7.tar.gz", 
+        "checksum": "95fa47d312d3281dff01c83818c50e86", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tensorflow.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tensorflow_version": {
+            "scope": "global", 
+            "val": "0.0.7"
+          }, 
+          "tensorflow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tensorflow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ctypes": ">= 0.5.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/tensorflow"
+    }, 
+    "0.0.6": {
+      "version": "0.0.6", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/tensorflow-ocaml/archive/0.0.6.tar.gz", 
+        "checksum": "551561610b77dfd9f022188decab5c5e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tensorflow.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tensorflow_version": {
+            "scope": "global", 
+            "val": "0.0.6"
+          }, 
+          "tensorflow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tensorflow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ctypes": ">= 0.5.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/tensorflow"
+    }, 
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/tensorflow-ocaml/archive/v0.0.1.tar.gz", 
+        "checksum": "71cf1460604a14b00fbf07dfc43450c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tensorflow.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tensorflow_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "tensorflow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tensorflow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ctypes": ">= 0.5.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/tensorflow"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/LaurentMazare/tensorflow-ocaml/archive/0.0.2.tar.gz", 
+        "checksum": "7066f82cd64cd2e7c08185b0aa739f01", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tensorflow.lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tensorflow_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "tensorflow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tensorflow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ctypes": ">= 0.5.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gnuplot": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/tensorflow"
+    }
+  }
+}

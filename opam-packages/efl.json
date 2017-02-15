@@ -1,0 +1,619 @@
+{
+  "versions": {
+    "1.11.1": {
+      "version": "1.11.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1467/ocaml-efl-1.11.1.tar.gz", 
+        "checksum": "910180a88e725241e31d48a93e0efbd8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.11.1"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.11.0": {
+      "version": "1.11.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1442/ocaml-efl-1.11.0.tar.gz", 
+        "checksum": "ea2c5be9cc377dc8498947cafdcb9a5e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.11.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.18.0": {
+      "version": "1.18.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1661/ocaml-efl-1.18.0.tar.gz", 
+        "checksum": "9f47a05ac71ad068c521e880af8d24f4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install OCAMLFIND_DESTDIR=$cur__lib", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.18.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.10.0": {
+      "version": "1.10.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1431/ocaml-efl-1.10.0.tar.gz", 
+        "checksum": "c64f22a5b137dc7ed2e33d95624f10ef", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.10.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.10.1": {
+      "version": "1.10.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1440/ocaml-efl-1.10.1.tar.gz", 
+        "checksum": "f2f2e244c8f323603a0f94863a582f50", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.10.1"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.13.0": {
+      "version": "1.13.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1499/ocaml-efl-1.13.0.tar.gz", 
+        "checksum": "b7e5fc04f8fa644b30032da471d557e6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install OCAMLFIND_DESTDIR=$cur__lib", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.13.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.17.0": {
+      "version": "1.17.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1598/ocaml-efl-1.17.0.tar.gz", 
+        "checksum": "c9a34031f788470efb5f437c12af8b6b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install OCAMLFIND_DESTDIR=$cur__lib", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.17.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.9.1": {
+      "version": "1.9.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1430/ocaml-efl-1.9.1.tar.gz", 
+        "checksum": "52308bae13ce0b49ba5073ff4fa1a5c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.9.1"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.8.4": {
+      "version": "1.8.4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1438/ocaml-efl-1.8.4.tar.gz", 
+        "checksum": "a6474ab3abc3b6299867b5f92a1199d8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.8.4"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.9.0": {
+      "version": "1.9.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1385/ocaml-efl-1.9.0.tar.gz", 
+        "checksum": "025fe45c7a93cefa60c902421040f91e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.9.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.9.2": {
+      "version": "1.9.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1439/ocaml-efl-1.9.2.tar.gz", 
+        "checksum": "294914c1844b66a0aaf2b530d0e1433b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.9.2"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.12.0": {
+      "version": "1.12.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1490/ocaml-efl-1.12.0.tar.gz", 
+        "checksum": "503d046c8827adc25423783cd9728d2d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install OCAMLFIND_DESTDIR=$cur__lib", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.12.0"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.8.1": {
+      "version": "1.8.1", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1371/ocaml-efl-1.8.1.tar.gz", 
+        "checksum": "d1017f427950c6a18b76da79fcfdad2b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.8.1"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.8.2": {
+      "version": "1.8.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1384/ocaml-efl-1.8.2.tar.gz", 
+        "checksum": "b367036a01836a1aa74b30f08bcd7caf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.8.2"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }, 
+    "1.8.3": {
+      "version": "1.8.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1429/ocaml-efl-1.8.3.tar.gz", 
+        "checksum": "dd5e50723e379f7c4fe1ebbef135e585", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "efl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "efl_version": {
+            "scope": "global", 
+            "val": "1.8.3"
+          }, 
+          "efl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/efl"
+    }
+  }
+}

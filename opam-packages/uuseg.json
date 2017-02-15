@@ -1,0 +1,134 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uuseg/releases/uuseg-0.9.0.tbz", 
+        "checksum": "186e52fcbd81e35514342dc3bfd10601", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true uutf=${uutf_installed:-false} cmdliner=${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uuseg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uuseg_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "uuseg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uucp": ">= 1.0.0 < 2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uuseg"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uuseg/releases/uuseg-1.0.0.tbz", 
+        "checksum": "58082c8a644b24a785069734f365e665", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-uutf ${uutf_installed:-false} --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uuseg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uuseg_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "uuseg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uchar": "*", 
+        "@opam-alpha/uucp": ">= 2.0.0 < 3.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uuseg"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/uuseg/releases/uuseg-0.8.0.tbz", 
+        "checksum": "409bbd8a3c3f00e0d7259441a5e4b648", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true uutf=${uutf_installed:-false} cmdliner=${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uuseg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uuseg_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "uuseg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uucp": ">= 0.9.1 < 1.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uuseg"
+    }
+  }
+}

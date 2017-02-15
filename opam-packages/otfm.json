@@ -1,0 +1,129 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/otfm/releases/otfm-0.1.0.tbz", 
+        "checksum": "36b5a4b30b2e7be1f0a665824d35a20c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "otfm_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "otfm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "otfm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/otfm"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/otfm/releases/otfm-0.3.0.tbz", 
+        "checksum": "e8e0ecb91048983b09a7fbe593042c89", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "otfm_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "otfm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "otfm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/uchar": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/otfm"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/otfm/releases/otfm-0.2.0.tbz", 
+        "checksum": "bdb84bb7e37f4ef6d2e74ecb8e0ef533", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "otfm_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "otfm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "otfm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/otfm"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/samoht/ocaml-wget/tarball/0.1.0", 
+        "checksum": "d1e2f51b61b8d8791ccd7bc2a18d98dc", 
+        "files": [
+          {
+            "content": "bin: [\"_obuild/owget/owget.asm\" {\"owget\"}]\n", 
+            "name": "wget.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocp-build -init", 
+          "ocp-build -scan ocaml-wget owget", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "wget_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "wget_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "wget_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/wget"
+    }
+  }
+}

@@ -1,0 +1,422 @@
+{
+  "versions": {
+    "1.1.3": {
+      "version": "1.1.3", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.1.3.tar.gz", 
+        "checksum": "33c1320f66910708be04bb314dd0db16", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.1.3"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.6": {
+      "version": "1.2.6", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.6.tar.gz", 
+        "checksum": "1e84c81ffc4c9680b762d0afe3a4e34f", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.6"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.4": {
+      "version": "1.2.4", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.4.tar.gz", 
+        "checksum": "083a56364a7046c4be868ccd8cc0f487", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.4"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.5": {
+      "version": "1.2.5", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.5.tar.gz", 
+        "checksum": "93ea60ce9055a8568822202c910c1eb3", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.5"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.2": {
+      "version": "1.2.2", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.2.tar.gz", 
+        "checksum": "3a3599c3c8241323d4ab30124deedab4", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.2"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.3": {
+      "version": "1.2.3", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.3.tar.gz", 
+        "checksum": "31ed60d39aa0aaa337818fd62b56706b", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.3"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.0.tar.gz", 
+        "checksum": "2a1aa5144466a466e33b34de855bcd1c", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.2.1": {
+      "version": "1.2.1", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.2.1.tar.gz", 
+        "checksum": "6784ba3dbdd9b56029a8ef0509d61690", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/omd_main.byte\" {\"omd\"}\n  \"?_build/src/omd_main.native\" {\"omd\"}\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.2.1"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/omd/omd-1.3.0.tar.gz", 
+        "checksum": "1a6492ce7511f528e3f2893dda06f56b", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "omd.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omd_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "omd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/omd"
+    }
+  }
+}

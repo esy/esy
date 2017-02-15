@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocplib-wxOCaml/archive/1.0.1.tar.gz", 
+        "checksum": "4fed6d2fe3be3ab178a5723f8d9247c3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "wxOCaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "wxOCaml_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "wxOCaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "build} 0.0.0 {build", 
+        "@opam-alpha/conf-wxwidgets": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/wxOCaml"
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "versions": {
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-duppy/0.4.2/ocaml-duppy-0.4.2.tar.gz", 
+        "checksum": "e1826a03318edbffd8e7d2d7d893d92c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "duppy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "duppy_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }, 
+          "duppy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/duppy"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-duppy/0.5.0/ocaml-duppy-0.5.0.tar.gz", 
+        "checksum": "c321b7ad6f586bfd2548bf99eb479421", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "duppy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "duppy_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "duppy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/duppy"
+    }, 
+    "0.5.2": {
+      "version": "0.5.2", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-duppy/releases/download/0.5.2/ocaml-duppy-0.5.2.tar.gz", 
+        "checksum": "61e211489bb7c3106b63db7ac03e3f7c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "duppy_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "duppy_version": {
+            "scope": "global", 
+            "val": "0.5.2"
+          }, 
+          "duppy_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/duppy"
+    }
+  }
+}

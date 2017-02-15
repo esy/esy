@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/72/camlbz2-0.6.0.tar.gz", 
+        "checksum": "7a1cf822b3fe0ef57df4f8ebd86cac99", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlbz2_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlbz2_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "camlbz2_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/camlbz2"
+    }
+  }
+}

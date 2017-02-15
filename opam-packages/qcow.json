@@ -1,0 +1,122 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-qcow/archive/v0.6.0.tar.gz", 
+        "checksum": "a265f19d8a56503344dd63f7a97b7daf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --tests false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qcow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qcow_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "qcow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/topkg": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_type_conv": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/nbd": ">= 2.0.1", 
+        "@opam-alpha/mirage-block-unix": ">= 2.1.0", 
+        "@opam-alpha/mirage-block": ">= 0.2.0", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/mirage-block-ramdisk": "*", 
+        "@opam-alpha/io-page": "*", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ezjsonm": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/qcow"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-qcow/archive/v0.7.0.tar.gz", 
+        "checksum": "3dd759498f30e6137dc795c2dfab64d9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --tests false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qcow_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qcow_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "qcow_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/topkg": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_type_conv": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/nbd": ">= 2.0.1", 
+        "@opam-alpha/mirage-block-unix": ">= 2.1.0", 
+        "@opam-alpha/mirage-block": ">= 0.2.0", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/mirage-block-ramdisk": "*", 
+        "@opam-alpha/io-page": "*", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ezjsonm": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/qcow"
+    }
+  }
+}

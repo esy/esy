@@ -1,0 +1,456 @@
+{
+  "versions": {
+    "3.21.0": {
+      "version": "3.21.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/3.2-1.tar.gz", 
+        "checksum": "05f9d04dbb93b2c9ac07108aefb5f768", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "3.21.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.04.0": {
+      "version": "4.04.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-4.tar.gz", 
+        "checksum": "38111dc480785acad5b14d947bc2479b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.04.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-zmq": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.01.0": {
+      "version": "4.01.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-1.tar.gz", 
+        "checksum": "2eea29af746e0c6b6389393eb021f5ae", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.01.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "3.20.0": {
+      "version": "3.20.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/3.2-0.tar.gz", 
+        "checksum": "4728a8cc3475cf42bde10c0df503fe6f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "3.20.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.05.0": {
+      "version": "4.05.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-5.tar.gz", 
+        "checksum": "042338191e9748f74bf52eb2343068ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.05.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-zmq": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.06.0": {
+      "version": "4.06.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-6.tar.gz", 
+        "checksum": "a5da8d710d1759b852e13fe7a5f4f976", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.06.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-zmq": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.03.0": {
+      "version": "4.03.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-3.tar.gz", 
+        "checksum": "11241661256267262aa95209d489002e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.03.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-zmq": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.07.0": {
+      "version": "4.07.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-7.tar.gz", 
+        "checksum": "3adf5ccef1afa9a5d07ecea59dc77ab1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.07.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-zmq": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.05.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "3.22.0": {
+      "version": "3.22.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/3.2-2.tar.gz", 
+        "checksum": "e806e5507d41e3416be1a42b0a4a2098", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "3.22.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }, 
+    "4.02.0": {
+      "version": "4.02.0", 
+      "opam": {
+        "url": "https://github.com/issuu/ocaml-zmq/archive/4.0-2.tar.gz", 
+        "checksum": "222867cf1919dc7f7913322e7424e80c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zmq_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zmq_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zmq_version": {
+            "scope": "global", 
+            "val": "4.02.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zmq"
+    }
+  }
+}

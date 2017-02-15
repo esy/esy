@@ -1,0 +1,85 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/ppx_blob/archive/v0.1.tar.gz", 
+        "checksum": "16025abb7d6c969e75acb6056786eb6f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make native-code", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_blob_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_blob_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ppx_blob_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ppx_blob"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/ppx_blob/archive/v0.2.tar.gz", 
+        "checksum": "c25401923d7e6efe6af400f1100c7923", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make native-code", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_blob_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_blob_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "ppx_blob_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ppx_blob"
+    }
+  }
+}

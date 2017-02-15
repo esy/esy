@@ -1,0 +1,115 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/jitsu/archive/0.3.0.tar.gz", 
+        "checksum": "60f971b294bbb6609d18e794d99e5802", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "jitsu_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "jitsu_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "jitsu_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezxmlm": "*", 
+        "@opam-alpha/vchan": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/libvirt": "*", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/irmin-unix": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/dns": ">= 0.15.3", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xen-api-client": "*", 
+        "@opam-alpha/conduit": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/git": "< 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/irmin": ">= 0.10.0 < 1.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/jitsu"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/jitsu/archive/0.2.0.tar.gz", 
+        "checksum": "5adbfbb9e9eddafacaa3bed2f488ca1a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "jitsu_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "jitsu_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "jitsu_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezxmlm": "*", 
+        "@opam-alpha/git": "<2.0.0", 
+        "@opam-alpha/vchan": "*", 
+        "@opam-alpha/dns": ">= 0.15.3", 
+        "@opam-alpha/xenctrl": "<= 0.9.26", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/libvirt": "*", 
+        "@opam-alpha/irmin-unix": "*", 
+        "@opam-alpha/xen-api-client": "<= 0.9.8", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conduit": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/irmin": ">= 0.9.7 < 0.9.10"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/jitsu"
+    }
+  }
+}

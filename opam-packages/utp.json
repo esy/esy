@@ -1,0 +1,43 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/nojb/ocaml-utp/archive/0.9.0.tar.gz", 
+        "checksum": "8e8ae498e55557bfc91e38b8efad5bd6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "utp_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "utp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "utp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "build} 2.4.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/utp"
+    }
+  }
+}

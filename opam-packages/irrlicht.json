@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1301/ocaml-irrlicht-0.0.3.tar.gz", 
+        "checksum": "bb6673efbb4598232d42479bb5f09139", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "irrlicht_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "irrlicht_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "irrlicht_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/irrlicht"
+    }
+  }
+}

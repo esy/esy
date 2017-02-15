@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "20120224.0.0": {
+      "version": "20120224.0.0", 
+      "opam": {
+        "url": "http://www-verimag.imag.fr/~monniaux/download/mlgmp_20120224.tar.gz", 
+        "checksum": "7001db70f5fed91f230b459425129f96", 
+        "files": [
+          {
+            "content": "OASISFormat: 0.3\nName:        gmp\nVersion:     20120224\nSynopsis:    GMP\nAuthors:     Jean-Christophe Filliatre.\nLicense:     ISC\nPlugins:     META (0.3)\nBuildTools:  ocamlbuild\n\nLibrary gmp\n  Path: .\n  Modules: Gmp\n  CSources: mlgmp_z.c,mlgmp_q.c,mlgmp_f.c,mlgmp_fr.c,mlgmp_random.c,mlgmp_misc.c,config.h,mlgmp.h\n  CCLib: -L/usr/local/lib -lgmp -lmpfr\n  CCOpt: -I/usr/local/include -Wall\n", 
+            "name": "_oasis"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c rm -f *.cmo *.cmi *.cma *.cmxa *.o *.a *.cmx *.cmxs", 
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "mkdir -p _build", 
+          "cp conversions.c _build/conversions.c", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlgmp_version": {
+            "scope": "global", 
+            "val": "20120224.0.0"
+          }, 
+          "mlgmp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlgmp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-gmp": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-mpfr": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/mlgmp"
+    }
+  }
+}

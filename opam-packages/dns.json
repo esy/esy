@@ -1,0 +1,59 @@
+{
+  "versions": {
+    "0.18.1": {
+      "version": "0.18.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-dns/archive/v0.18.1.tar.gz", 
+        "checksum": "a232d3fae3363d00ad5fe672949b3240", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --enable-lwt --${mirage_types_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dns_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dns_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dns_version": {
+            "scope": "global", 
+            "val": "0.18.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-profile": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/hashcons": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.6.0", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base64": ">= 2.0.0", 
+        "@opam-alpha/pcap-format": "*", 
+        "@opam-alpha/mirage-types": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "@opam-alpha/uri": ">= 1.7.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/dns"
+    }
+  }
+}

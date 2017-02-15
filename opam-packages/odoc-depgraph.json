@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/zoggy/odoc_depgraph/archive/v1.0.tar.gz", 
+        "checksum": "c53409245b7085aade0d9601fad50923", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make findlib-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "odoc_depgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "odoc_depgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "odoc_depgraph_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamldot": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/odoc-depgraph"
+    }
+  }
+}

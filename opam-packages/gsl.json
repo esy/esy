@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.19.1": {
+      "version": "1.19.1", 
+      "opam": {
+        "url": "https://github.com/mmottl/gsl-ocaml/releases/download/v1.19.1/gsl-ocaml-1.19.1.tar.gz", 
+        "checksum": "b59a432ac89b49fbd0085d4e17315c50", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${camlp4_enable:-disable}-camlp4", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gsl_version": {
+            "scope": "global", 
+            "val": "1.19.1"
+          }, 
+          "gsl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gsl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.1", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/conf-gsl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/gsl"
+    }
+  }
+}

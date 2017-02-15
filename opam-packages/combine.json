@@ -1,0 +1,140 @@
+{
+  "versions": {
+    "0.55.0": {
+      "version": "0.55.0", 
+      "opam": {
+        "url": "https://github.com/backtracking/combine/archive/opam-packaged.zip", 
+        "checksum": "9545ebb80978d59bb3534b870cb20d2b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "combine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "combine_version": {
+            "scope": "global", 
+            "val": "0.55.0"
+          }, 
+          "combine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/combine"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/backtracking/combine/archive/release-0.6.zip", 
+        "checksum": "224c1aa36a7ee6a2223f2bca4e5f6f0f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "combine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "combine_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "combine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/combine"
+    }, 
+    "0.42.0": {
+      "version": "0.42.0", 
+      "opam": {
+        "url": "http://www.lri.fr/~filliatr/combine/download/combine-0.42.tar.gz", 
+        "checksum": "3b9f7c4da130ed272f1d0fdd12d45bba", 
+        "files": [
+          {
+            "content": "lib: [\"META\"]\n", 
+            "name": "combine.install"
+          }, 
+          {
+            "content": "diff --git a/Makefile.in b/Makefile.in\nindex ed3e41d..5a1549c 100644\n--- a/Makefile.in\n+++ b/Makefile.in\n@@ -46,7 +46,6 @@ OCAMLOPT = @OCAMLOPT@\n OCAMLDEP = @OCAMLDEP@\n OCAMLLEX = @OCAMLLEX@\n MENHIR = menhir # developers should have menhir installed\n-OCAMLLIB = @OCAMLLIB@\n OCAMLBEST= @OCAMLBEST@\n OCAMLVERSION = @OCAMLVERSION@\n OCAMLWEB = @OCAMLWEB@\n@@ -141,7 +140,7 @@ queens.opt: $(CMXA) queens.cmx\n # installation\n ##############\n \n-INSTALL_LIBDIR=$(OCAMLLIB)/combine\n+INSTALL_LIBDIR=$(prefix)/lib/combine\n \n install-indep:\n \tmkdir -p $(BINDIR)\n", 
+            "name": "install.diff"
+          }, 
+          {
+            "content": "name = \"combine\"\nversion = \"0.42\"\ndescription = \"A library for combinatorics problems\"\narchive(byte) = \"combine.cma\"\narchive(native) = \"combine.cmxa\"", 
+            "name": "META"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "combine_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "combine_version": {
+            "scope": "global", 
+            "val": "0.42.0"
+          }, 
+          "combine_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/combine"
+    }
+  }
+}

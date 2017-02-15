@@ -1,0 +1,87 @@
+{
+  "versions": {
+    "0.3.3": {
+      "version": "0.3.3", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-lame/releases/download/0.3.3/ocaml-lame-0.3.3.tar.gz", 
+        "checksum": "a1585835f94f8d459157263ed2aaede3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "./configure CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib OCAMLFLAGS=-ccopt -I/usr/local/include -cclib -L/usr/local/lib --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lame_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lame_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lame_version": {
+            "scope": "global", 
+            "val": "0.3.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lame"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-lame/0.3.1/ocaml-lame-0.3.1.tar.gz", 
+        "checksum": "070d913c6e565b568da1bc491f232a8a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lame_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lame_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lame_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lame"
+    }
+  }
+}

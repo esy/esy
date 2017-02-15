@@ -1,0 +1,212 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/937/ocaml-text-0.6.tar.gz", 
+        "checksum": "86e4cb5849a01a34c21fad065501d696", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "text_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "text_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "text_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/text"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/641/ocaml-text-0.5.tar.gz", 
+        "checksum": "5f004642ba19c1710ade13d46e2c1df2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "text_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "text_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "text_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/text"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-text/archive/0.8.tar.gz", 
+        "checksum": "ec96a60a0c9dad44ce47d76764a303e6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make setup.exe", 
+          "./setup.exe -configure --${pcre_enable:-disable}-pcre", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "text_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "text_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "text_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/text"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-text/archive/0.7.tar.gz", 
+        "checksum": "b3d6046df49ee540f29c0937d3c47683", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${pcre_enable:-disable}-pcre", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "text_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "text_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "text_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/text"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-text/archive/0.7.1.tar.gz", 
+        "checksum": "d4de5e1b43a5d7964cf5fa9d74f20c97", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${pcre_enable:-disable}-pcre", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "text_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "text_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "text_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/text"
+    }
+  }
+}

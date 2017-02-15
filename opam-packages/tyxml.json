@@ -1,0 +1,533 @@
+{
+  "versions": {
+    "4.0.1": {
+      "version": "4.0.1", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/4.0.1.tar.gz", 
+        "checksum": "7e80bfe81bd9fb1063ee12e35198211a", 
+        "files": [
+          {
+            "content": "lib: \"tyxml.opam\" { \"opam\" }\ndoc: [\n  \"README.md\"\n  \"CHANGES\"\n  \"COPYING\" { \"LICENSE\" }\n]\n", 
+            "name": "tyxml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${camlp4_enable:-disable}-syntax --${markup_enable:-disable}-ppx --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "4.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.5.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "@opam-alpha/camlp4": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/markup": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "4.0.0": {
+      "version": "4.0.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/4.0.0.tar.gz", 
+        "checksum": "0245bc3e0011732eff14ff10ec933046", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${camlp4_enable:-disable}-syntax --${markup_enable:-disable}-ppx --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "4.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.5.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "@opam-alpha/camlp4": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/markup": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.1.1": {
+      "version": "3.1.1", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.1.1.tar.gz", 
+        "checksum": "a4a7ef1ebe9d7dd1448a8cbd1bbee404", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.0.0": {
+      "version": "3.0.0", 
+      "opam": {
+        "url": "http://ocsigen.org/download/tyxml-3.0.0.tar.gz", 
+        "checksum": "39c863099ea37d7e53f552439979fb86", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.4.0": {
+      "version": "3.4.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.4.0.tar.gz", 
+        "checksum": "de93f513f01402ba6ba90bb64aa38219", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.5.0": {
+      "version": "3.5.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.5.0.tar.gz", 
+        "checksum": "8207a40c70c36a7f81ed56474aa0e03e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.6.0": {
+      "version": "3.6.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.6.0.tar.gz", 
+        "checksum": "974099c0f1a70828238055462f79a347", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.3.0": {
+      "version": "3.3.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.3.0.tar.gz", 
+        "checksum": "ce3dba609df9decde1fbc49c246061f9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/uutf": "<= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.2.0": {
+      "version": "3.2.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.2.0.tar.gz", 
+        "checksum": "cba94caf3588c4e2d1f9527030578ada", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "http://ocsigen.org/download/tyxml-2.2.0.tar.gz", 
+        "checksum": "0d59e12cbfe8033b06a17844a82095d0", 
+        "files": [
+          {
+            "content": "diff -u -r tyxml-2.2.0.orig/files/META.in tyxml-2.2.0/files/META.in\n--- tyxml-2.2.0.orig/files/META.in\t2012-12-07 16:15:22.000000000 +0100\n+++ tyxml-2.2.0/files/META.in\t2013-07-03 00:30:43.705255131 +0200\n@@ -2,7 +2,7 @@\n \n description = \"XHTML and HTML5 pages typed with polymorphic variants\"\n version = \"dev\"\n-requires = \"netstring\"\n+requires = \"netstring pcre\"\n archive(byte) = \"_LIBNAME_.cma\"\n archive(native) = \"_LIBNAME_.cmxa\"\n \n@@ -38,4 +38,4 @@\n     version = \"(distributed with _PACKAGENAME_)\"\n     archive(byte) = \"_LIBNAME__duce.cma\"\n     archive(native) = \"_LIBNAME__duce.cmxa\"\n-)\n\\ No newline at end of file\n+)\ndiff -u -r tyxml-2.2.0.orig/lib/Makefile tyxml-2.2.0/lib/Makefile\n--- tyxml-2.2.0.orig/lib/Makefile\t2012-12-07 16:15:22.000000000 +0100\n+++ tyxml-2.2.0/lib/Makefile\t2013-07-03 00:31:01.395255118 +0200\n@@ -13,7 +13,7 @@\n \n DUCE_FILES := xml_print_duce.ml xhtml_duce.ml\n \n-LIBS     := -package netstring\n+LIBS     := -package netstring -package pcre\n \n # SYNTAX := -ppopt ../syntax/pa_include.cmo -package camlp4 -syntax camlp4o\n \ndiff -u -r tyxml-2.2.0.orig/lib/xml.ml tyxml-2.2.0/lib/xml.ml\n--- tyxml-2.2.0.orig/lib/xml.ml\t2012-12-07 16:15:22.000000000 +0100\n+++ tyxml-2.2.0/lib/xml.ml\t2013-07-03 00:23:21.658588803 +0200\n@@ -83,8 +83,7 @@\n      (as this string is to be considered as the end of the cdata)\n   *)\n     let s' = \"\\n<![CDATA[\\n\"^\n-      (Netstring_pcre.global_replace\n-\t (Netstring_pcre.regexp_string \"]]>\") \"\" s)\n+      (Pcre.replace ~rex:(Pcre.regexp(Pcre.quote \"]]>\")) s)\n       ^\"\\n]]>\\n\" in\n     encodedpcdata s'\n \n@@ -93,8 +92,7 @@\n      (as this string is to be considered as the end of the cdata)\n   *)\n     let s' = \"\\n//<![CDATA[\\n\"^\n-      (Netstring_pcre.global_replace\n-\t (Netstring_pcre.regexp_string \"]]>\") \"\" s)\n+      (Pcre.replace ~rex:(Pcre.regexp(Pcre.quote \"]]>\")) s)\n       ^\"\\n//]]>\\n\" in\n     encodedpcdata s'\n \n@@ -103,8 +101,7 @@\n      (as this string is to be considered as the end of the cdata)\n   *)\n     let s' = \"\\n/* <![CDATA[ */\\n\"^\n-      (Netstring_pcre.global_replace\n-\t (Netstring_pcre.regexp_string \"]]>\") \"\" s)\n+      (Pcre.replace ~rex:(Pcre.regexp (Pcre.quote \"]]>\")) s)\n       ^\"\\n/* ]]> */\\n\" in\n     encodedpcdata s'\n \n", 
+            "name": "rm_netstring_pcre.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "http://ocsigen.org/download/tyxml-2.1.tar.gz", 
+        "checksum": "d08f6864c444d8409b70edb68f0683ab", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "= 3.6.0", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }, 
+    "3.2.1": {
+      "version": "3.2.1", 
+      "opam": {
+        "url": "https://github.com/ocsigen/tyxml/archive/3.2.1.tar.gz", 
+        "checksum": "341dabb8b51003e8b1f3aee38a08349b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --${camlp4_enable:-disable}-syntax --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tyxml_version": {
+            "scope": "global", 
+            "val": "3.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tyxml"
+    }
+  }
+}

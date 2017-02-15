@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.25.0": {
+      "version": "0.25.0", 
+      "opam": {
+        "url": "https://bitbucket.org/a12n/ocaml-tcx/get/0.25.0.tar.gz", 
+        "checksum": "b01f089da78e3c110767c73e877fd519", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tcx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tcx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tcx_version": {
+            "scope": "global", 
+            "val": "0.25.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tcx"
+    }
+  }
+}

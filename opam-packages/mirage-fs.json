@@ -1,0 +1,161 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-fs/tarball/mirage-fs-0.4.0", 
+        "checksum": "ff61c92244dec211afee1d630d862010", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_fs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_fs_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "mirage_fs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-fs"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-fs/tarball/mirage-fs-0.3.0", 
+        "checksum": "6ddcfc6607e5f1a6b47cb3e08cebdd1a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_fs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_fs_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "mirage_fs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-fs"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-fs/archive/v0.6.0.tar.gz", 
+        "checksum": "53d5ad12590425672c093a037ae33c10", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_fs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_fs_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "mirage_fs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage": ">= 0.9.2 < 2.0.0", 
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-fs"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-fs/archive/mirage-fs-0.5.0.tar.gz", 
+        "checksum": "848b4baf4bc38c134d594cfd9856ad97", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_fs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_fs_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "mirage_fs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-fs"
+    }
+  }
+}

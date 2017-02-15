@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.7.2": {
+      "version": "0.7.2", 
+      "opam": {
+        "url": "https://github.com/mirage/alcotest/releases/download/0.7.2/alcotest-0.7.2.tbz", 
+        "checksum": "be7b09ce3d53afa11f0ce95e78d72909", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "alcotest_version": {
+            "scope": "global", 
+            "val": "0.7.2"
+          }, 
+          "alcotest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "alcotest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/alcotest"
+    }
+  }
+}

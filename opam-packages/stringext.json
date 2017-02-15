@@ -1,0 +1,422 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.4.0.tar.gz", 
+        "checksum": "45eb814573c7464edbb88fdd554ca41a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.1.0.tar.gz", 
+        "checksum": "aa2fcc184d935ab484663521eade7e7f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.4.2": {
+      "version": "1.4.2", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.4.2.tar.gz", 
+        "checksum": "38385cf57849c8dd0bdd0c8b08f120e7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.4.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.4.3": {
+      "version": "1.4.3", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.4.3.tar.gz", 
+        "checksum": "ab9796add8e391b5a405ef392de1c5d3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.4.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/qtest": ">=2.2.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.0.0.tar.gz", 
+        "checksum": "3c249534da15b7f3216f2c7ab7834b51", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.4.1": {
+      "version": "1.4.1", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.4.1.tar.gz", 
+        "checksum": "bea6bc6d3492883d4d69e92ab6ca0a01", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.3.1": {
+      "version": "1.3.1", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.3.1.tar.gz", 
+        "checksum": "f9cbdfc34cca9617f227610a5cfcaa14", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.3.0.tar.gz", 
+        "checksum": "fe7a32524a90cf9ca89c700f75fc907b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v1.2.0.tar.gz", 
+        "checksum": "4695404f8718efa3be1a26623472e3f6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }, 
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/stringext/archive/v0.0.1.tar.gz", 
+        "checksum": "1a766c06b2fb74a0992dcbba98d12771", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stringext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stringext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stringext_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/stringext"
+    }
+  }
+}

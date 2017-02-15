@@ -1,0 +1,100 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-mbr/archive/v0.3.tar.gz", 
+        "checksum": "c92322dc6d37867fe9a2320c8a4a8f32", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mbr_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mbr_format_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "mbr_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-types": "< 3.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mbr-format"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-mbr/archive/v0.2.tar.gz", 
+        "checksum": "e43654b2f5db746a03739bc2dcb2590f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mbr_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mbr_format_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "mbr_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/re": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-types": "< 3.0.0", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mbr-format"
+    }
+  }
+}

@@ -1,0 +1,414 @@
+{
+  "versions": {
+    "0.15.0": {
+      "version": "0.15.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.15.0.tar.gz", 
+        "checksum": "76fdc80b7195153d69f13da14be3b2ea", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.15.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.15.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.10.0": {
+      "version": "0.10.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.10.0.tar.gz", 
+        "checksum": "e09a39a07aa03c6512f6134db38736c2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.10.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.10.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.6.tar.gz", 
+        "checksum": "b123792d9de9a67f89edcc6747517528", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.6.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.11.0.tar.gz", 
+        "checksum": "1ff0f4208bb33021a8810ddcb7f6620b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": ">= 0.11.0 < 0.12.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.8.0.tar.gz", 
+        "checksum": "c0a9009f1c8795556f535d6b8eec8d06", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.8.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.7.0.tar.gz", 
+        "checksum": "52e7e94fcc4b39ec4a63fa1647391e6c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.7.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.17.0": {
+      "version": "0.17.0", 
+      "opam": {
+        "url": "https://zoggy.github.io/stog/plugins/stog-writing-0.17.0.tar.gz", 
+        "checksum": "f9dd509b250e79cc9caba6c12a5d5f15", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.17.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.17.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.12.0": {
+      "version": "0.12.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.12.0.tar.gz", 
+        "checksum": "65410bff18c66cd18e9f5980b673dbf8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.12.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": ">= 0.12.0 < 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.16.0": {
+      "version": "0.16.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.16.0.tar.gz", 
+        "checksum": "34ca6aeba93c3b9cc81c403e3c17e9b3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.16.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": "= 0.16.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }, 
+    "0.13.0": {
+      "version": "0.13.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/plugins/stog-writing-0.13.0.tar.gz", 
+        "checksum": "9ebda81b5c411455477e4bef4d0be2b3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_writing_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stog_writing_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_writing_version": {
+            "scope": "global", 
+            "val": "0.13.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/menhir": ">= 20120123.0.0", 
+        "@opam-alpha/stog": ">= 0.13.0 <= 0.14.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog-writing"
+    }
+  }
+}

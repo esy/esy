@@ -1,0 +1,278 @@
+{
+  "versions": {
+    "1.5.4": {
+      "version": "1.5.4", 
+      "opam": {
+        "url": "http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ocaml-extlib/extlib-1.5.4.tar.gz", 
+        "checksum": "329041625309b9e49051e5b097a9185d", 
+        "files": [
+          {
+            "content": "lib: [\n  \"extLib.cma\"\n  \"extLib.cmi\"\n  \"extLib.cmxa\"\n  \"extLib.a\"\n  \"base64.cmi\"\n  \"dynArray.cmi\"\n  \"extHashtbl.cmi\"\n  \"extString.cmi\"\n  \"option.cmi\"\n  \"refList.cmi\"\n  \"unzip.cmi\"\n  \"bitSet.cmi\"\n  \"enum.cmi\"\n  \"extLib.cmi\"\n  \"global.cmi\"\n  \"optParse.cmi\"\n  \"std.cmi\"\n  \"uTF8.cmi\"\n  \"dllist.cmi\"\n  \"extArray.cmi\"\n  \"extList.cmi\"\n  \"IO.cmi\"\n  \"pMap.cmi\"\n  \"uChar.cmi\"\n]\n", 
+            "name": "extlib.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make cmxs", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "extlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "extlib_version": {
+            "scope": "global", 
+            "val": "1.5.4"
+          }, 
+          "extlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.05.0"
+      }, 
+      "name": "@opam-alpha/extlib"
+    }, 
+    "1.5.3": {
+      "version": "1.5.3", 
+      "opam": {
+        "url": "http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ocaml-extlib/extlib-1.5.3.tar.gz", 
+        "checksum": "3de5f4e0a95fda7b2f3819c4a655b17c", 
+        "files": [
+          {
+            "content": "lib: [\n  \"extLib.cma\"\n  \"extLib.cmi\"\n  \"extLib.cmxa\"\n  \"extLib.a\"\n  \"base64.cmi\"\n  \"dynArray.cmi\"\n  \"extHashtbl.cmi\"\n  \"extString.cmi\"\n  \"option.cmi\"\n  \"refList.cmi\"\n  \"unzip.cmi\"\n  \"bitSet.cmi\"\n  \"enum.cmi\"\n  \"extLib.cmi\"\n  \"global.cmi\"\n  \"optParse.cmi\"\n  \"std.cmi\"\n  \"uTF8.cmi\"\n  \"dllist.cmi\"\n  \"extArray.cmi\"\n  \"extList.cmi\"\n  \"IO.cmi\"\n  \"pMap.cmi\"\n  \"uChar.cmi\"\n]\n", 
+            "name": "extlib.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make cmxs", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "extlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "extlib_version": {
+            "scope": "global", 
+            "val": "1.5.3"
+          }, 
+          "extlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.05.0"
+      }, 
+      "name": "@opam-alpha/extlib"
+    }, 
+    "1.5.2": {
+      "version": "1.5.2", 
+      "opam": {
+        "url": "http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ocaml-extlib/extlib-1.5.2.tar.gz", 
+        "checksum": "839f9bf5a971fa07935c96ba7e209f86", 
+        "files": [
+          {
+            "content": "lib: [\n  \"extLib.cma\"\n  \"extLib.cmi\"\n  \"extLib.cmxa\"\n  \"extLib.a\"\n  \"base64.cmi\"\n  \"dynArray.cmi\"\n  \"extHashtbl.cmi\"\n  \"extString.cmi\"\n  \"option.cmi\"\n  \"refList.cmi\"\n  \"unzip.cmi\"\n  \"bitSet.cmi\"\n  \"enum.cmi\"\n  \"extLib.cmi\"\n  \"global.cmi\"\n  \"optParse.cmi\"\n  \"std.cmi\"\n  \"uTF8.cmi\"\n  \"dllist.cmi\"\n  \"extArray.cmi\"\n  \"extList.cmi\"\n  \"IO.cmi\"\n  \"pMap.cmi\"\n  \"uChar.cmi\"\n]\n", 
+            "name": "extlib.install"
+          }, 
+          {
+            "content": "comp = [ \"-g\" ]\nlink = [ \"-g\" ]\n\nbegin library \"extlib\"\n   sort = true\n   files = [\n     \"unzip.ml\"\n     \"uTF8.ml\"\n     \"uChar.ml\"\n     \"std.ml\"\n     \"refList.ml\"\n     \"pMap.ml\"\n     \"option.ml\"\n     \"optParse.ml\"\n     \"install.ml\"\n     \"IO.ml\"\n     \"global.ml\"\n     \"extString.ml\"\n     \"extList.ml\"\n     \"extLib.ml\"\n     \"extHashtbl.ml\"\n     \"extArray.ml\"\n     \"enum.ml\"\n     \"dynArray.ml\"\n     \"dllist.ml\"\n     \"bitSet.ml\"\n     \"base64.ml\"\n     ]\nend\n", 
+            "name": "extlib.ocp"
+          }, 
+          {
+            "content": "diff -ru extlib.1.5.2/Makefile extlib.1.5.2/Makefile\n--- extlib.1.5.2/Makefile\t2011-08-06 16:56:39.000000000 +0200\n+++ extlib.1.5.2/Makefile\t2012-10-05 18:15:17.734428987 +0200\n@@ -20,7 +20,7 @@\n \tcp odoc_style.css doc/style.css\n \n install:\n-\tocamlfind install extlib META *.cmi *.cma $(MLI) $(wildcard *.cmxa) $(wildcard *.a)\n+\tocamlfind install extlib META extLib.cmxs *.cmi *.cma $(MLI) $(wildcard *.cmxa) $(wildcard *.a)\n \n uninstall:\n \tocamlfind remove extlib\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "ocamlopt -shared -linkall extLib.cmxa -o extLib.cmxs", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "extlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "extlib_version": {
+            "scope": "global", 
+            "val": "1.5.2"
+          }, 
+          "extlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.00.0"
+      }, 
+      "name": "@opam-alpha/extlib"
+    }, 
+    "1.6.1": {
+      "version": "1.6.1", 
+      "opam": {
+        "url": "http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/ocaml-extlib/extlib-1.6.1.tar.gz", 
+        "checksum": "5643237a6410dc915347956cff97df86", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make minimal=1 build install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "extlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "extlib_version": {
+            "scope": "global", 
+            "val": "1.6.1"
+          }, 
+          "extlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.05.0"
+      }, 
+      "name": "@opam-alpha/extlib"
+    }, 
+    "1.7.1": {
+      "version": "1.7.1", 
+      "opam": {
+        "url": "http://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.1.tar.gz", 
+        "checksum": "381b8f3099f26eec0e8b3597361d5645", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make minimal=1 build", 
+          "make minimal=1 install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "extlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "extlib_version": {
+            "scope": "global", 
+            "val": "1.7.1"
+          }, 
+          "extlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cppo": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/extlib"
+    }, 
+    "1.7.0": {
+      "version": "1.7.0", 
+      "opam": {
+        "url": "https://github.com/ygrek/ocaml-extlib/archive/1.7.0.tar.gz", 
+        "checksum": "b50b02d9e40d35cc20c82d9c881a1bf6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make minimal=1 build", 
+          "make minimal=1 install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "extlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "extlib_version": {
+            "scope": "global", 
+            "val": "1.7.0"
+          }, 
+          "extlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cppo": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/extlib"
+    }
+  }
+}

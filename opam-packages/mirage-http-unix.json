@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-http-unix/archive/v1.0.0.tar.gz", 
+        "checksum": "ac773d4a74cf0e6e8d109d3eb86f296c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_http_unix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_http_unix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_http_unix_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": "<= 1.0.0", 
+        "@opam-alpha/mirage-tcpip-unix": ">= 0.9.5", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.9.14 < 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-unix": ">= 1.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-http-unix"
+    }
+  }
+}

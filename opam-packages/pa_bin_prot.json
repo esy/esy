@@ -1,0 +1,89 @@
+{
+  "versions": {
+    "113.00.00": {
+      "version": "113.00.00", 
+      "opam": {
+        "url": "https://github.com/janestreet/pa_bin_prot/archive/113.00.00.tar.gz", 
+        "checksum": "7eea971138ecd3843f65d398683f3998", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_bin_prot_version": {
+            "scope": "global", 
+            "val": "113.00.00"
+          }, 
+          "pa_bin_prot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_bin_prot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 113.00.00 < 113.01.00", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pa_bin_prot"
+    }, 
+    "113.00.01": {
+      "version": "113.00.01", 
+      "opam": {
+        "url": "https://github.com/janestreet/pa_bin_prot/archive/113.00.01.tar.gz", 
+        "checksum": "d81c041e1ea63da4e4072c80814870e5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_bin_prot_version": {
+            "scope": "global", 
+            "val": "113.00.01"
+          }, 
+          "pa_bin_prot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_bin_prot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": ">= 113.00.00 < 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pa_bin_prot"
+    }
+  }
+}

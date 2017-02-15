@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "1.03.0": {
+      "version": "1.03.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/415/headache-1.03.tar.gz", 
+        "checksum": "9b17f6d9ff73c54bb1be02717e06ec46", 
+        "files": [
+          {
+            "content": "bin: [\"headache\"]\n", 
+            "name": "headache.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__bin", 
+          "./configure --bindir $cur__bin", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "headache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "headache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "headache_version": {
+            "scope": "global", 
+            "val": "1.03.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/headache"
+    }
+  }
+}

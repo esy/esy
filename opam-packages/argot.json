@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/960/argot-1.1.tar.gz", 
+        "checksum": "18226c4df48dcf13b78998a1b2daca71", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh configure", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "argot_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "argot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "argot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.0.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/argot"
+    }
+  }
+}

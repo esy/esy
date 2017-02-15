@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/990/mascot-1.0.tar.gz", 
+        "checksum": "09bd8a57156ffb553e32e82248615119", 
+        "files": [
+          {
+            "content": "commit 0b80748d63c012f79b1d210848ef069fa19e3e8f\nAuthor: Hugo Heuzard <hugo.heuzard@gmail.com>\nDate:   Sat May 10 11:19:09 2014 +0200\n\n    4.01\n\ndiff --git a/src/checks/code_ignoreUnit.ml b/src/checks/code_ignoreUnit.ml\nindex 0c89914..78de4a0 100644\n--- a/src/checks/code_ignoreUnit.ml\n+++ b/src/checks/code_ignoreUnit.ml\n@@ -106,16 +106,16 @@ and process_expression error e =\n       List.iter (fun (_, e) -> process_expression error e) l\n   | Texp_tuple l ->\n       List.iter (process_expression error) l\n-  | Texp_construct (_, _, _, l, _) ->\n+  | Texp_construct (_, _, l, _) ->\n       List.iter (process_expression error) l\n   | Texp_variant (_, eo) ->\n       (match eo with Some e -> process_expression error e | None -> ())\n   | Texp_record (l, eo) ->\n-      List.iter (fun (_, _, _, e) -> process_expression error e) l;\n+      List.iter (fun (_, _, e) -> process_expression error e) l;\n       (match eo with Some e -> process_expression error e | None -> ())\n-  | Texp_field (e, _, _, _) ->\n+  | Texp_field (e, _, _) ->\n       process_expression error e\n-  | Texp_setfield (e1, _, _, _, e2) ->\n+  | Texp_setfield (e1, _, _, e2) ->\n       process_expression error e1;\n       process_expression error e2\n   | Texp_array l ->\n", 
+            "name": "4.01.patch"
+          }, 
+          {
+            "content": "bin: [\"_build/src/driver/mascot.native\" {\"mascot\"}]\n", 
+            "name": "mascot.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mascot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mascot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mascot_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.0.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/mascot"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/ojquery/archive/0.1.tar.gz", 
+        "checksum": "a86bc9ec3300cfa2a1f690a1d39d363a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojquery_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ojquery_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ojquery_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/react": "*", 
+        "@opam-alpha/js_of_ocaml": "< 2.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ojquery"
+    }
+  }
+}

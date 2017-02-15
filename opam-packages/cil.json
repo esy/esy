@@ -1,0 +1,178 @@
+{
+  "versions": {
+    "1.7.3": {
+      "version": "1.7.3", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/cil/cil/cil-1.7.3.tar.gz", 
+        "checksum": "dffd5ee8f812b86b5352583c223ef6e6", 
+        "files": [
+          {
+            "content": "diff --git a/ocamlutil/pretty.ml b/ocamlutil/pretty.ml\nindex 9f2fc43..4118097 100644\n--- a/ocamlutil/pretty.ml\n+++ b/ocamlutil/pretty.ml\n@@ -640,7 +640,7 @@ external format_float: string -> float -> string = \"caml_format_float\"\n     \n let gprintf (finish : doc -> 'b)  \n             (format : ('a, unit, doc, 'b) format4) : 'a =\n-  let format = (Obj.magic format : string) in\n+  let format = string_of_format format in\n \n   (* Record the starting align depth *)\n   let startAlignDepth = !alignDepth in\n", 
+            "name": "format-obj-magic.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "env FORCE_PERL_PREFIX=1 ./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cil_version": {
+            "scope": "global", 
+            "val": "1.7.3"
+          }, 
+          "cil_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cil_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cil"
+    }, 
+    "1.5.1": {
+      "version": "1.5.1", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/cil/cil/cil-1.5.1.tar.gz", 
+        "checksum": "09d78ed8979df5f3fba3cb120b78ce73", 
+        "files": [
+          {
+            "content": "bin: [\"bin/cilly\"]\n", 
+            "name": "cil.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/cil/sbin --libexecdir=$cur__lib/cil/libexec --sysconfdir=$cur__lib/cil/etc --sharedstatedir=$cur__lib/cil/com --localstatedir=$cur__lib/cil/var --libdir=$cur__lib/cil/lib --includedir=$cur__lib/cil/include --datarootdir=$cur__lib/cil/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cil_version": {
+            "scope": "global", 
+            "val": "1.5.1"
+          }, 
+          "cil_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cil_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "<4.02.0"
+      }, 
+      "name": "@opam-alpha/cil"
+    }, 
+    "1.7.2": {
+      "version": "1.7.2", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/cil/cil/cil-1.7.2.tar.gz", 
+        "checksum": "319ff039078420e2c0692b5c3d77ad19", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "env FORCE_PERL_PREFIX=1 ./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cil_version": {
+            "scope": "global", 
+            "val": "1.7.2"
+          }, 
+          "cil_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cil_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/cil"
+    }, 
+    "1.7.1": {
+      "version": "1.7.1", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/cil/cil/cil-1.7.1.tar.gz", 
+        "checksum": "c143ee9433b3298e5fa355aea5b251ff", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "env FORCE_PERL_PREFIX=1 ./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cil_version": {
+            "scope": "global", 
+            "val": "1.7.1"
+          }, 
+          "cil_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cil_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/cil"
+    }
+  }
+}

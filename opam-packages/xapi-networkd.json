@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.9.4": {
+      "version": "0.9.4", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xcp-networkd/archive/v0.9.4.tar.gz", 
+        "checksum": "4fbd5c6d154049a38123848cc4039ba5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin SBINDIR=$cur__bin LIBEXECDIR=$cur__bin SCRIPTSDIR=$cur__bin ETCDIR=$cur__install/etc", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_networkd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_networkd_version": {
+            "scope": "global", 
+            "val": "0.9.4"
+          }, 
+          "xapi_networkd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xen-api-client": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xapi-inventory": "*", 
+        "@opam-alpha/xapi-idl": "*", 
+        "@opam-alpha/xapi-libs-transitional": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-networkd"
+    }
+  }
+}

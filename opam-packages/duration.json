@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/hannesm/duration/releases/download/0.1.0/duration-0.1.0.tbz", 
+        "checksum": "66d8a70ca5ebb5136618a2bc93df7821", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "duration_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "duration_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "duration_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/alcotest": ">= 0.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/duration"
+    }
+  }
+}

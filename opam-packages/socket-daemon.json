@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/zoggy/ocaml-socket-daemon/archive/0.1.0.tar.gz", 
+        "checksum": "f6b01fb8fe450a61676c4ac745c484a5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "socket_daemon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "socket_daemon_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "socket_daemon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.4.0 < 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/socket-daemon"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/zoggy/ocaml-socket-daemon/archive/release-0.3.0.tar.gz", 
+        "checksum": "b8b982c83dd18f4f2ac89bce00caab89", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "socket_daemon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "socket_daemon_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "socket_daemon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/socket-daemon"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/zoggy/ocaml-socket-daemon/archive/0.2.0.tar.gz", 
+        "checksum": "5274441dd15c5abdca6b370cb5af15b9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "socket_daemon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "socket_daemon_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "socket_daemon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.4.0 < 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/socket-daemon"
+    }
+  }
+}

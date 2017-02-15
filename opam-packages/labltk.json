@@ -1,0 +1,138 @@
+{
+  "versions": {
+    "8.06.0": {
+      "version": "8.06.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1455/labltk-8.06.0.tar.gz", 
+        "checksum": "740398be4bb4cea11bddf03f27f50df9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -use-findlib -installbindir $cur__bin", 
+          "make all opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "labltk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "labltk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "labltk_version": {
+            "scope": "global", 
+            "val": "8.06.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-tk": "*", 
+        "@opam-alpha/conf-tcl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/labltk"
+    }, 
+    "8.06.1": {
+      "version": "8.06.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1603/labltk-8.06.1.tar.gz", 
+        "checksum": "f38637d8fc8cccb2e08232cbb8ea4686", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -use-findlib -installbindir $cur__bin", 
+          "make all opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "labltk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "labltk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "labltk_version": {
+            "scope": "global", 
+            "val": "8.06.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-tk": "*", 
+        "@opam-alpha/conf-tcl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/labltk"
+    }, 
+    "8.06.2": {
+      "version": "8.06.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1628/labltk-8.06.2.tar.gz", 
+        "checksum": "15020ef74baa688536ce1d38525462f8", 
+        "files": [
+          {
+            "content": "diff --git a/support/cltkImg.c b/support/cltkImg.c\nindex 310cb27..8bdcb36 100644\n--- a/support/cltkImg.c\n+++ b/support/cltkImg.c\n@@ -46,6 +46,7 @@ CAMLprim value camltk_getimgdata (value imgname) /* ML */\n #endif\n \n   code = Tk_PhotoGetImage(ph,&pib); /* never fails ? */\n+  (void) code;\n   size = pib.width * pib.height * pib.pixelSize;\n   res = alloc_string(size);\n \n", 
+            "name": "cltkImg.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -use-findlib -installbindir $cur__bin", 
+          "make all opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "labltk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "labltk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "labltk_version": {
+            "scope": "global", 
+            "val": "8.06.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-tk": "*", 
+        "@opam-alpha/conf-tcl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.04.0"
+      }, 
+      "name": "@opam-alpha/labltk"
+    }
+  }
+}

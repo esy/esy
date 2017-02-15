@@ -1,0 +1,106 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1567/zarith-1.4.tgz", 
+        "checksum": "8967de3cf9eabe1d73b663bc9916657d", 
+        "files": [
+          {
+            "content": "#!/bin/sh -eux\n\nPREFIX=`opam config var prefix`\nPKG_CONFIG_PATH=\"$PREFIX/lib/pkgconfig\"\nexport PKG_CONFIG_PATH\n\nLDFLAGS=`pkg-config --libs gmp-xen`\nexport LDFLAGS\n\n# WARNING: if you pass invalid cflags here, zarith will silently\n# fall back to compiling with the default flags instead!\nCFLAGS=\"`pkg-config --cflags gmp-xen mirage-xen-posix` -O2 -pedantic -fomit-frame-pointer -fno-builtin\"\nexport CFLAGS\n./configure\nmake\n\ncp libzarith.a \"$PREFIX/lib/zarith/libzarith-xen.a\"\n\ncat >>\"$PREFIX/lib/zarith/META\" <<EOM\nxen_linkopts = \"-lzarith-xen -L@gmp-xen -lgmp-xen\"\nEOM\n", 
+            "name": "mirage-install.sh"
+          }, 
+          {
+            "content": "#!/bin/sh -eux\n\nPREFIX=`opam config var prefix`\n\nrm -f \"$PREFIX/lib/zarith/libzarith-xen.a\"\n\nmv \"$PREFIX/lib/zarith/META\" \"$PREFIX/lib/zarith/META.tmp\"\ncat \"$PREFIX/lib/zarith/META.tmp\" | grep -v xen_linkopts > \"$PREFIX/lib/zarith/META\"\nrm -f \"$PREFIX/lib/zarith/META.tmp\"\n", 
+            "name": "mirage-uninstall.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -eux ./mirage-install.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zarith_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zarith_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_xen_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "= 1.4.0", 
+        "@opam-alpha/gmp-xen": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-xen-posix": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zarith-xen"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1471/zarith-1.3.tgz", 
+        "checksum": "9ed8ddafdebfa8c1b673dbe91a181f66", 
+        "files": [
+          {
+            "content": "#!/bin/sh -eux\n\nPREFIX=`opam config var prefix`\nPKG_CONFIG_PATH=\"$PREFIX/lib/pkgconfig\"\nexport PKG_CONFIG_PATH\n\nLDFLAGS=`pkg-config --libs gmp-xen`\nexport LDFLAGS\n\n# WARNING: if you pass invalid cflags here, zarith will silently\n# fall back to compiling with the default flags instead!\nCFLAGS=\"`pkg-config --cflags gmp-xen mirage-xen-posix` -O2 -pedantic -fomit-frame-pointer -fno-builtin\"\nexport CFLAGS\n./configure\nmake\ncp libzarith.a \"$PREFIX/lib/zarith/libzarith-xen.a\"\nmv \"$PREFIX/lib/zarith/META\" \"$PREFIX/lib/zarith/META.old\"\ncp META \"$PREFIX/lib/zarith/META\"\n", 
+            "name": "mirage-install.sh"
+          }, 
+          {
+            "content": "diff --git a/META b/META\nindex c082c65..14394d1 100644\n--- a/META\n+++ b/META\n@@ -1,3 +1,4 @@\n version = \"1.3\"\n archive(byte) = \"zarith.cma\"\n archive(native) = \"zarith.cmxa\"\n+xen_linkopts = \"-lzarith-xen -L@gmp-xen -lgmp-xen\"\n", 
+            "name": "xen_linkopts.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -eux ./mirage-install.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zarith_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zarith_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_xen_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": ">= 1.3.0 < 1.4.0", 
+        "@opam-alpha/gmp-xen": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-xen-posix": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zarith-xen"
+    }
+  }
+}

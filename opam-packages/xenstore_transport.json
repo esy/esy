@@ -1,0 +1,172 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-xenstore-clients/archive/ocaml-xenstore-clients-0.9.0.tar.gz", 
+        "checksum": "21cdad449eda250f30a8ce89ecc29b08", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xenstore_transport_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "xenstore_transport_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xenstore_transport_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "> 1.2.0 < 1.2.5", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xenstore_transport"
+    }, 
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-xenstore-clients/archive/ocaml-xenstore-clients-0.9.1.tar.gz", 
+        "checksum": "4f43929a5d5d2dbde9254993300d0cbc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xenstore_transport_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "xenstore_transport_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xenstore_transport_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "= 1.2.2", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xenstore_transport"
+    }, 
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-xenstore-clients/archive/0.9.2.tar.gz", 
+        "checksum": "401991182bf481f63c0b9157b3eb68ef", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xenstore_transport_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }, 
+          "xenstore_transport_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xenstore_transport_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "> 1.2.1", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xenstore_transport"
+    }, 
+    "0.9.4": {
+      "version": "0.9.4", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-xenstore-clients/archive/0.9.4.tar.gz", 
+        "checksum": "470299fe940fc4b67dfeeab430c06b1d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xenstore_transport_version": {
+            "scope": "global", 
+            "val": "0.9.4"
+          }, 
+          "xenstore_transport_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xenstore_transport_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "> 1.2.1", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xenstore_transport"
+    }
+  }
+}

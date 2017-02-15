@@ -1,0 +1,294 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1377/ocaml-uint-1.1.1.tar.gz", 
+        "checksum": "7388b78c2bcfd41383854da5a0d5d98d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1100/ocaml-uint-1.1.0.tar.gz", 
+        "checksum": "128305daec07dcbbe2040f7075d4cdbd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ospec": ">= 0.3.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }, 
+    "1.1.5": {
+      "version": "1.1.5", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1487/ocaml-uint-1.1.5.tar.gz", 
+        "checksum": "d58df49d9c83030a0a3a570fd7f5a74d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.1.5"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }, 
+    "1.1.4": {
+      "version": "1.1.4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1486/ocaml-uint-1.1.4.tar.gz", 
+        "checksum": "dd5967ea5be9827b3c09081809b3fa76", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.1.4"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-uint/tarball/1.0.2", 
+        "checksum": "a147e31f63bc4d589c8d8422a5a5742f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ospec": ">= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }, 
+    "1.0.3": {
+      "version": "1.0.3", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-uint/tarball/1.0.3", 
+        "checksum": "cbba3a16d7c98f362a7dbc788b311dbc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.0.3"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ospec": ">= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1516/ocaml-uint-1.2.0.tar.gz", 
+        "checksum": "e45a28c495cfaf9db714535c5f40876c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uint_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "uint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uint"
+    }
+  }
+}

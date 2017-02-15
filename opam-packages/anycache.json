@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://gitlab.com/edwintorok/ocaml-anycache/uploads/78722628e5af42b59da2abe17939ff89/anycache-0.6.0.tbz", 
+        "checksum": "5edf38601cee4aefec6b7d6e922f208f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-lwt ${lwt_installed:-false} --with-async ${async_installed:-false} --tests false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "anycache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "anycache_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "anycache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": ">= 0.7.2", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/anycache"
+    }
+  }
+}

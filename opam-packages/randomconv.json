@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/hannesm/randomconv/releases/download/0.1.0/randomconv-0.1.0.tbz", 
+        "checksum": "1551a69a7511de81f2ca6c3fe7d262c8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "randomconv_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "randomconv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "randomconv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/randomconv"
+    }
+  }
+}

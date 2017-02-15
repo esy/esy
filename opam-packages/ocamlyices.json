@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/polazarus/ocamlyices/archive/v0.7.tar.gz", 
+        "checksum": "58d89a05ae59d45bcb705c8123acfe45", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlyices_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlyices_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlyices_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlyices"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/polazarus/ocamlyices/archive/v0.7.1.tar.gz", 
+        "checksum": "0119df97a5809c41c992c38cc7a45225", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlyices_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlyices_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlyices_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlyices"
+    }
+  }
+}

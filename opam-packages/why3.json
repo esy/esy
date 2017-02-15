@@ -1,0 +1,646 @@
+{
+  "versions": {
+    "0.73.0": {
+      "version": "0.73.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/31257/why3-0.73.tar.gz", 
+        "checksum": "8994f147b7fc4084da46e81693e044bb", 
+        "files": [
+          {
+            "content": "diff -ru why3.0.73/configure why3.0.73/configure\n--- why3.0.73/configure\t2012-07-19 14:05:03.000000000 +0200\n+++ why3.0.73/configure\t2012-10-05 18:15:11.894252466 +0200\n@@ -3464,7 +3464,7 @@\n # checking for lablgtksourceview2\n if test \"$enable_ide\" = yes ; then\n    if test \"$USEOCAMLFIND\" = yes; then\n-      LABLGTKSV2LIB=$(ocamlfind query lablgtksourceview2)\n+      LABLGTKSV2LIB=$(ocamlfind query lablgtk2.sourceview2)\n    fi\n    if test -n \"$LABLGTKSV2LIB\";then\n       echo \"ocamlfind found lablgtksourceview2 in $LABLGTKSV2LIB\"\n", 
+            "name": "opam.patch"
+          }, 
+          {
+            "content": "bin: [\n  \"bin/why3session.opt\" {\"why3session\"}\n  \"bin/why3replayer.opt\" {\"why3replayer\"}\n  \"bin/why3ml.opt\" {\"why3ml\"}\n  \"?bin/why3ide.opt\" {\"why3ide\"}\n  \"bin/why3doc.opt\" {\"why3doc\"}\n  \"bin/why3config.opt\" {\"why3config\"}\n  \"bin/why3bench.opt\" {\"why3bench\"}\n  \"bin/why3-cpulimit\"\n  \"bin/why3.opt\" {\"why3\"}\n]\n", 
+            "name": "why3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/why3/sbin --libexecdir=$cur__lib/why3/libexec --sysconfdir=$cur__lib/why3/etc --sharedstatedir=$cur__lib/why3/com --localstatedir=$cur__lib/why3/var --libdir=$cur__lib/why3/lib --includedir=$cur__lib/why3/include --datarootdir=$cur__lib/why3/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.73.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlgraph": "= 1.8.2", 
+        "@opam-alpha/alt-ergo": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.3.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.82.0": {
+      "version": "0.82.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/33492/why3-0.82.tar.gz", 
+        "checksum": "1f43a3e7c753f86e2f7fe400899ee6b8", 
+        "files": [
+          {
+            "content": "--- a/Makefile.in\n+++ b/Makefile.in\n@@ -1598,6 +1598,18 @@\n clean::\n \trm -f doc/stdlibdoc/*\n \n+ifdef DOCDIR\n+install-doc:\n+\tmkdir -p $(DOCDIR)\n+\tcp -rf doc/manual.pdf doc/stdlibdoc doc/apidoc $(DOCDIR)\n+else\n+install-doc:\n+\t@echo \"You should set the variable DOCDIR to the destination directory\"\n+\t@exit 1\n+endif\n+\n+\n+\n ################\n # generic rules\n ################\n", 
+            "name": "Makefile.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/why3/sbin --libexecdir=$cur__lib/why3/libexec --sysconfdir=$cur__lib/why3/etc --sharedstatedir=$cur__lib/why3/com --localstatedir=$cur__lib/why3/var --libdir=$cur__lib/why3/lib --includedir=$cur__lib/why3/include --datarootdir=$cur__lib/why3/share --disable-bench", 
+          "make opt byte", 
+          "make install install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.82.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/alt-ergo": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "*", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.87.3": {
+      "version": "0.87.3", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.87.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.87.3", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.87.2": {
+      "version": "0.87.2", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.87.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.87.2", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.83.0": {
+      "version": "0.83.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/33490/why3-0.83.tar.gz", 
+        "checksum": "35f99e5f64939e50ea57f641ba2073ec", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/why3/sbin --libexecdir=$cur__lib/why3/libexec --sysconfdir=$cur__lib/why3/etc --sharedstatedir=$cur__lib/why3/com --localstatedir=$cur__lib/why3/var --libdir=$cur__lib/why3/lib --includedir=$cur__lib/why3/include --datarootdir=$cur__lib/why3/share --disable-bench", 
+          "make opt byte", 
+          "make install install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.83.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/alt-ergo": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "*", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.87.0": {
+      "version": "0.87.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.87.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.87.0", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.87.1": {
+      "version": "0.87.1", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.87.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.87.1", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.86.0": {
+      "version": "0.86.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.86.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.86.0", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.86.2": {
+      "version": "0.86.2", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.86.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.86.2", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.86.3": {
+      "version": "0.86.3", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.86.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.86.3", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.80.0": {
+      "version": "0.80.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/31724/why3-0.80.tar.gz", 
+        "checksum": "4b50adf812a34879be92f27f25be7ec9", 
+        "files": [
+          {
+            "content": "bin: [\n  \"bin/why3session.opt\" {\"why3session\"}\n  \"bin/why3replayer.opt\" {\"why3replayer\"}\n  \"?bin/why3ml.opt\" {\"why3ml\"}\n  \"?bin/why3ide.opt\" {\"why3ide\"}\n  \"bin/why3doc.opt\" {\"why3doc\"}\n  \"bin/why3config.opt\" {\"why3config\"}\n  \"bin/why3bench.opt\" {\"why3bench\"}\n  \"bin/why3-cpulimit\"\n  \"bin/why3.opt\" {\"why3\"}\n]\n", 
+            "name": "why3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/why3/sbin --libexecdir=$cur__lib/why3/libexec --sysconfdir=$cur__lib/why3/etc --sharedstatedir=$cur__lib/why3/com --localstatedir=$cur__lib/why3/var --libdir=$cur__lib/why3/lib --includedir=$cur__lib/why3/include --datarootdir=$cur__lib/why3/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.80.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlgraph": "= 1.8.2", 
+        "@opam-alpha/alt-ergo": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "= 8.3.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.85.0": {
+      "version": "0.85.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.85.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/why3-base": "= 0.85.0", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.81.0": {
+      "version": "0.81.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/33491/why3-0.81.tar.gz", 
+        "checksum": "82253969f7bc8ea88ca60ee694909b31", 
+        "files": [
+          {
+            "content": "--- /tmp/why3-0.81/configure\t2013-03-27 07:08:28.000000000 +0100\n+++ configure\t2013-04-05 14:45:02.311937591 +0200\n@@ -611,6 +611,7 @@\n enable_ide\n enable_profiling\n OCAMLGRAPHLIB\n+OCAMLINSTALLLIB\n OCAMLLIB\n OCAMLVERSION\n OCAMLBEST\n@@ -3392,6 +3393,14 @@\n    fi\n fi\n \n+#if ocamlfind is used it gives the install path for ocaml library\n+if test \"$USEOCAMLFIND\" = yes; then\n+   OCAMLINSTALLLIB=$(ocamlfind printconf destdir)\n+else\n+   OCAMLINSTALLLIB=$OCAMLLIB\n+fi\n+\n+\n # checking for rubber\n if test \"$enable_doc\" = yes ; then\n    # Extract the first word of \"rubber\", so it can be a program name with args.\n@@ -4142,6 +4151,7 @@\n \n \n \n+\n # Finally create the Makefile from Makefile.in\n ac_config_files=\"$ac_config_files Makefile src/config.sh doc/version.tex\"\n \n@@ -5377,7 +5387,9 @@\n    echo \"Installable             : no\"\n else\n    echo \"Installable             : yes\"\n    echo \"    Binary path         : $bindir\"\n+   echo \"    Lib path            : $libdir/why3\"\n    echo \"    Data path           : $datarootdir/why3\"\n+   echo \"    Ocaml Library       : $OCAMLINSTALLLIB/why3\"\n    echo \"    Relocatable         : $enable_relocation\"\n fi\n", 
+            "name": "configure.patch"
+          }, 
+          {
+            "content": "diff --git a/Makefile.in b/Makefile.in\nindex 1f558fd..1db3805 100644\n--- a/Makefile.in\n+++ b/Makefile.in\n@@ -43,6 +43,7 @@ OCAMLLEX  = @OCAMLLEX@\n OCAMLYACC = @OCAMLYACC@\n OCAMLDOC  = @OCAMLDOC@\n OCAMLLIB  = @OCAMLLIB@\n+OCAMLINSTALLLIB  = @OCAMLINSTALLLIB@\n OCAMLBEST = @OCAMLBEST@\n OCAMLVERSION = @OCAMLVERSION@\n COQC      = @COQC@\n@@ -207,8 +208,10 @@ clean::\n clean_old_install:\n \trm -f $(BINDIR)/why3*\n \trm -rf $(DATADIR)/why3\n+\trm -rf $(OCAMLINSTALLLIB)/why3\n \n-install_no_local::\n+\n+install_no_local:: clean_old_install\n \tmkdir -p $(BINDIR)\n \tmkdir -p $(DATADIR)/why3\n \tmkdir -p $(DATADIR)/why3/images\n@@ -234,10 +237,9 @@ install_no_local::\n #\tif test -d /etc/bash_completion.d; then cp -f share/bash/why3 /etc/bash_completion.d; fi\n \n install_no_local_lib::\n-\trm -rf $(OCAMLLIB)/why3\n-\tmkdir -p $(OCAMLLIB)/why3\n+\tmkdir -p $(OCAMLINSTALLLIB)/why3\n \tcp -f lib/why3/why3.cm* lib/why3/why3.[ao] \\\n-\t\tlib/why3/META $(OCAMLLIB)/why3\n+\t\tlib/why3/META $(OCAMLINSTALLLIB)/why3\n \n ifeq (@enable_local@,yes)\n install install-lib:\n@@ -1366,6 +1368,17 @@ stdlibdoc: $(STDLIBFILES) $(STDMODFILES) bin/why3doc.@OCAMLBEST@\n clean::\n \trm -f doc/stdlibdoc/*\n \n+ifdef DOCDIR\n+install-doc:\n+\tmkdir -p $(DOCDIR)\n+\tcp -rf doc/manual.pdf doc/stdlibdoc doc/apidoc $(DOCDIR)\n+else\n+install-doc:\n+\t@echo \"You should set the variable DOCDIR to the destination directory\"\n+\t@exit 1\n+endif\n+\n+\n ################\n # generic rules\n ################\n", 
+            "name": "Makefile.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/why3/sbin --libexecdir=$cur__lib/why3/libexec --sysconfdir=$cur__lib/why3/etc --sharedstatedir=$cur__lib/why3/com --localstatedir=$cur__lib/why3/var --libdir=$cur__lib/why3/lib --includedir=$cur__lib/why3/include --datarootdir=$cur__lib/why3/share --disable-bench", 
+          "make opt byte", 
+          "make install install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.81.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/alt-ergo": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "*", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }, 
+    "0.84.0": {
+      "version": "0.84.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/33976/why3-0.84.tar.gz", 
+        "checksum": "286ac2816f539f11e31f84fcafc32120", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --disable-bench", 
+          "make opt byte", 
+          "make install install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "why3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "why3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "why3_version": {
+            "scope": "global", 
+            "val": "0.84.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/alt-ergo": "*", 
+        "@opam-alpha/lablgtk": ">= 2.14.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/coq": "*", 
+        "@opam-alpha/conf-gtksourceview": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/why3"
+    }
+  }
+}

@@ -1,0 +1,310 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.3.0.tar.gz", 
+        "checksum": "763c4fa3a29f5a22bc4ef817fa2d8fd6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.2.0.tar.gz", 
+        "checksum": "afda858f0936c37043c1f6fce04cf315", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ctypes": ">= 0.4.0 < 0.6.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }, 
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.4.1.tar.gz", 
+        "checksum": "f56a66ce5c58fe39cd04067f2acba1ac", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.4.0.tar.gz", 
+        "checksum": "e91ec66c2958402976a1a69104ba617e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }, 
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.4.2.tar.gz", 
+        "checksum": "846a01bf904e1fae31c79010276d2bd6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.5.0.tar.gz", 
+        "checksum": "a67d42b86ac159b2f75d91b309117176", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-errno/archive/0.5.1.tar.gz", 
+        "checksum": "0cd758c1dc9a3eebad87b9b7611effb7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_errno_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }, 
+          "unix_errno_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_errno_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-errno"
+    }
+  }
+}

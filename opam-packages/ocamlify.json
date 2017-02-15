@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/379/ocamlify-0.0.1.tar.gz", 
+        "checksum": "bcd97ad0f7203019019997197451dbf0", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ocamlify\"]\n", 
+            "name": "ocamlify.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlify_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlify_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "ocamlify_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlify"
+    }
+  }
+}

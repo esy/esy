@@ -1,0 +1,65 @@
+{
+  "versions": {
+    "1.05.0": {
+      "version": "1.05.0", 
+      "opam": {
+        "url": "http://caml.inria.fr/pub/old_caml_site/distrib/bazar-ocaml/camlidl-1.05.tar.gz", 
+        "checksum": "4cfb863bc3cbdc1af2502042c45cc675", 
+        "files": [
+          {
+            "content": "diff -Naur camlidl-1.05/runtime/Makefile.unix camlidl-1.05-patched/runtime/Makefile.unix\n--- camlidl-1.05/runtime/Makefile.unix\t2000-08-19 12:05:00.000000000 +0100\n+++ camlidl-1.05-patched/runtime/Makefile.unix\t2016-12-02 11:26:21.847071889 +0000\n@@ -14,7 +14,11 @@\n \n OBJS=idlalloc.o comintf.o comerror.o\n \n-all: libcamlidl.a\n+all: dllcamlidl.so libcamlidl.a\n+\n+dllcamlidl.so: $(OBJS)\n+\t- rm -f $@\n+\tocamlmklib -o camlidl  $(OBJS) \n \n libcamlidl.a: $(OBJS)\n \t- rm -f $@\n@@ -24,6 +28,7 @@\n install:\n \tcp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h\n \tcp libcamlidl.a $(OCAMLLIB)/libcamlidl.a\n+\tcp dllcamlidl.so $(OCAMLLIB)/stublibs/dllcamlidl.so\n \tcd $(OCAMLLIB); $(RANLIB) libcamlidl.a\n \n clean:\n", 
+            "name": "build-dll.diff"
+          }, 
+          {
+            "content": "bin: [\n \"?compiler/camlidl\"\n \"?compiler/camlidl.exe\"\n]\nlib: [\n  \"META\"\n  \"lib/com.cma\"\n  \"lib/com.cmxa\"\n  \"lib/com.cmi\"\n \"?lib/com.a\"\n \"?lib/com.lib\"\n \"?runtime/libcamlidl.a\"\n \"?runtime/libcamlidl.lib\"\n \"?runtime/cfactory.obj\"\n  \"runtime/camlidlruntime.h\" { \"caml/camlidlruntime.h\" }\n]\nstublibs: [\n \"?runtime/dllcamlidl.so\"\n]\n", 
+            "name": "camlidl.install"
+          }, 
+          {
+            "content": "diff -Naur camlidl-1.05/config/Makefile.unix camlidl-1.05-patched/config/Makefile.unix\n--- camlidl-1.05/config/Makefile.unix\t2002-04-22 12:50:46.000000000 +0100\n+++ camlidl-1.05-patched/config/Makefile.unix\t2013-04-09 13:43:56.751790572 +0100\n@@ -19,9 +19,9 @@\n \n # How to invoke the C preprocessor\n # Works on most Unix systems:\n-CPP=/lib/cpp\n+CPP=cpp\n # Alternatives:\n-# CPP=cpp\n+# CPP=/lib/cpp\n # CPP=/usr/ccs/lib/cpp\n # CPP=gcc -x c -E\n \n", 
+            "name": "cpp-location.diff"
+          }, 
+          {
+            "content": "diff -Naur camlidl-1.05/config/Makefile.unix camlidl-1.05-patched/config/Makefile.unix\n--- camlidl-1.05/config/Makefile.unix\t2002-04-22 12:50:46.000000000 +0100\n+++ camlidl-1.05-patched/config/Makefile.unix\t2016-05-04 13:10:23.370704022 +0100\n@@ -37,7 +37,7 @@\n BINDIR=/usr/local/bin\n \n # The Objective Caml compilers (the defaults below should be OK)\n-OCAMLC=ocamlc -g\n+OCAMLC=ocamlc -g -warn-error -31\n OCAMLOPT=ocamlopt\n OCAMLYACC=ocamlyacc -v\n OCAMLLEX=ocamllex\ndiff -Naur camlidl-1.05/config/Makefile.win32 camlidl-1.05-patched/config/Makefile.win32\n--- camlidl-1.05/config/Makefile.win32\t2004-07-08 13:21:58.000000000 +0100\n+++ camlidl-1.05-patched/config/Makefile.win32\t2016-05-04 13:10:23.370704022 +0100\n@@ -35,7 +35,7 @@\n BINDIR=C:/ocaml/bin\n \n # The Objective Caml compilers (the defaults below should be OK)\n-OCAMLC=ocamlc -g\n+OCAMLC=ocamlc -g -warn-error -31\n OCAMLOPT=ocamlopt\n OCAMLDEP=ocamldep\n OCAMLYACC=ocamlyacc -v\n", 
+            "name": "disable-fatal-warn-31.diff"
+          }, 
+          {
+            "content": "description = \"Stub generator\"\nversion = \"1.05\"\narchive(byte,plugin) = \"com.cma\"\narchive(native) = \"com.cmxa\"\n", 
+            "name": "META"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mv config/Makefile.unix config/Makefile", 
+          "mv config/Makefile.win32 config/Makefile", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlidl_version": {
+            "scope": "global", 
+            "val": "1.05.0"
+          }, 
+          "camlidl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlidl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/camlidl"
+    }
+  }
+}

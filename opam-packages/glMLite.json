@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.03.51": {
+      "version": "0.03.51", 
+      "opam": {
+        "url": "http://www.linux-nantes.org/~fmonnier/OCaml/GL/download/glMLite-0.03.51.tgz", 
+        "checksum": "9189dcb5c10a86c8b6b2558e03962a04", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install PREFIX=$cur__lib/glMLite", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glMLite_version": {
+            "scope": "global", 
+            "val": "0.03.51"
+          }, 
+          "glMLite_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glMLite_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.04.0"
+      }, 
+      "name": "@opam-alpha/glMLite"
+    }
+  }
+}

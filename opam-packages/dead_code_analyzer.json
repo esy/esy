@@ -1,0 +1,42 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/LexiFi/dead_code_analyzer/archive/0.9.tar.gz", 
+        "checksum": "97bc788d2bea1e50192441c65326bda2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all opt man", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dead_code_analyzer_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "dead_code_analyzer_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dead_code_analyzer_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/dead_code_analyzer"
+    }
+  }
+}

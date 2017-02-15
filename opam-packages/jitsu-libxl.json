@@ -1,0 +1,43 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "jitsu_libxl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "jitsu_libxl_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "jitsu_libxl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/jitsu": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/jitsu-libxl"
+    }
+  }
+}

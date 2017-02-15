@@ -1,0 +1,87 @@
+{
+  "versions": {
+    "3.3.0": {
+      "version": "3.3.0", 
+      "opam": {
+        "url": "http://www.algo-prog.info/ocapic/web/lib/exe/fetch.php?media=ocapic:ocapic-3.3.tar.bz2", 
+        "checksum": "bd1b2e89acb3399600910b8c2dd48fc6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocapic_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocapic_version": {
+            "scope": "global", 
+            "val": "3.3.0"
+          }, 
+          "ocapic_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/graphics": "*", 
+        "@opam-alpha/ocamlclean": ">= 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocapic"
+    }, 
+    "3.0.0": {
+      "version": "3.0.0", 
+      "opam": {
+        "url": "http://www.algo-prog.info/ocapic/web/lib/exe/fetch.php?media=ocapic-3.0.tar.bz2", 
+        "checksum": "e453251c23ec866a05bdc44cad83675e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocapic_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocapic_version": {
+            "scope": "global", 
+            "val": "3.0.0"
+          }, 
+          "ocapic_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlclean": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocapic"
+    }
+  }
+}

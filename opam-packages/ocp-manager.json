@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "http://www.typerex.org/pub/ocp-manager/ocp-manager.0.1.2.tar.gz", 
+        "checksum": "652599889ef497ae23fff2a9304cad01", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install.opam", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_manager_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "ocp_manager_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocp_manager_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.17", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocp-manager"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "http://www.typerex.org/pub/ocp-manager/ocp-manager.0.1.3.tar.gz", 
+        "checksum": "fc77ca7a7924c9e147a5dc27cde3eed7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install.opam", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_manager_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }, 
+          "ocp_manager_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocp_manager_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.17", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocp-manager"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/dominicjprice/sociaml-tumblr-api/archive/v0.1.0.tar.gz", 
+        "checksum": "6fb10049ba8143a126486033f813ab1e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "./configure --prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sociaml_tumblr_api_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sociaml_tumblr_api_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sociaml_tumblr_api_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/tiny_json_conv": "*", 
+        "@opam-alpha/sociaml-oauth-client": "< 0.5.0", 
+        "@opam-alpha/tiny_json": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/meta_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/csv": "*", 
+        "@opam-alpha/lwt": "< 3.0.0", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/calendar": "*", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/sociaml-tumblr-api"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/dominicjprice/sociaml-tumblr-api/archive/v0.2.0.tar.gz", 
+        "checksum": "053e74cfcfcbc4e2e239943a9fcb5a87", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "./configure --prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sociaml_tumblr_api_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sociaml_tumblr_api_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sociaml_tumblr_api_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/tiny_json_conv": "*", 
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/tiny_json": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/meta_conv": "*", 
+        "@opam-alpha/csv": "*", 
+        "@opam-alpha/lwt": "< 3.0.0", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/calendar": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/sociaml-oauth-client": ">= 0.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/sociaml-tumblr-api"
+    }
+  }
+}

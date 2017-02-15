@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "1.0.4": {
+      "version": "1.0.4", 
+      "opam": {
+        "url": "https://github.com/andersfugmann/amqp-client/archive/1.0.4.tar.gz", 
+        "checksum": "c9756f9795bb4bfeea1a93d4f13d4491", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "amqp_client_version": {
+            "scope": "global", 
+            "val": "1.0.4"
+          }, 
+          "amqp_client_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "amqp_client_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xml-light": "*", 
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/amqp-client"
+    }
+  }
+}

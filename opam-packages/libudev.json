@@ -1,0 +1,130 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/Armael/ocaml-libudev/archive/v0.1.zip", 
+        "checksum": "3668c064e1559b5218d28cc9196c254d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libudev_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "libudev_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libudev_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ctypes": ">= 0.4.1", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/libudev"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/Armael/ocaml-libudev/archive/v0.1.1.zip", 
+        "checksum": "e592e3789e8f6c82652e65880c8bdab4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libudev_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "libudev_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libudev_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ctypes": ">= 0.4.1", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/libudev"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/Armael/ocaml-libudev/archive/v0.2.zip", 
+        "checksum": "7dc001bc3b0a0d10df6be1f0dd970f9a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libudev_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "libudev_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libudev_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ctypes": ">= 0.4.1", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/libudev"
+    }
+  }
+}

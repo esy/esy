@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "0.4.0-0": {
+      "version": "0.4.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-clock/archive/0.4.0.tar.gz", 
+        "checksum": "162a48e881a7455db79939fa73f67a93", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_clock_version": {
+            "scope": "global", 
+            "val": "0.4.0-0"
+          }, 
+          "posix_clock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_clock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-time": ">= 0.5.0", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-clock"
+    }, 
+    "0.3.0-0": {
+      "version": "0.3.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-clock/archive/0.3.0.tar.gz", 
+        "checksum": "1cab0c2e98bee8815f6547b9aa5f57d1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_clock_version": {
+            "scope": "global", 
+            "val": "0.3.0-0"
+          }, 
+          "posix_clock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_clock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-time": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-clock"
+    }
+  }
+}

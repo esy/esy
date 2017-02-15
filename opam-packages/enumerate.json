@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "111.08.00": {
+      "version": "111.08.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.08.00/individual/enumerate-111.08.00.tar.gz", 
+        "checksum": "2cb0ad1f4a7fc4c9fe1bf6d294be10ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "enumerate_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "enumerate_version": {
+            "scope": "global", 
+            "val": "111.08.00"
+          }, 
+          "enumerate_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": ">= 109.60.00 < 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/enumerate"
+    }, 
+    "111.03.00": {
+      "version": "111.03.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.03.00/individual/enumerate-111.03.00.tar.gz", 
+        "checksum": "7ea60183d7fecfef9183ac4afa006111", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "enumerate_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "enumerate_version": {
+            "scope": "global", 
+            "val": "111.03.00"
+          }, 
+          "enumerate_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "= 109.60.01", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/enumerate"
+    }
+  }
+}

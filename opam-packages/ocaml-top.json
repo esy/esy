@@ -1,0 +1,228 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocaml-top/archive/1.1.1.tar.gz", 
+        "checksum": "2034af448d678ebc35eebe8630f385f4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -install-bin $cur__bin -install-lib $cur__lib -install-doc $cur__doc/ocaml-top -install-data $cur__install/share/ocaml-top", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_top_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "ocaml_top_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_top_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": ">= 1.4.0", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.17", 
+        "@opam-alpha/lablgtk": ">= 2.16.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": ">= 1.0.0 < 1.1.5", 
+        "@opam-alpha/conf-gtksourceview": "= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-top"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocaml-top/archive/1.1.0.tar.gz", 
+        "checksum": "aa4614107357525bf44b25b6afe815ba", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -install-bin $cur__bin -install-lib $cur__lib -install-doc $cur__doc/ocaml-top -install-data $cur__install/share/ocaml-top", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_top_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "ocaml_top_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_top_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": ">= 1.3.1 < 1.4.0", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.8", 
+        "@opam-alpha/lablgtk": ">= 2.16.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": ">= 0.2.0 < 1.0.0", 
+        "@opam-alpha/conf-gtksourceview": "= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-top"
+    }, 
+    "1.1.2": {
+      "version": "1.1.2", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocaml-top/archive/1.1.2.tar.gz", 
+        "checksum": "c270da843fe1c711f5d14bde4305d7f5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocp-build -init", 
+          "ocp-build ocaml-top", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_top_version": {
+            "scope": "global", 
+            "val": "1.1.2"
+          }, 
+          "ocaml_top_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_top_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": ">= 1.4.1", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.17", 
+        "@opam-alpha/lablgtk": ">= 2.16.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": ">= 1.0.1 < 1.1.5", 
+        "@opam-alpha/conf-gtksourceview": "= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-top"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocaml-top/archive/1.0.0.tar.gz", 
+        "checksum": "68c664ccc2f62a97dbe1245ccc1e4b60", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -install-bin $cur__bin -install-lib $cur__lib -install-doc $cur__doc/ocaml-top -install-data $cur__install/share/ocaml-top", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_top_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ocaml_top_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_top_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": ">= 1.3.0 < 1.4.0", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.8", 
+        "@opam-alpha/lablgtk": ">= 2.16.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": ">= 0.2.0 < 1.0.0", 
+        "@opam-alpha/conf-gtksourceview": "= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-top"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocaml-top/archive/1.0.1.tar.gz", 
+        "checksum": "3f58a7fbee7935fc4e61b11582506082", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -install-bin $cur__bin -install-lib $cur__lib -install-doc $cur__doc/ocaml-top -install-data $cur__install/share/ocaml-top", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_top_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "ocaml_top_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_top_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": ">= 1.3.1 < 1.4.0", 
+        "@opam-alpha/ocp-build": ">= 1.99.6 < 1.99.8", 
+        "@opam-alpha/lablgtk": ">= 2.16.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": ">= 0.2.0 < 1.0.0", 
+        "@opam-alpha/conf-gtksourceview": "= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-top"
+    }
+  }
+}

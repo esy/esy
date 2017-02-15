@@ -1,0 +1,375 @@
+{
+  "versions": {
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.4.tar.gz", 
+        "checksum": "3940923409d984e7ffab5b68567cf831", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make BIN=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.0.1": {
+      "version": "2.0.1", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.0.1.tar.gz", 
+        "checksum": "d24ae707dfaca36e4af190b7fd95ea93", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml do.ml qtest install $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.0.1"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.2.0 < 0.4.7"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "> 3.12.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.0.0.tar.gz", 
+        "checksum": "2ced87b3e5f2f67ce5f49cd006fa3deb", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml do.ml qtest install $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.2.0 < 0.4.7"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "> 3.12.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.3.tar.gz", 
+        "checksum": "9792c1d09a1e6df0a636622a771f5ae4", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make BIN=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.2.tar.gz", 
+        "checksum": "68f9f31932876f5810c3ca37976b8381", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make BIN=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.1.0.tar.gz", 
+        "checksum": "8184f815c75595672da373b3445a7fda", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml do.ml qtest build $cur__install", 
+          "ocaml do.ml qtest install $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.2.0 < 0.4.7"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.1.1": {
+      "version": "2.1.1", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.1.1.tar.gz", 
+        "checksum": "4a65c746d0e2029b6d57c1db64f84d44", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml do.ml qtest build $cur__install", 
+          "ocaml do.ml qtest install $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.1.1"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.2.0 < 0.4.7"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }, 
+    "2.5.0": {
+      "version": "2.5.0", 
+      "opam": {
+        "url": "https://github.com/vincent-hugot/iTeML/archive/v2.5.tar.gz", 
+        "checksum": "cb4cc482ed412c8ed41ebf5d46840667", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?qtest/_build/qtest.byte\" {\"qtest\"}\n  \"?qtest/_build/qtest.native\" {\"qtest\"}\n]\n", 
+            "name": "qtest.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make BIN=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qtest_version": {
+            "scope": "global", 
+            "val": "2.5.0"
+          }, 
+          "qtest_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qtest_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/qcheck": ">= 0.5.0", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/qtest"
+    }
+  }
+}

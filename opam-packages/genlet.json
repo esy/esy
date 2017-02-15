@@ -1,0 +1,66 @@
+{
+  "versions": {
+    "201406.0.0": {
+      "version": "201406.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "(* Generic let-insertion: \n     genlet code\ninserts a let expression to bind 'code' as high as possible --\nas high in the scope as still safe (creating no scope extrusion).\n\n*)\n\n(* We will be using delimited control. So we load it up and set up *)\n(*\n#directory \"/home/oleg/Cache/ncaml4/caml-shift/\";;\n#directory \"/usr/local/src/ncaml4/caml-shift/\";;\n#load \"delimcc.cma\";;\n*)\n\nopen Delimcc;;\nopen Runcode;;                          (* To run the code *)\n\n(* If we are going to use delimited control, we need to tell MetaOCaml,\n   by adjusting its stackmark facility -- provide the implementation of\n   stackmarks that works with delimcc.\n*)\nTrx.set_with_stack_mark {Trx.stackmark_region_fn = fun body ->\n   let p = new_prompt () in\n   push_prompt p (fun () -> body (fun () -> is_prompt_set p))}\n;;\n\n(* Let-insertion request (with an existential) \n   We ask to let-bind the code value and return the corresponding\n   let-bound identifier.\n   If the response is (c,true), the request was satisfied and\n   c is the let-bound identifier.\n   If the response is (c,false), the let-binding was unsuccessful\n   and c is the original code from the request.\n*)\ntype genlet_req = \n  | Done: genlet_req\n  | Req: 'a code * ('a code * bool -> genlet_req) -> genlet_req\n;;\n\n(* The single prompt for let-insertion *)\nlet p : genlet_req prompt = new_prompt ()\n\n(* Send the let-insertion request for a given code.\n   If the prompt is not set, just return (c,false)\n*)\n\nlet send_req : 'a code -> 'a code * bool = fun c ->\n  if is_prompt_set p then\n    shift0 p (fun k -> Req (c,k))\n  else (c,false)\n\nlet genlet : 'a code -> 'a code = fun c ->\n  fst @@ send_req c\n\n(* We often use mutable variables as `communication channel', to appease\n   the type-checker. The variable stores the `option' value --\n   most of the time, None. One function writes a Some x value,\n   and another function almost immediately reads the value -- exactly\n   once. The protocol of using such a variable is a sequence of\n   one write almost immediately followed by one read.\n   We use the following helpers to access our `communication channel'.\n*)\nlet from_option = function Some x -> x | None -> failwith \"fromoption\";;\n\nlet read_answer r = let v = from_option !r in r := None; v (* for safety *)\n\n(* Check if a piece of code contains free variables that cannot\n   be bound. We try to incorporate the received piece of code\n   into a larger piece of code. At this point, MetaOCaml does\n   the scope extrusion check, throwing an exception if the check fails.\n*)\nlet is_well_scoped : 'a code -> bool = fun c ->\n  try ignore (.<begin .~c; () end>.); true with e -> false\n\n(* The point of inserting let: the handler for genlet_req\n   Upon receiving the let-binding request and before satsifying\n   it, we check if the request can be fulfilled by a handler\n   upstream.\n   That is, we try to insert let `as high as possible'.\n *)\nlet let_locus : (unit -> 'w code) -> 'w code = fun body ->\n  let r = ref None in\n  let rec loop = function\n    | Done      -> read_answer r\n    | Req (c,k) -> \n       if not (is_well_scoped c) then loop (k (c,false))\n       else (* try higher *)\n        begin \n          match send_req c with\n          | (c,false) -> .<let t = .~c in .~(loop (k (.<t>.,true)))>.\n          | x -> loop (k x)           (* c is a variable, inserted higher *)\n        end\n  in\n  loop @@ push_prompt p @@ fun () ->\n    r := Some (body ()); Done\n\n(* Tests *)\nlet t1 = .<1 + .~(genlet .<2>.)>.\n(* val t1 : int code = .<1 + 2>.  *)\n\nlet t2 = .<fun x -> 1 + .~(genlet .<2>.)>.\n(* val t2 : ('a -> int) code = .<fun x_1  -> 1 + 2>.  *)\n\nlet t3 = let_locus (fun () -> .<fun x -> 1 + .~(genlet .<2>.)>.)\n(* val t3 : ('_a -> int) code = .<let t_3 = 2 in fun x_2  -> 1 + t_3>. \n*)\n\nlet t4 = let_locus (fun () -> .<fun x -> 1 + .~(genlet .<x>.)>.)\n(* val t4 : (int -> int) code = .<fun x_9  -> 1 + x_9>. \n*)\n\nlet t5 = let_locus (fun () -> \n  .<fun x -> .~(let_locus (fun () ->\n  .<fun y -> .~(let_locus (fun () ->\n    .<1 + .~(genlet .<2+3>.)>.))\n  >.))\n  >.)\n(*\nval t5 : ('_a -> '_b -> int) code = .<\n  let t_12 = 2 + 3 in fun x_10  y_11  -> 1 + t_12>. \n*)\n\nlet t51 = let_locus (fun () -> \n  .<fun x -> .~(let_locus (fun () ->\n  .<fun y -> .~(let_locus (fun () ->\n    .<1 + .~(genlet .<2+x>.)>.))\n  >.))\n  >.)\n(*\nval t51 : (int -> '_a -> int) code = .<\n  fun x_13  -> let t_15 = 2 + x_13 in fun y_14  -> 1 + t_15>. \n*)\nlet t52 = let_locus (fun () -> \n  .<fun x -> .~(let_locus (fun () ->\n  .<fun y -> .~(let_locus (fun () ->\n    .<1 + .~(genlet .<y+x>.)>.))\n  >.))\n  >.)\n(*\nval t52 : (int -> int -> int) code = .<\n  fun x_16  y_17  -> let t_18 = y_17 + x_16 in 1 + t_18>. \n*)\n\n\n(* Further examples *)\n\n(* A simple DSL. See loop_motion_gen.ml for a realistic example *)\nmodule type DSL = sig\n  val sqr           : int code -> int code\n  val make_incr_fun : (int code -> int code) -> (int -> int) code\nend\n\n(* Sample DSL expressions *)\nmodule DSLExp(S: DSL) = struct\n  open S\n  let exp1 = sqr .<2+3>.\n  let exp2 = make_incr_fun (fun x -> sqr .<2+3>.)\n  let exp3 = make_incr_fun (fun x -> sqr .<.~x + 3>.)\nend\n\n(* The naive implementation of the DSL *)\nmodule DSL1 = struct\n  let sqr e = .<.~e * .~e>.\n  let make_incr_fun body = .<fun x -> x + .~(body .<x>.)>.\nend\n\nlet module M = DSLExp(DSL1) in\n  (M.exp1, M.exp2, M.exp3)\n(*\n- : int code * (int -> int) code * (int -> int) code =\n(.<(2 + 3) * (2 + 3)>. , \n .<fun x_14  -> x_14 + ((2 + 3) * (2 + 3))>. , \n .<fun x_15  -> x_15 + ((x_15 + 3) * (x_15 + 3))>. )\n*)\n\n(* Adding let-insertion, trasparently *)\nmodule DSL2 = struct\n  let sqr e = DSL1.sqr (genlet e)\n  let make_incr_fun body = \n    let_locus @@ fun () ->\n      DSL1.make_incr_fun @@ fun x ->\n        let_locus @@ fun () -> \n          body x\nend\n\nlet module M = DSLExp(DSL2) in\n  (M.exp1, M.exp2, M.exp3)\n(*\n(.<(2 + 3) * (2 + 3)>. , \n .<let t_17 = 2 + 3 in fun x_16  -> x_16 + (t_17 * t_17)>. , \n .<fun x_18  -> x_18 + (let t_19 = x_18 + 3 in t_19 * t_19)>. )\n*)\n", 
+            "name": "gengenlet.ml"
+          }, 
+          {
+            "content": "(*\n  Safe and modular let-insertion for MetaOCaml.\n\n  See http://okmij.org/ftp/meta-programming/#let-insert\n\n  Example:\n     let_locus (fun () ->\n      .< 1 + .~(genlet .< 2 >.) >.\n  ~>\n     .< let x = 2 in\n        1 + x >.\n\n  [This interface file added by Jeremy Yallop, March 2015.]\n *)\n\nval genlet : 'a code -> 'a code\nval let_locus : (unit -> 'w code) -> 'w code\n", 
+            "name": "gengenlet.mli"
+          }, 
+          {
+            "content": "lib: [\n  \"genlet.cma\"\n  \"gengenlet.cmi\"\n  \"genlet.cmxa\"\n  \"META\"\n]\n", 
+            "name": "genlet.install"
+          }, 
+          {
+            "content": "version = \"0.3\"\ndescription = \"Let insertion for MetaOCaml.\"\nrequires = \"delimcc\"\narchive(byte) = \"genlet.cma\"\narchive(native) = \"genlet.cmxa\"\nexists_if = \"genlet.cma\"\n", 
+            "name": "META"
+          }, 
+          {
+            "content": "diff --git a/gengenlet.ml b/gengenlet.ml\nindex 5711f41..d70f2ce 100644\n--- a/gengenlet.ml\n+++ b/gengenlet.ml\n@@ -93,100 +93,3 @@ let let_locus : (unit -> 'w code) -> 'w code = fun body ->\n   in\n   loop @@ push_prompt p @@ fun () ->\n     r := Some (body ()); Done\n-\n-(* Tests *)\n-let t1 = .<1 + .~(genlet .<2>.)>.\n-(* val t1 : int code = .<1 + 2>.  *)\n-\n-let t2 = .<fun x -> 1 + .~(genlet .<2>.)>.\n-(* val t2 : ('a -> int) code = .<fun x_1  -> 1 + 2>.  *)\n-\n-let t3 = let_locus (fun () -> .<fun x -> 1 + .~(genlet .<2>.)>.)\n-(* val t3 : ('_a -> int) code = .<let t_3 = 2 in fun x_2  -> 1 + t_3>. \n-*)\n-\n-let t4 = let_locus (fun () -> .<fun x -> 1 + .~(genlet .<x>.)>.)\n-(* val t4 : (int -> int) code = .<fun x_9  -> 1 + x_9>. \n-*)\n-\n-let t5 = let_locus (fun () -> \n-  .<fun x -> .~(let_locus (fun () ->\n-  .<fun y -> .~(let_locus (fun () ->\n-    .<1 + .~(genlet .<2+3>.)>.))\n-  >.))\n-  >.)\n-(*\n-val t5 : ('_a -> '_b -> int) code = .<\n-  let t_12 = 2 + 3 in fun x_10  y_11  -> 1 + t_12>. \n-*)\n-\n-let t51 = let_locus (fun () -> \n-  .<fun x -> .~(let_locus (fun () ->\n-  .<fun y -> .~(let_locus (fun () ->\n-    .<1 + .~(genlet .<2+x>.)>.))\n-  >.))\n-  >.)\n-(*\n-val t51 : (int -> '_a -> int) code = .<\n-  fun x_13  -> let t_15 = 2 + x_13 in fun y_14  -> 1 + t_15>. \n-*)\n-let t52 = let_locus (fun () -> \n-  .<fun x -> .~(let_locus (fun () ->\n-  .<fun y -> .~(let_locus (fun () ->\n-    .<1 + .~(genlet .<y+x>.)>.))\n-  >.))\n-  >.)\n-(*\n-val t52 : (int -> int -> int) code = .<\n-  fun x_16  y_17  -> let t_18 = y_17 + x_16 in 1 + t_18>. \n-*)\n-\n-\n-(* Further examples *)\n-\n-(* A simple DSL. See loop_motion_gen.ml for a realistic example *)\n-module type DSL = sig\n-  val sqr           : int code -> int code\n-  val make_incr_fun : (int code -> int code) -> (int -> int) code\n-end\n-\n-(* Sample DSL expressions *)\n-module DSLExp(S: DSL) = struct\n-  open S\n-  let exp1 = sqr .<2+3>.\n-  let exp2 = make_incr_fun (fun x -> sqr .<2+3>.)\n-  let exp3 = make_incr_fun (fun x -> sqr .<.~x + 3>.)\n-end\n-\n-(* The naive implementation of the DSL *)\n-module DSL1 = struct\n-  let sqr e = .<.~e * .~e>.\n-  let make_incr_fun body = .<fun x -> x + .~(body .<x>.)>.\n-end\n-\n-let module M = DSLExp(DSL1) in\n-  (M.exp1, M.exp2, M.exp3)\n-(*\n-- : int code * (int -> int) code * (int -> int) code =\n-(.<(2 + 3) * (2 + 3)>. , \n- .<fun x_14  -> x_14 + ((2 + 3) * (2 + 3))>. , \n- .<fun x_15  -> x_15 + ((x_15 + 3) * (x_15 + 3))>. )\n-*)\n-\n-(* Adding let-insertion, trasparently *)\n-module DSL2 = struct\n-  let sqr e = DSL1.sqr (genlet e)\n-  let make_incr_fun body = \n-    let_locus @@ fun () ->\n-      DSL1.make_incr_fun @@ fun x ->\n-        let_locus @@ fun () -> \n-          body x\n-end\n-\n-let module M = DSLExp(DSL2) in\n-  (M.exp1, M.exp2, M.exp3)\n-(*\n-(.<(2 + 3) * (2 + 3)>. , \n- .<let t_17 = 2 + 3 in fun x_16  -> x_16 + (t_17 * t_17)>. , \n- .<fun x_18  -> x_18 + (let t_19 = x_18 + 3 in t_19 * t_19)>. )\n-*)\n", 
+            "name": "remove-tests.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocamlfind -toolchain metaocaml c -package delimcc -a -o genlet.cma gengenlet.mli gengenlet.ml", 
+          "ocamlfind -toolchain metaocaml opt -package delimcc -a -o genlet.cmxa gengenlet.mli gengenlet.ml", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "genlet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "genlet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "genlet_version": {
+            "scope": "global", 
+            "val": "201406.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/delimcc": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/genlet"
+    }
+  }
+}

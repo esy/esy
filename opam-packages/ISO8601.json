@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.2.5": {
+      "version": "0.2.5", 
+      "opam": {
+        "url": "https://github.com/sagotch/ISO8601.ml/archive/0.2.5.tar.gz", 
+        "checksum": "1f6895ca3627521815bba29f3286d60d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ISO8601_version": {
+            "scope": "global", 
+            "val": "0.2.5"
+          }, 
+          "ISO8601_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ISO8601_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/ISO8601"
+    }
+  }
+}

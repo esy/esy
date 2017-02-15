@@ -1,0 +1,227 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/logs/releases/logs-0.6.0.tbz", 
+        "checksum": "ae85c0dc3a7adc4f36f9dfc01d876d2f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-js_of_ocaml ${js_of_ocaml_installed:-false} --with-fmt ${fmt_installed:-false} --with-cmdliner ${cmdliner_installed:-false} --with-lwt ${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "logs_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": ">= 0.7.5", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/mtime": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/logs"
+    }, 
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/logs/releases/logs-0.6.1.tbz", 
+        "checksum": "a2edb0f7a50acca0833fea2f446015bb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-js_of_ocaml ${js_of_ocaml_installed:-false} --with-fmt ${fmt_installed:-false} --with-cmdliner ${cmdliner_installed:-false} --with-lwt ${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "logs_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": ">= 0.7.5", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/mtime": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/logs"
+    }, 
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/logs/releases/logs-0.4.2.tbz", 
+        "checksum": "ca937a070ade70ac58ab2d5402af5f72", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true jsoo=${js_of_ocaml_installed:-false} fmt=${fmt_installed:-false} cmdliner=${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "logs_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/ocamlfind": "build} 0.0.0 {build", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/logs"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/logs/releases/logs-0.5.0.tbz", 
+        "checksum": "f5a882164b986456c3178d7e50774394", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true jsoo=${js_of_ocaml_installed:-false} fmt=${fmt_installed:-false} cmdliner=${cmdliner_installed:-false} lwt=${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "logs_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/mtime": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/logs"
+    }, 
+    "0.6.2": {
+      "version": "0.6.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/logs/releases/logs-0.6.2.tbz", 
+        "checksum": "19f824c02c83c6dddc3bfb6459e4743e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-js_of_ocaml ${js_of_ocaml_installed:-false} --with-fmt ${fmt_installed:-false} --with-cmdliner ${cmdliner_installed:-false} --with-lwt ${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "logs_version": {
+            "scope": "global", 
+            "val": "0.6.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/mtime": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/logs"
+    }
+  }
+}

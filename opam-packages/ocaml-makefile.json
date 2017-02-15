@@ -1,0 +1,82 @@
+{
+  "versions": {
+    "6.38.0": {
+      "version": "6.38.0", 
+      "opam": {
+        "url": "https://github.com/mmottl/ocaml-makefile/releases/download/v6.38.0/ocaml-makefile-6.38.0.tar.gz", 
+        "checksum": "570fd8b4e37d7ee5f4fec379e2642025", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__lib/ocaml-makefile", 
+          "cp OCamlMakefile $cur__lib/ocaml-makefile", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_makefile_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_makefile_version": {
+            "scope": "global", 
+            "val": "6.38.0"
+          }, 
+          "ocaml_makefile_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-makefile"
+    }, 
+    "6.37.0": {
+      "version": "6.37.0", 
+      "opam": {
+        "url": "https://github.com/mmottl/ocaml-makefile/archive/v6.37.0.tar.gz", 
+        "checksum": "535f9fca36fe0f684f73bdcff429f392", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__lib/ocaml-makefile", 
+          "cp OCamlMakefile $cur__lib/ocaml-makefile", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_makefile_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_makefile_version": {
+            "scope": "global", 
+            "val": "6.37.0"
+          }, 
+          "ocaml_makefile_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-makefile"
+    }
+  }
+}

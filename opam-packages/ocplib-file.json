@@ -1,0 +1,42 @@
+{
+  "versions": {
+    "1.99.17-beta": {
+      "version": "1.99.17-beta", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocplib_file_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocplib_file_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocplib_file_version": {
+            "scope": "global", 
+            "val": "1.99.17-beta"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/typerex-build": "= 1.99.17", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/ocplib-file"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/besport/ocaml-jwt/archive/0.1.zip", 
+        "checksum": "74645dd6cc34e361592bae54588fd297", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "jwt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "jwt_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "jwt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/yojson": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/base64": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/jwt"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "http://perso.ens-lyon.fr/damien.pous/symkat/symkat-1.4.tgz", 
+        "checksum": "ed47c80907d6dc6291c55502fa10a52b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "symkat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "symkat_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "symkat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/safa": ">= 1.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/symkat"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "http://perso.ens-lyon.fr/damien.pous/symkat/symkat-1.3.tgz", 
+        "checksum": "8e1ef90db0be25d435f6dc51a06377ab", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "symkat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "symkat_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "symkat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/safa": "= 1.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/symkat"
+    }
+  }
+}

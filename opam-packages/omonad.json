@@ -1,0 +1,179 @@
+{
+  "versions": {
+    "0.3.2": {
+      "version": "0.3.2", 
+      "opam": {
+        "url": "https://github.com/yallop/omonad/archive/omonad-0.3.2.tar.gz", 
+        "checksum": "11635e3c90e863e3b938b7069206deb7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --enable-tests --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omonad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omonad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "omonad_version": {
+            "scope": "global", 
+            "val": "0.3.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.04.0"
+      }, 
+      "name": "@opam-alpha/omonad"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/yallop/omonad/archive/omonad-0.3.0.tar.gz", 
+        "checksum": "bf8910c6ee41b8e906610d0d6992a7b3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --enable-tests --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omonad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omonad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "omonad_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/omonad"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/yallop/omonad/archive/omonad-0.3.1.tar.gz", 
+        "checksum": "854bb852252d84f05e9b6cb926aa9b86", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --enable-tests --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omonad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omonad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "omonad_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/omonad"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/danmey/omonad/archive/omonad-0.2.0.tar.gz", 
+        "checksum": "dea6977d88367c052aaccb0071a67c22", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --enable-tests --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "omonad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "omonad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "omonad_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/omonad"
+    }
+  }
+}

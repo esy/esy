@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/ptime/releases/ptime-0.8.1.tbz", 
+        "checksum": "90df07ad48679b59a2c344bc4c71708c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-js_of_ocaml ${js_of_ocaml_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ptime_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ptime_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ptime_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ptime"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/ptime/releases/ptime-0.8.0.tbz", 
+        "checksum": "9d5ad46d4bbf19f2419fa121bf6c111a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true jsoo=${js_of_ocaml_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ptime_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ptime_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ptime_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ptime"
+    }, 
+    "0.8.2": {
+      "version": "0.8.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/ptime/releases/ptime-0.8.2.tbz", 
+        "checksum": "4ec5780673bbb2f7553ef45f1e55839d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-js_of_ocaml ${js_of_ocaml_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ptime_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ptime_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ptime_version": {
+            "scope": "global", 
+            "val": "0.8.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ptime"
+    }
+  }
+}

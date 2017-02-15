@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/avsm/ocaml-annot/archive/v1.1.0.tar.gz", 
+        "checksum": "f9b293b1317fe6968e1f41e5cda2a41c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "annot_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "annot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "annot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/annot"
+    }
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "versions": {
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/mjambon/easy-format/archive/v1.2.0.tar.gz", 
+        "checksum": "0b99126d35a8a2843573a0655d0d9ff5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "easy_format_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "easy_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "easy_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/easy-format"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/mjambon/easy-format/archive/v1.1.0.tar.gz", 
+        "checksum": "7605708d63197588c1ca66d1c48a5e5f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "easy_format_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "easy_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "easy_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/easy-format"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/mjambon/easy-format/archive/v1.0.1.tar.gz", 
+        "checksum": "ecaf5d060f7cf8961631ab319e40677c", 
+        "files": [
+          {
+            "content": "--- Makefile.orig\t2012-10-12 16:53:00.101688369 -0700\n+++ Makefile\t\t2012-10-12 17:02:33.061706704 -0700\n@@ -6,10 +6,13 @@\n all:\n\tocamlc -c easy_format.mli\n \tocamlc -c -dtypes easy_format.ml\n+\tocamlmklib -o easy_format easy_format.cmo\n \ttouch bytecode\n opt:\n\tocamlc -c easy_format.mli\n \tocamlopt -c -dtypes easy_format.ml\n+\tocamlmklib -o easy_format easy_format.cmx\n+\tocamlopt -I . -shared -linkall -o easy_format.cmxs easy_format.cmx\n \ttouch nativecode\n test: all simple_example.out\n       ocamlc -o test_easy_format -dtypes easy_format.cmo test_easy_format.ml\n@@ -45,8 +48,8 @@\n \n \n COMMON_INSTALL_FILES = META easy_format.cmi easy_format.mli\n-BC_INSTALL_FILES = easy_format.cmo \n-NC_INSTALL_FILES = easy_format.cmx easy_format.o\n+BC_INSTALL_FILES = easy_format.cmo easy_format.cma\n+NC_INSTALL_FILES = easy_format.cmx easy_format.cmxa easy_format.cmxs easy_format.o easy_format.a\n \n install:\n\techo \"version = \\\"$(VERSION)\\\"\" > META; cat META.tpl >> META\n", 
+            "name": "easy-format-make.diff"
+          }, 
+          {
+            "content": "--- META.tpl.orig\t2012-10-12 17:46:54.701791877 -0700\n+++ META.tpl\t\t2012-10-12 17:47:10.653792387 -0700\n@@ -1,4 +1,5 @@\n name = \"easy-format\"\n description = \"Indentation made easy(ier)\"\n-archive(byte)    = \"easy_format.cmo\"\n-archive(native)  = \"easy_format.cmx\"\n+archive(byte)    = \"easy_format.cmo\"\n+archive(native)  = \"easy_format.cmx\"\n+archive(native,plugin)  = \"easy_format.cmxs\"\n", 
+            "name": "meta-tpl.diff"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "easy_format_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "easy_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "easy_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/easy-format"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/mjambon/easy-format/archive/v1.0.2.tar.gz", 
+        "checksum": "82f6db85477831cab11e4cfe80321225", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "easy_format_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }, 
+          "easy_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "easy_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/easy-format"
+    }
+  }
+}

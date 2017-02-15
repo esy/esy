@@ -1,0 +1,465 @@
+{
+  "versions": {
+    "1.4.3": {
+      "version": "1.4.3", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/884/batteries-1.4.3.tar.gz", 
+        "checksum": "af93a95bcbfeaa188453b7495b815413", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "1.4.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.00.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1096/batteries-2.0.tar.gz", 
+        "checksum": "ab93a8a6ed7d94ca7c7be26862b4e1e9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "<= 4.00.1"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/ocaml-batteries-team/batteries-included/archive/v2.3.0.tar.gz", 
+        "checksum": "34a9c9060f989637912ac0ba4503261e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.3.1": {
+      "version": "2.3.1", 
+      "opam": {
+        "url": "https://github.com/ocaml-batteries-team/batteries-included/archive/v2.3.1.tar.gz", 
+        "checksum": "e8d3aff7b031174c4fcfa69e1bfbf393", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/950/batteries-1.5.0.tar.gz", 
+        "checksum": "40b7022fddba246062fd489eeb15cd84", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camomile": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "<= 4.00.1"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1363/batteries-2.2.tar.gz", 
+        "checksum": "42063b5f2da9a311ff16799b8bec4ba5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1218/batteries-2.1.tar.gz", 
+        "checksum": "95567687a675107e58c66b93b9ea9bb1", 
+        "files": [
+          {
+            "content": "diff -ur batteries-2.1/src/batUnix.mliv batteries-2.1-patch/src/batUnix.mliv\n--- batteries-2.1/src/batUnix.mliv\t2013-07-18 07:02:22.000000000 +0200\n+++ batteries-2.1-patch/src/batUnix.mliv\t2013-08-28 15:47:03.632089339 +0200\n@@ -261,6 +261,10 @@\n                                     O_SYNC/O_DSYNC) *)\n ##V4##  | O_SHARE_DELETE              (** OCaml 4 and Windows only: allow the file to be deleted\n ##V4##                                   while still open *)\n+##V4.1##  | O_CLOEXEC                   (** Set the close-on-exec flag on the\n+##V4.1##                                    descriptor returned by {!openfile}\n+##V4.1##\n+##V4.1##                                    Since OCaml 4.1 *)\n (** The flags to {!Unix.openfile}. *)\n \n \nOnly in batteries-2.1-patch/src: batUnix.mliv~\n", 
+            "name": "cloexec.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/ocaml-batteries-team/batteries-included/archive/v2.4.0.tar.gz", 
+        "checksum": "0f0b2e4cb6386cebc6614ab30fa87489", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.5.2": {
+      "version": "2.5.2", 
+      "opam": {
+        "url": "https://github.com/ocaml-batteries-team/batteries-included/archive/v2.5.2.tar.gz", 
+        "checksum": "540ebfd52c57cc63dfaf7d5b4eea8045", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.5.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.3", 
+        "@opam-alpha/qtest": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.5.3": {
+      "version": "2.5.3", 
+      "opam": {
+        "url": "https://github.com/ocaml-batteries-team/batteries-included/archive/v2.5.3.tar.gz", 
+        "checksum": "cefb1c1103dc03ec3167d58fa05bb93f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.5.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.3", 
+        "@opam-alpha/qtest": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1 < 4.05.0"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }, 
+    "2.5.0": {
+      "version": "2.5.0", 
+      "opam": {
+        "url": "https://github.com/ocaml-batteries-team/batteries-included/archive/v2.5.0.tar.gz", 
+        "checksum": "b9484a9d41cb8329c8a341e6c5122729", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "batteries_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "batteries_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "batteries_version": {
+            "scope": "global", 
+            "val": "2.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.3", 
+        "@opam-alpha/qtest": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/batteries"
+    }
+  }
+}

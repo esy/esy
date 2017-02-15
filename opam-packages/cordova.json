@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova/archive/v1.0.zip", 
+        "checksum": "f4f1c70dd35cce5fd97e1716c7dadb7c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cordova_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova"
+    }
+  }
+}

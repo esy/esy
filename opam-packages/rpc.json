@@ -1,0 +1,347 @@
+{
+  "versions": {
+    "1.4.1": {
+      "version": "1.4.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/1.4.1.tar.gz", 
+        "checksum": "867ff95904bb2187264d43e7f2454ad8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.4.1"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/js_of_ocaml": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.5.4": {
+      "version": "1.5.4", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/v1.5.4.tar.gz", 
+        "checksum": "30b4db1c36a505bd18ad44d6ba86c339", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.5.4"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.5.1": {
+      "version": "1.5.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/1.5.1.tar.gz", 
+        "checksum": "19725179109794eb80e566da715b00f1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.5.1"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/1.5.0.tar.gz", 
+        "checksum": "32b9b4642784eff23eaffa217a209485", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/js_of_ocaml": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.5.3": {
+      "version": "1.5.3", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/v1.5.3.tar.gz", 
+        "checksum": "13cb9a20fe1903d4892efc555f5db57f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.5.3"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.3.1": {
+      "version": "1.3.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/1.3.1.tar.gz", 
+        "checksum": "8786fdc59244b9886f7fd63c63d99ada", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.3.1"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/js_of_ocaml": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/1.3.0.tar.gz", 
+        "checksum": "f5659821f645bafa2d18894fe88bd52d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/js_of_ocaml": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-rpc/archive/1.2.0.tar.gz", 
+        "checksum": "0319acc2f3c113a19c13c4bbbc3bc190", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "rpc_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "= 108.00.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/rpc"
+    }
+  }
+}

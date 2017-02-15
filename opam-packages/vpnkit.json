@@ -1,0 +1,69 @@
+{
+  "versions": {
+    "0.0.0": {
+      "version": "0.0.0", 
+      "opam": {
+        "url": "https://github.com/djs55/vpnkit/archive/v0.0.0.tar.gz", 
+        "checksum": "9bd05f1339ba9d48a119ee394b701c8f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vpnkit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vpnkit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vpnkit_version": {
+            "scope": "global", 
+            "val": "0.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/fd-send-recv": "*", 
+        "@opam-alpha/hvsock": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/named-pipe": ">= 0.4.0", 
+        "@opam-alpha/tcpip": ">= 2.8.0 < 3.0.0", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/hashcons": "= 1.0.1", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/uwt": "= 0.0.3", 
+        "@opam-alpha/lwt": "< 2.7.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/dns-forward": "*", 
+        "@opam-alpha/datakit-server": "*", 
+        "@opam-alpha/asl": "*", 
+        "@opam-alpha/mirage-flow": ">= 1.1.0", 
+        "@opam-alpha/oasis": "*", 
+        "@opam-alpha/pcap-format": ">= 0.4.0", 
+        "@opam-alpha/charrua-core": ">= 0.3.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/tar-format": "*", 
+        "@opam-alpha/win-eventlog": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": "*", 
+        "@opam-alpha/dns": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vpnkit"
+    }
+  }
+}

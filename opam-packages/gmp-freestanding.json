@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "6.0.0": {
+      "version": "6.0.0", 
+      "opam": {
+        "url": "https://gmplib.org/download/gmp/gmp-6.0.0a.tar.xz", 
+        "checksum": "1e6da4e434553d2811437aa42c7f7c76", 
+        "files": [
+          {
+            "content": "libdir=${pcfiledir}/../gmp-freestanding\nincludedir=${libdir}/include\n\nName: gmp-freestanding\nVersion: 6.0.0\nURL: https://gmplib.org\nDescription: The GNU Multiple Precision Arithmetic Library\nCflags: -I${includedir}\nLibs: -L${libdir} -lgmp-freestanding\n", 
+            "name": "gmp-freestanding.pc"
+          }, 
+          {
+            "content": "#!/bin/sh -ex\nif [ -z \"$PREFIX\" ]; then\n\tPREFIX=\"`opam config var prefix`/lib/gmp-freestanding\"\nfi\n\nPKG_CONFIG_DEPS=\"ocaml-freestanding\"\ncheck_deps () {\n  pkg-config --print-errors --exists ${PKG_CONFIG_DEPS}\n}\n\nif ! check_deps 2>/dev/null; then\n  # rely on `opam` if deps are unavailable\n  export PKG_CONFIG_PATH=\"`opam config var prefix`/lib/pkgconfig\"\nfi\ncheck_deps || exit 1\n\n#\n# ocaml-freestanding does not provide a real cross compiler, so we fake it:\n# \n# - set CC to stop configure trying to find a host compiler\n# - set CPPFLAGS to ocaml-freestanding CFLAGS, this prevents inclusion of\n#   system headers\n# - manually override tests for missing functions\n# - manually trim the components (SUBDIRS) of libgmp we build to the subset\n#   actually used by zarith-freestanding (our sole dependency)\n# - set -Werror=implicit-function-declaration at *build* time to catch any\n#   undefined symbols\n#\nac_cv_func_obstack_vprintf=no \\\nac_cv_func_localeconv=no \\\n./configure \\\n    --host=x86_64-unknown-none --enable-fat --disable-shared \\\n    CC=cc \"CPPFLAGS=$(pkg-config --cflags ${PKG_CONFIG_DEPS})\"\n\nmake SUBDIRS=\"mpn mpz mpq mpf\" \\\n    PRINTF_OBJECTS= SCANF_OBJECTS= \\\n    CFLAGS+=-Werror=implicit-function-declaration\n", 
+            "name": "mirage-build.sh"
+          }, 
+          {
+            "content": "#!/bin/sh -ex\nif [ -z \"$PREFIX\" ]; then\n\tPREFIX=`opam config var prefix`\nfi\nPKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig\nLIBDIR=${PREFIX}/lib/gmp-freestanding\n\nmkdir -p ${PKG_CONFIG_PATH}\ncp gmp-freestanding.pc ${PKG_CONFIG_PATH}\nmkdir -p ${LIBDIR}\ncp .libs/libgmp.a ${LIBDIR}/libgmp-freestanding.a\nmkdir -p ${LIBDIR}/include\ncp gmp.h ${LIBDIR}/include\n", 
+            "name": "mirage-install.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -ex ./mirage-build.sh", 
+          "sh -ex ./mirage-install.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gmp_freestanding_version": {
+            "scope": "global", 
+            "val": "6.0.0"
+          }, 
+          "gmp_freestanding_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gmp_freestanding_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocaml-freestanding": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gmp-freestanding"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/859/regstab-2.0.0.tar.gz", 
+        "checksum": "bacea0b985f75328453a2b2da40afa07", 
+        "files": [
+          {
+            "content": "diff -ru regstab.2.0.0/myocamlbuild.ml regstab.2.0.0/myocamlbuild.ml\n--- regstab.2.0.0/myocamlbuild.ml\t2012-05-04 05:14:37.000000000 +0200\n+++ regstab.2.0.0/myocamlbuild.ml\t2012-10-05 18:14:59.193868570 +0200\n@@ -55,7 +55,7 @@\n   dirs#man/\"man1\"/\"sch2ltl.opt.1\" , \"man\"/\"man1\"/\"sch2ltl.opt.1\";\n   dirs#doc/\"manual.pdf\"           , \"doc\"/pkgbase;\n   dirs#doc/\"developer\"            , \"doc\"/pkgbase/\"developer_doc\";\n-  dirs#tools                      , \"share\"/pkgbase;\n+  dirs#tools                      , \"lib\"/pkgbase/\"share\"/pkgbase;\n   dirs#ex                         , \"doc\"/pkgbase;\n   dirs#bin/\"regstab\"              , \"bin\"/\"regstab\";\n   dirs#bin/\"regstab.opt\"          , \"bin\"/\"regstab.opt\";\n", 
+            "name": "opam.patch"
+          }, 
+          {
+            "content": "bin: [\n  \"_build/src/executables/sch2ltl.native\" {\"sch2ltl.opt\"}\n  \"_build/src/executables/sch2ltl.byte\" {\"sch2ltl\"}\n  \"_build/src/executables/sch2cnf.native\" {\"sch2cnf.opt\"}\n  \"_build/src/executables/sch2cnf.byte\" {\"sch2cnf\"}\n  \"_build/src/executables/main.native\" {\"regstab.opt\"}\n  \"_build/src/executables/main.byte\" {\"regstab\"}\n]\n", 
+            "name": "regstab.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "regstab_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "regstab_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "regstab_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/regstab"
+    }
+  }
+}

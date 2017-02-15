@@ -1,0 +1,248 @@
+{
+  "versions": {
+    "0.9.2": {
+      "version": "0.9.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/cmdliner/releases/cmdliner-0.9.2.tbz", 
+        "checksum": "8f3c925d15d676602782453a16808102", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdliner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdliner_version": {
+            "scope": "global", 
+            "val": "0.9.2"
+          }, 
+          "cmdliner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/cmdliner"
+    }, 
+    "0.9.4": {
+      "version": "0.9.4", 
+      "opam": {
+        "url": "http://erratique.ch/software/cmdliner/releases/cmdliner-0.9.4.tbz", 
+        "checksum": "5089b4b69993ddc5ce4aac0e30d0c641", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdliner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdliner_version": {
+            "scope": "global", 
+            "val": "0.9.4"
+          }, 
+          "cmdliner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cmdliner"
+    }, 
+    "0.9.5": {
+      "version": "0.9.5", 
+      "opam": {
+        "url": "http://erratique.ch/software/cmdliner/releases/cmdliner-0.9.5.tbz", 
+        "checksum": "a5195004312cd99bacde7de232bab73b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdliner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdliner_version": {
+            "scope": "global", 
+            "val": "0.9.5"
+          }, 
+          "cmdliner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cmdliner"
+    }, 
+    "0.9.6": {
+      "version": "0.9.6", 
+      "opam": {
+        "url": "http://erratique.ch/software/cmdliner/releases/cmdliner-0.9.6.tbz", 
+        "checksum": "9c2490a6d1def1e6a8bb264f235682cb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdliner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdliner_version": {
+            "scope": "global", 
+            "val": "0.9.6"
+          }, 
+          "cmdliner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/cmdliner"
+    }, 
+    "0.9.7": {
+      "version": "0.9.7", 
+      "opam": {
+        "url": "http://erratique.ch/software/cmdliner/releases/cmdliner-0.9.7.tbz", 
+        "checksum": "46d7553b95f623f811df2a844fb448fb", 
+        "files": [
+          {
+            "content": "diff -Naur cmdliner-0.9.7/src/cmdliner.ml cmdliner-0.9.7.patched/src/cmdliner.ml\n--- cmdliner-0.9.7/src/cmdliner.ml\t2015-02-06 11:33:44.000000000 +0100\n+++ cmdliner-0.9.7.patched/src/cmdliner.ml\t2015-02-18 23:04:04.000000000 +0100\n@@ -830,7 +830,7 @@\n     | None -> if names = [] then \"ARGUMENTS\" else \"OPTIONS\"\n     | Some s -> s\n     in\n-    { id = arg_id (); absent = Val (Lazy.from_val \"\");\n+    { id = arg_id (); absent = Val (lazy \"\");\n       doc = doc; docv = docv; docs = docs;\n       p_kind = All; o_kind = Flag; o_names = List.rev_map dash names;\n       o_all = false; }\n@@ -924,7 +924,7 @@\n \n   let opt_all ?vopt (parse, print) v a =\n     if is_pos a then invalid_arg err_not_opt else\n-    let a = { a with absent = Val (Lazy.from_val \"\"); o_all = true;\n+    let a = { a with absent = Val (lazy \"\"); o_all = true;\n                      o_kind = match vopt with\n                      | None -> Opt | Some dv -> Opt_vopt (str_of_pp print dv) }\n     in\n@@ -949,7 +949,7 @@\n   let pos ?(rev = false) k (parse, print) v a =\n     if is_opt a then invalid_arg err_not_pos else\n     let a = { a with p_kind = Nth (rev, k);\n-                     absent = Val (Lazy.from_val (str_of_pp print v)) }\n+                     absent = Val (lazy (str_of_pp print v)) }\n     in\n     let convert _ cl = match Cmdline.pos_arg cl a with\n     | [] -> v\n", 
+            "name": "backport_pre_4_00_0.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdliner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdliner_version": {
+            "scope": "global", 
+            "val": "0.9.7"
+          }, 
+          "cmdliner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/cmdliner"
+    }, 
+    "0.9.8": {
+      "version": "0.9.8", 
+      "opam": {
+        "url": "http://erratique.ch/software/cmdliner/releases/cmdliner-0.9.8.tbz", 
+        "checksum": "fc67c937447cc223722f1419fa2189da", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdliner_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdliner_version": {
+            "scope": "global", 
+            "val": "0.9.8"
+          }, 
+          "cmdliner_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/cmdliner"
+    }
+  }
+}

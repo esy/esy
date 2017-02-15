@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/Antique-team/memcad/archive/v1.0.0.tar.gz", 
+        "checksum": "7951413755c9cce76409ac792c960662", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "mv batch memcad_batch", 
+          "mv analyze memcad_analyze", 
+          "cp memcad_batch $cur__bin", 
+          "cp memcad_analyze $cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "memcad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "memcad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "memcad_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-graphviz": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/parmap": "*", 
+        "@opam-alpha/qtest": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/apron": "*", 
+        "@opam-alpha/setr": "*", 
+        "@opam-alpha/clangml-transforms": "*", 
+        "@opam-alpha/obuild": "*", 
+        "@opam-alpha/bdd": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/memcad"
+    }
+  }
+}

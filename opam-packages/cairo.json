@@ -1,0 +1,163 @@
+{
+  "versions": {
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/746/cairo-0.4.1.tar.gz", 
+        "checksum": "4eb3b09fb7dd51dac345c3e6fcb0437c", 
+        "files": [
+          {
+            "content": "diff -ru cairo.0.4.1/setup.ml cairo.0.4.1/setup.ml\n--- cairo.0.4.1/setup.ml\t2011-12-30 17:23:59.000000000 +0100\n+++ cairo.0.4.1/setup.ml\t2012-10-05 18:15:15.442359704 +0200\n@@ -5999,7 +5999,7 @@\n       | \"Unix\" | \"Cygwin\" -> \"-o \" ^ exe\n       | \"Win32\" -> \"/Fe\" ^ exe\n       | _ -> assert false in\n-    let args = o :: stdlib :: (flags @ [tmp]) in\n+    let args = o :: stdlib :: (tmp :: flags @ []) in\n     let f_exit_code e =\n       if e <> 0 then (compile_err(); Sys.remove tmp; exit 1) in\n     BaseExec.run cc args ~f_exit_code;\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cairo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cairo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cairo_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-cairo": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/cairo"
+    }, 
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1003/cairo-0.4.2.tar.gz", 
+        "checksum": "cbd64bfe6a3eb120ae98deb5ce6980ae", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lablgtk_enable:-disable}-lablgtk2", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cairo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cairo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cairo_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-cairo": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/conf-autoconf": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cairo"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://cgit.freedesktop.org/cairo-ocaml/snapshot/cairo-ocaml-1.2.0.tar.gz", 
+        "checksum": "75bf7eb95045c1dba2733d7107b7b218", 
+        "files": [
+          {
+            "content": "diff --git a/configure.ac b/configure.ac\nindex 6c8c4e9..b539ca6 100644\n--- a/configure.ac\n+++ b/configure.ac\n@@ -32,6 +32,18 @@ PKG_CHECK_MODULES(LIBSVG_CAIRO, libsvg-cairo, use_libsvg_cairo=yes, use_libsvg_c\n # Optional pango-cairo support\n PKG_CHECK_MODULES(LIBPANGOCAIRO, pangocairo, use_libpangocairo=yes, use_libpangocairo=no)\n \n+# Optional fontconfig support\n+CFLAGS=$CAIRO_CFLAGS\n+AC_CHECK_DECL(CAIRO_HAS_FT_FONT,\n+              [require_fontconfig=yes],[require_fontconfig=no],\n+              [[#include <cairo.h>]])\n+\n+if test $require_fontconfig = yes ; then\n+  unset CAIRO_LIBS\n+  unset CAIRO_CFLAGS\n+  PKG_CHECK_MODULES(CAIRO, cairo >= 1.2 freetype2 fontconfig)\n+fi\n+\n echo\n echo \"  GTK+         support: $use_gtk\"\n echo \"  libsvg-cairo support: $use_libsvg_cairo\"\n", 
+            "name": "configure_fontconfig.patch"
+          }, 
+          {
+            "content": "diff --git a/config.make.in b/config.make.in\nindex 0b4af37..d7b93b2 100644\n--- a/config.make.in\n+++ b/config.make.in\n@@ -11,7 +11,7 @@ OCAMLDEP   = @OCAMLDEP@\n INSTALLDIR = $(OCAMLLIB)/cairo\n \n LABLGTKDIR = @LABLGTKDIR@\n-C_LABLGTKDIR = $(subst +,$(OCAMLLIB)/,$(LABLGTKDIR))\n+C_LABLGTKDIR = $(LABLGTKDIR)\n \n # stop ocamlmklib moaning\n FILT = -Wl,--export-dynamic\n", 
+            "name": "configure_lablgtkdir.patch"
+          }, 
+          {
+            "content": "version = \"1.2.0\"\ndescription = \"Binding to Cairo, a Vector Graphics Library.\"\nrequires = \"bigarray\"\narchive(byte) = \"cairo.cma\"\narchive(native) = \"cairo.cmxa\"\nexists_if = \"cairo.cma\"\n\npackage \"lablgtk2\" (\n version = \"1.2.0\"\n description = \"Rendering Cairo on Gtk canvas.\"\n requires = \"lablgtk2 cairo\"\n archive(byte) = \"cairo_lablgtk.cma\"\n archive(native) = \"cairo_lablgtk.cmxa\"\n exists_if = \"cairo_lablgtk.cma\"\n)\n\npackage \"pango\" (\n version = \"1.2.0\"\n description = \"interface with pango text rendering library\"\n requires = \"lablgtk2 cairo\"\n archive(byte) = \"pango_cairo.cma\"\n archive(native) = \"pango_cairo.cmxa\"\n exists_if = \"pango_cairo.cma\"\n)\n", 
+            "name": "META"
+          }, 
+          {
+            "content": "diff -ru cairo1.ocaml-1.2.0/config.make.in cairo1.ocaml-1.2.0/config.make.in\n--- cairo1.ocaml-1.2.0/config.make.in\t2010-04-11 23:17:32.000000000 +0200\n+++ cairo1.ocaml-1.2.0/config.make.in\t2012-10-08 10:55:06.526575701 +0200\n@@ -8,7 +8,7 @@\n OCAMLDOC   = @OCAMLDOC@\n OCAMLDEP   = @OCAMLDEP@\n \n-INSTALLDIR = $(OCAMLLIB)/cairo\n+INSTALLDIR=%{lib}%/cairo\n \n LABLGTKDIR = @LABLGTKDIR@\n C_LABLGTKDIR = $(subst +,$(OCAMLLIB)/,$(LABLGTKDIR))\ndiff -ru cairo1.ocaml-1.2.0/src/Makefile cairo1.ocaml-1.2.0/src/Makefile\n--- cairo1.ocaml-1.2.0/src/Makefile\t2010-04-11 23:17:32.000000000 +0200\n+++ cairo1.ocaml-1.2.0/src/Makefile\t2012-10-08 10:55:06.562576790 +0200\n@@ -87,15 +87,15 @@\n $(call mloptobjs,$(pangocairo_SRC))  : INCFLAGS=-I $(LABLGTKDIR)\n \n install: all\n-\tmkdir -p $(DESTDIR)$(INSTALLDIR) $(DESTDIR)$(OCAMLLIB)/stublibs\n+\tmkdir -p $(DESTDIR)$(INSTALLDIR) %{prefix}%/lib/stublibs\n \tinstall -m 644 *.mli *.cmi *.cma lib*.a $(DESTDIR)$(INSTALLDIR)\n ifdef OCAMLOPT\n \tinstall -m644 *.cmxa *.a *.cmx $(DESTDIR)$(INSTALLDIR)\n endif\n \tinstall -m 755 dll*.so $(DESTDIR)$(INSTALLDIR)\n-\tif test -w $(DESTDIR)$(OCAMLLIB)/stublibs ; then \\\n+\tif test -w %{prefix}%/lib/stublibs ; then \\\n           for lib in dll*.so ; do \\\n-            ln -s $(INSTALLDIR)/$$lib $(DESTDIR)$(OCAMLLIB)/stublibs ; done ; fi\n+            ln -s $(INSTALLDIR)/$$lib %{prefix}%/lib/stublibs ; done ; fi\n \n DOCFILES = cairo.mli cairo_bigarray.mli cairo_png.mli cairo_pdf.mli cairo_ps.mli cairo_ft.mli\n ifdef LABLGTKDIR\n", 
+            "name": "opam.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs opam.patch.in", 
+          "aclocal -I support", 
+          "autoconf", 
+          "./configure LABLGTKDIR=$cur__lib/lablgtk2 --prefix $cur__install --sbindir=$cur__lib/cairo/sbin --libexecdir=$cur__lib/cairo/libexec --sysconfdir=$cur__lib/cairo/etc --sharedstatedir=$cur__lib/cairo/com --localstatedir=$cur__lib/cairo/var --libdir=$cur__lib/cairo/lib --includedir=$cur__lib/cairo/include --datarootdir=$cur__lib/cairo/share", 
+          "make", 
+          "ocamlopt.opt -shared -linkall -I src -ccopt -I/usr/include/cairo -ccopt -I/usr/include/glib-2.0 -ccopt -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -ccopt -I/usr/include/pixman-1 -ccopt -I/usr/include/freetype2 -ccopt -I/usr/include/libpng12 -o src/cairo.cmxs -cclib -Lsrc/ -cclib -lcairo src/cairo.cmxa", 
+          "make install", 
+          "cp src/cairo.cmxs $cur__lib/cairo", 
+          "cp META $cur__lib/cairo", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cairo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cairo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cairo_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-cairo": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lablgtk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-autoconf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cairo"
+    }
+  }
+}

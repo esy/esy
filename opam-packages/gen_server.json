@@ -1,0 +1,130 @@
+{
+  "versions": {
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/orbitz/gen_server/archive/1.0.1.tar.gz", 
+        "checksum": "e604a4702d7ae2d9d560a787331e0c11", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gen_server_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gen_server_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "gen_server_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/core": ">= 109.12.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/async": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gen_server"
+    }, 
+    "2.0.1": {
+      "version": "2.0.1", 
+      "opam": {
+        "url": "https://github.com/orbitz/gen_server/archive/2.0.1.tar.gz", 
+        "checksum": "1ef90a7ae897590f3df73dc1b6e9331a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gen_server_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gen_server_version": {
+            "scope": "global", 
+            "val": "2.0.1"
+          }, 
+          "gen_server_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/core": ">= 109.12.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/async": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gen_server"
+    }, 
+    "2.0.2": {
+      "version": "2.0.2", 
+      "opam": {
+        "url": "https://github.com/orbitz/gen_server/archive/2.0.2.tar.gz", 
+        "checksum": "a3230647cd184569159e8259d485893e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gen_server_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gen_server_version": {
+            "scope": "global", 
+            "val": "2.0.2"
+          }, 
+          "gen_server_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/core": ">= 109.12.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/async": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gen_server"
+    }
+  }
+}

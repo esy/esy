@@ -1,0 +1,284 @@
+{
+  "versions": {
+    "0.7.8": {
+      "version": "0.7.8", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.7.8.tbz", 
+        "checksum": "97995592fff599c3bb66ec9cec75f038", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.7.8"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }, 
+    "0.7.9": {
+      "version": "0.7.9", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.7.9.tbz", 
+        "checksum": "6884403eebd3b41a58f59559767ec5b1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.7.9"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }, 
+    "0.7.6": {
+      "version": "0.7.6", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.7.6.tbz", 
+        "checksum": "d410d2e8d22e92fd587dde25cc12a96b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.7.6"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }, 
+    "0.7.7": {
+      "version": "0.7.7", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.7.7.tbz", 
+        "checksum": "0192025c4ab457ad24fb917c7fb6ee1f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.7.7"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }, 
+    "0.7.5": {
+      "version": "0.7.5", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.7.5.tbz", 
+        "checksum": "98d4859d180bd5d2f96462769ccc8053", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.7.5"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }, 
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.8.1.tbz", 
+        "checksum": "f7c0922d5f9fe698e96804312ec068ed", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/topkg/releases/topkg-0.8.0.tbz", 
+        "checksum": "ba516062765211e6c3c26360fe9393b7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pkg-name topkg --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "topkg_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "topkg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "topkg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.6.1", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/topkg"
+    }
+  }
+}

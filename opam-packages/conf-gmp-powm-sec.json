@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#include <gmp.h>\n#ifndef __GMP_H__\n#error \"No GMP header\"\n#endif\n#if __GNU_MP_VERSION < 5\n#error \"GMP >= 5 is required to support mpz_powm_sec\"\n#endif\n\nvoid test(void) {\n\t__gmp_init();\n}\n", 
+            "name": "test.c"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -exc cc -c $CFLAGS -I/usr/local/include test.c", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_gmp_powm_sec_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "conf_gmp_powm_sec_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "conf_gmp_powm_sec_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-gmp": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-gmp-powm-sec"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.0.6": {
+      "version": "1.0.6", 
+      "opam": {
+        "url": "https://github.com/mjambon/mjambon2016/raw/master/json-wheel-1.0.6.tar.bz2", 
+        "checksum": "8685ecee7a7416c77c14fbdf05c5a06e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "json_wheel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "json_wheel_version": {
+            "scope": "global", 
+            "val": "1.0.6"
+          }, 
+          "json_wheel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/json-wheel"
+    }
+  }
+}

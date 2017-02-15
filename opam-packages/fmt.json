@@ -1,0 +1,130 @@
+{
+  "versions": {
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/fmt/releases/fmt-0.8.0.tbz", 
+        "checksum": "41956d1d0fe32a1281326786cd208005", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-base-unix ${base_unix_installed:-false} --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fmt_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "fmt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fmt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/topkg": ">= 0.7.5", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/fmt"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/fmt/releases/fmt-0.7.0.tbz", 
+        "checksum": "5097baf454eed813a56fbef2a994dc71", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true unix=${base_unix_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fmt_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "fmt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fmt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/fmt"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/fmt/releases/fmt-0.7.1.tbz", 
+        "checksum": "484dd80fbf6a11fed59a71f69b3ec4b1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true unix=${base_unix_installed:-false} cmdliner=${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fmt_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "fmt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fmt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "build} 0.0.0 {build", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/fmt"
+    }
+  }
+}

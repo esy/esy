@@ -1,0 +1,234 @@
+{
+  "versions": {
+    "0.3.2": {
+      "version": "0.3.2", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-dirent/archive/0.3.2.tar.gz", 
+        "checksum": "c0443c156fd5821911fb30b68c099ad7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_dirent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_dirent_version": {
+            "scope": "global", 
+            "val": "0.3.2"
+          }, 
+          "unix_dirent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-dirent"
+    }, 
+    "0.3.3": {
+      "version": "0.3.3", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-dirent/archive/0.3.3.tar.gz", 
+        "checksum": "8fbe2871adf8ed9dc6f16dd00c21d92b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_dirent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_dirent_version": {
+            "scope": "global", 
+            "val": "0.3.3"
+          }, 
+          "unix_dirent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-dirent"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-dirent/archive/0.3.0.tar.gz", 
+        "checksum": "6c900407bdad0c5c64727de9f46dbabd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_dirent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_dirent_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "unix_dirent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-dirent"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-dirent/archive/0.3.1.tar.gz", 
+        "checksum": "5afe4589cf5dcbc81bfb25cb540d2eb3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_dirent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_dirent_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "unix_dirent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-dirent"
+    }, 
+    "0.3.4": {
+      "version": "0.3.4", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-dirent/archive/0.3.4.tar.gz", 
+        "checksum": "3d5b1a2b996acdcd8bae82365dee025b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_dirent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "unix_dirent_version": {
+            "scope": "global", 
+            "val": "0.3.4"
+          }, 
+          "unix_dirent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/unix-dirent"
+    }
+  }
+}

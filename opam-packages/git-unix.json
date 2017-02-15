@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.7.1": {
+      "version": "1.7.1", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "git_unix_version": {
+            "scope": "global", 
+            "val": "1.7.1"
+          }, 
+          "git_unix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "git_unix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/conduit": "*", 
+        "@opam-alpha/git": ">= 1.7.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/git-unix"
+    }
+  }
+}

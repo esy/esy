@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "0.9.8": {
+      "version": "0.9.8", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xcp-rrdd/archive/v0.9.8.tar.gz", 
+        "checksum": "c482b50ea50cdf6f4bf19f4f359aa774", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin SBINDIR=$cur__bin LIBEXECDIR=$cur__bin SCRIPTSDIR=$cur__bin ETCDIR=$cur__install/etc", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_rrdd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_rrdd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_rrdd_version": {
+            "scope": "global", 
+            "val": "0.9.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/oclock": "*", 
+        "@opam-alpha/io-page": "*", 
+        "@opam-alpha/xapi-stdext": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xen-gnt": "*", 
+        "@opam-alpha/xapi-inventory": "*", 
+        "@opam-alpha/obuild": ">= 0.1.1", 
+        "@opam-alpha/xapi-rrd-transport": "*", 
+        "@opam-alpha/xapi-idl": "= 0.9.19", 
+        "@opam-alpha/xapi-xenops": "*", 
+        "@opam-alpha/xapi-libs-transitional": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xapi-forkexecd": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/xapi-rrdd"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "versions": {
+    "109.15.03": {
+      "version": "109.15.03", 
+      "opam": {
+        "url": "https://github.com/janestreet/pa_variants_conv/archive/109.15.03.tar.gz", 
+        "checksum": "dd8605362ae7cc1948595f9db7c83b4a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_variants_conv_version": {
+            "scope": "global", 
+            "val": "109.15.03"
+          }, 
+          "pa_variants_conv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_variants_conv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.15.00 < 113.01.00", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pa_variants_conv"
+    }, 
+    "109.15.04": {
+      "version": "109.15.04", 
+      "opam": {
+        "url": "https://github.com/janestreet/pa_variants_conv/archive/109.15.04.tar.gz", 
+        "checksum": "e6db8d87b14d0f9fa90565e240c98ac0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_variants_conv_version": {
+            "scope": "global", 
+            "val": "109.15.04"
+          }, 
+          "pa_variants_conv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_variants_conv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": ">= 109.15.00 < 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pa_variants_conv"
+    }
+  }
+}

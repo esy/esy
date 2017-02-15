@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "20161115.0.0": {
+      "version": "20161115.0.0", 
+      "opam": {
+        "url": "http://gallium.inria.fr/~fpottier/menhir/menhir-20161115.tar.gz", 
+        "checksum": "c1aafe196ac7695000ff7370184eda20", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -f Makefile PREFIX=$cur__install USE_OCAMLFIND=true docdir=$cur__doc/menhir libdir=$cur__lib/menhir mandir=$cur__man/man1", 
+          "make -f Makefile install PREFIX=$cur__install docdir=$cur__doc/menhir libdir=$cur__lib/menhir mandir=$cur__man/man1", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "menhir_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "menhir_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "menhir_version": {
+            "scope": "global", 
+            "val": "20161115.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/menhir"
+    }
+  }
+}

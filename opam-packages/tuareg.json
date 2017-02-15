@@ -1,0 +1,171 @@
+{
+  "versions": {
+    "2.0.7": {
+      "version": "2.0.7", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1304/tuareg-2.0.7.tar.gz", 
+        "checksum": "01fa65f62fc148736b3d0a4969630fa5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install INSTALL_DIR=$cur__install/share/tuareg", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tuareg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tuareg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tuareg_version": {
+            "scope": "global", 
+            "val": "2.0.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tuareg"
+    }, 
+    "2.0.8": {
+      "version": "2.0.8", 
+      "opam": {
+        "url": "https://github.com/ocaml/tuareg/releases/download/2.0.8/tuareg-2.0.8.tar.gz", 
+        "checksum": "df4b67ba48dea8934c8ea0fa88afdc3c", 
+        "files": [
+          {
+            "content": "share_root: [\n  \"tuareg.el\" {\"emacs/site-lisp/tuareg.el\"}\n  \"ocamldebug.el\" {\"emacs/site-lisp/ocamldebug.el\"}\n  \"tuareg-site-file.el\" {\"emacs/site-lisp/tuareg-site-file.el\"}\n]\n", 
+            "name": "tuareg.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tuareg-site-file.el", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tuareg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tuareg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tuareg_version": {
+            "scope": "global", 
+            "val": "2.0.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tuareg"
+    }, 
+    "2.0.9": {
+      "version": "2.0.9", 
+      "opam": {
+        "url": "https://github.com/ocaml/tuareg/releases/download/2.0.9/tuareg-2.0.9.tar.gz", 
+        "checksum": "142ed5dbefa2dbf4128aff3bdeed9f14", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tuareg-site-file.el", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tuareg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tuareg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tuareg_version": {
+            "scope": "global", 
+            "val": "2.0.9"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/caml-mode": "*", 
+        "@opam-alpha/conf-emacs": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tuareg"
+    }, 
+    "2.0.10": {
+      "version": "2.0.10", 
+      "opam": {
+        "url": "https://github.com/ocaml/tuareg/releases/download/2.0.10/tuareg-2.0.10.tar.gz", 
+        "checksum": "4a2d2cccea44063c0eb4f8a9ddacebbd", 
+        "files": [
+          {
+            "content": "From 8796772964865d2055f07df51ddae8278b7b0f72 Mon Sep 17 00:00:00 2001\nFrom: Louis Gesbert <louis.gesbert@ocamlpro.com>\nDate: Wed, 14 Sep 2016 12:35:27 +0200\nSubject: [PATCH] Run opam --sexp rather than parse its shell output!\n\ncd https://github.com/ocaml/tuareg/issues/94 ; this code should probably be removed instead (it just proved leading to difficult to track issues) ; but that's not my call, and not in a hot-patch.\n---\n tuareg.el | 12 +++++-------\n 1 file changed, 5 insertions(+), 7 deletions(-)\n\ndiff --git a/tuareg.el b/tuareg.el\nindex 97e6107..ed0ce7a 100644\n--- a/tuareg.el\n+++ b/tuareg.el\n@@ -2383,19 +2383,17 @@ otherwise return non-nil.\"\n         (concat tuareg-opam \" config exec -- ocaml\"))\n \n   (defun tuareg-opam-config-env()\n-    (let* ((get-env (concat tuareg-opam \" config env\"))\n+    (let* ((get-env (concat tuareg-opam \" config env --sexp\"))\n            (opam-env (shell-command-to-string get-env)))\n-      (replace-regexp-in-string \"; *export.*$\" \"\" opam-env)))\n+      (car (read-from-string opam-env))))\n \n   ;; OPAM compilation \u2014 one must update to the current compiler\n   ;; before launching the compilation.\n   (defadvice compile (before tuareg-compile-opam activate)\n       \"Run opam to update environment variables.\"\n-      (let* ((env (tuareg-opam-config-env)))\n-\t(set (make-local-variable 'compilation-environment)\n-\t     ;; Quotes MUST be removed.\n-\t     (split-string (replace-regexp-in-string \"\\\"\" \"\" env)\n-                           \"[\\f\\n\\r]+\" t))))\n+      (set (make-local-variable 'compilation-environment)\n+           (mapcar (lambda (b) (concat (car b) \"=\" (cadr b)))\n+                   (tuareg-opam-config-env))))\n \n   (defvar merlin-command)\n   (defun merlin-command ()\n-- \n2.1.4\n\n", 
+            "name": "0001-Run-opam-sexp-rather-than-parse-its-shell-output.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make tuareg-site-file.el", 
+          "make elc", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tuareg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tuareg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tuareg_version": {
+            "scope": "global", 
+            "val": "2.0.10"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/caml-mode": "*", 
+        "@opam-alpha/merlin": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tuareg"
+    }
+  }
+}

@@ -1,0 +1,319 @@
+{
+  "versions": {
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/biocaml/biocaml/archive/0.3.1.tar.gz", 
+        "checksum": "40f2d6226de0dede87d7190536cf986d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake configure PREFIX=$cur__install BUILD_TESTS=false BUILD_APP=true", 
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "biocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "biocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "biocaml_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/cfstream": "*", 
+        "@opam-alpha/lwt": "< 2.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/flow": ">= 0.2.0", 
+        "@opam-alpha/core": ">= 109.27.00 <= 109.47.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/biocaml"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/biocaml/biocaml/archive/0.3.0.tar.gz", 
+        "checksum": "4ae744397aafe40cc223276ece8f54cc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake configure PREFIX=$cur__install BUILD_TESTS=false BUILD_APP=true", 
+          "omake -j2", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "biocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "biocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "biocaml_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/cfstream": "*", 
+        "@opam-alpha/lwt": "< 2.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/flow": ">= 0.2.0", 
+        "@opam-alpha/core": ">= 109.27.00 <= 109.47.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/biocaml"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/biocaml/biocaml/archive/v0.6.0.tar.gz", 
+        "checksum": "e4a4493a6a72b68ea374b82b8a234d23", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make byte", 
+          "make native", 
+          "make META", 
+          "make biocaml.install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "biocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "biocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "biocaml_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/cfstream": "*", 
+        "@opam-alpha/core_kernel": ">= 111.13.00", 
+        "@opam-alpha/ppx_compare": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": ">= 1.05.0", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/core": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/solvuu-build": ">= 0.2.0", 
+        "@opam-alpha/ounit": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/biocaml"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://biocaml.org/downloads/biocaml-0.2.0.tgz", 
+        "checksum": "18d8fe2ff1b843dbb64f28a0c01f2e7c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${flow_enable:-disable}-app", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "biocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "biocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "biocaml_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/flow": "*", 
+        "@opam-alpha/core": "<= 109.17.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/biocaml"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/biocaml/biocaml/archive/v0.4.0.tar.gz", 
+        "checksum": "6c00715886b8b655a62086ded1bcdf1b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake PREFIX=$cur__install", 
+          "omake biocaml.install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "biocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "biocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "biocaml_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/cfstream": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ppx_compare": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": ">= 1.05.0", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/future": "*", 
+        "@opam-alpha/core": ">= 111.13.00 <= 113.00.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/biocaml"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/biocaml/biocaml/archive/v0.5.0.tar.gz", 
+        "checksum": "38d46f29c8722e07a885227ee319b220", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make byte", 
+          "make native", 
+          "make META", 
+          "make biocaml.install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "biocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "biocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "biocaml_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/cfstream": "*", 
+        "@opam-alpha/core_kernel": ">= 111.13.00", 
+        "@opam-alpha/ppx_compare": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlzip": ">= 1.05.0", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/core": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/solvuu-build": "*", 
+        "@opam-alpha/ounit": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/biocaml"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console-solo5/archive/v0.1.1.tar.gz", 
+        "checksum": "e6749a92ac0ed788d8be54094565a039", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_solo5_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_console_solo5_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "mirage_console_solo5_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/mirage-solo5": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-console": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-solo5"
+    }
+  }
+}

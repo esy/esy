@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-magic-mime/archive/v1.0.0.tar.gz", 
+        "checksum": "9db0c16e7b5af54a3d01ca2169d8395d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "magic_mime_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "magic_mime_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "magic_mime_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/magic-mime"
+    }
+  }
+}

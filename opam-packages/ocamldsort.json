@@ -1,0 +1,96 @@
+{
+  "versions": {
+    "0.15.0": {
+      "version": "0.15.0", 
+      "opam": {
+        "url": "http://archive.ubuntu.com/ubuntu/pool/universe/o/ocamldsort/ocamldsort_0.15.0.orig.tar.gz", 
+        "checksum": "8b7fbdc958c2322f614ef141084df56a", 
+        "files": [
+          {
+            "content": "bin: [\n  \"ocamldsort.opt\"\n  \"ocamldsort\"\n]\n", 
+            "name": "ocamldsort.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/ocamldsort/sbin --libexecdir=$cur__lib/ocamldsort/libexec --sysconfdir=$cur__lib/ocamldsort/etc --sharedstatedir=$cur__lib/ocamldsort/com --localstatedir=$cur__lib/ocamldsort/var --libdir=$cur__lib/ocamldsort/lib --includedir=$cur__lib/ocamldsort/include --datarootdir=$cur__lib/ocamldsort/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamldsort_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamldsort_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamldsort_version": {
+            "scope": "global", 
+            "val": "0.15.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamldsort"
+    }, 
+    "0.16.0": {
+      "version": "0.16.0", 
+      "opam": {
+        "url": "http://archive.ubuntu.com/ubuntu/pool/universe/o/ocamldsort/ocamldsort_0.16.0.orig.tar.gz", 
+        "checksum": "a435419deb26286d1994cdcbe4876df4", 
+        "files": [
+          {
+            "content": "bin: [\n  \"ocamldsort.opt\"\n  \"ocamldsort\"\n]\n", 
+            "name": "ocamldsort.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --sbindir=$cur__lib/ocamldsort/sbin --libexecdir=$cur__lib/ocamldsort/libexec --sysconfdir=$cur__lib/ocamldsort/etc --sharedstatedir=$cur__lib/ocamldsort/com --localstatedir=$cur__lib/ocamldsort/var --libdir=$cur__lib/ocamldsort/lib --includedir=$cur__lib/ocamldsort/include --datarootdir=$cur__lib/ocamldsort/share", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamldsort_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamldsort_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamldsort_version": {
+            "scope": "global", 
+            "val": "0.16.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamldsort"
+    }
+  }
+}

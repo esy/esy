@@ -1,0 +1,91 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "http://mmzeeman.home.xs4all.nl/ocaml/ocaml-expat-0.9.1.tar.gz", 
+        "checksum": "17aa00a46c5edeb815f1b0555bad7ed2", 
+        "files": [
+          {
+            "content": "diff --git a/Makefile b/Makefile\nindex b32f906..e428fa5 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -25,6 +25,7 @@ OCAMLDEP=ocamldep\n OCAMLMKLIB=ocamlmklib \n OCAMLDOC=ocamldoc\n OCAMLFIND=ocamlfind\n+OCAMLDIR:=$(shell ocamlfind query stdlib)\n \n .PHONY: all\n all: $(ARCHIVE)\n@@ -32,7 +33,7 @@ all: $(ARCHIVE)\n allopt:  $(XARCHIVE)\n \n depend: *.c *.ml *.mli\n-\tgcc -MM *.c > depend\t\n+\tgcc -I $(OCAMLDIR) -MM *.c > depend\n \t$(OCAMLDEP) *.mli *.ml >> depend\n \n ## Library creation\n", 
+            "name": "Makefile.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make allopt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_expat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_expat_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "ocaml_expat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-expat"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/whitequark/ocaml-expat/archive/v1.0.0.tar.gz", 
+        "checksum": "f77a66b66dc2439733dd379b24d046df", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make allopt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_expat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_expat_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ocaml_expat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocaml-expat"
+    }
+  }
+}

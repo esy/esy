@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/andrewray/ocaml-cookie-js/archive/v1.0.0.tar.gz", 
+        "checksum": "d7069ee7eb3ca5275f65c70dd60ec319", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cookie_js_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cookie_js_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cookie_js_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cookie-js"
+    }
+  }
+}

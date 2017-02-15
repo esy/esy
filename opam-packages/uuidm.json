@@ -1,0 +1,91 @@
+{
+  "versions": {
+    "0.9.5": {
+      "version": "0.9.5", 
+      "opam": {
+        "url": "http://erratique.ch/software/uuidm/releases/uuidm-0.9.5.tbz", 
+        "checksum": "0ea5da95141c4e16480886d857591cd8", 
+        "files": [
+          {
+            "content": "bin: [\"_build/test/uuidtrip.native\" {\"uuidtrip\"}]\n", 
+            "name": "uuidm.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uuidm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uuidm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uuidm_version": {
+            "scope": "global", 
+            "val": "0.9.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/uuidm"
+    }, 
+    "0.9.6": {
+      "version": "0.9.6", 
+      "opam": {
+        "url": "http://erratique.ch/software/uuidm/releases/uuidm-0.9.6.tbz", 
+        "checksum": "98ef30cd99ad4e4f7b4c33affa19465b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "uuidm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "uuidm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "uuidm_version": {
+            "scope": "global", 
+            "val": "0.9.6"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/uuidm"
+    }
+  }
+}

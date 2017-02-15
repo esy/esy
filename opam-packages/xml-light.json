@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/bguil/ocamllibs/releases/download/xml-light.2.3/xml-light.2.3.tar.gz", 
+        "checksum": "e2f79f07bd5706ded2baf8c43574e24b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make install_ocamlfind", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xml_light_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xml_light_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xml_light_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xml-light"
+    }, 
+    "2.4.0": {
+      "version": "2.4.0", 
+      "opam": {
+        "url": "https://github.com/ncannasse/xml-light/archive/2.4.tar.gz", 
+        "checksum": "fe55697c13e867ced31ec79d5e33c7de", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install_ocamlfind", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xml_light_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xml_light_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xml_light_version": {
+            "scope": "global", 
+            "val": "2.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xml-light"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/aantron/namespaces/archive/0.5.tar.gz", 
+        "checksum": "75f2052cef90f22617e29d4e22928f4f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "namespaces_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "namespaces_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "namespaces_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/namespaces"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/aantron/namespaces/archive/0.5.1.tar.gz", 
+        "checksum": "0012771f63a3559e4f712632c0943258", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "namespaces_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "namespaces_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }, 
+          "namespaces_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/namespaces"
+    }
+  }
+}

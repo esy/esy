@@ -1,0 +1,87 @@
+{
+  "versions": {
+    "0.1.4": {
+      "version": "0.1.4", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-ladspa/0.1.4/ocaml-ladspa-0.1.4.tar.gz", 
+        "checksum": "9931908da1bc7efd82ab83e4ab36c8ca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ladspa_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ladspa_version": {
+            "scope": "global", 
+            "val": "0.1.4"
+          }, 
+          "ladspa_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ladspa"
+    }, 
+    "0.1.5": {
+      "version": "0.1.5", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-ladspa/releases/download/0.1.5/ocaml-ladspa-0.1.5.tar.gz", 
+        "checksum": "ae66337eb15dbbf0f432016e79db7267", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "./configure CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib OCAMLFLAGS=-ccopt -I/usr/local/include -cclib -L/usr/local/lib --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ladspa_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ladspa_version": {
+            "scope": "global", 
+            "val": "0.1.5"
+          }, 
+          "ladspa_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ladspa"
+    }
+  }
+}

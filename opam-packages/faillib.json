@@ -1,0 +1,172 @@
+{
+  "versions": {
+    "111.17.00": {
+      "version": "111.17.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.17.00/individual/faillib-111.17.00.tar.gz", 
+        "checksum": "9f5adb96d4b86df01b482c8df1f8c66d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "faillib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "faillib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "faillib_version": {
+            "scope": "global", 
+            "val": "111.17.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/herelib": ">= 109.35.00 < 112.36.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/faillib"
+    }, 
+    "109.60.00": {
+      "version": "109.60.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.60.00/individual/faillib-109.60.00.tar.gz", 
+        "checksum": "737b4f53ae34443f4d712eb6fcc07873", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "faillib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "faillib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "faillib_version": {
+            "scope": "global", 
+            "val": "109.60.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/herelib": ">= 109.35.00 <= 109.35.02"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/faillib"
+    }, 
+    "109.35.00": {
+      "version": "109.35.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.35.00/individual/faillib-109.35.00.tar.gz", 
+        "checksum": "b5e02259472270b77f9779e7429748ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "faillib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "faillib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "faillib_version": {
+            "scope": "global", 
+            "val": "109.35.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/herelib": "= 109.35.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/faillib"
+    }, 
+    "109.35.02": {
+      "version": "109.35.02", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.35.00/individual/faillib-109.35.02.tar.gz", 
+        "checksum": "a81d96267c7e6d934d38539895a33f4f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "faillib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "faillib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "faillib_version": {
+            "scope": "global", 
+            "val": "109.35.02"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/herelib": ">= 109.35.00 <= 109.35.02"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/faillib"
+    }
+  }
+}

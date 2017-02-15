@@ -1,0 +1,55 @@
+{
+  "versions": {
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "http://godi-backup2.camlcity.org/godi-backup/missinglib_0.4.1.tar.gz", 
+        "checksum": "e18de6dca91eec752174654cc5370546", 
+        "files": [
+          {
+            "content": "--- a/libsrc/META\t2015-01-15 15:21:20.991565330 +0100\n+++ b/libsrc/META\t2015-01-15 15:21:42.333564587 +0100\n@@ -1,6 +1,6 @@\n name=\"Missinglib\"\n-version=\"0.0.1\"\n+version=\"0.4.1\"\n description=\"Utility libraries for OCaml\"\n-requires=\"str\"\n+requires=\"str unix\"\n archive(byte)=\"missinglib.cma\"\n archive(native)=\"missinglib.cmxa\"\n", 
+            "name": "meta-0.4.1.patch"
+          }, 
+          {
+            "content": "diff -ru missinglib.0.4.1/Makefile.setup missinglib.0.4.1/Makefile.setup\n--- missinglib.0.4.1/Makefile.setup\t2004-06-05 17:45:01.000000000 +0200\n+++ missinglib.0.4.1/Makefile.setup\t2012-10-05 18:14:52.729673166 +0200\n@@ -16,7 +16,7 @@\n # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n #\n \n-OCAMLFLAGS := -warn-error A\n+OCAMLFLAGS := -w -a\n \n ifndef OCAMLMAKEFILE\n   OCAMLMAKEFILE := $(PATHTOTOP)/contrib/OCamlMakefile/OCamlMakefile\n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "missinglib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "missinglib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "missinglib_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/missinglib"
+    }
+  }
+}

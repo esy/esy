@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "1.7.1": {
+      "version": "1.7.1", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/findlib-1.7.1.tar.gz", 
+        "patch": "--- /dev/null\n+++ b/_esy/build\n@@ -0,0 +1,37 @@\n+#!/bin/bash\n+\n+set -euo pipefail\n+set -x\n+\n+#\n+# Shim OCAMLLIB so that we can write topfind there\n+#\n+\n+mkdir -p $cur__lib/ocaml\n+cd $cur__lib/ocaml\n+\n+for filename in `ls -1 $ocaml__lib/ocaml`; do\n+  ln -s $ocaml__lib/ocaml/$filename $filename;\n+done\n+\n+#\n+# Build\n+#\n+\n+cd $cur__root\n+\n+export OCAMLLIB=\"$cur__lib/ocaml\"\n+\n+./configure \\\n+  -bindir $cur__bin \\\n+  -sitelib $cur__lib \\\n+  -mandir $cur__man \\\n+  -config $cur__lib/findlib.conf \\\n+  -no-custom \\\n+  -no-camlp4\n+\n+make all\n+make opt\n+make install\n+\n+(opam-installer --prefix=$cur__install || true)\n"
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": "bash ./_esy/build", 
+        "exportedEnv": {
+          "OCAML_TOPLEVEL_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_ocamlfind__lib/ocaml"
+          }, 
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_ocamlfind__lib/ocaml/stublibs:$opam_alpha_ocamlfind__lib/ocaml:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "ocamlfind_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "OCAMLLIB": {
+            "scope": "global", 
+            "val": "$opam_alpha_ocamlfind__lib/ocaml"
+          }, 
+          "ocamlfind_version": {
+            "scope": "global", 
+            "val": "1.7.1"
+          }, 
+          "ocamlfind_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-m4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/ocamlfind"
+    }
+  }
+}

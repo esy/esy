@@ -1,0 +1,89 @@
+{
+  "versions": {
+    "1.9.0": {
+      "version": "1.9.0", 
+      "opam": {
+        "url": "https://github.com/vincenthz/ocaml-sha/archive/ocaml-sha-v1.9.tar.gz", 
+        "checksum": "b15756c7efed004acc80a93778920178", 
+        "files": [
+          {
+            "content": "From 56887bebdd395b9e98045d7d174d5d14a01c9e2b Mon Sep 17 00:00:00 2001\nFrom: Mykola Stryebkov <nick@mykola.org>\nDate: Fri, 10 Jan 2014 17:02:42 +0200\nSubject: [PATCH] Get endian.h from the right place at FreeBSD\n\n---\n bitfn.h | 2 ++\n 1 file changed, 2 insertions(+)\n\ndiff --git a/bitfn.h b/bitfn.h\nindex 525043b..87f5cf2 100644\n--- a/bitfn.h\n+++ b/bitfn.h\n@@ -67,6 +67,8 @@ static inline uint64_t swap64(uint64_t a)\n /* big endian to cpu */\n #ifdef __APPLE__\n #include <architecture/byte_order.h>\n+#elif defined(__FreeBSD__)\n+#include <sys/endian.h>\n #else\n #include <endian.h>\n #endif\n-- \n1.9.3\n", 
+            "name": "freebsd.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sha_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sha_version": {
+            "scope": "global", 
+            "val": "1.9.0"
+          }, 
+          "sha_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sha"
+    }, 
+    "1.8.0": {
+      "version": "1.8.0", 
+      "opam": {
+        "url": "https://github.com/vincenthz/ocaml-sha/tarball/v1.8", 
+        "checksum": "ecb73f2e22fe94ffcb3637ab91803889", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sha_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sha_version": {
+            "scope": "global", 
+            "val": "1.8.0"
+          }, 
+          "sha_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sha"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/ujamjar/hardcaml-bloop/archive/v0.1.0.tar.gz", 
+        "checksum": "71764e1a4a797928e38cdf2d16190365", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hardcaml_bloop_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hardcaml_bloop_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hardcaml_bloop_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/vg": "*", 
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/hardcaml": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gg": "*", 
+        "@opam-alpha/uchar": "*", 
+        "@opam-alpha/sattools": "*", 
+        "@opam-alpha/bdd": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/hardcaml-bloop"
+    }
+  }
+}

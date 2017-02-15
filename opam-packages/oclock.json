@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/polazarus/oclock/archive/v0.4.tar.gz", 
+        "checksum": "80b35eedb0e73bd8811976e7d521a5a6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oclock_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "oclock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oclock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oclock"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://github.com/polazarus/oclock/archive/v0.3.tar.gz", 
+        "checksum": "c01a19b8b41a0b924915b9225478166d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oclock_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "oclock_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oclock_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oclock"
+    }
+  }
+}

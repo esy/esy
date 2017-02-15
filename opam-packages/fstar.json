@@ -1,0 +1,174 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/FStarLang/FStar/archive/v0.9.0.tar.gz", 
+        "checksum": "dd113e6de5382e829ab27e81e97d8e79", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?bin/fstar\" { \"fstar\" }\n  \"?bin/fstar.exe\" { \"fstar.exe\" }\n]\n", 
+            "name": "fstar.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src/ocaml-output", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fstar_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fstar_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fstar_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/fstar"
+    }, 
+    "0.9.1.1": {
+      "version": "0.9.1.1", 
+      "opam": {
+        "url": "https://github.com/FStarLang/FStar/archive/v0.9.1.1.tar.gz", 
+        "checksum": "6a0a27dc1b9f5bfb68b46852a381c028", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install -C src/ocaml-output install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fstar_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fstar_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fstar_version": {
+            "scope": "global", 
+            "val": "0.9.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/fstar"
+    }, 
+    "0.9.3.0-beta1": {
+      "version": "0.9.3.0-beta1", 
+      "opam": {
+        "url": "https://github.com/FStarLang/FStar/archive/v0.9.3.0-beta1.tar.gz", 
+        "checksum": "92187cfb75b224ca6e830a1e5a0bbbc4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install -C src/ocaml-output", 
+          "make PREFIX=$cur__install -C src/ocaml-output install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fstar_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fstar_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fstar_version": {
+            "scope": "global", 
+            "val": "0.9.3.0-beta1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/stdint": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/fstar"
+    }, 
+    "0.9.2.0": {
+      "version": "0.9.2.0", 
+      "opam": {
+        "url": "https://github.com/FStarLang/FStar/archive/v0.9.2.0.tar.gz", 
+        "checksum": "94bb95710117829051b1f91cdbaa1e97", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install -C src/ocaml-output", 
+          "make PREFIX=$cur__install -C src/ocaml-output install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fstar_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fstar_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fstar_version": {
+            "scope": "global", 
+            "val": "0.9.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/fstar"
+    }
+  }
+}

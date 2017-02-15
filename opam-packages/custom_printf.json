@@ -1,0 +1,576 @@
+{
+  "versions": {
+    "109.27.02": {
+      "version": "109.27.02", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.27.00/individual/custom_printf-109.27.02.tar.gz", 
+        "checksum": "20de2b4d04e1e039cfe12e3777eeee89", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "109.27.02"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 109.15.00 <= 109.58.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.15.00 <= 109.53.02", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "109.60.00": {
+      "version": "109.60.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.60.00/individual/custom_printf-109.60.00.tar.gz", 
+        "checksum": "0a8e5643cbc239e422bf550a2a81ac1a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "109.60.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 109.15.00 <= 110.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.60.00 <= 109.60.01", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "113.00.00": {
+      "version": "113.00.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.00/files/custom_printf-113.00.00.tar.gz", 
+        "checksum": "132de32cc7d6ad6526faf92f904cfad1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "113.00.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 113.00.00 < 113.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 113.00.00 < 113.01.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 113.00.00 < 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "112.17.00": {
+      "version": "112.17.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.17/files/custom_printf-112.17.00.tar.gz", 
+        "checksum": "b0eb0748cbd1c7a870169533c36cdc9f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "112.17.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.17.00 < 112.18.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 112.01.00 < 112.02.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 112.17.00 < 112.18.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "109.15.00": {
+      "version": "109.15.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.15.00/individual/custom_printf-109.15.00.tar.gz", 
+        "checksum": "fd99f796bac6b0792aec990a1174f52c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "109.15.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 109.15.00 <= 109.20.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.15.00 <= 109.20.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.15.00 <= 109.18.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "111.21.00": {
+      "version": "111.21.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.21.00/individual/custom_printf-111.21.00.tar.gz", 
+        "checksum": "930cfd6c9107282aab38b52832c3a596", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "111.21.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 111.03.00 <= 111.17.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.60.00 <= 111.13.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "109.14.00": {
+      "version": "109.14.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.14.00/individual/custom_printf-109.14.00.tar.gz", 
+        "checksum": "05076d74f802b9b32720417183dca54f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "109.14.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 109.14.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "= 109.14.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": "= 109.14.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "109.27.00": {
+      "version": "109.27.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.27.00/individual/custom_printf-109.27.00.tar.gz", 
+        "checksum": "4f1d3e181fc314914644054ccd6997d6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "109.27.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 109.15.00 <= 109.55.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.15.00 <= 109.53.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 <= 109.53.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "111.25.00": {
+      "version": "111.25.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.25.00/individual/custom_printf-111.25.00.tar.gz", 
+        "checksum": "3028a8f9d65bef27c05c3e0807d35e46", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "111.25.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 111.25.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.60.00 <= 111.13.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 <= 111.28.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "112.01.00": {
+      "version": "112.01.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.01.00/individual/custom_printf-112.01.00.tar.gz", 
+        "checksum": "3bfa79456e57bed27264390731db0ea9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "112.01.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.01.00 < 112.02.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 112.01.00 < 112.02.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 < 111.29.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "111.03.00": {
+      "version": "111.03.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.03.00/individual/custom_printf-111.03.00.tar.gz", 
+        "checksum": "f322d4c64464d39a33cb8c05495d3286", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "111.03.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 111.03.00 <= 111.17.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 109.60.00 <= 111.13.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "112.06.00": {
+      "version": "112.06.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.06.00/individual/custom_printf-112.06.00.tar.gz", 
+        "checksum": "c5059d763330ad890ff6e92b9a208fe7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "112.06.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.06.00 < 112.07.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 112.01.00 < 112.02.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.27.00 < 111.29.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }, 
+    "112.24.00": {
+      "version": "112.24.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.24/files/custom_printf-112.24.tar.gz", 
+        "checksum": "cfee86dc1876a0d89e01612164c28aa8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "custom_printf_version": {
+            "scope": "global", 
+            "val": "112.24.00"
+          }, 
+          "custom_printf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "custom_printf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.24.00 < 112.36.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 112.01.00 < 112.02.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 112.24.00 < 112.36.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/custom_printf"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/c-cube/bencode_rpc/archive/0.1.tar.gz", 
+        "checksum": "e753d4a39b6a9ddc80bba919abd1e573", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bencode_rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bencode_rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bencode_rpc_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/bencode_rpc"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/c-cube/bencode_rpc/archive/0.2.1.tar.gz", 
+        "checksum": "3d6b3bb8a158df4d6876283196b576f2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bencode_rpc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bencode_rpc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bencode_rpc_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/bencode": "= 0.2.0", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/bencode_rpc"
+    }
+  }
+}

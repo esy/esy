@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "0.0.9": {
+      "version": "0.0.9", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/881/ocaml-data-notation-0.0.9.tar.gz", 
+        "checksum": "aa16e0f2230fa2bb2b3808c0665f056c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_data_notation_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_data_notation_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_data_notation_version": {
+            "scope": "global", 
+            "val": "0.0.9"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "= 108.00.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-data-notation"
+    }, 
+    "0.0.11": {
+      "version": "0.0.11", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1310/ocaml-data-notation-0.0.11.tar.gz", 
+        "checksum": "0ab9cd196b4a7f22a037ab96a477896f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_data_notation_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_data_notation_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_data_notation_version": {
+            "scope": "global", 
+            "val": "0.0.11"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-data-notation"
+    }, 
+    "0.0.10": {
+      "version": "0.0.10", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1029/ocaml-data-notation-0.0.10.tar.gz", 
+        "checksum": "35b32f58d01a8fe2e0deead4bc8d78b8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_data_notation_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_data_notation_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_data_notation_version": {
+            "scope": "global", 
+            "val": "0.0.10"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": ">= 108.07.01", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-data-notation"
+    }
+  }
+}

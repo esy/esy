@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/MyLifeLabs/jsondiff/archive/v0.0.1.tar.gz", 
+        "checksum": "72e21602b73933a041c4bd41fc0b1cf4", 
+        "files": [
+          {
+            "content": "bin: [\"jsondiff\"]\n", 
+            "name": "jsondiff.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "jsondiff_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "jsondiff_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "jsondiff_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/biniou": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/jsondiff"
+    }
+  }
+}

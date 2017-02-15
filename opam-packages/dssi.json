@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-dssi/0.1.1/ocaml-dssi-0.1.1.tar.gz", 
+        "checksum": "e9b831a7a1abde56f37e704dbe5741c0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dssi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dssi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dssi_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dssi"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-dssi/releases/download/0.1.2/ocaml-dssi-0.1.2.tar.gz", 
+        "checksum": "9fe0b20291e33676e8f33a445e8d3ee8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dssi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dssi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dssi_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ladspa": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dssi"
+    }
+  }
+}

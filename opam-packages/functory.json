@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://www.lri.fr/~filliatr/functory/download/functory-0.5.tar.gz", 
+        "checksum": "c7e6576c3e6b3a7e247eab530d7e4de8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make ocamlfind-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "functory_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "functory_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "functory_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/functory"
+    }
+  }
+}

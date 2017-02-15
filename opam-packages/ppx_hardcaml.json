@@ -1,0 +1,137 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/xguerin/ppx_hardcaml/archive/v1.1.0.tar.gz", 
+        "checksum": "b8579a655eac7331f39b33e27bbfef02", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_hardcaml_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "ppx_hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/hardcaml": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_hardcaml"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/xguerin/ppx_hardcaml/archive/v1.0.0.tar.gz", 
+        "checksum": "b261cbae6403a53326e527d2cd6e6746", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_hardcaml_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ppx_hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/hardcaml": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/oasis": ">= 0.4.8", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_driver": "*", 
+        "@opam-alpha/ppx_core": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/js-build-tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_hardcaml"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/xguerin/ppx_hardcaml/archive/v1.2.0.tar.gz", 
+        "checksum": "fa538fe56d779c56efb752af8faee307", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_hardcaml_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "ppx_hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/hardcaml": ">= 1.2.0", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_hardcaml"
+    }
+  }
+}

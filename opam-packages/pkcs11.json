@@ -1,0 +1,291 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/pkcs11/releases/download/v0.3.0/pkcs11-0.3.0.tbz", 
+        "checksum": "317c321761ebd246bb7668f73d5a7f6b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pkcs11_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pkcs11_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "pkcs11_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/records": ">= 0.6.0", 
+        "@opam-alpha/key-parsers": ">= 0.5.0", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/hex": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/pkcs11"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/pkcs11/releases/download/v0.6.0/pkcs11-0.6.0.tbz", 
+        "checksum": "ab8b847bc212d956dd845cc77e4e1427", 
+        "files": [
+          {
+            "content": "From 23987e41515706d8d966d26f12f4e0a0c5e53891 Mon Sep 17 00:00:00 2001\nFrom: Etienne Millon <etienne@cryptosense.com>\nDate: Thu, 5 Jan 2017 09:16:25 +0100\nSubject: [PATCH] Detect `<dlfcn.h>` using `__linux__`\n\nCloses #24\n---\n src/snippets/prelude.h | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git a/src/snippets/prelude.h b/src/snippets/prelude.h\nindex 6515d39..3ad0b61 100644\n--- a/src/snippets/prelude.h\n+++ b/src/snippets/prelude.h\n@@ -10,7 +10,7 @@\n #include <windows.h>\n #else\n \n-#if defined(__GLIBC__) || (defined(__sun) && defined(__SVR4))\n+#if defined(__linux__) || (defined(__sun) && defined(__SVR4))\n #include <dlfcn.h>\n #endif\n #ifdef _AIX\n-- \n2.11.0\n\n", 
+            "name": "0001-Detect-dlfcn.h-using-__linux__.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pkcs11_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pkcs11_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "pkcs11_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/records": ">= 0.6.0", 
+        "@opam-alpha/key-parsers": ">= 0.5.0 != 0.6.0", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/hex": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/pkcs11"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/pkcs11/releases/download/v0.2.0/pkcs11-0.2.0.tbz", 
+        "checksum": "dae326a4e61545ff3cf3b0b508552b48", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pkcs11_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pkcs11_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "pkcs11_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/records": ">= 0.6.0", 
+        "@opam-alpha/key-parsers": ">= 0.5.0", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/hex": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/pkcs11"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/pkcs11/releases/download/v0.1.0/pkcs11-0.1.0.tbz", 
+        "checksum": "7c1a281323e0e14de0677fb7d23b7b4c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pkcs11_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pkcs11_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "pkcs11_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/records": ">= 0.6.0", 
+        "@opam-alpha/key-parsers": ">= 0.5.0", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/hex": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/pkcs11"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/pkcs11/releases/download/v0.4.0/pkcs11-0.4.0.tbz", 
+        "checksum": "533fdd69174fb13fbd1c848e54b0bee7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pkcs11_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pkcs11_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "pkcs11_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/records": ">= 0.6.0", 
+        "@opam-alpha/key-parsers": ">= 0.5.0", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/hex": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/pkcs11"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/pkcs11/releases/download/v0.5.0/pkcs11-0.5.0.tbz", 
+        "checksum": "353436051abc20e1c77551262c7331de", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pkcs11_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pkcs11_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "pkcs11_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/records": ">= 0.6.0", 
+        "@opam-alpha/key-parsers": ">= 0.5.0", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/hex": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/pkcs11"
+    }
+  }
+}

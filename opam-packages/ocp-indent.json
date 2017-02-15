@@ -1,0 +1,344 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.4.0.tar.gz", 
+        "checksum": "f447438ce86c3456110e0f07633758d1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "<= 0.9.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.4.1": {
+      "version": "1.4.1", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.4.1.tar.gz", 
+        "checksum": "1e2306bdc27ecc4998755ef2439bfde5", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_obuild/ocp-indent/ocp-indent.asm\" {\"ocp-indent\"}\n]\nlib: [\n  \"META\"\n  \"_obuild/ocp-indent.lib/ocp-indent.lib.a\" {\"lib/ocp-indent.lib.a\"}\n  \"_obuild/ocp-indent.lib/ocp-indent.lib.cma\" {\"lib/ocp-indent.lib.cma\"}\n  \"_obuild/ocp-indent.lib/ocp-indent.lib.cmxa\" {\"lib/ocp-indent.lib.cmxa\"}\n  \"_obuild/ocp-indent.lib/indentConfig.cmi\" {\"lib/indentConfig.cmi\"}\n  \"?_obuild/ocp-indent.lib/indentConfig.cmti\" {\"lib/indentConfig.cmti\"}\n  \"_obuild/ocp-indent.lib/indentBlock.cmi\" {\"lib/indentBlock.cmi\"}\n  \"?_obuild/ocp-indent.lib/indentBlock.cmti\" {\"lib/indentBlock.cmti\"}\n  \"_obuild/ocp-indent.lib/indentPrinter.cmi\" {\"lib/indentPrinter.cmi\"}\n  \"?_obuild/ocp-indent.lib/indentPrinter.cmti\" {\"lib/indentPrinter.cmti\"}\n  \"_obuild/ocp-indent.utils/ocp-indent.utils.a\" {\"utils/ocp-indent.utils.a\"}\n  \"_obuild/ocp-indent.utils/ocp-indent.utils.cma\" {\"utils/ocp-indent.utils.cma\"}\n  \"_obuild/ocp-indent.utils/ocp-indent.utils.cmxa\" {\"utils/ocp-indent.utils.cmxa\"}\n  \"_obuild/ocp-indent.utils/pos.cmi\" {\"utils/pos.cmi\"}\n  \"?_obuild/ocp-indent.utils/pos.cmti\" {\"utils/pos.cmti\"}\n  (* \"_obuild/ocp-indent.utils/util.cmi\" {\"utils/util.cmi\"} *)\n  (* \"?_obuild/ocp-indent.utils/util.cmt\" {\"utils/util.cmt\"} *)\n  \"_obuild/ocp-indent.utils/nstream.cmi\" {\"utils/nstream.cmi\"}\n  \"?_obuild/ocp-indent.utils/nstream.cmti\" {\"utils/nstream.cmti\"}\n  (* \"_obuild/ocp-indent.utils/compat.cmi\" {\"utils/compat.cmi\"} *)\n  (* \"_obuild/ocp-indent.utils/compat.cmt\" {\"utils/compat.cmt\"} *)\n  \"_obuild/ocp-indent.lexer/ocp-indent.lexer.a\" {\"lexer/ocp-indent.lexer.a\"}\n  \"_obuild/ocp-indent.lexer/ocp-indent.lexer.cma\" {\"lexer/ocp-indent.lexer.cma\"}\n  \"_obuild/ocp-indent.lexer/ocp-indent.lexer.cmxa\" {\"lexer/ocp-indent.lexer.cmxa\"}\n  \"_obuild/ocp-indent.lexer/approx_tokens.cmi\" {\"lexer/approx_tokens.cmi\"}\n  \"?_obuild/ocp-indent.lexer/approx_tokens.cmt\" {\"lexer/approx_tokens.cmt\"}\n  \"_obuild/ocp-indent.lexer/approx_lexer.cmi\" {\"lexer/approx_lexer.cmi\"}\n  \"?_obuild/ocp-indent.lexer/approx_lexer.cmt\" {\"lexer/approx_lexer.cmt\"}\n]\nman: [\n  \"man/man1/ocp-indent.1\" {\"man1/ocp-indent.1\"}\n]\nshare: [\n  \"tools/ocp-indent.el\" {\"../emacs/site-lisp/ocp-indent.el\"}\n  \"tools/ocp-indent.vim\" {\"../vim/syntax/ocp-indent.vim\"}\n]\n", 
+            "name": "ocp-indent.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.4.1"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "<= 0.9.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.4.2": {
+      "version": "1.4.2", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.4.2b.tar.gz", 
+        "checksum": "91c7c4de3987d0d92d5a1aae469b6327", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.4.2"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "<= 0.9.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.5.1": {
+      "version": "1.5.1", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.5.1.tar.gz", 
+        "checksum": "64f518a2235d42620e3b134eb23ee452", 
+        "files": [
+          {
+            "content": "diff --git a/tools/ocp-indent.el b/tools/ocp-indent.el\nindex fdb70aa..7516245 100644\n--- a/tools/ocp-indent.el\n+++ b/tools/ocp-indent.el\n@@ -113,7 +113,8 @@ are blanks.\"\n ;;;###autoload\n (defun ocp-setup-indent ()\n   (interactive nil)\n-  (unless (string= (file-name-extension (buffer-file-name)) \"mly\")\n+  (unless (and (buffer-file-name)\n+               (string= (file-name-extension (buffer-file-name)) \"mly\"))\n     (unless ocp-indent-allow-tabs (set 'indent-tabs-mode nil))\n     (set (make-local-variable 'indent-line-function) #'ocp-indent-line)\n     (set (make-local-variable 'indent-region-function) #'ocp-indent-region)))\n", 
+            "name": "elisp-hotfix.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.5.1"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "<= 0.9.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.5.tar.gz", 
+        "checksum": "4fffaf408044ef3a7add15c40ad0aa37", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "<= 0.9.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.5.3": {
+      "version": "1.5.3", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.5.3.tar.gz", 
+        "checksum": "7515340b23df8884e4ae6f6a4315d5f7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.5.3"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.5.2": {
+      "version": "1.5.2", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.5.2.tar.gz", 
+        "checksum": "2f387a92f6d03bc8fe1859434af3f804", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.5.2"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": ">= 0.9.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }, 
+    "1.3.2": {
+      "version": "1.3.2", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocp-indent/archive/1.3.2.tar.gz", 
+        "checksum": "2cbf6c2615e75fd6f963db35004a3f61", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_indent_version": {
+            "scope": "global", 
+            "val": "1.3.2"
+          }, 
+          "ocp_indent_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocp_indent_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/cmdliner": "<= 0.9.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocp-indent"
+    }
+  }
+}

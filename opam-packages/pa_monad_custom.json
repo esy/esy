@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "v6.0.0": {
+      "version": "v6.0.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/pa_monad_custom/get/v6.0.0.tar.gz", 
+        "checksum": "26d988060d5997c6164cb7f209f073ee", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_monad_custom_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pa_monad_custom_version": {
+            "scope": "global", 
+            "val": "v6.0.0"
+          }, 
+          "pa_monad_custom_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/pa_monad_custom"
+    }
+  }
+}

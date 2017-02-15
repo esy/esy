@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.4.5": {
+      "version": "0.4.5", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-mad/releases/download/0.4.5/ocaml-mad-0.4.5.tar.gz", 
+        "checksum": "d326d7441c40d2bb1359766173306639", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mad_version": {
+            "scope": "global", 
+            "val": "0.4.5"
+          }, 
+          "mad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mad"
+    }, 
+    "0.4.4": {
+      "version": "0.4.4", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-mad/0.4.4/ocaml-mad-0.4.4.tar.gz", 
+        "checksum": "e45b8c48e1fe6cbec0d4299fa80a66bd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mad_version": {
+            "scope": "global", 
+            "val": "0.4.4"
+          }, 
+          "mad_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mad_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mad"
+    }
+  }
+}

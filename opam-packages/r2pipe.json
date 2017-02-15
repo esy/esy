@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/binoopang/r2pipe-ocaml/archive/v0.0.2.zip", 
+        "checksum": "3c9ccfdf81a10d3e865b50bf5e9cf97a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "r2pipe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "r2pipe_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "r2pipe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/yojson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/r2pipe"
+    }
+  }
+}

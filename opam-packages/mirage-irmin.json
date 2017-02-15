@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.9.8": {
+      "version": "0.9.8", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_irmin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_irmin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_irmin_version": {
+            "scope": "global", 
+            "val": "0.9.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/mirage-git": ">= 1.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/irmin": ">= 0.9.8"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-irmin"
+    }
+  }
+}

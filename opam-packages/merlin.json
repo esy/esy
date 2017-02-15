@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "2.5.3": {
+      "version": "2.5.3", 
+      "opam": {
+        "url": "https://github.com/the-lambda-church/merlin/archive/v2.5.3.tar.gz", 
+        "checksum": "d2ff86fb0685247bf3dd17f07ba4ee0c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "rm -rf $cur__install/share/ocamlmerlin", 
+          "make -j 4", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "merlin_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "merlin_version": {
+            "scope": "global", 
+            "val": "2.5.3"
+          }, 
+          "merlin_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.2", 
+        "@opam-alpha/yojson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.05.0"
+      }, 
+      "name": "@opam-alpha/merlin"
+    }
+  }
+}

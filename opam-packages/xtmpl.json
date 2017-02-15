@@ -1,0 +1,590 @@
+{
+  "versions": {
+    "0.15.0": {
+      "version": "0.15.0", 
+      "opam": {
+        "url": "https://zoggy.github.io/xtmpl/xtmpl-0.15.0.tar.gz", 
+        "checksum": "8bb344f7391c884b44166d907d41d7dd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.15.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.7.1", 
+        "@opam-alpha/sedlex": ">= 1.99.3", 
+        "@opam-alpha/js_of_ocaml": ">= 2.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": ">= 0.9.4", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.10.0": {
+      "version": "0.10.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.10.tar.gz", 
+        "checksum": "3229a1a6d4098fd6f6c945bd9c2e60be", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.10.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.14.0": {
+      "version": "0.14.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.14.0.tar.gz", 
+        "checksum": "2a6d32ff75c29736839d91b932b1ab14", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.14.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sedlex": ">= 1.99.3", 
+        "@opam-alpha/js_of_ocaml": ">= 2.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": ">= 0.9.4", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.3.tar.gz", 
+        "checksum": "ce84ec66ef3198a036e0d2b01ecc1015", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.6.tar.gz", 
+        "checksum": "1d2810d26fb11a5d4a803de4733b71fc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.11.tar.gz", 
+        "checksum": "87fdedecd1f2e83f89c7858490394ce3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.8.tar.gz", 
+        "checksum": "d6a15094ee7defbd1a767b60bc764efe", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.7.tar.gz", 
+        "checksum": "98172c98b16828b89d17db66f958b0db", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.12.0": {
+      "version": "0.12.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.12.tar.gz", 
+        "checksum": "55701024603bb8f8243dabc0a42ae452", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.12.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.9.tar.gz", 
+        "checksum": "8659b35b25966363e9f7ed5df6f43866", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.16.0": {
+      "version": "0.16.0", 
+      "opam": {
+        "url": "https://zoggy.github.io/xtmpl/xtmpl-0.16.0.tar.gz", 
+        "checksum": "015643924a70789f8ff062f5a211a449", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.16.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/re": ">= 1.7.1", 
+        "@opam-alpha/sedlex": ">= 1.99.3", 
+        "@opam-alpha/js_of_ocaml": ">= 2.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.4.tar.gz", 
+        "checksum": "62b7b6984f595364c8230297ef56b00c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.5.tar.gz", 
+        "checksum": "338b6fb96ad409fe31b0ed8b094da26f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }, 
+    "0.13.0": {
+      "version": "0.13.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/xtmpl/xtmpl-0.13.0.tar.gz", 
+        "checksum": "522f0f113fea8b6e9da72cacefb654f6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xtmpl_version": {
+            "scope": "global", 
+            "val": "0.13.0"
+          }, 
+          "xtmpl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xtmpl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sedlex": ">= 1.99.2", 
+        "@opam-alpha/js_of_ocaml": ">= 2.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": "= 0.9.4", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/xtmpl"
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/choeger/ppx_deriving_morphism/archive/v0.1.1.tar.gz", 
+        "checksum": "152ac739a1dfe21a44c9a76e49232c22", 
+        "files": [
+          {
+            "content": "doc: [\n  \"_build/CHANGELOG.md\" {\"CHANGELOG.md\"}\n  \"_build/LICENSE\" {\"LICENSE\"}\n  \"_build/README.md\" {\"README.md\"} ]\nlib: [\n  \"_build/pkg/META\" {\"META\"}\n  \"_build/src/ppx_deriving_folder.a\" {\"ppx_deriving_folder.a\"}\n  \"_build/src/ppx_deriving_folder.cma\" {\"ppx_deriving_folder.cma\"}\n  \"_build/src/ppx_deriving_folder.cmxa\" {\"ppx_deriving_folder.cmxa\"}\n  \"_build/src/ppx_deriving_folder.cmxs\" {\"ppx_deriving_folder.cmxs\"}\n  \"_build/src/ppx_deriving_mapper.a\" {\"ppx_deriving_mapper.a\"}\n  \"_build/src/ppx_deriving_mapper.cma\" {\"ppx_deriving_mapper.cma\"}\n  \"_build/src/ppx_deriving_mapper.cmxa\" {\"ppx_deriving_mapper.cmxa\"}\n  \"_build/src/ppx_deriving_mapper.cmxs\" {\"ppx_deriving_mapper.cmxs\"}\n  \"_build/src/ppx_deriving_morphism.a\" {\"ppx_deriving_morphism.a\"}\n  \"_build/src/ppx_deriving_morphism.cma\" {\"ppx_deriving_morphism.cma\"}\n  \"_build/src/ppx_deriving_morphism.cmxa\" {\"ppx_deriving_morphism.cmxa\"}\n  \"_build/src/ppx_deriving_morphism.cmxs\" {\"ppx_deriving_morphism.cmxs\"} ]\n", 
+            "name": "ppx_deriving_morphism.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_morphism_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_morphism_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ppx_deriving_morphism_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0 < 4.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_import": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_deriving_morphism"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/choeger/ppx_deriving_morphism/archive/v0.4.tar.gz", 
+        "checksum": "d26eab20880bf39724c3b839c8015701", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_morphism_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_morphism_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "ppx_deriving_morphism_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0 < 5.0.0", 
+        "@opam-alpha/ppx_tools": ">= 4.02.3", 
+        "@opam-alpha/cppo": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_import": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_deriving_morphism"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/choeger/ppx_deriving_morphism/archive/v0.3.tar.gz", 
+        "checksum": "91edff76f7a88440991a7006cf58be50", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_morphism_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_morphism_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ppx_deriving_morphism_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0 < 4.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_import": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_deriving_morphism"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/choeger/ppx_deriving_morphism/archive/v0.2.tar.gz", 
+        "checksum": "8ea76b4f1bbb212f95670136039b2cf1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs pkg/META.in", 
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_deriving_morphism_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_deriving_morphism_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "ppx_deriving_morphism_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0 < 4.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_import": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ppx_deriving_morphism"
+    }
+  }
+}

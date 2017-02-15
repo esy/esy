@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://bitbucket.org/acslab/merlin-of-pds/get/1.2.tar.gz", 
+        "checksum": "feb47e1af908ea5bd9d22919b25aa501", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -j4", 
+          "make PREFIX=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "merlin_of_pds_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "merlin_of_pds_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "merlin_of_pds_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/pds": "(>= 5.0.0 < 6.0.0)"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/merlin-of-pds"
+    }
+  }
+}

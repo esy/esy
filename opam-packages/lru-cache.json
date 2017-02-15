@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/zoggy/ocaml-lru-cache/archive/0.1.0.tar.gz", 
+        "checksum": "0d5398118c2c7d1e5d5a86f1ed23b893", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lru_cache_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "lru_cache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lru_cache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/lru-cache"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/zoggy/ocaml-lru-cache/archive/0.2.0.tar.gz", 
+        "checksum": "9217dd7dc3c74e7fe52665efc2785a4d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lru_cache_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "lru_cache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lru_cache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/lru-cache"
+    }
+  }
+}

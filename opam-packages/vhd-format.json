@@ -1,0 +1,277 @@
+{
+  "versions": {
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-vhd/archive/0.0.2.tar.gz", 
+        "checksum": "2cfcea772777e990a3a607050ade21a8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhd_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vhd_format_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "vhd_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.1 <2.0.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vhd-format"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-vhd/archive/0.6.0.tar.gz", 
+        "checksum": "e614f1ef412db5770ce5c3fe55ffc5a2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhd_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vhd_format_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "vhd_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.1 <2.0.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vhd-format"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-vhd/archive/v0.8.0.tar.gz", 
+        "checksum": "07da7e3639a0b79a2bf8c88a715c2bd4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhd_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vhd_format_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "vhd_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/io-page": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/vhd-format"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-vhd/archive/v0.7.0.tar.gz", 
+        "checksum": "f2e4b5e0d2ad7af28144144fd6b1e5a0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhd_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vhd_format_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "vhd_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vhd-format"
+    }, 
+    "0.6.4": {
+      "version": "0.6.4", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-vhd/archive/0.6.4.tar.gz", 
+        "checksum": "198c51d76c2e08427e9a9e01b00a583d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhd_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vhd_format_version": {
+            "scope": "global", 
+            "val": "0.6.4"
+          }, 
+          "vhd_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.1 <2.0.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vhd-format"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-vhd/archive/v0.7.1.tar.gz", 
+        "checksum": "529768de155809d2241ed6b6d2441f9c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhd_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vhd_format_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "vhd_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1 < 2.0.0", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vhd-format"
+    }
+  }
+}

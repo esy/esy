@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "http://www.ocamlpro.com//files/ocp-pack-1.0.1.tar.gz", 
+        "checksum": "9122bc296089330db082965152164ce7", 
+        "files": [
+          {
+            "content": "bin: [\n  \"ocp-pack\" {\"ocp-pack\"}\n  \"ocp-split\" {\"ocp-split\"}\n]\n", 
+            "name": "ocp-pack-split.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocp_pack_split_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocp_pack_split_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "ocp_pack_split_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocp-pack-split"
+    }
+  }
+}

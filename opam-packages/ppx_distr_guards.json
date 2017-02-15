@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/vogler/ppx_distr_guards/archive/v0.1.tar.gz", 
+        "checksum": "0c4ce5c0fdc7977ebedc0cd837678ec2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs META.in", 
+          "make", 
+          "ocamlfind install ppx_distr_guards META ppx_distr_guards.native", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_distr_guards_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_distr_guards_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ppx_distr_guards_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/ppx_distr_guards"
+    }
+  }
+}

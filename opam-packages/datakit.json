@@ -1,0 +1,68 @@
+{
+  "versions": {
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "https://github.com/docker/datakit/releases/download/0.8.0/datakit-0.8.0.tbz", 
+        "checksum": "eee43f96d223465e4759015aba3ffa00", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --tests false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "datakit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "datakit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "datakit_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/rresult": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/cstruct": ">= 2.2.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/named-pipe": ">= 0.4.0", 
+        "@opam-alpha/git": ">= 1.9.3", 
+        "@opam-alpha/irmin-watcher": ">= 0.2.0", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/win-eventlog": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/mtime": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/irmin": ">= 0.12.0 < 1.0.0", 
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/mirage-types": "< 3.0.0", 
+        "@opam-alpha/datakit-server": ">= 0.8.0", 
+        "@opam-alpha/asl": ">= 0.10.0", 
+        "@opam-alpha/mirage-flow": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/hvsock": ">= 0.11.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": ">= 0.5.0", 
+        "@opam-alpha/camlzip": ">= 1.06.0", 
+        "@opam-alpha/mirage-tc": "*", 
+        "@opam-alpha/conduit": "*", 
+        "@opam-alpha/uri": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/datakit"
+    }
+  }
+}

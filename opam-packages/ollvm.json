@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.99.0": {
+      "version": "0.99.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ollvm/archive/v0.99.tar.gz", 
+        "checksum": "92bafe1975b28a669809fcc61911b363", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ollvm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ollvm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ollvm_version": {
+            "scope": "global", 
+            "val": "0.99.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/menhir": "*", 
+        "@opam-alpha/llvm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/ollvm"
+    }
+  }
+}

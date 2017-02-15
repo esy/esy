@@ -1,0 +1,211 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/rundat/ocaml-gpx/archive/1.1.1.tar.gz", 
+        "checksum": "a7855a3bdbf0a803bdd3c44c6a6168f3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src build", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gpx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gpx_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "gpx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ISO8601": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/gpx"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/rundat/ocaml-gpx/archive/1.1.0.tar.gz", 
+        "checksum": "48aef323af1319c86452b50397f96913", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src build", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gpx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gpx_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "gpx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ISO8601": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/gpx"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/rundat/ocaml-gpx/archive/v1.0.tar.gz", 
+        "checksum": "f65b0981a9c6baa1a46eea40e5a947af", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src build", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gpx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gpx_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "gpx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/gpx"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/rundat/ocaml-gpx/archive/v1.0.1.tar.gz", 
+        "checksum": "b316e974e31f099fb13ad1a390eb62a5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src build", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gpx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gpx_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "gpx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/gpx"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/rundat/ocaml-gpx/archive/v1.0.2.tar.gz", 
+        "checksum": "0629aeadf1148b192ed9063a34f5b0d8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src build", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gpx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gpx_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }, 
+          "gpx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xml-light": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/gpx"
+    }
+  }
+}

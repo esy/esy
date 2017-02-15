@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.13.0": {
+      "version": "0.13.0", 
+      "opam": {
+        "url": "https://github.com/WebAssembly/spec/archive/v0.13.tar.gz", 
+        "checksum": "e0d55d6ecd93d0f750145512599c536d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C interpreter opt unopt", 
+          "make -C interpreter install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "wasm_version": {
+            "scope": "global", 
+            "val": "0.13.0"
+          }, 
+          "wasm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "wasm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/wasm"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.9.6": {
+      "version": "0.9.6", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xenops/archive/v0.9.6.tar.gz", 
+        "checksum": "6e9a6a699719822cc3b1e3eef5923793", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make PREFIX=$cur__install BINDIR=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_xenops_version": {
+            "scope": "global", 
+            "val": "0.9.6"
+          }, 
+          "xapi_xenops_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_xenops_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/xapi-stdext": "*", 
+        "@opam-alpha/xenctrl": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/obuild": ">= 0.1.1", 
+        "@opam-alpha/xapi-libs-transitional": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/xapi-xenops"
+    }
+  }
+}

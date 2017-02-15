@@ -1,0 +1,178 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-mariadb/archive/0.6.0.tar.gz", 
+        "checksum": "56d4493a5e12bdedf1d952ad173b9362", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mariadb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mariadb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mariadb_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ctypes": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/mariadb"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-mariadb/archive/0.5.0.tar.gz", 
+        "checksum": "6bf438d6e74586bc6cc61d00b11f8ed1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mariadb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mariadb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mariadb_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ctypes": ">= 0.7.0", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/mariadb"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-mariadb/archive/0.5.1.tar.gz", 
+        "checksum": "ad4982749edf6fee2a3fd9cad336f6ab", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mariadb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mariadb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mariadb_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ctypes": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/mariadb"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-mariadb/archive/0.7.0.tar.gz", 
+        "checksum": "cab2b39fb1c38a777622c8ee4f8a27a8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mariadb_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mariadb_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mariadb_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes-foreign": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ctypes": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/mariadb"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/cryptgps-0.2.1.tar.gz", 
+        "checksum": "656afb40fa681079296551b546cb02df", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cryptgps_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cryptgps_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "cryptgps_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cryptgps"
+    }
+  }
+}

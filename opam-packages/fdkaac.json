@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-fdkaac/releases/download/0.2.1/ocaml-fdkaac-0.2.1.tar.gz", 
+        "checksum": "fff652fa282b4954d2f504ca1c2a70e9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "./configure OCAMLFLAGS=-cclib -L/usr/local/lib --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fdkaac_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fdkaac_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "fdkaac_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fdkaac"
+    }
+  }
+}

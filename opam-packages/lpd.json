@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1155/lpd-1.2.tar.gz", 
+        "checksum": "f2ee2ea7c4c8ddaacc9f69ffc72aa739", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lpd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lpd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lpd_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lpd"
+    }, 
+    "1.2.1": {
+      "version": "1.2.1", 
+      "opam": {
+        "url": "https://github.com/Chris00/lpd/releases/download/1.2.1/lpd-1.2.1.tar.gz", 
+        "checksum": "8df6d08d7420155869d416184fef8a10", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lpd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lpd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lpd_version": {
+            "scope": "global", 
+            "val": "1.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lpd"
+    }
+  }
+}

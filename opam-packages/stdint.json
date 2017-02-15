@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.3.0-0": {
+      "version": "0.3.0-0", 
+      "opam": {
+        "url": "https://github.com/andrenth/ocaml-stdint/archive/0.3.0.tar.gz", 
+        "checksum": "1f9fa21baf9c0df490a841a6e916963a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stdint_version": {
+            "scope": "global", 
+            "val": "0.3.0-0"
+          }, 
+          "stdint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stdint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/stdint"
+    }
+  }
+}

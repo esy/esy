@@ -1,0 +1,61 @@
+{
+  "versions": {
+    "0.14.4": {
+      "version": "0.14.4", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-conduit/archive/v0.14.4.tar.gz", 
+        "checksum": "671bc66a25c05ff37d36fcb731b9c8eb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conduit_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conduit_version": {
+            "scope": "global", 
+            "val": "0.14.4"
+          }, 
+          "conduit_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 2.5.0", 
+        "@opam-alpha/vchan": "*", 
+        "@opam-alpha/logs": ">= 0.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/async_ssl": "*", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/tls": "*", 
+        "@opam-alpha/ppx_optcomp": ">= 113.24.00", 
+        "@opam-alpha/ppx_driver": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/launchd": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/conduit"
+    }
+  }
+}

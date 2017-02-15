@@ -1,0 +1,172 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/31504/sawja-1.4.tar.bz2", 
+        "checksum": "485aa5106819ee8c3df1767c341d7751", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure.sh", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sawja_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sawja_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sawja_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/javalib": "= 2.2.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sawja"
+    }, 
+    "1.5.1": {
+      "version": "1.5.1", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/34921/sawja-1.5.1.tar.bz2", 
+        "checksum": "3a9b750faa7a368ec6aaaa0206fac40b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure.sh", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sawja_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sawja_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sawja_version": {
+            "scope": "global", 
+            "val": "1.5.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/javalib": "= 2.3.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sawja"
+    }, 
+    "1.5.0": {
+      "version": "1.5.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/33091/sawja-1.5.tar.bz2", 
+        "checksum": "2e6cabd2112ae856b94ccf413ac4bcdf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure.sh", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sawja_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sawja_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sawja_version": {
+            "scope": "global", 
+            "val": "1.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/javalib": ">= 2.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/sawja"
+    }, 
+    "1.5.2": {
+      "version": "1.5.2", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/36093/sawja-1.5.2.tar.bz2", 
+        "checksum": "12afa3651ea39413d2cb0e1775f587c4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure.sh", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sawja_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sawja_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sawja_version": {
+            "scope": "global", 
+            "val": "1.5.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/javalib": ">= 2.3.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/sawja"
+    }
+  }
+}

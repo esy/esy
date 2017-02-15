@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-solo5/archive/v0.1.1.tar.gz", 
+        "checksum": "f27fb6ebf3840a5b45fef14e527b59a5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make solo5-build", 
+          "make solo5-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_solo5_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_solo5_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_solo5_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocaml-freestanding": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-solo5"
+    }
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "versions": {
+    "0.8.5": {
+      "version": "0.8.5", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1251/lbfgs-0.8.5.tar.gz", 
+        "checksum": "f25658c8f8ac4df800d58a3bf8021a66", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lbfgs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lbfgs_version": {
+            "scope": "global", 
+            "val": "0.8.5"
+          }, 
+          "lbfgs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/lbfgs"
+    }, 
+    "0.8.7": {
+      "version": "0.8.7", 
+      "opam": {
+        "url": "https://github.com/Chris00/L-BFGS-ocaml/releases/download/0.8.7/lbfgs-0.8.7.tar.gz", 
+        "checksum": "177ae85c0703e6a122d235259dcf04dd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lbfgs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lbfgs_version": {
+            "scope": "global", 
+            "val": "0.8.7"
+          }, 
+          "lbfgs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lbfgs"
+    }, 
+    "0.8.6": {
+      "version": "0.8.6", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1492/lbfgs-0.8.6.tar.gz", 
+        "checksum": "a5d23adc3e454679f25c5c7e0501b182", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lbfgs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lbfgs_version": {
+            "scope": "global", 
+            "val": "0.8.6"
+          }, 
+          "lbfgs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lbfgs"
+    }, 
+    "0.8.8": {
+      "version": "0.8.8", 
+      "opam": {
+        "url": "https://github.com/Chris00/L-BFGS-ocaml/releases/download/0.8.8/lbfgs-0.8.8.tar.gz", 
+        "checksum": "1bc380eef12c3c662ed0e2b57b30f61f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lacaml_enable:-disable}-lacaml", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lbfgs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lbfgs_version": {
+            "scope": "global", 
+            "val": "0.8.8"
+          }, 
+          "lbfgs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lbfgs"
+    }, 
+    "0.8.3": {
+      "version": "0.8.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/778/lbfgs-0.8.3.tar.gz", 
+        "checksum": "98d2210538709389d55a9974e89f3b52", 
+        "files": [
+          {
+            "content": "diff --git a/setup.ml b/setup.ml\nindex b638f37..ff88aea 100644\n--- a/setup.ml\n+++ b/setup.ml\n@@ -5244,7 +5244,7 @@ let fortran_lib =\n       (String.concat \", \" fortran_compilers);\n     exit 1\n \n-let _ = BaseEnv.var_define \"fortran_library\" (lazy fortran_lib)\n+let _ = BaseEnv.var_define \"fortran_library\" (fun () -> fortran_lib)\n \n let lbfgsb_ver =\n   if Sys.file_exists \"src/Lbfgsb.3.0/lbfgsb.f\" then \"3.0\"\n@@ -5256,14 +5256,14 @@ let lbfgsb_ver =\n     exit 1\n   )\n \n-let _ = BaseEnv.var_define \"lbfgsb_ver\" (lazy lbfgsb_ver)\n+let _ = BaseEnv.var_define \"lbfgsb_ver\" (fun () -> lbfgsb_ver)\n let _ = BaseEnv.var_define \"lbfgsb_wa_coef_n1\" (* function of [m] *)\n-  (lazy (match lbfgsb_ver with\n+  (fun ()  -> (match lbfgsb_ver with\n   | \"2.1\" -> \"(2 * m + 4)\"\n   | \"3.0\" -> \"(2 * m + 5)\"\n   | _ -> assert false))\n let _ = BaseEnv.var_define \"lbfgsb_wa_coef_n0\" (* function of [m] *)\n-  (lazy (match lbfgsb_ver with\n+  (fun () -> (match lbfgsb_ver with\n   | \"2.1\" -> \"12 * m * (m + 1)\"\n   | \"3.0\" -> \"m * (11 * m + 8)\"\n   | _ -> assert false))\n", 
+            "name": "setup.patch"
+          }, 
+          {
+            "content": "diff --git a/src/lbfgs.mli b/src/lbfgs.mli\nindex 7b432a7..0049f01 100644\n--- a/src/lbfgs.mli\n+++ b/src/lbfgs.mli\n@@ -106,13 +106,13 @@ sig\n \n     @param factr tolerance in the termination test for the algorithm.\n     The iteration will stop when\n-    [(f^k - f^{k+1})/max{|f^k|,|f^{k+1}|,1} <= factr*epsilon_float].\n+    [(f^k - f^{k+1})/max{ |f^k|,|f^{k+1}|, 1 } <= factr*epsilon_float].\n     Set e.g. [factr] to [1e12] for low accuracy, [1e7] for moderate\n     accuracy and [1e1] for extremely high accuracy.  Setting [factr] to\n     [0.] suppresses this termination test.  Default: [1e7].\n \n     @param pgtol The iteration will stop when\n-    [max{|proj g_i| : i = 1,..., n} <= pgtol]\n+    [max{ |proj g_i| : i = 1,..., n} <= pgtol]\n     where [proj g_i] is the ith component of the projected gradient.\n     Setting [pgtol] to [0.] suppresses this termination test.\n     Default: [1e-5].\n", 
+            "name": "string.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lbfgs_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "lbfgs_version": {
+            "scope": "global", 
+            "val": "0.8.3"
+          }, 
+          "lbfgs_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": ">= 0.4.6", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lacaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lbfgs"
+    }
+  }
+}

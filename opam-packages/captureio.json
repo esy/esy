@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/sylvarant/captureio/archive/v0.1.1.tar.gz", 
+        "checksum": "4b1934e165c5d54fa507eb67c83b7a79", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make library", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "captureio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "captureio_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "captureio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/testsimple": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/captureio"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/sylvarant/captureio/archive/v0.1.2.tar.gz", 
+        "checksum": "238638ade7342e1b4a75677abf43fe4f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make library", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "captureio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "captureio_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "captureio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/testsimple": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/captureio"
+    }
+  }
+}

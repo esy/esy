@@ -1,0 +1,103 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/struktured/ocaml-prob-cache/archive/1.1.0.zip", 
+        "checksum": "f43afd2824eee18c2860696974a425a6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-containers-examples --disable-riak-examples", 
+          "make clean", 
+          "make -j2", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "prob_cache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "prob_cache_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "prob_cache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/containers": ">= 0.16.0", 
+        "@opam-alpha/sequence": "*", 
+        "@opam-alpha/oml": ">= 0.0.5", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/riakc_ppx": ">= 3.1.2", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/prob-cache"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/struktured/ocaml-prob-cache/archive/1.0.0.zip", 
+        "checksum": "a0a542bfca32d65f029742f3db893b55", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --disable-containers-examples --disable-riak-examples", 
+          "make clean", 
+          "make -j2", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "prob_cache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "prob_cache_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "prob_cache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/containers": ">= 0.7.0 < 0.13.0", 
+        "@opam-alpha/sequence": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_protobuf": ">= 2.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/riakc_ppx": ">= 3.1.2", 
+        "@opam-alpha/core": ">= 109.12.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/prob-cache"
+    }
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "versions": {
+    "4.0.3": {
+      "version": "4.0.3", 
+      "opam": {
+        "url": "https://github.com/mmottl/res/archive/v4.0.3.tar.gz", 
+        "checksum": "0ce62ac5e358fdb7c556d85b716d8754", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "res_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "res_version": {
+            "scope": "global", 
+            "val": "4.0.3"
+          }, 
+          "res_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/res"
+    }, 
+    "4.0.5": {
+      "version": "4.0.5", 
+      "opam": {
+        "url": "https://github.com/mmottl/res/releases/download/v4.0.5/res-4.0.5.tar.gz", 
+        "checksum": "b207df12d63f45c31f26ea52cb63a266", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "res_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "res_version": {
+            "scope": "global", 
+            "val": "4.0.5"
+          }, 
+          "res_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/res"
+    }, 
+    "4.0.4": {
+      "version": "4.0.4", 
+      "opam": {
+        "url": "https://github.com/mmottl/res/archive/v4.0.4.tar.gz", 
+        "checksum": "2d8121bbc3cfa24fb682d9104e973c7c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "res_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "res_version": {
+            "scope": "global", 
+            "val": "4.0.4"
+          }, 
+          "res_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/res"
+    }, 
+    "4.0.7": {
+      "version": "4.0.7", 
+      "opam": {
+        "url": "https://github.com/mmottl/res/releases/download/v4.0.7/res-4.0.7.tar.gz", 
+        "checksum": "4c5f30d1fcaced42df03c858b2be5c3a", 
+        "files": [
+          {
+            "content": "diff -ur res.4.0.7/examples/weak_ex.ml res.4.0.7_mod/examples/weak_ex.ml\n--- res.4.0.7/examples/weak_ex.ml\t2014-12-19 02:37:15.000000000 +0100\n+++ res.4.0.7_mod/examples/weak_ex.ml\t2015-01-13 16:29:48.025303723 +0100\n@@ -1,7 +1,6 @@\n (* Demonstrates the correct behaviour of resizable weak arrays. *)\n \n module W = Res.Weak\n-module Array = W  (* allows more convenient array access *)\n \n class foo = object end\n \n@@ -9,12 +8,12 @@\n \n let _ =\n   W.add_one ra (Some (new foo));\n-  match ra.(0) with\n+  match W.get ra 0 with\n   | Some _ -> print_endline \"Correctly allocated!\"\n   | _ -> print_endline \"Already deallocated??\"\n \n let _ =\n   Gc.full_major ();\n-  match ra.(0) with\n+  match W.get ra 0 with\n   | Some _ -> print_endline \"Still not deallocated?\"\n   | _ -> print_endline \"Correctly deallocated!\"\n", 
+            "name": "build_with_trunk.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "res_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "res_version": {
+            "scope": "global", 
+            "val": "4.0.7"
+          }, 
+          "res_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/res"
+    }, 
+    "4.0.6": {
+      "version": "4.0.6", 
+      "opam": {
+        "url": "https://github.com/mmottl/res/releases/download/v4.0.6/res-4.0.6.tar.gz", 
+        "checksum": "9a4fc89fd1b908064f5f682849a81117", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "res_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "res_version": {
+            "scope": "global", 
+            "val": "4.0.6"
+          }, 
+          "res_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/res"
+    }, 
+    "3.2.0": {
+      "version": "3.2.0", 
+      "opam": {
+        "url": "https://github.com/mmottl/res/archive/v3.2.0.tar.gz", 
+        "checksum": "fb6d55ba040345b6caba314957b2c2a5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "res_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "res_version": {
+            "scope": "global", 
+            "val": "3.2.0"
+          }, 
+          "res_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/res"
+    }
+  }
+}

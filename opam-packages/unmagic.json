@@ -1,0 +1,139 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/unmagic/get/0.9.0.tar.gz", 
+        "checksum": "d66048abe7125c283f3d0183b46dd864", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unmagic_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "unmagic_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unmagic_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/typerep": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/spotlib": "*", 
+        "@opam-alpha/ppx_typerep_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/unmagic"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/unmagic/get/1.0.0.tar.gz", 
+        "checksum": "5e51eb8dadd4a836f762b570b8a94fe8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unmagic_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "unmagic_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unmagic_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/typerep": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/spotlib": "*", 
+        "@opam-alpha/ppx_typerep_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/unmagic"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/unmagic/get/1.0.1.tar.gz", 
+        "checksum": "7c1a5c774c8c66c468ba5b492e20cdfc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unmagic_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "unmagic_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unmagic_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/typerep": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/spotlib": "*", 
+        "@opam-alpha/ppx_typerep_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/unmagic"
+    }
+  }
+}

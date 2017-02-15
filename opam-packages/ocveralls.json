@@ -1,0 +1,343 @@
+{
+  "versions": {
+    "0.3.2": {
+      "version": "0.3.2", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.3.2.tar.gz", 
+        "checksum": "42ca659de7c332a4f05b847560214225", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.3.2"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": ">=0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bisect": "*", 
+        "@opam-alpha/bisect_ppx": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.3.3": {
+      "version": "0.3.3", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.3.3.tar.gz", 
+        "checksum": "2da7439c64e20270f5860bafa5c6bae2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.3.3"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": ">=0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bisect": "*", 
+        "@opam-alpha/bisect_ppx": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.3.0.tar.gz", 
+        "checksum": "f36b72d4a2e7f71e35df08175cb0cb86", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ezjsonm": ">=0.4.0", 
+        "@opam-alpha/bisect": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.3.1.tar.gz", 
+        "checksum": "0d62738e0a6a1441f14cc40431cc4af5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ezjsonm": ">=0.4.0", 
+        "@opam-alpha/bisect": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.3.4": {
+      "version": "0.3.4", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/3.3.4.tar.gz", 
+        "checksum": "5ba0aee3781c7c85e56f9525a56a182f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.3.4"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": ">=0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bisect": "*", 
+        "@opam-alpha/bisect_ppx": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.2.1.tar.gz", 
+        "checksum": "67404e468b53082b12ef5ecca84b2329", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ezjsonm": ">=0.4.0", 
+        "@opam-alpha/bisect": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.2.0.tar.gz", 
+        "checksum": "083ab504a5b5f35068bcdf845f78616f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ezjsonm": ">= 0.4.0", 
+        "@opam-alpha/bisect": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/sagotch/ocveralls/archive/0.1.0.tar.gz", 
+        "checksum": "a81660ef62f7e35bf5a193cae8663f2f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make bindir=$cur__bin install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocveralls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocveralls_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ocveralls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ezjsonm": ">= 0.4.0", 
+        "@opam-alpha/bisect": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocveralls"
+    }
+  }
+}

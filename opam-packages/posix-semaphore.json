@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "0.4.0-0": {
+      "version": "0.4.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-semaphore/archive/0.4.0.tar.gz", 
+        "checksum": "d066437b9f201710e0aeba134a3aa0a3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_semaphore_version": {
+            "scope": "global", 
+            "val": "0.4.0-0"
+          }, 
+          "posix_semaphore_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_semaphore_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-time": ">= 0.5.0", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-semaphore"
+    }, 
+    "0.3.0-0": {
+      "version": "0.3.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-semaphore/archive/0.3.0.tar.gz", 
+        "checksum": "3e48f7d4f0585ea1e09e876372ef2e68", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_semaphore_version": {
+            "scope": "global", 
+            "val": "0.3.0-0"
+          }, 
+          "posix_semaphore_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_semaphore_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-time": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-semaphore"
+    }
+  }
+}

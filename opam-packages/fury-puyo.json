@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/352/furypuyo-0.5.tar.gz", 
+        "checksum": "bb7263a1a9b57542442656e907a476b1", 
+        "files": [
+          {
+            "content": "diff -ru furypuyo_orig/common.ml furypuyo_patched/common.ml\n--- furypuyo_orig/common.ml\t2010-01-25 18:13:44.000000000 +0100\n+++ furypuyo_patched/common.ml\t2013-08-15 18:28:05.038350670 +0200\n@@ -58,17 +58,7 @@\n   ignore (on_quit ());\n   IO.close ()\n \n-(* don't use Sys.executable_name because it won't work with symbolic links *)\n-let data_directory =\n-  let ed = Filename.dirname Sys.argv.(0) in\n-  let ed =\n-    if Filename.is_relative ed then\n-      Filename.concat (Sys.getcwd ()) ed\n-    else\n-      ed\n-  in\n-  let def = Filename.concat ed \"data\" in\n-  Config.string config \"DATADIR\" \"Game data directory (sprites, ...)\" def\n+let data_directory = \"%{share}%/fury-puyo/data/\"\n \n let player_name =\n   Config.string config \"PLAYERNAME\" \"Player name\"\ndiff -ru furypuyo_orig/sprites.ml furypuyo_patched/sprites.ml\n--- furypuyo_orig/sprites.ml\t2010-01-25 18:13:44.000000000 +0100\n+++ furypuyo_patched/sprites.ml\t2013-08-15 18:28:28.810526538 +0200\n@@ -46,7 +46,6 @@\n let load_black = Sprite.load ~transparency: `BLACK\n \n let file =\n-  let data_directory = Config.get data_directory in\n   fun s -> Filename.concat data_directory s\n \n let sprite_puyo_red = load_alpha (file \"red40.png\")\n", 
+            "name": "data_dir.patch.in"
+          }, 
+          {
+            "content": "bin: [\n  \"furypuyo\"\n  \"furypuyo_srv\"\n]\nshare: [\n  \"data/allclear.png\" {\"data/allclear.png\"}\n  \"data/background.png\" {\"data/background.png\"}\n  \"data/bigredpuyo.png\" {\"data/bigredpuyo.png\"}\n  \"data/blue40.png\" {\"data/blue40.png\"}\n  \"data/blue.png\" {\"data/blue.png\"}\n  \"data/chain10.png\" {\"data/chain10.png\"}\n  \"data/chain11.png\" {\"data/chain11.png\"}\n  \"data/chain12.png\" {\"data/chain12.png\"}\n  \"data/chain13.png\" {\"data/chain13.png\"}\n  \"data/chain14.png\" {\"data/chain14.png\"}\n  \"data/chain15.png\" {\"data/chain15.png\"}\n  \"data/chain16.png\" {\"data/chain16.png\"}\n  \"data/chain17.png\" {\"data/chain17.png\"}\n  \"data/chain18.png\" {\"data/chain18.png\"}\n  \"data/chain19.png\" {\"data/chain19.png\"}\n  \"data/chain2.png\" {\"data/chain2.png\"}\n  \"data/chain3.png\" {\"data/chain3.png\"}\n  \"data/chain4.png\" {\"data/chain4.png\"}\n  \"data/chain5.png\" {\"data/chain5.png\"}\n  \"data/chain6.png\" {\"data/chain6.png\"}\n  \"data/chain7.png\" {\"data/chain7.png\"}\n  \"data/chain8.png\" {\"data/chain8.png\"}\n  \"data/chain9.png\" {\"data/chain9.png\"}\n  \"data/font_25_0.png\" {\"data/font_25_0.png\"}\n  \"data/font_25_1.png\" {\"data/font_25_1.png\"}\n  \"data/font_25_2.png\" {\"data/font_25_2.png\"}\n  \"data/font_25_3.png\" {\"data/font_25_3.png\"}\n  \"data/font_25_4.png\" {\"data/font_25_4.png\"}\n  \"data/font_25_5.png\" {\"data/font_25_5.png\"}\n  \"data/font_25_6.png\" {\"data/font_25_6.png\"}\n  \"data/font_25_7.png\" {\"data/font_25_7.png\"}\n  \"data/font_25_8.png\" {\"data/font_25_8.png\"}\n  \"data/font_25_9.png\" {\"data/font_25_9.png\"}\n  \"data/font_25_am.png\" {\"data/font_25_am.png\"}\n  \"data/font_25_bm.png\" {\"data/font_25_bm.png\"}\n  \"data/font_25_cm.png\" {\"data/font_25_cm.png\"}\n  \"data/font_25_colon.png\" {\"data/font_25_colon.png\"}\n  \"data/font_25_dm.png\" {\"data/font_25_dm.png\"}\n  \"data/font_25_dot.png\" {\"data/font_25_dot.png\"}\n  \"data/font_25_em.png\" {\"data/font_25_em.png\"}\n  \"data/font_25_fm.png\" {\"data/font_25_fm.png\"}\n  \"data/font_25_gm.png\" {\"data/font_25_gm.png\"}\n  \"data/font_25_hm.png\" {\"data/font_25_hm.png\"}\n  \"data/font_25_im.png\" {\"data/font_25_im.png\"}\n  \"data/font_25_jm.png\" {\"data/font_25_jm.png\"}\n  \"data/font_25_km.png\" {\"data/font_25_km.png\"}\n  \"data/font_25_lm.png\" {\"data/font_25_lm.png\"}\n  \"data/font_25_mm.png\" {\"data/font_25_mm.png\"}\n  \"data/font_25_nm.png\" {\"data/font_25_nm.png\"}\n  \"data/font_25_om.png\" {\"data/font_25_om.png\"}\n  \"data/font_25_plus.png\" {\"data/font_25_plus.png\"}\n  \"data/font_25_pm.png\" {\"data/font_25_pm.png\"}\n  \"data/font_25_qm.png\" {\"data/font_25_qm.png\"}\n  \"data/font_25_rm.png\" {\"data/font_25_rm.png\"}\n  \"data/font_25_sm.png\" {\"data/font_25_sm.png\"}\n  \"data/font_25_star.png\" {\"data/font_25_star.png\"}\n  \"data/font_25_tm.png\" {\"data/font_25_tm.png\"}\n  \"data/font_25_um.png\" {\"data/font_25_um.png\"}\n  \"data/font_25_vm.png\" {\"data/font_25_vm.png\"}\n  \"data/font_25_wm.png\" {\"data/font_25_wm.png\"}\n  \"data/font_25_xm.png\" {\"data/font_25_xm.png\"}\n  \"data/font_25_x.png\" {\"data/font_25_x.png\"}\n  \"data/font_25_ym.png\" {\"data/font_25_ym.png\"}\n  \"data/font_25_zm.png\" {\"data/font_25_zm.png\"}\n  \"data/foreground.png\" {\"data/foreground.png\"}\n  \"data/garbage180.png\" {\"data/garbage180.png\"}\n  \"data/garbage1.png\" {\"data/garbage1.png\"}\n  \"data/garbage30.png\" {\"data/garbage30.png\"}\n  \"data/garbage360.png\" {\"data/garbage360.png\"}\n  \"data/garbage6.png\" {\"data/garbage6.png\"}\n  \"data/garbage720.png\" {\"data/garbage720.png\"}\n  \"data/go.png\" {\"data/go.png\"}\n  \"data/gray40.png\" {\"data/gray40.png\"}\n  \"data/gray.png\" {\"data/gray.png\"}\n  \"data/green40.png\" {\"data/green40.png\"}\n  \"data/green.png\" {\"data/green.png\"}\n  \"data/greenstar.png\" {\"data/greenstar.png\"}\n  \"data/offsetfury.png\" {\"data/offsetfury.png\"}\n  \"data/offset.png\" {\"data/offset.png\"}\n  \"data/purplestar.png\" {\"data/purplestar.png\"}\n  \"data/ready.png\" {\"data/ready.png\"}\n  \"data/red40.png\" {\"data/red40.png\"}\n  \"data/red.png\" {\"data/red.png\"}\n  \"data/redstar.png\" {\"data/redstar.png\"}\n  \"data/set.png\" {\"data/set.png\"}\n  \"data/yellow40.png\" {\"data/yellow40.png\"}\n  \"data/yellow.png\" {\"data/yellow.png\"}\n  \"data/yellowstar.png\" {\"data/yellowstar.png\"}\n]\n", 
+            "name": "fury-puyo.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs data_dir.patch.in", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fury_puyo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fury_puyo_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "fury_puyo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-sdl-mixer": "*", 
+        "@opam-alpha/conf-sdl-image": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlsdl": "*", 
+        "@opam-alpha/conf-sdl-ttf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fury-puyo"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://codeload.github.com/selectel/alberto/tar.gz/0.4", 
+        "checksum": "2bf9cc79f6e164567dd837d51aed3487", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "alberto_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "alberto_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "alberto_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocplib-endian": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/alberto"
+    }
+  }
+}

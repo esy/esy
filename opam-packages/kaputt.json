@@ -1,0 +1,95 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://kaputt.x9c.fr/distrib/kaputt-1.1.tar.gz", 
+        "checksum": "d96e6b953f118952b517a7ef98dba055", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "kaputt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "kaputt_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "kaputt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/kaputt"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/987/kaputt-1.2.tar.gz", 
+        "checksum": "178c1bb2690070891c9c28a8c621d23a", 
+        "files": [
+          {
+            "content": "diff --git a/Makefile b/Makefile.diff\nindex 3f7b5d2..332ae23 100644\n--- a/Makefile\n+++ b/Makefile.diff\n@@ -84,6 +84,7 @@ install: FORCE\n \t    $(PATH_BUILD)/src/extensions/$(PROJECT_NAME)Nums.o \\\n \t    $(PATH_BUILD)/src/extensions/$(PROJECT_NAME)Nums.jo \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).a \\\n+\t    $(PATH_BUILD)/$(PROJECT_NAME).o \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).cma \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).cmi \\\n \t    $(PATH_BUILD)/$(PROJECT_NAME).cmo \\\n", 
+            "name": "install.patch"
+          }, 
+          {
+            "content": "diff --git a/configure b/configure\nindex 464daee..8bc0de0 100755\n--- a/configure\n+++ b/configure\n@@ -23,6 +23,7 @@ ocamlbuild=`which ocamlbuild || echo '/usr/local/bin/ocamlbuild'`\n bin_path=`dirname $ocamlbuild`\n ocaml_prefix=`dirname $bin_path`\n ocamlfind=`which ocamlfind 2> /dev/null || echo ''`\n+ocamlopt=`which ocamlopt 2> /dev/null || echo ''`\n native_dynlink='TRUE'\n devel='FALSE'\n \n@@ -34,12 +35,14 @@ do\n             ocaml_prefix=\"$2\"; shift;;\n         -ocamlfind)\n             ocamlfind=\"$2\"; shift;;\n+        -ocamlopt)\n+            ocamlopt=\"$2\"; shift;;\n         -no-native-dynlink)\n             native_dynlink='FALSE';;\n         -devel)\n             devel='TRUE';;\n         *)\n-            echo \"usage: $0 [-ocaml-prefix <path>] [-ocamlfind <path>] [-no-native-dynlink] [-devel]\";\n+            echo \"usage: $0 [-ocaml-prefix <path>] [-ocamlfind <path>] [-ocamlopt <path>] [-no-native-dynlink] [-devel]\";\n             exit 1;;\n         esac\n         shift\n@@ -56,6 +59,7 @@ EOF`\n echo \"# timestamp: `date`\" > Makefile.config\n echo \"PATH_OCAML_PREFIX=$ocaml_prefix\" >> Makefile.config\n echo \"PATH_OCAMLFIND=$ocamlfind\" >> Makefile.config\n+echo \"PATH_OCAMLOPT=$ocamlopt\" >> Makefile.config\n echo \"NATIVE_DYNLINK=$native_dynlink\" >> Makefile.config\n echo \"WARNINGS=$devel\" >> Makefile.config\n echo \"MAKE_QUIET=$make_quiet\" >> Makefile.config\ndiff --git a/Makefile b/Makefile\nindex 332ae23..02cc2ec 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -106,7 +106,11 @@ install: FORCE\n \n generate: FORCE\n \techo '$(PROJECT_NAME).cma' > $(PROJECT_NAME).itarget\n-\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true\n+\tif [ -x \"$(PATH_OCAMLOPT)\" ]; then \\\n+\t\techo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget; \\\n+\telse \\\n+\t\t(test -x $(PATH_OCAML_PREFIX)/bin/ocamlopt && echo '$(PROJECT_NAME).cmxa' >> $(PROJECT_NAME).itarget) || true; \\\n+\tfi\n \t(test -x $(PATH_OCAML_PREFIX)/bin/ocamljava && echo '$(PROJECT_NAME).cmja' >> $(PROJECT_NAME).itarget) || true\n \n FORCE:\n", 
+            "name": "install2.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh configure", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "kaputt_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "kaputt_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "kaputt_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/kaputt"
+    }
+  }
+}

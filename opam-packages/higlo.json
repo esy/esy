@@ -1,0 +1,276 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/higlo/higlo-0.3.tar.gz", 
+        "checksum": "fec0966ee2cf635d5dec952589106a16", 
+        "files": [
+          {
+            "content": "bin: [\n  \"higlo\"\n  \"higlo.byte\"\n  \"mk-higlo\"\n]\n", 
+            "name": "higlo.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "higlo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "higlo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "higlo_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.8.0 < 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/higlo"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://zoggy.github.io/higlo/higlo-0.6.tar.gz", 
+        "checksum": "52e89a71fddfff701ff5bba21990a1ec", 
+        "files": [
+          {
+            "content": "bin: [\n  \"higlo\"\n  \"higlo.byte\"\n  \"mk-higlo\"\n]\n", 
+            "name": "higlo.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "higlo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "higlo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "higlo_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/higlo"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/higlo/higlo-0.2.tar.gz", 
+        "checksum": "7cbe33e38658d83a681f8f0a91a2fe07", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "higlo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "higlo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "higlo_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.8.0 < 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/higlo"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/higlo/higlo-0.1.tar.gz", 
+        "checksum": "809f515b4c6232d27a068b8499d66cd1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "higlo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "higlo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "higlo_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.8.0 < 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/higlo"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/higlo/higlo-0.4.tar.gz", 
+        "checksum": "e9357a715b2d7f7ab4d28efbab908ec1", 
+        "files": [
+          {
+            "content": "bin: [\n  \"higlo\"\n  \"higlo.byte\"\n  \"mk-higlo\"\n]\n", 
+            "name": "higlo.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "higlo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "higlo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "higlo_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.10.0 < 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/higlo"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/higlo/higlo-0.5.tar.gz", 
+        "checksum": "6b3686189ade3ddec44db7b725a11f11", 
+        "files": [
+          {
+            "content": "bin: [\n  \"higlo\"\n  \"higlo.byte\"\n  \"mk-higlo\"\n]\n", 
+            "name": "higlo.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "higlo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "higlo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "higlo_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.13.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/higlo"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "3.0.0": {
+      "version": "3.0.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1452/ocaml-odbc-3.0.tar.gz", 
+        "checksum": "2399d644496c8bfacc674aa84910b84e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make findlib_install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "odbc_version": {
+            "scope": "global", 
+            "val": "3.0.0"
+          }, 
+          "odbc_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "odbc_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/odbc"
+    }
+  }
+}

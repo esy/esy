@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/xapi-project/netdev/archive/v0.9.1/netdev-0.9.1.tar.gz", 
+        "checksum": "072af99f0faed6fecf47a64b875236ca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_netdev_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "xapi_netdev_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_netdev_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xapi-stdext": "< 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xapi-forkexecd": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-netdev"
+    }
+  }
+}

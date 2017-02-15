@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.30.0": {
+      "version": "1.30.0", 
+      "opam": {
+        "url": "http://alt-ergo.ocamlpro.com/http/alt-ergo-1.30/alt-ergo-1.30.tar.gz", 
+        "checksum": "c7100ebd625fbd7d3e5247dbac689748", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make", 
+          "make install MANDIR=$cur__man", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "alt_ergo_version": {
+            "scope": "global", 
+            "val": "1.30.0"
+          }, 
+          "alt_ergo_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "alt_ergo_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/zarith": "*", 
+        "@opam-alpha/camlzip": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocplib-simplex": "= 0.3.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/alt-ergo"
+    }
+  }
+}

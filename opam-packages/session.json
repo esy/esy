@@ -1,0 +1,104 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-session/archive/0.1.0.tar.gz", 
+        "checksum": "835c434ee5aeb590da735cde310e3e05", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${webmachine_enable:-disable}-webmachine --${postgresql_enable:-disable}-postgresql --${lwt_enable:-disable}-lwt --${cohttp_enable:-disable}-cohttp --${async_enable:-disable}-async", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "session_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "session_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "session_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/base-threads": "*", 
+        "@opam-alpha/postgresql": "*", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/webmachine": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ounit": ">= 1.0.2"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/session"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-session/archive/0.2.0.tar.gz", 
+        "checksum": "281ca187e0a460aecc83a7b9e1f56a18", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${webmachine_enable:-disable}-webmachine --${postgresql_enable:-disable}-postgresql --${lwt_enable:-disable}-lwt --${cohttp_enable:-disable}-cohttp --${async_enable:-disable}-async", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "session_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "session_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "session_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/base-threads": "*", 
+        "@opam-alpha/postgresql": "*", 
+        "@opam-alpha/nocrypto": "*", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/webmachine": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ounit": ">= 1.0.2"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/session"
+    }
+  }
+}

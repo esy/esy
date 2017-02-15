@@ -1,0 +1,136 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/samoht/ocaml-arg/tarball/0.1", 
+        "checksum": "5e4e5e577a2ec167434ce3cb4796ce62", 
+        "files": [
+          {
+            "content": "lib: [\n  \"_build/src/arg.cma\"\n  \"_build/src/arg.cmxa\"\n  \"_build/src/arg.a\"\n  \"_build/src/argExt.cmi\"\n  \"_build/src/subCommand.cmi\"\n  \"_build/src/formatExt.cmi\"\n]\n", 
+            "name": "ocaml-arg.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_arg_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ocaml_arg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_arg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-arg"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/samoht/ocaml-arg/tarball/0.3", 
+        "checksum": "fc9075011f0b3dc3951597088839a721", 
+        "files": [
+          {
+            "content": "lib: [\n  \"_build/src/arg.cma\"\n  \"_build/src/arg.cmxa\"\n  \"_build/src/arg.a\"\n  \"_build/src/argExt.cmi\"\n  \"_build/src/subCommand.cmi\"\n  \"_build/src/formatExt.cmi\"\n]\n", 
+            "name": "ocaml-arg.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_arg_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "ocaml_arg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_arg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-arg"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/samoht/ocaml-arg/tarball/0.2", 
+        "checksum": "e4d2ad641c08041e166a59d66e909cd9", 
+        "files": [
+          {
+            "content": "lib: [\n  \"_build/src/arg.cma\"\n  \"_build/src/arg.cmxa\"\n  \"_build/src/arg.a\"\n  \"_build/src/argExt.cmi\"\n  \"_build/src/subCommand.cmi\"\n  \"_build/src/formatExt.cmi\"\n]\n", 
+            "name": "ocaml-arg.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_arg_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "ocaml_arg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_arg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-arg"
+    }
+  }
+}

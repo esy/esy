@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.1-0": {
+      "version": "0.1.1-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-json-pointer/archive/0.1.1.tar.gz", 
+        "checksum": "cd53e498014a7fa94b67f2a1cac4992c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "json_pointer_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "json_pointer_version": {
+            "scope": "global", 
+            "val": "0.1.1-0"
+          }, 
+          "json_pointer_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/yojson": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/json-pointer"
+    }
+  }
+}

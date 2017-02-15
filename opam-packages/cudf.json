@@ -1,0 +1,103 @@
+{
+  "versions": {
+    "0.6.3": {
+      "version": "0.6.3", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/31910/cudf-0.6.3.tar.gz", 
+        "checksum": "40c4e2c50ea96d0c9e565db16d20639a", 
+        "files": [
+          {
+            "content": "lib: [\n  \"META\"\n  \"_obuild/cudf/cudf.cma\"\n  \"_obuild/cudf/cudf.cmi\"\n  \"_obuild/cudf/cudf.cmxa\"\n  \"_obuild/cudf/cudf.a\"\n  \"_obuild/cudf/cudf_822_lexer.cmi\"\n  \"_obuild/cudf/cudf_checker.cmi\"\n  \"_obuild/cudf/cudf_parser.cmi\"\n  \"_obuild/cudf/cudf_type_parser.cmi\"\n  \"_obuild/cudf/cudf_822_parser.cmi\"\n  \"_obuild/cudf/cudf.cmi\"\n  \"_obuild/cudf/cudf_printer.cmi\"\n  \"_obuild/cudf/cudf_types.cmi\"\n  \"_obuild/cudf/cudf_c.cmi\"\n  \"_obuild/cudf/cudf_conf.cmi\"\n  \"_obuild/cudf/cudf_type_lexer.cmi\"\n  \"_obuild/cudf/cudf_types_pp.cmi\"\n]\n", 
+            "name": "cudf.install"
+          }, 
+          {
+            "content": "begin library \"extLib\"\n  dirname  = \"%{lib}%/extlib\"\n  generated = true\nend\n\nbegin library \"cudf\"\n   sort = true\n   files = [\n     \"cudf_types_pp.ml\"\n     \"cudf_types.ml\"\n     \"cudf_type_parser.mly\"\n     \"cudf_type_lexer.mll\"\n     \"cudf_printer.ml\"\n     \"cudf_parser.ml\"\n     \"cudf_conf.ml\"\n     \"cudf_checker.ml\"\n     \"cudf_c.ml\"\n     \"cudf_822_parser.mly\"\n     \"cudf_822_lexer.mll\"\n     \"cudf.ml\"\n   ]\n   requires = [\n     \"extLib\"\n   ]\nend\n", 
+            "name": "cudf.ocp.in"
+          }, 
+          {
+            "content": "version = \"0.6.3\"\nrequires = \"extlib\"\narchive(byte) = \"cudf.cma\"\narchive(native) = \"cudf.cmxa\"", 
+            "name": "META"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs cudf.ocp.in", 
+          "ocp-build -init", 
+          "ocp-build -scan cudf -v 0", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cudf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cudf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cudf_version": {
+            "scope": "global", 
+            "val": "0.6.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": "*", 
+        "@opam-alpha/extlib-compat": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cudf"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/33593/cudf-0.7.tar.gz", 
+        "checksum": "2047222fcf78278c6a24ac619fc39abb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all opt", 
+          "make install DESTDIR=$cur__install OCAMLLIBDIR=lib BINDIR=bin LIBDIR=lib INCDIR=include", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cudf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cudf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cudf_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-perl": "*", 
+        "@opam-alpha/extlib-compat": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cudf"
+    }
+  }
+}

@@ -1,0 +1,790 @@
+{
+  "versions": {
+    "0.15.0": {
+      "version": "0.15.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.15.0.tar.gz", 
+        "checksum": "b21681f66efd00d53487f41fa86dd6e0", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/stog\"\n  \"src/stog.byte\"\n  \"src/stog-ocaml-session\"\n  \"src/mk-stog\"\n  \"src/mk-stog.byte\"\n  \"src/mk-stog-ocaml-session\"\n  \"?src/stog-server\"\n  \"?src/stog-server.byte\"\n  \"?src/stog-multi-server\"\n  \"?src/stog-multi-server.byte\"\n  \"src/latex2stog\"\n  \"src/latex2stog.byte\"\n  \"src/stog-tmpl\"\n  \"src/stog-tmpl.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install-lib install-share", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.15.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": "*", 
+        "@opam-alpha/ocf": ">= 0.4.0", 
+        "@opam-alpha/sha": "*", 
+        "@opam-alpha/ojs-base": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": "= 0.12.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/higlo": ">= 0.4.0", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/xmldiff": "*", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.10.0": {
+      "version": "0.10.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.10.0.tar.gz", 
+        "checksum": "4117d5f8fbc96e2b256ba0d49d69de75", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n  \"latex2stog\"\n  \"latex2stog.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.10.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.8.0 < 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.2.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.14.0": {
+      "version": "0.14.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.14.0.tar.gz", 
+        "checksum": "bc647e0d60d01999aa920005ca762095", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n  \"?stog-server\"\n  \"?stog-server.byte\"\n  \"latex2stog\"\n  \"latex2stog.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make stog_filter_parser.mli", 
+          "make all", 
+          "make install-lib install-share", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.14.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.2.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/ojs-base": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.10.0 < 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/higlo": ">= 0.4.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/xmldiff": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.6.1.tar.gz", 
+        "checksum": "da460629c506d92fffaa457c4db78f17", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.5.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.0.0 < 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.11.0.tar.gz", 
+        "checksum": "9339b1afb27cd531aef077c24a48b323", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n  \"latex2stog\"\n  \"latex2stog.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.2.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.9.0 < 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/higlo": ">= 0.2.0", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.11.1": {
+      "version": "0.11.1", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.11.1.tar.gz", 
+        "checksum": "4e6f33718224d5502447f9db82930a7c", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n  \"latex2stog\"\n  \"latex2stog.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.11.1"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.2.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.9.0 < 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/higlo": ">= 0.2.0", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.7.0.tar.gz", 
+        "checksum": "d6f16a77fdd4296b7e40e14d8606c216", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.5.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.0.0 < 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.8.0.tar.gz", 
+        "checksum": "587af11965dfe000e65a54c6a93adfb7", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.5.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.17.0": {
+      "version": "0.17.0", 
+      "opam": {
+        "url": "https://zoggy.github.io/stog/stog-0.17.0.tar.gz", 
+        "checksum": "741124e3c4f5ba7aa9135f03c69b9c19", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/stog\"\n  \"src/stog.byte\"\n  \"src/stog-ocaml-session\"\n  \"src/mk-stog\"\n  \"src/mk-stog.byte\"\n  \"src/mk-stog-ocaml-session\"\n  \"?src/stog-server\"\n  \"?src/stog-server.byte\"\n  \"?src/stog-multi-server\"\n  \"?src/stog-multi-server.byte\"\n  \"src/latex2stog\"\n  \"src/latex2stog.byte\"\n  \"src/stog-tmpl\"\n  \"src/stog-tmpl.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install-lib install-share", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.17.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": "*", 
+        "@opam-alpha/ocf": ">= 0.5.0", 
+        "@opam-alpha/ojs-base": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uutf": ">= 1.0.0", 
+        "@opam-alpha/xtmpl": ">= 0.16.0", 
+        "@opam-alpha/omd": ">= 1.3.0", 
+        "@opam-alpha/ptime": ">= 0.8.2", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/higlo": ">= 0.6.0", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/xmldiff": "*", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "@opam-alpha/uri": ">= 1.9.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.12.0": {
+      "version": "0.12.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.12.0.tar.gz", 
+        "checksum": "c4736b83d23a77ef565b90298115ec1c", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n  \"latex2stog\"\n  \"latex2stog.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make stog_filter_parser.mli", 
+          "make all", 
+          "make install-lib install-share", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.12.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.2.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.9.0 < 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/higlo": ">= 0.3.0", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.9.0.tar.gz", 
+        "checksum": "052d0d167164568e32330465f0712e11", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install-lib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.6.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.2.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.16.0": {
+      "version": "0.16.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.16.0.tar.gz", 
+        "checksum": "53be6770d7ec57c31f0f4f2954f73b32", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/stog\"\n  \"src/stog.byte\"\n  \"src/stog-ocaml-session\"\n  \"src/mk-stog\"\n  \"src/mk-stog.byte\"\n  \"src/mk-stog-ocaml-session\"\n  \"?src/stog-server\"\n  \"?src/stog-server.byte\"\n  \"?src/stog-multi-server\"\n  \"?src/stog-multi-server.byte\"\n  \"src/latex2stog\"\n  \"src/latex2stog.byte\"\n  \"src/stog-tmpl\"\n  \"src/stog-tmpl.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make all", 
+          "make install-lib install-share", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.16.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": "*", 
+        "@opam-alpha/ocf": ">= 0.4.0", 
+        "@opam-alpha/sha": "*", 
+        "@opam-alpha/ojs-base": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/higlo": ">= 0.5.0", 
+        "@opam-alpha/xmldiff": "*", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0", 
+        "@opam-alpha/lwt": ">= 2.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.4.tar.gz", 
+        "checksum": "2500ace40374e5e9a1d14d816e05bc20", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.4.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.0.0 < 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.5.tar.gz", 
+        "checksum": "527c583aaf493b107df6edc0e72eef7b", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/config-file": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.5.0 < 0.8.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/ocamlrss": ">= 2.0.0 < 2.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }, 
+    "0.13.0": {
+      "version": "0.13.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/stog/stog-0.13.0.tar.gz", 
+        "checksum": "4411abab24e45341988216b5bf2ba4db", 
+        "files": [
+          {
+            "content": "bin: [\n  \"stog\"\n  \"stog.byte\"\n  \"stog-ocaml-session\"\n  \"mk-stog\"\n  \"mk-stog.byte\"\n  \"mk-stog-ocaml-session\"\n  \"?stog-server\"\n  \"?stog-server.byte\"\n  \"latex2stog\"\n  \"latex2stog.byte\"\n]\n", 
+            "name": "stog.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make stog_filter_parser.mli", 
+          "make all", 
+          "make install-lib install-share", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stog_version": {
+            "scope": "global", 
+            "val": "0.13.0"
+          }, 
+          "stog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/config-file": ">= 1.2.0", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xtmpl": ">= 0.10.0 < 0.13.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/higlo": ">= 0.4.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/xmlm": ">= 1.1.0", 
+        "@opam-alpha/xmldiff": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/stog"
+    }
+  }
+}

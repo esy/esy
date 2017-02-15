@@ -1,0 +1,462 @@
+{
+  "versions": {
+    "111.06.00": {
+      "version": "111.06.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.06.00/individual/textutils-111.06.00.tar.gz", 
+        "checksum": "8e89e4b3f32ac3a37a4e589640c4e560", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "111.06.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 111.03.00 <= 111.17.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.53.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 111.06.00 <= 111.21.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "112.17.00": {
+      "version": "112.17.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.17/files/textutils-112.17.00.tar.gz", 
+        "checksum": "170dc582e4c6e80d4c9e8c7367adbfa2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "112.17.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.17.00 < 113.01.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 112.17.00 < 113.01.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 112.17.00 < 113.01.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "113.33.03": {
+      "version": "113.33.03", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/textutils-113.33.03.tar.gz", 
+        "checksum": "7b4a62f49660363aafd866b146522c44", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "113.33.03"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ppx_expect": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/sexplib": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/bin_prot": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/fieldslib": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/ppx_bench": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ppx_jane": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/typerep": ">= 113.33.03 < 113.34.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_assert": ">= 113.33.03 < 113.34.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/variantslib": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ppx_driver": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/js-build-tools": ">= 113.33.04 < 113.34.00", 
+        "@opam-alpha/core": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ppx_inline_test": ">= 113.33.03 < 113.34.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "113.33.00": {
+      "version": "113.33.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/textutils-113.33.00.tar.gz", 
+        "checksum": "304d0ea440f5a2c7fe5c02e8725f4f0d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "113.33.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ppx_expect": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/sexplib": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/bin_prot": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/fieldslib": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/ppx_bench": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/ppx_jane": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/typerep": ">= 113.24.00 < 113.25.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_assert": ">= 113.33.00 < 113.34.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/variantslib": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_driver": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/core": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/ppx_inline_test": ">= 113.33.00 < 113.34.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "113.24.00": {
+      "version": "113.24.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.24/files/textutils-113.24.00.tar.gz", 
+        "checksum": "b62e14f62cfc2c44602affb19ab865f3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "113.24.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ppx_expect": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/sexplib": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/bin_prot": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/fieldslib": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/ppx_bench": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_jane": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/typerep": ">= 113.24.00 < 113.25.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_assert": ">= 113.24.00 < 113.25.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/variantslib": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_driver": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/core": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_inline_test": ">= 113.24.00 < 113.25.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "111.25.00": {
+      "version": "111.25.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.25.00/individual/textutils-111.25.00.tar.gz", 
+        "checksum": "1f739df28001c841ba6d406847de6afb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "111.25.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 111.25.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.53.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "= 111.25.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "112.01.00": {
+      "version": "112.01.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.01.00/individual/textutils-112.01.00.tar.gz", 
+        "checksum": "9ab126f0f71fb8caedac5e685ead07c5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "112.01.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.01.00 < 112.02.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 111.28.00 < 111.29.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 112.01.00 < 112.02.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "111.03.00": {
+      "version": "111.03.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.03.00/individual/textutils-111.03.00.tar.gz", 
+        "checksum": "5cd7fc89051fd2eb8f3a4ae80db0026c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "111.03.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 111.03.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 109.53.00 <= 109.53.02", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "= 111.03.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "112.06.00": {
+      "version": "112.06.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.06.00/individual/textutils-112.06.00.tar.gz", 
+        "checksum": "20ab149461e44f5ab4209b54b1366c78", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "112.06.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.06.00 < 112.07.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": ">= 111.28.00 < 111.29.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 112.06.00 < 112.07.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }, 
+    "111.28.00": {
+      "version": "111.28.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/111.28.00/individual/textutils-111.28.00.tar.gz", 
+        "checksum": "a02498e2f19e3c3311a0fcda9abfad65", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "textutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "textutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "textutils_version": {
+            "scope": "global", 
+            "val": "111.28.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "= 111.25.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pa_ounit": "= 111.28.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": ">= 111.28.00 < 111.29.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/textutils"
+    }
+  }
+}

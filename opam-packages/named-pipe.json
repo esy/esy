@@ -1,0 +1,136 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-named-pipe/releases/download/0.4.0/named-pipe-0.4.0.tbz", 
+        "checksum": "ec3a7aaec3cc0efd6560dd1668da6def", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "named_pipe_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "named_pipe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "named_pipe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/ocb-stubblr": ">= 0.1.0", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/topkg": ">= 0.8.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/named-pipe"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-named-pipe/archive/v0.3.tar.gz", 
+        "checksum": "33a003c2041225f5de6fdde94cb84cbd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${alcotest_enable:-disable}-tests", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "named_pipe_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "named_pipe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "named_pipe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/named-pipe"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-named-pipe/archive/v0.2.tar.gz", 
+        "checksum": "0e7af39e956ff67d96a5bb2d7b05aa06", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${alcotest_enable:-disable}-tests", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "named_pipe_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "named_pipe_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "named_pipe_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/alcotest": ">= 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.7", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/named-pipe"
+    }
+  }
+}

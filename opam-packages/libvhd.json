@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "https://github.com/xen-org/libvhd/archive/libvhd-0.9.0.tar.gz", 
+        "checksum": "0c9f612aad20139a009ee11988d3a6cd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libvhd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libvhd_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }, 
+          "libvhd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/libvhd"
+    }
+  }
+}

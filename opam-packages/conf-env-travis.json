@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#!/bin/sh\n\ncat > conf-env-travis.config <<EOF\n active : ${TRAVIS:-false}\n branch : \"${TRAVIS_BRANCH}\"\n build_id : \"${TRAVIS_BUILD_ID}\"\n build_dir : \"${TRAVIS_BUILD_DIR}\"\n build_number : \"${TRAVIS_BUILD_NUMBER}\"\n commit : \"${TRAVIS_COMMIT}\"\n commit_range : \"${TRAVIS_COMMIT_RANGE}\"\n event_type : \"${TRAVIS_EVENT_TYPE}\"\n job_id : \"${TRAVIS_JOB_ID}\"\n job_number : \"${TRAVIS_JOB_NUMBER}\"\n os_name : \"${TRAVIS_OS_NAME}\"\n pull_request : \"${TRAVIS_PULL_REQUEST}\"\n pull_request_branch : \"${TRAVIS_PULL_REQUEST_BRANCH}\"\n pull_request_sha : \"${TRAVIS_PULL_REQUEST_SHA}\"\n repo_slug : \"${TRAVIS_REPO_SLUG}\"\n secure_env_vars : \"${TRAVIS_SECURE_ENV_VARS}\"\n test_result : \"${TRAVIS_TEST_RESULT}\"\n tag : \"${TRAVIS_TAG}\"\nEOF\n", 
+            "name": "configure"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -x configure os", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_env_travis_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_env_travis_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "conf_env_travis_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-env-travis"
+    }
+  }
+}

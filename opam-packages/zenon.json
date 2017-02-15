@@ -1,0 +1,98 @@
+{
+  "versions": {
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://zenon-prover.org/zenon-0.8.0.tar.gz", 
+        "checksum": "4d82ae5b6dc498a73ef85a353c5da325", 
+        "files": [
+          {
+            "content": "bin: [\n  \"zenon\" {\"zenon-0.8.0\"}\n  \"zenon\"\n]\n", 
+            "name": "zenon.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__lib/zenon-0.8.0", 
+          "./configure --prefix $cur__install --libdir $cur__lib/zenon-0.8.0", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zenon_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }, 
+          "zenon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zenon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zenon"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "http://pkgs.fedoraproject.org/repo/pkgs/zenon/zenon-0.7.1.tar.xz/cb8b35e2d55dabcc7d8a1e8b3600f68a/zenon-0.7.1.tar.xz", 
+        "checksum": "cb8b35e2d55dabcc7d8a1e8b3600f68a", 
+        "files": [
+          {
+            "content": "bin: [\n  \"zenon\" {\"zenon-0.7.1\"}\n  \"zenon\"\n]\n", 
+            "name": "zenon.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__lib/zenon-0.7.1", 
+          "./configure --prefix $cur__install --tools_prefix $cur__lib/zenon-0.7.1", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zenon_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "zenon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zenon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/coq": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zenon"
+    }
+  }
+}

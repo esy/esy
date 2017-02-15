@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#!/bin/sh\n\n# find IDA PRO on a system\n#\n# Find IDA Pro and provide a path to its folder as a witness. The path\n# is specifiend via a package variable `path`, and can be accessed\n# with `opam config var conf-ida:path` command. This script also\n# determines whether the environment is headless, and report it via\n# `headless` variable. All variables are stored in `find-ida.config` file,\n# that is installed by opam.\n\n# The script respects IDA_PATH environment variable, if it is set,\n# then nothing is searched and its value is blindly propagated to the\n# package variable.\n\n# The general approach is first try to find idaq64 executable in the\n# PATH and then fallback to a slower solution, like locate or\n# find. The slower solution make take some time especially on systems\n# with many files but no IDA.\n\n# IFS=$'\\n' doesn't work on dash, although it is posix\nIFS=\"\n\"\n\n# fast and portable solution\nfind_command() {\n    command=`which $1`\n\n    if [ \"$command\" ]; then\n        IDA_PATH=`dirname ${command}`\n    fi\n}\n\n# can be very slow\nlocate_linux() {\n    results=`locate -w -r 'idaq64$' | sort -n -r`\n\n    for path in $results; do\n        if [ -x $path ]; then\n            IDA_PATH=`dirname ${path}`\n            return\n        fi\n    done\n}\n\n# locate on mac os x doesn't accept -r and -w flags,\n# moreover, we have a better alternative - mfind\nlocate_macos() {\n    results=`mdfind -name idaq | sort -n -r`\n\n    for path in $results; do\n        echo \"$path\"\n        app=`basename \"${path}\"`\n\n        if [ \"x$app\" = \"xidaq.app\" ]; then\n            IDA_PATH=\"${path}/Contents/MacOS/\"\n            return\n        fi\n    done\n}\n\n\nfind() {\n    if [ -z $IDA_PATH ]; then\n        find_command \"idaq64\"\n    fi\n}\n\nHEADLESS=false\n\ncase $1 in\n    linux)\n        find\n        [ $IDA_PATH ] || locate_linux\n        if [ -z $DISPLAY ]; then\n            HEADLESS=true\n        fi\n        ;;\n    darwin)\n        find\n        [ $IDA_PATH ] || locate_macos\n        ;;\n    *)\n        echo \"unsupported OS\"\n        exit 1\n    ;;\nesac\n\nif [ -z $IDA_PATH ]; then\n    echo \"failed to locate IDA Pro\"\n    exit 1\nfi\n\ncat > conf-ida.config <<EOF\npath: \"$IDA_PATH\"\nheadless: $HEADLESS\nEOF\n", 
+            "name": "find-ida.sh"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -x find-ida.sh os", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_ida_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "conf_ida_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_ida_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-ida"
+    }
+  }
+}

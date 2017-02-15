@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.9.9": {
+      "version": "0.9.9", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v0.9.9.tar.gz", 
+        "checksum": "9628ac0871182f5bc3ade47190edcdab", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make unix-build", 
+          "make unix-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_unix_version": {
+            "scope": "global", 
+            "val": "0.9.9"
+          }, 
+          "mirage_console_unix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_unix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": "=0.3.0", 
+        "@opam-alpha/mirage-unix": ">=0.9.9", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-unix"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v1.0.0.tar.gz", 
+        "checksum": "50fe098cd7d56013f4f963a90e5320b5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make unix-build", 
+          "make unix-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_unix_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "mirage_console_unix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_unix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types": ">=0.4.0 <2.0.0", 
+        "@opam-alpha/mirage-unix": ">=0.9.9", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console-unix"
+    }
+  }
+}

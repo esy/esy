@@ -1,0 +1,51 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-net-solo5/archive/v0.1.1.tar.gz", 
+        "checksum": "3df27174b2e40febec43492cdfbdc50f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_net_solo5_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_net_solo5_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_net_solo5_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.0.1", 
+        "@opam-alpha/mirage-solo5": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ipaddr": ">= 1.0.0", 
+        "@opam-alpha/mirage-types": ">= 1.1.0 < 3.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/mirage-profile": ">= 0.3.0", 
+        "@opam-alpha/io-page": ">= 1.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-net-solo5"
+    }
+  }
+}

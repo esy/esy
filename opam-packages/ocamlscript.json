@@ -1,0 +1,96 @@
+{
+  "versions": {
+    "2.0.4": {
+      "version": "2.0.4", 
+      "opam": {
+        "url": "https://github.com/mjambon/ocamlscript/archive/v2.0.4.tar.gz", 
+        "checksum": "f0df0325935760ca05b2d2454f0b0ce5", 
+        "files": [
+          {
+            "content": "bin: [\"ocamlscript\"]\n", 
+            "name": "ocamlscript.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlscript_version": {
+            "scope": "global", 
+            "val": "2.0.4"
+          }, 
+          "ocamlscript_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlscript_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlscript"
+    }, 
+    "2.0.2": {
+      "version": "2.0.2", 
+      "opam": {
+        "url": "http://godi-backup2.camlcity.org/godi-backup/ocamlscript-2.0.2.tar.gz", 
+        "checksum": "e3e511d7537d2c5172603efec02073ce", 
+        "files": [
+          {
+            "content": "bin: [\"ocamlscript\"]\n", 
+            "name": "ocamlscript.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlscript_version": {
+            "scope": "global", 
+            "val": "2.0.2"
+          }, 
+          "ocamlscript_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlscript_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlscript"
+    }
+  }
+}

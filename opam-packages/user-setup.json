@@ -1,0 +1,273 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/opam-user-setup/archive/0.3.tar.gz", 
+        "checksum": "bfc34a76d34268a9c479ec43ac40e907", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "./opam-user-setup tuareg ocp-indent ocp-index merlin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "user_setup_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "user_setup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "user_setup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": "*", 
+        "@opam-alpha/merlin": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/tuareg": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/user-setup"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/opam-user-setup/archive/0.6.tar.gz", 
+        "checksum": "223d53b4d6bd61b5f4fee9cad128573d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "user_setup_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "user_setup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "user_setup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": "*", 
+        "@opam-alpha/merlin": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/tuareg": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/user-setup"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/opam-user-setup/archive/0.2.tar.gz", 
+        "checksum": "db1e2ebc82d0006011cdb36a42261bb2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "./opam-user-setup tuareg ocp-indent ocp-index merlin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "user_setup_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "user_setup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "user_setup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": "*", 
+        "@opam-alpha/merlin": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/tuareg": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/user-setup"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/opam-user-setup/archive/0.1.tar.gz", 
+        "checksum": "d029d44a9f3fc242e05597d5ae401b3d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "./opam-user-setup ocp-indent ocp-index merlin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "user_setup_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "user_setup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "user_setup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": "*", 
+        "@opam-alpha/merlin": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/user-setup"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/opam-user-setup/archive/0.4.tar.gz", 
+        "checksum": "8ff28dc6cc6352b0360276b440cda7f5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "user_setup_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "user_setup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "user_setup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": "*", 
+        "@opam-alpha/merlin": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/tuareg": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/user-setup"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/opam-user-setup/archive/0.5.tar.gz", 
+        "checksum": "2139faa7d5d117c0ed0af8f69340e762", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "user_setup_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "user_setup_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "user_setup_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocp-indent": "*", 
+        "@opam-alpha/merlin": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/tuareg": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/user-setup"
+    }
+  }
+}

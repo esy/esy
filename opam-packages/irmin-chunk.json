@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/irmin-chunk/archive/1.0.0.tar.gz", 
+        "checksum": "4a7374a29e245563c48590e56c7c8da9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "irmin_chunk_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "irmin_chunk_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "irmin_chunk_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": ">= 0.4.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/irmin": ">= 0.9.10 < 0.10.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/irmin-chunk"
+    }
+  }
+}

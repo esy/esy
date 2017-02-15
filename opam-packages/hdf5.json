@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/vbrankov/hdf5-ocaml/archive/v0.1-alpha.tar.gz", 
+        "checksum": "81b08d0ef1cfca8d5e81289fd8f3360a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hdf5_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hdf5_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hdf5_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/hdf5"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/vbrankov/hdf5-ocaml/archive/v0.1.1-alpha.tar.gz", 
+        "checksum": "39cfac63baa35eb7a7eb8bb15ce682d7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hdf5_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "hdf5_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hdf5_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/hdf5"
+    }
+  }
+}

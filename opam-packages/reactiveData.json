@@ -1,0 +1,124 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/hhugo/reactiveData/archive/0.1.tar.gz", 
+        "checksum": "777a68c27184dfbfb4fb7b881cb2ecc6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "reactiveData_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "reactiveData_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "reactiveData_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/react": ">= 1.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/reactiveData"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/ocsigen/reactiveData/archive/0.2.1.tar.gz", 
+        "checksum": "f4b175db6d8108a6276895af7ad58128", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "reactiveData_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "reactiveData_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "reactiveData_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/react": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0"
+      }, 
+      "name": "@opam-alpha/reactiveData"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/reactiveData/archive/0.2.tar.gz", 
+        "checksum": "02c61c421c8bf02310acee73f4beafdd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "reactiveData_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "reactiveData_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "reactiveData_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/react": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.11.0"
+      }, 
+      "name": "@opam-alpha/reactiveData"
+    }
+  }
+}

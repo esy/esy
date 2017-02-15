@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/pymander/ocaml-stemmer/archive/v0.2.tar.gz", 
+        "checksum": "29588f4e3db0175e9a720143effd5f2b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "stemmer_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "stemmer_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "stemmer_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/stemmer"
+    }
+  }
+}

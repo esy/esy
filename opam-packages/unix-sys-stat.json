@@ -1,0 +1,233 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-sys-stat/archive/0.4.0.tar.gz", 
+        "checksum": "480d753196705fd4b4b3dde8f542f485", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_sys_stat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unix_sys_stat_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "unix_sys_stat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-types": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-sys-stat"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-sys-stat/archive/0.3.0.tar.gz", 
+        "checksum": "7e59aa29e9a039ed17a16e1a61bc0dde", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_sys_stat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unix_sys_stat_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "unix_sys_stat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/unix-errno": ">= 0.3.0 < 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-sys-stat"
+    }, 
+    "0.3.1": {
+      "version": "0.3.1", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-sys-stat/archive/0.3.1.tar.gz", 
+        "checksum": "184ff11457ed7d2c939a59476e16873f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_sys_stat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unix_sys_stat_version": {
+            "scope": "global", 
+            "val": "0.3.1"
+          }, 
+          "unix_sys_stat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-sys-stat"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-sys-stat/archive/0.5.0.tar.gz", 
+        "checksum": "23220a65aa78c3c51451d21379d899ea", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_sys_stat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unix_sys_stat_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "unix_sys_stat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-types": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-sys-stat"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-unix-sys-stat/archive/0.5.1.tar.gz", 
+        "checksum": "486c9e94d8c5278a7cb979ba39bc30bf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "unix_sys_stat_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "unix_sys_stat_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }, 
+          "unix_sys_stat_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": ">= 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/posix-types": "*", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "@opam-alpha/base-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/unix-sys-stat"
+    }
+  }
+}

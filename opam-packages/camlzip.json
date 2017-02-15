@@ -1,0 +1,162 @@
+{
+  "versions": {
+    "1.04.0": {
+      "version": "1.04.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/328/camlzip-1.04.tar.gz", 
+        "checksum": "b3930f4f2e2563b9a5e1b17aa455e635", 
+        "files": [
+          {
+            "content": "--- Makefile.orig\t2012-10-10 10:52:34.000000000 -0700\n+++ Makefile\t\t2012-10-12 16:10:07.957606060 -0700\n@@ -25,7 +25,7 @@\n \n all: libcamlzip.a zip.cma\n \n-allopt: libcamlzip.a zip.cmxa\n+allopt: libcamlzip.a zip.cmxa zip.cmxs\n \n zip.cma: $(OBJS)\n \t  $(OCAMLMKLIB) -o zip -oc camlzip $(OBJS) \\\n@@ -35,6 +35,9 @@\n   $(OCAMLMKLIB) -o zip -oc camlzip $(OBJS:.cmo=.cmx) \\\n             -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n \n+zip.cmxs: zip.cmxa\n+\t   $(OCAMLOPT) -I . -shared -linkall -o zip.cmxs zip.cmxa\n+\n libcamlzip.a: $(C_OBJS)\n \t       $(OCAMLMKLIB) -oc camlzip $(C_OBJS) \\\n             -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n@@ -55,18 +58,8 @@\n   rm -f *.o *.a\n \n install:\n-\tmkdir -p $(INSTALLDIR)\n-\tcp zip.cma zip.cmi gzip.cmi zip.mli gzip.mli libcamlzip.a $(INSTALLDIR)\n-\tif test -f dllcamlzip.so; then \\\n-\t  cp dllcamlzip.so $(INSTALLDIR); \\\n-          ldconf=`$(OCAMLC) -where`/ld.conf; \\\n-          installdir=$(INSTALLDIR); \\\n-          if test `grep -s -c $$installdir'$$' $$ldconf || :` = 0; \\\n-          then echo $$installdir >> $$ldconf; fi \\\n-        fi\n-\n-installopt:\n-\tcp zip.cmxa zip.a zip.cmx gzip.cmx $(INSTALLDIR)\n+\tocamlfind install camlzip META zip.cma zip.cmi gzip.cmi zip.mli gzip.mli libcamlzip.a \\\n+\t  -optional dllcamlzip.so zip.cmxa zip.cmxs zip.a zip.cmx gzip.cmx\n \n depend:\n\tgcc -MM -I$(ZLIB_INCLUDE) *.c > .depend", 
+            "name": "camlzip-install.diff"
+          }, 
+          {
+            "content": "lib: [\n  \"META\"\n  \"zlib.cmi\"\n  \"zlib.cmx\"\n]\n", 
+            "name": "camlzip.install"
+          }, 
+          {
+            "content": "name=\"zip\"\nversion=\"1.04\"\ndescription=\"reading and writing ZIP, JAR and GZIP files\"\nrequires=\"unix\"\narchive(byte)=\"zip.cma\"\narchive(native)=\"zip.cmxa\"\narchive(native,plugin)=\"zip.cmxs\"", 
+            "name": "META"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make allopt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlzip_version": {
+            "scope": "global", 
+            "val": "1.04.0"
+          }, 
+          "camlzip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlzip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/camlzip"
+    }, 
+    "1.06.0": {
+      "version": "1.06.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1616/camlzip-1.06.tar.gz", 
+        "checksum": "0874be16d02a7165dfc31edc06636e4c", 
+        "files": [
+          {
+            "content": "From ef04e8b8b440a7012f5eb21b55eb89d138758097 Mon Sep 17 00:00:00 2001\nFrom: Etienne Millon <etienne@cryptosense.com>\nDate: Thu, 1 Sep 2016 11:14:25 +0200\nSubject: [PATCH 2/2] build_with_trunk\n\n---\n zlibstubs.c | 3 ++-\n 1 file changed, 2 insertions(+), 1 deletion(-)\n\ndiff --git a/zlibstubs.c b/zlibstubs.c\nindex 661729a..b4e6c61 100644\n--- a/zlibstubs.c\n+++ b/zlibstubs.c\n@@ -17,6 +17,7 @@\n \n #include <stdint.h>\n #include <zlib.h>\n+#include <stdint.h>\n \n #include <caml/mlvalues.h>\n #include <caml/alloc.h>\n@@ -169,7 +170,7 @@ value camlzip_inflateEnd(value vzs)\n \n value camlzip_update_crc32(value crc, value buf, value pos, value len)\n {\n-  return caml_copy_int32(crc32((uint32_t) Int32_val(crc), \n+  return caml_copy_int32(crc32((uint32_t) Int32_val(crc),\n                           &Byte_u(buf, Long_val(pos)),\n                           Long_val(len)));\n }\n-- \n2.9.3\n\n", 
+            "name": "build_with_trunk.patch"
+          }, 
+          {
+            "content": "From e13f6c12aa9f4a17111b21d0874a78d207e0244b Mon Sep 17 00:00:00 2001\nFrom: Etienne Millon <etienne@cryptosense.com>\nDate: Thu, 1 Sep 2016 11:13:41 +0200\nSubject: [PATCH 1/2] fix-install\n\n---\n META     |  1 +\n Makefile | 18 ++++++++++++++----\n 2 files changed, 15 insertions(+), 4 deletions(-)\n\ndiff --git a/META b/META\nindex cc4c1b3..05c85fa 100644\n--- a/META\n+++ b/META\n@@ -2,3 +2,4 @@ version=\"1.06\"\n requires=\"unix\"\n archive(byte)=\"zip.cma\"\n archive(native)=\"zip.cmxa\"\n+archive(native,plugin)=\"zip.cmxs\"\ndiff --git a/Makefile b/Makefile\nindex 1e1503f..8f2fba9 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -25,9 +25,15 @@ OCAMLMKLIB=ocamlmklib\n OBJS=zlib.cmo zip.cmo gzip.cmo\n C_OBJS=zlibstubs.o\n \n+NATDYNLINK := $(shell if [ -f `ocamlc -where`/dynlink.cmxa ]; then echo YES; else echo NO; fi)\n+\n+ifeq \"${NATDYNLINK}\" \"YES\"\n+CMXS = zip.cmxs\n+endif\n+\n all: libcamlzip.a zip.cma\n \n-allopt: libcamlzip.a zip.cmxa\n+allopt: libcamlzip.a zip.cmxa $(CMXS)\n \n zip.cma: $(OBJS)\n \t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS) \\\n@@ -37,6 +43,9 @@ zip.cmxa: $(OBJS:.cmo=.cmx)\n \t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS:.cmo=.cmx) \\\n             -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n \n+zip.cmxs: zip.cmxa\n+\t$(OCAMLOPT) -shared -linkall -I ./ -o $@ $^\n+\n libcamlzip.a: $(C_OBJS)\n \t$(OCAMLMKLIB) -oc camlzip $(C_OBJS) \\\n             -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n@@ -58,7 +67,7 @@ clean:\n \n install:\n \tmkdir -p $(INSTALLDIR)\n-\tcp zip.cma zip.cmi gzip.cmi zip.mli gzip.mli libcamlzip.a $(INSTALLDIR)\n+\tcp zip.cma zip.cmi gzip.cmi zlib.cmi zip.mli gzip.mli zlib.mli libcamlzip.a $(INSTALLDIR)\n \tif test -f dllcamlzip.so; then \\\n \t  cp dllcamlzip.so $(INSTALLDIR); \\\n           ldconf=`$(OCAMLC) -where`/ld.conf; \\\n@@ -68,10 +77,11 @@ install:\n         fi\n \n installopt:\n-\tcp zip.cmxa zip.a zip.cmx gzip.cmx $(INSTALLDIR)\n+\tcp zip.cmxa $(CMXS) zip.a zip.cmx gzip.cmx zlib.cmx $(INSTALLDIR)\n \n install-findlib:\n-\tocamlfind install zip META *.mli *.a *.cmi *.cma $(wildcard *.cmxa) $(wildcard *.so)\n+\tocamlfind install zip META *.mli *.a *.cmi *.cma $(wildcard *.cmx) $(wildcard *.cmxa) $(wildcard *.cmxs) $(wildcard *.so)\n+\techo 'directory=\"../zip\"' >> META && ocamlfind install camlzip META\n \n depend:\n \tgcc -MM -I$(ZLIB_INCLUDE) *.c > .depend\n-- \n2.9.3\n\n", 
+            "name": "fix-install.patch"
+          }, 
+          {
+            "content": "commit 66bf764adf66ded8c47717b816742fbf2df09b12\nAuthor: Thomas Gazagnaire <thomas@gazagnaire.org>\nDate:   Tue Nov 15 10:40:40 2016 +0000\n\n    Do not add -L<dir> to the cm{x}a\n    \n    This breaks on OSX when using libffi and ctypes, as ctypes requires\n    the version of libffi installed by brew, not the system one (installed\n    in /usr/lib`).\n    \n    As we have no way to keep the order of linker flags (due to\n    https://caml.inria.fr/mantis/view.php?id=7150) it is safer to just not\n    use -L if possible. In the case of camlzip, this doesn't seem needed.\n\ndiff --git a/Makefile b/Makefile\nindex 8f2fba9..37daba2 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -3,10 +3,6 @@\n # The name of the Zlib library.  Usually -lz\n ZLIB_LIB=-lz\n \n-# The directory containing the Zlib library (libz.a or libz.so)\n-ZLIB_LIBDIR=/usr/lib\n-# ZLIB_LIBDIR=/usr/local/lib\n-\n # The directory containing the Zlib header file (zlib.h)\n ZLIB_INCLUDE=/usr/include\n # ZLIB_INCLUDE=/usr/local/include\n@@ -36,19 +32,16 @@ all: libcamlzip.a zip.cma\n allopt: libcamlzip.a zip.cmxa $(CMXS)\n \n zip.cma: $(OBJS)\n-\t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS) \\\n-            -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n+\t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS) $(ZLIB_LIB)\n \n zip.cmxa: $(OBJS:.cmo=.cmx)\n-\t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS:.cmo=.cmx) \\\n-            -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n+\t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS:.cmo=.cmx) $(ZLIB_LIB)\n \n zip.cmxs: zip.cmxa\n \t$(OCAMLOPT) -shared -linkall -I ./ -o $@ $^\n \n libcamlzip.a: $(C_OBJS)\n-\t$(OCAMLMKLIB) -oc camlzip $(C_OBJS) \\\n-            -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n+\t$(OCAMLMKLIB) -oc camlzip $(C_OBJS) $(ZLIB_LIB)\n \n .SUFFIXES: .mli .ml .cmo .cmi .cmx\n \n", 
+            "name": "no-L.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make allopt", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlzip_version": {
+            "scope": "global", 
+            "val": "1.06.0"
+          }, 
+          "camlzip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlzip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/camlzip"
+    }, 
+    "1.05.0": {
+      "version": "1.05.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1037/camlzip-1.05.tar.gz", 
+        "checksum": "e85c179d5dc79821e6e8d90e636599f1", 
+        "files": [
+          {
+            "content": "Seulement dans camlzip-1.05_/: dllcamlzip.so\ndiff -ru camlzip-1.05/zip.ml camlzip-1.05_/zip.ml\n--- camlzip-1.05/zip.ml\t2012-10-12 05:36:07.000000000 +0200\n+++ camlzip-1.05_/zip.ml\t2015-02-27 15:03:45.184500352 +0100\n@@ -73,8 +73,6 @@\n     mutable of_entries: entry list;\n     of_comment: string }\n \n-exception Error of string * string * string\n-\n (* Return the position of the last occurrence of s1 in s2, or -1 if not\n    found. *)\n \ndiff -ru camlzip-1.05/zlibstubs.c camlzip-1.05_/zlibstubs.c\n--- camlzip-1.05/zlibstubs.c\t2012-10-12 05:36:07.000000000 +0200\n+++ camlzip-1.05_/zlibstubs.c\t2015-02-27 15:02:49.160684643 +0100\n@@ -16,6 +16,7 @@\n /* Stub code to interface with Zlib */\n \n #include <zlib.h>\n+#include <stdint.h>\n \n #include <caml/mlvalues.h>\n #include <caml/alloc.h>\n@@ -168,7 +169,7 @@\n \n value camlzip_update_crc32(value crc, value buf, value pos, value len)\n {\n-  return caml_copy_int32(crc32((uint32) Int32_val(crc), \n+  return caml_copy_int32(crc32((uint32_t) Int32_val(crc), \n                           &Byte_u(buf, Long_val(pos)),\n                           Long_val(len)));\n }\n", 
+            "name": "build_with_trunk.patch"
+          }, 
+          {
+            "content": "diff --git a/META b/META\nindex 9ea2d10..1d993e4 100644\n--- a/META\n+++ b/META\n@@ -2,3 +2,4 @@ version=\"1.05\"\n requires=\"unix\"\n archive(byte)=\"zip.cma\"\n archive(native)=\"zip.cmxa\"\n+archive(native,plugin)=\"zip.cmxs\"\ndiff --git a/Makefile b/Makefile\nindex a9f7178..736b427 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -23,9 +23,15 @@ OCAMLMKLIB=ocamlmklib\n OBJS=zlib.cmo zip.cmo gzip.cmo\n C_OBJS=zlibstubs.o\n \n+NATDYNLINK := $(shell if [ -f `ocamlc -where`/dynlink.cmxa ]; then echo YES; else echo NO; fi)\n+\n+ifeq \"${NATDYNLINK}\" \"YES\"\n+CMXS = zip.cmxs\n+endif\n+\n all: libcamlzip.a zip.cma\n \n-allopt: libcamlzip.a zip.cmxa\n+allopt: libcamlzip.a zip.cmxa $(CMXS)\n \n zip.cma: $(OBJS)\n \t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS) \\\n@@ -35,6 +41,9 @@ zip.cmxa: $(OBJS:.cmo=.cmx)\n \t$(OCAMLMKLIB) -o zip -oc camlzip $(OBJS:.cmo=.cmx) \\\n             -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n \n+zip.cmxs: zip.cmxa\n+\t$(OCAMLOPT) -shared -linkall -I ./ -o $@ $^\n+\n libcamlzip.a: $(C_OBJS)\n \t$(OCAMLMKLIB) -oc camlzip $(C_OBJS) \\\n             -L$(ZLIB_LIBDIR) $(ZLIB_LIB)\n@@ -56,7 +65,7 @@ clean:\n \n install:\n \tmkdir -p $(INSTALLDIR)\n-\tcp zip.cma zip.cmi gzip.cmi zip.mli gzip.mli libcamlzip.a $(INSTALLDIR)\n+\tcp zip.cma zip.cmi gzip.cmi zlib.cmi zip.mli gzip.mli zlib.mli libcamlzip.a $(INSTALLDIR)\n \tif test -f dllcamlzip.so; then \\\n \t  cp dllcamlzip.so $(INSTALLDIR); \\\n           ldconf=`$(OCAMLC) -where`/ld.conf; \\\n@@ -66,10 +75,11 @@ install:\n         fi\n \n installopt:\n-\tcp zip.cmxa zip.a zip.cmx gzip.cmx $(INSTALLDIR)\n+\tcp zip.cmxa $(CMXS) zip.a zip.cmx gzip.cmx zlib.cmx $(INSTALLDIR)\n \n install-findlib:\n-\tocamlfind install zip META *.mli *.a *.cmi *.cma $(wildcard *.cmxa) $(wildcard *.so)\n+\tocamlfind install zip META *.mli *.a *.cmi *.cma $(wildcard *.cmx) $(wildcard *.cmxa) $(wildcard *.cmxs) $(wildcard *.so)\n+\techo 'directory=\"../zip\"' >> META && ocamlfind install camlzip META\n\n depend:\n \tgcc -MM -I$(ZLIB_INCLUDE) *.c > .depend\n", 
+            "name": "fix-install.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make allopt", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlzip_version": {
+            "scope": "global", 
+            "val": "1.05.0"
+          }, 
+          "camlzip_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "camlzip_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/camlzip"
+    }
+  }
+}

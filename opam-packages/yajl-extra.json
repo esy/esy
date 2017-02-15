@@ -1,0 +1,168 @@
+{
+  "versions": {
+    "0.7.2": {
+      "version": "0.7.2", 
+      "opam": {
+        "url": "https://raw.github.com/mlin/yajl-ocaml/tarball/yajl-ocaml-0.7.2.tar.gz", 
+        "checksum": "1d07caa272656864d38e5ddcf9f9efac", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install-extra", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "yajl_extra_version": {
+            "scope": "global", 
+            "val": "0.7.2"
+          }, 
+          "yajl_extra_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "yajl_extra_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/yajl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/yajl-extra"
+    }, 
+    "0.7.3": {
+      "version": "0.7.3", 
+      "opam": {
+        "url": "https://raw.github.com/mlin/yajl-ocaml/tarball/yajl-ocaml-0.7.3.tar.gz", 
+        "checksum": "7b889d55010f9cdeb2dafe803ce56f96", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install-extra", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "yajl_extra_version": {
+            "scope": "global", 
+            "val": "0.7.3"
+          }, 
+          "yajl_extra_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "yajl_extra_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/yajl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/yajl-extra"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://raw.github.com/mlin/yajl-ocaml/tarball/yajl-ocaml-0.7.0.tar.gz", 
+        "checksum": "c73b11b6cc7cbbb951cf3ee18578304c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install-extra", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "yajl_extra_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "yajl_extra_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "yajl_extra_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/yajl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/yajl-extra"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://raw.github.com/mlin/yajl-ocaml/tarball/yajl-ocaml-0.7.1.tar.gz", 
+        "checksum": "5aa65b8a34f8cf4dbc05adb3f7ec717d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install-extra", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "yajl_extra_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "yajl_extra_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "yajl_extra_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/yajl": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/yajl-extra"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/ojwidgets/archive/0.1.tar.gz", 
+        "checksum": "be65fcbeb20d862cd44c19cd1956957e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ojwidgets_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ojwidgets_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "ojwidgets_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/deriving": "*", 
+        "@opam-alpha/js_of_ocaml": ">= 2.1.0 < 2.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ojquery": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ojwidgets"
+    }
+  }
+}

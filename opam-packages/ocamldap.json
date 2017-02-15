@@ -1,0 +1,96 @@
+{
+  "versions": {
+    "2.1.8": {
+      "version": "2.1.8", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/ocamldap/ocamldap/ocamldap-2.1.8/ocamldap-2.1.8.tar.bz2", 
+        "checksum": "6b42715182758844a63a9bc0e11deb73", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make opt", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamldap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamldap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamldap_version": {
+            "scope": "global", 
+            "val": "2.1.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": "= 3.6.0", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/ocamldap"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "http://bitbucket.org/deplai_j/ocamldap/downloads/ocamldap-2.2.tar.gz", 
+        "checksum": "c709ecf152a4707eb4df177cfeef8467", 
+        "files": [
+          {
+            "content": "diff --git a/src/ldap_ooclient.ml b/src/ldap_ooclient.ml\nindex 79fd51d..7ffa39e 100644\n--- a/src/ldap_ooclient.ml\n+++ b/src/ldap_ooclient.ml\n@@ -23,7 +23,7 @@\n open Ldap_types\n open Ldap_funclient\n open Ldap_schemaparser\n-open String\n+let lowercase = String.lowercase\n \n (* types used throughout the library *)\n (* add types *)\n", 
+            "name": "ocaml-4.02.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamldap_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamldap_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamldap_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ssl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/ocamldap"
+    }
+  }
+}

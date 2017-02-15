@@ -1,0 +1,172 @@
+{
+  "versions": {
+    "0.5.4": {
+      "version": "0.5.4", 
+      "opam": {
+        "url": "https://github.com/Chris00/ocaml-mindstorm/releases/download/0.5.4/mindstorm-0.5.4.tar.gz", 
+        "checksum": "744ddda70acddb2a81fd7ed02931ada4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mindstorm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mindstorm_version": {
+            "scope": "global", 
+            "val": "0.5.4"
+          }, 
+          "mindstorm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/base-threads": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mindstorm"
+    }, 
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "https://github.com/Chris00/ocaml-mindstorm/releases/download/0.6.1/mindstorm-0.6.1.tar.gz", 
+        "checksum": "330bbf2a7d0de59e0bb6cd0be0b7ff35", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mindstorm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mindstorm_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "mindstorm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cppo": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/mindstorm"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/Chris00/ocaml-mindstorm/releases/download/0.6/mindstorm-0.6.tar.gz", 
+        "checksum": "7e27945cc8f17de9be89198bd792cf61", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mindstorm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mindstorm_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "mindstorm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cppo": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/mindstorm"
+    }, 
+    "0.5.3": {
+      "version": "0.5.3", 
+      "opam": {
+        "url": "https://github.com/Chris00/ocaml-mindstorm/releases/download/0.5.3/mindstorm-0.5.3.tar.gz", 
+        "checksum": "1751ad556c6c9056c0d27dfe4ab221fc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mindstorm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mindstorm_version": {
+            "scope": "global", 
+            "val": "0.5.3"
+          }, 
+          "mindstorm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/base-threads": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mindstorm"
+    }
+  }
+}

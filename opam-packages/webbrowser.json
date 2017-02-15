@@ -1,0 +1,92 @@
+{
+  "versions": {
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/webbrowser/releases/webbrowser-0.6.1.tbz", 
+        "checksum": "1f6cefc449515921a5890df8fce5eab3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webbrowser_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "webbrowser_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webbrowser_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bos": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webbrowser"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/webbrowser/releases/webbrowser-0.6.0.tbz", 
+        "checksum": "13b1ac970d60ff99464752411a67df78", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-cmdliner ${cmdliner_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "webbrowser_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "webbrowser_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "webbrowser_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bos": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/webbrowser"
+    }
+  }
+}

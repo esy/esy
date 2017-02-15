@@ -1,0 +1,366 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/v1.1.0.tar.gz", 
+        "checksum": "f647c684e5cfe1113e8c92cd6ed78241", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": ">= 0.4.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/v1.0.0.tar.gz", 
+        "checksum": "a3a25da729e7ef0e5f2edfe25ba2b28e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make conf-no-tests", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": "< 0.4.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/v1.0.1.tar.gz", 
+        "checksum": "f8363183b1ebc46a9d6a0c998814d7be", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": ">= 0.4.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/v2.0.0.tar.gz", 
+        "checksum": "d70b61a3cfc558ed14b84dc139719e21", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ezjsonm": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.4.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/0.0.2.tar.gz", 
+        "checksum": "d3214e90cc373b27dd2556930d84e77f", 
+        "files": [
+          {
+            "content": "diff --git a/lib/mustache.ml b/lib/mustache.ml\nindex 6a5a146..40fb611 100644\n--- a/lib/mustache.ml\n+++ b/lib/mustache.ml\n@@ -5,6 +5,9 @@ module Str = Re_str\n module List = ListLabels\n module String = StringLabels\n \n+let (|>) x f = f x\n+let (@@) f x = f x\n+\n exception Invalid_param of string with sexp\n exception Invalid_template of string with sexp\n \ndiff --git a/lib_test/test_mustache.ml b/lib_test/test_mustache.ml\nindex 516c1c0..a8242f3 100644\n--- a/lib_test/test_mustache.ml\n+++ b/lib_test/test_mustache.ml\n@@ -2,6 +2,9 @@ open OUnit2\n open Printf\n open Sexplib.Std\n \n+let (|>) x f = f x\n+let (@@) f x = f x\n+\n module List = ListLabels\n module String = StringLabels\n \n", 
+            "name": "add_pipe.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make configure", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": "< 0.4.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.1"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/v2.2.0.tar.gz", 
+        "checksum": "974400382290d3668814ef75d293c123", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --disable-cli", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/0.0.1.tar.gz", 
+        "checksum": "2f4812529e118f912dfe857f4f3c2236", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make configure", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ezjsonm": "< 0.4.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mustache/archive/v2.1.0.tar.gz", 
+        "checksum": "d7545f4b0b3088afd1c62a77225b4f61", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "ocaml setup.ml -configure --disable-cli", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mustache_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mustache_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }, 
+          "mustache_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.4.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mustache"
+    }
+  }
+}

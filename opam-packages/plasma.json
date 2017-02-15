@@ -1,0 +1,108 @@
+{
+  "versions": {
+    "0.6.2": {
+      "version": "0.6.2", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/plasma-0.6.2.tar.gz", 
+        "checksum": "b7d4b449c62893e0bbab5ac82b7a7ad1", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/pfs_daemon/plasmad.opt\" {\"plasmad\"}\n  \"src/pkv/plasma_kv_httpd_demo.opt\" {\"plasma_kv_httpd_demo\"}\n  \"src/pkv/plasma_kv.opt\" {\"plasma_kv\"}\n  \"src/pfs_admin/plasma_datanode_init.opt\" {\"plasma_datanode_init\"}\n  \"src/mr_framework/plasma_convert.opt\" {\"plasma_convert\"}\n  \"src/pfs_admin/plasma_admin.opt\" {\"plasma_admin\"}\n  \"src/plasmaclient/plasma.opt\" {\"plasma\"}\n  \"src/pfs_nfs3/nfs3d.opt\" {\"nfs3d\"}\n  \"src/mr_framework/mr_streaming.opt\" {\"mr_streaming\"}\n]\n", 
+            "name": "plasma.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -sharedir $cur__lib/plasma/share", 
+          "omake", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "plasma_version": {
+            "scope": "global", 
+            "val": "0.6.2"
+          }, 
+          "plasma_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "plasma_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/ocamlnet": "*", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/xstrp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/ocamlgraph": "= 1.8.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.01.0"
+      }, 
+      "name": "@opam-alpha/plasma"
+    }, 
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/plasma-0.6.1.tar.gz", 
+        "checksum": "d8fb26f1c2157ffccaa4fae1931d0787", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/pfs_daemon/plasmad.opt\" {\"plasmad\"}\n  \"src/pkv/plasma_kv_httpd_demo.opt\" {\"plasma_kv_httpd_demo\"}\n  \"src/pkv/plasma_kv.opt\" {\"plasma_kv\"}\n  \"src/pfs_admin/plasma_datanode_init.opt\" {\"plasma_datanode_init\"}\n  \"src/mr_framework/plasma_convert.opt\" {\"plasma_convert\"}\n  \"src/pfs_admin/plasma_admin.opt\" {\"plasma_admin\"}\n  \"src/plasmaclient/plasma.opt\" {\"plasma\"}\n  \"src/pfs_nfs3/nfs3d.opt\" {\"nfs3d\"}\n  \"src/mr_framework/mr_streaming.opt\" {\"mr_streaming\"}\n]\n", 
+            "name": "plasma.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -bindir $cur__bin -sharedir $cur__lib/plasma/share", 
+          "omake", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "plasma_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "plasma_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "plasma_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/ocamlnet": "= 3.6.0", 
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/xstrp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": "*", 
+        "@opam-alpha/ocamlgraph": "= 1.8.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.01.0"
+      }, 
+      "name": "@opam-alpha/plasma"
+    }
+  }
+}

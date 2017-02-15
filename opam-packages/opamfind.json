@@ -1,0 +1,142 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/opamfind/get/1.1.1.tar.gz", 
+        "checksum": "5e2b83c921ef85c1c5b8b4e537b86159", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opamfind_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opamfind_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "opamfind_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.1", 
+        "@opam-alpha/ocamlfind": "", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/spotlib": ">= 3.0.0", 
+        "@opam-alpha/ppx_orakuda": "*", 
+        "@opam-alpha/ppx_meta_conv": "*", 
+        "@opam-alpha/ppx_monadic": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/opamfind"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/opamfind/get/1.1.0.tar.gz", 
+        "checksum": "63a3bd2ab66c6c1ec46e9c57cb2f9144", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opamfind_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opamfind_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "opamfind_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.1", 
+        "@opam-alpha/ocamlfind": "", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/spotlib": ">= 3.0.0", 
+        "@opam-alpha/ppx_orakuda": "*", 
+        "@opam-alpha/ppx_meta_conv": "*", 
+        "@opam-alpha/ppx_monadic": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/opamfind"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/opamfind/get/1.0.0.tar.gz", 
+        "checksum": "0b6cc64460fe8b38a65d3a0519fba69a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opamfind_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opamfind_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "opamfind_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/omake": "< 0.10.1", 
+        "@opam-alpha/ocamlfind": "", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/spotlib": ">= 3.0.0", 
+        "@opam-alpha/ppx_orakuda": "*", 
+        "@opam-alpha/ppx_meta_conv": "*", 
+        "@opam-alpha/ppx_monadic": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/opamfind"
+    }
+  }
+}

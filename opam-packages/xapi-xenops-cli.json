@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/xapi-project/xenops-cli/archive/xenops-cli-0.9.1.tar.gz", 
+        "checksum": "5f009ee8427e01fad0ba6a4a316ee897", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_xenops_cli_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "xapi_xenops_cli_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_xenops_cli_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/rpc": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xapi-idl": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-xenops-cli"
+    }
+  }
+}

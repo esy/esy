@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/rgrinberg/ocaml-mtl/archive/v1.0.0.tar.gz", 
+        "checksum": "705ec4ca36ed5ab8f4bde4d8f8537f7d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make configure", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mtl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mtl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mtl_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/obuild": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mtl"
+    }
+  }
+}

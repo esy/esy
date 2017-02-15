@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-battery-status/archive/v1.0.tar.gz", 
+        "checksum": "5d4c3cb434eaee3aca01e9c063264224", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_battery_status_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "cordova_plugin_battery_status_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_plugin_battery_status_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-battery-status"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "3.3.1": {
+      "version": "3.3.1", 
+      "opam": {
+        "url": "https://lama.univ-savoie.fr/~raffalli/glsurf/glsurf-3.3.1.tar.gz", 
+        "checksum": "f2084bbf0cd0a31dc9c22fe4e9b8b5be", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin DOCDIR=$cur__doc", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glsurf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glsurf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "glsurf_version": {
+            "scope": "global", 
+            "val": "3.3.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlimages": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lablgl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/glsurf"
+    }, 
+    "3.3.0": {
+      "version": "3.3.0", 
+      "opam": {
+        "url": "https://lama.univ-savoie.fr/~raffalli/glsurf/glsurf-3.3.tar.gz", 
+        "checksum": "af1de416d0d51e7be611324383eaf945", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "glsurf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "glsurf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "glsurf_version": {
+            "scope": "global", 
+            "val": "3.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlimages": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lablgl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/glsurf"
+    }
+  }
+}

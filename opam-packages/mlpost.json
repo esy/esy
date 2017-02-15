@@ -1,0 +1,60 @@
+{
+  "versions": {
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "http://mlpost.lri.fr/download/mlpost-0.8.1.tar.gz", 
+        "checksum": "a505aa1eb21ac0cdd4732fd10f6ac13a", 
+        "files": [
+          {
+            "content": "bin: [\"_build/tool.native\" {\"mlpost\"}]\n", 
+            "name": "mlpost.install"
+          }, 
+          {
+            "content": "diff -ru mlpost.0.8.1/configure.in mlpost.0.8.1/configure.in\n--- mlpost.0.8.1/configure.in\t2010-04-26 21:50:23.000000000 +0200\n+++ mlpost.0.8.1/configure.in\t2012-10-05 18:14:40.253296052 +0200\n@@ -327,9 +327,9 @@\n    if test -n \"$LABLGTK2LIB\";then\n       echo \"ocamlfind found lablgtk2 in $LABLGTK2LIB\"\n    else\n-    AC_CHECK_FILE($OCAMLLIB/lablgtk2/lablgtk.cma,LABLGTK2=yes,LABLGTK2=no)\n+    AC_CHECK_FILE(%{lib}%/lablgtk2/lablgtk.cma,LABLGTK2=yes,LABLGTK2=no)\n     if test \"$LABLGTK2\" = yes; then\n-       LABLGTK2LIB=$OCAMLLIB/lablgtk2/\n+       LABLGTK2LIB=%{lib}%/lablgtk2/\n     elif test -n \"$OCAMLLIBLOCAL\"; then\n        AC_CHECK_FILE($OCAMLLIBLOCAL/lablgtk2/lablgtk2.cma,LABLGTK2=yes,LABLGTK2=no)\n        if test \"$LABLGTK2\" = yes; then\n", 
+            "name": "opam.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs opam.patch.in", 
+          "./configure --prefix $cur__install --mandir $cur__man", 
+          "make", 
+          "make contrib", 
+          "make install", 
+          "make install-contrib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mlpost_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mlpost_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mlpost_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/conf-autoconf": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/cairo": "= 1.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/mlpost"
+    }
+  }
+}

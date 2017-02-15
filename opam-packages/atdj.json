@@ -1,0 +1,94 @@
+{
+  "versions": {
+    "20151001.01.2": {
+      "version": "20151001.01.2", 
+      "opam": {
+        "url": "https://github.com/esperco/atdj/tarball/4cea30a5661fe426af664b0ab5fb0143f34ed513", 
+        "checksum": "a9227b4495932b4e8b9dc2b2f63708ad", 
+        "files": [
+          {
+            "content": "bin: [\"atdj.opt\"]\n\n", 
+            "name": "atdj.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "atdj_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "atdj_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "atdj_version": {
+            "scope": "global", 
+            "val": "20151001.01.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/atdgen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/atdj"
+    }, 
+    "20151001.01.0": {
+      "version": "20151001.01.0", 
+      "opam": {
+        "url": "https://github.com/esperco/atdj/tarball/4cea30a5661fe426af664b0ab5fb0143f34ed513", 
+        "checksum": "a9227b4495932b4e8b9dc2b2f63708ad", 
+        "files": [
+          {
+            "content": "bin: [\"atdj.opt\"]\n\n", 
+            "name": "atdj.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "atdj_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "atdj_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "atdj_version": {
+            "scope": "global", 
+            "val": "20151001.01.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/omake": "*", 
+        "@opam-alpha/atdgen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/atdj"
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "versions": {
+    "0.12.0": {
+      "version": "0.12.0", 
+      "opam": {
+        "url": "http://github.com/xapi-project/stdext/archive/v0.12.0.tar.gz", 
+        "checksum": "345750a1f92816f52fa016cee8ad2e9a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_stdext_version": {
+            "scope": "global", 
+            "val": "0.12.0"
+          }, 
+          "xapi_stdext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_stdext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/fd-send-recv": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-stdext"
+    }, 
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "http://github.com/xapi-project/stdext/archive/0.11.0.tar.gz", 
+        "checksum": "b8c09d510ed1bd77435d385fb68bbf7f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_stdext_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }, 
+          "xapi_stdext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_stdext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/fd-send-recv": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-stdext"
+    }, 
+    "0.13.0": {
+      "version": "0.13.0", 
+      "opam": {
+        "url": "https://github.com/xapi-project/stdext/archive/v0.13.0.tar.gz", 
+        "checksum": "f939e33f28b4425d398b1a3a2d7694bc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "xapi_stdext_version": {
+            "scope": "global", 
+            "val": "0.13.0"
+          }, 
+          "xapi_stdext_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "xapi_stdext_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/fd-send-recv": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/xapi-backtrace": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/uuidm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/xapi-stdext"
+    }
+  }
+}

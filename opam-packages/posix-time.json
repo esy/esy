@@ -1,0 +1,209 @@
+{
+  "versions": {
+    "0.5.1-0": {
+      "version": "0.5.1-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-time/archive/0.5.1.tar.gz", 
+        "checksum": "ad59443f2ddb3a3c674f67fac28ed303", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_time_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_time_version": {
+            "scope": "global", 
+            "val": "0.5.1-0"
+          }, 
+          "posix_time_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-time"
+    }, 
+    "0.5.2-0": {
+      "version": "0.5.2-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-time/archive/0.5.2.tar.gz", 
+        "checksum": "453684eeaf85b9ffe15d62f1af9cc532", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_time_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_time_version": {
+            "scope": "global", 
+            "val": "0.5.2-0"
+          }, 
+          "posix_time_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-time"
+    }, 
+    "1.0.0-0": {
+      "version": "1.0.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-time/archive/1.0.0.tar.gz", 
+        "checksum": "6b61b5dc9febbab941ab387a2226bacf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_time_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_time_version": {
+            "scope": "global", 
+            "val": "1.0.0-0"
+          }, 
+          "posix_time_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-time"
+    }, 
+    "0.5.3-0": {
+      "version": "0.5.3-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-time/archive/0.5.3.tar.gz", 
+        "checksum": "dc1b6d689b557d07ab332ccdf2e21ab2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_time_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_time_version": {
+            "scope": "global", 
+            "val": "0.5.3-0"
+          }, 
+          "posix_time_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-time"
+    }, 
+    "0.3.0-0": {
+      "version": "0.3.0-0", 
+      "opam": {
+        "url": "https://github.com/mwweissmann/ocaml-posix-time/archive/0.3.0.tar.gz", 
+        "checksum": "b33b4ad228018667ad544bb734fcc9c5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "posix_time_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "posix_time_version": {
+            "scope": "global", 
+            "val": "0.3.0-0"
+          }, 
+          "posix_time_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/posix-time"
+    }
+  }
+}

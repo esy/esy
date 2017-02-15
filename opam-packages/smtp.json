@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-smtp/archive/0.3.tar.gz", 
+        "checksum": "181b1ec742b598ad54b1622c5a7d3b6d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true unix=${base_unix_installed:-false} lwt=${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "smtp_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "smtp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "smtp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/smtp"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/vbmithr/ocaml-smtp/archive/0.2.tar.gz", 
+        "checksum": "ee077653988e8913928fe267d1827d40", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true unix=${base_unix_installed:-false} lwt=${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "smtp_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "smtp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "smtp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/smtp"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-http-xen/archive/v1.0.0.tar.gz", 
+        "checksum": "a74503fd2eabc534a1107fd3020c54d3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_http_xen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_http_xen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_http_xen_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": "<= 1.0.0", 
+        "@opam-alpha/mirage-tcpip-xen": ">= 0.9.5", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.9.14 < 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-xen": ">= 1.0.0", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-http-xen"
+    }
+  }
+}

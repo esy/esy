@@ -1,0 +1,91 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/abeaumont/ocaml-scrypt-kdf/archive/0.1.0.tar.gz", 
+        "checksum": "dfb4a5028fa8bd5735a65a994ccad911", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true alcotest=false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "scrypt_kdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "scrypt_kdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "scrypt_kdf_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.7.0", 
+        "@opam-alpha/pbkdf": ">= 0.1.0", 
+        "@opam-alpha/nocrypto": ">= 0.5.0", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/scrypt-kdf"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/abeaumont/ocaml-scrypt-kdf/archive/0.2.0.tar.gz", 
+        "checksum": "cca263d2f7b25a17fa704d7c66aff7cb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "scrypt_kdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "scrypt_kdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "scrypt_kdf_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 1.7.0", 
+        "@opam-alpha/pbkdf": ">= 0.1.0", 
+        "@opam-alpha/nocrypto": ">= 0.5.3", 
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/scrypt-kdf"
+    }
+  }
+}

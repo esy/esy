@@ -1,0 +1,257 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocaml/archive/v0.4.tar.gz", 
+        "checksum": "1fca1fed3c9bc970e10836ec71c14235", 
+        "files": [
+          {
+            "content": "bin: [\"_build/iocaml.top\"]\nlib: [\n    \"META\"\n    \"_build/iocaml.cmi\" \n    \"_build/Ipython_json_t.cmi\" \n    \"_build/Ipython_json_j.cmi\" \n    \"_build/message.cmi\" \n    \"_build/completion.cmi\" \n    \"_build/log.cmi\" \n    \"_build/sockets.cmi\"\n    \"_build/iocaml.cmt\" \n    \"_build/Ipython_json_t.cmt\" \n    \"_build/Ipython_json_j.cmt\" \n    \"_build/message.cmt\" \n    \"_build/completion.cmt\" \n    \"_build/log.cmt\" \n    \"_build/sockets.cmt\"\n    \"_build/iocaml.cmti\" \n    \"_build/Ipython_json_t.cmti\" \n    \"_build/Ipython_json_j.cmti\" \n    \"_build/message.cmti\" \n    \"_build/completion.cmti\" \n    \"_build/log.cmti\" \n    \"_build/sockets.cmti\"\n]\nshare: [ \n    \"profile/ipython_config.py\" {\"profile/ipython_config.py\"}\n    \"profile/static/custom/custom.js\" {\"profile/static/custom/custom.js\"}\n    \"notebooks/iocaml-development.ipynb\"\n    \"notebooks/iocaml-install.ipynb\"\n    \"notebooks/iocaml-test-notebook.ipynb\"\n    \"notebooks/iocaml-the-core-language.ipynb\"\n    \"notebooks/iocaml-using-tyxml.ipynb\"\n    \"notebooks/syntax-highlighting.ipynb\"\n]\n", 
+            "name": "iocaml-kernel.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "iocaml_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocaml_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": "*", 
+        "@opam-alpha/ocp-index": ">= 1.0.1", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/zmq": "= 3.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocaml-kernel"
+    }, 
+    "0.4.3": {
+      "version": "0.4.3", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocaml/archive/v0.4.3.tar.gz", 
+        "checksum": "08f5ef3e7eea3e7f8c1745f7ee7a374b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.3"
+          }, 
+          "iocaml_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocaml_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": ">= 1.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes": ">= 0.2.3 < 0.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": "*", 
+        "@opam-alpha/ocp-index": ">= 1.0.1", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocaml-kernel"
+    }, 
+    "0.4.8": {
+      "version": "0.4.8", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocaml/archive/v0.4.8.tar.gz", 
+        "checksum": "c57e00e60d691034849362bf4db2d8d1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.8"
+          }, 
+          "iocaml_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocaml_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": ">= 1.1.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/optcomp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": "*", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocaml-kernel"
+    }, 
+    "0.4.4": {
+      "version": "0.4.4", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocaml/archive/v0.4.4.tar.gz", 
+        "checksum": "d56af31935792d188bba0b3ba757dfc9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.4"
+          }, 
+          "iocaml_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocaml_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": ">= 1.1.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes": ">= 0.4.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": "*", 
+        "@opam-alpha/ocp-index": ">= 1.0.1", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocaml-kernel"
+    }, 
+    "0.4.6": {
+      "version": "0.4.6", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocaml/archive/v0.4.6.tar.gz", 
+        "checksum": "929f703117b70ac5c7d840fc990ca8a2", 
+        "files": [
+          {
+            "content": "diff --git a/exec.ml b/exec.ml\nindex c3958b6..b44e927 100644\n--- a/exec.ml\n+++ b/exec.ml\n@@ -1,13 +1,22 @@\n type ('a,'b) status = Ok of 'a | Error of 'b\n \n let get_error_loc = function \n+#if ocaml_version > (4,0)\n     | Syntaxerr.Error(x) -> Some(Syntaxerr.location_of_error x)\n-    | Lexer.Error(_, loc) \n-    | Typecore.Error(loc, _, _) \n+#endif\n+    | Lexer.Error(_, loc)\n+#if ocaml_version < (4,1)\n+    | Typecore.Error(loc, _)\n+    | Typetexp.Error(loc, _) \n+    | Typeclass.Error(loc, _) \n+    | Typemod.Error(loc, _) \n+#else\n+    | Typecore.Error(loc, _, _)\n     | Typetexp.Error(loc, _, _) \n-    | Typedecl.Error(loc, _) \n     | Typeclass.Error(loc, _, _) \n     | Typemod.Error(loc, _, _) \n+#endif\n+    | Typedecl.Error(loc, _) \n     | Translcore.Error(loc, _) \n     | Translclass.Error(loc, _) \n     | Translmod.Error(loc, _) -> Some(loc)\ndiff --git a/iocaml_zmq.ml b/iocaml_zmq.ml\nindex 1195bbe..639c30b 100644\n--- a/iocaml_zmq.ml\n+++ b/iocaml_zmq.ml\n@@ -152,6 +152,8 @@ module ZMQ = struct\n \n   exception Zmq_exception of int * string * string\n \n+  let (|>) a f = f a\n+\n   let raise_if s x = \n     if x == -1 then\n       let errno = Stubs.Utils.errno () in\n", 
+            "name": "4.00.1.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_kernel_version": {
+            "scope": "global", 
+            "val": "0.4.6"
+          }, 
+          "iocaml_kernel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "iocaml_kernel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/uint": ">= 1.1.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/optcomp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": "*", 
+        "@opam-alpha/ocp-index": "*", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/iocaml-kernel"
+    }
+  }
+}

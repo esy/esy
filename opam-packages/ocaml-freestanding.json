@@ -1,0 +1,48 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-freestanding/archive/v0.1.1.tar.gz", 
+        "checksum": "88736a6d0db81ebf1e7ea257cacfcf1e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_freestanding_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocaml_freestanding_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "ocaml_freestanding_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocaml-src": "*", 
+        "@opam-alpha/solo5-kernel-ukvm": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/solo5-kernel-virtio": "*", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3 <= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocaml-freestanding"
+    }
+  }
+}

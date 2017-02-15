@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/OCamlPro/ocaml-perf/archive/0.2.tar.gz", 
+        "checksum": "93d6457298068b96d023fee97fa6d4e0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "perf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "perf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "perf_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocplib-endian": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": "*", 
+        "@opam-alpha/oclock": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/perf"
+    }
+  }
+}

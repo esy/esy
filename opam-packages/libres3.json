@@ -1,0 +1,457 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-0.9.tar.gz", 
+        "checksum": "b91bea21e3589de785317c2dccc6e0d0", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/server/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/server/libres3_report.native\" {\"libres3_report\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3_certgen\"\n  \"libres3/src/files/sbin/libres3\"\n  \"libres3/src/files/sbin/libres3_env.sh\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n  \"libres3/src/files/s3genlink.py\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -distclean", 
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/dns": ">= 0.9.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": ">= 2.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-1.1.tar.gz", 
+        "checksum": "e4cb8001d8d435400b419fa95bacb6a6", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/server/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/server/libres3_report.native\" {\"libres3_report\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3_certgen\"\n  \"libres3/src/files/sbin/libres3\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n  \"libres3/src/files/s3genlink.py\"\n  \"libres3/doc/manual/manual.pdf\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -distclean", 
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs --override ocamlbuildflags '-j 0'", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/dns": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": ">= 2.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.2 > 4.02.2"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-1.0.tar.gz", 
+        "checksum": "4f3170b670caa1b6369bc1bb623e922c", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/server/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/server/libres3_report.native\" {\"libres3_report\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3_certgen\"\n  \"libres3/src/files/sbin/libres3\"\n  \"libres3/src/files/sbin/libres3_env.sh\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n  \"libres3/src/files/s3genlink.py\"\n  \"libres3/doc/manual/manual.pdf\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -distclean", 
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs --override ocamlbuildflags '-j 0'", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/dns": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": ">= 2.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-0.3.tar.gz", 
+        "checksum": "edf532c3f8aee7e06897769a6c540e95", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/server/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/server/libres3_report.native\" {\"libres3_report\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3_certgen\"\n  \"libres3/src/files/sbin/libres3\"\n  \"libres3/src/files/sbin/libres3_env.sh\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n  \"libres3/src/files/s3genlink.py\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -distclean", 
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/dns": ">= 0.9.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": "= 2.4.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-1.3.tar.gz", 
+        "checksum": "2e5ddc5f9b1dfb83087077ab81f1a60d", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/server/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/server/libres3_report.native\" {\"libres3_report\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3_certgen\"\n  \"libres3/src/files/sbin/libres3\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n  \"libres3/src/files/s3genlink.py\"\n  \"libres3/doc/manual/manual.pdf\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs --override ocamlbuildflags '-j 0'", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/dns": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": ">= 2.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.2 > 4.02.2"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-1.2.tar.gz", 
+        "checksum": "d388eca12f6d648cb4d8e5e12e6946b8", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/server/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/server/libres3_report.native\" {\"libres3_report\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3_certgen\"\n  \"libres3/src/files/sbin/libres3\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n  \"libres3/src/files/s3genlink.py\"\n  \"libres3/doc/manual/manual.pdf\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs --override ocamlbuildflags '-j 0'", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/dns": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": ">= 2.5.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0 < 4.02.2 > 4.02.2"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-0.2.tar.gz", 
+        "checksum": "ce3406cd3b8b73e4f31ea07d9b70b212", 
+        "files": [
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/ocsigen/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3\"\n  \"libres3/src/files/sbin/libres3_env.sh\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n  \"libres3/src/files/conf/mime.types\"\n]\ndoc: [\n  \"libres3/README\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cd libres3 && ocaml setup.ml -distclean", 
+          "sh -c cd libres3 && ocaml setup.ml -configure --prefix $cur__install --${ounit_enable:-disable}-tests --disable-docs", 
+          "sh -c cd libres3 && ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": "= 2.4.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://cdn.skylable.com/source/libres3-0.1.tar.gz", 
+        "checksum": "1b1c9b4442f16aef9d210038798d1e5a", 
+        "files": [
+          {
+            "content": "diff --git a/detect.ml b/detect.ml\nindex 18d99aa..0688b24 100755\n--- a/detect.ml\n+++ b/detect.ml\n@@ -770,7 +770,7 @@ let pkg_ssl =\n \n let pkg_ocamlnet =\n   ocaml_dependency \"ocamlnet\" ~findlibnames:[\n-    \"netstring\";\"netstring-pcre\";\"netsys\";\"netcgi2\";\"netclient\";\"equeue.ssl\"\n+    \"netstring\";\"netstring-pcre\";\"netsys\";\"netcgi2\";\"netclient\";\"equeue-ssl\"\n   ] ~version:(fun ver -> ver >? \"3.7.3\") ~cmi:(\"netstring\",\"netstring_str.cmi\")\n   (Build (fun _ -> {\n     source = \"3rdparty/libs/ocamlnet\";\n@@ -856,7 +856,7 @@ let pkg_ocsigenserver = ocaml_dependency \"ocsigenserver\"\n     \"--staticpagesdir\";Filename.concat prefix_var \"www/ocsigenserver\";\n     \"--datadir\";Filename.concat prefix_var \"lib/ocsigenserver\"\n   ] ~findlibnames:[\"ocsigenserver\"]\n-)) ~version:(fun _ -> false) (* always build *)\n+)) ~version:(fun v -> v >=? \"2.4.0\") (* always build *)\n   ~deps:[\n   gnu_make_dep; camlp4_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml\n ]\n", 
+            "name": "depfix.patch"
+          }, 
+          {
+            "content": "sbin: [\n  \"libres3/_build/src/ocsigen/libres3_setup.native\" {\"libres3_setup\"}\n  \"libres3/_build/src/ocsigen/libres3_ocsigen.native\" {\"libres3_ocsigen\"}\n  \"libres3/src/files/sbin/libres3\"\n  \"libres3/src/files/sbin/libres3_env.sh\"\n]\netc: [\n  \"libres3/src/files/conf/libres3.sample.s3cfg\"\n  \"libres3/src/files/conf/libres3-insecure.sample.s3cfg\"\n]\ndoc: [\n  \"libres3/README\"\n]\n", 
+            "name": "libres3.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "libres3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "libres3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "libres3_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlnet": ">= 3.7.4 < 4.0.0", 
+        "@opam-alpha/jsonm": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.2.0", 
+        "@opam-alpha/sqlite3": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cryptokit": ">= 1.3.0", 
+        "@opam-alpha/xmlm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.2", 
+        "@opam-alpha/ssl": ">= 0.4.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocsigenserver": "= 2.4.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/libres3"
+    }
+  }
+}

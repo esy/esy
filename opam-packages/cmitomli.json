@@ -1,0 +1,43 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mjambon/cmitomli/archive/v1.0.0.tar.gz", 
+        "checksum": "76fe691d99987aa02749bf504309ecef", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmitomli_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmitomli_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cmitomli_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/cmitomli"
+    }
+  }
+}

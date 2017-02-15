@@ -1,0 +1,52 @@
+{
+  "versions": {
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/32084/tplib-1.3.tar.gz", 
+        "checksum": "861bde89a6790b78474c5578f821aea4", 
+        "files": [
+          {
+            "content": "diff -u -r tplib.1.3-orig/Makefile.in tplib.1.3/Makefile.in\n--- tplib.1.3-orig/Makefile.in\t2013-02-14 12:08:25.000000000 +0100\n+++ tplib.1.3/Makefile.in\t2014-08-28 18:31:03.000000000 +0200\n@@ -31,7 +31,7 @@\n CP = cp\n RANLIB = ranlib\n BUILD_DIR = _build\n-OCAMLBUILD = @OCAMLBUILD@ -ocamlc ocp-ocamlc.opt -ocamlopt ocp-ocamlopt.opt -classic-display -no-links -build-dir $(BUILD_DIR) -use-ocamlfind\n+OCAMLBUILD = @OCAMLBUILD@ -classic-display -no-links -build-dir $(BUILD_DIR) -use-ocamlfind\n OCAMLFIND = @OCAMLFIND@\n TPLIB = @PACKAGE_NAME@\n \n", 
+            "name": "fix-makefile.diff"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tplib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tplib_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "tplib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mlgmp": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/zarith": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/tplib"
+    }
+  }
+}

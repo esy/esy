@@ -1,0 +1,132 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1599/root1d-0.4.tar.gz", 
+        "checksum": "620bfdd6bd38221fb820968518a62831", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "root1d_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "root1d_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "root1d_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/benchmark": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.0.0"
+      }, 
+      "name": "@opam-alpha/root1d"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1125/root1d-0.3.tar.gz", 
+        "checksum": "679f9f6a1f6e31f448259793bb9cbda8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "root1d_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "root1d_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "root1d_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/benchmark": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/root1d"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/735/root1d-0.2.tar.gz", 
+        "checksum": "47ca0a285a6492bda0595fe32ed5c216", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "rm setup.ml", 
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "root1d_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "root1d_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "root1d_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/oasis": ">= 0.3.0 < 0.4.7"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/root1d"
+    }
+  }
+}

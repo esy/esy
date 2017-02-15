@@ -1,0 +1,130 @@
+{
+  "versions": {
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1531/ocaml-fileutils-0.5.0.tar.gz", 
+        "checksum": "7d767cdfec85c846bd1d6f75a73abb01", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fileutils_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "fileutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fileutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fileutils"
+    }, 
+    "0.4.4": {
+      "version": "0.4.4", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/892/ocaml-fileutils-0.4.4.tar.gz", 
+        "checksum": "1f43b9333358f47660318bfbe9ae68bf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fileutils_version": {
+            "scope": "global", 
+            "val": "0.4.4"
+          }, 
+          "fileutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fileutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fileutils"
+    }, 
+    "0.5.1": {
+      "version": "0.5.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1651/ocaml-fileutils-0.5.1.tar.gz", 
+        "checksum": "2fe185bbce4357eb5fba1dfc0b3e63c5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fileutils_version": {
+            "scope": "global", 
+            "val": "0.5.1"
+          }, 
+          "fileutils_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fileutils_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fileutils"
+    }
+  }
+}

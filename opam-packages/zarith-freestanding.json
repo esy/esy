@@ -1,0 +1,68 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1567/zarith-1.4.tgz", 
+        "checksum": "8967de3cf9eabe1d73b663bc9916657d", 
+        "files": [
+          {
+            "content": "--- a/configure\t2016-07-22 21:53:10.872919000 +0200\n+++ b/configure\t2016-07-22 21:55:23.788871000 +0200\n@@ -340,12 +340,8 @@\n if test \"$gmp\" = 'gmp' -o \"$gmp\" = 'auto'; then\n     checkinc gmp.h\n     if test $? -eq 1; then\n-        checklib gmp\n-        if test $? -eq 1; then \n-            gmp='OK'\n-            cclib=\"$cclib -lgmp\"\n-            ccdef=\"-DHAS_GMP $ccdef\"\n-        fi\n+        gmp='OK'\n+        ccdef=\"-DHAS_GMP $ccdef\"\n     fi\n fi\n if test \"$gmp\" = 'mpir' -o \"$gmp\" = 'auto'; then\n", 
+            "name": "config.diff"
+          }, 
+          {
+            "content": "#!/bin/sh -eux\n\nPREFIX=`opam config var prefix`\nPKG_CONFIG_PATH=\"$PREFIX/lib/pkgconfig\"\nexport PKG_CONFIG_PATH\n\n# WARNING: if you pass invalid cflags here, zarith will silently\n# fall back to compiling with the default flags instead!\nCFLAGS=\"$(pkg-config --cflags gmp-freestanding ocaml-freestanding)\" \\\nLDFLAGS=\"$(pkg-config --libs gmp-freestanding)\" \\\n./configure -gmp\n\nif [ `uname -s` = \"FreeBSD\" ]; then\n    gmake\nelse\n    make\nfi\n", 
+            "name": "mirage-build.sh"
+          }, 
+          {
+            "content": "#!/bin/sh -eux\n\nPREFIX=`opam config var prefix`\nPKG_CONFIG_PATH=\"$PREFIX/lib/pkgconfig\"\nexport PKG_CONFIG_PATH\n\ncp libzarith.a \"$PREFIX/lib/zarith/libzarith-freestanding.a\"\n\n# This is a hack to get freestanding_linkopts into the host 'zarith' package.\ncat >>\"$PREFIX/lib/zarith/META\" <<EOM\nfreestanding_linkopts = \"-lzarith-freestanding -L@gmp-freestanding -lgmp-freestanding\"\nEOM\n", 
+            "name": "mirage-install.sh"
+          }, 
+          {
+            "content": "#!/bin/sh -eux\n\nPREFIX=`opam config var prefix`\n\nrm -f \"$PREFIX/lib/zarith/libzarith-freestanding.a\"\n\nmv \"$PREFIX/lib/zarith/META\" \"$PREFIX/lib/zarith/META.tmp\"\ncat \"$PREFIX/lib/zarith/META.tmp\" | grep -v freestanding_linkopts > \"$PREFIX/lib/zarith/META\"\nrm -f \"$PREFIX/lib/zarith/META.tmp\"\n", 
+            "name": "mirage-uninstall.sh"
+          }, 
+          {
+            "content": "diff --git a/z_pp.pl b/z_pp.pl\n--- a/z_pp.pl\n+++ b/z_pp.pl\n@@ -1,1 +1,3 @@\n-#!/usr/bin/perl -W\n+#!/usr/bin/env perl\n+\n+use warnings \"all\";\n\n # Simple preprocessor to fix @ASM directives in z.mlp and z.mlip, and\n # generate z.ml and z.mli\n", 
+            "name": "z_pp.pl.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -eux ./mirage-build.sh", 
+          "sh -eux ./mirage-install.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "zarith_freestanding_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "zarith_freestanding_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "zarith_freestanding_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/zarith": "= 1.4.0", 
+        "@opam-alpha/ocaml-freestanding": "*", 
+        "@opam-alpha/gmp-freestanding": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zarith-freestanding"
+    }
+  }
+}

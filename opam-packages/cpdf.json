@@ -1,0 +1,142 @@
+{
+  "versions": {
+    "2.1.1": {
+      "version": "2.1.1", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/cpdf-source/archive/v2.1.1.tar.gz", 
+        "checksum": "0f6436c4732e1e6a72c41c2201f9fa8e", 
+        "files": [
+          {
+            "content": "bin: [\"cpdf\"]\n", 
+            "name": "cpdf.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cpdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cpdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cpdf_version": {
+            "scope": "global", 
+            "val": "2.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlpdf": ">= 2.1.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/cpdf"
+    }, 
+    "2.2.1": {
+      "version": "2.2.1", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/cpdf-source/archive/v2.2.1.zip", 
+        "checksum": "5c0caa7bed9452cf7d1ed0492929824d", 
+        "files": [
+          {
+            "content": "bin: [\"cpdf\"]\n", 
+            "name": "cpdf.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cpdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cpdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cpdf_version": {
+            "scope": "global", 
+            "val": "2.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlpdf": ">= 2.2.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/cpdf"
+    }, 
+    "1.7.0": {
+      "version": "1.7.0", 
+      "opam": {
+        "url": "https://github.com/johnwhitington/cpdf-source/archive/v1.7.tar.gz", 
+        "checksum": "be22f6327f9845ce4efb33a86d54c997", 
+        "files": [
+          {
+            "content": "bin: [\"cpdf\"]\n", 
+            "name": "cpdf.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cpdf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "cpdf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cpdf_version": {
+            "scope": "global", 
+            "val": "1.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlpdf": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/cpdf"
+    }
+  }
+}

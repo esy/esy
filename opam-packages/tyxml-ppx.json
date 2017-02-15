@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "4.0.1": {
+      "version": "4.0.1", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocamlfind query tyxml.ppx", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_ppx_version": {
+            "scope": "global", 
+            "val": "4.0.1"
+          }, 
+          "tyxml_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/markup": ">= 0.7.2", 
+        "@opam-alpha/tyxml": ">= 4.0.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/tyxml-ppx"
+    }, 
+    "4.0.0": {
+      "version": "4.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocamlfind query tyxml.ppx", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tyxml_ppx_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tyxml_ppx_version": {
+            "scope": "global", 
+            "val": "4.0.0"
+          }, 
+          "tyxml_ppx_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/markup": ">= 0.7.2", 
+        "@opam-alpha/tyxml": ">= 4.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/tyxml-ppx"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": [
+          {
+            "content": "#include <ppl_c.h>\n#ifndef PPL_VERSION_MAJOR\n#error \"No PPL header\"\n#endif\n\nint main() {\n  ppl_initialize();\n  return ppl_finalize();\n}\n", 
+            "name": "test.c"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c cc test.c -lppl_c -lppl != freebsd & os != openbsd } cc test.c -I/usr/local/include -L/usr/local/lib -lppl_c -lppl = freebsd | os = openbsd }", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "conf_ppl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "conf_ppl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "conf_ppl_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/conf-ppl"
+    }
+  }
+}

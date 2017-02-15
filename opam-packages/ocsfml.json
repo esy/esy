@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/KyoDralliam/Ocsfml/tarball/master", 
+        "checksum": "bf823023c9dcc9de9b41ec8eb77861cb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cmake .", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocsfml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocsfml_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "ocsfml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocsfml"
+    }
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "versions": {
+    "5.0.0": {
+      "version": "5.0.0", 
+      "opam": {
+        "url": "https://github.com/darioteixeira/camlhighlight/archive/v5.0.tar.gz", 
+        "checksum": "972f648ed9bc5618637b0898e87a760b", 
+        "files": [
+          {
+            "content": "share: [\"data/sexp.outlang\"]\n", 
+            "name": "camlhighlight.install"
+          }, 
+          {
+            "content": "diff -u a/src/source-highlight_stubs.c b/src/source-highlight_stubs.c\n--- a/src/source-highlight_stubs.c\t2016-01-26 17:10:28.866470714 +0000\n+++ b/src/source-highlight_stubs.c\t2016-01-26 17:10:34.018419272 +0000\n@@ -30,7 +30,7 @@\n /* Module variables and constants.                                              */\n /********************************************************************************/\n \n-static string outlang (\"sexp.outlang\");     // Default outlang definition file.\n+static string outlang (\"%{share}%/camlhighlight/sexp.outlang\");     // Default outlang definition file.\n static string langmap (\"lang.map\");         // Default language map file.\n static SourceHighlight *hiliter = 0;        // The global hiliter.\n static LangMap *mapper = 0;                 // The global mapper.\n", 
+            "name": "sexp-dir.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs sexp-dir.patch.in", 
+          "./configure --prefix $cur__install --docdir $cur__doc/camlhighlight", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlhighlight_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlhighlight_version": {
+            "scope": "global", 
+            "val": "5.0.0"
+          }, 
+          "camlhighlight_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/tyxml": ">= 3.6.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/camlhighlight"
+    }, 
+    "4.0.0": {
+      "version": "4.0.0", 
+      "opam": {
+        "url": "https://github.com/darioteixeira/camlhighlight/archive/v4.0.tar.gz", 
+        "checksum": "d28afb10b99d4c7231808ffb361c708d", 
+        "files": [
+          {
+            "content": "share: [\"data/sexp.outlang\"]\n", 
+            "name": "camlhighlight.install"
+          }, 
+          {
+            "content": "diff -u a/src/source-highlight_stubs.c b/src/source-highlight_stubs.c\n--- a/src/source-highlight_stubs.c\t2016-01-26 17:10:28.866470714 +0000\n+++ b/src/source-highlight_stubs.c\t2016-01-26 17:10:34.018419272 +0000\n@@ -30,7 +30,7 @@\n /* Module variables and constants.                                              */\n /********************************************************************************/\n \n-static string outlang (\"sexp.outlang\");     // Default outlang definition file.\n+static string outlang (\"%{share}%/camlhighlight/sexp.outlang\");     // Default outlang definition file.\n static string langmap (\"lang.map\");         // Default language map file.\n static SourceHighlight *hiliter = 0;        // The global hiliter.\n static LangMap *mapper = 0;                 // The global mapper.\n", 
+            "name": "sexp-dir.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs sexp-dir.patch.in", 
+          "./configure --prefix $cur__install --docdir $cur__doc/camlhighlight", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlhighlight_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlhighlight_version": {
+            "scope": "global", 
+            "val": "4.0.0"
+          }, 
+          "camlhighlight_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/tyxml": ">= 3.2.0 < 3.6.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/camlhighlight"
+    }, 
+    "3.0.0": {
+      "version": "3.0.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1435/camlhighlight-3.0.tgz", 
+        "checksum": "f626399d41dbcb77af48d32beb3d9814", 
+        "files": [
+          {
+            "content": "share: [\"data/sexp.outlang\"]\n", 
+            "name": "camlhighlight.install"
+          }, 
+          {
+            "content": "diff -u a/src/source-highlight_stubs.c b/src/source-highlight_stubs.c\n--- a/src/source-highlight_stubs.c\t2014-08-15 16:58:13.314376902 +0100\n+++ b/src/source-highlight_stubs.c\t2014-08-15 17:03:42.894374193 +0100\n@@ -30,7 +30,7 @@\n /* Module variables and constants.\t\t\t\t\t\t*/\n /********************************************************************************/\n \n-static string outlang (\"sexp.outlang\");\t\t\t// Default outlang definition file.\n+static string outlang (\"%{share}%/camlhighlight/sexp.outlang\");\t// Default outlang definition file.\n static string langmap (\"lang.map\");\t\t\t// Default language map file.\n static SourceHighlight *hiliter = 0;\t\t\t// The global hiliter.\n static LangMap *mapper = 0;\t\t\t\t// The global mapper.\n", 
+            "name": "sexp-dir.patch.in"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "substs sexp-dir.patch.in", 
+          "./configure --prefix $cur__install --docdir $cur__doc/camlhighlight", 
+          "make", 
+          "make doc", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "camlhighlight_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "camlhighlight_version": {
+            "scope": "global", 
+            "val": "3.0.0"
+          }, 
+          "camlhighlight_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tyxml": ">= 3.2.0 < 4.0.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/camlhighlight"
+    }
+  }
+}

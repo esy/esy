@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/ocaml-doc/octavius/archive/0.1.0.tar.gz", 
+        "checksum": "e6d4a55d217c3e4baa1f7d1f823de1c6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "octavius_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "octavius_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "octavius_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/topkg": ">= 0.7.5"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/octavius"
+    }
+  }
+}

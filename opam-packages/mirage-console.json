@@ -1,0 +1,226 @@
+{
+  "versions": {
+    "2.1.2": {
+      "version": "2.1.2", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v2.1.2.tar.gz", 
+        "checksum": "7952571a6542d0e542795a1add2a1f37", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install ENABLE_MIRAGE_XEN=--${mirage_xen_enable:-disable}-miragexen ENABLE_XEN=--${shared_memory_ring_enable:-disable}-xen ENABLE_UNIX=--enable-unix", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_version": {
+            "scope": "global", 
+            "val": "2.1.2"
+          }, 
+          "mirage_console_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xen-gnt": "*", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0", 
+        "@opam-alpha/xen-evtchn": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console"
+    }, 
+    "2.1.3": {
+      "version": "2.1.3", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v2.1.3.tar.gz", 
+        "checksum": "82f088b4c3ff601eaaf0ea5cd88eebc7", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make PREFIX=$cur__install ENABLE_MIRAGE_XEN=--${mirage_xen_enable:-disable}-miragexen ENABLE_XEN=--${shared_memory_ring_enable:-disable}-xen ENABLE_XENCTRL=--${xenctrl_enable:-disable}-xenctrl", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_version": {
+            "scope": "global", 
+            "val": "2.1.3"
+          }, 
+          "mirage_console_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/xenstore": "*", 
+        "@opam-alpha/xenstore_transport": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xen-gnt": "*", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0", 
+        "@opam-alpha/xen-evtchn": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "@opam-alpha/shared-memory-ring": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console"
+    }, 
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/2.1.0.tar.gz", 
+        "checksum": "e000a4555836cc8274936c7c44b72eda", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }, 
+          "mirage_console_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types-lwt": "< 2.3.0", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.04.0"
+      }, 
+      "name": "@opam-alpha/mirage-console"
+    }, 
+    "2.1.1": {
+      "version": "2.1.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/v2.1.1.tar.gz", 
+        "checksum": "95dc97fa1da4f5f60953c48d5ccf2913", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_version": {
+            "scope": "global", 
+            "val": "2.1.1"
+          }, 
+          "mirage_console_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types-lwt": "< 3.0.0", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-console/archive/2.0.0.tar.gz", 
+        "checksum": "8c9bfffc3b260589c54725e694d09a51", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_console_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "mirage_console_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_console_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/mirage-types-lwt": "< 2.3.0 >= 2.0.0", 
+        "@opam-alpha/mirage-unix": ">= 1.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-console"
+    }
+  }
+}

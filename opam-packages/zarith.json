@@ -1,0 +1,255 @@
+{
+  "versions": {
+    "1.4.0": {
+      "version": "1.4.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1567/zarith-1.4.tgz", 
+        "checksum": "8967de3cf9eabe1d73b663bc9916657d", 
+        "files": [
+          {
+            "content": "diff --git a/z_pp.pl b/z_pp.pl\n--- a/z_pp.pl\n+++ b/z_pp.pl\n@@ -1,1 +1,3 @@\n-#!/usr/bin/perl -W\n+#!/usr/bin/env perl\n+\n+use warnings \"all\";\n\n # Simple preprocessor to fix @ASM directives in z.mlp and z.mlip, and\n # generate z.ml and z.mli\n", 
+            "name": "z_pp.pl.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "env LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include ./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_zarith__lib/zarith:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "zarith_version": {
+            "scope": "global", 
+            "val": "1.4.0"
+          }, 
+          "zarith_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gmp": "*", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zarith"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/835/zarith-1.1.tgz", 
+        "checksum": "457fcb896da690d3d6d2bf6c320f3612", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_zarith__lib/zarith:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "zarith_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "zarith_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gmp": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zarith"
+    }, 
+    "1.3.0": {
+      "version": "1.3.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1471/zarith-1.3.tgz", 
+        "checksum": "9ed8ddafdebfa8c1b673dbe91a181f66", 
+        "files": [
+          {
+            "content": "diff -ur zarith-1.3.orig/z_pp.pl zarith-1.3/z_pp.pl\n--- zarith-1.3.orig/z_pp.pl\t2013-07-30 17:49:15.000000000 +0100\n+++ zarith-1.3/z_pp.pl\t2015-10-17 23:05:41.944161000 +0100\n@@ -1,4 +1,6 @@\n-#!/usr/bin/perl -W\n+#!/usr/bin/env perl\n+\n+use warnings \"all\" ;\n \n # Simple preprocessor to fix @ASM directives in z.mlp and z.mlip, and\n # generate z.ml and z.mli\n", 
+            "name": "z_pp.pl.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "env LDFLAGS=-L/usr/local/lib CC=cc CFLAGS=-I/usr/local/include -O3 -Wall -Wextra ./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_zarith__lib/zarith:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "zarith_version": {
+            "scope": "global", 
+            "val": "1.3.0"
+          }, 
+          "zarith_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gmp": "*", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zarith"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1187/zarith-1.2.tgz", 
+        "checksum": "077c927f337f8a19b55fa086ed35eab1", 
+        "files": [
+          {
+            "content": "diff -u zarith-1.2.orig/Changes zarith-1.2/Changes\n--- zarith-1.2.orig/Changes\t2013-05-19 10:19:10.000000000 +0200\n+++ zarith-1.2/Changes\t2013-05-21 13:34:31.000000000 +0200\n@@ -1,3 +1,5 @@\n+- Install fixes\n+\n Release 1.2 (2013-05-19):\n - Added fast asm path for ARMv7 processors.\n - PR#1192: incorrect behavior of div_2exp\ndiff -u zarith-1.2.orig/META zarith-1.2/META\n--- zarith-1.2.orig/META\t2012-04-30 21:28:21.000000000 +0200\n+++ zarith-1.2/META\t2013-05-21 13:34:31.000000000 +0200\n@@ -1,5 +1,5 @@\n description = \"Arbitrary precision integers\"\n requires = \"\"\n-version = \"1.1\"\n+version = \"1.2\"\n archive(byte) = \"zarith.cma\"\n archive(native) = \"zarith.cmxa\"\ndiff -u zarith-1.2.orig/configure zarith-1.2/configure\n--- zarith-1.2.orig/configure\t2013-04-24 13:54:49.000000000 +0200\n+++ zarith-1.2/configure\t2013-05-21 13:34:31.000000000 +0200\n@@ -88,10 +88,10 @@\n         -installdir|--installdir)\n             installdir=\"$2\"\n             shift;;\n-        -ocamllibdir|---ocamllibdir)\n+        -ocamllibdir|--ocamllibdir)\n             ocamllibdir=\"$2\"\n             shift;;\n-        -no-ocamlfind)\n+        -no-ocamlfind|--no-ocamlfind)\n             ocamlfind=\"no\"\n             shift;;\n         -host|--host)\n@@ -263,7 +263,7 @@\n     searchbin install\n     if test $? -eq 1; then instmeth='install'\n     else echo \"no installation method found\"; exit 2; fi\n-    if test \"$installdir\" = \"auto\"; then installdir=\"$ocamllibdir/zarith\"; fi\n+    if test \"$installdir\" = \"auto\"; then installdir=\"$ocamllibdir\"; fi\n fi\n \n \ndiff -u zarith-1.2.orig/project.mak zarith-1.2/project.mak\n--- zarith-1.2.orig/project.mak\t2012-12-10 10:47:31.000000000 +0100\n+++ zarith-1.2/project.mak\t2013-05-21 13:34:31.000000000 +0200\n@@ -39,7 +39,7 @@\n AUTOGEN = z.ml z.mli\n \n CMIOBJ = $(MLISRC:%.mli=%.cmi)\n-TOINSTALL := zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)\n+TOINSTALL := zarith.h zarith.cma libzarith.$(LIBSUFFIX) $(MLISRC) $(CMIOBJ)\n TESTS := testb$(EXE)\n \n ifeq ($(HASOCAMLOPT),yes)\n@@ -94,22 +94,22 @@\n \n ifeq ($(INSTMETH),install)\n install:\n-\tinstall -d $(INSTALLDIR)\n+\tinstall -d $(INSTALLDIR) $(INSTALLDIR)/zarith $(INSTALLDIR)/stublibs\n \tfor i in $(TOINSTALL); do \\\n-\t\tif test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR); fi; \\\n+\t\tif test -f $$i; then $(INSTALL) -m 0644 $$i $(INSTALLDIR)/zarith/$$i; fi; \\\n \tdone\n-\tif test -f dllzarith.$(DLLSUFFIX); then $(INSTALL) -m 0755 dllzarith.$(DLLSUFFIX) $(INSTALLDIR)/stublibs; fi\n+\tif test -f dllzarith.$(DLLSUFFIX); then $(INSTALL) -m 0755 dllzarith.$(DLLSUFFIX) $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); fi\n \n uninstall:\n \tfor i in $(TOINSTALL); do \\\n-\t\trm -f $(INSTALLDIR)/$$i; \\\n+\t\trm -f $(INSTALLDIR)/zarith/$$i; \\\n \tdone\n \tif test -f $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); then rm -f $(INSTALLDIR)/stublibs/dllzarith.$(DLLSUFFIX); fi\n endif\n \n ifeq ($(INSTMETH),findlib)\n install:\n-\t$(OCAMLFIND) install -destdir \"$(INSTALLDIR)\" zarith META $(TOINSTALL) dllzarith.dll\n+\t$(OCAMLFIND) install -destdir \"$(INSTALLDIR)\" zarith META $(TOINSTALL) dllzarith.$(DLLSUFFIX)\n \n uninstall:\n \t$(OCAMLFIND) remove -destdir \"$(INSTALLDIR)\" zarith\n", 
+            "name": "install_fix.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_zarith__lib/zarith:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "zarith_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "zarith_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gmp": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/zarith"
+    }, 
+    "1.4.1": {
+      "version": "1.4.1", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1574/zarith-1.4.1.tgz", 
+        "checksum": "9ab2482d57f632c9cb3d10149138bc6e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "env LDFLAGS=-L/usr/local/lib CFLAGS=-I/usr/local/include ./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_zarith__lib/zarith:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "zarith_version": {
+            "scope": "global", 
+            "val": "1.4.1"
+          }, 
+          "zarith_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "zarith_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/conf-gmp": "*", 
+        "@opam-alpha/conf-perl": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/zarith"
+    }
+  }
+}

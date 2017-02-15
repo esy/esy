@@ -1,0 +1,57 @@
+{
+  "versions": {
+    "3.4.0": {
+      "version": "3.4.0", 
+      "opam": {
+        "url": "http://www.irit.fr/recherches/ARCHI/MARCH/frontc/Frontc-3.4.tgz", 
+        "checksum": "953417daaa2647ed8df45dee3d9f19f0", 
+        "files": [
+          {
+            "content": "bin: [\n  \"calipso/calipso\"\n  \"calipso/calipso_stat\"\n  \"ctoxml/ctoxml\"\n  \"printc/printc\"\n]\n", 
+            "name": "FrontC.install"
+          }, 
+          {
+            "content": "description = \"Parser for the C language\"\nversion = \"3.4\"\nrequires = \"unix\"\narchive(byte) = \"frontc.cma\"\narchive(native) = \"frontc.cmxa\"\n", 
+            "name": "META"
+          }, 
+          {
+            "content": "diff -ru FrontC.3.4/Makefile.head FrontC.3.4/Makefile.head\n--- FrontC.3.4/Makefile.head\t2008-04-01 15:53:52.000000000 +0200\n+++ FrontC.3.4/Makefile.head\t2012-10-05 18:14:56.993802068 +0200\n@@ -84,8 +84,8 @@\n \t$$(OCAMLC) -a $$($(1)_LDFLAGS) $$(OCAMLC_LDFLAGS) -o $$@ $$($(1)_CMO) $$(OCAMLC_LIBS)\n \n _install_$(1)_CMA:\n-\tinstall -d $(OCAML_SITE)/$(1)\n-\tinstall $(1).cma $$($(1)_CMIO) $(OCAML_SITE)/$(1)\n+\tinstall -d $(OCAML_SITE)/FrontC\n+\tinstall $(1).cma $$($(1)_CMIO) $(OCAML_SITE)/FrontC\n \t\n endef\n \n@@ -114,8 +114,8 @@\n \t$$(OCAMLOPT) -a $$($(1)_LDFLAGS) $$(OCAMLOPT_LDFLAGS) -o $$@ $$($(1)_CMX) $$(OCAMLOPT_LIBS)\n \n _install_$(1)_CMXA:\n-\tinstall -d $(OCAML_SITE)/$(1)\n-\tinstall $(1).cmxa $(1).a $$($(1)_CMIX) $(OCAML_SITE)/$(1)\n+\tinstall -d $(OCAML_SITE)/FrontC\n+\tinstall $(1).cmxa $(1).a $$($(1)_CMIX) $(OCAML_SITE)/FrontC\n \t\n endef\n \n", 
+            "name": "opam.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make install PREFIX=$cur__lib OCAML_SITE=$cur__lib", 
+          "cp META $cur__lib/FrontC", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "FrontC_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "FrontC_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "FrontC_version": {
+            "scope": "global", 
+            "val": "3.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/FrontC"
+    }
+  }
+}

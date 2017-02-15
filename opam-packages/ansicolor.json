@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://projects.phauna.org/ansicolor/release/ansicolor-0.5.tar.gz", 
+        "checksum": "9e4fc519424934bc9254c63d12314c55", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make OCAMLMAKEFILE=./OCamlMakefile", 
+          "make install OCAMLMAKEFILE=./OCamlMakefile", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ansicolor_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ansicolor_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ansicolor_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ansicolor"
+    }
+  }
+}

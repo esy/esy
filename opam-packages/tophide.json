@@ -1,0 +1,164 @@
+{
+  "versions": {
+    "1.0.4": {
+      "version": "1.0.4", 
+      "opam": {
+        "url": "https://github.com/mjambon/tophide/archive/v1.0.4.tar.gz", 
+        "checksum": "7e1cbeed68d4df62475435f7d15939f0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tophide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tophide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tophide_version": {
+            "scope": "global", 
+            "val": "1.0.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/tophide"
+    }, 
+    "1.0.1": {
+      "version": "1.0.1", 
+      "opam": {
+        "url": "https://github.com/mjambon/tophide/tarball/v1.0.1", 
+        "checksum": "3ccc7ef147f4d2cb725faaa5fbbf5abc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tophide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tophide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tophide_version": {
+            "scope": "global", 
+            "val": "1.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/tophide"
+    }, 
+    "1.0.2": {
+      "version": "1.0.2", 
+      "opam": {
+        "url": "https://github.com/mjambon/tophide/tarball/f6c090a8fd6669b04175cda6e26471b1fd8b276b", 
+        "checksum": "ffad8f10329f74f849021f5a68a52a34", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tophide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tophide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tophide_version": {
+            "scope": "global", 
+            "val": "1.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "> 4.00.0 < 4.02.0"
+      }, 
+      "name": "@opam-alpha/tophide"
+    }, 
+    "1.0.3": {
+      "version": "1.0.3", 
+      "opam": {
+        "url": "https://github.com/mjambon/tophide/archive/v1.0.3.tar.gz", 
+        "checksum": "40f8ea38384607346da8cbeb1c2894e0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tophide_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "tophide_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tophide_version": {
+            "scope": "global", 
+            "val": "1.0.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/tophide"
+    }
+  }
+}

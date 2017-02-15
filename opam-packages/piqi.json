@@ -1,0 +1,262 @@
+{
+  "versions": {
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/alavrik/piqi/archive/v0.6.0.tar.gz", 
+        "checksum": "b707f6b8a13baff0cf18033c73a5d924", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make ocaml", 
+          "make install", 
+          "make ocaml-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "piqi_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "piqi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "piqi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/easy-format": "*", 
+        "@opam-alpha/camlp4": "< 4.02.0", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/piqi"
+    }, 
+    "0.7.4": {
+      "version": "0.7.4", 
+      "opam": {
+        "url": "https://github.com/alavrik/piqi-ocaml/archive/v0.7.4.tar.gz", 
+        "checksum": "f217b670ef6d1cd15d71dfd5d31e9b49", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make DESTDIR=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "piqi_version": {
+            "scope": "global", 
+            "val": "0.7.4"
+          }, 
+          "piqi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "piqi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/piqilib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/piqi"
+    }, 
+    "0.7.5": {
+      "version": "0.7.5", 
+      "opam": {
+        "url": "https://github.com/alavrik/piqi-ocaml/archive/v0.7.5.tar.gz", 
+        "checksum": "7e63ebb70e6f5072dd5e98d3edc96ff2", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make DESTDIR=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "piqi_version": {
+            "scope": "global", 
+            "val": "0.7.5"
+          }, 
+          "piqi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "piqi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/piqilib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/piqi"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/alavrik/piqi-ocaml/archive/v0.7.0.tar.gz", 
+        "checksum": "23508c56ab170304fd9f58b5f492a2cb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make DESTDIR=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "piqi_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "piqi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "piqi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/piqilib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/piqi"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/alavrik/piqi-ocaml/archive/v0.7.1.tar.gz", 
+        "checksum": "9bfc3f049b128424b439fbd3802c9907", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make DESTDIR=$cur__install install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "piqi_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "piqi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "piqi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/piqilib": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/piqi"
+    }, 
+    "0.6.5": {
+      "version": "0.6.5", 
+      "opam": {
+        "url": "https://github.com/alavrik/piqi/archive/v0.6.5.tar.gz", 
+        "checksum": "a383c01b45390fb99a1b301637030b0c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make ocaml", 
+          "make install", 
+          "make ocaml-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "piqi_version": {
+            "scope": "global", 
+            "val": "0.6.5"
+          }, 
+          "piqi_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "piqi_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/easy-format": "*", 
+        "@opam-alpha/camlp4": "< 4.02.0", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/xmlm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/piqi"
+    }
+  }
+}

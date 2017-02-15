@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/ujamjar/reedsolomon/archive/v0.2.tar.gz", 
+        "checksum": "e8ce9c8ae5cfdab05e98d4d486f1e787", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "reedsolomon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "reedsolomon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "reedsolomon_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/hardcaml": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/reedsolomon"
+    }
+  }
+}

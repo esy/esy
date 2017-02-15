@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/Solo5/solo5/archive/v0.1.1.tar.gz", 
+        "checksum": "72bf81d2dfcf25815169cef842c2e2dc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make virtio", 
+          "make opam-virtio-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "solo5_kernel_virtio_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "solo5_kernel_virtio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "solo5_kernel_virtio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/solo5-kernel-virtio"
+    }
+  }
+}

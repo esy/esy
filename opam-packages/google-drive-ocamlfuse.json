@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "0.6.8": {
+      "version": "0.6.8", 
+      "opam": {
+        "url": "https://github.com/astrada/google-drive-ocamlfuse/archive/v0.6.8.tar.gz", 
+        "checksum": "9a26e1e86e248307e5299a96514b6a22", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "google_drive_ocamlfuse_version": {
+            "scope": "global", 
+            "val": "0.6.8"
+          }, 
+          "google_drive_ocamlfuse_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "google_drive_ocamlfuse_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlfuse": "*", 
+        "@opam-alpha/camlidl": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gapi-ocaml": ">= 0.2.14", 
+        "@opam-alpha/sqlite3": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 3.12.0"
+      }, 
+      "name": "@opam-alpha/google-drive-ocamlfuse"
+    }
+  }
+}

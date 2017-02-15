@@ -1,0 +1,181 @@
+{
+  "versions": {
+    "0.9.0": {
+      "version": "0.9.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/vg/releases/vg-0.9.0.tbz", 
+        "checksum": "1ce6a1ca64b16ac492073c5fe07632eb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-uutf ${uutf_installed:-false} --with-otfm ${otfm_installed:-false} --with-js_of_ocaml ${js_of_ocaml_installed:-false} --with-cairo2 ${cairo2_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vg_version": {
+            "scope": "global", 
+            "val": "0.9.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/js_of_ocaml": "> 2.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gg": ">= 0.9.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/uchar": "*", 
+        "@opam-alpha/otfm": "*", 
+        "@opam-alpha/cairo2": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/vg"
+    }, 
+    "0.8.1": {
+      "version": "0.8.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/vg/releases/vg-0.8.1.tbz", 
+        "checksum": "abde3e78212f155365b4a81e07ed83bf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true uutf=${uutf_installed:-false} otfm=${otfm_installed:-false} jsoo=${js_of_ocaml_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vg_version": {
+            "scope": "global", 
+            "val": "0.8.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gg": ">= 0.9.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/otfm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/vg"
+    }, 
+    "0.8.0": {
+      "version": "0.8.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/vg/releases/vg-0.8.0.tbz", 
+        "checksum": "d414ef6171f5a44048a4884542bd8ba9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./pkg/pkg-git", 
+          "./pkg/build true ${uutf_installed:-false} ${otfm_installed:-false} ${js_of_ocaml_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vg_version": {
+            "scope": "global", 
+            "val": "0.8.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gg": "< 0.9.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/otfm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/vg"
+    }, 
+    "0.8.2": {
+      "version": "0.8.2", 
+      "opam": {
+        "url": "http://erratique.ch/software/vg/releases/vg-0.8.2.tbz", 
+        "checksum": "f8e7efd20d6ffd5f50ea78f993d28b9e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/git.ml", 
+          "ocaml pkg/build.ml native=true native-dynlink=true uutf=${uutf_installed:-false} otfm=${otfm_installed:-false} cairo2=${cairo2_installed:-false} jsoo=${js_of_ocaml_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vg_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "vg_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vg_version": {
+            "scope": "global", 
+            "val": "0.8.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/uutf": "*", 
+        "@opam-alpha/cairo2": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/gg": ">= 0.9.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/otfm": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/vg"
+    }
+  }
+}

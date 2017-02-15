@@ -1,0 +1,241 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/msgpack/msgpack-ocaml/archive/1.1.1.tar.gz", 
+        "checksum": "ea156844fb5636a53516d0030fcb61bf", 
+        "files": [
+          {
+            "content": "diff --git a/_oasis b/_oasis\nindex f3733a5..4a7bec5 100644\n--- a/_oasis\n+++ b/_oasis\n@@ -13,7 +13,7 @@ Description:\n   MessagePack is an efficient binary serialization format.\n   If meta_conv is installed, conv module will be installed.\n \n-BuildTools: ocamlbuild, camlp4\n+BuildTools: ocamlbuild\n \n # ------------------------------------------------------------\n # Flags\ndiff --git a/setup.ml b/setup.ml\nindex 26f0f36..2a51166 100644\n--- a/setup.ml\n+++ b/setup.ml\n@@ -6991,8 +6991,7 @@ let setup_t =\n                       bs_path = \"lib/core\";\n                       bs_compiled_object = Best;\n                       bs_build_depends = [FindlibPackage (\"num\", None)];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7054,8 +7053,7 @@ let setup_t =\n                            FindlibPackage (\"meta_conv\", None);\n                            InternalLibrary \"msgpack\"\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7102,8 +7100,7 @@ let setup_t =\n                            InternalLibrary \"msgpack\";\n                            FindlibPackage (\"oUnit\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7141,8 +7138,7 @@ let setup_t =\n                            FindlibPackage (\"oUnit\", None);\n                            FindlibPackage (\"meta_conv.syntax\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7185,7 +7181,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_core\"\n                         ]\n                    });\n@@ -7221,7 +7216,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_conv\"\n                         ]\n                    });\n", 
+            "name": "no-camlp4.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --enable-core --${meta_conv_enable:-disable}-conv", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "msgpack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "msgpack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "msgpack_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/meta_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/msgpack"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/msgpack/msgpack-ocaml/archive/1.1.0.tar.gz", 
+        "checksum": "4925efbe1195378ce98e14dfc788ce7d", 
+        "files": [
+          {
+            "content": "diff --git a/_oasis b/_oasis\nindex f3733a5..4a7bec5 100644\n--- a/_oasis\n+++ b/_oasis\n@@ -13,7 +13,7 @@ Description:\n   MessagePack is an efficient binary serialization format.\n   If meta_conv is installed, conv module will be installed.\n \n-BuildTools: ocamlbuild, camlp4\n+BuildTools: ocamlbuild\n \n # ------------------------------------------------------------\n # Flags\ndiff --git a/setup.ml b/setup.ml\nindex 26f0f36..2a51166 100644\n--- a/setup.ml\n+++ b/setup.ml\n@@ -6991,8 +6991,7 @@ let setup_t =\n                       bs_path = \"lib/core\";\n                       bs_compiled_object = Best;\n                       bs_build_depends = [FindlibPackage (\"num\", None)];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7054,8 +7053,7 @@ let setup_t =\n                            FindlibPackage (\"meta_conv\", None);\n                            InternalLibrary \"msgpack\"\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7102,8 +7100,7 @@ let setup_t =\n                            InternalLibrary \"msgpack\";\n                            FindlibPackage (\"oUnit\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7141,8 +7138,7 @@ let setup_t =\n                            FindlibPackage (\"oUnit\", None);\n                            FindlibPackage (\"meta_conv.syntax\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7185,7 +7181,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_core\"\n                         ]\n                    });\n@@ -7221,7 +7216,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_conv\"\n                         ]\n                    });\n", 
+            "name": "no-camlp4.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --enable-core --${meta_conv_enable:-disable}-conv", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "msgpack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "msgpack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "msgpack_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/meta_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/msgpack"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/msgpack/msgpack-ocaml/archive/1.0.0.tar.gz", 
+        "checksum": "0a75171441f7aeb72dee2c453658400a", 
+        "files": [
+          {
+            "content": "diff --git a/_oasis b/_oasis\nindex f3733a5..4a7bec5 100644\n--- a/_oasis\n+++ b/_oasis\n@@ -13,7 +13,7 @@ Description:\n   MessagePack is an efficient binary serialization format.\n   If meta_conv is installed, conv module will be installed.\n \n-BuildTools: ocamlbuild, camlp4\n+BuildTools: ocamlbuild\n \n # ------------------------------------------------------------\n # Flags\ndiff --git a/setup.ml b/setup.ml\nindex 26f0f36..2a51166 100644\n--- a/setup.ml\n+++ b/setup.ml\n@@ -6991,8 +6991,7 @@ let setup_t =\n                            FindlibPackage (\"extlib\", None);\n                            FindlibPackage (\"num\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7054,8 +7053,7 @@ let setup_t =\n                            FindlibPackage (\"meta_conv\", None);\n                            InternalLibrary \"msgpack\"\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7102,8 +7100,7 @@ let setup_t =\n                            InternalLibrary \"msgpack\";\n                            FindlibPackage (\"oUnit\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7141,8 +7138,7 @@ let setup_t =\n                            FindlibPackage (\"oUnit\", None);\n                            FindlibPackage (\"meta_conv.syntax\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7185,7 +7181,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_core\"\n                         ]\n                    });\n@@ -7221,7 +7216,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_conv\"\n                         ]\n                    });\n", 
+            "name": "no-camlp4.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --enable-core --${meta_conv_enable:-disable}-conv", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "msgpack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "msgpack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "msgpack_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/meta_conv": "*", 
+        "@opam-alpha/extlib-compat": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/msgpack"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/msgpack/msgpack-ocaml/archive/1.2.0.tar.gz", 
+        "checksum": "3651e4cff262d1191c782ffa94757d33", 
+        "files": [
+          {
+            "content": "diff --git a/_oasis b/_oasis\nindex f3733a5..4a7bec5 100644\n--- a/_oasis\n+++ b/_oasis\n@@ -13,7 +13,7 @@ Description:\n   MessagePack is an efficient binary serialization format.\n   If meta_conv is installed, conv module will be installed.\n \n-BuildTools: ocamlbuild, camlp4\n+BuildTools: ocamlbuild\n \n # ------------------------------------------------------------\n # Flags\ndiff --git a/setup.ml b/setup.ml\nindex 26f0f36..2a51166 100644\n--- a/setup.ml\n+++ b/setup.ml\n@@ -6991,8 +6991,7 @@ let setup_t =\n                       bs_path = \"lib/core\";\n                       bs_compiled_object = Best;\n                       bs_build_depends = [FindlibPackage (\"num\", None)];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7054,8 +7053,7 @@ let setup_t =\n                            FindlibPackage (\"meta_conv\", None);\n                            InternalLibrary \"msgpack\"\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7102,8 +7100,7 @@ let setup_t =\n                            InternalLibrary \"msgpack\";\n                            FindlibPackage (\"oUnit\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7141,8 +7138,7 @@ let setup_t =\n                            FindlibPackage (\"oUnit\", None);\n                            FindlibPackage (\"meta_conv.syntax\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7185,7 +7181,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_core\"\n                         ]\n                    });\n@@ -7221,7 +7216,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_conv\"\n                         ]\n                    });\n", 
+            "name": "no-camlp4.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --enable-core --${meta_conv_enable:-disable}-conv", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "msgpack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "msgpack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "msgpack_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/meta_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/msgpack"
+    }, 
+    "1.2.1": {
+      "version": "1.2.1", 
+      "opam": {
+        "url": "https://github.com/msgpack/msgpack-ocaml/archive/1.2.1.tar.gz", 
+        "checksum": "7043759dada3e988eca65d965c7c3483", 
+        "files": [
+          {
+            "content": "diff --git a/_oasis b/_oasis\nindex f3733a5..4a7bec5 100644\n--- a/_oasis\n+++ b/_oasis\n@@ -13,7 +13,7 @@ Description:\n   MessagePack is an efficient binary serialization format.\n   If meta_conv is installed, conv module will be installed.\n \n-BuildTools: ocamlbuild, camlp4\n+BuildTools: ocamlbuild\n \n # ------------------------------------------------------------\n # Flags\ndiff --git a/setup.ml b/setup.ml\nindex 26f0f36..2a51166 100644\n--- a/setup.ml\n+++ b/setup.ml\n@@ -6991,8 +6991,7 @@ let setup_t =\n                       bs_path = \"lib/core\";\n                       bs_compiled_object = Best;\n                       bs_build_depends = [FindlibPackage (\"num\", None)];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7054,8 +7053,7 @@ let setup_t =\n                            FindlibPackage (\"meta_conv\", None);\n                            InternalLibrary \"msgpack\"\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7102,8 +7100,7 @@ let setup_t =\n                            InternalLibrary \"msgpack\";\n                            FindlibPackage (\"oUnit\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7141,8 +7138,7 @@ let setup_t =\n                            FindlibPackage (\"oUnit\", None);\n                            FindlibPackage (\"meta_conv.syntax\", None)\n                         ];\n-                      bs_build_tools =\n-                        [ExternalTool \"ocamlbuild\"; ExternalTool \"camlp4\"];\n+                      bs_build_tools = [ExternalTool \"ocamlbuild\"];\n                       bs_c_sources = [];\n                       bs_data_files = [];\n                       bs_ccopt = [(OASISExpr.EBool true, [])];\n@@ -7185,7 +7181,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_core\"\n                         ]\n                    });\n@@ -7221,7 +7216,6 @@ let setup_t =\n                       test_tools =\n                         [\n                            ExternalTool \"ocamlbuild\";\n-                           ExternalTool \"camlp4\";\n                            InternalExecutable \"test_conv\"\n                         ]\n                    });\n", 
+            "name": "no-camlp4.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --enable-core --${meta_conv_enable:-disable}-conv", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "msgpack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "msgpack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "msgpack_version": {
+            "scope": "global", 
+            "val": "1.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/meta_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/msgpack"
+    }
+  }
+}

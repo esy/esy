@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://gitlab.com/edwintorok/cmdtui/uploads/d8ed8d08f98a8d3481121df4b9fc13cd/cmdtui-0.3.0.tbz", 
+        "checksum": "00ec10a7c55ac72f7b54aa64a62a702e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --tests false --with-lambda-term ${lambda_term_installed:-false} --with-cmdliner ${cmdliner_installed:-false} --with-logs ${logs_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cmdtui_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "cmdtui_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cmdtui_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": ">= 0.8.3", 
+        "@opam-alpha/fmt": ">= 0.8.0", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/logs": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lambda-term": "*", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/cmdtui"
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-push-notifications/archive/v1.1.1.zip", 
+        "checksum": "9c14c3e218047a66a8f9ecccd7cc539f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_push_notifications_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "cordova_plugin_push_notifications_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_plugin_push_notifications_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-push-notifications"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-push/archive/v1.1.tar.gz", 
+        "checksum": "0376f8d0f31e7b19654e9e6a32a9adca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_push_notifications_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "cordova_plugin_push_notifications_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_plugin_push_notifications_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-push-notifications"
+    }, 
+    "1.1.2": {
+      "version": "1.1.2", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-push-notifications/archive/v1.1.2.zip", 
+        "checksum": "07d8b7d7c46c06b7da0d042054d02bb9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_push_notifications_version": {
+            "scope": "global", 
+            "val": "1.1.2"
+          }, 
+          "cordova_plugin_push_notifications_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_plugin_push_notifications_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-push-notifications"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/dannywillems/ocaml-cordova-plugin-push-notifications/archive/v1.0.tar.gz", 
+        "checksum": "32f788c22e3494f2da11ca7f5ff16e17", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "cordova_plugin_push_notifications_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "cordova_plugin_push_notifications_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "cordova_plugin_push_notifications_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/gen_js_api": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/cordova-plugin-push-notifications"
+    }
+  }
+}

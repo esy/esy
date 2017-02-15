@@ -1,0 +1,213 @@
+{
+  "versions": {
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ocamlrss/ocamlrss-2.1.0.tar.gz", 
+        "checksum": "cfe5bc02f02b91f2578075ceb5cd2359", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlrss_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }, 
+          "ocamlrss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlrss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlrss"
+    }, 
+    "2.2.2": {
+      "version": "2.2.2", 
+      "opam": {
+        "url": "http://zoggy.github.io/ocamlrss/ocamlrss-2.2.2.tar.gz", 
+        "checksum": "072eb405de941d6d07d3780a5a5d01f5", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlrss_version": {
+            "scope": "global", 
+            "val": "2.2.2"
+          }, 
+          "ocamlrss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlrss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlrss"
+    }, 
+    "2.2.1": {
+      "version": "2.2.1", 
+      "opam": {
+        "url": "http://zoggy.github.io/ocamlrss/ocamlrss-2.2.1.tar.gz", 
+        "checksum": "abdb30965a9fc1b65339dd942a8718c9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlrss_version": {
+            "scope": "global", 
+            "val": "2.2.1"
+          }, 
+          "ocamlrss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlrss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlrss"
+    }, 
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "http://zoggy.github.io/ocamlrss/ocamlrss-2.2.0.tar.gz", 
+        "checksum": "f73da5bcda2de3e1b8f7448d2308aea3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlrss_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }, 
+          "ocamlrss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlrss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlrss"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://zoggy.github.com/ocamlrss/ocamlrss-2.0.tar.gz", 
+        "checksum": "4cb8fcd7e0950d7da0f2bf87009a836c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlrss_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "ocamlrss_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlrss_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/xmlm": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlrss"
+    }
+  }
+}

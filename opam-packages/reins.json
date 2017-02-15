@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/ocaml-reins/ocaml-reins/ocaml-reins-0.1a/ocaml-reins-0.1a.tar.gz", 
+        "checksum": "696fa73fcce636f8710b7a83be613383", 
+        "files": [
+          {
+            "content": "diff --git a/OMakefile b/OMakefile\nindex b741412..a281ebc 100644\n--- a/OMakefile\n+++ b/OMakefile\n@@ -1,7 +1,7 @@\n \n include config.omake\n \n-OCAMLFLAGS += -dtypes\n+OCAMLFLAGS = -dtypes -w +a-4-27-k\n \n .SUBDIRS: src doc\n \ndiff --git a/config.omake b/config.omake\nindex 4417254..2bbf1c6 100644\n--- a/config.omake\n+++ b/config.omake\n@@ -1,15 +1,11 @@\n \n static. = \n+\tNATIVE_ENABLED = true\n \tBYTE_ENABLED = true\n-\tUSE_OCAMLFIND=true\n+\tUSE_OCAMLFIND = true\n \tif $(not $(OCAMLFIND_EXISTS))\n \t  eprintln(ocaml-findlib is required to build this project)\n \t  exit 1\n \tOCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)\n-\tOCAMLDEP=$(OCAMLDEP_MODULES)\n-\tPREFIX=$(shell ocamlc -where)\n \tVERSION=0.1a\n-\tConfMsgChecking(oUnit)\n-\tOUNIT_DIR=$(shell ocamlfind query oUnit)\n-\tConfMsgResult($(OUNIT_DIR))\n \texport\ndiff --git a/src/META.in b/src/META.in\nindex 6cbc725..ae33943 100644\n--- a/src/META.in\n+++ b/src/META.in\n@@ -1,3 +1,4 @@\n-version=\"0.1\"\n+version=\"0.1a\"\n archive(byte)=\"reins.cma\"\n-archive(native)=\"reins.cmxa\"\n\\ No newline at end of file\n+archive(native)=\"reins.cmxa\"\n+requires = \"num\"\ndiff --git a/src/OMakefile b/src/OMakefile\nindex 983799d..8a4b991 100644\n--- a/src/OMakefile\n+++ b/src/OMakefile\n@@ -51,6 +51,5 @@ doc: reins.mli\n REINS_CMX=$(if $(NATIVE_ENABLED), reins.cmx)\n \n install: META $(REINS_LIB)\n-\tmkdir -p $(PREFIX)/reins\n-\tocamlfind install reins META $(REINS_LIB) $(REINS_CMX) \\\n+\tocamlfind install reins META $(REINS_LIB) reins.cmi $(REINS_CMX) \\\n \t  $(filter-exists $(addsuffix .mli, $(FILES)))\ndiff --git a/test/unit/OMakefile b/test/unit/OMakefile\nindex 565c83d..e040b4a 100644\n--- a/test/unit/OMakefile\n+++ b/test/unit/OMakefile\n@@ -1,9 +1,8 @@\n \n TESTDIRS = list heap set map\n \n-OCAMLINCLUDES += \\\n-\t$(shell $(OCAMLFIND) query oUnit) \\\n-\t$(ROOT)/src\n+OCAMLPACKS [] = oUnit num\n+OCAMLINCLUDES += $(ROOT)/src\n \n FILES[] = \n \ttest_helper\n@@ -17,10 +16,10 @@ FILES[] =\n OCAMLINCLUDES += $(TESTDIRS)\n \n OCAML_LIBS = $(ROOT)/src/reins \n-OCAML_OTHER_LIBS += str nums unix oUnit\n TEST_PROGRAM = $(OCamlProgram run_unit_tests, $(FILES))\n \n unit_tests.results: $(TEST_PROGRAM)\n \t./run_unit_tests |& tee $@\n \n-.DEFAULT: $(TEST_PROGRAM) unit_tests.results\n+.PHONY: test\n+test: unit_tests.results\n", 
+            "name": "fix_build.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "omake", 
+          "omake install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "reins_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "reins_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "reins_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/reins"
+    }
+  }
+}

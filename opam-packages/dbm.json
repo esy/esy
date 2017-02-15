@@ -1,0 +1,61 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/728/camldbm-1.0.tgz", 
+        "checksum": "79a297c0e0c54fbb3c7e795359e5f902", 
+        "files": [
+          {
+            "content": "Index: camldbm-1.0/configure\n===================================================================\n--- camldbm-1.0.orig/configure\n+++ camldbm-1.0/configure\n@@ -35,7 +35,7 @@ hasgot() {\n   ${CC:-cc} -I$1 -o hasgot.exe hasgot.c $3 $4\n   res=$?\n   rm -f hasgot.c hasgot.exe\n-  return $?\n+  return $res\n }\n \n dbm_include=\"not found\"\n", 
+            "name": "hasgotfix.patch"
+          }, 
+          {
+            "content": "Index: camldbm-1.0/Makefile\n===================================================================\n--- camldbm-1.0.orig/Makefile\n+++ camldbm-1.0/Makefile\n@@ -51,7 +51,7 @@ libcamldbm.$(A): cldbm.$(O)\n \t$(OCAMLOPT) -c $(COMPFLAGS) $<\n \n .c.$(O):\n-\t$(OCAMLC) -c -ccopt \"$(DBM_INCLUDE)\" -ccopt \"$(DBM_DEFINES)\" $<\n+\t$(OCAMLC) -c -ccopt \"$(DBM_INCLUDES)\" -ccopt \"$(DBM_DEFINES)\" $<\n \n depend:\n \t$(OCAMLDEP) *.ml *.mli > .depend\n", 
+            "name": "include_fix.patch"
+          }, 
+          {
+            "content": "diff -C 2 -r -w camldbm-1.0.orig/Makefile camldbm-1.0/Makefile\n*** camldbm-1.0.orig/Makefile\t2011-11-22 16:56:49.000000000 +0100\n--- camldbm-1.0/Makefile\t2016-03-18 15:26:56.032475666 +0100\n***************\n*** 58,62 ****\n  \n  install::\n! \tif test -f dllcamldbm.$(SO); then cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi \n  \tcp libcamldbm.$(A) $(LIBDIR)/\n  \tcd $(LIBDIR) && ranlib libcamldbm.$(A)\n--- 58,62 ----\n  \n  install::\n! \tif test -f dllcamldbm.$(SO); then mkdir $(STUBLIBDIR) || echo Ok; cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi \n  \tcp libcamldbm.$(A) $(LIBDIR)/\n  \tcd $(LIBDIR) && ranlib libcamldbm.$(A)\nOnly in camldbm-1.0: Makefile~\n", 
+            "name": "mkdir-stublibs.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__lib/dbm", 
+          "./configure", 
+          "make all", 
+          "make test", 
+          "make install STUBLIBDIR=$cur__lib/stublibs LIBDIR=$cur__lib/dbm", 
+          "cp META $cur__lib/dbm", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dbm_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dbm_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "dbm_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/dbm"
+    }
+  }
+}

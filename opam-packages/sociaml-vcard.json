@@ -1,0 +1,98 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/dominicjprice/sociaml-vcard/archive/v0.1.0.tar.gz", 
+        "checksum": "71a800fdf3847497dfcef29fe913a9ea", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "./configure --prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sociaml_vcard_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "sociaml_vcard_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sociaml_vcard_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/camomile": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/re2": "*", 
+        "@opam-alpha/menhir": "*", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/sociaml-vcard"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/dominicjprice/sociaml-vcard/archive/v0.2.1.tar.gz", 
+        "checksum": "163d9b005e2317486c41141aab949fee", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "./configure --prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sociaml_vcard_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "sociaml_vcard_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sociaml_vcard_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/ulex": "*", 
+        "@opam-alpha/camomile": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/re2": "*", 
+        "@opam-alpha/menhir": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/sociaml-vcard"
+    }
+  }
+}

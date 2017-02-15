@@ -1,0 +1,200 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/nv-vn/ogen/archive/v0.1.1.tar.gz", 
+        "checksum": "93bc86aefd0f387c8cc0bef587b46198", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "cp ./main.native $cur__bin/ogen", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ogen_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "ogen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ogen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocaml-inifiles": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/linenoise": ">= 0.9.0 < 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.4.0 < 3.0.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/yojson": ">= 1.3.0 < 2.0.0", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0 < 4.0.0", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0 < 0.2.0", 
+        "@opam-alpha/batteries": ">= 2.0.0 < 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ogen"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/nv-vn/ogen/archive/v0.1.2.tar.gz", 
+        "checksum": "20d5fd51ca89ff9c927995b206ce1b5b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "cp ./main.native $cur__bin/ogen", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ogen_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "ogen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ogen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocaml-inifiles": ">= 1.2.0", 
+        "@opam-alpha/linenoise": ">= 0.9.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 2.4.0 < 3.0.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/yojson": ">= 1.3.0", 
+        "@opam-alpha/ppx_deriving": ">= 3.0.0 < 4.0.0", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0", 
+        "@opam-alpha/batteries": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ogen"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "https://github.com/nv-vn/ogen/archive/v0.1.3.tar.gz", 
+        "checksum": "ff01bacaaf2a0ed3a1c4866739a65141", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "cp ./main.native $cur__bin/ogen", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ogen_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }, 
+          "ogen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ogen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocaml-inifiles": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/linenoise": ">= 0.9.0 < 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/yojson": ">= 1.3.0 < 2.0.0", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0", 
+        "@opam-alpha/batteries": ">= 2.0.0 < 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ogen"
+    }, 
+    "0.1.4": {
+      "version": "0.1.4", 
+      "opam": {
+        "url": "https://github.com/nv-vn/ogen/archive/v0.1.4.tar.gz", 
+        "checksum": "9eb1dcf6d66b5a22249c90d268766ddc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "cp ./main.native $cur__bin/ogen", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ogen_version": {
+            "scope": "global", 
+            "val": "0.1.4"
+          }, 
+          "ogen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ogen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocaml-inifiles": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/linenoise": ">= 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ppx_deriving_yojson": ">= 3.0.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/yojson": ">= 1.3.0 < 2.0.0", 
+        "@opam-alpha/ppx_deriving": ">= 4.0.0", 
+        "@opam-alpha/ppx_blob": ">= 0.1.0", 
+        "@opam-alpha/batteries": ">= 2.0.0 < 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ogen"
+    }
+  }
+}

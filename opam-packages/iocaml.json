@@ -1,0 +1,456 @@
+{
+  "versions": {
+    "0.4.9": {
+      "version": "0.4.9", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.9.tar.gz", 
+        "checksum": "472b1ccef004d8f2ba109a075e231f58", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/iocamlserver.byte\" { \"iocaml\" }\n]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.9"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 2.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.8", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.8"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.8": {
+      "version": "0.4.8", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.8.tar.gz", 
+        "checksum": "f9a8db4165a24257d26bf03ef0875636", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/iocamlserver.byte\" { \"iocaml\" }\n]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.8"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 2.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.15.0 < 0.21.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.8", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.8"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.3": {
+      "version": "0.4.3", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.3.tar.gz", 
+        "checksum": "61c8be484a935fe35fb07db0a11167bc", 
+        "files": [
+          {
+            "content": "bin: [\"_build/iocamlserver.byte\" {\"iocaml\"}]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.3"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 0.8.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.2.3", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.3", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.2": {
+      "version": "0.4.2", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.2.tar.gz", 
+        "checksum": "d03065eaecd8ddcce9ddb98fcff062b0", 
+        "files": [
+          {
+            "content": "bin: [\"_build/iocamlserver.byte\" {\"iocaml\"}]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.2"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/lwt-zmq": "*", 
+        "@opam-alpha/websocket": ">= 0.8.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.0", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "@opam-alpha/zmq": ">= 3.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.5": {
+      "version": "0.4.5", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.5.tar.gz", 
+        "checksum": "8ec466e45178a1894cdfbfdf138bc5a5", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/iocamlserver.byte\" { \"iocaml\" }\n]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.5"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 0.8.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.5", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.4": {
+      "version": "0.4.4", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.4.tar.gz", 
+        "checksum": "5a0e70c54339a3c095c6fd7e67ac0297", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/iocamlserver.byte\" { \"iocaml\" }\n]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.4"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 0.8.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.4.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.4", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.4"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.7": {
+      "version": "0.4.7", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.7.tar.gz", 
+        "checksum": "18d70404f5fd7f8269c5b87576b7b2d4", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/iocamlserver.byte\" { \"iocaml\" }\n]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.7"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": ">= 0.9.0 < 1.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.15.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.6", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.6"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }, 
+    "0.4.6": {
+      "version": "0.4.6", 
+      "opam": {
+        "url": "https://github.com/andrewray/iocamlserver/archive/v0.4.6.tar.gz", 
+        "checksum": "31252b292cfc08fb1703d167b06143c2", 
+        "files": [
+          {
+            "content": "diff --git a/filesys-1.1/static/notebook/js/notebook.js b/filesys-1.1/static/notebook/js/notebook.js\nindex 488364b..181e6ec 100644\n--- a/filesys-1.1/static/notebook/js/notebook.js\n+++ b/filesys-1.1/static/notebook/js/notebook.js\n@@ -321,7 +321,7 @@ var IPython = (function (IPython) {\n                 that.split_cell();\n                 that.control_key_active = false;\n                 return false;                                               \n-            } else if (that.control_key_active) {\n+            } else if (event.which !== 229 && that.control_key_active) { /* work around a chromium bug */\n                 that.control_key_active = false;\n                 return true;\n             }\n", 
+            "name": "chromium-bug.patch"
+          }, 
+          {
+            "content": "bin: [\n  \"_build/iocamlserver.byte\" { \"iocaml\" }\n]\n", 
+            "name": "iocaml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "cp config.darwin.ml config.ml", 
+          "make all", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "iocaml_version": {
+            "scope": "global", 
+            "val": "0.4.6"
+          }, 
+          "iocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "iocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/websocket": "= 0.8.1", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ctypes": ">= 0.3.0", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.10.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": "< 2.0.0", 
+        "@opam-alpha/crunch": "*", 
+        "@opam-alpha/iocamljs-kernel": "= 0.4.6", 
+        "@opam-alpha/uuidm": "*", 
+        "@opam-alpha/lwt": ">= 2.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/iocaml-kernel": "= 0.4.6"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/iocaml"
+    }
+  }
+}

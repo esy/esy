@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://bitbucket.org/smondet/pvem/get/pvem.0.0.1.tar.gz", 
+        "checksum": "33f982b96c6621543cba72ff9471b059", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml please.ml build", 
+          "ocaml please.ml install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pvem_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "pvem_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pvem_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/pvem"
+    }
+  }
+}

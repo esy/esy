@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "http://erratique.ch/software/fpath/releases/fpath-0.7.0.tbz", 
+        "checksum": "865c9e7057626894f0e5a54f07bf8295", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fpath_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fpath_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fpath_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/topkg": ">= 0.7.5", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/fpath"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "http://erratique.ch/software/fpath/releases/fpath-0.7.1.tbz", 
+        "checksum": "8e519c022c676ea89b712cfc16134fef", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fpath_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fpath_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "fpath_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/fpath"
+    }
+  }
+}

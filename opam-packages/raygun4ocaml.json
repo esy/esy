@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/lidcore/raygun4ocaml/releases/download/0.1.0/raygun4ocaml-0.1.0.tar.gz", 
+        "checksum": "9358e9430d5db434fff453dc7306c20b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwt", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "raygun4ocaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "raygun4ocaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "raygun4ocaml_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ISO8601": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": ">= 1.5.0", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/raygun4ocaml"
+    }
+  }
+}

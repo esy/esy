@@ -1,0 +1,244 @@
+{
+  "versions": {
+    "112.17.00": {
+      "version": "112.17.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/112.17/files/typerep_extended-112.17.00.tar.gz", 
+        "checksum": "aae12b7edfa962f9efc4f49ade203245", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerep_extended_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "typerep_extended_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerep_extended_version": {
+            "scope": "global", 
+            "val": "112.17.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 112.17.00 < 112.36.00", 
+        "@opam-alpha/core_kernel": ">= 112.17.00 < 112.36.00", 
+        "@opam-alpha/bin_prot": ">= 112.17.00 < 112.36.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/type_conv": ">= 109.53.00 < 112.02.00", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/typerep_extended"
+    }, 
+    "113.24.00": {
+      "version": "113.24.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.24/files/typerep_extended-113.24.00.tar.gz", 
+        "checksum": "98bdf979154a78da923e252cdb84a79e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerep_extended_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "typerep_extended_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerep_extended_version": {
+            "scope": "global", 
+            "val": "113.24.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ppx_bin_prot": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/sexplib": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/core_kernel": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/bin_prot": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/typerep": ">= 113.24.00 < 113.25.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_type_conv": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_sexp_conv": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_typerep_conv": ">= 113.24.00 < 113.25.00", 
+        "@opam-alpha/ppx_driver": ">= 113.24.00 < 113.25.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/typerep_extended"
+    }, 
+    "113.00.00": {
+      "version": "113.00.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.00/files/typerep_extended-113.00.00.tar.gz", 
+        "checksum": "23582e7e478108c89673b46ed62743ca", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerep_extended_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "typerep_extended_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerep_extended_version": {
+            "scope": "global", 
+            "val": "113.00.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": ">= 113.00.00 < 113.01.00", 
+        "@opam-alpha/core_kernel": ">= 113.00.00 < 113.01.00", 
+        "@opam-alpha/bin_prot": ">= 113.00.00 < 113.01.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/type_conv": ">= 113.00.00 < 113.01.00", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/typerep_extended"
+    }, 
+    "113.33.03": {
+      "version": "113.33.03", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/typerep_extended-113.33.03.tar.gz", 
+        "checksum": "926a2b4b589c1806fae435dfa05d49d8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerep_extended_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "typerep_extended_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerep_extended_version": {
+            "scope": "global", 
+            "val": "113.33.03"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ppx_bin_prot": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/sexplib": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/core_kernel": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/bin_prot": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/typerep": ">= 113.33.03 < 113.34.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_type_conv": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ppx_sexp_conv": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ppx_typerep_conv": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/ppx_driver": ">= 113.33.03 < 113.34.00", 
+        "@opam-alpha/js-build-tools": ">= 113.33.04 < 113.34.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/typerep_extended"
+    }, 
+    "113.33.00": {
+      "version": "113.33.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/typerep_extended-113.33.00.tar.gz", 
+        "checksum": "fada8a2f434fd7c1cada205de8692b6c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "typerep_extended_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "typerep_extended_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "typerep_extended_version": {
+            "scope": "global", 
+            "val": "113.33.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ppx_bin_prot": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/sexplib": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/core_kernel": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/bin_prot": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/typerep": ">= 113.24.00 < 113.25.00", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_type_conv": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/ppx_sexp_conv": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/ppx_typerep_conv": ">= 113.33.00 < 113.34.00", 
+        "@opam-alpha/ppx_driver": ">= 113.33.00 < 113.34.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/typerep_extended"
+    }
+  }
+}

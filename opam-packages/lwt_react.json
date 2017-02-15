@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/lwt/archive/2.7.0.tar.gz", 
+        "checksum": "cee770cf9edbda92578c873e7e4c6105", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocamlfind install lwt_react src/react/META", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "lwt_react_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "lwt_react_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "lwt_react_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/react": ">= 1.0.0", 
+        "@opam-alpha/lwt": ">= 2.7.0 < 3.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/lwt_react"
+    }
+  }
+}

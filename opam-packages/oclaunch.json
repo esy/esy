@@ -1,0 +1,196 @@
+{
+  "versions": {
+    "0.3.0-pre1": {
+      "version": "0.3.0-pre1", 
+      "opam": {
+        "url": "http://download.tuxfamily.org/oclaunch/v03/oclaunch_v0.3.0-pre1_src.tar.gz", 
+        "checksum": "46d4dc1fab2ac0f5ba56786f00baa60f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oclaunch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oclaunch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "oclaunch_version": {
+            "scope": "global", 
+            "val": "0.3.0-pre1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/textutils": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/re2": "*", 
+        "@opam-alpha/core": ">= 112.35.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/oclaunch"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "http://download.tuxfamily.org/oclaunch/sources/oclaunch-v0.1.3_patched.tar.gz", 
+        "checksum": "5654d8f9e96b5ce7c93a6a3b8416c686", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/oclaunch.byte\" {\"oclaunch\"}\n  \"?_build/src/oclaunch.native\" {\"oclaunch\"}\n]\n", 
+            "name": "oclaunch.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oclaunch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oclaunch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "oclaunch_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/core_extended": "*", 
+        "@opam-alpha/atdgen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/oclaunch"
+    }, 
+    "0.2.2": {
+      "version": "0.2.2", 
+      "opam": {
+        "url": "http://download.tuxfamily.org/oclaunch/sources/oclaunch-0.2.2_patched.tar.gz", 
+        "checksum": "c06788cbf4893a33145a974ca13ef75a", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/oclaunch.byte\" {\"oclaunch\"}\n  \"?_build/src/oclaunch.native\" {\"oclaunch\"}\n]\n", 
+            "name": "oclaunch.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oclaunch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oclaunch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "oclaunch_version": {
+            "scope": "global", 
+            "val": "0.2.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/core_extended": "*", 
+        "@opam-alpha/atdgen": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/oclaunch"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "http://download.tuxfamily.org/oclaunch/sources/oclaunch-v0.2.1_patched.tar.gz", 
+        "checksum": "3a3fdb41d23224e65c5fbbbafbdebbba", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/oclaunch.byte\" {\"oclaunch\"}\n  \"?_build/src/oclaunch.native\" {\"oclaunch\"}\n]\n", 
+            "name": "oclaunch.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oclaunch_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oclaunch_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "oclaunch_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/atdgen": "*", 
+        "@opam-alpha/core": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/oclaunch"
+    }
+  }
+}

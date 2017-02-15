@@ -1,0 +1,401 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.3.0.tar.gz", 
+        "checksum": "94c5f760b303d34eb501912cbbdaffae", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.3.0 < 0.4.0", 
+        "@opam-alpha/x509": ">= 0.2.1 < 0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cstruct": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.6.0.tar.gz", 
+        "checksum": "db25b519c287b6d97be46c805b9e64ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.6.0 < 2.0.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.5.0", 
+        "@opam-alpha/x509": ">= 0.4.0 < 0.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ounit": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.7.0.tar.gz", 
+        "checksum": "b040eef1a998ecc18965dc14f7d628e1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.6.0 < 2.0.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.5.0 < 0.5.3", 
+        "@opam-alpha/x509": ">= 0.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ounit": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.7.1.tar.gz", 
+        "checksum": "81e9122b63d7fa5a0b1b9333d61adb62", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.9.0", 
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/nocrypto": ">= 0.5.3", 
+        "@opam-alpha/x509": ">= 0.5.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/ppx_sexp_conv": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ounit": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.2.0.tar.gz", 
+        "checksum": "751b9ce247c237d9d9cdf388917479b1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.2.0 < 0.3.0", 
+        "@opam-alpha/x509": ">= 0.2.0 < 0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cstruct": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.1.0.tar.gz", 
+        "checksum": "2813f5ad88fe021599f9aabe08f8908f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": "= 0.1.0", 
+        "@opam-alpha/x509": "= 0.1.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cstruct": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.4.0.tar.gz", 
+        "checksum": "fc568c2e2140bcb0efe8db40852d1319", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.3.0 < 0.4.0", 
+        "@opam-alpha/x509": ">= 0.3.0 < 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/mirleft/ocaml-tls/archive/0.5.0.tar.gz", 
+        "checksum": "45a19a587179a65cf108d74c267c0692", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${lwt_enable:-disable}-lwt --${mirage_types_lwt_enable:-disable}-mirage", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tls_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "tls_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tls_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/cstruct": ">= 1.2.0 < 2.0.0", 
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.4.0 < 0.5.0", 
+        "@opam-alpha/x509": ">= 0.3.0 < 0.4.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/tls"
+    }
+  }
+}

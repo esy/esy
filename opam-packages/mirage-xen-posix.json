@@ -1,0 +1,209 @@
+{
+  "versions": {
+    "2.3.0": {
+      "version": "2.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.3.0.tar.gz", 
+        "checksum": "4bae08a22f8260f764646620ce83d084", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-posix-build", 
+          "make xen-posix-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_posix_version": {
+            "scope": "global", 
+            "val": "2.3.0"
+          }, 
+          "mirage_xen_posix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_posix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen-posix"
+    }, 
+    "2.3.1": {
+      "version": "2.3.1", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.3.1.tar.gz", 
+        "checksum": "4d2918daafd0dc192d537f8422bf43cb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-posix-build", 
+          "make xen-posix-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_posix_version": {
+            "scope": "global", 
+            "val": "2.3.1"
+          }, 
+          "mirage_xen_posix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_posix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen-posix"
+    }, 
+    "2.3.3": {
+      "version": "2.3.3", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.3.3.tar.gz", 
+        "checksum": "5746cfe4d3d16844c5ce81a357ffd9a0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-posix-build", 
+          "make xen-posix-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_posix_version": {
+            "scope": "global", 
+            "val": "2.3.3"
+          }, 
+          "mirage_xen_posix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_posix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen-posix"
+    }, 
+    "2.3.4": {
+      "version": "2.3.4", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.3.4.tar.gz", 
+        "checksum": "00402709acf64d7405091c587a81e4eb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-posix-build", 
+          "make xen-posix-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_posix_version": {
+            "scope": "global", 
+            "val": "2.3.4"
+          }, 
+          "mirage_xen_posix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_posix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen-posix"
+    }, 
+    "2.6.0": {
+      "version": "2.6.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-platform/archive/v2.6.0.tar.gz", 
+        "checksum": "e9d5ec80ae06b42658e48af130aea7c1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make xen-posix-build", 
+          "make xen-posix-install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_xen_posix_version": {
+            "scope": "global", 
+            "val": "2.6.0"
+          }, 
+          "mirage_xen_posix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_xen_posix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/conf-pkg-config": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-xen-minios": ">= 0.7.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-xen-posix"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "versions": {
+    "0.11.0": {
+      "version": "0.11.0", 
+      "opam": {
+        "url": "https://github.com/hcarty/ocaml-grib/archive/v0.11.0.tar.gz", 
+        "checksum": "7e1b8cc9bcd7a407d75578f61d6e22dd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "grib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "grib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "grib_version": {
+            "scope": "global", 
+            "val": "0.11.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/bear": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1"
+      }, 
+      "name": "@opam-alpha/grib"
+    }, 
+    "0.9.7": {
+      "version": "0.9.7", 
+      "opam": {
+        "url": "https://github.com/hcarty/ocaml-grib/archive/v0.9.7.tar.gz", 
+        "checksum": "80016011743fbfce450d27f74be849f0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "grib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "grib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "grib_version": {
+            "scope": "global", 
+            "val": "0.9.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/batteries": "*", 
+        "@opam-alpha/pcre": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/grib"
+    }
+  }
+}

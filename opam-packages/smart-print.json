@@ -1,0 +1,129 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/clarus/smart-print/archive/v0.1.0.tar.gz", 
+        "checksum": "f3d41b3de45ccdde0f0fe190d150a719", 
+        "files": [
+          {
+            "content": "diff --git a/smartPrint.ml b/smartPrint.ml\nindex 8d1479a..90598b7 100644\n--- a/smartPrint.ml\n+++ b/smartPrint.ml\n@@ -1,3 +1,6 @@\n+external (|>) : 'a -> ('a -> 'b) -> 'b = \"%revapply\";;\n+external ( @@ ) : ('a -> 'b) -> 'a -> 'b = \"%apply\"\n+\n (* Separators. *)\n module Break = struct\n   (* A break can be a whitespace or a newline if the text has to be splited. *)\n@@ -418,4 +421,4 @@ let to_out_channel (width : int) (tab : int) (c : out_channel) (d : t) : unit =\n     (output_char c) (output_string c) output_sub_string d\n \n let to_stdout (width : int) (tab : int) (d : t) : unit =\n-  to_out_channel width tab stdout d\n\\ No newline at end of file\n+  to_out_channel width tab stdout d\n", 
+            "name": "operators.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "smart_print_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "smart_print_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "smart_print_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/smart-print"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/clarus/smart-print/archive/v0.1.1.tar.gz", 
+        "checksum": "3f09f44acd212431c058013be42e1da8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "smart_print_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "smart_print_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "smart_print_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/smart-print"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/clarus/smart-print/archive/v0.2.0.tar.gz", 
+        "checksum": "8602be66d57c1f0525651263b5fff370", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "smart_print_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "smart_print_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }, 
+          "smart_print_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/smart-print"
+    }
+  }
+}

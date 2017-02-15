@@ -1,0 +1,52 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/dotcy/swdogen/archive/v0.1.0.tar.gz", 
+        "checksum": "5acda525576395e9d2e809f4e02beba0", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/main.byte\" {\"swdogen\"}\n  \"?_build/src/main.native\" {\"swdogen\"}\n]\n", 
+            "name": "swdogen.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "swdogen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "swdogen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "swdogen_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/atdgen": ">= 1.2.3", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/swdogen"
+    }
+  }
+}

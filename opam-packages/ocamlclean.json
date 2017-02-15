@@ -1,0 +1,90 @@
+{
+  "versions": {
+    "2.1.0": {
+      "version": "2.1.0", 
+      "opam": {
+        "url": "http://www.algo-prog.info/ocapic/web/lib/exe/fetch.php?media=ocapic:ocamlclean-2.1.tar.bz2", 
+        "checksum": "66b45a96980d44df8db72e9d03c8353e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlclean_version": {
+            "scope": "global", 
+            "val": "2.1.0"
+          }, 
+          "ocamlclean_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlclean_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocamlclean"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": "http://www.algo-prog.info/ocapic/web/lib/exe/fetch.php?media=ocamlclean-2.0.tar.bz2", 
+        "checksum": "c72c562c5c77e12e731bd3b934fee376", 
+        "files": [
+          {
+            "content": "diff --git a/configure b/configure\nindex 73cd90a..9e5fcc1 100755\n--- a/configure\n+++ b/configure\n@@ -76,10 +76,10 @@ done\n echo -n \"\\\n BINDIR = $BINDIR\n MAN1DIR = $MANDIR/man1\n-OCAMLC = $OCAMLC -w Ae -warn-error A\n-OCAMLOPT = $OCAMLOPT -w Ae -warn-error A\n+OCAMLC = $OCAMLC -w Ae\n+OCAMLOPT = $OCAMLOPT -w Ae\n OCAMLC_UNSAFE = $OCAMLC\n-OCAMLBUILD = $OCAMLBUILD -cflags -w,Ae,-warn-error,A -lflags -w,Ae,-warn-error,A -no-links -classic-display\n+OCAMLBUILD = $OCAMLBUILD -cflags -w,Ae -lflags -w,Ae -no-links -classic-display\n BIN = $PWD/bin\n ETC = $PWD/etc\n DIST = $PWD/dist\n", 
+            "name": "disable-warn-error.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlclean_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "ocamlclean_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamlclean_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlclean"
+    }
+  }
+}

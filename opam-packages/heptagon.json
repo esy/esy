@@ -1,0 +1,242 @@
+{
+  "versions": {
+    "1.00.06": {
+      "version": "1.00.06", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/33440/heptagon-1.00.06.tar.gz", 
+        "checksum": "5ab84717e8b14009660b7f8e91d4e553", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "heptagon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "heptagon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "heptagon_version": {
+            "scope": "global", 
+            "val": "1.00.06"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/menhir": "< 20141215.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/heptagon"
+    }, 
+    "1.03.01": {
+      "version": "1.03.01", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/35902/heptagon-1.03.01.tar.gz", 
+        "checksum": "ed0e0b9e9a0462a781758cc6498a395f", 
+        "files": [
+          {
+            "content": "bin: [\n  \"compiler/_build/main/heptc.byte\" {\"heptc\"}\n  \"?compiler/_build/main/hepts.byte\" {\"hepts\"}\n  \"?compiler/_build/main/ctrl2ept.byte\" {\"ctrl2ept\"}\n  \"?compiler/_build/main/heptc.native\" {\"heptc.opt\"}\n  \"?compiler/_build/main/hepts.native\" {\"hepts.opt\"}\n  \"?compiler/_build/main/ctrl2ept.native\" {\"ctrl2ept.opt\"}\n]\nlib: [\n  \"lib/c/math.c\" {\"c/math.c\"}\n  \"lib/c/math.h\" {\"c/math.h\"}\n  \"lib/c/pervasives.h\" {\"c/pervasives.h\"}\n  \"lib/iostream.epci\" {\"iostream.epci\"}\n  \"lib/iostream.epi\" {\"iostream.epi\"}\n  \"lib/math.epci\" {\"math.epci\"}\n  \"lib/math.epi\" {\"math.epi\"}\n  \"lib/pervasives.epci\" {\"pervasives.epci\"}\n  \"lib/pervasives.epi\" {\"pervasives.epi\"}\n]\n", 
+            "name": "heptagon.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "heptagon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "heptagon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "heptagon_version": {
+            "scope": "global", 
+            "val": "1.03.01"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/reatk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/menhir": ">= 20141215.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/heptagon"
+    }, 
+    "1.03.00": {
+      "version": "1.03.00", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/35466/heptagon-1.03.00.tar.gz", 
+        "checksum": "84c930f50e1c758e9a58b642de76745c", 
+        "files": [
+          {
+            "content": "bin: [\n  \"compiler/_build/main/heptc.byte\" {\"heptc\"}\n  \"?compiler/_build/main/hepts.byte\" {\"hepts\"}\n  \"?compiler/_build/main/ctrl2ept.byte\" {\"ctrl2ept\"}\n  \"?compiler/_build/main/heptc.native\" {\"heptc.opt\"}\n  \"?compiler/_build/main/hepts.native\" {\"hepts.opt\"}\n  \"?compiler/_build/main/ctrl2ept.native\" {\"ctrl2ept.opt\"}\n]\nlib: [\n  \"lib/c/math.c\" {\"c/math.c\"}\n  \"lib/c/math.h\" {\"c/math.h\"}\n  \"lib/c/pervasives.h\" {\"c/pervasives.h\"}\n  \"lib/iostream.epci\" {\"iostream.epci\"}\n  \"lib/iostream.epi\" {\"iostream.epi\"}\n  \"lib/math.epci\" {\"math.epci\"}\n  \"lib/math.epi\" {\"math.epi\"}\n  \"lib/pervasives.epci\" {\"pervasives.epci\"}\n  \"lib/pervasives.epi\" {\"pervasives.epi\"}\n]\n", 
+            "name": "heptagon.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "heptagon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "heptagon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "heptagon_version": {
+            "scope": "global", 
+            "val": "1.03.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/reatk": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/menhir": ">= 20141215.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/heptagon"
+    }, 
+    "1.02.00": {
+      "version": "1.02.00", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/35402/heptagon-1.02.00.tar.gz", 
+        "checksum": "937cf92c1c89753b1e9dc7f975d43738", 
+        "files": [
+          {
+            "content": "bin: [\n  \"compiler/_build/main/heptc.byte\" {\"heptc\"}\n  \"?compiler/_build/main/hepts.byte\" {\"hepts\"}\n  \"?compiler/_build/main/ctrl2ept.byte\" {\"ctrl2ept\"}\n  \"?compiler/_build/main/heptc.native\" {\"heptc.opt\"}\n  \"?compiler/_build/main/hepts.native\" {\"hepts.opt\"}\n  \"?compiler/_build/main/ctrl2ept.native\" {\"ctrl2ept.opt\"}\n]\nlib: [\n  \"lib/c/math.c\" {\"c/math.c\"}\n  \"lib/c/math.h\" {\"c/math.h\"}\n  \"lib/c/pervasives.h\" {\"c/pervasives.h\"}\n  \"lib/iostream.epci\" {\"iostream.epci\"}\n  \"lib/iostream.epi\" {\"iostream.epi\"}\n  \"lib/math.epci\" {\"math.epci\"}\n  \"lib/math.epi\" {\"math.epi\"}\n  \"lib/pervasives.epci\" {\"pervasives.epci\"}\n  \"lib/pervasives.epi\" {\"pervasives.epi\"}\n]\n", 
+            "name": "heptagon.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "heptagon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "heptagon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "heptagon_version": {
+            "scope": "global", 
+            "val": "1.02.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/menhir": ">= 20141215.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/heptagon"
+    }, 
+    "1.01.00": {
+      "version": "1.01.00", 
+      "opam": {
+        "url": "https://gforge.inria.fr/frs/download.php/file/35143/heptagon-1.01.00.tar.gz", 
+        "checksum": "6f42ea04361c910dc0347dd4567095f2", 
+        "files": [
+          {
+            "content": "bin: [\n  \"compiler/_build/main/heptc.byte\" {\"heptc\"}\n  \"?compiler/_build/main/hepts.byte\" {\"hepts\"}\n  \"?compiler/_build/main/ctrl2ept.byte\" {\"ctrl2ept\"}\n  \"?compiler/_build/main/heptc.native\" {\"heptc.opt\"}\n  \"?compiler/_build/main/hepts.native\" {\"hepts.opt\"}\n  \"?compiler/_build/main/ctrl2ept.native\" {\"ctrl2ept.opt\"}\n]\nlib: [\n  \"lib/c/math.c\" {\"c/math.c\"}\n  \"lib/c/math.h\" {\"c/math.h\"}\n  \"lib/c/pervasives.h\" {\"c/pervasives.h\"}\n  \"lib/iostream.epci\" {\"iostream.epci\"}\n  \"lib/iostream.epi\" {\"iostream.epi\"}\n  \"lib/math.epci\" {\"math.epci\"}\n  \"lib/math.epi\" {\"math.epi\"}\n  \"lib/pervasives.epci\" {\"pervasives.epci\"}\n  \"lib/pervasives.epi\" {\"pervasives.epi\"}\n]\n", 
+            "name": "heptagon.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "heptagon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "heptagon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "heptagon_version": {
+            "scope": "global", 
+            "val": "1.01.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlgraph": "*", 
+        "@opam-alpha/menhir": ">= 20141215.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/heptagon"
+    }
+  }
+}

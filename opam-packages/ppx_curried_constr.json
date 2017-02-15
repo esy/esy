@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/ppx_curried_constr/get/1.0.0.tar.gz", 
+        "checksum": "5360d9f6c68056c66a46ccf9c680d4e1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_curried_constr_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_curried_constr_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "ppx_curried_constr_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "< 0.10.1"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.2 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_curried_constr"
+    }
+  }
+}

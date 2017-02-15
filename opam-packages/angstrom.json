@@ -1,0 +1,148 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/angstrom/archive/0.1.0.tar.gz", 
+        "checksum": "9cf0a0a5372b377fa3c032be5f7c0318", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${base_unix_enable:-disable}-unix --${lwt_enable:-disable}-lwt --${async_enable:-disable}-async", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "angstrom_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "angstrom_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "angstrom_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.0", 
+        "@opam-alpha/alcotest": ">= 0.4.1", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/angstrom"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/angstrom/archive/0.1.1.tar.gz", 
+        "checksum": "ecc3dd0accdc39b74c48997eaba5f3e9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${base_unix_enable:-disable}-unix --${lwt_enable:-disable}-lwt --${async_enable:-disable}-async", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "angstrom_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "angstrom_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "angstrom_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.0", 
+        "@opam-alpha/alcotest": ">= 0.4.1", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/angstrom"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/angstrom/archive/0.2.0.tar.gz", 
+        "checksum": "febfbc1473ee4286e4255f69f2187a6a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install --${base_unix_enable:-disable}-unix --${lwt_enable:-disable}-lwt --${async_enable:-disable}-async", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "angstrom_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "angstrom_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "angstrom_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/cstruct": ">= 0.7.0", 
+        "@opam-alpha/alcotest": ">= 0.4.1", 
+        "@opam-alpha/async": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocplib-endian": ">= 0.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/base-unix": "*", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/angstrom"
+    }
+  }
+}

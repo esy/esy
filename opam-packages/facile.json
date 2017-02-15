@@ -1,0 +1,61 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "http://opti.recherche.enac.fr/facile/distrib/facile-1.1.tar.gz", 
+        "checksum": "ab673e1fc0859a42bcb639a02c2d7e9e", 
+        "files": [
+          {
+            "content": "--- a/Makefile.orig\t2013-09-01 19:17:45.000000000 +0100\n+++ b/Makefile\t2013-09-01 19:17:53.000000000 +0100\n@@ -3,7 +3,7 @@\n include config_Makefile\n \n compile:\n-\tcd src; make\n+\tcd src; $(MAKE)\n \n install:\n \tif test -d $(FACILEDIR); then : ; else mkdir $(FACILEDIR); fi\n@@ -14,10 +14,10 @@\n \tchmod a+r $(FACILEDIR)/facile.a\n \n clean:\n-\tcd src; make clean\n+\tcd src; $(MAKE) clean\n \n distclean uninstall:\n \trm -fr $(FACILEDIR)\n \n check:\n-\tcd examples; make FACILEDIR=../src queens.opt; ./queens.opt 8\n+\tcd examples; $(MAKE) FACILEDIR=../src queens.opt; ./queens.opt 8\n--- a/src/Makefile.orig\t2013-09-01 19:20:47.000000000 +0100\n+++ b/src/Makefile\t2013-09-01 19:21:07.000000000 +0100\n@@ -28,7 +28,7 @@\n # Version of the library to be linked with the -p (profiler) option\n facile.p.cmxa : $(CSTR)\n \trm -fr $(CSTRCMX)\n-\tmake facile.cmxa OPTOPT=-p\n+\t$(MAKE) facile.cmxa OPTOPT=-p\n \trm -fr $(CSTRCMX)\n \tmv facile.cmxa $@\n \tmv facile.a facile.p.a\n@@ -41,8 +41,8 @@\n # Does not work with many modules (e.g. containing class expressions\n facile.exp.cmxa : $(CSTR)\n \trm -fr $(CSTRCMX)\n-\tmake fcl_stak.cmx fcl_cstr.cmx fcl_inv.cmx fcl_reify.cmx fcl_arith.cmx fcl_goals.cmx fcl_fdArray.cmx fcl_gcc.cmx fcl_alldiff.cmx fcl_sorting.cmx fcl_interval.cmx facile.cmx\n-\tmake facile.cmxa OPTOPT=\"-pp inline_functors\"\n+\t$(MAKE) fcl_stak.cmx fcl_cstr.cmx fcl_inv.cmx fcl_reify.cmx fcl_arith.cmx fcl_goals.cmx fcl_fdArray.cmx fcl_gcc.cmx fcl_alldiff.cmx fcl_sorting.cmx fcl_interval.cmx facile.cmx\n+\t$(MAKE) facile.cmxa OPTOPT=\"-pp inline_functors\"\n \trm -fr $(CSTRCMX)\n \tmv facile.cmxa $@\n \tmv facile.a facile.exp.a\n", 
+            "name": "bsdmake.patch"
+          }, 
+          {
+            "content": "lib: [\"META\"]\n", 
+            "name": "facile.install"
+          }, 
+          {
+            "content": "name = \"facile\"\nversion = \"1.1\"\ndescription = \"A CSP(Fd) library for OCaml\"\narchive(byte) = \"facile.cma\"\narchive(native) = \"facile.cmxa\"", 
+            "name": "META"
+          }, 
+          {
+            "content": "diff -rupN facile-1.1/src/fcl_data.ml facile-1.1-patched//src/fcl_data.ml\n--- facile-1.1/src/fcl_data.ml\t2004-09-08 11:51:02.000000000 +0200\n+++ facile-1.1-patched//src/fcl_data.ml\t2012-12-16 13:49:36.286722670 +0100\n@@ -16,7 +16,7 @@ end\n \n module Hashtbl = struct\n   type ('a, 'b) t = ('a, 'b) Hashtbl.t\n-  let create = Hashtbl.create\n+  let create x = Hashtbl.create x\n   let get h = h\n \n   let add h k d =\n", 
+            "name": "ocaml_4.00.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -faciledir $cur__lib/facile", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "facile_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "facile_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "facile_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/facile"
+    }
+  }
+}

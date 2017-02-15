@@ -1,0 +1,139 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-osx-xattr/archive/0.1.0.tar.gz", 
+        "checksum": "d0c92f1c47f46e915cb4713cf8e12071", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "osx_xattr_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "osx_xattr_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "osx_xattr_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": ">= 0.4.0 < 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/osx-xattr"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-osx-xattr/archive/0.3.0.tar.gz", 
+        "checksum": "7f1e2eb8e4c12a3b10b67c2b5309122c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "osx_xattr_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "osx_xattr_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "osx_xattr_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": ">= 0.6.2", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/osx-xattr"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-osx-xattr/archive/0.2.0.tar.gz", 
+        "checksum": "089fa8382c09d27140befa450d595575", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "osx_xattr_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "osx_xattr_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "osx_xattr_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/alcotest": "*", 
+        "@opam-alpha/ctypes": ">= 0.4.0 < 0.6.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/unix-type-representations": "*", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/unix-errno": ">= 0.4.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/osx-xattr"
+    }
+  }
+}

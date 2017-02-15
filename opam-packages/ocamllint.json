@@ -1,0 +1,131 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/ocamllint/archive/v0.1.0.tar.gz", 
+        "checksum": "b61c8bd5d9942f187bdd73a0e4e448e6", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamllint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamllint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamllint_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ppx_deriving": "*", 
+        "@opam-alpha/ppx_tools": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocamllint"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/ocamllint/archive/v0.3.0.tar.gz", 
+        "checksum": "225f5182cdfc40ee6c71ad0367c971ce", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamllint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamllint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamllint_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 5.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.04.0"
+      }, 
+      "name": "@opam-alpha/ocamllint"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/cryptosense/ocamllint/archive/v0.2.0.tar.gz", 
+        "checksum": "f09848b2dd24fb574a1d50545cac08ea", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamllint_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ocamllint_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamllint_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.5.0", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ocamllint"
+    }
+  }
+}

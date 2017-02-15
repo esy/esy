@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.5": {
+      "version": "0.1.5", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-gavl/0.1.5/ocaml-gavl-0.1.5.tar.gz", 
+        "checksum": "f55a9984e05f32bffecdce21c6784943", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gavl_version": {
+            "scope": "global", 
+            "val": "0.1.5"
+          }, 
+          "gavl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gavl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gavl"
+    }, 
+    "0.1.6": {
+      "version": "0.1.6", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-gavl/releases/download/0.1.6/ocaml-gavl-0.1.6.tar.gz", 
+        "checksum": "6a95cb233b1929bd9d54431a7c7c4aa1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "gavl_version": {
+            "scope": "global", 
+            "val": "0.1.6"
+          }, 
+          "gavl_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "gavl_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/gavl"
+    }
+  }
+}

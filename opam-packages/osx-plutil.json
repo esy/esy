@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "https://github.com/dsheets/ocaml-osx-plutil/archive/0.5.0.tar.gz", 
+        "checksum": "5e0bca8642147c799523fcafba5116b9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "osx_plutil_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "osx_plutil_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "osx_plutil_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/result": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/process": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/osx-plutil"
+    }
+  }
+}

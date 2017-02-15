@@ -1,0 +1,530 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.3.0.tar.gz", 
+        "checksum": "9cb4676472e19780149dde5b243b5b65", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.8": {
+      "version": "0.1.8", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.8.tar.gz", 
+        "checksum": "3e7b0ddd20d98cf5b1f44f29c0eb5670", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.2.1.tar.gz", 
+        "checksum": "a73658b7c769124f583ef83f71e6d289", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.2.0.tar.gz", 
+        "checksum": "0299c02b229c88707cabf1c7d0bc674e", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.0.tar.gz", 
+        "checksum": "eecebed1b7dbd60df5504f0f05ac9c0a", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/mpp_main.byte\" {\"mpp\"}\n  \"?_build/src/mpp_main.native\" {\"mpp\"}\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.1.tar.gz", 
+        "checksum": "0d669151a1aca2bfcaa45d3dbe57f402", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/mpp_main.byte\" {\"mpp\"}\n  \"?_build/src/mpp_main.native\" {\"mpp\"}\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.2.tar.gz", 
+        "checksum": "ed0ca474443f70da0bb5e20930456676", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/mpp_main.byte\" {\"mpp\"}\n  \"?_build/src/mpp_main.native\" {\"mpp\"}\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.3.tar.gz", 
+        "checksum": "bce7c5d8d13bed67ee6ca80b776cf7a4", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/mpp_main.byte\" {\"mpp\"}\n  \"?_build/src/mpp_main.native\" {\"mpp\"}\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.4": {
+      "version": "0.1.4", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.4.tar.gz", 
+        "checksum": "f960727ec51b95f1ed2224bc51a296bb", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/mpp_main.byte\" {\"mpp\"}\n  \"?_build/src/mpp_main.native\" {\"mpp\"}\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.4"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.5": {
+      "version": "0.1.5", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.5.tar.gz", 
+        "checksum": "9d457dfbcebff6424860c99c6a50db34", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?_build/src/mpp_main.byte\" {\"mpp\"}\n  \"?_build/src/mpp_main.native\" {\"mpp\"}\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.5"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }, 
+    "0.1.7": {
+      "version": "0.1.7", 
+      "opam": {
+        "url": "http://pw374.github.io/distrib/mpp/mpp-0.1.7.tar.gz", 
+        "checksum": "aa15c4ec59a6a3623f7398825dad9ce1", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "mpp.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mpp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mpp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mpp_version": {
+            "scope": "global", 
+            "val": "0.1.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mpp"
+    }
+  }
+}

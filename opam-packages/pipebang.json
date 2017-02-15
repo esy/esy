@@ -1,0 +1,127 @@
+{
+  "versions": {
+    "110.01.00": {
+      "version": "110.01.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/110.01.00/individual/pipebang-110.01.00.tar.gz", 
+        "checksum": "09094ac5a5ccdf7f8b7a6115ce228a40", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pipebang_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pipebang_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pipebang_version": {
+            "scope": "global", 
+            "val": "110.01.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/pipebang"
+    }, 
+    "109.60.00": {
+      "version": "109.60.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/109.60.00/individual/pipebang-109.60.00.tar.gz", 
+        "checksum": "6b616b84e558b85cf0415532bc196c78", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pipebang_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pipebang_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pipebang_version": {
+            "scope": "global", 
+            "val": "109.60.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/pipebang"
+    }, 
+    "113.00.00": {
+      "version": "113.00.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.00/files/pipebang-113.00.00.tar.gz", 
+        "checksum": "685ee2184eb95270751c58790f93dd0b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pipebang_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pipebang_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pipebang_version": {
+            "scope": "global", 
+            "val": "113.00.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pipebang"
+    }
+  }
+}

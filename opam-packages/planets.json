@@ -1,0 +1,94 @@
+{
+  "versions": {
+    "0.1.13": {
+      "version": "0.1.13", 
+      "opam": {
+        "url": "http://pkgs.fedoraproject.org/repo/pkgs/planets/planets-0.1.13.tgz/2c72f2469ee0413bd470a2ad84f2f0f8/planets-0.1.13.tgz", 
+        "checksum": "2c72f2469ee0413bd470a2ad84f2f0f8", 
+        "files": [
+          {
+            "content": "bin: [\"planets\"]\n", 
+            "name": "planets.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "mkdir -p $cur__bin", 
+          "make", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "planets_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "planets_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "planets_version": {
+            "scope": "global", 
+            "val": "0.1.13"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 3.12.1"
+      }, 
+      "name": "@opam-alpha/planets"
+    }, 
+    "0.1.14": {
+      "version": "0.1.14", 
+      "opam": {
+        "url": "https://bitbucket.org/yminsky/planets/get/0.1.14.tar.bz2", 
+        "checksum": "e6021803ad140299656231574187a6f2", 
+        "files": [
+          {
+            "content": "bin: [\"planets\"]\n", 
+            "name": "planets.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./build.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "planets_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "planets_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "planets_version": {
+            "scope": "global", 
+            "val": "0.1.14"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/labltk": "*", 
+        "@opam-alpha/core": "< 113.24.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/planets"
+    }
+  }
+}

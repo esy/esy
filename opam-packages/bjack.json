@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.4": {
+      "version": "0.1.4", 
+      "opam": {
+        "url": "http://downloads.sourceforge.net/project/savonet/ocaml-bjack/0.1.4/ocaml-bjack-0.1.4.tar.gz", 
+        "checksum": "9638b5fa1695d2ab20078874aceae888", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bjack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bjack_version": {
+            "scope": "global", 
+            "val": "0.1.4"
+          }, 
+          "bjack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bjack"
+    }, 
+    "0.1.5": {
+      "version": "0.1.5", 
+      "opam": {
+        "url": "https://github.com/savonet/ocaml-bjack/releases/download/0.1.5/ocaml-bjack-0.1.5.tar.gz", 
+        "checksum": "684b2bac4b55d7ef35c72d42f32eee3f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bjack_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bjack_version": {
+            "scope": "global", 
+            "val": "0.1.5"
+          }, 
+          "bjack_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bjack"
+    }
+  }
+}

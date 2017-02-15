@@ -1,0 +1,91 @@
+{
+  "versions": {
+    "2.5.0": {
+      "version": "2.5.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocamlfind query dns.mirage", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_dns_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_dns_version": {
+            "scope": "global", 
+            "val": "2.5.0"
+          }, 
+          "mirage_dns_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.3.0 < 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/dns": ">= 0.15.1", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tcpip": "*", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-dns"
+    }, 
+    "2.0.0": {
+      "version": "2.0.0", 
+      "opam": {
+        "url": null, 
+        "checksum": null, 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_dns_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_dns_version": {
+            "scope": "global", 
+            "val": "2.0.0"
+          }, 
+          "mirage_dns_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types-lwt": ">= 2.0.0 < 3.0.0", 
+        "@opam-alpha/cstruct": ">= 1.0.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/dns": ">= 0.11.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/lwt": ">= 2.4.3", 
+        "@opam-alpha/tcpip": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/mirage-dns"
+    }
+  }
+}

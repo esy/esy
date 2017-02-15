@@ -1,0 +1,88 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/orbitz/ocaml-protobuf/archive/1.0.0.tar.gz", 
+        "checksum": "b8c1ff122fb411808a81bca7a554e00d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "protobuf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "protobuf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "protobuf_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/core": "<= 111.13.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/protobuf"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/orbitz/ocaml-protobuf/archive/0.0.2.tar.gz", 
+        "checksum": "e3b137066f7bec998cc1f810f3f59358", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "protobuf_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "protobuf_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "protobuf_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/bitstring": "*", 
+        "@opam-alpha/core": "<= 111.13.00", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/protobuf"
+    }
+  }
+}

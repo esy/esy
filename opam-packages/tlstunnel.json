@@ -1,0 +1,190 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/hannesm/tlstunnel/archive/0.1.0.tar.gz", 
+        "checksum": "f4bb89842dc5d64cea3d117bc00e5d2d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tlstunnel_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "tlstunnel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tlstunnel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.4.0", 
+        "@opam-alpha/x509": ">= 0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.5.0 < 0.6.0", 
+        "@opam-alpha/lwt": "< 2.7.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tlstunnel"
+    }, 
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/hannesm/tlstunnel/archive/0.1.1.tar.gz", 
+        "checksum": "4ac26f7cf09a7e82fef3b696564416e1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tlstunnel_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "tlstunnel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tlstunnel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "< 113.01.00", 
+        "@opam-alpha/nocrypto": ">= 0.4.0", 
+        "@opam-alpha/x509": ">= 0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.6.0 < 0.7.1", 
+        "@opam-alpha/lwt": "< 2.7.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tlstunnel"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/hannesm/tlstunnel/archive/0.1.2.tar.gz", 
+        "checksum": "7f300c022260abca8bf44a213a302d21", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "sh -exc if test -f ./tlstunnel.native; then ./tlstunnel.native --help > _build/tlstunnel.1; else ./tlstunnel.byte --help > _build/tlstunnel.1; fi", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tlstunnel_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "tlstunnel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tlstunnel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/nocrypto": ">= 0.4.0", 
+        "@opam-alpha/x509": ">= 0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.6.0 < 0.7.1", 
+        "@opam-alpha/lwt": "< 2.7.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tlstunnel"
+    }, 
+    "0.1.3": {
+      "version": "0.1.3", 
+      "opam": {
+        "url": "https://github.com/hannesm/tlstunnel/archive/0.1.3.tar.gz", 
+        "checksum": "d20e77f916b09c7b22ac4b65a853d928", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/build.ml native=true native-dynlink=true", 
+          "sh -exc if test -f ./tlstunnel.native; then ./tlstunnel.native --help > _build/tlstunnel.1; else ./tlstunnel.byte --help > _build/tlstunnel.1; fi", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "tlstunnel_version": {
+            "scope": "global", 
+            "val": "0.1.3"
+          }, 
+          "tlstunnel_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "tlstunnel_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/sexplib": "*", 
+        "@opam-alpha/nocrypto": ">= 0.4.0", 
+        "@opam-alpha/x509": ">= 0.3.0", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/tls": ">= 0.6.0", 
+        "@opam-alpha/lwt": "< 2.7.0", 
+        "@opam-alpha/cmdliner": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/tlstunnel"
+    }
+  }
+}

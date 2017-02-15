@@ -1,0 +1,211 @@
+{
+  "versions": {
+    "113.24.00": {
+      "version": "113.24.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.24/files/ppx_core-113.24.00.tar.gz", 
+        "checksum": "6b596cd65ea466909a8fa0347b15010b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_core_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_core_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_core_version": {
+            "scope": "global", 
+            "val": "113.24.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_core"
+    }, 
+    "113.33.01": {
+      "version": "113.33.01", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/ppx_core-113.33.01+4.03.tar.gz", 
+        "checksum": "8270531d5b0b595f66e08bc9456e4042", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_core_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_core_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_core_version": {
+            "scope": "global", 
+            "val": "113.33.01"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_core"
+    }, 
+    "113.33.03": {
+      "version": "113.33.03", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/ppx_core-113.33.03.tar.gz", 
+        "checksum": "043a6c5582b7aff0f8906b11792c6080", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_core_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_core_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_core_version": {
+            "scope": "global", 
+            "val": "113.33.03"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/ppx_tools": ">= 0.99.3", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/js-build-tools": ">= 113.33.04 < 113.34.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/ppx_core"
+    }, 
+    "113.33.00": {
+      "version": "113.33.00", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/ppx_core-113.33.00+4.03.tar.gz", 
+        "checksum": "b7395ba7abfcf578a760344be803de1e", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_core_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_core_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_core_version": {
+            "scope": "global", 
+            "val": "113.33.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": ">= 0.99.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_core"
+    }, 
+    "113.09.00": {
+      "version": "113.09.00", 
+      "opam": {
+        "url": "https://github.com/janestreet/ppx_core/archive/113.09.00.tar.gz", 
+        "checksum": "7175dd2248206e5896b931fd3ddc0e02", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ppx_core_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ppx_core_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "ppx_core_version": {
+            "scope": "global", 
+            "val": "113.09.00"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "@opam-alpha/ppx_deriving": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/ppx_core"
+    }
+  }
+}

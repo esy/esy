@@ -1,0 +1,104 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/avsm/oasis/archive/avsm+mirage-xen.tar.gz", 
+        "checksum": "f15b4c086b7f178be4a317b4f8ac805b", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/src/cli/Main.byte\" {\"oasis\"}\n]\n", 
+            "name": "oasis.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oasis_mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oasis_mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "oasis_mirage_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlify": "*", 
+        "@opam-alpha/ocaml-data-notation": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/ocamlmod": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oasis-mirage"
+    }, 
+    "0.3.0a": {
+      "version": "0.3.0a", 
+      "opam": {
+        "url": "https://github.com/avsm/oasis/archive/avsm+mirage-xen2.tar.gz", 
+        "checksum": "daa43bde8b8519091847c4447b8fba11", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/src/cli/Main.byte\" {\"oasis\"}\n]\n", 
+            "name": "oasis.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "oasis_mirage_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "oasis_mirage_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "oasis_mirage_version": {
+            "scope": "global", 
+            "val": "0.3.0a"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ocamlify": "*", 
+        "@opam-alpha/ocaml-data-notation": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/fileutils": "*", 
+        "@opam-alpha/ocamlmod": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/oasis-mirage"
+    }
+  }
+}

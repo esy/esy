@@ -1,0 +1,178 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/BYVoid/Dlist/archive/v0.1.0.tar.gz", 
+        "checksum": "c1d4231c188b6e512e5037a32ed99039", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocp-build -init", 
+          "ocp-build build", 
+          "ocp-build install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dlist_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dlist_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dlist_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core_bench": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/dlist"
+    }, 
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/BYVoid/Dlist/archive/v0.0.1.tar.gz", 
+        "checksum": "a41f9f4446d7da56b4a15bc07cf5a44f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dlist_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dlist_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dlist_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "*", 
+        "@opam-alpha/core_bench": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/dlist"
+    }, 
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "https://github.com/BYVoid/Dlist/archive/v0.0.3.tar.gz", 
+        "checksum": "fd8094867a381c856e943d2bb9b3b9b3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocp-build -init", 
+          "ocp-build build", 
+          "ocp-build install dlist", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dlist_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dlist_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dlist_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocp-build": ">= 1.99.6", 
+        "@opam-alpha/ounit": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core_bench": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/dlist"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/BYVoid/Dlist/archive/v0.0.2.tar.gz", 
+        "checksum": "46c12c66c62457acb9219e018faae666", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "dlist_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "dlist_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "dlist_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/core": "*", 
+        "@opam-alpha/core_bench": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.1"
+      }, 
+      "name": "@opam-alpha/dlist"
+    }
+  }
+}

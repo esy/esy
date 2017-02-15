@@ -1,0 +1,53 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/avsm/jekyll-format/releases/download/v0.1.0/jekyll-format-0.1.0.tbz", 
+        "checksum": "a16f308684848ba53b7166589b8a802f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --tests false", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "jekyll_format_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "jekyll_format_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "jekyll_format_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/fmt": "*", 
+        "@opam-alpha/alcotest": ">=0.7.0", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/rresult": "*", 
+        "@opam-alpha/omd": "*", 
+        "@opam-alpha/ptime": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/fpath": "*", 
+        "@opam-alpha/bos": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/jekyll-format"
+    }
+  }
+}

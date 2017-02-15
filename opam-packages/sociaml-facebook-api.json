@@ -1,0 +1,107 @@
+{
+  "versions": {
+    "0.4.1": {
+      "version": "0.4.1", 
+      "opam": {
+        "url": "https://github.com/dominicjprice/sociaml-facebook-api/archive/v0.4.1.tar.gz", 
+        "checksum": "5ccb8fbeb4128ceee8c541d80364e156", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "./configure --prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sociaml_facebook_api_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sociaml_facebook_api_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sociaml_facebook_api_version": {
+            "scope": "global", 
+            "val": "0.4.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/tiny_json_conv": "*", 
+        "@opam-alpha/tiny_json": "*", 
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/cohttp": ">= 0.18.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/csv": "*", 
+        "@opam-alpha/ppx_meta_conv": "*", 
+        "@opam-alpha/lwt": "< 3.0.0", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/calendar": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.1"
+      }, 
+      "name": "@opam-alpha/sociaml-facebook-api"
+    }, 
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/dominicjprice/sociaml-facebook-api/archive/v0.4.0.tar.gz", 
+        "checksum": "7cb24524f736f554b1c132a586c81b1a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "oasis setup", 
+          "./configure --prefix $cur__install", 
+          "make build", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sociaml_facebook_api_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sociaml_facebook_api_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "sociaml_facebook_api_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/tiny_json_conv": "*", 
+        "@opam-alpha/core_kernel": "*", 
+        "@opam-alpha/uri": "*", 
+        "@opam-alpha/cohttp": ">= 0.12.0 < 0.18.0", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/meta_conv": "*", 
+        "@opam-alpha/csv": "*", 
+        "@opam-alpha/lwt": "< 3.0.0", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/calendar": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/sociaml-facebook-api"
+    }
+  }
+}

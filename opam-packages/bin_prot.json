@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "113.33.03": {
+      "version": "113.33.03", 
+      "opam": {
+        "url": "https://ocaml.janestreet.com/ocaml-core/113.33/files/bin_prot-113.33.03.tar.gz", 
+        "checksum": "d90c8977da36e4aafd3e0421744fd818", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install --${mirage_xen_enable:-disable}-xen", 
+          "make", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "CAML_LD_LIBRARY_PATH": {
+            "scope": "global", 
+            "val": "$opam_alpha_bin_prot__lib/stublibs:$CAML_LD_LIBRARY_PATH"
+          }, 
+          "bin_prot_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bin_prot_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "bin_prot_version": {
+            "scope": "global", 
+            "val": "113.33.03"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": ">= 1.3.2", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/js-build-tools": ">= 113.33.04 < 113.34.00"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "= 4.02.3"
+      }, 
+      "name": "@opam-alpha/bin_prot"
+    }
+  }
+}

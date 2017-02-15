@@ -1,0 +1,91 @@
+{
+  "versions": {
+    "113.00.00": {
+      "version": "113.00.00", 
+      "opam": {
+        "url": "https://github.com/janestreet/pa_sexp_conv/archive/113.00.00.tar.gz", 
+        "checksum": "de8e69d53b6a2d1b3d47284267c2aca0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_sexp_conv_version": {
+            "scope": "global", 
+            "val": "113.00.00"
+          }, 
+          "pa_sexp_conv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pa_sexp_conv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pa_sexp_conv"
+    }, 
+    "113.00.01": {
+      "version": "113.00.01", 
+      "opam": {
+        "url": "https://github.com/janestreet/pa_sexp_conv/archive/113.00.01.tar.gz", 
+        "checksum": "ce291059d215e6e2d64f1924c68a37cd", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_sexp_conv_version": {
+            "scope": "global", 
+            "val": "113.00.01"
+          }, 
+          "pa_sexp_conv_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pa_sexp_conv_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.1 < 4.03.0"
+      }, 
+      "name": "@opam-alpha/pa_sexp_conv"
+    }
+  }
+}

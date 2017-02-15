@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.2.7": {
+      "version": "0.2.7", 
+      "opam": {
+        "url": "https://github.com/Kakadu/QOcamlBrowser_quick/archive/0.2.7.tar.gz", 
+        "checksum": "92fa0ddf6695487b51cc0af84abd4733", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install PREFIX=$cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "qocamlbrowser_version": {
+            "scope": "global", 
+            "val": "0.2.7"
+          }, 
+          "qocamlbrowser_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "qocamlbrowser_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lablqt": ">= 0.3.0", 
+        "@opam-alpha/conf-qt": ">= 5.2.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/qocamlbrowser"
+    }
+  }
+}

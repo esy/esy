@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/bvaugon/obytelib/archive/1.1.tar.gz", 
+        "checksum": "d5ed657b5bc6a31f36d7b263043db7bf", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "obytelib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "obytelib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "obytelib_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/obytelib"
+    }
+  }
+}

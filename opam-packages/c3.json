@@ -1,0 +1,92 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-c3/archive/v0.3.0.tar.gz", 
+        "checksum": "bd10a4cb49319d8e24fab4a485893b6f", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "c3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "c3_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "c3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/c3"
+    }, 
+    "0.2.1": {
+      "version": "0.2.1", 
+      "opam": {
+        "url": "https://github.com/djs55/ocaml-c3/archive/v0.2.1.tar.gz", 
+        "checksum": "1c8a772f9c8ad6288f836168b54862fc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "c3_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "c3_version": {
+            "scope": "global", 
+            "val": "0.2.1"
+          }, 
+          "c3_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/js_of_ocaml": ">= 2.5.0", 
+        "@opam-alpha/cohttp": "*", 
+        "@opam-alpha/oasis": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/c3"
+    }
+  }
+}

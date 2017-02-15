@@ -1,0 +1,277 @@
+{
+  "versions": {
+    "1.8.5": {
+      "version": "1.8.5", 
+      "opam": {
+        "url": "http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.5.tar.gz", 
+        "checksum": "75dde65bfc3f9b07e795343d369aa84d", 
+        "files": [
+          {
+            "content": "lib: [\n  \"graph.cma\"\n  \"graph.cmi\"\n  \"graph.cmxa\"\n  \"graph.a\"\n]\n", 
+            "name": "ocamlgraph.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "touch ./configure", 
+          "./configure", 
+          "make", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlgraph_version": {
+            "scope": "global", 
+            "val": "1.8.5"
+          }, 
+          "ocamlgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlgraph"
+    }, 
+    "1.8.6": {
+      "version": "1.8.6", 
+      "opam": {
+        "url": "http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.6.tar.gz", 
+        "checksum": "afbc24f0e0eb72c2d3eda64b68513e73", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "touch ./configure", 
+          "./configure", 
+          "make", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlgraph_version": {
+            "scope": "global", 
+            "val": "1.8.6"
+          }, 
+          "ocamlgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlgraph"
+    }, 
+    "1.8.7": {
+      "version": "1.8.7", 
+      "opam": {
+        "url": "http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.7.tar.gz", 
+        "checksum": "e733b8309b9374e89d96e907ecaf4f76", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "touch ./configure", 
+          "./configure", 
+          "make", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlgraph_version": {
+            "scope": "global", 
+            "val": "1.8.7"
+          }, 
+          "ocamlgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlgraph"
+    }, 
+    "1.8.1": {
+      "version": "1.8.1", 
+      "opam": {
+        "url": "http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.1.tar.gz", 
+        "checksum": "5aa256e9587a6d264d189418230af698", 
+        "files": [
+          {
+            "content": "lib: [\n  \"graph.cma\"\n  \"graph.cmi\"\n  \"graph.cmxa\"\n  \"graph.a\"\n]\n", 
+            "name": "ocamlgraph.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install --exec-prefix=$cur__install", 
+          "make", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlgraph_version": {
+            "scope": "global", 
+            "val": "1.8.1"
+          }, 
+          "ocamlgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlgraph"
+    }, 
+    "1.8.2": {
+      "version": "1.8.2", 
+      "opam": {
+        "url": "http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.2.tar.gz", 
+        "checksum": "efa4394bc4651c90de443ff61c7477e6", 
+        "files": [
+          {
+            "content": "lib: [\n  \"graph.cma\"\n  \"graph.cmi\"\n  \"graph.cmxa\"\n  \"graph.a\"\n]\n", 
+            "name": "ocamlgraph.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlgraph_version": {
+            "scope": "global", 
+            "val": "1.8.2"
+          }, 
+          "ocamlgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlgraph"
+    }, 
+    "1.8.3": {
+      "version": "1.8.3", 
+      "opam": {
+        "url": "http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.3.tar.gz", 
+        "checksum": "ad2dc42f74c77dae9302c40cf2b5ff86", 
+        "files": [
+          {
+            "content": "diff -u -r ocamlgraph-1.8.3/Makefile.in ocamlgraph-new/Makefile.in\n--- Makefile.in\t2013-04-17 20:30:17.000000000 +0200\n+++ Makefile.in.new\t2013-09-02 17:29:25.225954859 +0200\n@@ -372,8 +372,10 @@\n \t$(OCAMLFIND) install ocamlgraph META \\\n \t\t$(SRCDIR)/*.mli $(VIEWER_DIR)/*.mli $(DGRAPH_DIR)/*.mli \\\n \t\tgraph$(LIBEXT) graph.cmx graph.cmo graph.cmi $(CMA) $(CMXA) \\\n-\t\t$(VIEWER_CMXLIB) $(VIEWER_CMOLIB) $(DGRAPH_CMXLIB) \\\n-\t\t$(DGRAPH_CMOLIB)\n+\t\t$(VIEWER_CMXLIB) $(VIEWER_CMOLIB) $(VIEWER_CMILIB) \\\n+                $(VIEWER_CMXLIB:.cmx=.o) \\\n+                $(DGRAPH_CMXLIB) $(DGRAPH_CMOLIB) $(DGRAPH_CMILIB) \\\n+                $(DGRAPH_CMXLIB:.cmx=.o)\n else\n \t$(OCAMLFIND) install ocamlgraph META \\\n \t\t$(SRCDIR)/*.mli $(VIEWER_DIR)/*.mli $(DGRAPH_DIR)/*.mli \\\n", 
+            "name": "install-findlib-dgraph.patch"
+          }, 
+          {
+            "content": "lib: [\n  \"graph.cma\"\n  \"graph.cmi\"\n  \"graph.cmxa\"\n  \"graph.a\"\n]\n", 
+            "name": "ocamlgraph.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure", 
+          "make", 
+          "make install-findlib", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlgraph_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlgraph_version": {
+            "scope": "global", 
+            "val": "1.8.3"
+          }, 
+          "ocamlgraph_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlgraph"
+    }
+  }
+}

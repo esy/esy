@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/savonet/liquidsoap-daemon/archive/0.1.1.tar.gz", 
+        "checksum": "2ea977667be6254b79a72cb01584bfb3", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./daemonize-liquidsoap.sh", 
+          "env init_type=launchd ./daemonize-liquidsoap.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "liquidsoap_daemon_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "liquidsoap_daemon_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "liquidsoap_daemon_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/liquidsoap": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/liquidsoap-daemon"
+    }
+  }
+}

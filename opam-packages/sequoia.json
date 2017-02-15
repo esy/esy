@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/andrenth/sequoia/archive/0.1.0.tar.gz", 
+        "checksum": "9a314cd5452224be688f2902f27bedb4", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix=$cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sequoia_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "sequoia_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sequoia_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ppx_tools": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.04.0"
+      }, 
+      "name": "@opam-alpha/sequoia"
+    }
+  }
+}

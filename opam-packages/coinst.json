@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "1.9.1": {
+      "version": "1.9.1", 
+      "opam": {
+        "url": "https://github.com/vouillon/coinst/archive/v1.9.1.tar.gz", 
+        "checksum": "d22acb79330b12e9667c16bdfd2321db", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make depend", 
+          "make", 
+          "install -c coinst coinst-upgrades comigrate $cur__install/bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "coinst_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "coinst_version": {
+            "scope": "global", 
+            "val": "1.9.1"
+          }, 
+          "coinst_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/cudf": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.02.0"
+      }, 
+      "name": "@opam-alpha/coinst"
+    }
+  }
+}

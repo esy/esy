@@ -1,0 +1,136 @@
+{
+  "versions": {
+    "1.2.7": {
+      "version": "1.2.7", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/pxp-1.2.7.tar.gz", 
+        "checksum": "267831139d56233739e96567ed07aa6c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -without-wlex -without-wlex-compat -lexlist utf8,iso88591", 
+          "make all", 
+          "make opt", 
+          "make install MANDIR=$cur__man", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pxp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pxp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pxp_version": {
+            "scope": "global", 
+            "val": "1.2.7"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0 < 4.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/pxp"
+    }, 
+    "1.2.3": {
+      "version": "1.2.3", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/pxp-1.2.3.tar.gz", 
+        "checksum": "83347420dae0ee495bb0ac2fbab7b74b", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -without-wlex -without-wlex-compat -lexlist utf8,iso88591", 
+          "make all", 
+          "make opt", 
+          "make install MANDIR=$cur__man", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pxp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pxp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pxp_version": {
+            "scope": "global", 
+            "val": "1.2.3"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 3.6.0 < 4.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/pxp"
+    }, 
+    "1.2.8": {
+      "version": "1.2.8", 
+      "opam": {
+        "url": "http://download.camlcity.org/download/pxp-1.2.8.tar.gz", 
+        "checksum": "e9155cf1705287a52f90ec3737924d8a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure -without-wlex -without-wlex-compat -lexlist utf8,iso88591", 
+          "make all", 
+          "make opt", 
+          "make install MANDIR=$cur__man", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pxp_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "pxp_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pxp_version": {
+            "scope": "global", 
+            "val": "1.2.8"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ocamlnet": ">= 4.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ulex": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0 <= 4.02.3"
+      }, 
+      "name": "@opam-alpha/pxp"
+    }
+  }
+}

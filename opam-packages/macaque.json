@@ -1,0 +1,276 @@
+{
+  "versions": {
+    "0.6.1": {
+      "version": "0.6.1", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1093/macaque-0.6.1.tar.gz", 
+        "checksum": "8a5ec0b908e4f3eaccec41fa0b64edde", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "macaque_version": {
+            "scope": "global", 
+            "val": "0.6.1"
+          }, 
+          "macaque_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "macaque_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/pgocaml": "< 2.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/macaque"
+    }, 
+    "0.6.0": {
+      "version": "0.6.0", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/1027/macaque-0.6.tar.gz", 
+        "checksum": "dd9990a1bab85e0df66dfa0cd6896662", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make -C src", 
+          "make -C src install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "macaque_version": {
+            "scope": "global", 
+            "val": "0.6.0"
+          }, 
+          "macaque_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "macaque_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/pgocaml": "< 2.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/macaque"
+    }, 
+    "0.7.2": {
+      "version": "0.7.2", 
+      "opam": {
+        "url": "https://github.com/ocsigen/macaque/archive/0.7.2.tar.gz", 
+        "checksum": "dd34af1893b0aaa265edaef53529a5de", 
+        "files": [
+          {
+            "content": "diff --git a/configure b/configure\nindex d2a26d1..3985b43 100755\n--- a/configure\n+++ b/configure\n@@ -1,7 +1,7 @@\n #!/bin/sh\n \n # OASIS_START\n-# DO NOT EDIT (digest: 6f7b8221311e800a7093dc3b793f67ca)\n+# DO NOT EDIT (digest: 67dd0def14e1d99625d2485f6a4d5df1)\n set -e\n \n FST=true\n@@ -23,5 +23,9 @@ for i in \"$@\"; do\n   esac\n done\n \n-make configure CONFIGUREFLAGS=\"$*\"\n+if [ ! -e setup.exe ] || [ _oasis -nt setup.exe ] || [ setup.ml -nt setup.exe ] || [ configure -nt setup.exe ]; then\n+  ocamlfind ocamlopt -o setup.exe setup.ml || ocamlfind ocamlc -o setup.exe setup.ml || exit 1\n+  rm -f setup.cmi setup.cmo setup.cmx setup.o\n+fi\n+./setup.exe -configure \"$@\"\n # OASIS_STOP\n", 
+            "name": "fix-configure.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "macaque_version": {
+            "scope": "global", 
+            "val": "0.7.2"
+          }, 
+          "macaque_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "macaque_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/pgocaml": ">= 2.2.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/macaque"
+    }, 
+    "0.7.0": {
+      "version": "0.7.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/macaque/archive/0.7.tar.gz", 
+        "checksum": "fa35be694cda6ecc916573f2c43183cc", 
+        "files": [
+          {
+            "content": "diff --git a/configure b/configure\nindex d2a26d1..3985b43 100755\n--- a/configure\n+++ b/configure\n@@ -1,7 +1,7 @@\n #!/bin/sh\n \n # OASIS_START\n-# DO NOT EDIT (digest: 6f7b8221311e800a7093dc3b793f67ca)\n+# DO NOT EDIT (digest: 67dd0def14e1d99625d2485f6a4d5df1)\n set -e\n \n FST=true\n@@ -23,5 +23,9 @@ for i in \"$@\"; do\n   esac\n done\n \n-make configure CONFIGUREFLAGS=\"$*\"\n+if [ ! -e setup.exe ] || [ _oasis -nt setup.exe ] || [ setup.ml -nt setup.exe ] || [ configure -nt setup.exe ]; then\n+  ocamlfind ocamlopt -o setup.exe setup.ml || ocamlfind ocamlc -o setup.exe setup.ml || exit 1\n+  rm -f setup.cmi setup.cmo setup.cmx setup.o\n+fi\n+./setup.exe -configure \"$@\"\n # OASIS_STOP\n", 
+            "name": "fix-configure.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "macaque_version": {
+            "scope": "global", 
+            "val": "0.7.0"
+          }, 
+          "macaque_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "macaque_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/pgocaml": "< 2.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/macaque"
+    }, 
+    "0.7.1": {
+      "version": "0.7.1", 
+      "opam": {
+        "url": "https://github.com/ocsigen/macaque/archive/0.7.1.tar.gz", 
+        "checksum": "ab8388b9c3008f19dfde0f1f4ef41214", 
+        "files": [
+          {
+            "content": "diff --git a/configure b/configure\nindex d2a26d1..3985b43 100755\n--- a/configure\n+++ b/configure\n@@ -1,7 +1,7 @@\n #!/bin/sh\n \n # OASIS_START\n-# DO NOT EDIT (digest: 6f7b8221311e800a7093dc3b793f67ca)\n+# DO NOT EDIT (digest: 67dd0def14e1d99625d2485f6a4d5df1)\n set -e\n \n FST=true\n@@ -23,5 +23,9 @@ for i in \"$@\"; do\n   esac\n done\n \n-make configure CONFIGUREFLAGS=\"$*\"\n+if [ ! -e setup.exe ] || [ _oasis -nt setup.exe ] || [ setup.ml -nt setup.exe ] || [ configure -nt setup.exe ]; then\n+  ocamlfind ocamlopt -o setup.exe setup.ml || ocamlfind ocamlc -o setup.exe setup.ml || exit 1\n+  rm -f setup.cmi setup.cmo setup.cmx setup.o\n+fi\n+./setup.exe -configure \"$@\"\n # OASIS_STOP\n", 
+            "name": "fix-configure.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "macaque_version": {
+            "scope": "global", 
+            "val": "0.7.1"
+          }, 
+          "macaque_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "macaque_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/pgocaml": ">= 2.0.0"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/macaque"
+    }, 
+    "0.7.4": {
+      "version": "0.7.4", 
+      "opam": {
+        "url": "https://github.com/ocsigen/macaque/archive/0.7.4.tar.gz", 
+        "checksum": "5c7e0c9526146d94bae34e3a065bede9", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "macaque_version": {
+            "scope": "global", 
+            "val": "0.7.4"
+          }, 
+          "macaque_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "macaque_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": ">= 0.4.4", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/pgocaml": ">= 2.2.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/macaque"
+    }
+  }
+}

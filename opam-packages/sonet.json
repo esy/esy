@@ -1,0 +1,84 @@
+{
+  "versions": {
+    "0.1.1": {
+      "version": "0.1.1", 
+      "opam": {
+        "url": "https://github.com/pmundkur/sonet/archive/v0.1.1.tar.gz", 
+        "checksum": "c26d2f18a74d1a458f19ad3ba14badac", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sonet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sonet_version": {
+            "scope": "global", 
+            "val": "0.1.1"
+          }, 
+          "sonet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/sonet"
+    }, 
+    "0.1.2": {
+      "version": "0.1.2", 
+      "opam": {
+        "url": "https://github.com/pmundkur/sonet/archive/v0.1.2.tar.gz", 
+        "checksum": "5174875920b75e33f120e78bd6cf3f87", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "sonet_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "sonet_version": {
+            "scope": "global", 
+            "val": "0.1.2"
+          }, 
+          "sonet_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/sonet"
+    }
+  }
+}

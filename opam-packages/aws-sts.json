@@ -1,0 +1,46 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/inhabitedtype/ocaml-aws/releases/download/aws-1.0.2/aws-sts-0.1.0.tar.gz", 
+        "checksum": "085af19f937559080d30c000d6cab44d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "aws_sts_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }, 
+          "aws_sts_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "aws_sts_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/aws": ">= 0.1.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/ocamlfind": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/aws-sts"
+    }
+  }
+}

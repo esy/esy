@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/juergenhoetzel/ocaml-systemd/archive/1.1.tar.gz", 
+        "checksum": "4179c7a16571a5495e92a5b36791aa12", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocaml_systemd_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "ocaml_systemd_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocaml_systemd_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocaml-systemd"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "versions": {
+    "0.0.1": {
+      "version": "0.0.1", 
+      "opam": {
+        "url": "https://github.com/hannesm/logs-syslog/releases/download/0.0.1/logs-syslog-0.0.1.tbz", 
+        "checksum": "1a293d1396ab2c360cfecca5bb29c569", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-lwt ${lwt_installed:-false} --with-mirage ${mirage_types_installed:-false} --with-tls ${x509_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_syslog_version": {
+            "scope": "global", 
+            "val": "0.0.1"
+          }, 
+          "logs_syslog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_syslog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/x509": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/logs": "*", 
+        "@opam-alpha/ptime": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/tls": "*", 
+        "@opam-alpha/syslog-message": ">= 0.0.2", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/logs-syslog"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://github.com/hannesm/logs-syslog/releases/download/0.0.2/logs-syslog-0.0.2.tbz", 
+        "checksum": "44e53e4d5e033a179e524fabaeccb01a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --pinned false --with-lwt ${lwt_installed:-false} --with-mirage ${mirage_types_installed:-false} --with-tls ${x509_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "logs_syslog_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "logs_syslog_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "logs_syslog_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage-types": "*", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/x509": "*", 
+        "@opam-alpha/cstruct": "*", 
+        "@opam-alpha/logs": "*", 
+        "@opam-alpha/ptime": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/result": "*", 
+        "@opam-alpha/tls": "*", 
+        "@opam-alpha/syslog-message": ">= 0.0.2", 
+        "@opam-alpha/lwt": "*", 
+        "@opam-alpha/io-page": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/logs-syslog"
+    }
+  }
+}

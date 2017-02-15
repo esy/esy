@@ -1,0 +1,50 @@
+{
+  "versions": {
+    "0.99.0": {
+      "version": "0.99.0", 
+      "opam": {
+        "url": "https://github.com/ocsigen/ocsigen-start/archive/v0.99.tar.gz", 
+        "checksum": "94dfe6df6438af994f2523aee15eecf0", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocsigen_start_version": {
+            "scope": "global", 
+            "val": "0.99.0"
+          }, 
+          "ocsigen_start_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocsigen_start_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/eliom": ">= 6.0.0", 
+        "@opam-alpha/yojson": "*", 
+        "@opam-alpha/ocsigen-toolkit": ">= 0.99.0", 
+        "@opam-alpha/macaque": ">= 0.7.4", 
+        "@opam-alpha/pgocaml": ">= 2.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/imagemagick": "*", 
+        "@opam-alpha/safepass": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.0"
+      }, 
+      "name": "@opam-alpha/ocsigen-start"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "versions": {
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://bitbucket.org/camlspotter/pa_ovisitor/get/1.0.0.tar.gz", 
+        "checksum": "8b780264a3fcc0eaa435393c8c2d1543", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "pa_ovisitor_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "pa_ovisitor_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "pa_ovisitor_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/omake": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.0.1"
+      }, 
+      "name": "@opam-alpha/pa_ovisitor"
+    }
+  }
+}

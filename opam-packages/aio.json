@@ -1,0 +1,49 @@
+{
+  "versions": {
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/818/libaio-ocaml_1.0.orig.tar.gz", 
+        "checksum": "bc99ae0567d9feb4952c73da305aeb95", 
+        "files": [
+          {
+            "content": "diff -ur libaio-ocaml-1.0-orig/lib/META libaio-ocaml-1.0/lib/META\n--- libaio-ocaml-1.0-orig/lib/META\t2013-08-24 14:08:16.922728137 +0100\n+++ libaio-ocaml-1.0/lib/META\t2013-08-24 14:08:28.282728434 +0100\n@@ -2,5 +2,4 @@\n description = \"Linux kernel AIO access library for OCaml\"\n archive(byte) = \"aio.cma\"\n archive(native) = \"aio.cmxa\"\n-directory = \"+aio\"\n requires = \"unix,bigarray\"\n", 
+            "name": "meta.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "aio_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "aio_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "aio_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/aio"
+    }
+  }
+}

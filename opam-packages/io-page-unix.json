@@ -1,0 +1,86 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/io-page/archive/0.1.0.tar.gz", 
+        "checksum": "e1558627dd05d438befa14165f7df896", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make unix-build", 
+          "make unix-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "io_page_unix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "io_page_unix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "io_page_unix_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cstruct": ">= 0.8.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/io-page-unix"
+    }, 
+    "0.9.9": {
+      "version": "0.9.9", 
+      "opam": {
+        "url": "https://github.com/mirage/io-page/archive/v0.9.9.tar.gz", 
+        "checksum": "3001aeec835ba4c9aad77c307696c3be", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make unix-build", 
+          "make unix-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "io_page_unix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "io_page_unix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "io_page_unix_version": {
+            "scope": "global", 
+            "val": "0.9.9"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cstruct": ">= 0.8.1", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/io-page-unix"
+    }
+  }
+}

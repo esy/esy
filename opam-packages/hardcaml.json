@@ -1,0 +1,175 @@
+{
+  "versions": {
+    "1.1.1": {
+      "version": "1.1.1", 
+      "opam": {
+        "url": "https://github.com/ujamjar/hardcaml/archive/v1.1.1.tar.gz", 
+        "checksum": "1e5276594e52549b42a9ce458ae6d04a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hardcaml_version": {
+            "scope": "global", 
+            "val": "1.1.1"
+          }, 
+          "hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hardcaml"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/ujamjar/hardcaml/archive/v1.1.0.tar.gz", 
+        "checksum": "c9d9af2497e8680d17baca3b3176f9ed", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hardcaml_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }, 
+          "hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hardcaml"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/ujamjar/hardcaml/archive/v1.0.tar.gz", 
+        "checksum": "e4bdf2eba07d76ba3288ddbd18e9b316", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make all", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hardcaml_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }, 
+          "hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/js_of_ocaml": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hardcaml"
+    }, 
+    "1.2.0": {
+      "version": "1.2.0", 
+      "opam": {
+        "url": "https://github.com/ujamjar/hardcaml/archive/v1.2.0.tar.gz", 
+        "checksum": "5bcb9e6198ba1c6e834adc752121e880", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml pkg/pkg.ml build --with-ctypes ${ctypes_installed:-false} --with-ctypes-foreign ${ctypes_foreign_installed:-false} --with-camlp4 ${camlp4_installed:-false} --with-js_of_ocaml ${js_of_ocaml_installed:-false} --with-lwt ${lwt_installed:-false}", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "hardcaml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "hardcaml_version": {
+            "scope": "global", 
+            "val": "1.2.0"
+          }, 
+          "hardcaml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/astring": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/topkg": "*", 
+        "@opam-alpha/ctypes-foreign": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ctypes": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/lwt": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.01.0"
+      }, 
+      "name": "@opam-alpha/hardcaml"
+    }
+  }
+}

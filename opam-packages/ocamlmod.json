@@ -1,0 +1,204 @@
+{
+  "versions": {
+    "0.0.4": {
+      "version": "0.0.4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1204/ocamlmod-0.0.4.tar.gz", 
+        "checksum": "6e1f70c8b70c534908054cd68852e8c8", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ocamlmod.byte\" {\"ocamlmod\"}]\n", 
+            "name": "ocamlmod.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlmod_version": {
+            "scope": "global", 
+            "val": "0.0.4"
+          }, 
+          "ocamlmod_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlmod_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/fileutils": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlmod"
+    }, 
+    "0.0.7": {
+      "version": "0.0.7", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1350/ocamlmod-0.0.7.tar.gz", 
+        "checksum": "502acf75f5263afecf29566e3e766677", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "ocamlmod.install"
+          }, 
+          {
+            "content": "--- /dev/null\n+++ test/data/test01.mod\n@@ -0,0 +1,2 @@\n+A.ml\n+B.ml\n", 
+            "name": "test01.mod.patch"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlmod_version": {
+            "scope": "global", 
+            "val": "0.0.7"
+          }, 
+          "ocamlmod_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlmod_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlmod"
+    }, 
+    "0.0.8": {
+      "version": "0.0.8", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1544/ocamlmod-0.0.8.tar.gz", 
+        "checksum": "411e5b3f3321945fc53d9377a1a17f91", 
+        "files": [
+          {
+            "content": "open Printf\n\nlet () =\n  let dir = Sys.argv.(1) in\n  (try Sys.chdir dir\n   with _ -> eprintf \"Cannot change directory to %s\\n%!\" dir);\n  exit (Sys.command \"ocaml setup.ml -uninstall\")\n", 
+            "name": "_oasis_remove_.ml"
+          }, 
+          {
+            "content": "etc: [\n  \"setup.ml\"\n  \"setup.data\"\n  \"setup.log\"\n  \"_oasis_remove_.ml\"\n]\n", 
+            "name": "ocamlmod.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlmod_version": {
+            "scope": "global", 
+            "val": "0.0.8"
+          }, 
+          "ocamlmod_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlmod_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ounit": ">= 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlmod"
+    }, 
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "http://forge.ocamlcore.org/frs/download.php/856/ocamlmod-0.0.3.tar.gz", 
+        "checksum": "dec64b14a2dfb32bd25e3fc2f21e1c65", 
+        "files": [
+          {
+            "content": "bin: [\"_build/src/ocamlmod.byte\" {\"ocamlmod\"}]\n", 
+            "name": "ocamlmod.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "ocamlmod_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "ocamlmod_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "ocamlmod_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/fileutils": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/ocamlmod"
+    }
+  }
+}

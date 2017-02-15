@@ -1,0 +1,139 @@
+{
+  "versions": {
+    "0.0.4": {
+      "version": "0.0.4", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/1289/ocaml-expect-0.0.4.tar.gz", 
+        "checksum": "ec0839ed6d5fecbe204299ec4161bb0d", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "expect_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "expect_version": {
+            "scope": "global", 
+            "val": "0.0.4"
+          }, 
+          "expect_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/expect"
+    }, 
+    "0.0.3": {
+      "version": "0.0.3", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/894/ocaml-expect-0.0.3.tar.gz", 
+        "checksum": "3ac7f4bf2cfa9e7e8375c231be384248", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "expect_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "expect_version": {
+            "scope": "global", 
+            "val": "0.0.3"
+          }, 
+          "expect_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "= 1.5.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/expect"
+    }, 
+    "0.0.2": {
+      "version": "0.0.2", 
+      "opam": {
+        "url": "https://forge.ocamlcore.org/frs/download.php/475/ocaml-expect-0.0.2.tar.gz", 
+        "checksum": "723288a1c9078f86e6185e78a6baa577", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "rm setup.ml", 
+          "oasis setup", 
+          "ocaml setup.ml -configure --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "expect_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "expect_version": {
+            "scope": "global", 
+            "val": "0.0.2"
+          }, 
+          "expect_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/pcre": "*", 
+        "@opam-alpha/ounit": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/oasis": ">= 0.3.0", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/extlib": "= 1.5.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/expect"
+    }
+  }
+}

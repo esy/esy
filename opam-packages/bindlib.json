@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "4.0.2": {
+      "version": "4.0.2", 
+      "opam": {
+        "url": "https://lama.univ-savoie.fr/~raffalli/bindlib/bindlib-4.0.2.tar.gz", 
+        "checksum": "6b37b02a6d1c7e5bb51ba96adbf84afc", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "bindlib_version": {
+            "scope": "global", 
+            "val": "4.0.2"
+          }, 
+          "bindlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "bindlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/bindlib"
+    }
+  }
+}

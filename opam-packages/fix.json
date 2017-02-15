@@ -1,0 +1,44 @@
+{
+  "versions": {
+    "20130611.0.0": {
+      "version": "20130611.0.0", 
+      "opam": {
+        "url": "http://gallium.inria.fr/~fpottier/fix/fix-20130611.tar.gz", 
+        "checksum": "056dec3341ef008458fa722ebf2e3c57", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "fix_version": {
+            "scope": "global", 
+            "val": "20130611.0.0"
+          }, 
+          "fix_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "fix_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/fix"
+    }
+  }
+}

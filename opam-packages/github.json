@@ -1,0 +1,54 @@
+{
+  "versions": {
+    "2.2.0": {
+      "version": "2.2.0", 
+      "opam": {
+        "url": "https://github.com/mirage/ocaml-github/archive/v2.2.0.tar.gz", 
+        "checksum": "7baa2c8f1ffad01cc8dcd6bb218ef19a", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "ocaml setup.ml -configure --${base_unix_enable:-disable}-unix --${js_of_ocaml_enable:-disable}-js --prefix $cur__install", 
+          "ocaml setup.ml -build", 
+          "ocaml setup.ml -install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "github_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "github_version": {
+            "scope": "global", 
+            "val": "2.2.0"
+          }, 
+          "github_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/yojson": ">= 1.2.0", 
+        "@opam-alpha/stringext": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.17.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/atdgen": ">= 1.10.0", 
+        "@opam-alpha/tls": "*", 
+        "@opam-alpha/lambda-term": "*", 
+        "@opam-alpha/lwt": ">= 2.4.4", 
+        "@opam-alpha/uri": ">= 1.9.0", 
+        "@opam-alpha/cmdliner": ">= 0.9.8", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.02.3"
+      }, 
+      "name": "@opam-alpha/github"
+    }
+  }
+}

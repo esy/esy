@@ -1,0 +1,81 @@
+{
+  "versions": {
+    "0.1.0": {
+      "version": "0.1.0", 
+      "opam": {
+        "url": "https://github.com/michipili/opamconfig/releases/download/v0.1.0/opamconfig-0.1.0.tar.xz", 
+        "checksum": "71c2fd2d5ac764871497292fe1e1265c", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh ./detect_configure_settings.sh ./opamconfig.config", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opamconfig_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opamconfig_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "opamconfig_version": {
+            "scope": "global", 
+            "val": "0.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/opamconfig"
+    }, 
+    "0.2.0": {
+      "version": "0.2.0", 
+      "opam": {
+        "url": "https://github.com/michipili/opamconfig/releases/download/v0.2.0/opamconfig-0.2.0.tar.xz", 
+        "checksum": "657dea4d504ade1510c5cabd3de96cea", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./configure --prefix $cur__install", 
+          "sh opamconfig_install.sh $cur__install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "opamconfig_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "opamconfig_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "opamconfig_version": {
+            "scope": "global", 
+            "val": "0.2.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/opamconfig"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "versions": {
+    "3.9.1": {
+      "version": "3.9.1", 
+      "opam": {
+        "url": "https://github.com/Antique-team/clangml/archive/v3.9.1.tar.gz", 
+        "checksum": "5db29afb605415bdfd2f73f3c7a0bf9f", 
+        "files": [
+          {
+            "content": "bin: [\n  \"_build/consumer/processor.native\" {\"clangml-processor\"}\n]\n", 
+            "name": "clangml.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "sh -c \"test -d ${HOME}/usr/clang39 ||\n              ( wget http://llvm.org/releases/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz &&\n                tar -xf clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz &&\n                mkdir -p ${HOME}/usr/clang39 && mv clang+llvm-3.9.0-x86_64-apple-darwin/* ${HOME}/usr/clang39 )\"", 
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "clangml_version": {
+            "scope": "global", 
+            "val": "3.9.1"
+          }, 
+          "clangml_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "clangml_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/deriving": "*", 
+        "@opam-alpha/conf-wget": "*", 
+        "@opam-alpha/dolog": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/ANSITerminal": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/batteries": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.03.0"
+      }, 
+      "name": "@opam-alpha/clangml"
+    }
+  }
+}

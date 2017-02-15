@@ -1,0 +1,215 @@
+{
+  "versions": {
+    "0.4.0": {
+      "version": "0.4.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-www/archive/0.4.0.tar.gz", 
+        "checksum": "eda84191d254e27180fe0ab9891b4b7d", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?src/dist/build/mir-www/mir-www\" {\"mir-www\"}\n  \"?src/dist/build/mir-www/mir-www.xen\" {\"mir-www.xen\"}\n]\n", 
+            "name": "mirage-www.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "./default_build.sh", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_www_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_www_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_www_version": {
+            "scope": "global", 
+            "val": "0.4.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": ">= 0.9.7 <= 0.9.8", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/mirari": "= 0.9.7", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": ">= 0.9.10 <= 0.9.12", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-fs": ">= 0.6.0 < 1.0.0", 
+        "@opam-alpha/cow": ">= 0.7.0 < 0.8.0", 
+        "@opam-alpha/mirage-net": "= 0.9.4", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-www"
+    }, 
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-www/archive/0.3.0.tar.gz", 
+        "checksum": "68632f478af54069f293f0af102fd3c8", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?src/dist/build/mir-www/mir-www\" {\"mir-www\"}\n  \"?src/dist/build/mir-www/mir-www.xen\" {\"mir-www.xen\"}\n]\n", 
+            "name": "mirage-www.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make CONF_FLAGS=--no-install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_www_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_www_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_www_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": ">= 0.8.0 <= 0.9.0", 
+        "@opam-alpha/re": "*", 
+        "@opam-alpha/mirari": "= 0.9.1", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/cohttp": "<= 0.9.6", 
+        "@opam-alpha/cstruct": ">= 0.6.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/mirage-fs": ">= 0.4.0 < 1.0.0", 
+        "@opam-alpha/cow": "<= 0.5.3", 
+        "@opam-alpha/mirage-net": ">= 0.5.2 < 0.9.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.00.0"
+      }, 
+      "name": "@opam-alpha/mirage-www"
+    }, 
+    "1.0.0": {
+      "version": "1.0.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-www/archive/1.0.0.tar.gz", 
+        "checksum": "aebc3c5daecc5c94ffc08c5eaebe792f", 
+        "files": [
+          {
+            "content": "bin: [\n  \"?src/_build/main.native\" {\"mirage-www\"}\n]\n", 
+            "name": "mirage-www.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make OS=unix CFLAGS=--no-opam", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_www_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_www_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_www_version": {
+            "scope": "global", 
+            "val": "1.0.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": ">= 1.0.3 <=1.0.4", 
+        "@opam-alpha/cowabloga": "= 0.0.3", 
+        "@opam-alpha/mirage-http-unix": ">= 1.0.0", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": ">= 0.9.0 < 2.0.0", 
+        "@opam-alpha/mirage-fs-unix": ">= 1.0.0", 
+        "@opam-alpha/mirage-console-unix": ">= 1.0.0", 
+        "@opam-alpha/mirage-tcpip-unix": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-www"
+    }, 
+    "1.1.0": {
+      "version": "1.1.0", 
+      "opam": {
+        "url": "https://github.com/mirage/mirage-www/archive/1.1.0.tar.gz", 
+        "checksum": "c7861be195ae8f12505c1be69ef196e7", 
+        "files": [
+          {
+            "content": "bin: [\n  \"src/mir-www\" {\"mirage-www\"}\n]\n", 
+            "name": "mirage-www.install"
+          }
+        ]
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make MODE=unix CFLAGS=--no-opam", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "mirage_www_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "mirage_www_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "mirage_www_version": {
+            "scope": "global", 
+            "val": "1.1.0"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/mirage": ">= 1.1.0 < 1.2.0", 
+        "@opam-alpha/cstruct": ">=1.0.1", 
+        "@opam-alpha/cowabloga": ">= 0.0.3 <=0.0.6", 
+        "@opam-alpha/cohttp": ">=0.10.0", 
+        "@opam-alpha/ipaddr": "*", 
+        "@opam-alpha/mirage-http": ">= 1.1.0", 
+        "@opam-alpha/tcpip": "*", 
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/cow": ">= 0.9.0 < 2.0.0", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/mirage-fs-unix": ">= 1.0.0", 
+        "@opam-alpha/mirage-block-unix": ">= 1.2.0", 
+        "@opam-alpha/fat-filesystem": ">= 0.9.0", 
+        "@opam-alpha/lwt": ">=2.4.3", 
+        "@opam-alpha/ssl": "*", 
+        "@opam-alpha/mirage-console-unix": ">= 1.0.0", 
+        "@opam-alpha/crunch": ">= 1.2.3"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/mirage-www"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "versions": {
+    "0.9.1": {
+      "version": "0.9.1", 
+      "opam": {
+        "url": "https://github.com/xapi-project/libvhd/archive/libvhd-0.9.1.tar.gz", 
+        "checksum": "afa8b4dcf58dd337181028808811a1fb", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install BINDIR=$cur__bin", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "vhdlib_version": {
+            "scope": "global", 
+            "val": "0.9.1"
+          }, 
+          "vhdlib_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }, 
+          "vhdlib_installed": {
+            "scope": "global", 
+            "val": "true"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin", 
+        "@opam-alpha/rpc": "*"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": ">= 4.2.3"
+      }, 
+      "name": "@opam-alpha/vhdlib"
+    }
+  }
+}

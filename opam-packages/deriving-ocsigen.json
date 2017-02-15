@@ -1,0 +1,89 @@
+{
+  "versions": {
+    "0.3.0": {
+      "version": "0.3.0", 
+      "opam": {
+        "url": "http://ocsigen.org/download/deriving-ocsigen-0.3c.tar.gz", 
+        "checksum": "fec1ca031fc988034e2b681d62da60e8", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "deriving_ocsigen_version": {
+            "scope": "global", 
+            "val": "0.3.0"
+          }, 
+          "deriving_ocsigen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "deriving_ocsigen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "substs": "esy-ocaml/substs", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/deriving-ocsigen"
+    }, 
+    "0.5.0": {
+      "version": "0.5.0", 
+      "opam": {
+        "url": "http://ocsigen.org/download/deriving-ocsigen-0.5.tar.gz", 
+        "checksum": "aa184cea103311504bb305acf885acf1", 
+        "files": []
+      }, 
+      "esy": {
+        "buildsInSource": true, 
+        "build": [
+          "make", 
+          "make install", 
+          "(opam-installer --prefix=$cur__install || true)"
+        ], 
+        "exportedEnv": {
+          "deriving_ocsigen_version": {
+            "scope": "global", 
+            "val": "0.5.0"
+          }, 
+          "deriving_ocsigen_installed": {
+            "scope": "global", 
+            "val": "true"
+          }, 
+          "deriving_ocsigen_enable": {
+            "scope": "global", 
+            "val": "enable"
+          }
+        }
+      }, 
+      "dependencies": {
+        "@opam-alpha/camlp4": "*", 
+        "@opam-alpha/ocamlfind": "*", 
+        "@opam-alpha/optcomp": "*", 
+        "@opam-alpha/type_conv": "*", 
+        "substs": "esy-ocaml/substs", 
+        "opam-installer-bin": "esy-ocaml/opam-installer-bin"
+      }, 
+      "scripts": {}, 
+      "peerDependencies": {
+        "ocaml": "< 4.03.0"
+      }, 
+      "name": "@opam-alpha/deriving-ocsigen"
+    }
+  }
+}
