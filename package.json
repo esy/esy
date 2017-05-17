@@ -23,8 +23,7 @@
     ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
-      "updates/",
-      "/_(temp|mock|install|init|helpers).js$"
+      "<rootDir>/lib"
     ]
   },
   "license": "MIT",
