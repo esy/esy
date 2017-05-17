@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`printEnvironment() printing environment 1`] = `
+"# Esy Sandbox
+export OCAMLPATH=\\"<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib:<storePath>/_install/lwt/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/_insttmp/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:<storePath>/_install/lwt/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:<storePath>/_install/lwt/man:$MAN_PATH\\"
+# app@0.1.0 app
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"ocamlfind lwt\\"
+export cur__target_dir=\\"<storePath>/_build/app\\"
+export cur__install=\\"<storePath>/_insttmp/app\\"
+export cur__bin=\\"<storePath>/_insttmp/app/bin\\"
+export cur__sbin=\\"<storePath>/_insttmp/app/sbin\\"
+export cur__lib=\\"<storePath>/_insttmp/app/lib\\"
+export cur__man=\\"<storePath>/_insttmp/app/man\\"
+export cur__doc=\\"<storePath>/_insttmp/app/doc\\"
+export cur__stublibs=\\"<storePath>/_insttmp/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/_insttmp/app/toplevel\\"
+export cur__share=\\"<storePath>/_insttmp/app/share\\"
+export cur__etc=\\"<storePath>/_insttmp/app/etc\\"
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/_install/app/lib:<storePath>/_install/lwt/lib/ocaml:<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml\\""
+`;

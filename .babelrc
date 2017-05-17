@@ -1,0 +1,48 @@
+{
+  "only": "*.js",
+  "env": {
+    "pre-node5": {
+      "presets": [
+        "es2015-node4"
+      ],
+      "plugins": [
+        [
+          "transform-inline-imports-commonjs"
+        ],
+        [
+          "transform-runtime",
+          {
+            "polyfill": true,
+            "regenerator": false
+          }
+        ]
+      ]
+    },
+    "test": {
+      "presets": [
+        "es2015-node4"
+      ],
+      "plugins": [
+        [
+          "transform-inline-imports-commonjs"
+        ]
+      ]
+    }
+  },
+  "presets": [
+    "node5",
+    "stage-0"
+  ],
+  "plugins": [
+    [
+      "transform-inline-imports-commonjs"
+    ],
+    [
+      "transform-runtime",
+      {
+        "polyfill": false,
+        "regenerator": true
+      }
+    ]
+  ]
+}

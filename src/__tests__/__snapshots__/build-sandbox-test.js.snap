@@ -1,0 +1,273 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build-sandbox builds a sandbox from a package with deps 1`] = `
+Object {
+  "command": null,
+  "dependencies": Map {
+    "dep-0.1.0" => Object {
+      "command": null,
+      "dependencies": Map {},
+      "errors": Array [],
+      "exportedEnv": Object {},
+      "id": "dep-0.1.0",
+      "mutatesSourcePath": false,
+      "name": "dep",
+      "packageJson": Object {
+        "esy": Object {
+          "build": null,
+          "buildsInSource": false,
+          "exportedEnv": Object {},
+        },
+        "name": "dep",
+        "version": "0.1.0",
+      },
+      "shouldBePersisted": false,
+      "sourcePath": "node_modules/dep",
+      "version": "0.1.0",
+    },
+  },
+  "errors": Array [],
+  "exportedEnv": Object {},
+  "id": "app-0.1.0",
+  "mutatesSourcePath": false,
+  "name": "app",
+  "packageJson": Object {
+    "dependencies": Object {
+      "dep": "*",
+    },
+    "esy": Object {
+      "build": null,
+      "buildsInSource": false,
+      "exportedEnv": Object {},
+    },
+    "name": "app",
+    "version": "0.1.0",
+  },
+  "shouldBePersisted": false,
+  "sourcePath": "",
+  "version": "0.1.0",
+}
+`;
+
+exports[`build-sandbox builds a sandbox from a single package 1`] = `
+Object {
+  "command": null,
+  "dependencies": Map {},
+  "errors": Array [],
+  "exportedEnv": Object {},
+  "id": "app-0.1.0",
+  "mutatesSourcePath": false,
+  "name": "app",
+  "packageJson": Object {
+    "esy": Object {
+      "build": null,
+      "buildsInSource": false,
+      "exportedEnv": Object {},
+    },
+    "name": "app",
+    "version": "0.1.0",
+  },
+  "shouldBePersisted": false,
+  "sourcePath": "",
+  "version": "0.1.0",
+}
+`;
+
+exports[`build-sandbox error: circular deps 1`] = `
+Object {
+  "command": null,
+  "dependencies": Map {
+    "dep-0.1.0" => Object {
+      "command": null,
+      "dependencies": Map {},
+      "errors": Array [
+        Object {
+          "message": "Circular dependency \\"app\\" found
+  At app -> dep",
+        },
+      ],
+      "exportedEnv": Object {},
+      "id": "dep-0.1.0",
+      "mutatesSourcePath": false,
+      "name": "dep",
+      "packageJson": Object {
+        "dependencies": Object {
+          "app": "*",
+        },
+        "esy": Object {
+          "build": null,
+          "buildsInSource": false,
+          "exportedEnv": Object {},
+        },
+        "name": "dep",
+        "version": "0.1.0",
+      },
+      "shouldBePersisted": false,
+      "sourcePath": "node_modules/dep",
+      "version": "0.1.0",
+    },
+  },
+  "errors": Array [
+    Object {
+      "message": "Circular dependency \\"app\\" found
+  At app -> dep",
+    },
+  ],
+  "exportedEnv": Object {},
+  "id": "app-0.1.0",
+  "mutatesSourcePath": false,
+  "name": "app",
+  "packageJson": Object {
+    "dependencies": Object {
+      "dep": "*",
+    },
+    "esy": Object {
+      "build": null,
+      "buildsInSource": false,
+      "exportedEnv": Object {},
+    },
+    "name": "app",
+    "version": "0.1.0",
+  },
+  "shouldBePersisted": false,
+  "sourcePath": "",
+  "version": "0.1.0",
+}
+`;
+
+exports[`build-sandbox error: duplicate dep 1`] = `
+Object {
+  "command": null,
+  "dependencies": Map {
+    "dep-0.1.0" => Object {
+      "command": null,
+      "dependencies": Map {
+        "ocaml-4.3.0" => Object {
+          "command": null,
+          "dependencies": Map {},
+          "errors": Array [],
+          "exportedEnv": Object {},
+          "id": "ocaml-4.3.0",
+          "mutatesSourcePath": false,
+          "name": "ocaml",
+          "packageJson": Object {
+            "esy": Object {
+              "build": null,
+              "buildsInSource": false,
+              "exportedEnv": Object {},
+            },
+            "name": "ocaml",
+            "version": "4.3.0",
+          },
+          "shouldBePersisted": false,
+          "sourcePath": "node_modules/dep/node_modules/ocaml",
+          "version": "4.3.0",
+        },
+      },
+      "errors": Array [],
+      "exportedEnv": Object {},
+      "id": "dep-0.1.0",
+      "mutatesSourcePath": false,
+      "name": "dep",
+      "packageJson": Object {
+        "dependencies": Object {
+          "ocaml": "*",
+        },
+        "esy": Object {
+          "build": null,
+          "buildsInSource": false,
+          "exportedEnv": Object {},
+        },
+        "name": "dep",
+        "version": "0.1.0",
+      },
+      "shouldBePersisted": false,
+      "sourcePath": "node_modules/dep",
+      "version": "0.1.0",
+    },
+    "ocaml-4.3.0" => Object {
+      "command": null,
+      "dependencies": Map {},
+      "errors": Array [
+        Object {
+          "message": "Found multiple instances of \\"ocaml\\" package: node_modules/ocaml and node_modules/dep/node_modules/ocaml",
+        },
+      ],
+      "exportedEnv": Object {},
+      "id": "ocaml-4.3.0",
+      "mutatesSourcePath": false,
+      "name": "ocaml",
+      "packageJson": Object {
+        "esy": Object {
+          "build": null,
+          "buildsInSource": false,
+          "exportedEnv": Object {},
+        },
+        "name": "ocaml",
+        "version": "4.3.0",
+      },
+      "shouldBePersisted": false,
+      "sourcePath": "node_modules/ocaml",
+      "version": "4.3.0",
+    },
+  },
+  "errors": Array [
+    Object {
+      "message": "Found multiple instances of \\"ocaml\\" package: node_modules/ocaml and node_modules/dep/node_modules/ocaml",
+    },
+  ],
+  "exportedEnv": Object {},
+  "id": "app-0.1.0",
+  "mutatesSourcePath": false,
+  "name": "app",
+  "packageJson": Object {
+    "dependencies": Object {
+      "dep": "*",
+      "ocaml": "*",
+    },
+    "esy": Object {
+      "build": null,
+      "buildsInSource": false,
+      "exportedEnv": Object {},
+    },
+    "name": "app",
+    "version": "0.1.0",
+  },
+  "shouldBePersisted": false,
+  "sourcePath": "",
+  "version": "0.1.0",
+}
+`;
+
+exports[`build-sandbox error: missing a dep 1`] = `
+Object {
+  "command": null,
+  "dependencies": Map {},
+  "errors": Array [
+    Object {
+      "message": "Cannot resolve \\"dep\\" packages
+  At app
+  Did you forget to run \\"esy install\\" command?",
+    },
+  ],
+  "exportedEnv": Object {},
+  "id": "app-0.1.0",
+  "mutatesSourcePath": false,
+  "name": "app",
+  "packageJson": Object {
+    "dependencies": Object {
+      "dep": "*",
+    },
+    "esy": Object {
+      "build": null,
+      "buildsInSource": false,
+      "exportedEnv": Object {},
+    },
+    "name": "app",
+    "version": "0.1.0",
+  },
+  "shouldBePersisted": false,
+  "sourcePath": "",
+  "version": "0.1.0",
+}
+`;

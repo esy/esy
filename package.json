@@ -1,0 +1,55 @@
+{
+  "name": "esy",
+  "version": "0.0.4",
+  "description": "Esy sandboxes for compiled languages",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reasonml/esy.git"
+  },
+  "keywords": [
+    "esy",
+    "ocaml",
+    "sandbox"
+  ],
+  "jest": {
+    "timers": "fake",
+    "testEnvironment": "node",
+    "modulePathIgnorePatterns": [
+      "__tests__/fixtures/"
+    ],
+    "testPathIgnorePatterns": [
+      "__tests__/(fixtures|__mocks__)/",
+      "updates/",
+      "/_(temp|mock|install|init|helpers).js$"
+    ]
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/reasonml/esy/issues"
+  },
+  "homepage": "https://github.com/reasonml/esy#readme",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-jest": "^20.0.1",
+    "babel-register": "^6.24.1",
+    "flow-bin": "^0.46.0",
+    "jest": "^20.0.1",
+    "prettier": "^1.3.1"
+  },
+  "dependencies": {
+    "fs-extra": "^3.0.1",
+    "loud-rejection": "^1.6.0",
+    "mkdirp": "^0.5.1",
+    "npm-hooks": "https://github.com/jordwalke/npm-hooks.git#1.0.0-clobber",
+    "observatory": "^1.0.0",
+    "outdent": "^0.3.0",
+    "p-queue": "^1.0.0",
+    "rimraf": "^2.6.1",
+    "var-expansion": "^0.1.0",
+    "walkdir": "^0.0.11"
+  }
+}
