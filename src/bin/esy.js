@@ -177,7 +177,9 @@ async function getBuildSandbox(sandboxPath): Promise<BuildSandbox> {
 const actualArgs = process.argv.slice(2);
 // TODO: Need to change this to climb to closest package.json.
 const sandboxPath = process.cwd();
-const storePath = process.env.ESY__STORE || path.join(userHome, '.esy', 'store');
+const storePath =
+  process.env.ESY__STORE ||
+  path.join(userHome, '.esy', `store-${Config.ESY_STORE_VERSION}`);
 const config = Config.createConfig({storePath, sandboxPath});
 
 async function buildCommand(sandboxPath) {

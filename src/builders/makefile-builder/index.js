@@ -64,7 +64,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
     // ESY_EJECT__STORE is the directory where build artifacts should be stored.
     {
       type: 'raw',
-      value: 'ESY_EJECT__STORE ?= $(HOME)/.esy/store',
+      value: `ESY_EJECT__STORE ?= $(HOME)/.esy/store-${Config.ESY_STORE_VERSION}`,
     },
 
     // ESY_EJECT__SANDBOX is the sandbox directory, the directory where the root
@@ -171,7 +171,8 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
         'esy-store',
         'esy-root',
         ...Array.from(build.dependencies.values()).map(dep =>
-          createBuildRuleName(dep, 'build')),
+          createBuildRuleName(dep, 'build'),
+        ),
       ],
       phony: true,
       command,

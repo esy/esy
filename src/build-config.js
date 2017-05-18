@@ -5,12 +5,19 @@
 import type {BuildSpec, BuildConfig} from './types';
 import * as path from 'path';
 
-export function createConfig(
-  params: {
-    storePath: string,
-    sandboxPath: string,
-  },
-): BuildConfig {
+// The current version of esy store, bump it whenever the store layout changes.
+// We also have the same constant hardcoded into bin/esy executable for perf
+// reasons (we don't want to spawn additional processes to read from there).
+//
+// XXX: Update bin/esy if you change it.
+// TODO: We probably still want this be the source of truth so figure out how to
+// put this into bin/esy w/o any perf penalties.
+export const ESY_STORE_VERSION = '3.x.x';
+
+export function createConfig(params: {
+  storePath: string,
+  sandboxPath: string,
+}): BuildConfig {
   const {storePath, sandboxPath} = params;
   const localStorePath = path.join(
     sandboxPath,
