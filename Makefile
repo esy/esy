@@ -17,10 +17,10 @@ help:
 	@echo ""
 
 build:
-	@$(BIN)/babel ./src --out-dir ./lib
+	@$(BIN)/babel ./src --copy-files --out-dir ./lib
 
 build-watch:
-	@$(BIN)/babel --watch -s inline ./src --out-dir ./lib
+	@$(BIN)/babel --copy-files --watch -s inline ./src --out-dir ./lib
 
 test-watch:
 	@ESY__TEST=yes $(BIN)/jest --watch
