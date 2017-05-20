@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('babel-polyfill');
+
 /**
  * If your node script has the above shebang, then npm install will
  * automatically create a windows .cmd for it.

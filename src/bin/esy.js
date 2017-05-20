@@ -2,6 +2,8 @@
  * @flow
  */
 
+require('babel-polyfill');
+
 // TODO: This is a hack, we need to find a way to solve that more elegantly. But
 // for not this is required as we redirected stderr to stdout and those
 // possible deprecation warnings can really hurt and make things difficult to

@@ -4,6 +4,7 @@
     [
       "env",
       {
+        "useBuiltIns": true,
         "targets": {
           "node": 4
         }
