@@ -170,7 +170,8 @@ async function crawlBuild(
 
   const nextErrors = [...errors];
   const isInstalled = packageJson._resolved != null;
-  const source = packageJson._resolved || `local:${await fs.realpath(sourcePath)}`;
+  const realSourcePath = await fs.realpath(sourcePath);
+  const source = packageJson._resolved || `local:${realSourcePath}`;
   const nextSourcePath = path.relative(context.sandboxPath, sourcePath);
   const id = calculateBuildId(context.env, packageJson, source, dependencies);
 
