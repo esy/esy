@@ -115,7 +115,7 @@ export function interleaveStreams(...sources: stream.Readable[]): stream.Readabl
     source.once('end', () => {
       streamActiveNumber -= 1;
       if (streamActiveNumber === 0) {
-        output.emit('end');
+        output.end('', 'ascii');
       }
     });
     source.pipe(output, {end: false});
