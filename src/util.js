@@ -125,7 +125,8 @@ export function interleaveStreams(...sources: stream.Readable[]): stream.Readabl
 
 export function endWritableStream(s: stream.Writable): Promise<void> {
   return new Promise((resolve, reject) => {
-    s.end('', 'ascii', err => {
+    s.write('', 'ascii', err => {
+      s.end();
       if (err) {
         reject(err);
       } else {
