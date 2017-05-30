@@ -64,7 +64,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
     // ESY_EJECT__STORE is the directory where build artifacts should be stored.
     {
       type: 'raw',
-      value: `ESY_EJECT__STORE ?= $(HOME)/.esy/store-${Config.ESY_STORE_VERSION}`,
+      value: `ESY_EJECT__STORE ?= $(HOME)/.esy/${Config.ESY_STORE_VERSION}`,
     },
 
     // ESY_EJECT__SANDBOX is the sandbox directory, the directory where the root
@@ -92,19 +92,22 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
       type: 'rule',
       target: 'clean',
       phony: true,
-      command: 'rm -rf $(ESY_EJECT__SANDBOX)/_build $(ESY_EJECT__SANDBOX)/_install $(ESY_EJECT__SANDBOX)/_insttmp',
+      command: outdent`
+        rm $(ESY_EJECT__SANDBOX)/_build
+        rm $(ESY_EJECT__SANDBOX)/_install
+      `,
     },
 
     // Create store directory structure
     {
       type: 'rule',
       target: [
-        '$(ESY_EJECT__STORE)/_install',
-        '$(ESY_EJECT__STORE)/_build',
-        '$(ESY_EJECT__STORE)/_insttmp',
-        '$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/_install',
-        '$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/_insttmp',
-        '$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/_build',
+        `$(ESY_EJECT__STORE)/${Config.STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__STORE)/${Config.STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__STORE)/${Config.STORE_STAGE_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
       ].join(' '),
       command: 'mkdir -p $(@)',
     },
@@ -113,12 +116,12 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
       target: 'esy-store',
       phony: true,
       dependencies: [
-        '$(ESY_EJECT__STORE)/_install',
-        '$(ESY_EJECT__STORE)/_build',
-        '$(ESY_EJECT__STORE)/_insttmp',
-        '$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/_install',
-        '$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/_insttmp',
-        '$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/_build',
+        `$(ESY_EJECT__STORE)/${Config.STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__STORE)/${Config.STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__STORE)/${Config.STORE_STAGE_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
       ],
     },
     {

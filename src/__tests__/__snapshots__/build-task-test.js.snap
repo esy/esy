@@ -8,14 +8,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep-of-dep/lib:<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep-of-dep/lib:<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -36,14 +36,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep-of-dep/bin:<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep-of-dep/bin:<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep-of-dep/man:<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep-of-dep/man:<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -83,7 +83,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -91,7 +91,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -99,7 +99,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -107,7 +107,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -115,7 +115,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -123,7 +123,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -131,7 +131,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -139,7 +139,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -147,7 +147,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -155,7 +155,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -163,7 +163,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -213,7 +213,7 @@ Object {
       "exported": false,
       "name": "dep__target_dir",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_build/dep",
+      "value": "<storePath>/b/dep",
     },
     "dep__install" => Object {
       "builtIn": true,
@@ -221,7 +221,7 @@ Object {
       "exported": false,
       "name": "dep__install",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep",
+      "value": "<storePath>/i/dep",
     },
     "dep__bin" => Object {
       "builtIn": true,
@@ -229,7 +229,7 @@ Object {
       "exported": false,
       "name": "dep__bin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "dep__sbin" => Object {
       "builtIn": true,
@@ -237,7 +237,7 @@ Object {
       "exported": false,
       "name": "dep__sbin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "dep__lib" => Object {
       "builtIn": true,
@@ -245,7 +245,7 @@ Object {
       "exported": false,
       "name": "dep__lib",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "dep__man" => Object {
       "builtIn": true,
@@ -253,7 +253,7 @@ Object {
       "exported": false,
       "name": "dep__man",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "dep__doc" => Object {
       "builtIn": true,
@@ -261,7 +261,7 @@ Object {
       "exported": false,
       "name": "dep__doc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "dep__stublibs" => Object {
       "builtIn": true,
@@ -269,7 +269,7 @@ Object {
       "exported": false,
       "name": "dep__stublibs",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "dep__toplevel" => Object {
       "builtIn": true,
@@ -277,7 +277,7 @@ Object {
       "exported": false,
       "name": "dep__toplevel",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "dep__share" => Object {
       "builtIn": true,
@@ -285,7 +285,7 @@ Object {
       "exported": false,
       "name": "dep__share",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "dep__etc" => Object {
       "builtIn": true,
@@ -293,7 +293,7 @@ Object {
       "exported": false,
       "name": "dep__etc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -341,7 +341,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -349,7 +349,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -357,7 +357,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -365,7 +365,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -373,7 +373,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -381,7 +381,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -389,7 +389,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -397,7 +397,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -405,7 +405,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -413,7 +413,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -421,21 +421,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep-of-dep/lib:<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep-of-dep/lib:<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -456,14 +456,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep-of-dep/bin:<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep-of-dep/bin:<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep-of-dep/man:<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep-of-dep/man:<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -503,7 +503,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -511,7 +511,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -519,7 +519,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -527,7 +527,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -535,7 +535,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -543,7 +543,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -551,7 +551,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -559,7 +559,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -567,7 +567,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -575,7 +575,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -583,7 +583,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
   },
 }
@@ -597,14 +597,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -625,14 +625,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -672,7 +672,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -680,7 +680,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -688,7 +688,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -696,7 +696,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -704,7 +704,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -712,7 +712,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -720,7 +720,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -728,7 +728,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -736,7 +736,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -744,7 +744,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -752,7 +752,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -802,7 +802,7 @@ Object {
       "exported": false,
       "name": "dep__target_dir",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_build/dep",
+      "value": "<storePath>/b/dep",
     },
     "dep__install" => Object {
       "builtIn": true,
@@ -810,7 +810,7 @@ Object {
       "exported": false,
       "name": "dep__install",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep",
+      "value": "<storePath>/i/dep",
     },
     "dep__bin" => Object {
       "builtIn": true,
@@ -818,7 +818,7 @@ Object {
       "exported": false,
       "name": "dep__bin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "dep__sbin" => Object {
       "builtIn": true,
@@ -826,7 +826,7 @@ Object {
       "exported": false,
       "name": "dep__sbin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "dep__lib" => Object {
       "builtIn": true,
@@ -834,7 +834,7 @@ Object {
       "exported": false,
       "name": "dep__lib",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "dep__man" => Object {
       "builtIn": true,
@@ -842,7 +842,7 @@ Object {
       "exported": false,
       "name": "dep__man",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "dep__doc" => Object {
       "builtIn": true,
@@ -850,7 +850,7 @@ Object {
       "exported": false,
       "name": "dep__doc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "dep__stublibs" => Object {
       "builtIn": true,
@@ -858,7 +858,7 @@ Object {
       "exported": false,
       "name": "dep__stublibs",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "dep__toplevel" => Object {
       "builtIn": true,
@@ -866,7 +866,7 @@ Object {
       "exported": false,
       "name": "dep__toplevel",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "dep__share" => Object {
       "builtIn": true,
@@ -874,7 +874,7 @@ Object {
       "exported": false,
       "name": "dep__share",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "dep__etc" => Object {
       "builtIn": true,
@@ -882,7 +882,7 @@ Object {
       "exported": false,
       "name": "dep__etc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -930,7 +930,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -938,7 +938,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -946,7 +946,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -954,7 +954,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -962,7 +962,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -970,7 +970,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -978,7 +978,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -986,7 +986,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -994,7 +994,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -1002,7 +1002,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -1010,21 +1010,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -1045,14 +1045,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -1092,7 +1092,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -1100,7 +1100,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -1108,7 +1108,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -1116,7 +1116,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -1124,7 +1124,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -1132,7 +1132,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -1140,7 +1140,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -1148,7 +1148,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -1156,7 +1156,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -1164,7 +1164,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -1172,7 +1172,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
   },
 }
@@ -1186,14 +1186,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -1214,14 +1214,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -1261,7 +1261,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -1269,7 +1269,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -1277,7 +1277,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -1285,7 +1285,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -1293,7 +1293,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -1301,7 +1301,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -1309,7 +1309,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -1317,7 +1317,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -1325,7 +1325,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -1333,7 +1333,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -1341,7 +1341,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -1391,7 +1391,7 @@ Object {
       "exported": false,
       "name": "dep__target_dir",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_build/dep",
+      "value": "<storePath>/b/dep",
     },
     "dep__install" => Object {
       "builtIn": true,
@@ -1399,7 +1399,7 @@ Object {
       "exported": false,
       "name": "dep__install",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep",
+      "value": "<storePath>/i/dep",
     },
     "dep__bin" => Object {
       "builtIn": true,
@@ -1407,7 +1407,7 @@ Object {
       "exported": false,
       "name": "dep__bin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "dep__sbin" => Object {
       "builtIn": true,
@@ -1415,7 +1415,7 @@ Object {
       "exported": false,
       "name": "dep__sbin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "dep__lib" => Object {
       "builtIn": true,
@@ -1423,7 +1423,7 @@ Object {
       "exported": false,
       "name": "dep__lib",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "dep__man" => Object {
       "builtIn": true,
@@ -1431,7 +1431,7 @@ Object {
       "exported": false,
       "name": "dep__man",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "dep__doc" => Object {
       "builtIn": true,
@@ -1439,7 +1439,7 @@ Object {
       "exported": false,
       "name": "dep__doc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "dep__stublibs" => Object {
       "builtIn": true,
@@ -1447,7 +1447,7 @@ Object {
       "exported": false,
       "name": "dep__stublibs",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "dep__toplevel" => Object {
       "builtIn": true,
@@ -1455,7 +1455,7 @@ Object {
       "exported": false,
       "name": "dep__toplevel",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "dep__share" => Object {
       "builtIn": true,
@@ -1463,7 +1463,7 @@ Object {
       "exported": false,
       "name": "dep__share",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "dep__etc" => Object {
       "builtIn": true,
@@ -1471,7 +1471,7 @@ Object {
       "exported": false,
       "name": "dep__etc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
     "app__name" => Object {
       "builtIn": true,
@@ -1511,7 +1511,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -1519,7 +1519,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -1527,7 +1527,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -1535,7 +1535,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -1543,7 +1543,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -1551,7 +1551,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -1559,7 +1559,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -1567,7 +1567,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -1575,7 +1575,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -1583,7 +1583,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -1591,21 +1591,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -1626,14 +1626,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -1673,7 +1673,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -1681,7 +1681,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -1689,7 +1689,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -1697,7 +1697,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -1705,7 +1705,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -1713,7 +1713,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -1721,7 +1721,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -1729,7 +1729,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -1737,7 +1737,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -1745,7 +1745,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -1753,7 +1753,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -1775,14 +1775,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -1803,14 +1803,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -1850,7 +1850,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -1858,7 +1858,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -1866,7 +1866,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -1874,7 +1874,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -1882,7 +1882,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -1890,7 +1890,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -1898,7 +1898,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -1906,7 +1906,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -1914,7 +1914,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -1922,7 +1922,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -1930,7 +1930,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -1988,7 +1988,7 @@ Object {
       "exported": false,
       "name": "dep__target_dir",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_build/dep",
+      "value": "<storePath>/b/dep",
     },
     "dep__install" => Object {
       "builtIn": true,
@@ -1996,7 +1996,7 @@ Object {
       "exported": false,
       "name": "dep__install",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep",
+      "value": "<storePath>/i/dep",
     },
     "dep__bin" => Object {
       "builtIn": true,
@@ -2004,7 +2004,7 @@ Object {
       "exported": false,
       "name": "dep__bin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "dep__sbin" => Object {
       "builtIn": true,
@@ -2012,7 +2012,7 @@ Object {
       "exported": false,
       "name": "dep__sbin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "dep__lib" => Object {
       "builtIn": true,
@@ -2020,7 +2020,7 @@ Object {
       "exported": false,
       "name": "dep__lib",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "dep__man" => Object {
       "builtIn": true,
@@ -2028,7 +2028,7 @@ Object {
       "exported": false,
       "name": "dep__man",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "dep__doc" => Object {
       "builtIn": true,
@@ -2036,7 +2036,7 @@ Object {
       "exported": false,
       "name": "dep__doc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "dep__stublibs" => Object {
       "builtIn": true,
@@ -2044,7 +2044,7 @@ Object {
       "exported": false,
       "name": "dep__stublibs",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "dep__toplevel" => Object {
       "builtIn": true,
@@ -2052,7 +2052,7 @@ Object {
       "exported": false,
       "name": "dep__toplevel",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "dep__share" => Object {
       "builtIn": true,
@@ -2060,7 +2060,7 @@ Object {
       "exported": false,
       "name": "dep__share",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "dep__etc" => Object {
       "builtIn": true,
@@ -2068,7 +2068,7 @@ Object {
       "exported": false,
       "name": "dep__etc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -2116,7 +2116,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -2124,7 +2124,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -2132,7 +2132,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -2140,7 +2140,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -2148,7 +2148,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -2156,7 +2156,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -2164,7 +2164,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -2172,7 +2172,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -2180,7 +2180,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -2188,7 +2188,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -2196,21 +2196,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -2231,14 +2231,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -2278,7 +2278,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -2286,7 +2286,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -2294,7 +2294,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -2302,7 +2302,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -2310,7 +2310,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -2318,7 +2318,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -2326,7 +2326,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -2334,7 +2334,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -2342,7 +2342,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -2350,7 +2350,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -2358,7 +2358,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -2380,14 +2380,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -2408,14 +2408,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -2455,7 +2455,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -2463,7 +2463,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -2471,7 +2471,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -2479,7 +2479,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -2487,7 +2487,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -2495,7 +2495,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -2503,7 +2503,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -2511,7 +2511,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -2519,7 +2519,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -2527,7 +2527,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -2535,7 +2535,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "app__var" => Object {
       "builtIn": false,
@@ -2585,7 +2585,7 @@ Object {
       "exported": false,
       "name": "dep__target_dir",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_build/dep",
+      "value": "<storePath>/b/dep",
     },
     "dep__install" => Object {
       "builtIn": true,
@@ -2593,7 +2593,7 @@ Object {
       "exported": false,
       "name": "dep__install",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep",
+      "value": "<storePath>/i/dep",
     },
     "dep__bin" => Object {
       "builtIn": true,
@@ -2601,7 +2601,7 @@ Object {
       "exported": false,
       "name": "dep__bin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "dep__sbin" => Object {
       "builtIn": true,
@@ -2609,7 +2609,7 @@ Object {
       "exported": false,
       "name": "dep__sbin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "dep__lib" => Object {
       "builtIn": true,
@@ -2617,7 +2617,7 @@ Object {
       "exported": false,
       "name": "dep__lib",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "dep__man" => Object {
       "builtIn": true,
@@ -2625,7 +2625,7 @@ Object {
       "exported": false,
       "name": "dep__man",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "dep__doc" => Object {
       "builtIn": true,
@@ -2633,7 +2633,7 @@ Object {
       "exported": false,
       "name": "dep__doc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "dep__stublibs" => Object {
       "builtIn": true,
@@ -2641,7 +2641,7 @@ Object {
       "exported": false,
       "name": "dep__stublibs",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "dep__toplevel" => Object {
       "builtIn": true,
@@ -2649,7 +2649,7 @@ Object {
       "exported": false,
       "name": "dep__toplevel",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "dep__share" => Object {
       "builtIn": true,
@@ -2657,7 +2657,7 @@ Object {
       "exported": false,
       "name": "dep__share",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "dep__etc" => Object {
       "builtIn": true,
@@ -2665,7 +2665,7 @@ Object {
       "exported": false,
       "name": "dep__etc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
     "app__name" => Object {
       "builtIn": true,
@@ -2705,7 +2705,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -2713,7 +2713,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -2721,7 +2721,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -2729,7 +2729,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -2737,7 +2737,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -2745,7 +2745,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -2753,7 +2753,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -2761,7 +2761,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -2769,7 +2769,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -2777,7 +2777,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -2785,21 +2785,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -2820,14 +2820,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -2867,7 +2867,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -2875,7 +2875,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -2883,7 +2883,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -2891,7 +2891,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -2899,7 +2899,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -2907,7 +2907,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -2915,7 +2915,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -2923,7 +2923,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -2931,7 +2931,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -2939,7 +2939,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -2947,7 +2947,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "app__var" => Object {
       "builtIn": false,
@@ -2969,14 +2969,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -2997,14 +2997,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -3044,7 +3044,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -3052,7 +3052,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -3060,7 +3060,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -3068,7 +3068,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -3076,7 +3076,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -3084,7 +3084,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -3092,7 +3092,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -3100,7 +3100,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -3108,7 +3108,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -3116,7 +3116,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -3124,7 +3124,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -3182,7 +3182,7 @@ Object {
       "exported": false,
       "name": "dep__target_dir",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_build/dep",
+      "value": "<storePath>/b/dep",
     },
     "dep__install" => Object {
       "builtIn": true,
@@ -3190,7 +3190,7 @@ Object {
       "exported": false,
       "name": "dep__install",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep",
+      "value": "<storePath>/i/dep",
     },
     "dep__bin" => Object {
       "builtIn": true,
@@ -3198,7 +3198,7 @@ Object {
       "exported": false,
       "name": "dep__bin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "dep__sbin" => Object {
       "builtIn": true,
@@ -3206,7 +3206,7 @@ Object {
       "exported": false,
       "name": "dep__sbin",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "dep__lib" => Object {
       "builtIn": true,
@@ -3214,7 +3214,7 @@ Object {
       "exported": false,
       "name": "dep__lib",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "dep__man" => Object {
       "builtIn": true,
@@ -3222,7 +3222,7 @@ Object {
       "exported": false,
       "name": "dep__man",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "dep__doc" => Object {
       "builtIn": true,
@@ -3230,7 +3230,7 @@ Object {
       "exported": false,
       "name": "dep__doc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "dep__stublibs" => Object {
       "builtIn": true,
@@ -3238,7 +3238,7 @@ Object {
       "exported": false,
       "name": "dep__stublibs",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "dep__toplevel" => Object {
       "builtIn": true,
@@ -3246,7 +3246,7 @@ Object {
       "exported": false,
       "name": "dep__toplevel",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "dep__share" => Object {
       "builtIn": true,
@@ -3254,7 +3254,7 @@ Object {
       "exported": false,
       "name": "dep__share",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "dep__etc" => Object {
       "builtIn": true,
@@ -3262,7 +3262,7 @@ Object {
       "exported": false,
       "name": "dep__etc",
       "spec": BuildSpec { id: "dep" },
-      "value": "<storePath>/_install/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
     "dep__var" => Object {
       "builtIn": false,
@@ -3310,7 +3310,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -3318,7 +3318,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -3326,7 +3326,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -3334,7 +3334,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -3342,7 +3342,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -3350,7 +3350,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -3358,7 +3358,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -3366,7 +3366,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -3374,7 +3374,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -3382,7 +3382,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -3390,21 +3390,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -3425,14 +3425,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/dep/bin:$PATH",
+      "value": "<storePath>/i/dep/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/dep/man:$MAN_PATH",
+      "value": "<storePath>/i/dep/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -3472,7 +3472,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -3480,7 +3480,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -3488,7 +3488,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -3496,7 +3496,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -3504,7 +3504,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -3512,7 +3512,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -3520,7 +3520,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -3528,7 +3528,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -3536,7 +3536,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -3544,7 +3544,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -3552,7 +3552,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "app_var" => Object {
       "builtIn": false,
@@ -3581,7 +3581,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -3649,7 +3649,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -3657,7 +3657,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -3665,7 +3665,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -3673,7 +3673,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -3681,7 +3681,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -3689,7 +3689,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -3697,7 +3697,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -3705,7 +3705,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -3713,7 +3713,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -3721,7 +3721,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -3729,7 +3729,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -3779,7 +3779,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -3787,7 +3787,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -3795,7 +3795,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -3803,7 +3803,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -3811,7 +3811,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -3819,7 +3819,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -3827,7 +3827,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -3835,7 +3835,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -3843,7 +3843,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -3851,7 +3851,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -3859,7 +3859,7 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
@@ -3873,7 +3873,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -3941,7 +3941,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -3949,7 +3949,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -3957,7 +3957,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -3965,7 +3965,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -3973,7 +3973,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -3981,7 +3981,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -3989,7 +3989,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -3997,7 +3997,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -4005,7 +4005,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -4013,7 +4013,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -4021,7 +4021,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -4050,7 +4050,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -4118,7 +4118,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -4126,7 +4126,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -4134,7 +4134,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -4142,7 +4142,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -4150,7 +4150,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -4158,7 +4158,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -4166,7 +4166,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -4174,7 +4174,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -4182,7 +4182,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -4190,7 +4190,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -4198,7 +4198,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -4248,7 +4248,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -4256,7 +4256,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -4264,7 +4264,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -4272,7 +4272,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -4280,7 +4280,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -4288,7 +4288,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -4296,7 +4296,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -4304,7 +4304,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -4312,7 +4312,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -4320,7 +4320,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -4328,7 +4328,7 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
@@ -4342,7 +4342,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -4410,7 +4410,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -4418,7 +4418,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -4426,7 +4426,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -4434,7 +4434,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -4442,7 +4442,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -4450,7 +4450,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -4458,7 +4458,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -4466,7 +4466,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -4474,7 +4474,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -4482,7 +4482,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -4490,7 +4490,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -4519,7 +4519,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -4587,7 +4587,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -4595,7 +4595,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -4603,7 +4603,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -4611,7 +4611,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -4619,7 +4619,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -4627,7 +4627,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -4635,7 +4635,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -4643,7 +4643,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -4651,7 +4651,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -4659,7 +4659,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -4667,7 +4667,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -4717,7 +4717,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -4725,7 +4725,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -4733,7 +4733,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -4741,7 +4741,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -4749,7 +4749,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -4757,7 +4757,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -4765,7 +4765,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -4773,7 +4773,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -4781,7 +4781,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -4789,7 +4789,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -4797,7 +4797,7 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
@@ -4811,7 +4811,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -4879,7 +4879,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -4887,7 +4887,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -4895,7 +4895,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -4903,7 +4903,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -4911,7 +4911,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -4919,7 +4919,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -4927,7 +4927,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -4935,7 +4935,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -4943,7 +4943,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -4951,7 +4951,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -4959,7 +4959,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "APP" => Object {
       "builtIn": false,
@@ -4988,7 +4988,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -5056,7 +5056,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -5064,7 +5064,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -5072,7 +5072,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -5080,7 +5080,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -5088,7 +5088,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -5096,7 +5096,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -5104,7 +5104,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -5112,7 +5112,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -5120,7 +5120,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -5128,7 +5128,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -5136,7 +5136,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "app__var" => Object {
       "builtIn": false,
@@ -5186,7 +5186,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -5194,7 +5194,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -5202,7 +5202,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -5210,7 +5210,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -5218,7 +5218,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -5226,7 +5226,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -5234,7 +5234,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -5242,7 +5242,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -5250,7 +5250,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -5258,7 +5258,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -5266,7 +5266,7 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
@@ -5280,7 +5280,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -5348,7 +5348,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -5356,7 +5356,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -5364,7 +5364,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -5372,7 +5372,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -5380,7 +5380,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -5388,7 +5388,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -5396,7 +5396,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -5404,7 +5404,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -5412,7 +5412,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -5420,7 +5420,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -5428,7 +5428,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "app__var" => Object {
       "builtIn": false,
@@ -5457,7 +5457,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -5525,7 +5525,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -5533,7 +5533,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -5541,7 +5541,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -5549,7 +5549,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -5557,7 +5557,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -5565,7 +5565,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -5573,7 +5573,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -5581,7 +5581,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -5589,7 +5589,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -5597,7 +5597,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -5605,7 +5605,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
   },
   "scope": Map {
@@ -5647,7 +5647,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -5655,7 +5655,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -5663,7 +5663,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -5671,7 +5671,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -5679,7 +5679,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -5687,7 +5687,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -5695,7 +5695,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -5703,7 +5703,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -5711,7 +5711,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -5719,7 +5719,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -5727,7 +5727,7 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
@@ -5741,7 +5741,7 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -5809,7 +5809,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -5817,7 +5817,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -5825,7 +5825,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -5833,7 +5833,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -5841,7 +5841,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -5849,7 +5849,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -5857,7 +5857,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -5865,7 +5865,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -5873,7 +5873,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -5881,7 +5881,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -5889,7 +5889,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
   },
 }
@@ -5903,14 +5903,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib:<storePath>/_install/lwt/lib",
+      "value": "<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/lwt/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -5931,14 +5931,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:<storePath>/_install/lwt/bin:$PATH",
+      "value": "<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/lwt/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:<storePath>/_install/lwt/man:$MAN_PATH",
+      "value": "<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:<storePath>/i/lwt/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -5978,7 +5978,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -5986,7 +5986,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -5994,7 +5994,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -6002,7 +6002,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -6010,7 +6010,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -6018,7 +6018,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -6026,7 +6026,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -6034,7 +6034,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -6042,7 +6042,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -6050,7 +6050,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -6058,7 +6058,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "CAML_LD_LIBRARY_PATH" => Object {
       "builtIn": false,
@@ -6066,7 +6066,7 @@ Object {
       "exported": true,
       "name": "CAML_LD_LIBRARY_PATH",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib:<storePath>/_install/lwt/lib/ocaml:<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml",
+      "value": "<storePath>/i/app/lib:<storePath>/i/lwt/lib/ocaml:<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
     },
   },
   "scope": Map {
@@ -6108,7 +6108,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__target_dir",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_build/ocamlfind",
+      "value": "<storePath>/b/ocamlfind",
     },
     "ocamlfind__install" => Object {
       "builtIn": true,
@@ -6116,7 +6116,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__install",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind",
+      "value": "<storePath>/i/ocamlfind",
     },
     "ocamlfind__bin" => Object {
       "builtIn": true,
@@ -6124,7 +6124,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__bin",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/bin",
+      "value": "<storePath>/i/ocamlfind/bin",
     },
     "ocamlfind__sbin" => Object {
       "builtIn": true,
@@ -6132,7 +6132,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__sbin",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/sbin",
+      "value": "<storePath>/i/ocamlfind/sbin",
     },
     "ocamlfind__lib" => Object {
       "builtIn": true,
@@ -6140,7 +6140,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__lib",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/lib",
+      "value": "<storePath>/i/ocamlfind/lib",
     },
     "ocamlfind__man" => Object {
       "builtIn": true,
@@ -6148,7 +6148,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__man",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/man",
+      "value": "<storePath>/i/ocamlfind/man",
     },
     "ocamlfind__doc" => Object {
       "builtIn": true,
@@ -6156,7 +6156,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__doc",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/doc",
+      "value": "<storePath>/i/ocamlfind/doc",
     },
     "ocamlfind__stublibs" => Object {
       "builtIn": true,
@@ -6164,7 +6164,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__stublibs",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/stublibs",
+      "value": "<storePath>/i/ocamlfind/stublibs",
     },
     "ocamlfind__toplevel" => Object {
       "builtIn": true,
@@ -6172,7 +6172,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__toplevel",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/toplevel",
+      "value": "<storePath>/i/ocamlfind/toplevel",
     },
     "ocamlfind__share" => Object {
       "builtIn": true,
@@ -6180,7 +6180,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__share",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/share",
+      "value": "<storePath>/i/ocamlfind/share",
     },
     "ocamlfind__etc" => Object {
       "builtIn": true,
@@ -6188,7 +6188,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__etc",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/etc",
+      "value": "<storePath>/i/ocamlfind/etc",
     },
     "lwt__name" => Object {
       "builtIn": true,
@@ -6228,7 +6228,7 @@ Object {
       "exported": false,
       "name": "lwt__target_dir",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_build/lwt",
+      "value": "<storePath>/b/lwt",
     },
     "lwt__install" => Object {
       "builtIn": true,
@@ -6236,7 +6236,7 @@ Object {
       "exported": false,
       "name": "lwt__install",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt",
+      "value": "<storePath>/i/lwt",
     },
     "lwt__bin" => Object {
       "builtIn": true,
@@ -6244,7 +6244,7 @@ Object {
       "exported": false,
       "name": "lwt__bin",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/bin",
+      "value": "<storePath>/i/lwt/bin",
     },
     "lwt__sbin" => Object {
       "builtIn": true,
@@ -6252,7 +6252,7 @@ Object {
       "exported": false,
       "name": "lwt__sbin",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/sbin",
+      "value": "<storePath>/i/lwt/sbin",
     },
     "lwt__lib" => Object {
       "builtIn": true,
@@ -6260,7 +6260,7 @@ Object {
       "exported": false,
       "name": "lwt__lib",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/lib",
+      "value": "<storePath>/i/lwt/lib",
     },
     "lwt__man" => Object {
       "builtIn": true,
@@ -6268,7 +6268,7 @@ Object {
       "exported": false,
       "name": "lwt__man",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/man",
+      "value": "<storePath>/i/lwt/man",
     },
     "lwt__doc" => Object {
       "builtIn": true,
@@ -6276,7 +6276,7 @@ Object {
       "exported": false,
       "name": "lwt__doc",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/doc",
+      "value": "<storePath>/i/lwt/doc",
     },
     "lwt__stublibs" => Object {
       "builtIn": true,
@@ -6284,7 +6284,7 @@ Object {
       "exported": false,
       "name": "lwt__stublibs",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/stublibs",
+      "value": "<storePath>/i/lwt/stublibs",
     },
     "lwt__toplevel" => Object {
       "builtIn": true,
@@ -6292,7 +6292,7 @@ Object {
       "exported": false,
       "name": "lwt__toplevel",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/toplevel",
+      "value": "<storePath>/i/lwt/toplevel",
     },
     "lwt__share" => Object {
       "builtIn": true,
@@ -6300,7 +6300,7 @@ Object {
       "exported": false,
       "name": "lwt__share",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/share",
+      "value": "<storePath>/i/lwt/share",
     },
     "lwt__etc" => Object {
       "builtIn": true,
@@ -6308,7 +6308,7 @@ Object {
       "exported": false,
       "name": "lwt__etc",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/etc",
+      "value": "<storePath>/i/lwt/etc",
     },
     "app__name" => Object {
       "builtIn": true,
@@ -6348,7 +6348,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -6356,7 +6356,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -6364,7 +6364,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -6372,7 +6372,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -6380,7 +6380,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -6388,7 +6388,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -6396,7 +6396,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -6404,7 +6404,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -6412,7 +6412,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -6420,7 +6420,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -6428,21 +6428,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib:<storePath>/_install/lwt/lib",
+      "value": "<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/lwt/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -6463,14 +6463,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:<storePath>/_install/lwt/bin:$PATH",
+      "value": "<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/lwt/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:<storePath>/_install/lwt/man:$MAN_PATH",
+      "value": "<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:<storePath>/i/lwt/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -6510,7 +6510,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -6518,7 +6518,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -6526,7 +6526,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -6534,7 +6534,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -6542,7 +6542,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -6550,7 +6550,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -6558,7 +6558,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -6566,7 +6566,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -6574,7 +6574,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -6582,7 +6582,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -6590,7 +6590,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "CAML_LD_LIBRARY_PATH" => Object {
       "builtIn": false,
@@ -6598,7 +6598,7 @@ Object {
       "exported": true,
       "name": "CAML_LD_LIBRARY_PATH",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib:<storePath>/_install/lwt/lib/ocaml:<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml",
+      "value": "<storePath>/i/app/lib:<storePath>/i/lwt/lib/ocaml:<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
     },
   },
 }
@@ -6612,14 +6612,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib:<storePath>/_install/lwt/lib",
+      "value": "<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/lwt/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -6640,14 +6640,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:<storePath>/_install/lwt/bin:$PATH",
+      "value": "<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/lwt/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:<storePath>/_install/lwt/man:$MAN_PATH",
+      "value": "<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:<storePath>/i/lwt/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -6687,7 +6687,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -6695,7 +6695,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -6703,7 +6703,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -6711,7 +6711,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -6719,7 +6719,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -6727,7 +6727,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -6735,7 +6735,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -6743,7 +6743,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -6751,7 +6751,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -6759,7 +6759,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -6767,7 +6767,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "CAML_LD_LIBRARY_PATH" => Object {
       "builtIn": false,
@@ -6775,7 +6775,7 @@ Object {
       "exported": true,
       "name": "CAML_LD_LIBRARY_PATH",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/lib/ocaml:<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml",
+      "value": "<storePath>/i/lwt/lib/ocaml:<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
     },
   },
   "scope": Map {
@@ -6817,7 +6817,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__target_dir",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_build/ocamlfind",
+      "value": "<storePath>/b/ocamlfind",
     },
     "ocamlfind__install" => Object {
       "builtIn": true,
@@ -6825,7 +6825,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__install",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind",
+      "value": "<storePath>/i/ocamlfind",
     },
     "ocamlfind__bin" => Object {
       "builtIn": true,
@@ -6833,7 +6833,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__bin",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/bin",
+      "value": "<storePath>/i/ocamlfind/bin",
     },
     "ocamlfind__sbin" => Object {
       "builtIn": true,
@@ -6841,7 +6841,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__sbin",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/sbin",
+      "value": "<storePath>/i/ocamlfind/sbin",
     },
     "ocamlfind__lib" => Object {
       "builtIn": true,
@@ -6849,7 +6849,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__lib",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/lib",
+      "value": "<storePath>/i/ocamlfind/lib",
     },
     "ocamlfind__man" => Object {
       "builtIn": true,
@@ -6857,7 +6857,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__man",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/man",
+      "value": "<storePath>/i/ocamlfind/man",
     },
     "ocamlfind__doc" => Object {
       "builtIn": true,
@@ -6865,7 +6865,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__doc",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/doc",
+      "value": "<storePath>/i/ocamlfind/doc",
     },
     "ocamlfind__stublibs" => Object {
       "builtIn": true,
@@ -6873,7 +6873,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__stublibs",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/stublibs",
+      "value": "<storePath>/i/ocamlfind/stublibs",
     },
     "ocamlfind__toplevel" => Object {
       "builtIn": true,
@@ -6881,7 +6881,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__toplevel",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/toplevel",
+      "value": "<storePath>/i/ocamlfind/toplevel",
     },
     "ocamlfind__share" => Object {
       "builtIn": true,
@@ -6889,7 +6889,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__share",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/share",
+      "value": "<storePath>/i/ocamlfind/share",
     },
     "ocamlfind__etc" => Object {
       "builtIn": true,
@@ -6897,7 +6897,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__etc",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/etc",
+      "value": "<storePath>/i/ocamlfind/etc",
     },
     "lwt__name" => Object {
       "builtIn": true,
@@ -6937,7 +6937,7 @@ Object {
       "exported": false,
       "name": "lwt__target_dir",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_build/lwt",
+      "value": "<storePath>/b/lwt",
     },
     "lwt__install" => Object {
       "builtIn": true,
@@ -6945,7 +6945,7 @@ Object {
       "exported": false,
       "name": "lwt__install",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt",
+      "value": "<storePath>/i/lwt",
     },
     "lwt__bin" => Object {
       "builtIn": true,
@@ -6953,7 +6953,7 @@ Object {
       "exported": false,
       "name": "lwt__bin",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/bin",
+      "value": "<storePath>/i/lwt/bin",
     },
     "lwt__sbin" => Object {
       "builtIn": true,
@@ -6961,7 +6961,7 @@ Object {
       "exported": false,
       "name": "lwt__sbin",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/sbin",
+      "value": "<storePath>/i/lwt/sbin",
     },
     "lwt__lib" => Object {
       "builtIn": true,
@@ -6969,7 +6969,7 @@ Object {
       "exported": false,
       "name": "lwt__lib",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/lib",
+      "value": "<storePath>/i/lwt/lib",
     },
     "lwt__man" => Object {
       "builtIn": true,
@@ -6977,7 +6977,7 @@ Object {
       "exported": false,
       "name": "lwt__man",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/man",
+      "value": "<storePath>/i/lwt/man",
     },
     "lwt__doc" => Object {
       "builtIn": true,
@@ -6985,7 +6985,7 @@ Object {
       "exported": false,
       "name": "lwt__doc",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/doc",
+      "value": "<storePath>/i/lwt/doc",
     },
     "lwt__stublibs" => Object {
       "builtIn": true,
@@ -6993,7 +6993,7 @@ Object {
       "exported": false,
       "name": "lwt__stublibs",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/stublibs",
+      "value": "<storePath>/i/lwt/stublibs",
     },
     "lwt__toplevel" => Object {
       "builtIn": true,
@@ -7001,7 +7001,7 @@ Object {
       "exported": false,
       "name": "lwt__toplevel",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/toplevel",
+      "value": "<storePath>/i/lwt/toplevel",
     },
     "lwt__share" => Object {
       "builtIn": true,
@@ -7009,7 +7009,7 @@ Object {
       "exported": false,
       "name": "lwt__share",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/share",
+      "value": "<storePath>/i/lwt/share",
     },
     "lwt__etc" => Object {
       "builtIn": true,
@@ -7017,7 +7017,7 @@ Object {
       "exported": false,
       "name": "lwt__etc",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/etc",
+      "value": "<storePath>/i/lwt/etc",
     },
     "app__name" => Object {
       "builtIn": true,
@@ -7057,7 +7057,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -7065,7 +7065,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -7073,7 +7073,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -7081,7 +7081,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -7089,7 +7089,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -7097,7 +7097,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -7105,7 +7105,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -7113,7 +7113,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -7121,7 +7121,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -7129,7 +7129,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -7137,21 +7137,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib:<storePath>/_install/lwt/lib",
+      "value": "<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/lwt/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -7172,14 +7172,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:<storePath>/_install/lwt/bin:$PATH",
+      "value": "<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/lwt/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:<storePath>/_install/lwt/man:$MAN_PATH",
+      "value": "<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:<storePath>/i/lwt/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -7219,7 +7219,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -7227,7 +7227,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -7235,7 +7235,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -7243,7 +7243,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -7251,7 +7251,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -7259,7 +7259,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -7267,7 +7267,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -7275,7 +7275,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -7283,7 +7283,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -7291,7 +7291,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -7299,7 +7299,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "CAML_LD_LIBRARY_PATH" => Object {
       "builtIn": false,
@@ -7307,7 +7307,7 @@ Object {
       "exported": true,
       "name": "CAML_LD_LIBRARY_PATH",
       "spec": BuildSpec { id: "lwt" },
-      "value": "<storePath>/_install/lwt/lib/ocaml:<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml",
+      "value": "<storePath>/i/lwt/lib/ocaml:<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
     },
   },
 }
@@ -7321,14 +7321,14 @@ Object {
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib",
+      "value": "<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -7349,14 +7349,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:$PATH",
+      "value": "<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:$MAN_PATH",
+      "value": "<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -7396,7 +7396,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -7404,7 +7404,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -7412,7 +7412,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -7420,7 +7420,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -7428,7 +7428,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -7436,7 +7436,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -7444,7 +7444,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -7452,7 +7452,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -7460,7 +7460,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -7468,7 +7468,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -7476,7 +7476,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "CAML_LD_LIBRARY_PATH" => Object {
       "builtIn": false,
@@ -7484,7 +7484,7 @@ Object {
       "exported": true,
       "name": "CAML_LD_LIBRARY_PATH",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml",
+      "value": "<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
     },
   },
   "scope": Map {
@@ -7526,7 +7526,7 @@ Object {
       "exported": false,
       "name": "ocaml__target_dir",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_build/ocaml",
+      "value": "<storePath>/b/ocaml",
     },
     "ocaml__install" => Object {
       "builtIn": true,
@@ -7534,7 +7534,7 @@ Object {
       "exported": false,
       "name": "ocaml__install",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml",
+      "value": "<storePath>/i/ocaml",
     },
     "ocaml__bin" => Object {
       "builtIn": true,
@@ -7542,7 +7542,7 @@ Object {
       "exported": false,
       "name": "ocaml__bin",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/bin",
+      "value": "<storePath>/i/ocaml/bin",
     },
     "ocaml__sbin" => Object {
       "builtIn": true,
@@ -7550,7 +7550,7 @@ Object {
       "exported": false,
       "name": "ocaml__sbin",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/sbin",
+      "value": "<storePath>/i/ocaml/sbin",
     },
     "ocaml__lib" => Object {
       "builtIn": true,
@@ -7558,7 +7558,7 @@ Object {
       "exported": false,
       "name": "ocaml__lib",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/lib",
+      "value": "<storePath>/i/ocaml/lib",
     },
     "ocaml__man" => Object {
       "builtIn": true,
@@ -7566,7 +7566,7 @@ Object {
       "exported": false,
       "name": "ocaml__man",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/man",
+      "value": "<storePath>/i/ocaml/man",
     },
     "ocaml__doc" => Object {
       "builtIn": true,
@@ -7574,7 +7574,7 @@ Object {
       "exported": false,
       "name": "ocaml__doc",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/doc",
+      "value": "<storePath>/i/ocaml/doc",
     },
     "ocaml__stublibs" => Object {
       "builtIn": true,
@@ -7582,7 +7582,7 @@ Object {
       "exported": false,
       "name": "ocaml__stublibs",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/stublibs",
+      "value": "<storePath>/i/ocaml/stublibs",
     },
     "ocaml__toplevel" => Object {
       "builtIn": true,
@@ -7590,7 +7590,7 @@ Object {
       "exported": false,
       "name": "ocaml__toplevel",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/toplevel",
+      "value": "<storePath>/i/ocaml/toplevel",
     },
     "ocaml__share" => Object {
       "builtIn": true,
@@ -7598,7 +7598,7 @@ Object {
       "exported": false,
       "name": "ocaml__share",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/share",
+      "value": "<storePath>/i/ocaml/share",
     },
     "ocaml__etc" => Object {
       "builtIn": true,
@@ -7606,7 +7606,7 @@ Object {
       "exported": false,
       "name": "ocaml__etc",
       "spec": BuildSpec { id: "ocaml" },
-      "value": "<storePath>/_install/ocaml/etc",
+      "value": "<storePath>/i/ocaml/etc",
     },
     "ocamlfind__name" => Object {
       "builtIn": true,
@@ -7646,7 +7646,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__target_dir",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_build/ocamlfind",
+      "value": "<storePath>/b/ocamlfind",
     },
     "ocamlfind__install" => Object {
       "builtIn": true,
@@ -7654,7 +7654,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__install",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind",
+      "value": "<storePath>/i/ocamlfind",
     },
     "ocamlfind__bin" => Object {
       "builtIn": true,
@@ -7662,7 +7662,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__bin",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/bin",
+      "value": "<storePath>/i/ocamlfind/bin",
     },
     "ocamlfind__sbin" => Object {
       "builtIn": true,
@@ -7670,7 +7670,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__sbin",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/sbin",
+      "value": "<storePath>/i/ocamlfind/sbin",
     },
     "ocamlfind__lib" => Object {
       "builtIn": true,
@@ -7678,7 +7678,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__lib",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/lib",
+      "value": "<storePath>/i/ocamlfind/lib",
     },
     "ocamlfind__man" => Object {
       "builtIn": true,
@@ -7686,7 +7686,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__man",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/man",
+      "value": "<storePath>/i/ocamlfind/man",
     },
     "ocamlfind__doc" => Object {
       "builtIn": true,
@@ -7694,7 +7694,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__doc",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/doc",
+      "value": "<storePath>/i/ocamlfind/doc",
     },
     "ocamlfind__stublibs" => Object {
       "builtIn": true,
@@ -7702,7 +7702,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__stublibs",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/stublibs",
+      "value": "<storePath>/i/ocamlfind/stublibs",
     },
     "ocamlfind__toplevel" => Object {
       "builtIn": true,
@@ -7710,7 +7710,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__toplevel",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/toplevel",
+      "value": "<storePath>/i/ocamlfind/toplevel",
     },
     "ocamlfind__share" => Object {
       "builtIn": true,
@@ -7718,7 +7718,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__share",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/share",
+      "value": "<storePath>/i/ocamlfind/share",
     },
     "ocamlfind__etc" => Object {
       "builtIn": true,
@@ -7726,7 +7726,7 @@ Object {
       "exported": false,
       "name": "ocamlfind__etc",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/etc",
+      "value": "<storePath>/i/ocamlfind/etc",
     },
     "app__name" => Object {
       "builtIn": true,
@@ -7766,7 +7766,7 @@ Object {
       "exported": false,
       "name": "app__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "app__install" => Object {
       "builtIn": true,
@@ -7774,7 +7774,7 @@ Object {
       "exported": false,
       "name": "app__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app",
+      "value": "<storePath>/i/app",
     },
     "app__bin" => Object {
       "builtIn": true,
@@ -7782,7 +7782,7 @@ Object {
       "exported": false,
       "name": "app__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/bin",
+      "value": "<storePath>/i/app/bin",
     },
     "app__sbin" => Object {
       "builtIn": true,
@@ -7790,7 +7790,7 @@ Object {
       "exported": false,
       "name": "app__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/sbin",
+      "value": "<storePath>/i/app/sbin",
     },
     "app__lib" => Object {
       "builtIn": true,
@@ -7798,7 +7798,7 @@ Object {
       "exported": false,
       "name": "app__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/lib",
+      "value": "<storePath>/i/app/lib",
     },
     "app__man" => Object {
       "builtIn": true,
@@ -7806,7 +7806,7 @@ Object {
       "exported": false,
       "name": "app__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/man",
+      "value": "<storePath>/i/app/man",
     },
     "app__doc" => Object {
       "builtIn": true,
@@ -7814,7 +7814,7 @@ Object {
       "exported": false,
       "name": "app__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/doc",
+      "value": "<storePath>/i/app/doc",
     },
     "app__stublibs" => Object {
       "builtIn": true,
@@ -7822,7 +7822,7 @@ Object {
       "exported": false,
       "name": "app__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/stublibs",
+      "value": "<storePath>/i/app/stublibs",
     },
     "app__toplevel" => Object {
       "builtIn": true,
@@ -7830,7 +7830,7 @@ Object {
       "exported": false,
       "name": "app__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/toplevel",
+      "value": "<storePath>/i/app/toplevel",
     },
     "app__share" => Object {
       "builtIn": true,
@@ -7838,7 +7838,7 @@ Object {
       "exported": false,
       "name": "app__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/share",
+      "value": "<storePath>/i/app/share",
     },
     "app__etc" => Object {
       "builtIn": true,
@@ -7846,21 +7846,21 @@ Object {
       "exported": false,
       "name": "app__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_install/app/etc",
+      "value": "<storePath>/i/app/etc",
     },
     "OCAMLPATH" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLPATH",
-      "value": "<storePath>/_install/ocaml/lib:<storePath>/_install/ocamlfind/lib",
+      "value": "<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib",
     },
     "OCAMLFIND_DESTDIR" => Object {
       "builtIn": false,
       "exclusive": true,
       "exported": true,
       "name": "OCAMLFIND_DESTDIR",
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "OCAMLFIND_LDCONF" => Object {
       "builtIn": false,
@@ -7881,14 +7881,14 @@ Object {
       "exclusive": false,
       "exported": true,
       "name": "PATH",
-      "value": "<storePath>/_install/ocaml/bin:<storePath>/_install/ocamlfind/bin:$PATH",
+      "value": "<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:$PATH",
     },
     "MAN_PATH" => Object {
       "builtIn": false,
       "exclusive": false,
       "exported": true,
       "name": "MAN_PATH",
-      "value": "<storePath>/_install/ocaml/man:<storePath>/_install/ocamlfind/man:$MAN_PATH",
+      "value": "<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:$MAN_PATH",
     },
     "cur__name" => Object {
       "builtIn": true,
@@ -7928,7 +7928,7 @@ Object {
       "exported": false,
       "name": "cur__target_dir",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_build/app",
+      "value": "<storePath>/b/app",
     },
     "cur__install" => Object {
       "builtIn": true,
@@ -7936,7 +7936,7 @@ Object {
       "exported": false,
       "name": "cur__install",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app",
+      "value": "<storePath>/s/app",
     },
     "cur__bin" => Object {
       "builtIn": true,
@@ -7944,7 +7944,7 @@ Object {
       "exported": false,
       "name": "cur__bin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/bin",
+      "value": "<storePath>/s/app/bin",
     },
     "cur__sbin" => Object {
       "builtIn": true,
@@ -7952,7 +7952,7 @@ Object {
       "exported": false,
       "name": "cur__sbin",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/sbin",
+      "value": "<storePath>/s/app/sbin",
     },
     "cur__lib" => Object {
       "builtIn": true,
@@ -7960,7 +7960,7 @@ Object {
       "exported": false,
       "name": "cur__lib",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/lib",
+      "value": "<storePath>/s/app/lib",
     },
     "cur__man" => Object {
       "builtIn": true,
@@ -7968,7 +7968,7 @@ Object {
       "exported": false,
       "name": "cur__man",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/man",
+      "value": "<storePath>/s/app/man",
     },
     "cur__doc" => Object {
       "builtIn": true,
@@ -7976,7 +7976,7 @@ Object {
       "exported": false,
       "name": "cur__doc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/doc",
+      "value": "<storePath>/s/app/doc",
     },
     "cur__stublibs" => Object {
       "builtIn": true,
@@ -7984,7 +7984,7 @@ Object {
       "exported": false,
       "name": "cur__stublibs",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/stublibs",
+      "value": "<storePath>/s/app/stublibs",
     },
     "cur__toplevel" => Object {
       "builtIn": true,
@@ -7992,7 +7992,7 @@ Object {
       "exported": false,
       "name": "cur__toplevel",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/toplevel",
+      "value": "<storePath>/s/app/toplevel",
     },
     "cur__share" => Object {
       "builtIn": true,
@@ -8000,7 +8000,7 @@ Object {
       "exported": false,
       "name": "cur__share",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/share",
+      "value": "<storePath>/s/app/share",
     },
     "cur__etc" => Object {
       "builtIn": true,
@@ -8008,7 +8008,7 @@ Object {
       "exported": false,
       "name": "cur__etc",
       "spec": BuildSpec { id: "app" },
-      "value": "<storePath>/_insttmp/app/etc",
+      "value": "<storePath>/s/app/etc",
     },
     "CAML_LD_LIBRARY_PATH" => Object {
       "builtIn": false,
@@ -8016,7 +8016,7 @@ Object {
       "exported": true,
       "name": "CAML_LD_LIBRARY_PATH",
       "spec": BuildSpec { id: "ocamlfind" },
-      "value": "<storePath>/_install/ocamlfind/lib/ocaml:<storePath>/_install/ocaml/lib/ocaml",
+      "value": "<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
     },
   },
 }
@@ -8028,6 +8028,6 @@ Object {
   "exclusive": false,
   "exported": true,
   "name": "PATH",
-  "value": "<storePath>/_install/app/bin:<storePath>/_install/dep/bin:$PATH",
+  "value": "<storePath>/i/app/bin:<storePath>/i/dep/bin:$PATH",
 }
 `;

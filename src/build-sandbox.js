@@ -262,7 +262,7 @@ function calculateBuildId(
   if (process.env.ESY__TEST) {
     return `${normalizePackageName(name)}-${version || '0.0.0'}`;
   } else {
-    return `${normalizePackageName(name)}-${version || '0.0.0'}-${h}`;
+    return `${normalizePackageName(name)}-${version || '0.0.0'}-${h.slice(0, 8)}`;
   }
 }
 

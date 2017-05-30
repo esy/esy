@@ -13,13 +13,25 @@ import {PromiseQueue} from '../lib/Promise';
 import * as fs from '../lib/fs';
 
 import * as Graph from '../graph';
+import * as Config from '../build-config';
 import {endWritableStream, interleaveStreams} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
 
 const INSTALL_DIRS = ['lib', 'bin', 'sbin', 'man', 'doc', 'share', 'stublibs', 'etc'];
 const BUILD_DIRS = ['_esy'];
-const PATHS_TO_IGNORE = ['_build', '_install', 'node_modules'];
-const IGNORE_FOR_CHECKSUM = ['node_modules', '_build', '_install', '_esy'];
+const PATHS_TO_IGNORE = [
+  Config.STORE_BUILD_TREE,
+  Config.STORE_INSTALL_TREE,
+  Config.STORE_STAGE_TREE,
+  'node_modules',
+];
+const IGNORE_FOR_CHECKSUM = [
+  'node_modules',
+  '_esy',
+  Config.STORE_BUILD_TREE,
+  Config.STORE_INSTALL_TREE,
+  Config.STORE_STAGE_TREE,
+];
 
 const NUM_CPUS = os.cpus().length;
 
@@ -281,7 +293,9 @@ async function performBuild(
 
 async function initStore(storePath) {
   await Promise.all(
-    ['_build', '_install', '_insttmp'].map(p => fs.mkdirp(path.join(storePath, p))),
+    [Config.STORE_BUILD_TREE, Config.STORE_INSTALL_TREE, Config.STORE_STAGE_TREE].map(p =>
+      fs.mkdirp(path.join(storePath, p)),
+    ),
   );
 }
 

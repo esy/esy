@@ -14,6 +14,14 @@ import * as path from 'path';
 // put this into bin/esy w/o any perf penalties.
 export const ESY_STORE_VERSION = '3.x.x';
 
+/**
+ * Constants for tree names inside stores. We keep them short not to exhaust
+ * available shebang length as install tree will be there.
+ */
+export const STORE_BUILD_TREE = 'b';
+export const STORE_INSTALL_TREE = 'i';
+export const STORE_STAGE_TREE = 's';
+
 export function createConfig(params: {
   storePath: string,
   sandboxPath: string,
@@ -26,7 +34,7 @@ export function createConfig(params: {
     '_esy',
     'store',
   );
-  const genPath = (build: BuildSpec, tree: string, segments: string[]) => {
+  const genStorePath = (build: BuildSpec, tree: string, segments: string[]) => {
     if (build.shouldBePersisted) {
       return path.join(storePath, tree, build.id, ...segments);
     } else {
@@ -43,16 +51,17 @@ export function createConfig(params: {
     },
     getRootPath: (build: BuildSpec, ...segments) => {
       if (build.mutatesSourcePath) {
-        return genPath(build, '_build', segments);
+        return genStorePath(build, STORE_BUILD_TREE, segments);
       } else {
         return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
       }
     },
-    getBuildPath: (build: BuildSpec, ...segments) => genPath(build, '_build', segments),
+    getBuildPath: (build: BuildSpec, ...segments) =>
+      genStorePath(build, STORE_BUILD_TREE, segments),
     getInstallPath: (build: BuildSpec, ...segments) =>
-      genPath(build, '_insttmp', segments),
+      genStorePath(build, STORE_STAGE_TREE, segments),
     getFinalInstallPath: (build: BuildSpec, ...segments) =>
-      genPath(build, '_install', segments),
+      genStorePath(build, STORE_INSTALL_TREE, segments),
   };
   return buildConfig;
 }
