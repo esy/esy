@@ -109,7 +109,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
       ].join(' '),
-      command: 'mkdir -p $(@)',
+      command: '@mkdir -p $(@)',
     },
     {
       type: 'rule',
@@ -129,14 +129,14 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
       target: '$(ESY_EJECT__ROOT)/bin/realpath',
       dependencies: ['$(ESY_EJECT__ROOT)/bin/realpath.c'],
       shell: '/bin/bash',
-      command: 'gcc -o $(@) -x c $(<) 2> /dev/null',
+      command: '@gcc -o $(@) -x c $(<) 2> /dev/null',
     },
     {
       type: 'rule',
       target: '$(ESY_EJECT__ROOT)/bin/fastreplacestring.exe',
       dependencies: ['$(ESY_EJECT__ROOT)/bin/fastreplacestring.cpp'],
       shell: '/bin/bash',
-      command: 'g++ -Ofast -o $(@) $(<) 2> /dev/null',
+      command: '@g++ -Ofast -o $(@) $(<) 2> /dev/null',
     },
     {
       type: 'rule',
@@ -159,12 +159,10 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
   ): Makefile.MakeItem {
     const command = [];
     if (rule.withBuildEnv) {
-      command.push(
-        outdent`
-          $(shell_env_for__${normalizePackageName(build.name)}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
-          cd $esy_build__source_root
-        `,
-      );
+      command.push(outdent`
+        @$(shell_env_for__${normalizePackageName(build.name)}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
+        cd $esy_build__source_root
+      `);
     }
     command.push(rule.command);
     return {
