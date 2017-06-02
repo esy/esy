@@ -150,7 +150,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
   ];
 
   function createBuildRuleName(build, target): string {
-    return `${build.name}.${target}`;
+    return `${build.id}.${target}`;
   }
 
   function createBuildRule(
