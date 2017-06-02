@@ -194,7 +194,8 @@ async function buildCommand(sandboxPath) {
   function getReporterFor(task) {
     let handler = loggingHandlers.get(task.id);
     if (handler == null) {
-      handler = observatory.add(`${task.spec.name} @ ${task.spec.version}`);
+      const version = chalk.grey(`@ ${task.spec.version}`);
+      handler = observatory.add(`${task.spec.name} ${version}`);
       loggingHandlers.set(task.id, handler);
     }
     return handler;
