@@ -160,7 +160,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
     const command = [];
     if (rule.withBuildEnv) {
       command.push(outdent`
-        @$(shell_env_for__${normalizePackageName(build.name)}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
+        @$(shell_env_for__${normalizePackageName(build.id)}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
         cd $esy_build__source_root
       `);
     }
@@ -181,7 +181,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
   }
 
   function visitTask(task: BuildTask) {
-    log(`visit ${task.spec.name}`);
+    log(`visit ${task.spec.id}`);
 
     const packagePath = task.spec.sourcePath.split(path.sep).filter(Boolean);
 
@@ -205,7 +205,7 @@ export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
 
     ruleSet.push({
       type: 'define',
-      name: `shell_env_for__${normalizePackageName(task.spec.name)}`,
+      name: `shell_env_for__${normalizePackageName(task.spec.id)}`,
       value: [
         {
           CI: process.env.CI ? process.env.CI : null,
