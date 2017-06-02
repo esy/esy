@@ -103,38 +103,4 @@ describe('build-sandbox', function() {
     const sandbox = await fromDirectory(sandboxDir);
     expect(sandbox.root).toMatchSnapshot();
   });
-
-  test('error: duplicate dep', async function() {
-    const sandboxDir = await prepareSandbox(
-      pkg(
-        {
-          name: 'app',
-          version: '0.1.0',
-          dependencies: {
-            dep: '*',
-            ocaml: '*',
-          },
-        },
-        pkg({
-          name: 'ocaml',
-          version: '4.3.0',
-        }),
-        pkg(
-          {
-            name: 'dep',
-            version: '0.1.0',
-            dependencies: {
-              ocaml: '*',
-            },
-          },
-          pkg({
-            name: 'ocaml',
-            version: '4.3.0',
-          }),
-        ),
-      ).nodes,
-    );
-    const sandbox = await fromDirectory(sandboxDir);
-    expect(sandbox.root).toMatchSnapshot();
-  });
 });

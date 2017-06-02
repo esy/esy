@@ -50,7 +50,6 @@ type SandboxCrawlContext = {
   env: BuildEnvironment,
   sandboxPath: string,
   dependencyTrace: Array<string>,
-  seenBuildSpecByName: Map<string, BuildSpec>,
   crawlBuild: (
     packageJsonPath: string,
     context: SandboxCrawlContext,
@@ -90,7 +89,6 @@ export async function fromDirectory(sandboxPath: string): Promise<BuildSandbox> 
     sandboxPath,
     resolve: resolveCached,
     crawlBuild: crawlBuildCached,
-    seenBuildSpecByName: new Map(),
     dependencyTrace: [],
   };
 
@@ -175,14 +173,6 @@ async function crawlBuild(
   const nextSourcePath = path.relative(context.sandboxPath, sourcePath);
   const id = calculateBuildId(context.env, packageJson, source, dependencies);
 
-  const maybeDuplicateSpec = context.seenBuildSpecByName.get(packageJson.name);
-  if (maybeDuplicateSpec != null) {
-    nextErrors.push({
-      // eslint-disable-next-line max-len
-      message: `Found multiple instances of "${packageJson.name}" package: ${nextSourcePath} and ${maybeDuplicateSpec.sourcePath}`,
-    });
-  }
-
   const spec = {
     id,
     name: packageJson.name,
@@ -196,8 +186,6 @@ async function crawlBuild(
     dependencies,
     errors: nextErrors,
   };
-
-  context.seenBuildSpecByName.set(spec.name, spec);
 
   return spec;
 }
