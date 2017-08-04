@@ -135,3 +135,15 @@ export function endWritableStream(s: stream.Writable): Promise<void> {
     });
   });
 }
+
+export function writeIntoStream(s: stream.Writable, data: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    s.write(data, 'ascii', err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}

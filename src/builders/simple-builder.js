@@ -14,7 +14,7 @@ import * as fs from '../lib/fs';
 
 import * as Graph from '../graph';
 import * as Config from '../build-config';
-import {endWritableStream, interleaveStreams} from '../util';
+import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
 
 const INSTALL_DIRS = ['lib', 'bin', 'sbin', 'man', 'doc', 'share', 'stublibs', 'etc'];
@@ -250,6 +250,10 @@ async function performBuild(
       if (process.platform === 'darwin') {
         sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
       }
+
+      await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${renderedCommand}\n`);
+      await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
+
       const execution = await exec(sandboxedCommand, {
         cwd: rootPath,
         env: envForExec,
