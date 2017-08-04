@@ -333,5 +333,7 @@ function renderBuildTaskCommand(task: BuildTask): ?string {
   if (task.command == null) {
     return null;
   }
-  return task.command.map(c => c.renderedCommand).join(' && ');
+  let command = task.command.map(c => c.renderedCommand).join(' && ');
+  command = command.replace(/"/g, '\\"');
+  return command;
 }
