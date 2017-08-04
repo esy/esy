@@ -170,7 +170,9 @@ export function fromBuildSpec(
     mergeIntoMap(scope, env);
 
     const command = scopes.spec.command != null
-      ? scopes.spec.command.map(command => renderCommand(command, scope))
+      ? scopes.spec.command.map((command: string | Array<string>) =>
+          renderCommand(command, scope),
+        )
       : scopes.spec.command;
 
     return {
@@ -184,11 +186,20 @@ export function fromBuildSpec(
     };
   }
 
-  function renderCommand(command, scope) {
-    return {
-      command,
-      renderedCommand: expandWithScope(command, scope).rendered,
-    };
+  function renderCommand(command: Array<string> | string, scope) {
+    if (Array.isArray(command)) {
+      return {
+        command: command.join(' '),
+        renderedCommand: command
+          .map(command => quoteArgIfNeeded(expandWithScope(command, scope).rendered))
+          .join(' '),
+      };
+    } else {
+      return {
+        command,
+        renderedCommand: expandWithScope(command, scope).rendered,
+      };
+    }
   }
 
   return task;
@@ -348,6 +359,14 @@ export function renderWithScope<T: {value: string}>(
     }
   });
   return {rendered};
+}
+
+export function quoteArgIfNeeded(arg: string): string {
+  if (arg.indexOf(' ') === -1) {
+    return arg;
+  } else {
+    return `"${arg}"`;
+  }
 }
 
 export function expandWithScope<T: {value: string}>(

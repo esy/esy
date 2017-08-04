@@ -17,7 +17,7 @@ import {computeHash, resolve, normalizePackageName} from './util';
 import * as Env from './environment';
 
 export type EsyConfig = {
-  build: ?string,
+  build: null | string | Array<string> | Array<Array<string>>,
   buildsInSource: boolean,
   exportedEnv: {
     [name: string]: EnvironmentVarExport,
@@ -50,10 +50,7 @@ type SandboxCrawlContext = {
   env: BuildEnvironment,
   sandboxPath: string,
   dependencyTrace: Array<string>,
-  crawlBuild: (
-    packageJsonPath: string,
-    context: SandboxCrawlContext,
-  ) => Promise<BuildSpec>,
+  crawlBuild: (sourcePath: string, context: SandboxCrawlContext) => Promise<BuildSpec>,
   resolve: (moduleName: string, baseDirectory: string) => Promise<string>,
 };
 
@@ -73,11 +70,11 @@ export async function fromDirectory(sandboxPath: string): Promise<BuildSandbox> 
 
   const buildCache: Map<string, Promise<BuildSpec>> = new Map();
 
-  function crawlBuildCached(baseDirectory, context): Promise<BuildSpec> {
-    let build = buildCache.get(baseDirectory);
+  function crawlBuildCached(sourcePath, context): Promise<BuildSpec> {
+    let build = buildCache.get(sourcePath);
     if (build == null) {
-      build = crawlBuild(baseDirectory, context);
-      buildCache.set(baseDirectory, build);
+      build = crawlBuild(sourcePath, context);
+      buildCache.set(sourcePath, build);
     }
     return build;
   }
@@ -92,8 +89,7 @@ export async function fromDirectory(sandboxPath: string): Promise<BuildSandbox> 
     dependencyTrace: [],
   };
 
-  const packageJsonPath = path.join(sandboxPath, 'package.json');
-  const root = await crawlBuild(packageJsonPath, crawlContext);
+  const root = await crawlBuild(sandboxPath, crawlContext);
 
   return {env, root};
 }
@@ -125,7 +121,10 @@ async function crawlDependencies(
       continue;
     }
 
-    const build = await context.crawlBuild(dependencyPackageJsonPath, context);
+    const build = await context.crawlBuild(
+      path.dirname(dependencyPackageJsonPath),
+      context,
+    );
 
     errors.push(...build.errors);
     dependencies.set(build.id, build);
@@ -141,16 +140,17 @@ async function crawlDependencies(
 }
 
 async function crawlBuild(
-  packageJsonPath: string,
+  sourcePath: string,
   context: SandboxCrawlContext,
 ): Promise<BuildSpec> {
-  const sourcePath = path.dirname(packageJsonPath);
+  const packageJsonPath = path.join(sourcePath, 'package.json');
   const packageJson = await readPackageJson(packageJsonPath);
   const isRootBuild = context.sandboxPath === sourcePath;
 
-  let command = null;
+  let command: null | Array<string> | Array<Array<string>> = null;
   if (packageJson.esy.build != null) {
     if (!Array.isArray(packageJson.esy.build)) {
+      // $FlowFixMe: ...
       command = [packageJson.esy.build];
     } else {
       command = packageJson.esy.build;

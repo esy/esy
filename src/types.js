@@ -34,7 +34,7 @@ export type BuildSpec = {
   version: string,
 
   /** Command which is needed to execute build */
-  command: ?(string[]),
+  command: null | Array<string> | Array<Array<string>>,
 
   /** Environment exported by built. */
   exportedEnv: {[name: string]: EnvironmentVarExport},
@@ -81,7 +81,7 @@ export type BuildSpec = {
  */
 export type BuildTask = {
   id: string,
-  command: ?Array<{command: string, renderedCommand: string}>,
+  command: null | Array<{command: string, renderedCommand: string}>,
   env: Map<string, EnvironmentVar>,
   scope: Map<string, EnvironmentVar>,
   dependencies: Map<string, BuildTask>,
