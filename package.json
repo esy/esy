@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
+    "esy-opam": "esy-ocaml/esy-opam",
     "fs-extra": "^3.0.1",
     "loud-rejection": "^1.6.0",
     "mkdirp": "^0.5.1",
