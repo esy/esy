@@ -39,7 +39,7 @@ export const rmdir: (p: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 
 // mkdtemp
-const _mkdtemp = promisify(fs.mkdtemp);
+const _mkdtemp: string => Promise<string> = promisify(fs.mkdtemp);
 
 export function mkdtemp(prefix: string) {
   const root = os.tmpdir();
@@ -47,7 +47,11 @@ export function mkdtemp(prefix: string) {
 }
 
 // copydir
-const _copydir = promisify(copy);
+const _copydir: (
+  string,
+  string,
+  {filter?: string => boolean},
+) => Promise<void> = promisify(copy);
 
 export async function copydir(
   from: string,

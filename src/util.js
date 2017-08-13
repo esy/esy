@@ -8,7 +8,7 @@ import resolveBase from 'resolve';
 import * as stream from 'stream';
 import * as fs from './lib/fs';
 
-export function mapObject<S: *, F: (*) => *>(obj: S, f: F): $ObjMap<S, F> {
+export function mapObject<S: *, F: (*, string) => *>(obj: S, f: F): $ObjMap<S, F> {
   const nextObj = {};
   for (const k in obj) {
     nextObj[k] = f(obj[k], k);
