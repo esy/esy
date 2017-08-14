@@ -251,7 +251,7 @@ async function performBuild(
         sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
       }
 
-      await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${renderedCommand}\n`);
+      await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
       await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
 
       const execution = await exec(sandboxedCommand, {
