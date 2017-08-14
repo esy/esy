@@ -1011,9 +1011,9 @@ esutils@2.0.2, esutils@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
 
-esy-opam@esy-ocaml/esy-opam#d4f32b1ebf08576d4ff87b31da3794942f8c7478:
+esy-opam@esy-ocaml/esy-opam#cd397cb:
   version "0.0.1"
-  resolved "https://codeload.github.com/esy-ocaml/esy-opam/tar.gz/d4f32b1ebf08576d4ff87b31da3794942f8c7478"
+  resolved "https://codeload.github.com/esy-ocaml/esy-opam/tar.gz/cd397cb"
 
 exec-sh@^0.2.0:
   version "0.2.0"
