@@ -280,6 +280,12 @@ async function importOpamCommand(
   const opamData = await pfs.readFile(opamFilename);
   const opam = EsyOpam.parseOpam(opamData);
   const packageJson = EsyOpam.renderOpam(packageName, packageVersion, opam);
+  // We inject "ocaml" into devDependencies as this is something which is have
+  // to be done usually.
+  packageJson.devDependencies = {
+    ...packageJson.devDependencies,
+    ocaml: 'esy-ocaml/ocaml#esy',
+  };
   console.log(JSON.stringify(packageJson, null, 2));
 }
 
