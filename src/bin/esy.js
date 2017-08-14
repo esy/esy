@@ -14,6 +14,7 @@ process.noDeprecation = true;
 import type {BuildSandbox, BuildTask} from '../types';
 
 import * as fs from 'fs';
+import * as pfs from '../lib/fs';
 import loudRejection from 'loud-rejection';
 import outdent from 'outdent';
 import userHome from 'user-home';
@@ -24,6 +25,7 @@ import * as Env from '../environment';
 import * as Task from '../build-task';
 import * as Config from '../build-config';
 import * as Sandbox from '../build-sandbox';
+import * as EsyOpam from 'esy-opam';
 
 /**
  * Each package can configure exportedEnvVars with:
@@ -265,9 +267,26 @@ async function buildEjectCommand(sandboxPath) {
   );
 }
 
+async function importOpamCommand(
+  sandboxPath,
+  _commandName,
+  packageName,
+  packageVersion,
+  opamFilename,
+) {
+  if (opamFilename == null) {
+    error(`usage: esy import-opam PACKAGENAME PACKAGEVERSION OPAMFILENAME`);
+  }
+  const opamData = await pfs.readFile(opamFilename);
+  const opam = EsyOpam.parseOpam(opamData);
+  const packageJson = EsyOpam.renderOpam(packageName, packageVersion, opam);
+  console.log(JSON.stringify(packageJson, null, 2));
+}
+
 const builtInCommands = {
   'build-eject': buildEjectCommand,
   build: buildCommand,
+  'import-opam': importOpamCommand,
 };
 
 function indent(string, indent) {
