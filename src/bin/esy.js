@@ -25,7 +25,7 @@ import * as Env from '../environment';
 import * as Task from '../build-task';
 import * as Config from '../build-config';
 import * as Sandbox from '../build-sandbox';
-import * as EsyOpam from 'esy-opam';
+import * as EsyOpam from '@esy-ocaml/esy-opam';
 
 /**
  * Each package can configure exportedEnvVars with:
