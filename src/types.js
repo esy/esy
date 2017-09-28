@@ -88,10 +88,20 @@ export type BuildTask = {
   spec: BuildSpec,
 };
 
+export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
+
 /**
  * Build configuration.
  */
 export type BuildConfig = {
+
+  /**
+   * Which platform the build will actually be performed on. Not necessarily
+   * the same platform that is constructing the build plan.
+   */
+  buildPlatform: BuildPlatform,
+
+
   /**
    * Path to the store used for a build.
    */
@@ -104,6 +114,9 @@ export type BuildConfig = {
 
   /**
    * Path to a sandbox root.
+   * TODO: Model this as sufficiently abstract to prevent treating this as a
+   * string containing a file path. It very well might contain the name of an
+   * environment variable that eventually will contain the actual path.
    */
   sandboxPath: string,
 

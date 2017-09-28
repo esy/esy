@@ -25,8 +25,9 @@ export const STORE_STAGE_TREE = 's';
 export function createConfig(params: {
   storePath: string,
   sandboxPath: string,
+  buildPlatform: BuildPlatform,
 }): BuildConfig {
-  const {storePath, sandboxPath} = params;
+  const {storePath, sandboxPath, buildPlatform} = params;
   const localStorePath = path.join(
     sandboxPath,
     'node_modules',
@@ -46,6 +47,7 @@ export function createConfig(params: {
     sandboxPath,
     storePath,
     localStorePath,
+    buildPlatform,
     getSourcePath: (build: BuildSpec, ...segments) => {
       return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
     },

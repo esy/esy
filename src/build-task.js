@@ -8,6 +8,7 @@ import type {
   BuildConfig,
   BuildTask,
   BuildEnvironment,
+  BuildPlatform,
 } from './types';
 
 import {substituteVariables} from 'var-expansion';
@@ -20,6 +21,28 @@ type BuildTaskParams = {
   env?: BuildEnvironment,
   exposeOwnPath?: boolean,
 };
+
+
+/**
+ * Logic to determine how file paths inside of env vars should be delimited.
+ * For example, what separates file paths in the `PATH` env variable, or
+ * `OCAMLPATH` variable? In an ideal world, the logic would be very simple:
+ * `linux`/`darwin`/`cygwin` always uses `:`, and Windows/MinGW always uses
+ * `;`, however there's some unfortunate edge cases to deal with - `esy` can
+ * take care of all of that for you.
+ */
+function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
+  // Error as a courtesy. This means something went wrong in the esy code, not
+  // consumer code. Should be fixed ASAP.
+  if (envVarName === '' || envVarName.charAt(0) === '$') {
+    throw new Error('Invalidly formed environment variable:' + envVarName:string);
+  }
+  // Comprehensive pattern matching would be nice to have here!
+  return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin' ? ';' :
+      buildPlatform === 'cygwin' ||
+      buildPlatform === 'linux' ||
+      buildPlatform === 'darwin' ? ':' : ';';
+}
 
 /**
  * Produce a task graph from a build spec graph.
@@ -77,7 +100,7 @@ export function fromBuildSpec(
     const ocamlfindDest = config.getInstallPath(scopes.spec, 'lib');
     const ocamlpath = Array.from(scopes.allDependencies.values())
       .map(dep => config.getFinalInstallPath(dep.spec, 'lib'))
-      .join(':');
+      .join(getPathsDelimiter('OCAMLPATH', config.buildPlatform));
 
     evalIntoEnv(env, [
       {
@@ -110,7 +133,7 @@ export function fromBuildSpec(
         value: Array.from(scopes.allDependencies.values())
           .map(dep => config.getFinalInstallPath(dep.spec, 'bin'))
           .concat('$PATH')
-          .join(':'),
+          .join(getPathsDelimiter('PATH', config.buildPlatform)),
         exported: true,
       },
       {
@@ -118,7 +141,7 @@ export function fromBuildSpec(
         value: Array.from(scopes.allDependencies.values())
           .map(dep => config.getFinalInstallPath(dep.spec, 'man'))
           .concat('$MAN_PATH')
-          .join(':'),
+          .join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
         exported: true,
       },
     ]);

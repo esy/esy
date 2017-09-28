@@ -11,7 +11,7 @@ require('babel-polyfill');
 // $FlowFixMe: fix me
 process.noDeprecation = true;
 
-import type {BuildSandbox, BuildTask} from '../types';
+import type {BuildSandbox, BuildTask, BuildPlatform} from '../types';
 
 import * as fs from 'fs';
 import * as pfs from '../lib/fs';
@@ -152,6 +152,33 @@ import * as EsyOpam from '@esy-ocaml/esy-opam';
  *  true/false flag and it doesn't take into account scope.
  */
 
+/**
+ * Detect the default build platform based on the current OS.
+ */
+const defaultBuildPlatform: BuildPlatform =
+  process.platform === 'darwin' ? 'darwin' :
+  process.platform === 'linux' ? 'linux' :
+  'linux';
+
+/**
+ * This is temporary, mostly here for testing. Soon, esy will automatically
+ * create build ejects for all valid platforms.
+ */
+function determineBuildPlatformFromArgument(arg): BuildPlatform {
+  if (arg === '' || arg === null || arg === undefined) {
+    return defaultBuildPlatform;
+  } else {
+    if (arg === 'darwin') {
+      return 'darwin'
+    } else if (arg === 'linux') {
+      return 'linux'
+    } else if (arg === 'cygwin') {
+      return 'cygwin'
+    }
+    throw new Error('Specified build platform ' + arg + ' is invalid: Pass one of "linux", "cygwin", or "darwin"')
+  }
+}
+
 function formatError(message: string, stack?: string) {
   let result = `${chalk.red('ERROR')} ${message}`;
   if (stack != null) {
@@ -181,11 +208,35 @@ async function getBuildSandbox(sandboxPath): Promise<BuildSandbox> {
 const actualArgs = process.argv.slice(2);
 // TODO: Need to change this to climb to closest package.json.
 const sandboxPath = process.cwd();
-const storePath =
-  process.env.ESY__STORE || path.join(userHome, '.esy', Config.ESY_STORE_VERSION);
-const config = Config.createConfig({storePath, sandboxPath});
 
-async function buildCommand(sandboxPath) {
+function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
+  const storePath =
+    process.env.ESY__STORE || path.join(userHome, '.esy', Config.ESY_STORE_VERSION);
+  return Config.createConfig({storePath, sandboxPath, buildPlatform});
+}
+
+
+/**
+ * Note that Makefile based builds defers exact locations of sandbox and store
+ * to some later point because ejected builds can be transfered to other
+ * machines.
+ *
+ * That means that build env is generated in a way which can be configured later
+ * with `$ESY_EJECT__SANDBOX` and `$ESY__STORE` environment variables.
+ */
+function buildConfigForBuildEjectCommand(buildPlatform: BuildPlatform) {
+  const STORE_PATH = '$ESY_EJECT__STORE';
+  const SANDBOX_PATH = '$ESY_EJECT__SANDBOX';
+  const buildConfig: BuildConfig = Config.createConfig({
+    storePath: STORE_PATH,
+    sandboxPath: SANDBOX_PATH,
+    buildPlatform,
+  });
+  return buildConfig;
+}
+
+async function buildCommand(sandboxPath, _commandName) {
+  const config = buildConfigForBuildCommand(defaultBuildPlatform);
   const builder = require('../builders/simple-builder');
 
   const observatory = configureObservatory({
@@ -258,12 +309,21 @@ async function buildCommand(sandboxPath) {
   }
 }
 
-async function buildEjectCommand(sandboxPath) {
+async function buildEjectCommand(
+  sandboxPath,
+  _commandName,
+  _buildEjectPath,
+  buildPlatformArg,
+) {
+  const buildPlatform: BuildPlatform = determineBuildPlatformFromArgument(buildPlatformArg);
   const buildEject = require('../builders/makefile-builder');
   const sandbox = await getBuildSandbox(sandboxPath);
+  console.log(process.argv.join('--'));
+  const buildConfig = buildConfigForBuildEjectCommand(buildPlatform);
   buildEject.renderToMakefile(
     sandbox,
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'build-eject'),
+    buildConfig,
   );
 }
 
@@ -299,12 +359,22 @@ function indent(string, indent) {
   return string.split('\n').map(line => indent + line).join('\n');
 }
 
+/**
+ * CLI accepts
+ * esy your command here
+ * esy install
+ * esy build
+ * esy build-eject
+ * esy build-eject buildPlatform  # Unsupported, temporary, for debugging purposes.
+ * ... other yarn commands.
+ */
 async function main() {
   if (actualArgs.length === 0) {
     // TODO: It's just a status command. Print the command that would be
     // used to setup the environment along with status of
     // the build processes, staleness, package validity etc.
     const sandbox = await getBuildSandbox(sandboxPath);
+    const config = buildConfigForBuildCommand(defaultBuildPlatform);
     const task = Task.fromBuildSandbox(sandbox, config, {exposeOwnPath: true});
     // Sandbox env is more strict than we want it to be at runtime, filter
     // out $SHELL overrides.

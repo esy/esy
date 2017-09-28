@@ -22,31 +22,19 @@ const CWD = process.cwd();
 
 const RUNTIME = fs.readFileSync(path.join(__dirname, 'runtime.sh'), 'utf8');
 
-const STORE_PATH = '$ESY_EJECT__STORE';
-const SANDBOX_PATH = '$ESY_EJECT__SANDBOX';
-
 const fastReplaceStringSrc = fs.readFileSync(
   require.resolve('fastreplacestring/fastreplacestring.cpp'),
   'utf8',
 );
 
 /**
- * Note that Makefile based builds defers exact locations of sandbox and store
- * to some later point because ejected builds can be transfered to other
- * machines.
- *
- * That means that build env is generated in a way which can be configured later
- * with `$ESY_EJECT__SANDBOX` and `$ESY__STORE` environment variables.
- */
-export const buildConfig: BuildConfig = Config.createConfig({
-  storePath: STORE_PATH,
-  sandboxPath: SANDBOX_PATH,
-});
-
-/**
  * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
  */
-export function renderToMakefile(sandbox: BuildSandbox, outputPath: string) {
+export function renderToMakefile(
+    sandbox: BuildSandbox,
+    outputPath: string,
+    buildConfig: BuildConfig,
+  ) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
   const ruleSet: Makefile.MakeItem[] = [
     {
