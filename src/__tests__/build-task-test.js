@@ -66,6 +66,7 @@ const lwt = build({
 const config = Config.createConfig({
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
+  buildPlatform: 'linux',
 });
 
 describe('renderWithScope()', function() {

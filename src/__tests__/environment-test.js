@@ -29,6 +29,7 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
 const config = createConfig({
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
+  buildPlatform: 'linux',
 });
 
 const ocaml = build({

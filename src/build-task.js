@@ -37,6 +37,9 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
   if (envVarName === '' || envVarName.charAt(0) === '$') {
     throw new Error('Invalidly formed environment variable:' + envVarName:string);
   }
+  if (buildPlatform === null || buildPlatform === undefined) {
+    throw new Error('Build platform not specified');
+  }
   // Comprehensive pattern matching would be nice to have here!
   return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin' ? ';' :
       buildPlatform === 'cygwin' ||
@@ -96,7 +99,6 @@ export function fromBuildSpec(
 
   function createTask(scopes): BuildTask {
     const env = new Map();
-
     const ocamlfindDest = config.getInstallPath(scopes.spec, 'lib');
     const ocamlpath = Array.from(scopes.allDependencies.values())
       .map(dep => config.getFinalInstallPath(dep.spec, 'lib'))
