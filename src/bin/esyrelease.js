@@ -198,7 +198,6 @@
 var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
-var outdent = require('outdent');
 
 var storeVersion = '3.x.x';
 
@@ -799,7 +798,7 @@ var createInstallScript = function(releaseStage, releaseType, package) {
   var compressBuiltPackages = compressBuiltPackagesCmds.split('\n').join(shouldCompressBuiltPackages ? '\n' : '\n#');
   var decompressAndRelocateBuiltPackages =
       decompressAndRelocateBuiltPackagesCmds.split('\n').join(shouldDecompressAndRelocateBuiltPackages ? '\n' : '\n#');
-  return outdent`#!/usr/bin/env bash
+  return `#!/usr/bin/env bash
     set -e
     ${postinstallScriptSupport}
     ${message}
