@@ -53,6 +53,8 @@ const _copydir: (
   {filter?: string => boolean},
 ) => Promise<void> = promisify(copy);
 
+export {copy};
+
 export async function copydir(
   from: string,
   to: string,
