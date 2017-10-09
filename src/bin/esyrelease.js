@@ -198,6 +198,7 @@
 var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
+var outdent = require('outdent');
 
 var storeVersion = '3.x.x';
 
@@ -366,10 +367,15 @@ var escapeBashVarName = function(str) {
   return str.replace(/./g, replacer);
 }
 
+var getReleasedBinaries = function(package) {
+  return package && package.esy && package.esy.release && package.esy.release.releasedBinaries;
+}
+
 var createLaunchBinSh = function(releaseType, package, binaryName) {
   var packageName = package.name;
   var packageNameUppercase = escapeBashVarName(package.name.toUpperCase());
   var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
+  var releasedBinaries = getReleasedBinaries(package);
   return `#!/usr/bin/env bash
 
 export ESY__STORE_VERSION=${storeVersion}
@@ -413,9 +419,9 @@ ${
     echo ""
     echo "Welcome to ${packageName}"
     echo "-------------------------"
-    echo "Installed Binaries: [" ${(package.releasedBinaries || []).concat([packageName]).join(',')} "]"
+    echo "Installed Binaries: [" ${(releasedBinaries || []).concat([packageName]).join(',')} "]"
     echo "- ${packageName} bash"
-    echo   " Starts bash from the perspective of ${(package.releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
+    echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
     echo "- binaryName ----where"
     echo "  Prints the location of binaryName"
     echo "  Example: ${(package.releasedBinaries || ['<no_binaries>'])[0]} ----where"
@@ -458,6 +464,7 @@ var releaseStage = ['forPreparingRelease', 'forClientInstallation'];
 
 var actions = {
   'dev': {
+    installEsy: 'forClientInstallation',
     download: 'forClientInstallation',
     pack: 'forClientInstallation',
     compressPack: '',
@@ -467,6 +474,7 @@ var actions = {
     decompressAndRelocateBuiltPackages: 'forClientInstallation'
   },
   'pack': {
+    installEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
     pack: 'forPreparingRelease',
     compressPack: 'forPreparingRelease',
@@ -476,6 +484,7 @@ var actions = {
     decompressAndRelocateBuiltPackages: 'forClientInstallation'
   },
   'bin': {
+    installEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
     pack: 'forPreparingRelease',
     compressPack: '',
@@ -493,19 +502,67 @@ var buildLocallyAndRelocate = {
 };
 
 /**
+ * Derive npm release package.
+ *
+ * This strips all dependency info and add "bin" metadata.
+ */
+var deriveNpmReleasePackage = function(package, packageDir, releaseType) {
+  var copy = JSON.parse(JSON.stringify(package));
+
+  // We don't manage dependencies with npm, esy is being installed via a
+  // postinstall script and then it is used to manage release dependencies.
+  copy.dependencies = {};
+  copy.devDependencies = {};
+
+  // Populate "bin" metadata.
+  logExec('mkdir -p .bin');
+  var binsToWrite = getBinsToWrite(releaseType, packageDir, package);
+  var packageJsonBins = {};
+  for (var i = 0; i < binsToWrite.length; i++) {
+    var toWrite = binsToWrite[i];
+    fs.writeFileSync(toWrite.path, toWrite.contents);
+    fs.chmodSync(toWrite.path, 0755);
+    packageJsonBins[toWrite.name] = toWrite.path;
+  }
+  var copy = addBins(packageJsonBins, copy);
+
+  // Add postinstall script
+  copy.scripts.postinstall = './postinstall.sh';
+
+  return copy
+}
+
+/**
+ * Derive esy release package.
+ */
+var deriveEsyReleasePackage = function(package, packageDir, releaseType) {
+  var copy = JSON.parse(JSON.stringify(package));
+  delete copy.dependencies.esy;
+  delete copy.devDependencies.esy;
+  return copy;
+}
+
+/**
  * We get to remove a ton of dependencies for pack and bin based releases since
  * we don't need to even perform package management for native modules -
  * everything is vendored.
  */
 var adjustReleaseDependencies =  function(releaseStage, releaseType, package) {
-  // We only need esy to download and pack - everything else can just build the
-  // prepacked release!
-  if (actions[releaseType].download !== releaseStage && actions[releaseType].pack !== releaseStage) {
-    var copy = JSON.parse(JSON.stringify(package));
-    delete copy.dependencies['esy'];
-    return copy;
+  var copy = JSON.parse(JSON.stringify(package));
+  // We don't need dependency on Esy as we install it manually.
+  if (copy.dependencies && copy.dependencies.esy) {
+    delete copy.dependencies.esy;
   }
-  return package;
+  if (copy.devDependencies && copy.devDependencies.esy) {
+    delete copy.devDependencies.esy;
+  }
+
+  if (actions[releaseType].download !== releaseStage) {
+    copy.dependencies = {};
+    copy.devDependencies = {};
+  }
+
+  return copy;
 };
 
 var addBins = function(bins, package) {
@@ -529,8 +586,8 @@ var removePostinstallScript = function(package) {
   return copy;
 };
 
-var writeModifiedPackageJson = function(packageDir, package) {
-  fs.writeFileSync(path.join(packageDir, 'package.json'), JSON.stringify(package, null, 2));
+var putJson = function(filename, package) {
+  fs.writeFileSync(filename, JSON.stringify(package, null, 2));
 };
 
 var verifyBinSetup = function(package) {
@@ -568,7 +625,8 @@ var verifyBinSetup = function(package) {
 var desiredShebangPathLength = 127 - "!#".length;
 var pathLengthConsumedByOcamlrun = "/i/ocaml-n.00.0-########/bin/ocamlrun".length;
 var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
-var createPostinstallScript = function(releaseStage, releaseType, package) {
+var createInstallScript = function(releaseStage, releaseType, package) {
+  var shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
   var shouldDownload = actions[releaseType].download === releaseStage;
   var shouldPack = actions[releaseType].pack === releaseStage;
   var shouldCompressPack = actions[releaseType].compressPack === releaseStage;
@@ -581,6 +639,7 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
     # ------------------------------------------------------
     #  Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
     #
+    #  Install Esy: ${shouldInstallEsy}
     #  Download: ${shouldDownload}
     #  Pack: ${shouldPack}
     #  Compress Pack: ${shouldCompressPack}
@@ -589,28 +648,42 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
     #  Compress Built Packages: ${shouldCompressBuiltPackages}
     #  Decompress Built Packages: ${shouldDecompressAndRelocateBuiltPackages}`;
 
+  var deleteFromBinaryRelease = package.esy && package.esy.release && package.esy.release.deleteFromBinaryRelease;
+  var esyCommand = '../_esy/bin/esy';
+
+  var installEsyCmds = `
+    # Install Esy
+    echo '*** Installing Esy...'
+    npm install --global --prefix ./_esy "esy@${package.esy.esyDependency}"
+  `;
+
   var downloadCmds = `
     # Download
-    cd ./rel/
-    ../node_modules/.bin/esy install
-    cd ..`;
+    echo '*** Installing dependencies...'
+    cd ./rel
+    ${esyCommand} install
+    cd ../
+  `;
   var packCmds = `
     # Pack:
     # Peform build eject.  Warms up *just* the artifacts that require having a
     # modern node installed.
-    cd ./rel/
     # Generates the single Makefile etc.
-    ../node_modules/.bin/esy build-eject
-    cd ..`;
+    cd ./rel
+    ${esyCommand} build-eject
+    cd ../
+  `;
   var compressPackCmds = `
     # Compress:
     # Avoid npm stripping out vendored node_modules via tar. Merely renaming node_modules
     # is not sufficient!
+    echo '*** Packing the release...'
     tar -czf rel.tar.gz rel
     rm -rf ./rel/`;
   var decompressPackCmds =`
     # Decompress:
     # Avoid npm stripping out vendored node_modules.
+    echo '*** Unpacking the release...'
     gunzip rel.tar.gz
     if hash bsdtar 2>/dev/null; then
       bsdtar -xf rel.tar
@@ -625,6 +698,7 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
     rm -rf rel.tar`;
   var buildPackagesCmds = `
     # BuildPackages: Always reserve enough path space to perform relocation.
+    echo '*** Building the release...'
     cd ./rel/
     make -j -f node_modules/.cache/_esy/build-eject/Makefile
     cd ..
@@ -674,7 +748,7 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
     cd "$PACKAGE_ROOT"
     ${releaseStage === 'forPreparingRelease' ? scrubBinaryReleaseCommandPathPatterns('"$ESY_EJECT__TMP/i/"') : '#'}
     ${releaseStage === 'forPreparingRelease' ?
-      (package.deleteFromBinaryRelease || []).map(function(pattern) {
+      (deleteFromBinaryRelease || []).map(function(pattern) {
         return 'rm ' + pattern;
       }).join('\n') : ''
     }
@@ -698,6 +772,7 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
 
     cd "$ESY_EJECT__TMP/i/"
     # Executing the untar/unzip in parallel!
+    echo '*** Decompressing artefacts...'
     find . -name '*.gz' -print0 | xargs -0 -I {} -P 30 bash -c "unzipAndUntarFixupLinks $serverEsyEjectStore {}"
 
     cd "$PACKAGE_ROOT"
@@ -710,10 +785,12 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
     echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
     # Executing the replace string in parallel!
     # https://askubuntu.com/questions/431478/decompressing-multiple-files-at-once
+    echo '*** Relocating artefacts to the final destination...'
     find $ESY_EJECT__INSTALL_STORE -type f -print0 | xargs -0 -I {} -P 30 "$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/bin/fastreplacestring.exe" "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
     `;
   // Notice how we comment out each section which doesn't apply to this
   // combination of releaseStage/releaseType.
+  var installEsy = installEsyCmds.split('\n').join(shouldInstallEsy ? '\n' : '\n#');
   var download = downloadCmds.split('\n').join(shouldDownload ? '\n' : '\n#');
   var pack = packCmds.split('\n').join(shouldPack ? '\n' : '\n#');
   var compressPack = compressPackCmds.split('\n').join(shouldCompressPack ? '\n' : '\n#');
@@ -722,7 +799,7 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
   var compressBuiltPackages = compressBuiltPackagesCmds.split('\n').join(shouldCompressBuiltPackages ? '\n' : '\n#');
   var decompressAndRelocateBuiltPackages =
       decompressAndRelocateBuiltPackagesCmds.split('\n').join(shouldDecompressAndRelocateBuiltPackages ? '\n' : '\n#');
-  return `#!/usr/bin/env bash
+  return outdent`#!/usr/bin/env bash
     set -e
     ${postinstallScriptSupport}
     ${message}
@@ -797,7 +874,9 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
     # copy them to inside the sandbox - sometimes not.
     export PACKAGE_ROOT="$SCRIPTDIR"
     export ESY_EJECT__TMP="$PACKAGE_ROOT/relBinaries"
+
     checkEsyEjectStore
+    ${installEsy}
     ${download}
     ${pack}
     ${compressPack}
@@ -809,9 +888,10 @@ var createPostinstallScript = function(releaseStage, releaseType, package) {
 
 var getBinsToWrite = function(releaseType, packageDir, package) {
   var ret = [];
-  if (package.releasedBinaries) {
-    for (var i = 0; i < package.releasedBinaries.length; i++) {
-      var binaryName = package.releasedBinaries[i];
+  var releasedBinaries = getReleasedBinaries(package);
+  if (releasedBinaries) {
+    for (var i = 0; i < releasedBinaries.length; i++) {
+      var binaryName = releasedBinaries[i];
       var destPath = path.join('.bin', binaryName);
       ret.push({
         name: binaryName,
@@ -863,55 +943,79 @@ var checkNoChanges = function(packageDir) {
   );
 };
 
+var putExecutable = function(filename, contents) {
+  fs.writeFileSync(filename, contents);
+  fs.chmodSync(filename, 0755);
+}
+
+var readPackageJson = function(filename) {
+  var packageJson = fs.readFileSync(filename, 'utf8');
+  var package = JSON.parse(packageJson);
+  // Perform normalizations
+  if (package.dependencies == null) {
+    package.dependencies = {};
+  }
+  if (package.devDependencies == null) {
+    package.devDependencies = {};
+  }
+  if (package.scripts == null) {
+    package.scripts = {};
+  }
+  if (package.esy == null) {
+    package.esy = {};
+  }
+  if (package.esy.release == null) {
+    package.esy.release = {};
+  }
+  // Store esy dependency info separately so we can handle it in postinstall
+  // scirpt independently of npm dependency management.
+  var esyDependency = package.dependencies.esy || package.devDependencies.esy;
+  if (esyDependency == null) {
+    throw new Error('package should have esy declared as dependency');
+  }
+  package.esy.esyDependency = esyDependency;
+  return package;
+}
+
 /**
  * Builds the release from within the rootDirectory/package/ directory created
  * by `npm pack` command.
  */
 exports.buildRelease = function() {
+  var releaseType = process.env['TYPE'];
   var packageDir = path.resolve(__dirname, '..');
+
   checkVersion();
   checkReleaseType();
   //checkNoChanges();
-  var packageJson = fs.readFileSync('./package.json');
-  var package = JSON.parse(packageJson.toString());
-  var releaseType = process.env['TYPE'];
-  console.log("*** Building " + package.name + ' ' + releaseType);
+
+  var package = readPackageJson('./package.json');
   verifyBinSetup(package);
-  logExec('mkdir -p .bin');
-  var binsToWrite = getBinsToWrite(releaseType, packageDir, package);
-  var packageJsonBins = {};
-  for (var i = 0; i < binsToWrite.length; i++) {
-    var toWrite = binsToWrite[i];
-    fs.writeFileSync(toWrite.path, toWrite.contents);
-    fs.chmodSync(toWrite.path, 0755);
-    packageJsonBins[toWrite.name] = toWrite.path;
-  }
-  var packageWithBins = addBins(packageJsonBins, package);
 
-  // Prerelease: Will perform an initial installation to get dependencies, and
-  // then run the prerelease "postinstall" on that set of package source.
-  package = removePostinstallScript(packageWithBins);
-  package = adjustReleaseDependencies('forPreparingRelease', releaseType, package)
-  writeModifiedPackageJson(packageDir, package);
-  var prereleaseShPath = path.join(packageDir, 'prerelease.sh');
-  var prerelease = createPostinstallScript('forPreparingRelease', releaseType, package);
-  fs.writeFileSync(prereleaseShPath, prerelease);
-  fs.chmodSync(prereleaseShPath, 0755);
+  console.log(`*** Creating ${releaseType}-type release for ${package.name}`);
 
-  logExec('npm install --ignore-scripts');
+  var npmPackage = deriveNpmReleasePackage(package, packageDir, releaseType);
+  putJson(path.join(packageDir, 'package.json'), npmPackage);
+
+  var esyPackage = deriveEsyReleasePackage(package, packageDir, releaseType);
+  fs.mkdirSync(path.join(packageDir, 'rel'));
+  putJson(path.join(packageDir, 'rel', 'package.json'), esyPackage);
+
+  putExecutable(
+    path.join(packageDir, 'prerelease.sh'),
+    createInstallScript('forPreparingRelease', releaseType, package)
+  );
+
   logExec('./prerelease.sh');
 
   logExec('rm -rf ' + path.join(packageDir, 'node_modules'));
   logExec('rm -rf ' + path.join(packageDir, 'rel', 'yarn.lock'));
 
   // Actual Release: We leave the *actual* postinstall script to be executed on the host.
-  package = addPostinstallScript(packageWithBins);
-  package = adjustReleaseDependencies('forClientInstallation', releaseType, package)
-  writeModifiedPackageJson(packageDir, package);
-  var postinstallShPath = path.join(packageDir, 'postinstall.sh');
-  var postinstall = createPostinstallScript('forClientInstallation', releaseType, package);
-  fs.writeFileSync(postinstallShPath, postinstall);
-  fs.chmodSync(postinstallShPath, 0755);
+  putExecutable(
+    path.join(packageDir, 'postinstall.sh'),
+    createInstallScript('forClientInstallation', releaseType, package)
+  );
 };
 
 
