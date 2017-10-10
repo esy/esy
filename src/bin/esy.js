@@ -209,6 +209,37 @@ const actualArgs = process.argv.slice(2);
 // TODO: Need to change this to climb to closest package.json.
 const sandboxPath = process.cwd();
 
+/**
+ * To relocate binary artifacts, we need to replace all build-time paths that
+ * occur in build artifacts with install-time paths, which very well may be on
+ * a different computer even. In order to do so safely, we need to never change
+ * the length of the paths (otherwise we would corrupt the binaries).
+ * Therefore, it's beneficial to reserve as much padding in the build path as
+ * possible, without the path to ocamlrun ever exceeding the maximum allowed
+ * shebang length (since scripts will have a shebang to the full path to
+ * ocamlrun). The maximum line length is 127 (on most linuxes). Mac OS is a
+ * little more forgiving with the length restriction, so we plan for the worst
+ * (Linux).
+ *
+ *        This will be replaced by the actual      This must remain.
+ *        install location.
+ *       +------------------------------+  +--------------------------------+
+ *      /                                \/                                  \
+ *   #!/path/to/rel/store___padding____/i/ocaml-4.02.3-d8a857f3/bin/ocamlrun
+ *
+ * The goal is to make this shebang string exactly 127 characters long (maybe a
+ * little less to allow room for some other shebangs like `ocamlrun.opt` etc?)
+ *
+ * It is optimal to make this path as long as possible (because the
+ * installation location might be embedded deep in the file system), but no
+ * longer than 127 characters. It is optimal to minimize the portion of this
+ * shebang consumed by the "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion, so
+ * that more of that 127 can act as a padding.
+ */
+var desiredShebangPathLength = 127 - "!#".length;
+var pathLengthConsumedByOcamlrun = "/i/ocaml-n.00.0-########/bin/ocamlrun".length;
+var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
+
 function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
   const storePath =
     process.env.ESY__STORE || path.join(userHome, '.esy', Config.ESY_STORE_VERSION);
