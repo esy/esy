@@ -517,29 +517,6 @@ async function deriveEsyReleasePackage(pkg, releasePath, releaseType) {
   return copy;
 }
 
-/**
- * We get to remove a ton of dependencies for pack and bin based releases since
- * we don't need to even perform package management for native modules -
- * everything is vendored.
- */
-var adjustReleaseDependencies = function(releaseStage, releaseType, pkg) {
-  var copy = JSON.parse(JSON.stringify(pkg));
-  // We don't need dependency on Esy as we install it manually.
-  if (copy.dependencies && copy.dependencies.esy) {
-    delete copy.dependencies.esy;
-  }
-  if (copy.devDependencies && copy.devDependencies.esy) {
-    delete copy.devDependencies.esy;
-  }
-
-  if (actions[releaseType].download !== releaseStage) {
-    copy.dependencies = {};
-    copy.devDependencies = {};
-  }
-
-  return copy;
-};
-
 var addBins = function(bins, pkg) {
   var copy = JSON.parse(JSON.stringify(pkg));
   copy.bin = bins;
