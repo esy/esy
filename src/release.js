@@ -1030,15 +1030,16 @@ export async function buildRelease(config: BuildReleaseConfig) {
 
   const sandboxPath = config.sandboxPath;
   const releasePath = path.join(sandboxPath, '_release', releaseTag);
+  const esyReleasePath = path.join(sandboxPath, '_release', releaseTag, 'rel');
 
   const tarFilename = await child_process.spawn('npm', ['pack'], {cwd: sandboxPath});
   await child_process.spawn('tar', ['xzf', tarFilename]);
-  await fs.mkdirp(path.dirname(releasePath));
   await fs.rmdir(releasePath);
-  await fs.rename(path.join(sandboxPath, 'package'), releasePath);
+  await fs.mkdirp(releasePath);
+  await fs.rename(path.join(sandboxPath, 'package'), esyReleasePath);
   await fs.unlink(tarFilename);
 
-  const pkg = await readPackageJson(path.join(releasePath, 'package.json'));
+  const pkg = await readPackageJson(path.join(esyReleasePath, 'package.json'));
   await verifyBinSetup(pkg);
 
   console.log(`*** Creating ${releaseType}-type release for ${pkg.name}...`);
@@ -1048,7 +1049,7 @@ export async function buildRelease(config: BuildReleaseConfig) {
 
   const esyPackage = await deriveEsyReleasePackage(pkg, releasePath, releaseType);
   await fs.mkdirp(path.join(releasePath, 'rel'));
-  await putJson(path.join(releasePath, 'rel', 'package.json'), esyPackage);
+  await putJson(path.join(esyReleasePath, 'package.json'), esyPackage);
 
   await putExecutable(
     path.join(releasePath, 'prerelease.sh'),
