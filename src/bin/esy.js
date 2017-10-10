@@ -318,7 +318,6 @@ async function buildEjectCommand(
   const buildPlatform: BuildPlatform = determineBuildPlatformFromArgument(buildPlatformArg);
   const buildEject = require('../builders/makefile-builder');
   const sandbox = await getBuildSandbox(sandboxPath);
-  console.log(process.argv.join('--'));
   const buildConfig = buildConfigForBuildEjectCommand(buildPlatform);
   buildEject.renderToMakefile(
     sandbox,
