@@ -383,7 +383,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
         # We fake it so that the eject store is the location where we relocated the
         # binaries to.
         export ESY_EJECT__STORE=\`cat $PACKAGE_ROOT/records/recordedClientInstallStorePath.txt\`
-        ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/eject-env"
+        ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/command-env"
         source "$ENV_PATH"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED="sourced"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}="sourced"
@@ -725,11 +725,8 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     #
     # compressBuiltPackages
     #
-    ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/eject-env"
     # Double backslash in es6 literals becomes one backslash
     # Must use . instead of source for some reason.
-    shCmd=". $ENV_PATH && echo \\$PATH"
-    EJECTED_PATH=\`sh -c "$shCmd"\`
     # Remove the sources, keep the .cache which has some helpful information.
     mv "$ESY_EJECT__SANDBOX/node_modules" "$ESY_EJECT__SANDBOX/node_modules_tmp"
     mkdir -p "$ESY_EJECT__SANDBOX/node_modules"
@@ -738,11 +735,8 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # Copy over the installation artifacts.
 
     mkdir -p "$ESY_EJECT__TMP/i"
-    # Grab all the install directories by scraping what was added to the PATH.
-    # This deserves a better supported approach directly from esy.
-    IFS=':' read -a arr <<< "$EJECTED_PATH"
-    for i in "\${arr[@]}"; do
-      res=\`[[   "$i" =~ ^("$ESY_EJECT__STORE"/i/[a-z0-9\._-]*) ]] && echo \${BASH_REMATCH[1]} || echo ''\`
+    # Grab all the install directories
+    for res in $(cat $ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/final-install-path-set.txt); do
       if [[ "$res" != ""  ]]; then
         cp -r "$res" "$ESY_EJECT__TMP/i/"
         cd "$ESY_EJECT__TMP/i/"
@@ -751,7 +745,6 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
         echo "$res" >> $PACKAGE_ROOT/records/recordedCoppiedArtifacts.txt
       fi
     done
-    unset IFS
     cd "$PACKAGE_ROOT"
     ${releaseStage === 'forPreparingRelease' ? scrubBinaryReleaseCommandPathPatterns('"$ESY_EJECT__TMP/i/"') : '#'}
     ${releaseStage === 'forPreparingRelease' ? (deleteFromBinaryRelease || [])
