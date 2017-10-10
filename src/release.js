@@ -193,19 +193,30 @@
  *  `<binary_name>` calls out to ocaml again. See
  *  `<PACKAGE_NAME>_ENVIRONMENT_SOURCED_<binary_name>`
  *
+ *  @flow
  */
 
-var fs = require('fs');
-var path = require('path');
-var child_process = require('child_process');
+import * as fs from './lib/fs';
+import * as child_process from './lib/child_process';
+const os = require('os');
+const path = require('path');
+
+type ReleaseType = 'dev' | 'pack' | 'bin';
+
+type BuildReleaseConfig = {
+  type: ReleaseType,
+  version: string,
+  sandboxPath: string,
+};
+
+type ReleaseConfig = {
+  type: ReleaseType,
+  version: string,
+  origin: string,
+  forGithubLFS: boolean,
+};
 
 var storeVersion = '3.x.x';
-
-var tagName =
-  process.env['VERSION'] +
-  '-' +
-  process.env['TYPE'] +
-  (process.env['TYPE'] === 'bin' ? '-' + require('os').platform() : '');
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
@@ -217,66 +228,43 @@ var tagName =
  * executable distribution.
  */
 var extensionsToDeleteForBinaryRelease = [
-  "Makefile",
-  "README",
-  "CHANGES",
-  "LICENSE",
-  "_tags",
-  "*.pdf",
-  "*.md",
-  "*.org",
-  "*.org",
-  "*.txt"
+  'Makefile',
+  'README',
+  'CHANGES',
+  'LICENSE',
+  '_tags',
+  '*.pdf',
+  '*.md',
+  '*.org',
+  '*.org',
+  '*.txt',
 ];
 
-var pathPatternsToDeleteForBinaryRelease = [
-  '*/doc/*'
-];
+var pathPatternsToDeleteForBinaryRelease = ['*/doc/*'];
 
 var scrubBinaryReleaseCommandExtensions = function(searchDir) {
-  return 'find ' + searchDir + ' -type f \\( -name ' +
-  extensionsToDeleteForBinaryRelease.map((ext) => {return "'" + ext + "'";})
-    .join(' -o -name ') +
-    ' \\) -delete';
+  return (
+    'find ' +
+    searchDir +
+    ' -type f \\( -name ' +
+    extensionsToDeleteForBinaryRelease
+      .map(ext => {
+        return "'" + ext + "'";
+      })
+      .join(' -o -name ') +
+    ' \\) -delete'
+  );
 };
 
 var scrubBinaryReleaseCommandPathPatterns = function(searchDir) {
-  return 'find ' + searchDir + ' -type f \\( -path ' +
-  pathPatternsToDeleteForBinaryRelease
-    .join(' -o -path ') +
-    ' \\) -delete';
+  return (
+    'find ' +
+    searchDir +
+    ' -type f \\( -path ' +
+    pathPatternsToDeleteForBinaryRelease.join(' -o -path ') +
+    ' \\) -delete'
+  );
 };
-
-var startMsg =`
---------------------------------------------
--- Preparing release ${tagName} --
---------------------------------------------
-`;
-var almostDoneMsg = `
-----------------------------------------------------
--- Almost Done. Complete the following two steps ---
-----------------------------------------------------
-
-Directory package/ contains a git repository ready
-to be pushed under a tag to remote.
-
-1. [REQUIRED] cd package
-
-2. git show HEAD
-   Make sure you approve of what will be pushed to tag ${tagName}
-
-3. git push origin HEAD:branch-${tagName}
-   Push a release branch if needed.
-
-4. [REQUIRED] git push origin ${tagName}
-   Push a release tag.
-
-You can test install the release by running:
-
-    npm install '${process.env['ORIGIN']}'#${tagName}
-
-> Note: If you are pushing an update to an existing tag, you might need to add -f to the push command.
-`
 
 var postinstallScriptSupport = `
     # Exporting so we can call it from xargs
@@ -361,20 +349,20 @@ var launchBinScriptSupport = `
 `;
 
 var escapeBashVarName = function(str) {
-  var map = {'.': 'd', '_': '_', '-': 'h'};
-  var replacer = match => map.hasOwnProperty(match) ? "_"+map[match] : match;
+  var map = {'.': 'd', _: '_', '-': 'h'};
+  var replacer = match => (map.hasOwnProperty(match) ? '_' + map[match] : match);
   return str.replace(/./g, replacer);
-}
+};
 
-var getReleasedBinaries = function(package) {
-  return package && package.esy && package.esy.release && package.esy.release.releasedBinaries;
-}
+var getReleasedBinaries = function(pkg) {
+  return pkg && pkg.esy && pkg.esy.release && pkg.esy.release.releasedBinaries;
+};
 
-var createLaunchBinSh = function(releaseType, package, binaryName) {
-  var packageName = package.name;
-  var packageNameUppercase = escapeBashVarName(package.name.toUpperCase());
+var createLaunchBinSh = function(releaseType, pkg, binaryName) {
+  var packageName = pkg.name;
+  var packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
   var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
-  var releasedBinaries = getReleasedBinaries(package);
+  var releasedBinaries = getReleasedBinaries(pkg);
   return `#!/usr/bin/env bash
 
 export ESY__STORE_VERSION=${storeVersion}
@@ -404,26 +392,25 @@ if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x
     printError;
     exit 1;
   }
-${
-  binaryName !== packageName ?
-  `
+${binaryName !== packageName ? `
   if [ "$1" == "----where" ]; then
      which "${binaryName}"
   else
     exec "${binaryName}" "$@"
   fi
-  ` :
-  `
+  ` : `
   if [[ "$1" == ""  ]]; then
     echo ""
     echo "Welcome to ${packageName}"
     echo "-------------------------"
-    echo "Installed Binaries: [" ${(releasedBinaries || []).concat([packageName]).join(',')} "]"
+    echo "Installed Binaries: [" ${(releasedBinaries || [])
+                                   .concat([packageName])
+                                   .join(',')} "]"
     echo "- ${packageName} bash"
     echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
     echo "- binaryName ----where"
     echo "  Prints the location of binaryName"
-    echo "  Example: ${(package.releasedBinaries || ['<no_binaries>'])[0]} ----where"
+    echo "  Example: ${(pkg.releasedBinaries || ['<no_binaries>'])[0]} ----where"
     echo "- Note: Running builds and scripts from within "${packageName} bash" will typically increase performance of builds."
     echo ""
   else
@@ -431,38 +418,26 @@ ${
       # Important to pass --noprofile, and --rcfile so that the user's
       # .bashrc doesn't run and the npm global packages don't get put in front
       # of the already constructed PATH.
-      bash --noprofile --rcfile <(echo 'export PS1="${'\033[0;31m⏣ ' + packageName + ': \033[0m$PS1'}"')
+      bash --noprofile --rcfile <(echo 'export PS1="${'⏣ ' + packageName + ': $PS1'}"')
     else
       echo "Invalid argument $1, type reason-cli for help"
     fi
   fi
-  `
-}
+  `}
 else
   printError;
   exit 1;
 fi
-`
+`;
 };
 
 var debug = process.env['DEBUG'];
-
-var packageDir = path.resolve(__dirname, '..');
-
-process.chdir(packageDir);
-
-var logExec = function (cmd) {
-  if (debug) {
-    console.log('LOG:', cmd);
-  }
-  child_process.execSync(cmd, {stdio: 'inherit'});
-}
 
 var types = ['dev', 'pack', 'bin'];
 var releaseStage = ['forPreparingRelease', 'forClientInstallation'];
 
 var actions = {
-  'dev': {
+  dev: {
     installEsy: 'forClientInstallation',
     download: 'forClientInstallation',
     pack: 'forClientInstallation',
@@ -470,9 +445,9 @@ var actions = {
     decompressPack: '',
     buildPackages: 'forClientInstallation',
     compressBuiltPackages: 'forClientInstallation',
-    decompressAndRelocateBuiltPackages: 'forClientInstallation'
+    decompressAndRelocateBuiltPackages: 'forClientInstallation',
   },
-  'pack': {
+  pack: {
     installEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
     pack: 'forPreparingRelease',
@@ -480,9 +455,9 @@ var actions = {
     decompressPack: 'forClientInstallation',
     buildPackages: 'forClientInstallation',
     compressBuiltPackages: 'forClientInstallation',
-    decompressAndRelocateBuiltPackages: 'forClientInstallation'
+    decompressAndRelocateBuiltPackages: 'forClientInstallation',
   },
-  'bin': {
+  bin: {
     installEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
     pack: 'forPreparingRelease',
@@ -490,14 +465,14 @@ var actions = {
     decompressPack: '',
     buildPackages: 'forPreparingRelease',
     compressBuiltPackages: 'forPreparingRelease',
-    decompressAndRelocateBuiltPackages: 'forClientInstallation'
-  }
+    decompressAndRelocateBuiltPackages: 'forClientInstallation',
+  },
 };
 
 var buildLocallyAndRelocate = {
-  'dev': false,
-  'pack': false,
-  'bin': true
+  dev: false,
+  pack: false,
+  bin: true,
 };
 
 /**
@@ -505,8 +480,8 @@ var buildLocallyAndRelocate = {
  *
  * This strips all dependency info and add "bin" metadata.
  */
-var deriveNpmReleasePackage = function(package, packageDir, releaseType) {
-  var copy = JSON.parse(JSON.stringify(package));
+async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
+  var copy = JSON.parse(JSON.stringify(pkg));
 
   // We don't manage dependencies with npm, esy is being installed via a
   // postinstall script and then it is used to manage release dependencies.
@@ -514,13 +489,13 @@ var deriveNpmReleasePackage = function(package, packageDir, releaseType) {
   copy.devDependencies = {};
 
   // Populate "bin" metadata.
-  logExec('mkdir -p .bin');
-  var binsToWrite = getBinsToWrite(releaseType, packageDir, package);
+  await fs.mkdirp(path.join(releasePath, '.bin'));
+  var binsToWrite = getBinsToWrite(releaseType, releasePath, pkg);
   var packageJsonBins = {};
   for (var i = 0; i < binsToWrite.length; i++) {
     var toWrite = binsToWrite[i];
-    fs.writeFileSync(toWrite.path, toWrite.contents);
-    fs.chmodSync(toWrite.path, 0755);
+    await fs.writeFile(path.join(releasePath, toWrite.path), toWrite.contents);
+    await fs.chmod(path.join(releasePath, toWrite.path), /* octal 0755 */ 493);
     packageJsonBins[toWrite.name] = toWrite.path;
   }
   var copy = addBins(packageJsonBins, copy);
@@ -528,14 +503,14 @@ var deriveNpmReleasePackage = function(package, packageDir, releaseType) {
   // Add postinstall script
   copy.scripts.postinstall = './postinstall.sh';
 
-  return copy
+  return copy;
 }
 
 /**
  * Derive esy release package.
  */
-var deriveEsyReleasePackage = function(package, packageDir, releaseType) {
-  var copy = JSON.parse(JSON.stringify(package));
+async function deriveEsyReleasePackage(pkg, releasePath, releaseType) {
+  var copy = JSON.parse(JSON.stringify(pkg));
   delete copy.dependencies.esy;
   delete copy.devDependencies.esy;
   return copy;
@@ -546,8 +521,8 @@ var deriveEsyReleasePackage = function(package, packageDir, releaseType) {
  * we don't need to even perform package management for native modules -
  * everything is vendored.
  */
-var adjustReleaseDependencies =  function(releaseStage, releaseType, package) {
-  var copy = JSON.parse(JSON.stringify(package));
+var adjustReleaseDependencies = function(releaseStage, releaseType, pkg) {
+  var copy = JSON.parse(JSON.stringify(pkg));
   // We don't need dependency on Esy as we install it manually.
   if (copy.dependencies && copy.dependencies.esy) {
     delete copy.dependencies.esy;
@@ -564,42 +539,48 @@ var adjustReleaseDependencies =  function(releaseStage, releaseType, package) {
   return copy;
 };
 
-var addBins = function(bins, package) {
-  var copy = JSON.parse(JSON.stringify(package));
+var addBins = function(bins, pkg) {
+  var copy = JSON.parse(JSON.stringify(pkg));
   copy.bin = bins;
   delete copy.releasedBinaries;
   return copy;
 };
 
-var addPostinstallScript = function(package) {
-  var copy = JSON.parse(JSON.stringify(package));
+var addPostinstallScript = function(pkg) {
+  var copy = JSON.parse(JSON.stringify(pkg));
   copy.scripts = copy.scripts || {};
   copy.scripts.postinstall = './postinstall.sh';
   return copy;
 };
 
-var removePostinstallScript = function(package) {
-  var copy = JSON.parse(JSON.stringify(package));
+var removePostinstallScript = function(pkg) {
+  var copy = JSON.parse(JSON.stringify(pkg));
   copy.scripts = copy.scripts || {};
   copy.scripts.postinstall = '';
   return copy;
 };
 
-var putJson = function(filename, package) {
-  fs.writeFileSync(filename, JSON.stringify(package, null, 2));
-};
+async function putJson(filename, pkg) {
+  await fs.writeFile(filename, JSON.stringify(pkg, null, 2), 'utf8');
+}
 
-var verifyBinSetup = function(package) {
-  var whosInCharge = ' Run make clean first. The release script needs to be in charge of generating the binaries.';
-  var binDirExists = fs.existsSync('./.bin');
+async function verifyBinSetup(pkg) {
+  var whosInCharge =
+    ' Run make clean first. The release script needs to be in charge of generating the binaries.';
+  var binDirExists = await fs.exists('./.bin');
   if (binDirExists) {
-    throw new Error(whosInCharge + 'Found existing binaries dir .bin. This should not exist. Release script creates it.');
+    throw new Error(
+      whosInCharge +
+        'Found existing binaries dir .bin. This should not exist. Release script creates it.',
+    );
   }
-  if (package.bin) {
-    throw new Error(whosInCharge + 'Package.json has a bin field. It should have a "releasedBinaries" field instead - a list of released binary names.');
+  if (pkg.bin) {
+    throw new Error(
+      whosInCharge +
+        'Package.json has a bin field. It should have a "releasedBinaries" field instead - a list of released binary names.',
+    );
   }
-};
-
+}
 
 /**
  * To relocate binary artifacts: We need to make sure that the length of
@@ -621,39 +602,42 @@ var verifyBinSetup = function(package) {
  * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
  * the release in as many destinations as possible.
  */
-var desiredShebangPathLength = 127 - "!#".length;
-var pathLengthConsumedByOcamlrun = "/i/ocaml-n.00.0-########/bin/ocamlrun".length;
+var desiredShebangPathLength = 127 - '!#'.length;
+var pathLengthConsumedByOcamlrun = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
 var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
-var createInstallScript = function(releaseStage, releaseType, package) {
+var createInstallScript = function(releaseStage, releaseType, pkg) {
   var shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
   var shouldDownload = actions[releaseType].download === releaseStage;
   var shouldPack = actions[releaseType].pack === releaseStage;
   var shouldCompressPack = actions[releaseType].compressPack === releaseStage;
   var shouldDecompressPack = actions[releaseType].decompressPack === releaseStage;
   var shouldBuildPackages = actions[releaseType].buildPackages === releaseStage;
-  var shouldCompressBuiltPackages = actions[releaseType].compressBuiltPackages === releaseStage;
-  var shouldDecompressAndRelocateBuiltPackages = actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
-  var message =`
+  var shouldCompressBuiltPackages =
+    actions[releaseType].compressBuiltPackages === releaseStage;
+  var shouldDecompressAndRelocateBuiltPackages =
+    actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
+  var message = `
     # Release releaseType: "${releaseType}"
     # ------------------------------------------------------
     #  Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
     #
-    #  Install Esy: ${shouldInstallEsy}
-    #  Download: ${shouldDownload}
-    #  Pack: ${shouldPack}
-    #  Compress Pack: ${shouldCompressPack}
-    #  Decompress Pack: ${shouldDecompressPack}
-    #  Build Packages: ${shouldBuildPackages}
-    #  Compress Built Packages: ${shouldCompressBuiltPackages}
-    #  Decompress Built Packages: ${shouldDecompressAndRelocateBuiltPackages}`;
+    #  Install Esy: ${String(shouldInstallEsy)}
+    #  Download: ${String(shouldDownload)}
+    #  Pack: ${String(shouldPack)}
+    #  Compress Pack: ${String(shouldCompressPack)}
+    #  Decompress Pack: ${String(shouldDecompressPack)}
+    #  Build Packages: ${String(shouldBuildPackages)}
+    #  Compress Built Packages: ${String(shouldCompressBuiltPackages)}
+    #  Decompress Built Packages: ${String(shouldDecompressAndRelocateBuiltPackages)}`;
 
-  var deleteFromBinaryRelease = package.esy && package.esy.release && package.esy.release.deleteFromBinaryRelease;
+  var deleteFromBinaryRelease =
+    pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
   var esyCommand = '../_esy/bin/esy';
 
   var installEsyCmds = `
     # Install Esy
     echo '*** Installing Esy...'
-    npm install --global --prefix ./_esy "esy@${package.esy.esyDependency}"
+    npm install --global --prefix ./_esy "esy@${pkg.esy.esyDependency}"
   `;
 
   var downloadCmds = `
@@ -679,7 +663,7 @@ var createInstallScript = function(releaseStage, releaseType, package) {
     echo '*** Packing the release...'
     tar -czf rel.tar.gz rel
     rm -rf ./rel/`;
-  var decompressPackCmds =`
+  var decompressPackCmds = `
     # Decompress:
     # Avoid npm stripping out vendored node_modules.
     echo '*** Unpacking the release...'
@@ -705,7 +689,8 @@ var createInstallScript = function(releaseStage, releaseType, package) {
     echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"
     # For client side builds, recordedServerBuildStorePath is equal to recordedClientBuildStorePath.
     # For prebuilt binaries these will differ, and recordedClientBuildStorePath.txt is overwritten.
-    echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"`;
+    echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
+  `;
 
   /**
    * In bash:
@@ -746,11 +731,11 @@ var createInstallScript = function(releaseStage, releaseType, package) {
     unset IFS
     cd "$PACKAGE_ROOT"
     ${releaseStage === 'forPreparingRelease' ? scrubBinaryReleaseCommandPathPatterns('"$ESY_EJECT__TMP/i/"') : '#'}
-    ${releaseStage === 'forPreparingRelease' ?
-      (deleteFromBinaryRelease || []).map(function(pattern) {
-        return 'rm ' + pattern;
-      }).join('\n') : ''
-    }
+    ${releaseStage === 'forPreparingRelease' ? (deleteFromBinaryRelease || [])
+          .map(function(pattern) {
+            return 'rm ' + pattern;
+          })
+          .join('\n') : ''}
     # Built packages have a special way of compressing the release, putting the
     # eject store in its own tar so that all the symlinks in the store can be
     # relocated using tools that exist in the eject sandbox.
@@ -793,11 +778,18 @@ var createInstallScript = function(releaseStage, releaseType, package) {
   var download = downloadCmds.split('\n').join(shouldDownload ? '\n' : '\n#');
   var pack = packCmds.split('\n').join(shouldPack ? '\n' : '\n#');
   var compressPack = compressPackCmds.split('\n').join(shouldCompressPack ? '\n' : '\n#');
-  var decompressPack = decompressPackCmds.split('\n').join(shouldDecompressPack ? '\n' : '\n#');
-  var buildPackages = buildPackagesCmds.split('\n').join(shouldBuildPackages ? '\n' : '\n#');
-  var compressBuiltPackages = compressBuiltPackagesCmds.split('\n').join(shouldCompressBuiltPackages ? '\n' : '\n#');
-  var decompressAndRelocateBuiltPackages =
-      decompressAndRelocateBuiltPackagesCmds.split('\n').join(shouldDecompressAndRelocateBuiltPackages ? '\n' : '\n#');
+  var decompressPack = decompressPackCmds
+    .split('\n')
+    .join(shouldDecompressPack ? '\n' : '\n#');
+  var buildPackages = buildPackagesCmds
+    .split('\n')
+    .join(shouldBuildPackages ? '\n' : '\n#');
+  var compressBuiltPackages = compressBuiltPackagesCmds
+    .split('\n')
+    .join(shouldCompressBuiltPackages ? '\n' : '\n#');
+  var decompressAndRelocateBuiltPackages = decompressAndRelocateBuiltPackagesCmds
+    .split('\n')
+    .join(shouldDecompressAndRelocateBuiltPackages ? '\n' : '\n#');
   return `#!/usr/bin/env bash
     set -e
     ${postinstallScriptSupport}
@@ -882,12 +874,15 @@ var createInstallScript = function(releaseStage, releaseType, package) {
     ${decompressPack}
     ${buildPackages}
     ${compressBuiltPackages}
-    ${decompressAndRelocateBuiltPackages}`
+    ${decompressAndRelocateBuiltPackages}
+
+    rm -rf ./_esy
+  `;
 };
 
-var getBinsToWrite = function(releaseType, packageDir, package) {
+var getBinsToWrite = function(releaseType, releasePath, pkg) {
   var ret = [];
-  var releasedBinaries = getReleasedBinaries(package);
+  var releasedBinaries = getReleasedBinaries(pkg);
   if (releasedBinaries) {
     for (var i = 0; i < releasedBinaries.length; i++) {
       var binaryName = releasedBinaries[i];
@@ -895,7 +890,7 @@ var getBinsToWrite = function(releaseType, packageDir, package) {
       ret.push({
         name: binaryName,
         path: destPath,
-        contents: createLaunchBinSh(releaseType, package, binaryName)
+        contents: createLaunchBinSh(releaseType, pkg, binaryName),
       });
       /*
        * ret.push({
@@ -906,138 +901,159 @@ var getBinsToWrite = function(releaseType, packageDir, package) {
        */
     }
   }
-  var destPath = path.join('.bin', package.name);
+  var destPath = path.join('.bin', pkg.name);
   ret.push({
-    name: package.name,
+    name: pkg.name,
     path: destPath,
-    contents: createLaunchBinSh(releaseType, package, package.name)
+    contents: createLaunchBinSh(releaseType, pkg, pkg.name),
   });
   return ret;
 };
 
-var checkVersion = function() {
-  if (!process.env['VERSION']) {
-    throw new Error('VERSION is undefined. Usage: make release VERSION=beta-v-0.0.1 TYPE=dev|pack|bin');
-  }
-};
-
-var checkOrigin = function() {
-  if (!process.env['ORIGIN']) {
-    throw new Error('ORIGIN is undefined. The Makefile wrapper should have set this.');
-  }
-};
-
-var checkReleaseType = function() {
-  if (process.env['TYPE'] !== 'dev' && process.env['TYPE'] !== 'pack' &&  process.env['TYPE'] !== 'bin') {
-    throw new Error('TYPE is undefined or invalid. Usage: make release VERSION=beta-v-0.0.1 TYPE=dev|pack|bin');
-  }
-};
-
-var checkNoChanges = function(packageDir) {
-  logExec(
-    'git diff --exit-code || (echo ""  && echo "!!You have unstaged changes. Please clean up first." && exit 1)'
-  );
-  logExec(
-    'git diff --cached --exit-code || (echo "" && echo "!!You have staged changes. Please reset them or commit them first." && exit 1)'
-  );
-};
-
-var putExecutable = function(filename, contents) {
-  fs.writeFileSync(filename, contents);
-  fs.chmodSync(filename, 0755);
+async function putExecutable(filename, contents) {
+  await fs.writeFile(filename, contents);
+  await fs.chmod(filename, /* octal 0755 */ 493);
 }
 
-var readPackageJson = function(filename) {
-  var packageJson = fs.readFileSync(filename, 'utf8');
-  var package = JSON.parse(packageJson);
+async function readPackageJson(filename) {
+  var packageJson = await fs.readFile(filename);
+  var pkg = JSON.parse(packageJson);
   // Perform normalizations
-  if (package.dependencies == null) {
-    package.dependencies = {};
+  if (pkg.dependencies == null) {
+    pkg.dependencies = {};
   }
-  if (package.devDependencies == null) {
-    package.devDependencies = {};
+  if (pkg.devDependencies == null) {
+    pkg.devDependencies = {};
   }
-  if (package.scripts == null) {
-    package.scripts = {};
+  if (pkg.scripts == null) {
+    pkg.scripts = {};
   }
-  if (package.esy == null) {
-    package.esy = {};
+  if (pkg.esy == null) {
+    pkg.esy = {};
   }
-  if (package.esy.release == null) {
-    package.esy.release = {};
+  if (pkg.esy.release == null) {
+    pkg.esy.release = {};
   }
   // Store esy dependency info separately so we can handle it in postinstall
   // scirpt independently of npm dependency management.
-  var esyDependency = package.dependencies.esy || package.devDependencies.esy;
+  var esyDependency = pkg.dependencies.esy || pkg.devDependencies.esy;
   if (esyDependency == null) {
     throw new Error('package should have esy declared as dependency');
   }
-  package.esy.esyDependency = esyDependency;
-  return package;
+  pkg.esy.esyDependency = esyDependency;
+  return pkg;
+}
+
+function getReleaseTag(config) {
+  const tag = config.type === 'bin' ? `bin-${os.platform()}` : config.type;
+  return tag;
 }
 
 /**
  * Builds the release from within the rootDirectory/package/ directory created
  * by `npm pack` command.
  */
-exports.buildRelease = function() {
-  var releaseType = process.env['TYPE'];
-  var packageDir = path.resolve(__dirname, '..');
+export async function buildRelease(config: BuildReleaseConfig) {
+  async function runInReleasePath(cmd, ...args) {
+    await child_process.spawn(cmd, args, {cwd: releasePath, stdio: 'inherit'});
+  }
 
-  checkVersion();
-  checkReleaseType();
-  //checkNoChanges();
+  const releaseType = config.type;
+  const releaseTag = getReleaseTag(config);
 
-  var package = readPackageJson('./package.json');
-  verifyBinSetup(package);
+  const sandboxPath = config.sandboxPath;
+  const releasePath = path.join(sandboxPath, '_release', releaseTag);
 
-  console.log(`*** Creating ${releaseType}-type release for ${package.name}`);
+  const tarFilename = await child_process.spawn('npm', ['pack'], {cwd: sandboxPath});
+  await child_process.spawn('tar', ['xzf', tarFilename]);
+  await fs.mkdirp(path.dirname(releasePath));
+  await fs.rmdir(releasePath);
+  await fs.rename(path.join(sandboxPath, 'package'), releasePath);
+  await fs.unlink(tarFilename);
 
-  var npmPackage = deriveNpmReleasePackage(package, packageDir, releaseType);
-  putJson(path.join(packageDir, 'package.json'), npmPackage);
+  const pkg = await readPackageJson(path.join(releasePath, 'package.json'));
+  await verifyBinSetup(pkg);
 
-  var esyPackage = deriveEsyReleasePackage(package, packageDir, releaseType);
-  fs.mkdirSync(path.join(packageDir, 'rel'));
-  putJson(path.join(packageDir, 'rel', 'package.json'), esyPackage);
+  console.log(`*** Creating ${releaseType}-type release for ${pkg.name}`);
 
-  putExecutable(
-    path.join(packageDir, 'prerelease.sh'),
-    createInstallScript('forPreparingRelease', releaseType, package)
+  const npmPackage = await deriveNpmReleasePackage(pkg, releasePath, releaseType);
+  await putJson(path.join(releasePath, 'package.json'), npmPackage);
+
+  const esyPackage = await deriveEsyReleasePackage(pkg, releasePath, releaseType);
+  await fs.mkdirp(path.join(releasePath, 'rel'));
+  await putJson(path.join(releasePath, 'rel', 'package.json'), esyPackage);
+
+  await putExecutable(
+    path.join(releasePath, 'prerelease.sh'),
+    createInstallScript('forPreparingRelease', releaseType, pkg),
   );
 
-  logExec('./prerelease.sh');
-
-  logExec('rm -rf ' + path.join(packageDir, 'node_modules'));
-  logExec('rm -rf ' + path.join(packageDir, 'rel', 'yarn.lock'));
+  await runInReleasePath('bash', './prerelease.sh');
 
   // Actual Release: We leave the *actual* postinstall script to be executed on the host.
-  putExecutable(
-    path.join(packageDir, 'postinstall.sh'),
-    createInstallScript('forClientInstallation', releaseType, package)
+  await putExecutable(
+    path.join(releasePath, 'postinstall.sh'),
+    createInstallScript('forClientInstallation', releaseType, pkg),
   );
-};
+}
 
+exports.release = function(config: ReleaseConfig) {
+  const tagName =
+    config.version +
+    '-' +
+    config.type +
+    (config.type === 'bin' ? '-' + require('os').platform() : '');
 
-exports.release = function(forGithubLFS) {
-  console.log(startMsg);
+  console.log(`
+  --------------------------------------------
+  -- Preparing release ${tagName} --
+  --------------------------------------------
+  `);
   [
     'git init',
     'git checkout -b branch-' + tagName + '',
-    forGithubLFS ? 'git lfs track ./rel.tar.gz' : '',
-    forGithubLFS ? 'git lfs track relBinaries/i/*.tar.gz' : '',
+    config.forGithubLFS ? 'git lfs track ./rel.tar.gz' : '',
+    config.forGithubLFS ? 'git lfs track relBinaries/i/*.tar.gz' : '',
     'git add .',
-    'git remote add origin ' + process.env['ORIGIN'],
+    'git remote add origin ' + config.origin,
     'git fetch --tags --depth=1',
     'git commit -m "Preparing release ' + tagName + '"',
     '# Return code is inverted to receive boolean return value',
-    '(git tag --delete ' + tagName + ' &> /dev/null) || echo "Tag ' + tagName + ' doesn\'t yet exist, creating it now."',
+    '(git tag --delete ' +
+      tagName +
+      ' &> /dev/null) || echo "Tag ' +
+      tagName +
+      ' doesn\'t yet exist, creating it now."',
     'git tag -a ' + tagName + ' -m "' + tagName + '"',
   ].forEach(function(cmd) {
     if (cmd) {
       logExec(cmd);
     }
   });
-  console.log (almostDoneMsg);
+
+  console.log(`
+  ----------------------------------------------------
+  -- Almost Done. Complete the following two steps ---
+  ----------------------------------------------------
+
+  Directory package/ contains a git repository ready
+  to be pushed under a tag to remote.
+
+  1. [REQUIRED] cd package
+
+  2. git show HEAD
+    Make sure you approve of what will be pushed to tag ${tagName}
+
+  3. git push origin HEAD:branch-${tagName}
+    Push a release branch if needed.
+
+  4. [REQUIRED] git push origin ${tagName}
+    Push a release tag.
+
+  You can test install the release by running:
+
+      npm install '${config.origin}'#${tagName}
+
+  > Note: If you are pushing an update to an existing tag, you might need to add -f to the push command.
+  `);
 };
-
-

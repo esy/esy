@@ -370,40 +370,13 @@ async function releaseCommand(sandboxPath, _commandName, type, ...args) {
       `esy release: invalid release type, must be one of: ${AVAILABLE_RELEASE_TYPE.join(', ')}`,
     );
   }
-
-  const releaseTag = type === 'bin' ? `bin-${os.platform()}` : type;
-  const outputPath = path.join(sandboxPath, '_release', releaseTag);
-
-  // Strip all dev metadata and make sure we see what npm registry would see.
-  // We use `npm pack` for that.
-  const tarFilename = await child_process.spawn('npm', ['pack'], {cwd: sandboxPath});
-  await child_process.spawn('tar', ['xzf', tarFilename]);
-  await pfs.mkdirp(path.dirname(outputPath));
-  await pfs.rmdir(outputPath);
-  await pfs.rename(path.join(sandboxPath, 'package'), outputPath);
-  await pfs.unlink(tarFilename);
-
-  // Copy esyrelease.js executable over to release package.
-  const esyReleaseCommandOrigin = require.resolve('./esyrelease.js');
-  const esyReleaseCommandDest = path.join(outputPath, '_esy', 'esyrelease.js');
-  await pfs.mkdirp(path.dirname(esyReleaseCommandDest));
-  await pfs.copy(esyReleaseCommandOrigin, esyReleaseCommandDest);
-
+  const {buildRelease} = require('../release');
   const pkg = await pfs.readJson(path.join(sandboxPath, 'package.json'));
-  const env = {
-    ...process.env,
-    VERSION: pkg.version,
-    TYPE: type,
-  };
-  const onData = chunk => {
-    process.stdout.write(chunk);
-  };
-  await child_process.spawn(
-    process.argv[0],
-    ['-e', 'require("./_esy/esyrelease.js").buildRelease()'],
-    {env, cwd: outputPath},
-    onData,
-  );
+  await buildRelease({
+    type,
+    version: pkg.version,
+    sandboxPath,
+  });
 }
 
 async function importOpamCommand(
