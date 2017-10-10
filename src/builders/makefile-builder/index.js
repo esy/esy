@@ -13,6 +13,7 @@ import outdent from 'outdent';
 import * as Graph from '../../graph';
 import * as Config from '../../build-config';
 import * as Task from '../../build-task';
+import * as Env from '../../environment';
 import * as Makefile from '../../Makefile';
 import {normalizePackageName} from '../../util';
 import {renderEnv, renderSandboxSbConfig} from '../util';
@@ -36,6 +37,9 @@ export function renderToMakefile(
     buildConfig: BuildConfig,
   ) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
+
+  const finalInstallPathSet = [];
+
   const ruleSet: Makefile.MakeItem[] = [
     {
       type: 'raw',
@@ -86,6 +90,20 @@ export function renderToMakefile(
       `,
     },
 
+    {
+      type: 'define',
+      name: `shell_env_sandbox`,
+      value: [
+        {
+          CI: process.env.CI ? process.env.CI : null,
+          TMPDIR: '$(TMPDIR)',
+          ESY_EJECT__STORE: '$(ESY_EJECT__STORE)',
+          ESY_EJECT__SANDBOX: '$(ESY_EJECT__SANDBOX)',
+          ESY_EJECT__ROOT: '$(ESY_EJECT__ROOT)',
+        },
+      ],
+    },
+
     // Create store directory structure
     {
       type: 'rule',
@@ -101,6 +119,15 @@ export function renderToMakefile(
     },
     {
       type: 'rule',
+      target: 'esy-root',
+      phony: true,
+      dependencies: [
+        '$(ESY_EJECT__ROOT)/bin/realpath',
+        '$(ESY_EJECT__ROOT)/bin/fastreplacestring.exe',
+      ],
+    },
+    {
+      type: 'rule',
       target: 'esy-store',
       phony: true,
       dependencies: [
@@ -110,6 +137,8 @@ export function renderToMakefile(
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
+        '$(ESY_EJECT__ROOT)/final-install-path-set.txt',
+        '$(ESY_EJECT__ROOT)/command-env',
       ],
     },
     {
@@ -128,12 +157,17 @@ export function renderToMakefile(
     },
     {
       type: 'rule',
-      target: 'esy-root',
-      phony: true,
-      dependencies: [
-        '$(ESY_EJECT__ROOT)/bin/realpath',
-        '$(ESY_EJECT__ROOT)/bin/fastreplacestring.exe',
-      ],
+      target: '$(ESY_EJECT__ROOT)/final-install-path-set.txt',
+      dependencies: ['$(ESY_EJECT__ROOT)/final-install-path-set.txt.in', 'esy-root'],
+      shell: '/bin/bash',
+      command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
+    },
+    {
+      type: 'rule',
+      target: '$(ESY_EJECT__ROOT)/command-env',
+      dependencies: ['$(ESY_EJECT__ROOT)/command-env.in', 'esy-root'],
+      shell: '/bin/bash',
+      command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
     },
   ];
 
@@ -172,6 +206,8 @@ export function renderToMakefile(
     log(`visit ${task.spec.id}`);
 
     const packagePath = task.spec.sourcePath.split(path.sep).filter(Boolean);
+    const finalInstallPath = buildConfig.getFinalInstallPath(task.spec);
+    finalInstallPathSet.push(finalInstallPath);
 
     function emitBuildFile({filename, contents}) {
       emitFile(outputPath, {filename: packagePath.concat(filename), contents});
@@ -212,7 +248,7 @@ export function renderToMakefile(
             buildConfig.sandboxPath,
             task.spec.sourcePath,
           ),
-          esy_build__install: buildConfig.getFinalInstallPath(task.spec),
+          esy_build__install: finalInstallPath,
         },
       ],
     });
@@ -243,6 +279,18 @@ export function renderToMakefile(
   log('process dependency graph');
   const rootTask = Task.fromBuildSandbox(sandbox, buildConfig);
   Graph.traverse(rootTask, visitTask);
+
+  // Emit command-env template
+  // TODO: we construct two task trees for build and for command-env, this is
+  // wasteful, so let's think how we can do that in a single pass.
+  const rootTaskForCommand = Task.fromBuildSandbox(sandbox, buildConfig, {
+    exposeOwnPath: true,
+  });
+  rootTaskForCommand.env.delete('SHELL');
+  emitFile(outputPath, {
+    filename: ['command-env.in'],
+    contents: Env.printEnvironment(rootTaskForCommand.env),
+  });
 
   // Now emit all build-wise artefacts
   log('build environment');
@@ -299,6 +347,11 @@ export function renderToMakefile(
   emitFile(outputPath, {
     filename: ['Makefile'],
     contents: Makefile.renderMakefile(ruleSet),
+  });
+
+  emitFile(outputPath, {
+    filename: ['final-install-path-set.txt.in'],
+    contents: finalInstallPathSet.join('\n') + '\n',
   });
 }
 
