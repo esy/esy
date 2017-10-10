@@ -261,6 +261,7 @@ var scrubBinaryReleaseCommandPathPatterns = function(searchDir) {
 };
 
 var postinstallScriptSupport = outdent`
+
   # Exporting so we can call it from xargs
   # https://stackoverflow.com/questions/11003418/calling-functions-with-xargs-within-a-bash-script
   unzipAndUntarFixupLinks() {
@@ -322,9 +323,11 @@ var postinstallScriptSupport = outdent`
       exit 1;
     fi
   }
+
 `;
 
 var launchBinScriptSupport = outdent`
+
   STRLEN_RESULT=0
   strLen() {
     oLang=$LANG
@@ -340,6 +343,7 @@ var launchBinScriptSupport = outdent`
     TROUBLESHOOTING="$TROUBLESHOOTING - Please file a github issue on <package_name>'s repo."
     echo >&2 "$TROUBLESHOOTING";
   }
+
 `;
 
 var escapeBashVarName = function(str) {
@@ -358,6 +362,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
   var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
   var releasedBinaries = getReleasedBinaries(pkg);
   return outdent`
+
     #!/usr/bin/env bash
 
     export ESY__STORE_VERSION=${storeVersion}
@@ -423,6 +428,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
       printError;
       exit 1;
     fi
+
   `;
 };
 
@@ -612,18 +618,21 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
   var shouldDecompressAndRelocateBuiltPackages =
     actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
   var message = outdent`
+
+    #
     # Release releaseType: "${releaseType}"
     # ------------------------------------------------------
-    #  Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
+    # Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
     #
-    #  Install Esy: ${String(shouldInstallEsy)}
-    #  Download: ${String(shouldDownload)}
-    #  Pack: ${String(shouldPack)}
-    #  Compress Pack: ${String(shouldCompressPack)}
-    #  Decompress Pack: ${String(shouldDecompressPack)}
-    #  Build Packages: ${String(shouldBuildPackages)}
-    #  Compress Built Packages: ${String(shouldCompressBuiltPackages)}
-    #  Decompress Built Packages: ${String(shouldDecompressAndRelocateBuiltPackages)}
+    # Install Esy: ${String(shouldInstallEsy)}
+    # Download: ${String(shouldDownload)}
+    # Pack: ${String(shouldPack)}
+    # Compress Pack: ${String(shouldCompressPack)}
+    # Decompress Pack: ${String(shouldDecompressPack)}
+    # Build Packages: ${String(shouldBuildPackages)}
+    # Compress Built Packages: ${String(shouldCompressBuiltPackages)}
+    # Decompress Built Packages: ${String(shouldDecompressAndRelocateBuiltPackages)}
+
   `;
 
   var deleteFromBinaryRelease =
@@ -631,36 +640,66 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
   var esyCommand = '../_esy/bin/esy';
 
   var installEsyCmds = outdent`
-    # Install Esy
-    echo '*** Installing Esy...'
-    npm install --global --prefix ./_esy "esy@${pkg.esy.esyDependency}"
+
+    #
+    # installEsy
+    #
+    echo '*** Installing esy for the release...'
+    LOG=$(npm install --global --prefix ./_esy "esy@${pkg.esy.esyDependency}" 2>&1)
+    if [ $? -ne 0 ]; then
+      echo "Failed to install esy..."
+      echo $LOG
+      exit 1
+    fi
+
   `;
 
   var downloadCmds = outdent`
-    # Download
+
+    #
+    # download
+    #
     echo '*** Installing dependencies...'
     cd ./rel
-    ${esyCommand} install
+    LOG=$(${esyCommand} install 2>&1)
+    if [ $? -ne 0 ]; then
+      echo "Failed to install dependencies..."
+      echo $LOG
+      exit 1
+    fi
     cd ../
+
   `;
   var packCmds = outdent`
-    # Pack:
+
+    #
+    # Pack
+    #
     # Peform build eject.  Warms up *just* the artifacts that require having a
     # modern node installed.
     # Generates the single Makefile etc.
     cd ./rel
     ${esyCommand} build-eject
     cd ../
+
   `;
   var compressPackCmds = outdent`
-    # Compress:
+
+    #
+    # compressPack
+    #
     # Avoid npm stripping out vendored node_modules via tar. Merely renaming node_modules
     # is not sufficient!
     echo '*** Packing the release...'
     tar -czf rel.tar.gz rel
-    rm -rf ./rel/`;
+    rm -rf ./rel/
+
+  `;
   var decompressPackCmds = outdent`
-    # Decompress:
+
+    #
+    # decompressPack
+    #
     # Avoid npm stripping out vendored node_modules.
     echo '*** Unpacking the release...'
     gunzip rel.tar.gz
@@ -674,9 +713,15 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
         echo >&2 "Installation requires either bsdtar or tar - neither is found.  Aborting.";
       fi
     fi
-    rm -rf rel.tar`;
+    rm -rf rel.tar
+
+  `;
   var buildPackagesCmds = outdent`
-    # BuildPackages: Always reserve enough path space to perform relocation.
+
+    #
+    # buildPackages
+    #
+    # Always reserve enough path space to perform relocation.
     echo '*** Building the release...'
     cd ./rel/
     make -j -f node_modules/.cache/_esy/build-eject/Makefile
@@ -686,6 +731,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # For client side builds, recordedServerBuildStorePath is equal to recordedClientBuildStorePath.
     # For prebuilt binaries these will differ, and recordedClientBuildStorePath.txt is overwritten.
     echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
+
   `;
 
   /**
@@ -699,6 +745,9 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
    */
   var compressBuiltPackagesCmds = outdent`
 
+    #
+    # compressBuiltPackages
+    #
     ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/eject-env"
     # Double backslash in es6 literals becomes one backslash
     # Must use . instead of source for some reason.
@@ -739,9 +788,13 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
     tar -czf rel.tar.gz rel
     rm -rf ./rel/
+
   `;
   var decompressAndRelocateBuiltPackagesCmds = outdent`
 
+    #
+    # decompressAndRelocateBuiltPackages
+    #
     if [ -d "$ESY_EJECT__INSTALL_STORE" ]; then
       echo >&2 "$ESY_EJECT__INSTALL_STORE already exists. This will not work. It has to be a new directory.";
       exit 1;
@@ -769,7 +822,8 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # https://askubuntu.com/questions/431478/decompressing-multiple-files-at-once
     echo '*** Relocating artefacts to the final destination...'
     find $ESY_EJECT__INSTALL_STORE -type f -print0 | xargs -0 -I {} -P 30 "$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/bin/fastreplacestring.exe" "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
-    `;
+
+  `;
 
   function renderCommands(commands, enabled) {
     return commands.split('\n').join(enabled ? '\n' : '\n# ');
@@ -987,7 +1041,7 @@ export async function buildRelease(config: BuildReleaseConfig) {
   const pkg = await readPackageJson(path.join(releasePath, 'package.json'));
   await verifyBinSetup(pkg);
 
-  console.log(`*** Creating ${releaseType}-type release for ${pkg.name}`);
+  console.log(`*** Creating ${releaseType}-type release for ${pkg.name}...`);
 
   const npmPackage = await deriveNpmReleasePackage(pkg, releasePath, releaseType);
   await putJson(path.join(releasePath, 'package.json'), npmPackage);
