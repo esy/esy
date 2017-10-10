@@ -39,7 +39,7 @@ export const rmdir: (p: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 
 // mkdtemp
-const _mkdtemp: string => Promise<string> = promisify(fs.mkdtemp);
+export const _mkdtemp: string => Promise<string> = promisify(fs.mkdtemp);
 
 export function mkdtemp(prefix: string) {
   const root = os.tmpdir();

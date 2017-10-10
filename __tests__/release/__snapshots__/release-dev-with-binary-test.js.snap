@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`installation 1`] = `
+"<root>
+| bin
+| | say-hello.exe
+| | with-binary
+| etc
+| lib
+| | node_modules
+| | | with-binary
+| | | | .bin
+| | | | | say-hello.exe
+| | | | | with-binary
+| | | | package.json
+| | | | postinstall.sh
+| | | | prerelease.sh
+| | | | records
+| | | | | recordedClientBuildStorePath.txt
+| | | | | recordedClientInstallStorePath.txt
+| | | | | recordedCoppiedArtifacts.txt
+| | | | | recordedServerBuildStorePath.txt
+| | | | rel
+| | | | | 3.x.x__________________________
+| | | | | | i
+| | | | | | | with_binary-0.1.0
+| | | | | | | | bin
+| | | | | | | | | say-hello.exe
+| | | | | | | | doc
+| | | | | | | | etc
+| | | | | | | | lib
+| | | | | | | | man
+| | | | | | | | sbin
+| | | | | | | | share
+| | | | | node_modules
+| | | | | | .cache
+| | | | | | | _esy
+| | | | | | | | build-eject
+| | | | | | | | | bin
+| | | | | | | | | | fastreplacestring.cpp
+| | | | | | | | | | fastreplacestring.exe
+| | | | | | | | | | realpath
+| | | | | | | | | | realpath.c
+| | | | | | | | | | render-env
+| | | | | | | | | | runtime.sh
+| | | | | | | | | command-env
+| | | | | | | | | command-env.in
+| | | | | | | | | eject-env
+| | | | | | | | | final-install-path-set.txt
+| | | | | | | | | final-install-path-set.txt.in
+| | | | | | | | | Makefile
+| | | | | | | | | sandbox.sb.in
+| | | | | | | | store
+| | | | | | | | | b
+| | | | | | | | | i
+| | | | | | | | | s
+| | | | | package.json
+| | | | | say-hello.exe
+| | | | | yarn.lock"
+`;
+
+exports[`release 1`] = `
+"<root>
+| dev
+| | .bin
+| | | say-hello.exe
+| | | with-binary
+| | package.json
+| | postinstall.sh
+| | prerelease.sh
+| | rel
+| | | package.json
+| | | say-hello.exe"
+`;

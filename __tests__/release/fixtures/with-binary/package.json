@@ -1,0 +1,23 @@
+{
+  "name": "with-binary",
+  "version": "0.1.0",
+  "esy": {
+    "build": [
+      [
+        "cp",
+        "./say-hello.exe",
+        "$cur__install/bin/say-hello.exe"
+      ],
+      [
+        "chmod",
+        "+x",
+        "$cur__install/bin/say-hello.exe"
+      ]
+    ],
+    "release": {
+      "releasedBinaries": [
+        "say-hello.exe"
+      ]
+    }
+  }
+}
