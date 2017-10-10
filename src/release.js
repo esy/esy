@@ -198,8 +198,9 @@
 
 import * as fs from './lib/fs';
 import * as child_process from './lib/child_process';
-const os = require('os');
-const path = require('path');
+import * as os from 'os';
+import * as path from 'path';
+import outdent from 'outdent';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
@@ -207,13 +208,6 @@ type BuildReleaseConfig = {
   type: ReleaseType,
   version: string,
   sandboxPath: string,
-};
-
-type ReleaseConfig = {
-  type: ReleaseType,
-  version: string,
-  origin: string,
-  forGithubLFS: boolean,
 };
 
 var storeVersion = '3.x.x';
@@ -266,86 +260,86 @@ var scrubBinaryReleaseCommandPathPatterns = function(searchDir) {
   );
 };
 
-var postinstallScriptSupport = `
-    # Exporting so we can call it from xargs
-    # https://stackoverflow.com/questions/11003418/calling-functions-with-xargs-within-a-bash-script
-    unzipAndUntarFixupLinks() {
-      serverEsyEjectStore=$1
-      gunzip "$2"
-      # Beware of the issues of using "which". https://stackoverflow.com/a/677212
-      # Also: hash is only safe/reliable to use in bash, so make sure shebang line is bash.
-      if hash bsdtar 2>/dev/null; then
-        bsdtar -s "|\${serverEsyEjectStore}|\${ESY_EJECT__INSTALL_STORE}|gs" -xf ./\`basename "$2" .gz\`
+var postinstallScriptSupport = outdent`
+  # Exporting so we can call it from xargs
+  # https://stackoverflow.com/questions/11003418/calling-functions-with-xargs-within-a-bash-script
+  unzipAndUntarFixupLinks() {
+    serverEsyEjectStore=$1
+    gunzip "$2"
+    # Beware of the issues of using "which". https://stackoverflow.com/a/677212
+    # Also: hash is only safe/reliable to use in bash, so make sure shebang line is bash.
+    if hash bsdtar 2>/dev/null; then
+      bsdtar -s "|\${serverEsyEjectStore}|\${ESY_EJECT__INSTALL_STORE}|gs" -xf ./\`basename "$2" .gz\`
+    else
+      if hash tar 2>/dev/null; then
+        # Supply --warning=no-unknown-keyword to supresses warnings when packed on OSX
+        tar --warning=no-unknown-keyword --transform="s|\${serverEsyEjectStore}|\${ESY_EJECT__INSTALL_STORE}|" -xf ./\`basename "$2" .gz\`
       else
-        if hash tar 2>/dev/null; then
-          # Supply --warning=no-unknown-keyword to supresses warnings when packed on OSX
-          tar --warning=no-unknown-keyword --transform="s|\${serverEsyEjectStore}|\${ESY_EJECT__INSTALL_STORE}|" -xf ./\`basename "$2" .gz\`
-        else
-          echo >&2 "Installation requires either bsdtar or tar - neither is found.  Aborting.";
-        fi
+        echo >&2 "Installation requires either bsdtar or tar - neither is found.  Aborting.";
       fi
-      # remove the .tar file
-      rm ./\`basename "$2" .gz\`
-    }
-    export -f unzipAndUntarFixupLinks
+    fi
+    # remove the .tar file
+    rm ./\`basename "$2" .gz\`
+  }
+  export -f unzipAndUntarFixupLinks
 
-    printByteLengthError() {
-      echo >&2 "ERROR:";
-      echo >&2 "  $1";
-      echo >&2 "Could not perform binary build or installation because the location you are installing to ";
-      echo >&2 "is too 'deep' in the file system. That sounds like a strange limitation, but ";
-      echo >&2 "the scripts contain shebangs that encode this path to executable, and posix ";
-      echo >&2 "systems limit the length of those shebang lines to 127.";
-      echo >&2 "";
-    }
-    repeatCh() {
-     chToRepeat=$1
-     times=$2
-     printf "%0.s$chToRepeat" $(seq 1 $times)
-    }
-    STRLEN_RESULT=0
-    strLen() {
-      oLang=$LANG
-      LANG=C
-      STRLEN_RESULT=\${#1}
-      LANG=$oLang
-    }
-    checkEsyEjectStore() {
-      if [[ $ESY_EJECT__STORE == *"//"* ]]; then
-        echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) has an invalid pattern \/\/";
-        exit 1;
-      fi
-      if [[ $ESY_EJECT__STORE != "/"* ]]; then
-        echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) does not begin with a forward slash - it must be absolute.";
-        exit 1;
-      fi
-      if [[ $ESY_EJECT__STORE == *"/./"*  ]]; then
-        echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) contains \/\.\/ and that is not okay.";
-        exit 1;
-      fi
-      if [[ $ESY_EJECT__STORE == *"/"  ]]; then
-        echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) ends with a slash and it should not";
-        exit 1;
-      fi
-    }
+  printByteLengthError() {
+    echo >&2 "ERROR:";
+    echo >&2 "  $1";
+    echo >&2 "Could not perform binary build or installation because the location you are installing to ";
+    echo >&2 "is too 'deep' in the file system. That sounds like a strange limitation, but ";
+    echo >&2 "the scripts contain shebangs that encode this path to executable, and posix ";
+    echo >&2 "systems limit the length of those shebang lines to 127.";
+    echo >&2 "";
+  }
+  repeatCh() {
+    chToRepeat=$1
+    times=$2
+    printf "%0.s$chToRepeat" $(seq 1 $times)
+  }
+  STRLEN_RESULT=0
+  strLen() {
+    oLang=$LANG
+    LANG=C
+    STRLEN_RESULT=\${#1}
+    LANG=$oLang
+  }
+  checkEsyEjectStore() {
+    if [[ $ESY_EJECT__STORE == *"//"* ]]; then
+      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) has an invalid pattern \/\/";
+      exit 1;
+    fi
+    if [[ $ESY_EJECT__STORE != "/"* ]]; then
+      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) does not begin with a forward slash - it must be absolute.";
+      exit 1;
+    fi
+    if [[ $ESY_EJECT__STORE == *"/./"*  ]]; then
+      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) contains \/\.\/ and that is not okay.";
+      exit 1;
+    fi
+    if [[ $ESY_EJECT__STORE == *"/"  ]]; then
+      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) ends with a slash and it should not";
+      exit 1;
+    fi
+  }
 `;
 
-var launchBinScriptSupport = `
-    STRLEN_RESULT=0
-    strLen() {
-      oLang=$LANG
-      LANG=C
-      STRLEN_RESULT=\${#1}
-      LANG=$oLang
-    }
-    printError() {
-      echo >&2 "ERROR:";
-      echo >&2 "$0 command is not installed correctly. ";
-      TROUBLESHOOTING="When installing <package_name>, did you see any errors in the log? "
-      TROUBLESHOOTING="$TROUBLESHOOTING - What does (which <binary_name>) return? "
-      TROUBLESHOOTING="$TROUBLESHOOTING - Please file a github issue on <package_name>'s repo."
-      echo >&2 "$TROUBLESHOOTING";
-    }
+var launchBinScriptSupport = outdent`
+  STRLEN_RESULT=0
+  strLen() {
+    oLang=$LANG
+    LANG=C
+    STRLEN_RESULT=\${#1}
+    LANG=$oLang
+  }
+  printError() {
+    echo >&2 "ERROR:";
+    echo >&2 "$0 command is not installed correctly. ";
+    TROUBLESHOOTING="When installing <package_name>, did you see any errors in the log? "
+    TROUBLESHOOTING="$TROUBLESHOOTING - What does (which <binary_name>) return? "
+    TROUBLESHOOTING="$TROUBLESHOOTING - Please file a github issue on <package_name>'s repo."
+    echo >&2 "$TROUBLESHOOTING";
+  }
 `;
 
 var escapeBashVarName = function(str) {
@@ -363,72 +357,73 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
   var packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
   var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
   var releasedBinaries = getReleasedBinaries(pkg);
-  return `#!/usr/bin/env bash
+  return outdent`
+    #!/usr/bin/env bash
 
-export ESY__STORE_VERSION=${storeVersion}
-${launchBinScriptSupport}
-if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
-  if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
-    # In windows this woudl be: a simple: %~dp0
-    SOURCE="\${BASH_SOURCE[0]}"
-    while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-      SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-      SOURCE="$(readlink "$SOURCE")"
-      [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-    done
-    SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-    export ESY_EJECT__SANDBOX="$SCRIPTDIR/../rel"
-    export PACKAGE_ROOT="$SCRIPTDIR/.."
-    # Remove dependency on esy and package managers in general
-    # We fake it so that the eject store is the location where we relocated the
-    # binaries to.
-    export ESY_EJECT__STORE=\`cat $PACKAGE_ROOT/records/recordedClientInstallStorePath.txt\`
-    ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/eject-env"
-    source "$ENV_PATH"
-    export ${packageNameUppercase}__ENVIRONMENTSOURCED="sourced"
-    export ${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}="sourced"
-  fi
-  command -v $0 >/dev/null 2>&1 || {
-    printError;
-    exit 1;
-  }
-${binaryName !== packageName ? `
-  if [ "$1" == "----where" ]; then
-     which "${binaryName}"
-  else
-    exec "${binaryName}" "$@"
-  fi
-  ` : `
-  if [[ "$1" == ""  ]]; then
-    echo ""
-    echo "Welcome to ${packageName}"
-    echo "-------------------------"
-    echo "Installed Binaries: [" ${(releasedBinaries || [])
-                                   .concat([packageName])
-                                   .join(',')} "]"
-    echo "- ${packageName} bash"
-    echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
-    echo "- binaryName ----where"
-    echo "  Prints the location of binaryName"
-    echo "  Example: ${(pkg.releasedBinaries || ['<no_binaries>'])[0]} ----where"
-    echo "- Note: Running builds and scripts from within "${packageName} bash" will typically increase performance of builds."
-    echo ""
-  else
-    if [ "$1" == "bash" ]; then
-      # Important to pass --noprofile, and --rcfile so that the user's
-      # .bashrc doesn't run and the npm global packages don't get put in front
-      # of the already constructed PATH.
-      bash --noprofile --rcfile <(echo 'export PS1="${'⏣ ' + packageName + ': $PS1'}"')
+    export ESY__STORE_VERSION=${storeVersion}
+    ${launchBinScriptSupport}
+    if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
+      if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
+        # In windows this woudl be: a simple: %~dp0
+        SOURCE="\${BASH_SOURCE[0]}"
+        while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+          SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+          SOURCE="$(readlink "$SOURCE")"
+          [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+        done
+        SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+        export ESY_EJECT__SANDBOX="$SCRIPTDIR/../rel"
+        export PACKAGE_ROOT="$SCRIPTDIR/.."
+        # Remove dependency on esy and package managers in general
+        # We fake it so that the eject store is the location where we relocated the
+        # binaries to.
+        export ESY_EJECT__STORE=\`cat $PACKAGE_ROOT/records/recordedClientInstallStorePath.txt\`
+        ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/eject-env"
+        source "$ENV_PATH"
+        export ${packageNameUppercase}__ENVIRONMENTSOURCED="sourced"
+        export ${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}="sourced"
+      fi
+      command -v $0 >/dev/null 2>&1 || {
+        printError;
+        exit 1;
+      }
+    ${binaryName !== packageName ? `
+      if [ "$1" == "----where" ]; then
+        which "${binaryName}"
+      else
+        exec "${binaryName}" "$@"
+      fi
+      ` : `
+      if [[ "$1" == ""  ]]; then
+        echo ""
+        echo "Welcome to ${packageName}"
+        echo "-------------------------"
+        echo "Installed Binaries: [" ${(releasedBinaries || [])
+                                       .concat([packageName])
+                                       .join(',')} "]"
+        echo "- ${packageName} bash"
+        echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
+        echo "- binaryName ----where"
+        echo "  Prints the location of binaryName"
+        echo "  Example: ${(pkg.releasedBinaries || ['<no_binaries>'])[0]} ----where"
+        echo "- Note: Running builds and scripts from within "${packageName} bash" will typically increase performance of builds."
+        echo ""
+      else
+        if [ "$1" == "bash" ]; then
+          # Important to pass --noprofile, and --rcfile so that the user's
+          # .bashrc doesn't run and the npm global packages don't get put in front
+          # of the already constructed PATH.
+          bash --noprofile --rcfile <(echo 'export PS1="${'⏣ ' + packageName + ': $PS1'}"')
+        else
+          echo "Invalid argument $1, type reason-cli for help"
+        fi
+      fi
+      `}
     else
-      echo "Invalid argument $1, type reason-cli for help"
+      printError;
+      exit 1;
     fi
-  fi
-  `}
-else
-  printError;
-  exit 1;
-fi
-`;
+  `;
 };
 
 var debug = process.env['DEBUG'];
@@ -616,7 +611,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     actions[releaseType].compressBuiltPackages === releaseStage;
   var shouldDecompressAndRelocateBuiltPackages =
     actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
-  var message = `
+  var message = outdent`
     # Release releaseType: "${releaseType}"
     # ------------------------------------------------------
     #  Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
@@ -628,26 +623,27 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     #  Decompress Pack: ${String(shouldDecompressPack)}
     #  Build Packages: ${String(shouldBuildPackages)}
     #  Compress Built Packages: ${String(shouldCompressBuiltPackages)}
-    #  Decompress Built Packages: ${String(shouldDecompressAndRelocateBuiltPackages)}`;
+    #  Decompress Built Packages: ${String(shouldDecompressAndRelocateBuiltPackages)}
+  `;
 
   var deleteFromBinaryRelease =
     pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
   var esyCommand = '../_esy/bin/esy';
 
-  var installEsyCmds = `
+  var installEsyCmds = outdent`
     # Install Esy
     echo '*** Installing Esy...'
     npm install --global --prefix ./_esy "esy@${pkg.esy.esyDependency}"
   `;
 
-  var downloadCmds = `
+  var downloadCmds = outdent`
     # Download
     echo '*** Installing dependencies...'
     cd ./rel
     ${esyCommand} install
     cd ../
   `;
-  var packCmds = `
+  var packCmds = outdent`
     # Pack:
     # Peform build eject.  Warms up *just* the artifacts that require having a
     # modern node installed.
@@ -656,14 +652,14 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     ${esyCommand} build-eject
     cd ../
   `;
-  var compressPackCmds = `
+  var compressPackCmds = outdent`
     # Compress:
     # Avoid npm stripping out vendored node_modules via tar. Merely renaming node_modules
     # is not sufficient!
     echo '*** Packing the release...'
     tar -czf rel.tar.gz rel
     rm -rf ./rel/`;
-  var decompressPackCmds = `
+  var decompressPackCmds = outdent`
     # Decompress:
     # Avoid npm stripping out vendored node_modules.
     echo '*** Unpacking the release...'
@@ -679,7 +675,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
       fi
     fi
     rm -rf rel.tar`;
-  var buildPackagesCmds = `
+  var buildPackagesCmds = outdent`
     # BuildPackages: Always reserve enough path space to perform relocation.
     echo '*** Building the release...'
     cd ./rel/
@@ -701,7 +697,8 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
    * [[ "zzz" =~ ^h(.[a-z]*) ]] && echo ${BASH_REMATCH[1]}
    * Prints out empty
    */
-  var compressBuiltPackagesCmds = `
+  var compressBuiltPackagesCmds = outdent`
+
     ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/eject-env"
     # Double backslash in es6 literals becomes one backslash
     # Must use . instead of source for some reason.
@@ -741,8 +738,9 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # relocated using tools that exist in the eject sandbox.
 
     tar -czf rel.tar.gz rel
-    rm -rf ./rel/`;
-  var decompressAndRelocateBuiltPackagesCmds = `
+    rm -rf ./rel/
+  `;
+  var decompressAndRelocateBuiltPackagesCmds = outdent`
 
     if [ -d "$ESY_EJECT__INSTALL_STORE" ]; then
       echo >&2 "$ESY_EJECT__INSTALL_STORE already exists. This will not work. It has to be a new directory.";
@@ -772,27 +770,33 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     echo '*** Relocating artefacts to the final destination...'
     find $ESY_EJECT__INSTALL_STORE -type f -print0 | xargs -0 -I {} -P 30 "$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/bin/fastreplacestring.exe" "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
     `;
+
+  function renderCommands(commands, enabled) {
+    return commands.split('\n').join(enabled ? '\n' : '\n# ');
+  }
   // Notice how we comment out each section which doesn't apply to this
   // combination of releaseStage/releaseType.
-  var installEsy = installEsyCmds.split('\n').join(shouldInstallEsy ? '\n' : '\n#');
-  var download = downloadCmds.split('\n').join(shouldDownload ? '\n' : '\n#');
-  var pack = packCmds.split('\n').join(shouldPack ? '\n' : '\n#');
-  var compressPack = compressPackCmds.split('\n').join(shouldCompressPack ? '\n' : '\n#');
-  var decompressPack = decompressPackCmds
-    .split('\n')
-    .join(shouldDecompressPack ? '\n' : '\n#');
-  var buildPackages = buildPackagesCmds
-    .split('\n')
-    .join(shouldBuildPackages ? '\n' : '\n#');
-  var compressBuiltPackages = compressBuiltPackagesCmds
-    .split('\n')
-    .join(shouldCompressBuiltPackages ? '\n' : '\n#');
-  var decompressAndRelocateBuiltPackages = decompressAndRelocateBuiltPackagesCmds
-    .split('\n')
-    .join(shouldDecompressAndRelocateBuiltPackages ? '\n' : '\n#');
-  return `#!/usr/bin/env bash
+  var installEsy = renderCommands(installEsyCmds, shouldInstallEsy);
+  var download = renderCommands(downloadCmds, shouldDownload);
+  var pack = renderCommands(packCmds, shouldPack);
+  var compressPack = renderCommands(compressPackCmds, shouldCompressPack);
+  var decompressPack = renderCommands(decompressPackCmds, shouldDecompressPack);
+  var buildPackages = renderCommands(buildPackagesCmds, shouldBuildPackages);
+  var compressBuiltPackages = renderCommands(
+    compressBuiltPackagesCmds,
+    shouldCompressBuiltPackages,
+  );
+  var decompressAndRelocateBuiltPackages = renderCommands(
+    decompressAndRelocateBuiltPackagesCmds,
+    shouldDecompressAndRelocateBuiltPackages,
+  );
+  return outdent`
+    #!/usr/bin/env bash
+
     set -e
+
     ${postinstallScriptSupport}
+
     ${message}
 
     #                server               |              client
@@ -867,15 +871,24 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     export ESY_EJECT__TMP="$PACKAGE_ROOT/relBinaries"
 
     checkEsyEjectStore
+
     ${installEsy}
+
     ${download}
+
     ${pack}
+
     ${compressPack}
+
     ${decompressPack}
+
     ${buildPackages}
+
     ${compressBuiltPackages}
+
     ${decompressAndRelocateBuiltPackages}
 
+    # cleanup
     rm -rf ./_esy
   `;
 };
@@ -996,64 +1009,3 @@ export async function buildRelease(config: BuildReleaseConfig) {
     createInstallScript('forClientInstallation', releaseType, pkg),
   );
 }
-
-exports.release = function(config: ReleaseConfig) {
-  const tagName =
-    config.version +
-    '-' +
-    config.type +
-    (config.type === 'bin' ? '-' + require('os').platform() : '');
-
-  console.log(`
-  --------------------------------------------
-  -- Preparing release ${tagName} --
-  --------------------------------------------
-  `);
-  [
-    'git init',
-    'git checkout -b branch-' + tagName + '',
-    config.forGithubLFS ? 'git lfs track ./rel.tar.gz' : '',
-    config.forGithubLFS ? 'git lfs track relBinaries/i/*.tar.gz' : '',
-    'git add .',
-    'git remote add origin ' + config.origin,
-    'git fetch --tags --depth=1',
-    'git commit -m "Preparing release ' + tagName + '"',
-    '# Return code is inverted to receive boolean return value',
-    '(git tag --delete ' +
-      tagName +
-      ' &> /dev/null) || echo "Tag ' +
-      tagName +
-      ' doesn\'t yet exist, creating it now."',
-    'git tag -a ' + tagName + ' -m "' + tagName + '"',
-  ].forEach(function(cmd) {
-    if (cmd) {
-      logExec(cmd);
-    }
-  });
-
-  console.log(`
-  ----------------------------------------------------
-  -- Almost Done. Complete the following two steps ---
-  ----------------------------------------------------
-
-  Directory package/ contains a git repository ready
-  to be pushed under a tag to remote.
-
-  1. [REQUIRED] cd package
-
-  2. git show HEAD
-    Make sure you approve of what will be pushed to tag ${tagName}
-
-  3. git push origin HEAD:branch-${tagName}
-    Push a release branch if needed.
-
-  4. [REQUIRED] git push origin ${tagName}
-    Push a release tag.
-
-  You can test install the release by running:
-
-      npm install '${config.origin}'#${tagName}
-
-  > Note: If you are pushing an update to an existing tag, you might need to add -f to the push command.
-  `);
-};
