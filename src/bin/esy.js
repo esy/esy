@@ -157,10 +157,9 @@ import * as EsyOpam from '@esy-ocaml/esy-opam';
 /**
  * Detect the default build platform based on the current OS.
  */
-const defaultBuildPlatform: BuildPlatform =
-  process.platform === 'darwin' ? 'darwin' :
-  process.platform === 'linux' ? 'linux' :
-  'linux';
+const defaultBuildPlatform: BuildPlatform = process.platform === 'darwin'
+  ? 'darwin'
+  : process.platform === 'linux' ? 'linux' : 'linux';
 
 /**
  * This is temporary, mostly here for testing. Soon, esy will automatically
@@ -171,13 +170,17 @@ function determineBuildPlatformFromArgument(arg): BuildPlatform {
     return defaultBuildPlatform;
   } else {
     if (arg === 'darwin') {
-      return 'darwin'
+      return 'darwin';
     } else if (arg === 'linux') {
-      return 'linux'
+      return 'linux';
     } else if (arg === 'cygwin') {
-      return 'cygwin'
+      return 'cygwin';
     }
-    throw new Error('Specified build platform ' + arg + ' is invalid: Pass one of "linux", "cygwin", or "darwin"')
+    throw new Error(
+      'Specified build platform ' +
+        arg +
+        ' is invalid: Pass one of "linux", "cygwin", or "darwin"',
+    );
   }
 }
 
@@ -196,8 +199,8 @@ function error(error: Error | string) {
   process.exit(1);
 }
 
-async function getBuildSandbox(sandboxPath): Promise<BuildSandbox> {
-  const sandbox = await Sandbox.fromDirectory(sandboxPath);
+async function getBuildSandbox(sandboxPath, options): Promise<BuildSandbox> {
+  const sandbox = await Sandbox.fromDirectory(sandboxPath, options);
   if (sandbox.root.errors.length > 0) {
     sandbox.root.errors.forEach(error => {
       console.log(formatError(error.message));
@@ -238,8 +241,8 @@ const sandboxPath = process.cwd();
  * shebang consumed by the "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion, so
  * that more of that 127 can act as a padding.
  */
-var desiredShebangPathLength = 127 - "!#".length;
-var pathLengthConsumedByOcamlrun = "/i/ocaml-n.00.0-########/bin/ocamlrun".length;
+var desiredShebangPathLength = 127 - '!#'.length;
+var pathLengthConsumedByOcamlrun = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
 var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
 
 function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
@@ -247,7 +250,6 @@ function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
     process.env.ESY__STORE || path.join(userHome, '.esy', Config.ESY_STORE_VERSION);
   return Config.createConfig({storePath, sandboxPath, buildPlatform});
 }
-
 
 /**
  * Note that Makefile based builds defers exact locations of sandbox and store
@@ -260,7 +262,7 @@ function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
 function buildConfigForBuildEjectCommand(buildPlatform: BuildPlatform) {
   const STORE_PATH = '$ESY_EJECT__STORE';
   const SANDBOX_PATH = '$ESY_EJECT__SANDBOX';
-  const buildConfig: BuildConfig = Config.createConfig({
+  const buildConfig = Config.createConfig({
     storePath: STORE_PATH,
     sandboxPath: SANDBOX_PATH,
     buildPlatform,
@@ -348,9 +350,11 @@ async function buildEjectCommand(
   _buildEjectPath,
   buildPlatformArg,
 ) {
-  const buildPlatform: BuildPlatform = determineBuildPlatformFromArgument(buildPlatformArg);
+  const buildPlatform: BuildPlatform = determineBuildPlatformFromArgument(
+    buildPlatformArg,
+  );
   const buildEject = require('../builders/makefile-builder');
-  const sandbox = await getBuildSandbox(sandboxPath);
+  const sandbox = await getBuildSandbox(sandboxPath, {forRelease: true});
   const buildConfig = buildConfigForBuildEjectCommand(buildPlatform);
   buildEject.renderToMakefile(
     sandbox,

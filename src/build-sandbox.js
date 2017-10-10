@@ -52,9 +52,17 @@ type SandboxCrawlContext = {
   dependencyTrace: Array<string>,
   crawlBuild: (sourcePath: string, context: SandboxCrawlContext) => Promise<BuildSpec>,
   resolve: (moduleName: string, baseDirectory: string) => Promise<string>,
+  options: Options,
 };
 
-export async function fromDirectory(sandboxPath: string): Promise<BuildSandbox> {
+type Options = {
+  forRelease?: boolean,
+};
+
+export async function fromDirectory(
+  sandboxPath: string,
+  options: Options = {},
+): Promise<BuildSandbox> {
   // Caching module resolution actually speed ups sandbox crawling a lot.
   const resolutionCache: Map<string, Promise<string>> = new Map();
 
@@ -87,6 +95,7 @@ export async function fromDirectory(sandboxPath: string): Promise<BuildSandbox> 
     resolve: resolveCached,
     crawlBuild: crawlBuildCached,
     dependencyTrace: [],
+    options,
   };
 
   const root = await crawlBuild(sandboxPath, crawlContext);
@@ -179,7 +188,8 @@ async function crawlBuild(
     version: packageJson.version,
     exportedEnv: packageJson.esy.exportedEnv,
     command,
-    shouldBePersisted: !(isRootBuild || !isInstalled),
+    shouldBePersisted: !(isRootBuild || !isInstalled) ||
+      Boolean(context.options.forRelease),
     mutatesSourcePath: !!packageJson.esy.buildsInSource,
     sourcePath: nextSourcePath,
     packageJson,
