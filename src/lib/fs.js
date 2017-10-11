@@ -37,6 +37,7 @@ export const writeFileSync = fs.writeFileSync;
 
 // Promote 3rd-party fs utils
 export const rmdir: (p: string) => Promise<void> = promisify(require('rimraf'));
+export const rmdirSync: (p: string) => void = require('rimraf').sync;
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 
 // mkdtemp
