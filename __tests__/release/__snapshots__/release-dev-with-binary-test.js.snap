@@ -56,7 +56,24 @@ exports[`installation 1`] = `
 | | | | | | | | | s
 | | | | | package.json
 | | | | | say-hello.exe
+| | | | | test.js
 | | | | | yarn.lock"
+`;
+
+exports[`installation stdout 1`] = `
+"/tmp/TMPDIR/npm/bin/say-hello.exe -> /tmp/TMPDIR/npm/lib/node_modules/with-binary/.bin/say-hello.exe
+/tmp/TMPDIR/npm/bin/with-binary -> /tmp/TMPDIR/npm/lib/node_modules/with-binary/.bin/with-binary
+
+> with-binary@0.1.0 postinstall /tmp/TMPDIR/npm/lib/node_modules/with-binary
+> ./postinstall.sh
+
+*** Installing esy for the release...
+*** Installing dependencies...
+*** Building the release...
+*** Decompressing artefacts...
+*** Relocating artefacts to the final destination...
++ with-binary@0.1.0
+added 1 package in X.XXXs"
 `;
 
 exports[`release 1`] = `
@@ -70,5 +87,8 @@ exports[`release 1`] = `
 | | prerelease.sh
 | | rel
 | | | package.json
-| | | say-hello.exe"
+| | | say-hello.exe
+| | | test.js"
 `;
+
+exports[`release stdout 1`] = `"*** Creating dev-type release for with-binary..."`;

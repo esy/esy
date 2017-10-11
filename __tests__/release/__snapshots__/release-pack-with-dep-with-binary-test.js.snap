@@ -3,13 +3,15 @@
 exports[`installation 1`] = `
 "<root>
 | bin
-| | minimal
+| | say-hello.exe
+| | with-dep-with-binary
 | etc
 | lib
 | | node_modules
-| | | minimal
+| | | with-dep-with-binary
 | | | | .bin
-| | | | | minimal
+| | | | | say-hello.exe
+| | | | | with-dep-with-binary
 | | | | package.json
 | | | | postinstall.sh
 | | | | prerelease.sh
@@ -19,9 +21,18 @@ exports[`installation 1`] = `
 | | | | | recordedCoppiedArtifacts.txt
 | | | | | recordedServerBuildStorePath.txt
 | | | | rel
-| | | | | 3.x.x______________________________
+| | | | | 3.x.x_________________
 | | | | | | i
-| | | | | | | minimal-0.1.0
+| | | | | | | dep-0.1.0
+| | | | | | | | bin
+| | | | | | | | | say-hello.exe
+| | | | | | | | doc
+| | | | | | | | etc
+| | | | | | | | lib
+| | | | | | | | man
+| | | | | | | | sbin
+| | | | | | | | share
+| | | | | | | with_dep_with_binary-0.1.0
 | | | | | | | | bin
 | | | | | | | | doc
 | | | | | | | | etc
@@ -29,6 +40,10 @@ exports[`installation 1`] = `
 | | | | | | | | man
 | | | | | | | | sbin
 | | | | | | | | share
+| | | | | dependencies
+| | | | | | dep
+| | | | | | | package.json
+| | | | | | | say-hello.exe
 | | | | | node_modules
 | | | | | | .cache
 | | | | | | | _esy
@@ -46,6 +61,10 @@ exports[`installation 1`] = `
 | | | | | | | | | final-install-path-set.txt
 | | | | | | | | | final-install-path-set.txt.in
 | | | | | | | | | Makefile
+| | | | | | | | | node_modules
+| | | | | | | | | | dep
+| | | | | | | | | | | eject-env
+| | | | | | | | | | | sandbox.sb.in
 | | | | | | | | | sandbox.sb.in
 | | | | | | | | store
 | | | | | | | | | b
@@ -57,31 +76,35 @@ exports[`installation 1`] = `
 `;
 
 exports[`installation stdout 1`] = `
-"/tmp/TMPDIR/npm/bin/minimal -> /tmp/TMPDIR/npm/lib/node_modules/minimal/.bin/minimal
+"/tmp/TMPDIR/npm/bin/say-hello.exe -> /tmp/TMPDIR/npm/lib/node_modules/with-dep-with-binary/.bin/say-hello.exe
+/tmp/TMPDIR/npm/bin/with-dep-with-binary -> /tmp/TMPDIR/npm/lib/node_modules/with-dep-with-binary/.bin/with-dep-with-binary
 
-> minimal@0.1.0 postinstall /tmp/TMPDIR/npm/lib/node_modules/minimal
+> with-dep-with-binary@0.1.0 postinstall /tmp/TMPDIR/npm/lib/node_modules/with-dep-with-binary
 > ./postinstall.sh
 
-*** Installing esy for the release...
-*** Installing dependencies...
+*** Unpacking the release...
 *** Building the release...
 *** Decompressing artefacts...
 *** Relocating artefacts to the final destination...
-+ minimal@0.1.0
++ with-dep-with-binary@0.1.0
 added 1 package in X.XXXs"
 `;
 
 exports[`release 1`] = `
 "<root>
-| dev
+| pack
 | | .bin
-| | | minimal
+| | | say-hello.exe
+| | | with-dep-with-binary
 | | package.json
 | | postinstall.sh
 | | prerelease.sh
-| | rel
-| | | package.json
-| | | test.js"
+| | rel.tar.gz"
 `;
 
-exports[`release stdout 1`] = `"*** Creating dev-type release for minimal..."`;
+exports[`release stdout 1`] = `
+"*** Creating pack-type release for with-dep-with-binary...
+*** Installing esy for the release...
+*** Installing dependencies...
+*** Packing the release..."
+`;

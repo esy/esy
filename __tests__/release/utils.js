@@ -3,6 +3,7 @@
  */
 
 import * as path from 'path';
+import outdent from 'outdent';
 import * as fs from '../../src/lib/fs';
 import * as child from '../../src/lib/child_process';
 import * as fsRepr from '../../src/lib/fs-repr';
@@ -21,22 +22,12 @@ function showNode(node: fsRepr.Node, indent = 0): string {
   throw new Error(`unknown node: ${JSON.stringify(node)}`);
 }
 
-let tempDirectoriesCreatedDuringTestRun = [];
-
-export async function createProject(packageJson: any, ...extra: fsRepr.Node[]) {
-  const nodes = [
-    fsRepr.file('package.json', JSON.stringify(packageJson, null, 2)),
-    ...extra,
-  ];
-  const root = await mkdtemp();
-  await fsRepr.write(root, nodes);
-  return root;
-}
-
 export async function readDirectory(...name: string[]) {
   const nodes = await fsRepr.read(path.join(...name));
   return showNode(fsRepr.directory('<root>', nodes));
 }
+
+let tempDirectoriesCreatedDuringTestRun = [];
 
 export async function cleanUp() {
   if (tempDirectoriesCreatedDuringTestRun.length > 0) {
@@ -48,24 +39,22 @@ export async function cleanUp() {
 export const esyRoot = path.dirname(path.dirname(path.dirname(__dirname)));
 export const esyBin = path.join(esyRoot, 'bin', 'esy');
 
-export function run(command: string, ...args: string[]) {
+function spawn(command, args, options) {
   if (process.env.DEBUG != null) {
-    console.log('EXECUTE', command, args);
+    console.log('EXECUTE', `${command} ${args.join(' ')}`);
   }
+  return child.spawn(command, args, options);
+}
+
+export function run(command: string, ...args: string[]) {
   const env = {...process.env, ESY__TEST: 'yes'};
-  return child.spawn(command, args, {env});
+  return spawn(command, args, {env});
 }
 
 export function runIn(project: string, command: string, ...args: string[]) {
-  if (process.env.DEBUG != null) {
-    console.log('EXECUTE', command, args, 'CWD:', project);
-  }
   const env = {...process.env, ESY__TEST: 'yes'};
-  return child.spawn(command, args, {cwd: project, env});
+  return spawn(command, args, {cwd: project, env});
 }
-
-export const file = fsRepr.file;
-export const directory = fsRepr.directory;
 
 export async function mkdtemp() {
   // We should be using `os.tmpdir()` instead but it's too long so we cannot
@@ -87,8 +76,11 @@ export function mkdtempSync() {
 
 export async function packAndNpmInstallGlobal(fixture: Fixture, ...p: string[]) {
   const whatToInstall = path.join(fixture.project, ...p);
-  const tarballFilename = await child.spawn('npm', ['pack'], {cwd: whatToInstall});
-  await run(
+  const tarballFilename = await spawn('npm', ['pack'], {
+    env: process.env,
+    cwd: whatToInstall,
+  });
+  const stdout = await run(
     'npm',
     'install',
     '--global',
@@ -96,7 +88,31 @@ export async function packAndNpmInstallGlobal(fixture: Fixture, ...p: string[]) 
     fixture.npmPrefix,
     path.join(whatToInstall, tarballFilename),
   );
+  // sanitize stdout so we can match against it
+  return sanitizeNpmOutput(stdout);
 }
+
+function sanitizeNpmOutput(out) {
+  // do random value replacements
+  out = out
+    .replace(/\d\.[\d]+s/g, 'X.XXXs')
+    .replace(/\/tmp\/[A-Za-z0-9]+\//g, '/tmp/TMPDIR/');
+
+  // sort bin links lines at the top, they are in random order in npm
+  let lines = out.split('\n');
+  const binLinksLines = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === '') {
+      binLinksLines.sort();
+      lines = binLinksLines.concat(lines.slice(i));
+      break;
+    }
+    binLinksLines.push(lines[i]);
+  }
+  return lines.join('\n');
+}
+
+const DEBUG_TEST_LOC = '/tmp/esydbg';
 
 type Fixture = {
   description: string,
@@ -109,7 +125,29 @@ type Fixture = {
  * Initialize fixture.
  */
 export function initFixtureSync(fixturePath: string) {
-  const root = process.env.DEBUG != null ? '/tmp/esytest' : mkdtempSync();
+  let root;
+  if (process.env.DEBUG != null) {
+    console.log(outdent`
+
+      Test Debug Notice!
+      ------------------
+
+      Test is being executed in DEBUG mode. The location for tests release & installation
+      is set to /tmp/esydbg.
+
+      Make sure you run only a single test case at a time with DEBUG as /tmp/esydbg is going
+      to be removed before the test run. After test is done with either status, you can go
+      into /tmp/esydbg and inspect its contents.
+
+      Note thet if test fails during 'npm install' phase then npm will do a rollback and
+      /tmp/esydbg/npm directory will become empty.
+
+    `);
+    fs.rmdirSync(DEBUG_TEST_LOC);
+    root = DEBUG_TEST_LOC;
+  } else {
+    root = mkdtempSync();
+  }
   const project = path.join(root, 'project');
   const npmPrefix = path.join(root, 'npm');
 

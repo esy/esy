@@ -62,8 +62,7 @@ exports[`installation stdout 1`] = `
 > minimal@0.1.0 postinstall /tmp/TMPDIR/npm/lib/node_modules/minimal
 > ./postinstall.sh
 
-*** Installing esy for the release...
-*** Installing dependencies...
+*** Unpacking the release...
 *** Building the release...
 *** Decompressing artefacts...
 *** Relocating artefacts to the final destination...
@@ -73,15 +72,18 @@ added 1 package in X.XXXs"
 
 exports[`release 1`] = `
 "<root>
-| dev
+| pack
 | | .bin
 | | | minimal
 | | package.json
 | | postinstall.sh
 | | prerelease.sh
-| | rel
-| | | package.json
-| | | test.js"
+| | rel.tar.gz"
 `;
 
-exports[`release stdout 1`] = `"*** Creating dev-type release for minimal..."`;
+exports[`release stdout 1`] = `
+"*** Creating pack-type release for minimal...
+*** Installing esy for the release...
+*** Installing dependencies...
+*** Packing the release..."
+`;

@@ -4,34 +4,9 @@
 
 jest.setTimeout(200000);
 
-import * as path from 'path';
-import {
-  createProject,
-  readDirectory,
-  cleanUp,
-  esyBin,
-  runIn,
-  run,
-  file,
-  directory,
-  packAndNpmInstallGlobal,
-  initFixtureSync,
-} from './utils';
+import testWithBinary from './fixtures/with-binary/test';
 
-const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'with-binary'));
+const testCase = testWithBinary({releaseType: 'dev'});
 
-afterAll(cleanUp);
-
-test(`esy release dev: ${fixture.description}`, async function() {
-  await runIn(fixture.project, 'npm', 'install');
-  await runIn(fixture.project, esyBin, 'release', 'dev');
-
-  expect(await readDirectory(fixture.project, '_release')).toMatchSnapshot('release');
-
-  await packAndNpmInstallGlobal(fixture, '_release', 'dev');
-
-  expect(await readDirectory(fixture.npmPrefix)).toMatchSnapshot('installation');
-
-  const res = await run(path.join(fixture.npmPrefix, 'bin', 'say-hello.exe'));
-  expect(res).toBe('HELLO');
-});
+test(testCase.description, testCase.test);
+afterAll(testCase.cleanUp);

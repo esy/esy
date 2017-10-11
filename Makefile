@@ -31,6 +31,10 @@ test:
 clean:
 	@rm -rf lib/
 
+test-esy-release:
+	@echo "Running integration tests for 'esy release' command"
+	@$(BIN)/jest ./__tests__/release/*-test.js
+
 #
 # Release
 #

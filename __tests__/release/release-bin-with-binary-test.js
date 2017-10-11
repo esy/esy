@@ -4,9 +4,9 @@
 
 jest.setTimeout(200000);
 
-import testMinimal from './fixtures/minimal/test';
+import testWithBinary from './fixtures/with-binary/test';
 
-const testCase = testMinimal({releaseType: 'dev'});
+const testCase = testWithBinary({releaseType: 'bin'});
 
 test(testCase.description, testCase.test);
 afterAll(testCase.cleanUp);
