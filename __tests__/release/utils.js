@@ -95,7 +95,7 @@ export async function packAndNpmInstallGlobal(fixture: Fixture, ...p: string[]) 
 function sanitizeNpmOutput(out) {
   // do random value replacements
   out = out
-    .replace(/\d\.[\d]+s/g, 'X.XXXs')
+    .replace(/[\d]+\.[\d]+s/g, 'X.XXXs')
     .replace(/\/tmp\/[A-Za-z0-9]+\//g, '/tmp/TMPDIR/');
 
   // sort bin links lines at the top, they are in random order in npm
