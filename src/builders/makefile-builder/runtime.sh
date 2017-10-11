@@ -86,7 +86,10 @@ _esy-perform-build () {
 }
 
 esy-build () {
-  if [ ! -d "$esy_build__install" ]; then
+  if [ "$esy_build__source_type" == "transient" ]; then
+    esy-clean
+    _esy-perform-build
+  elif [ ! -d "$esy_build__install" ]; then
     _esy-perform-build
   fi
 }

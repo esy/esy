@@ -48,6 +48,15 @@ export type BuildSpec = {
   sourcePath: string,
 
   /**
+   * Source type.
+   *
+   * 'immutable' means we can persist build artefacts.
+   * 'transient' means sources can be changed between build invokations and we
+   *             cannot simply cache artefacts.
+   */
+  sourceType: 'immutable' | 'transient',
+
+  /**
    * If build mutates its own sourcePath.
    *
    * Builder must handle that case somehow, probably by copying sourcePath into

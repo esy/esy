@@ -234,6 +234,7 @@ export function renderToMakefile(
         {
           esy_build__eject: `$(ESY_EJECT__ROOT)/${packagePath.join('/')}`,
           esy_build__type: task.spec.mutatesSourcePath ? 'in-source' : 'out-of-source',
+          esy_build__source_type: task.spec.sourceType,
           esy_build__key: task.id,
           esy_build__command: renderBuildTaskCommand(task) || 'true',
           esy_build__source_root: path.join(
