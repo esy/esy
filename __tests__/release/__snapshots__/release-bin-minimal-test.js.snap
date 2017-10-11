@@ -41,7 +41,6 @@ exports[`installation 1`] = `
 | | | | | | | | | | render-env
 | | | | | | | | | | runtime.sh
 | | | | | | | | | command-env
-| | | | | | | | | command-env.in
 | | | | | | | | | eject-env
 | | | | | | | | | final-install-path-set.txt
 | | | | | | | | | final-install-path-set.txt.in
