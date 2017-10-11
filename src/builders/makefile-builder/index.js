@@ -138,7 +138,6 @@ export function renderToMakefile(
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
         `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
         '$(ESY_EJECT__ROOT)/final-install-path-set.txt',
-        '$(ESY_EJECT__ROOT)/command-env',
       ],
     },
     {
@@ -159,13 +158,6 @@ export function renderToMakefile(
       type: 'rule',
       target: '$(ESY_EJECT__ROOT)/final-install-path-set.txt',
       dependencies: ['$(ESY_EJECT__ROOT)/final-install-path-set.txt.in', 'esy-root'],
-      shell: '/bin/bash',
-      command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
-    },
-    {
-      type: 'rule',
-      target: '$(ESY_EJECT__ROOT)/command-env',
-      dependencies: ['$(ESY_EJECT__ROOT)/command-env.in', 'esy-root'],
       shell: '/bin/bash',
       command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
     },
@@ -280,7 +272,7 @@ export function renderToMakefile(
   const rootTask = Task.fromBuildSandbox(sandbox, buildConfig);
   Graph.traverse(rootTask, visitTask);
 
-  // Emit command-env template
+  // Emit command-env
   // TODO: we construct two task trees for build and for command-env, this is
   // wasteful, so let's think how we can do that in a single pass.
   const rootTaskForCommand = Task.fromBuildSandbox(sandbox, buildConfig, {
@@ -288,8 +280,15 @@ export function renderToMakefile(
   });
   rootTaskForCommand.env.delete('SHELL');
   emitFile(outputPath, {
-    filename: ['command-env.in'],
-    contents: Env.printEnvironment(rootTaskForCommand.env),
+    filename: ['command-env'],
+    contents: outdent`
+      # Set the default value for ESY_EJECT__STORE if it's not defined.
+      if [ -z \${ESY_EJECT__STORE+x} ]; then
+        export ESY_EJECT__STORE="$HOME/.esy/${Config.ESY_STORE_VERSION}"
+      fi
+
+      ${Env.printEnvironment(rootTaskForCommand.env)}
+    `,
   });
 
   // Now emit all build-wise artefacts
