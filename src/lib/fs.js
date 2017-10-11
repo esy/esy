@@ -8,7 +8,7 @@ const path = require('path');
 const os = require('os');
 
 import walkDir from 'walkdir';
-import {copy} from 'fs-extra';
+import {copy, copySync} from 'fs-extra';
 
 import {promisify} from './Promise';
 
@@ -33,6 +33,7 @@ export const writeFile: (
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(
   fs.chmod,
 );
+export const writeFileSync = fs.writeFileSync;
 
 // Promote 3rd-party fs utils
 export const rmdir: (p: string) => Promise<void> = promisify(require('rimraf'));
@@ -40,6 +41,7 @@ export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp
 
 // mkdtemp
 export const _mkdtemp: string => Promise<string> = promisify(fs.mkdtemp);
+export const _mkdtempSync = fs.mkdtempSync;
 
 export function mkdtemp(prefix: string) {
   const root = os.tmpdir();
@@ -67,13 +69,34 @@ export async function copydir(
   });
 }
 
+export function copydirSync(
+  from: string,
+  to: string,
+  params?: {
+    exclude?: string[],
+  } = {},
+): void {
+  copySync(from, to, {
+    filter: filename => !(params.exclude && params.exclude.includes(filename)),
+  });
+}
+
 export async function readFile(p: string): Promise<string> {
   const data = await readFileBuffer(p);
   return data.toString('utf8');
 }
 
+export function readFileSync(p: string) {
+  return fs.readFileSync(p, 'utf8');
+}
+
 export async function readJson(p: string) {
   const data = await readFile(p);
+  return JSON.parse(data);
+}
+
+export function readJsonSync(p: string) {
+  const data = readFileSync(p);
   return JSON.parse(data);
 }
 
