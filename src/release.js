@@ -991,10 +991,6 @@ function getReleaseTag(config) {
  * by `npm pack` command.
  */
 export async function buildRelease(config: BuildReleaseConfig) {
-  async function runInReleasePath(cmd, ...args) {
-    await child_process.spawn(cmd, args, {cwd: releasePath, stdio: 'inherit'});
-  }
-
   const releaseType = config.type;
   const releaseTag = getReleaseTag(config);
 
@@ -1026,7 +1022,15 @@ export async function buildRelease(config: BuildReleaseConfig) {
     createInstallScript('forPreparingRelease', releaseType, pkg),
   );
 
-  await runInReleasePath('bash', './prerelease.sh');
+  // Now run prerelease.sh, we reset $ESY__SANDBOX as it's going to call esy
+  // recursively but leave $ESY__STORE & $ESY__LOCAL_STORE in place.
+  const env = {...process.env};
+  delete env.ESY__SANDBOX;
+  await child_process.spawn('bash', ['./prerelease.sh'], {
+    env,
+    cwd: releasePath,
+    stdio: 'inherit',
+  });
 
   // Actual Release: We leave the *actual* postinstall script to be executed on the host.
   await putExecutable(
