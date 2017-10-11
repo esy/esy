@@ -18,7 +18,7 @@ import {
   initFixtureSync,
 } from './utils';
 
-const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'with-binary'));
+const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'with-dep-with-binary'));
 
 afterAll(cleanUp);
 

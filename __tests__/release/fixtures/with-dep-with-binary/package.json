@@ -1,0 +1,15 @@
+{
+  "name": "with-dep-with-binary",
+  "description": "simple package which has a dependency with a binary",
+  "version": "0.1.0",
+  "dependencies": {
+    "dep": "./dependencies/dep"
+  },
+  "esy": {
+    "release": {
+      "releasedBinaries": [
+        "say-hello.exe"
+      ]
+    }
+  }
+}

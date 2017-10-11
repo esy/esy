@@ -76,6 +76,15 @@ export async function mkdtemp() {
   return dir;
 }
 
+export function mkdtempSync() {
+  // We should be using `os.tmpdir()` instead but it's too long so we cannot
+  // relocate binaries there.
+  const root = '/tmp/';
+  const dir = fs._mkdtempSync(root);
+  tempDirectoriesCreatedDuringTestRun.push(dir);
+  return dir;
+}
+
 export async function packAndNpmInstallGlobal(fixture: Fixture, ...p: string[]) {
   const whatToInstall = path.join(fixture.project, ...p);
   const tarballFilename = await child.spawn('npm', ['pack'], {cwd: whatToInstall});
@@ -90,26 +99,31 @@ export async function packAndNpmInstallGlobal(fixture: Fixture, ...p: string[]) 
 }
 
 type Fixture = {
+  description: string,
   root: string,
   project: string,
   npmPrefix: string,
 };
 
-export async function initFixture(fixturePath: string) {
-  const root = await (process.env.DEBUG != null ? '/tmp/esytest' : mkdtemp());
+/**
+ * Initialize fixture.
+ */
+export function initFixtureSync(fixturePath: string) {
+  const root = process.env.DEBUG != null ? '/tmp/esytest' : mkdtempSync();
   const project = path.join(root, 'project');
   const npmPrefix = path.join(root, 'npm');
 
-  await fs.copydir(fixturePath, project);
+  fs.copydirSync(fixturePath, project);
 
-  // patch package.json to include dependency on esy
+  // Patch package.json to include dependency on esy.
   const packageJsonFilename = path.join(project, 'package.json');
-  const packageJson = await fs.readJson(packageJsonFilename);
+  const packageJson = fs.readJsonSync(packageJsonFilename);
   packageJson.devDependencies = packageJson.devDependencies || {};
   packageJson.devDependencies.esy = esyRoot;
-  await fs.writeFile(packageJsonFilename, JSON.stringify(packageJson, null, 2), 'utf8');
+  fs.writeFileSync(packageJsonFilename, JSON.stringify(packageJson, null, 2), 'utf8');
 
   return {
+    description: packageJson.description || packageJson.name,
     root,
     project,
     npmPrefix,

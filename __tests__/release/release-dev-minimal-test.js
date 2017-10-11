@@ -18,7 +18,7 @@ import {
   initFixtureSync,
 } from './utils';
 
-const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'with-binary'));
+const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'minimal'));
 
 afterAll(cleanUp);
 
@@ -31,7 +31,4 @@ test(`esy release dev: ${fixture.description}`, async function() {
   await packAndNpmInstallGlobal(fixture, '_release', 'dev');
 
   expect(await readDirectory(fixture.npmPrefix)).toMatchSnapshot('installation');
-
-  const res = await run(path.join(fixture.npmPrefix, 'bin', 'say-hello.exe'));
-  expect(res).toBe('HELLO');
 });

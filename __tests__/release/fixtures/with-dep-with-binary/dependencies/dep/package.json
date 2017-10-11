@@ -1,6 +1,5 @@
 {
-  "name": "with-binary",
-  "description": "simple package with a binary",
+  "name": "dep",
   "version": "0.1.0",
   "esy": {
     "build": [
