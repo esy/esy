@@ -17,12 +17,12 @@ import * as Env from '../../environment';
 import * as Makefile from '../../Makefile';
 import {normalizePackageName} from '../../util';
 import {renderEnv, renderSandboxSbConfig} from '../util';
+import * as bashgen from '../bashgen';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
 
 const RUNTIME = fs.readFileSync(path.join(__dirname, 'runtime.sh'), 'utf8');
-const UTIL = fs.readFileSync(path.join(__dirname, 'util.sh'), 'utf8');
 
 const fastReplaceStringSrc = fs.readFileSync(
   require.resolve('fastreplacestring/fastreplacestring.cpp'),
@@ -339,32 +339,9 @@ export function renderToMakefile(
       set -e
       set -o pipefail
 
-      ESY_EJECT__PREFIX="$1"
-      # Remove trailing slash if any.
-      ESY_EJECT__PREFIX="\${ESY_EJECT__PREFIX%/}"
+      ${bashgen.defineEsyUtil}
 
-      ESY_STORE_VERSION="${Config.ESY_STORE_VERSION}"
-
-      SOURCE="\${BASH_SOURCE[0]}"
-      while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-        SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-        SOURCE="$(readlink "$SOURCE")"
-        [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-      done
-      SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-      source "$SCRIPTDIR/util.sh"
-
-      prefixLength=$(_esy-util-str-len "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION")
-      paddingLength=$(expr ${Config.DESIRED_ESY_STORE_PATH_LENGTH} - $prefixLength)
-
-      # Discover how much of the reserved relocation padding must be consumed.
-      if [ "$paddingLength" -lt "0" ]; then
-        echo "$ESY_EJECT__PREFIX is too deep inside filesystem, Esy won't be able to relocate binaries"
-        exit 1;
-      fi
-
-      padding=$(_esy-util-repeat-char '_' "$paddingLength")
-      echo "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION$padding"
+      esyGetStorePathFromPrefix "$1"
     `,
   });
 
@@ -388,11 +365,6 @@ export function renderToMakefile(
   emitFile(outputPath, {
     filename: ['bin', 'runtime.sh'],
     contents: RUNTIME,
-  });
-
-  emitFile(outputPath, {
-    filename: ['bin', 'util.sh'],
-    contents: UTIL,
   });
 
   emitFile(outputPath, {
