@@ -3,7 +3,7 @@
  */
 
 import type {BuildSpec} from '../types';
-import {createConfig} from '../build-config';
+import {create as createConfig} from '../build-config';
 import {fromBuildSpec} from '../build-task';
 import {printEnvironment} from '../environment';
 

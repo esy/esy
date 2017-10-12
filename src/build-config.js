@@ -4,6 +4,7 @@
 
 import type {BuildSpec, BuildConfig, BuildPlatform} from './types';
 import * as path from 'path';
+import invariant from 'invariant';
 
 // The current version of esy store, bump it whenever the store layout changes.
 // We also have the same constant hardcoded into bin/esy executable for perf
@@ -22,7 +23,7 @@ export const STORE_BUILD_TREE = 'b';
 export const STORE_INSTALL_TREE = 'i';
 export const STORE_STAGE_TREE = 's';
 
-export function createConfig(params: {
+export function create(params: {
   storePath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
@@ -67,3 +68,40 @@ export function createConfig(params: {
   };
   return buildConfig;
 }
+
+const ENVIRONMENT_VAR_RE = /\$[a-zA-Z_]/;
+
+export function createForPrefix(params: {
+  prefixPath: string,
+  sandboxPath: string,
+  buildPlatform: BuildPlatform,
+}) {
+  // I'm not sure we can make this check more exhaustive. But this is a good
+  // sanity check which prevents passing non-real looking paths as `prefixPath`.
+  invariant(
+    ENVIRONMENT_VAR_RE.exec(params.prefixPath) == null,
+    'Esy prefix path should not contain environment variable references, but got: %s',
+    params.prefixPath,
+  );
+  const storePath = getStorePathForPrefix(params.prefixPath);
+  return create({
+    storePath,
+    sandboxPath: params.sandboxPath,
+    buildPlatform: params.buildPlatform,
+  });
+}
+
+export function getStorePathForPrefix(prefix: string): string {
+  const prefixLength = `${prefix}/${ESY_STORE_VERSION}`.length;
+  const paddingLength = DESIRED_ESY_STORE_PATH_LENGTH - prefixLength;
+  invariant(
+    paddingLength >= 0,
+    `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
+  );
+  return `${prefix}/${ESY_STORE_VERSION}`.padEnd(DESIRED_ESY_STORE_PATH_LENGTH, '_');
+}
+
+const DESIRED_SHEBANG_PATH_LENGTH = 127 - '!#'.length;
+const PATH_LENGTH_CONSUMED_BY_OCAMLRUN = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
+export const DESIRED_ESY_STORE_PATH_LENGTH =
+  DESIRED_SHEBANG_PATH_LENGTH - PATH_LENGTH_CONSUMED_BY_OCAMLRUN;

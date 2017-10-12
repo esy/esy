@@ -16,7 +16,7 @@ import * as Task from '../../build-task';
 import * as Env from '../../environment';
 import * as Makefile from '../../Makefile';
 import {normalizePackageName} from '../../util';
-import {renderEnv, renderSandboxSbConfig, DESIRED_ESY_STORE_PATH_LENGTH} from '../util';
+import {renderEnv, renderSandboxSbConfig} from '../util';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
@@ -355,7 +355,7 @@ export function renderToMakefile(
       source "$SCRIPTDIR/util.sh"
 
       prefixLength=$(_esy-util-str-len "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION")
-      paddingLength=$(expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $prefixLength)
+      paddingLength=$(expr ${Config.DESIRED_ESY_STORE_PATH_LENGTH} - $prefixLength)
 
       # Discover how much of the reserved relocation padding must be consumed.
       if [ "$paddingLength" -lt "0" ]; then

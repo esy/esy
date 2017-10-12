@@ -246,9 +246,8 @@ var pathLengthConsumedByOcamlrun = '/i/ocaml-n.00.0-########/bin/ocamlrun'.lengt
 var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
 
 function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
-  const storePath =
-    process.env.ESY__STORE || path.join(userHome, '.esy', Config.ESY_STORE_VERSION);
-  return Config.createConfig({storePath, sandboxPath, buildPlatform});
+  const prefixPath = process.env.ESY__PREFIX || path.join(userHome, '.esy');
+  return Config.createForPrefix({prefixPath, sandboxPath, buildPlatform});
 }
 
 /**
@@ -257,12 +256,12 @@ function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
  * machines.
  *
  * That means that build env is generated in a way which can be configured later
- * with `$ESY_EJECT__SANDBOX` and `$ESY__STORE` environment variables.
+ * with `$ESY_EJECT__SANDBOX` and `$ESY_EJECT__STORE` environment variables.
  */
 function buildConfigForBuildEjectCommand(buildPlatform: BuildPlatform) {
   const STORE_PATH = '$ESY_EJECT__STORE';
   const SANDBOX_PATH = '$ESY_EJECT__SANDBOX';
-  const buildConfig = Config.createConfig({
+  const buildConfig = Config.create({
     storePath: STORE_PATH,
     sandboxPath: SANDBOX_PATH,
     buildPlatform,

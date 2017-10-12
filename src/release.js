@@ -201,7 +201,7 @@ import * as child_process from './lib/child_process';
 import * as os from 'os';
 import * as path from 'path';
 import outdent from 'outdent';
-import {DESIRED_ESY_STORE_PATH_LENGTH} from './builders/util';
+import {DESIRED_ESY_STORE_PATH_LENGTH} from './build-config';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 

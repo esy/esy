@@ -64,7 +64,7 @@ const lwt = build({
   dependencies: [ocaml],
 });
 
-const config = Config.createConfig({
+const config = Config.create({
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
   buildPlatform: 'linux',
