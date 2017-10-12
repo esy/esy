@@ -362,8 +362,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
   var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
   var releasedBinaries = getReleasedBinaries(pkg);
   return outdent`
-
-    #!/usr/bin/env bash
+    #!/bin/bash
 
     export ESY__STORE_VERSION=${storeVersion}
     ${launchBinScriptSupport}
@@ -815,7 +814,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     shouldDecompressAndRelocateBuiltPackages,
   );
   return outdent`
-    #!/usr/bin/env bash
+    #!/bin/bash
 
     set -e
 

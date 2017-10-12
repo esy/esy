@@ -52,7 +52,7 @@ var isPosix = true;
 var postInstallContents;
 if (isPosix) {
   postInstallContents = [
-    '#!/usr/bin/env bash',
+    '#!/bin/bash',
     'WAITING_FOR_PACKAGE_POST_INSTALL=' + process.env['npm_package_name'],
     'if [ "$npm_package_name" == "$WAITING_FOR_PACKAGE_POST_INSTALL" ]; then',
     '  esy build',
