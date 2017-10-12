@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec, BuildConfig} from './types';
+import type {BuildSpec, BuildConfig, BuildPlatform} from './types';
 import * as path from 'path';
 
 // The current version of esy store, bump it whenever the store layout changes.

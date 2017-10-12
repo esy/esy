@@ -22,7 +22,6 @@ type BuildTaskParams = {
   exposeOwnPath?: boolean,
 };
 
-
 /**
  * Logic to determine how file paths inside of env vars should be delimited.
  * For example, what separates file paths in the `PATH` env variable, or
@@ -35,16 +34,19 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
   // Error as a courtesy. This means something went wrong in the esy code, not
   // consumer code. Should be fixed ASAP.
   if (envVarName === '' || envVarName.charAt(0) === '$') {
-    throw new Error('Invalidly formed environment variable:' + envVarName:string);
+    throw new Error('Invalidly formed environment variable:' + envVarName);
   }
   if (buildPlatform === null || buildPlatform === undefined) {
     throw new Error('Build platform not specified');
   }
   // Comprehensive pattern matching would be nice to have here!
-  return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin' ? ';' :
-      buildPlatform === 'cygwin' ||
-      buildPlatform === 'linux' ||
-      buildPlatform === 'darwin' ? ':' : ';';
+  return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin'
+    ? ';'
+    : buildPlatform === 'cygwin' ||
+        buildPlatform === 'linux' ||
+        buildPlatform === 'darwin'
+        ? ':'
+        : ';';
 }
 
 /**
