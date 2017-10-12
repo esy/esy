@@ -201,6 +201,7 @@ import * as child_process from './lib/child_process';
 import * as os from 'os';
 import * as path from 'path';
 import outdent from 'outdent';
+import {DESIRED_ESY_STORE_PATH_LENGTH} from './builders/util';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
@@ -579,9 +580,6 @@ async function verifyBinSetup(pkg) {
  * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
  * the release in as many destinations as possible.
  */
-var desiredShebangPathLength = 127 - '!#'.length;
-var pathLengthConsumedByOcamlrun = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
-var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
 var createInstallScript = function(releaseStage, releaseType, pkg) {
   var shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
   var shouldDownload = actions[releaseType].download === releaseStage;
@@ -856,7 +854,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     PRENORMALIZED_ESY_EJECT__STORE="\${PRENORMALIZED_ESY_EJECT__STORE%/}"
     strLen "$PRENORMALIZED_ESY_EJECT__STORE"
     lenPrenormalizedEsyEjectStore=$STRLEN_RESULT
-    byteLenDiff=\`expr ${desiredEsyEjectStoreLength} - $lenPrenormalizedEsyEjectStore \`
+    byteLenDiff=\`expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $lenPrenormalizedEsyEjectStore \`
     # Discover how much of the reserved relocation padding must be consumed.
     if [ "$byteLenDiff" -lt "0" ]; then
       printByteLengthError "$PRENORMALIZED_ESY_EJECT__STORE";
@@ -876,7 +874,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     PRENORMALIZED_ESY_EJECT__INSTALL_STORE="\${PRENORMALIZED_ESY_EJECT__INSTALL_STORE%/}"
     strLen "$PRENORMALIZED_ESY_EJECT__INSTALL_STORE"
     lenPrenormalizedEsyEjectInstallStore=$STRLEN_RESULT
-    byteLenDiff=\`expr ${desiredEsyEjectStoreLength} - $lenPrenormalizedEsyEjectInstallStore \`
+    byteLenDiff=\`expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $lenPrenormalizedEsyEjectInstallStore \`
     # Discover how much of the reserved relocation padding must be consumed.
     if [ "$byteLenDiff" -lt "0" ]; then
       printByteLengthError "$PRENORMALIZED_ESY_EJECT__INSTALL_STORE";

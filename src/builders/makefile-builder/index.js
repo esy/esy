@@ -16,12 +16,13 @@ import * as Task from '../../build-task';
 import * as Env from '../../environment';
 import * as Makefile from '../../Makefile';
 import {normalizePackageName} from '../../util';
-import {renderEnv, renderSandboxSbConfig} from '../util';
+import {renderEnv, renderSandboxSbConfig, DESIRED_ESY_STORE_PATH_LENGTH} from '../util';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
 
 const RUNTIME = fs.readFileSync(path.join(__dirname, 'runtime.sh'), 'utf8');
+const UTIL = fs.readFileSync(path.join(__dirname, 'util.sh'), 'utf8');
 
 const fastReplaceStringSrc = fs.readFileSync(
   require.resolve('fastreplacestring/fastreplacestring.cpp'),
@@ -32,10 +33,10 @@ const fastReplaceStringSrc = fs.readFileSync(
  * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
  */
 export function renderToMakefile(
-    sandbox: BuildSandbox,
-    outputPath: string,
-    buildConfig: BuildConfig,
-  ) {
+  sandbox: BuildSandbox,
+  outputPath: string,
+  buildConfig: BuildConfig,
+) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
 
   const finalInstallPathSet = [];
@@ -53,10 +54,16 @@ export function renderToMakefile(
       value: 'ESY_EJECT__ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))',
     },
 
-    // ESY_EJECT__STORE is the directory where build artifacts should be stored.
+    // ESY_EJECT__PREFIX is the directory where esy keeps the store and other
+    // artefacts
     {
       type: 'raw',
-      value: `ESY_EJECT__STORE ?= $(HOME)/.esy/${Config.ESY_STORE_VERSION}`,
+      value: `ESY_EJECT__PREFIX ?= $(HOME)/.esy`,
+    },
+
+    {
+      type: 'raw',
+      value: `ESY_EJECT__STORE = $(shell $(ESY_EJECT__ROOT)/bin/get-store-path $(ESY_EJECT__PREFIX))`,
     },
 
     // ESY_EJECT__SANDBOX is the sandbox directory, the directory where the root
@@ -97,6 +104,7 @@ export function renderToMakefile(
         {
           CI: process.env.CI ? process.env.CI : null,
           TMPDIR: '$(TMPDIR)',
+          ESY_EJECT__PREFIX: '$(ESY_EJECT__PREFIX)',
           ESY_EJECT__STORE: '$(ESY_EJECT__STORE)',
           ESY_EJECT__SANDBOX: '$(ESY_EJECT__SANDBOX)',
           ESY_EJECT__ROOT: '$(ESY_EJECT__ROOT)',
@@ -323,6 +331,44 @@ export function renderToMakefile(
   });
 
   emitFile(outputPath, {
+    filename: ['bin/get-store-path'],
+    executable: true,
+    contents: outdent`
+      #!/bin/bash
+
+      set -e
+      set -o pipefail
+
+      ESY_EJECT__PREFIX="$1"
+      # Remove trailing slash if any.
+      ESY_EJECT__PREFIX="\${ESY_EJECT__PREFIX%/}"
+
+      ESY_STORE_VERSION="${Config.ESY_STORE_VERSION}"
+
+      SOURCE="\${BASH_SOURCE[0]}"
+      while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+        SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+        SOURCE="$(readlink "$SOURCE")"
+        [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+      done
+      SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+      source "$SCRIPTDIR/util.sh"
+
+      prefixLength=$(_esy-util-str-len "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION")
+      paddingLength=$(expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $prefixLength)
+
+      # Discover how much of the reserved relocation padding must be consumed.
+      if [ "$paddingLength" -lt "0" ]; then
+        echo "$ESY_EJECT__PREFIX is too deep inside filesystem, Esy won't be able to relocate binaries"
+        exit 1;
+      fi
+
+      padding=$(_esy-util-repeat-char '_' "$paddingLength")
+      echo "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION$padding"
+    `,
+  });
+
+  emitFile(outputPath, {
     filename: ['bin', 'fastreplacestring.cpp'],
     contents: fastReplaceStringSrc,
   });
@@ -342,6 +388,11 @@ export function renderToMakefile(
   emitFile(outputPath, {
     filename: ['bin', 'runtime.sh'],
     contents: RUNTIME,
+  });
+
+  emitFile(outputPath, {
+    filename: ['bin', 'util.sh'],
+    contents: UTIL,
   });
 
   emitFile(outputPath, {
