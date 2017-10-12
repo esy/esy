@@ -39,10 +39,12 @@ exports[`installation 1`] = `
 | | | | | | | | | bin
 | | | | | | | | | | fastreplacestring.cpp
 | | | | | | | | | | fastreplacestring.exe
+| | | | | | | | | | get-store-path
 | | | | | | | | | | realpath
 | | | | | | | | | | realpath.c
 | | | | | | | | | | render-env
 | | | | | | | | | | runtime.sh
+| | | | | | | | | | util.sh
 | | | | | | | | | command-env
 | | | | | | | | | eject-env
 | | | | | | | | | final-install-path-set.txt
