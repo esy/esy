@@ -69,21 +69,13 @@ export function create(params: {
   return buildConfig;
 }
 
-const ENVIRONMENT_VAR_RE = /\$[a-zA-Z_]/;
-
 export function createForPrefix(params: {
   prefixPath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
 }) {
-  // I'm not sure we can make this check more exhaustive. But this is a good
-  // sanity check which prevents passing non-real looking paths as `prefixPath`.
-  invariant(
-    ENVIRONMENT_VAR_RE.exec(params.prefixPath) == null,
-    'Esy prefix path should not contain environment variable references, but got: %s',
-    params.prefixPath,
-  );
-  const storePath = getStorePathForPrefix(params.prefixPath);
+  const prefixPath = sanitizePrefixPath(params.prefixPath);
+  const storePath = getStorePathForPrefix(prefixPath);
   return create({
     storePath,
     sandboxPath: params.sandboxPath,
@@ -99,6 +91,28 @@ export function getStorePathForPrefix(prefix: string): string {
     `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
   );
   return `${prefix}/${ESY_STORE_VERSION}`.padEnd(DESIRED_ESY_STORE_PATH_LENGTH, '_');
+}
+
+const REMOVE_TRAILING_SLASH_RE = /\/+$/g;
+const ENVIRONMENT_VAR_RE = /\$[a-zA-Z_]/g;
+const DOT_PATH_SEGMENT_RE = /\/\.\//g;
+const DOT_DOT_PATH_SEGMENT_RE = /\/\.\.\//g;
+const SANITIZE_SLASH_RE = /\/+/g;
+
+/**
+ * It is important for prefix to be a real path, not containing environment
+ * variables other artefacts.
+ */
+function sanitizePrefixPath(prefix) {
+  invariant(DOT_PATH_SEGMENT_RE.exec(prefix) == null, 'Invalid Esy prefix value');
+  invariant(DOT_DOT_PATH_SEGMENT_RE.exec(prefix) == null, 'Invalid Esy prefix value');
+  invariant(
+    ENVIRONMENT_VAR_RE.exec(prefix) == null,
+    'Esy prefix path should not contain environment variable references',
+  );
+  prefix = prefix.replace(REMOVE_TRAILING_SLASH_RE, '');
+  prefix = prefix.replace(SANITIZE_SLASH_RE, '/');
+  return prefix;
 }
 
 const DESIRED_SHEBANG_PATH_LENGTH = 127 - '!#'.length;
