@@ -200,6 +200,7 @@ import * as fs from './lib/fs';
 import * as child_process from './lib/child_process';
 import * as os from 'os';
 import * as path from 'path';
+import * as bashgen from './builders/bashgen';
 import outdent from 'outdent';
 import {DESIRED_ESY_STORE_PATH_LENGTH} from './build-config';
 
@@ -369,14 +370,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
     ${launchBinScriptSupport}
     if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
-        # In windows this woudl be: a simple: %~dp0
-        SOURCE="\${BASH_SOURCE[0]}"
-        while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-          SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-          SOURCE="$(readlink "$SOURCE")"
-          [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-        done
-        SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+        ${bashgen.defineScriptDir}
         export ESY_EJECT__SANDBOX="$SCRIPTDIR/../rel"
         export PACKAGE_ROOT="$SCRIPTDIR/.."
         # Remove dependency on esy and package managers in general
@@ -826,13 +820,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # =================================================================================
 
     ESY__STORE_VERSION="${storeVersion}"
-    SOURCE="\${BASH_SOURCE[0]}"
-    while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-      SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-      SOURCE="$(readlink "$SOURCE")"
-      [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-    done
-    SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    ${bashgen.defineScriptDir}
     export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
 
     # We allow the ESY_EJECT__STORE to be customized at build time. But at
