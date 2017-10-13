@@ -8,6 +8,11 @@ import outdent from 'outdent';
 import * as Config from '../build-config';
 
 export const defineScriptDir = outdent`
+
+  #
+  # Define $SCRIPTDIR
+  #
+
   SOURCE="\${BASH_SOURCE[0]}"
   while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
     SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -15,9 +20,15 @@ export const defineScriptDir = outdent`
     [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
   SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
 `;
 
 export const defineEsyUtil = outdent`
+
+  #
+  # Esy utility functions
+  #
+
   esyStrLength() {
     # run in a subprocess to override $LANG variable
     LANG=C /bin/bash -c 'echo "\${#0}"' "$1"
@@ -33,7 +44,6 @@ export const defineEsyUtil = outdent`
     ESY_EJECT__PREFIX="$1"
     # Remove trailing slash if any.
     ESY_EJECT__PREFIX="\${ESY_EJECT__PREFIX%/}"
-
     ESY_STORE_VERSION="${Config.ESY_STORE_VERSION}"
 
     prefixLength=$(esyStrLength "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION")
@@ -48,4 +58,5 @@ export const defineEsyUtil = outdent`
     padding=$(esyRepeatCharacter '_' "$paddingLength")
     echo "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION$padding"
   }
+
 `;
