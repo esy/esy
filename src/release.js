@@ -295,48 +295,10 @@ var postinstallScriptSupport = outdent`
     echo >&2 "systems limit the length of those shebang lines to 127.";
     echo >&2 "";
   }
-  repeatCh() {
-    chToRepeat=$1
-    times=$2
-    printf "%0.s$chToRepeat" $(seq 1 $times)
-  }
-  STRLEN_RESULT=0
-  strLen() {
-    oLang=$LANG
-    LANG=C
-    STRLEN_RESULT=\${#1}
-    LANG=$oLang
-  }
-  checkEsyEjectStore() {
-    if [[ $ESY_EJECT__STORE == *"//"* ]]; then
-      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) has an invalid pattern \/\/";
-      exit 1;
-    fi
-    if [[ $ESY_EJECT__STORE != "/"* ]]; then
-      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) does not begin with a forward slash - it must be absolute.";
-      exit 1;
-    fi
-    if [[ $ESY_EJECT__STORE == *"/./"*  ]]; then
-      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) contains \/\.\/ and that is not okay.";
-      exit 1;
-    fi
-    if [[ $ESY_EJECT__STORE == *"/"  ]]; then
-      echo >&2 "ESY_EJECT__STORE($ESY_EJECT__STORE) ends with a slash and it should not";
-      exit 1;
-    fi
-  }
-
 `;
 
 var launchBinScriptSupport = outdent`
 
-  STRLEN_RESULT=0
-  strLen() {
-    oLang=$LANG
-    LANG=C
-    STRLEN_RESULT=\${#1}
-    LANG=$oLang
-  }
   printError() {
     echo >&2 "ERROR:";
     echo >&2 "$0 command is not installed correctly. ";
@@ -372,12 +334,13 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
         ${bashgen.defineScriptDir}
         export ESY_EJECT__SANDBOX="$SCRIPTDIR/../rel"
+        export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject"
         export PACKAGE_ROOT="$SCRIPTDIR/.."
         # Remove dependency on esy and package managers in general
         # We fake it so that the eject store is the location where we relocated the
         # binaries to.
         export ESY_EJECT__STORE=\`cat $PACKAGE_ROOT/records/recordedClientInstallStorePath.txt\`
-        ENV_PATH="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/command-env"
+        ENV_PATH="$ESY_EJECT__ROOT/command-env"
         source "$ENV_PATH"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED="sourced"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}="sourced"
@@ -605,7 +568,6 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
   var deleteFromBinaryRelease =
     pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
-  var esyCommand = '../_esy/bin/esy';
 
   var installEsyCmds = outdent`
 
@@ -613,7 +575,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # installEsy
     #
     echo '*** Installing esy for the release...'
-    LOG=$(npm install --global --prefix ./_esy "esy@${pkg.esy.esyDependency}" 2>&1)
+    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.esyDependency}")
     if [ $? -ne 0 ]; then
       echo "Failed to install esy..."
       echo $LOG
@@ -628,14 +590,14 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # download
     #
     echo '*** Installing dependencies...'
-    cd ./rel
-    LOG=$(${esyCommand} install 2>&1)
+    cd $ESY_EJECT__SANDBOX
+    LOG=$($PACKAGE_ROOT/_esy/bin/esy install)
     if [ $? -ne 0 ]; then
       echo "Failed to install dependencies..."
       echo $LOG
       exit 1
     fi
-    cd ../
+    cd $PACKAGE_ROOT
 
   `;
   var packCmds = outdent`
@@ -646,9 +608,9 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # Peform build eject.  Warms up *just* the artifacts that require having a
     # modern node installed.
     # Generates the single Makefile etc.
-    cd ./rel
-    ${esyCommand} build-eject
-    cd ../
+    cd $ESY_EJECT__SANDBOX
+    $PACKAGE_ROOT/_esy/bin/esy build-eject
+    cd $PACKAGE_ROOT
 
   `;
   var compressPackCmds = outdent`
@@ -660,7 +622,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # is not sufficient!
     echo '*** Packing the release...'
     tar -czf rel.tar.gz rel
-    rm -rf ./rel/
+    rm -rf $ESY_EJECT__SANDBOX
 
   `;
   var decompressPackCmds = outdent`
@@ -670,18 +632,18 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     #
     # Avoid npm stripping out vendored node_modules.
     echo '*** Unpacking the release...'
-    gunzip rel.tar.gz
+    gunzip "$ESY_EJECT__SANDBOX.tar.gz"
     if hash bsdtar 2>/dev/null; then
-      bsdtar -xf rel.tar
+      bsdtar -xf "$ESY_EJECT__SANDBOX.tar"
     else
       if hash tar 2>/dev/null; then
         # Supply --warning=no-unknown-keyword to supresses warnings when packed on OSX
-        tar --warning=no-unknown-keyword -xf rel.tar
+        tar --warning=no-unknown-keyword -xf "$ESY_EJECT__SANDBOX.tar"
       else
         echo >&2 "Installation requires either bsdtar or tar - neither is found.  Aborting.";
       fi
     fi
-    rm -rf rel.tar
+    rm -rf "$ESY_EJECT__SANDBOX.tar"
 
   `;
   var buildPackagesCmds = outdent`
@@ -691,14 +653,19 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     #
     # Always reserve enough path space to perform relocation.
     echo '*** Building the release...'
-    cd ./rel/
-    make -j -f node_modules/.cache/_esy/build-eject/Makefile
-    cd ..
+    cd $ESY_EJECT__SANDBOX
+    make -j -f "$ESY_EJECT__ROOT/Makefile"
+    cd $PACKAGE_ROOT
+
     mkdir $PACKAGE_ROOT/records
-    echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"
+    cp \
+      "$ESY_EJECT__ROOT/records/store-path.txt" \
+      "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"
     # For client side builds, recordedServerBuildStorePath is equal to recordedClientBuildStorePath.
     # For prebuilt binaries these will differ, and recordedClientBuildStorePath.txt is overwritten.
-    echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
+    cp \
+      "$ESY_EJECT__ROOT/records/store-path.txt" \
+      "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
 
   `;
 
@@ -727,7 +694,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
     mkdir -p "$ESY_EJECT__TMP/i"
     # Grab all the install directories
-    for res in $(cat $ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/final-install-path-set.txt); do
+    for res in $(cat $ESY_EJECT__ROOT/records/final-install-path-set.txt); do
       if [[ "$res" != ""  ]]; then
         cp -r "$res" "$ESY_EJECT__TMP/i/"
         cd "$ESY_EJECT__TMP/i/"
@@ -748,7 +715,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # relocated using tools that exist in the eject sandbox.
 
     tar -czf rel.tar.gz rel
-    rm -rf ./rel/
+    rm -rf $ESY_EJECT__SANDBOX
 
   `;
   var decompressAndRelocateBuiltPackagesCmds = outdent`
@@ -764,7 +731,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     serverEsyEjectStoreDirName=\`basename "$serverEsyEjectStore"\`
 
     # Decompress the actual sandbox:
-    unzipAndUntarFixupLinks "$serverEsyEjectStore" "rel.tar.gz"
+    unzipAndUntarFixupLinks "$serverEsyEjectStore" "$ESY_EJECT__SANDBOX.tar.gz"
 
     cd "$ESY_EJECT__TMP/i/"
     # Executing the untar/unzip in parallel!
@@ -778,11 +745,12 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
     # Not that this is really even used for anything once on the client.
     # We use the install store. Still, this might be good for debugging.
-    echo "$ESY_EJECT__STORE" > "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
+    cp "$ESY_EJECT__ROOT/records/store-path.txt" "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
     # Executing the replace string in parallel!
     # https://askubuntu.com/questions/431478/decompressing-multiple-files-at-once
     echo '*** Relocating artefacts to the final destination...'
-    find $ESY_EJECT__INSTALL_STORE -type f -print0 | xargs -0 -I {} -P 30 "$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject/bin/fastreplacestring.exe" "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
+    find $ESY_EJECT__INSTALL_STORE -type f -print0 \
+      | xargs -0 -I {} -P 30 $ESY_EJECT__ROOT/bin/fastreplacestring.exe "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
 
   `;
 
@@ -819,67 +787,29 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     # ESY_EJECT__STORE -> ESY_EJECT__TMP  |  ESY_EJECT__TMP -> ESY_EJECT__INSTALL_STORE
     # =================================================================================
 
-    ESY__STORE_VERSION="${storeVersion}"
     ${bashgen.defineScriptDir}
+    ${bashgen.defineEsyUtil}
+
+    export PACKAGE_ROOT="$SCRIPTDIR"
+
+    export ESY__STORE_VERSION="${storeVersion}"
+
     export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
-
-    # We allow the ESY_EJECT__STORE to be customized at build time. But at
-    # install time, we always want to copy the artifacts to the install
-    # directory. We need to distinguish between where artifacts are build
-    # into, and where they are relocated to.
-    # Regardless of if we're building on the client or server, when building
-    # we usually want to default the store to the global cache. Then we can
-    # copy the artifacts into the release, and use that as the eject store
-    # when running binaries etc. This will ensure that no matter what - binary
-    # or pack modes, you get artifacts coppied and relocated into your
-    # installation so there are no dangling things.
-    if [ -z "\${PRENORMALIZED_ESY_EJECT__STORE+x}" ]; then
-      PRENORMALIZED_ESY_EJECT__STORE="$HOME/.esy/$ESY__STORE_VERSION"
-    else
-      PRENORMALIZED_ESY_EJECT__STORE="$PRENORMALIZED_ESY_EJECT__STORE"
-    fi
-    # Remove trailing slash if any.
-    PRENORMALIZED_ESY_EJECT__STORE="\${PRENORMALIZED_ESY_EJECT__STORE%/}"
-    strLen "$PRENORMALIZED_ESY_EJECT__STORE"
-    lenPrenormalizedEsyEjectStore=$STRLEN_RESULT
-    byteLenDiff=\`expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $lenPrenormalizedEsyEjectStore \`
-    # Discover how much of the reserved relocation padding must be consumed.
-    if [ "$byteLenDiff" -lt "0" ]; then
-      printByteLengthError "$PRENORMALIZED_ESY_EJECT__STORE";
-       exit 1;
-    fi
-    adjustedSuffix=\`repeatCh '_' "$byteLenDiff"\`
-    export ESY_EJECT__STORE="\${PRENORMALIZED_ESY_EJECT__STORE}$adjustedSuffix"
-
+    export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject"
 
     # We Build into the ESY_EJECT__STORE, copy into ESY_EJECT__TMP, potentially
     # transport over the network then finally we copy artifacts into the
     # ESY_EJECT__INSTALL_STORE and relocate them as if they were built there to
     # begin with.  ESY_EJECT__INSTALL_STORE should not ever be used if we're
     # running on the server.
-    PRENORMALIZED_ESY_EJECT__INSTALL_STORE="$ESY_EJECT__SANDBOX/$ESY__STORE_VERSION"
-    # Remove trailing slash if any.
-    PRENORMALIZED_ESY_EJECT__INSTALL_STORE="\${PRENORMALIZED_ESY_EJECT__INSTALL_STORE%/}"
-    strLen "$PRENORMALIZED_ESY_EJECT__INSTALL_STORE"
-    lenPrenormalizedEsyEjectInstallStore=$STRLEN_RESULT
-    byteLenDiff=\`expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $lenPrenormalizedEsyEjectInstallStore \`
-    # Discover how much of the reserved relocation padding must be consumed.
-    if [ "$byteLenDiff" -lt "0" ]; then
-      printByteLengthError "$PRENORMALIZED_ESY_EJECT__INSTALL_STORE";
-       exit 1;
-    fi
-    adjustedSuffix=\`repeatCh '_' "$byteLenDiff"\`
-    export ESY_EJECT__INSTALL_STORE="\${PRENORMALIZED_ESY_EJECT__INSTALL_STORE}$adjustedSuffix"
-
+    export ESY_EJECT__INSTALL_ROOT="$ESY_EJECT__SANDBOX"
+    export ESY_EJECT__INSTALL_STORE=$(esyGetStorePathFromPrefix $ESY_EJECT__INSTALL_ROOT)
 
     # Regardless of where artifacts are actually built, or where they will be
     # installed to, or if we're on the server/client we will copy artifacts
     # here temporarily. Sometimes the build location is the same as where we
     # copy them to inside the sandbox - sometimes not.
-    export PACKAGE_ROOT="$SCRIPTDIR"
     export ESY_EJECT__TMP="$PACKAGE_ROOT/relBinaries"
-
-    checkEsyEjectStore
 
     ${installEsy}
 
