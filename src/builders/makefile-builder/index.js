@@ -39,9 +39,26 @@ export function renderToMakefile(
 ) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
 
+  function emitInfoFile({filename, contents}) {
+    ruleSet.push({
+      type: 'rule',
+      target: `$(ESY_EJECT__ROOT)/records/${filename}`,
+      dependencies: [`$(ESY_EJECT__ROOT)/records/${filename}.in`, 'esy-root'],
+      shell: '/bin/bash',
+      command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
+    });
+
+    emitFile(outputPath, {
+      filename: ['records', `${filename}.in`],
+      contents: contents + '\n',
+    });
+
+    initStoreRule.dependencies.push(`$(ESY_EJECT__ROOT)/records/${filename}`);
+  }
+
   const finalInstallPathSet = [];
 
-  const ruleSet: Makefile.MakeItem[] = [
+  const prelude = [
     {
       type: 'raw',
       value: 'SHELL := env -i /bin/bash --norc --noprofile',
@@ -72,9 +89,26 @@ export function renderToMakefile(
       type: 'raw',
       value: 'ESY_EJECT__SANDBOX ?= $(CURDIR)',
     },
+  ];
+
+  const initStoreRule = {
+    type: 'rule',
+    target: 'esy-store',
+    phony: true,
+    dependencies: [
+      `$(ESY_EJECT__STORE)/${Config.STORE_BUILD_TREE}`,
+      `$(ESY_EJECT__STORE)/${Config.STORE_INSTALL_TREE}`,
+      `$(ESY_EJECT__STORE)/${Config.STORE_STAGE_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
+    ],
+  };
+
+  const ruleSet: Makefile.MakeItem[] = [
+    ...prelude,
 
     // These are public API
-
     {
       type: 'rule',
       target: 'build',
@@ -134,20 +168,7 @@ export function renderToMakefile(
         '$(ESY_EJECT__ROOT)/bin/fastreplacestring.exe',
       ],
     },
-    {
-      type: 'rule',
-      target: 'esy-store',
-      phony: true,
-      dependencies: [
-        `$(ESY_EJECT__STORE)/${Config.STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__STORE)/${Config.STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__STORE)/${Config.STORE_STAGE_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
-        '$(ESY_EJECT__ROOT)/final-install-path-set.txt',
-      ],
-    },
+    initStoreRule,
     {
       type: 'rule',
       target: '$(ESY_EJECT__ROOT)/bin/realpath',
@@ -161,13 +182,6 @@ export function renderToMakefile(
       dependencies: ['$(ESY_EJECT__ROOT)/bin/fastreplacestring.cpp'],
       shell: '/bin/bash',
       command: '@g++ -Ofast -o $(@) $(<) 2> /dev/null',
-    },
-    {
-      type: 'rule',
-      target: '$(ESY_EJECT__ROOT)/final-install-path-set.txt',
-      dependencies: ['$(ESY_EJECT__ROOT)/final-install-path-set.txt.in', 'esy-root'],
-      shell: '/bin/bash',
-      command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
     },
   ];
 
@@ -367,14 +381,20 @@ export function renderToMakefile(
     contents: RUNTIME,
   });
 
+  emitInfoFile({
+    filename: 'final-install-path-set.txt',
+    contents: finalInstallPathSet.join('\n'),
+  });
+
+  emitInfoFile({
+    filename: 'store-path.txt',
+    contents: '$ESY_EJECT__STORE',
+  });
+
+  // this should be the last statement as we mutate rules
   emitFile(outputPath, {
     filename: ['Makefile'],
     contents: Makefile.renderMakefile(ruleSet),
-  });
-
-  emitFile(outputPath, {
-    filename: ['final-install-path-set.txt.in'],
-    contents: finalInstallPathSet.join('\n') + '\n',
   });
 }
 
