@@ -56,16 +56,18 @@ exports[`installation 1`] = `
 | | | | | | | | | | realpath.c
 | | | | | | | | | | render-env
 | | | | | | | | | | runtime.sh
-| | | | | | | | | | util.sh
 | | | | | | | | | command-env
 | | | | | | | | | eject-env
-| | | | | | | | | final-install-path-set.txt
-| | | | | | | | | final-install-path-set.txt.in
 | | | | | | | | | Makefile
 | | | | | | | | | node_modules
 | | | | | | | | | | dep
 | | | | | | | | | | | eject-env
 | | | | | | | | | | | sandbox.sb.in
+| | | | | | | | | records
+| | | | | | | | | | final-install-path-set.txt
+| | | | | | | | | | final-install-path-set.txt.in
+| | | | | | | | | | store-path.txt
+| | | | | | | | | | store-path.txt.in
 | | | | | | | | | sandbox.sb.in
 | | | | | | | | store
 | | | | | | | | | b
@@ -113,6 +115,7 @@ exports[`release stdout 1`] = `
 "*** Creating bin-type release for with-dep-with-binary...
 *** Installing esy for the release...
 *** Installing dependencies...
+warning with-dep-with-binary@0.1.0: No license field
 *** Building the release...
 [1;37m*** dep @ 0.1.0: building from source...[0m
 [0;32m*** dep @ 0.1.0: build complete[0m

@@ -44,12 +44,14 @@ exports[`installation 1`] = `
 | | | | | | | | | | realpath.c
 | | | | | | | | | | render-env
 | | | | | | | | | | runtime.sh
-| | | | | | | | | | util.sh
 | | | | | | | | | command-env
 | | | | | | | | | eject-env
-| | | | | | | | | final-install-path-set.txt
-| | | | | | | | | final-install-path-set.txt.in
 | | | | | | | | | Makefile
+| | | | | | | | | records
+| | | | | | | | | | final-install-path-set.txt
+| | | | | | | | | | final-install-path-set.txt.in
+| | | | | | | | | | store-path.txt
+| | | | | | | | | | store-path.txt.in
 | | | | | | | | | sandbox.sb.in
 | | | | | | | | store
 | | | | | | | | | b
@@ -70,6 +72,7 @@ exports[`installation stdout 1`] = `
 
 *** Installing esy for the release...
 *** Installing dependencies...
+warning with-binary@0.1.0: No license field
 *** Building the release...
 [1;37m*** with-binary @ 0.1.0: building from source...[0m
 [0;32m*** with-binary @ 0.1.0: build complete[0m
