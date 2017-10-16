@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+
+ESY__VERSION="3.0.0"
+# The caches are compatible with any major version 3.
+ESY__CACHE_VERSION="3.x.x"
+
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+# Had to remove this so that we could just use one command `esy` which we
+# forward everything to.
+# We'll have to reimplement v that feature in the actual js impl.
+# CURDIR=`pwd`
+# while [ ! -e "$CURDIR/package.json" ]; do
+#     if [ "$CURDIR" == "/" ]; then
+#         echo "Cannot find package.json" >&2
+#         exit 1
+#     fi
+#     CURDIR=`cd $CURDIR/..; pwd`
+# done
+
+if [ -z "${ESY__SANDBOX+x}" ]; then
+  export ESY__SANDBOX="$PWD"
+fi
+if [ -z "${ESY__PREFIX+x}" ]; then
+  export ESY__PREFIX="$HOME/.esy"
+fi
+if [ -z "${ESY__LOCAL_STORE+x}" ]; then
+  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
+fi
+
+BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
+COMMAND_ENV_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/command-env"
+
+if [ -d "$ESY__SANDBOX/node_modules" ]; then
+  DEPENDENCIES_PACKAGE_JSON=`find $ESY__SANDBOX/node_modules -name 'package.json'`
+else
+  DEPENDENCIES_PACKAGE_JSON=""
+fi
+
+needRebuildTarget () {
+  TARGET="$1"
+  NEED_REBUILD="false"
+
+  # check if target exist
+  if [ ! -f "$TARGET" ]; then
+    NEED_REBUILD="true"
+  else
+    # check sandbox package.json
+    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ]; then
+      NEED_REBUILD="true"
+    else
+      # check each dependencies' package.json
+      for dep in $DEPENDENCIES_PACKAGE_JSON; do
+        if [ "$TARGET" -ot "$dep" ]; then
+          NEED_REBUILD="true"
+          break
+        fi
+      done
+    fi
+  fi
+
+  echo "$NEED_REBUILD"
+}
+
+callBuiltInCommand__buildEject () {
+  if [ `needRebuildTarget "$BUILD_EJECT_PATH/Makefile"` == "true" ]; then
+    # Capture the error output
+    # Capturing stderr is very important to prevent nodejs from setting
+    # stderr to nonblocking mode
+    EJECT_LOG=`node $SCRIPTDIR/esy.js build-eject "$BUILD_EJECT_PATH" $@ 2>&1`
+    if [ $? -ne 0 ]; then
+      echo "Failed to prepare build environment:"
+      printf "%s\n" "$EJECT_LOG" >&2
+      exit 1
+    fi
+  fi
+}
+
+ensureCommandEnvEjected () {
+  if [ `needRebuildTarget "$COMMAND_ENV_PATH"` == "true" ]; then
+    # Capture the error output
+    # Capturing stderr is very important to prevent nodejs from setting
+    # stderr to nonblocking mode
+    EJECTED_ENV=`node $SCRIPTDIR/esy.js 2>&1`
+    if [ $? -ne 0 ]; then
+      echo "Failed to get environment:"
+      printf "%s\n" "$EJECTED_ENV" >&2
+      exit 1
+    else
+      mkdir -p `dirname $COMMAND_ENV_PATH`
+      echo "$EJECTED_ENV" > "$COMMAND_ENV_PATH"
+    fi
+  fi
+}
+
+callBuiltInCommand() {
+	node $SCRIPTDIR/esy.js $@
+}
+
+callBuiltInCommand__esyInstall() {
+	esy-install $@
+}
+
+printHelp() {
+  cat <<EOF
+  Usage: $0 <command> [--help] [--version]
+
+  install               Installs packages declared in package.json.
+
+  build                 Builds everything that needs to be built, caches
+                        results. Builds according to each package's "esy"
+                        entry in package.json. Before building each package,
+                        the environment is scrubbed clean then created according
+                        to dependencies.
+
+  shell                 The same as esy build-shell, but creates a "relaxed"
+                        environment - meaning it also inherits your existing
+                        shell.
+
+  release TYPE          Create a release of type TYPE ("dev", "pack" or "bin").
+
+  print-env             Prints esy environment on stdout.
+
+  build-shell           Drops into a shell with environment matching your
+                        package's build environment.
+
+  build-eject           Creates node_modules/.cache/esy/build-eject/Makefile,
+                        which is later can be used for building without the NodeJS
+                        runtime.
+
+                        Unsupported form: build-eject [cygwin | linux | darwin]
+                        Ejects a build for the specific platform. This
+                        build-eject form is not officially supported and will
+                        be removed soon. It is currently here for debugging
+                        purposes.
+
+
+  import-opam           Read a provided opam file and print esy-enabled
+                        package.json conents on stdout. Example:
+
+                          esy import-opam lwt 3.0.0 ./opam
+
+  <command>             Executes <command> as if you had executed it inside of
+                        esy shell.
+
+EOF
+}
+
+printVersion() {
+	cat <<EOF
+$ESY__VERSION.
+EOF
+}
+
+callAnyCommand() {
+  ensureCommandEnvEjected
+
+  source "$COMMAND_ENV_PATH"
+  # Checks if command ($1) is present available
+  command -v $1 >/dev/null 2>&1 || {
+  echo >&2 "$1 command is not installed.";
+  exit 1;
+  }
+  exec "$@"
+}
+
+if [ $# -eq 0 ]
+then
+  printHelp
+elif [ $# -eq 1 ]; then
+  case $1 in
+    build-shell|clean)
+      callBuiltInCommand__buildEject
+      make -j -s -f "$BUILD_EJECT_PATH/Makefile" "$1"
+      ;;
+    build-eject)
+      callBuiltInCommand__buildEject
+      ;;
+    build)
+      callBuiltInCommand build
+      ;;
+    import-opam)
+      callBuiltInCommand import-opam
+      ;;
+    shell)
+      ensureCommandEnvEjected
+      ENV="$COMMAND_ENV_PATH" PS1="esy % " sh
+      ;;
+    print-env)
+      ensureCommandEnvEjected
+      cat "$COMMAND_ENV_PATH"
+      ;;
+    install|add)
+      callBuiltInCommand__esyInstall "$@"
+      ;;
+    --version|-v)
+      printVersion
+      ;;
+    --help|-h)
+      printHelp
+      ;;
+    -*)
+      echo Unknown option "$1" >&2
+      exit 1
+      ;;
+    *)
+      callAnyCommand "$@"
+      break
+  esac
+else
+  case $1 in
+    import-opam)
+      callBuiltInCommand import-opam "$@"
+      ;;
+    build-eject)
+      callBuiltInCommand__buildEject "$@"
+      ;;
+    add)
+      callBuiltInCommand__esyInstall "$@"
+      ;;
+    release)
+      callBuiltInCommand release $@
+      ;;
+    -*)
+      echo Unknown option "$1" >&2
+      exit 1
+      ;;
+    *)
+      callAnyCommand "$@"
+      break
+  esac
+fi
+
