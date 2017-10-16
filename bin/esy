@@ -105,7 +105,7 @@ callBuiltInCommand() {
 }
 
 callBuiltInCommand__esyInstall() {
-	esy-install $@
+	node $SCRIPTDIR/../esy-install/bin/yarn.js $@
 }
 
 printHelp() {
