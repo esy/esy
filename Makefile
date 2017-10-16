@@ -9,12 +9,18 @@ BIN = $(PWD)/node_modules/.bin
 help:
 	@echo "Available tasks:"
 	@echo ""
+	@echo "  bootstrap       Initialize development environment"
+	@echo ""
 	@echo "  build           Build src/ into lib/"
 	@echo "  build-watch     Same as 'build' but watches for changes and rebuilds"
 	@echo "  test            Run tests"
 	@echo "  test-watch      Watch for changes and re-run tests"
 	@echo "  clean           Clean build artefacts"
 	@echo ""
+
+bootstrap:
+	@yarn
+	@(cd esy-install && yarn && yarn build)
 
 build:
 	@$(BIN)/babel ./src --copy-files --out-dir ./lib
