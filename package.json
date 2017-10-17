@@ -52,6 +52,7 @@
     "loud-rejection": "^1.6.0",
     "mkdirp": "^0.5.1",
     "npm-hooks": "https://github.com/jordwalke/npm-hooks.git#1.0.0-clobber",
+    "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4",
     "observatory": "^1.0.0",
     "outdent": "^0.3.0",
     "p-queue": "^1.0.0",
