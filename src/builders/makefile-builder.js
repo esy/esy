@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec, BuildTask, BuildConfig, BuildSandbox} from '../../types';
+import type {BuildSpec, BuildTask, BuildConfig, BuildSandbox} from '../types';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -10,24 +10,24 @@ import {sync as mkdirp} from 'mkdirp';
 import createLogger from 'debug';
 import outdent from 'outdent';
 
-import * as Graph from '../../graph';
-import * as Config from '../../build-config';
-import * as Task from '../../build-task';
-import * as Env from '../../environment';
-import * as Makefile from '../../Makefile';
-import {normalizePackageName} from '../../util';
-import {renderEnv, renderSandboxSbConfig} from '../util';
-import * as bashgen from '../bashgen';
+import * as Graph from '../graph';
+import * as Config from '../build-config';
+import * as Task from '../build-task';
+import * as Env from '../environment';
+import * as Makefile from '../Makefile';
+import {normalizePackageName} from '../util';
+import {renderEnv, renderSandboxSbConfig} from './util';
+import * as bashgen from './bashgen';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
 
-const RUNTIME = fs.readFileSync(path.join(__dirname, 'runtime.sh'), 'utf8');
-
-const fastReplaceStringSrc = fs.readFileSync(
+const FASTREPLACESTRING = fs.readFileSync(
   require.resolve('fastreplacestring/fastreplacestring.cpp'),
   'utf8',
 );
+
+const RUNTIME = fs.readFileSync(require.resolve('./makefile-builder-runtime.sh'), 'utf8');
 
 /**
  * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
@@ -361,7 +361,7 @@ export function renderToMakefile(
 
   emitFile(outputPath, {
     filename: ['bin', 'fastreplacestring.cpp'],
-    contents: fastReplaceStringSrc,
+    contents: FASTREPLACESTRING,
   });
 
   emitFile(outputPath, {
