@@ -13,6 +13,7 @@ import type {
 
 import {substituteVariables} from 'var-expansion';
 
+import {doubleQuote} from './lib/shell';
 import {normalizePackageName, mergeIntoMap, mapValuesMap} from './util';
 import * as Graph from './graph';
 import * as Env from './environment';
@@ -389,10 +390,10 @@ export function renderWithScope<T: {value: string}>(
 }
 
 export function quoteArgIfNeeded(arg: string): string {
-  if (arg.indexOf(' ') === -1) {
+  if (arg.indexOf(' ') === -1 && arg.indexOf("'") === -1 && arg.indexOf('"') === -1) {
     return arg;
   } else {
-    return `"${arg}"`;
+    return doubleQuote(arg);
   }
 }
 

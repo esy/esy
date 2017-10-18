@@ -64,6 +64,7 @@
     "outdent": "^0.3.0",
     "p-queue": "^1.0.0",
     "rimraf": "^2.6.1",
+    "shell-escape": "^0.2.0",
     "var-expansion": "^0.1.0",
     "walkdir": "^0.0.11"
   }
