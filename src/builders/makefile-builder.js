@@ -17,6 +17,7 @@ import * as Env from '../environment';
 import * as Makefile from '../Makefile';
 import {normalizePackageName} from '../util';
 import {renderEnv, renderSandboxSbConfig} from './util';
+import {singleQuote} from '../lib/shell';
 import * as bashgen from './bashgen';
 
 const log = createLogger('esy:makefile-builder');
@@ -413,11 +414,10 @@ function emitFile(
   }
 }
 
-function renderBuildTaskCommand(task: BuildTask): ?string {
+function renderBuildTaskCommand(task: BuildTask) {
   if (task.command == null) {
     return null;
   }
-  let command = task.command.map(c => c.renderedCommand).join(' && ');
-  command = command.replace(/"/g, '\\"');
-  return command;
+  const command = task.command.map(c => c.renderedCommand).join(' && ');
+  return Makefile.quoted(singleQuote(command));
 }

@@ -5,9 +5,10 @@
  */
 
 import outdent from 'outdent';
+import {doubleQuote} from './lib/shell';
 
 export type Env = {
-  [name: string]: ?string,
+  [name: string]: null | string | QuotedString,
 };
 
 export type MakeRule = {
@@ -90,15 +91,7 @@ function renderMakeRawItem({value}) {
 }
 
 function renderMakeRule(rule) {
-  const {
-    target,
-    dependencies = [],
-    command,
-    phony,
-    env,
-    exportEnv,
-    shell,
-  } = rule;
+  const {target, dependencies = [], command, phony, env, exportEnv, shell} = rule;
   const header = `${target}: ${dependencies.join(' ')}`;
 
   let prelude = '';
@@ -132,8 +125,13 @@ function renderMakeRule(rule) {
 function renderMakeRuleEnv(env) {
   const lines = [];
   for (const k in env) {
-    if (env[k] != null) {
-      lines.push(`\texport ${k}="${env[k]}";`);
+    const v = env[k];
+    if (v == null) {
+      continue;
+    } else if (typeof v === 'string') {
+      lines.push(`\texport ${k}=${doubleQuote(v)};`);
+    } else {
+      lines.push(`\texport ${k}=${v.value};`);
     }
   }
   return lines.join('\\\n');
@@ -161,4 +159,10 @@ function escapeEnvVar(command) {
 
 function escapeName(name) {
   return name.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+}
+
+type QuotedString = {type: 'quoted', value: string};
+
+export function quoted(value: string) {
+  return {type: 'quoted', value};
 }
