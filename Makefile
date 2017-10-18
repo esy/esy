@@ -44,3 +44,13 @@ test-esy-release:
 #
 # Release
 #
+
+RELEASE_ROOT = $(PWD)/dist
+
+build-release:
+	@rm -rf $(RELEASE_ROOT)
+	@mkdir -p $(RELEASE_ROOT)
+	@mkdir -p $(RELEASE_ROOT)/bin
+	@cp $(PWD)/bin/esy $(RELEASE_ROOT)/bin/
+	@node ./scripts/build-webpack.js ./dist/bin
+	@node ./scripts/generate-esy-install-package-json.js > $(RELEASE_ROOT)/package.json
