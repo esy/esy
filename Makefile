@@ -6,21 +6,41 @@ BIN = $(PWD)/node_modules/.bin
 
 .DEFAULT: help
 
+define HELP
+
+ Available tasks:
+
+   bootstrap           Bootstrap the development environment
+
+   build               Build src/ into lib/
+   build-watch         Same as 'build' but watches for changes and rebuilds
+
+   test                Run tests
+   test-watch          Watch for changes and re-run tests
+
+   clean               Clean build artefacts
+
+ Release tasks:"
+
+   publish             Build release and run 'npm publish'
+   build-release       Produce an npm package ready to be published (useful for debug)
+
+   bump-major-version  Bump major package version (commits & tags)
+   bump-minor-version  Bump minor package version (commits & tags)
+   bump-patch-version  Bump patch package version (commits & tags)
+
+endef
+export HELP
+
 help:
-	@echo "Available tasks:"
-	@echo ""
-	@echo "  bootstrap       Initialize development environment"
-	@echo ""
-	@echo "  build           Build src/ into lib/"
-	@echo "  build-watch     Same as 'build' but watches for changes and rebuilds"
-	@echo "  test            Run tests"
-	@echo "  test-watch      Watch for changes and re-run tests"
-	@echo "  clean           Clean build artefacts"
-	@echo ""
+	@echo "$$HELP"
 
 bootstrap:
 	@yarn
-	@(cd esy-install && yarn && yarn build)
+
+#
+# Build
+#
 
 build:
 	@$(BIN)/babel ./src --copy-files --out-dir ./lib
@@ -28,14 +48,18 @@ build:
 build-watch:
 	@$(BIN)/babel --copy-files --watch -s inline ./src --out-dir ./lib
 
-test-watch:
-	@ESY__TEST=yes $(BIN)/jest --watch
+clean:
+	@rm -rf lib/
+
+#
+# Test
+#
 
 test:
 	@ESY__TEST=yes $(BIN)/jest
 
-clean:
-	@rm -rf lib/
+test-watch:
+	@ESY__TEST=yes $(BIN)/jest --watch
 
 test-esy-release:
 	@echo "Running integration tests for 'esy release' command"

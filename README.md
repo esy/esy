@@ -1,36 +1,45 @@
-
 # Esy
 
 `package.json` workflow for compiled languages.
--------------------------------------
 
 ## What
 
 - Makes compiled projects work with `package.json` package managers.
+
 - Makes it trivial to share natively compiled projects with anyone - even if they don't
   have a package manager installed.
+
 - Makes native projects build faster.
+
 - Widens the reach of OPAM packages by allowing them to be installed
   by `npm` (the most popular package manager).
 
 ## Features
 
 - Directory based projects (like `package.json`).
+
 - Parallel builds.
+
 - Clean environment builds for reproducibility.
+
 - Global build cache automatically shared across all projects. You don't think about the
   cache and don't think about creating "virtual environments" or "switches". `esy`
   figures it out.
+
 - File system sandboxing to prevent builds from mutating locations they don't
   own.
+
 - Solves environment variable pain. Native toolchains rely heavily on environment
   variables, and `esy` makes them behave predictably, and usually even gets them
   out of your way entirely.
+
 - Allows symlink workflows for local development (by enforcing out-of-source
   builds). This allows you to work on several projects locally, make changes to
   one project and the projects that depend on it will automatically know they
   need to rebuild themselves.
+
 - Run commands in project environment quickly `esy any command`.
+
 - Makes sharing of native projects easier than ever by supporting "eject to `Makefile`".
   - Build dependency graph without network access.
   - Build dependency graph where `node` is not installed and where no package manager
@@ -39,16 +48,15 @@
 ## Install
 
 ```
-npm uninstall -g esy
-npm install -g "git://github.com/reasonml/esy.git#beta-v0.0.5"
+npm install -g @esy-ocaml/esy
 ```
 
-For a more bleeding edge experience use `beta-v-bleeding`.
-```
-npm uninstall -g esy
-npm install -g "git://github.com/reasonml/esy.git#beta-v-bleeding"
-```
+If you had installed esy previously:
 
+```
+npm uninstall -g @esy-ocaml/esy
+npm uninstall -g esy
+```
 
 ## Workflow
 
@@ -58,40 +66,74 @@ npm install -g "git://github.com/reasonml/esy.git#beta-v-bleeding"
 The typical workflow is to `cd` into a directory that contains a `package.json`
 file, and then perform operations on that project.
 
-|Command            | Meaning
-|-----------------  |-----------------------------------------------------------------------------------------------------------------------
-|`esy`              | Print the environment that the package in the current directory is built within.
-|`esy install`      | Installs `package.json` packages, but with the ability to bridge to other non-npm based package managers.
-|`esy build`        | Builds everything that needs to be built, caches results. Builds according to each package's `"esy": {}` entry `package.json`. Before building each package, the environment is scrubbed clean then created according to dependencies.
-|`esy build-shell`  | Drops into a shell with environment matching your package's build environment.
-|`esy shell`        | The same as `esy build-shell`, but creates a "relaxed" environment - meaning it also inherits your existing shell.
-|`esy build-eject ` | Creates `node_modules/.cache/esy/Makefile`, which is what `esy build` normally runs.
-|`esy any cmd`      | Executes `any command here` as if you had executed it inside of `esy shell`.
+```
+% esy
+
+  Usage: /Users/andreypopp/.nodenv/versions/8.2.1/bin/esy <command> [--help] [--version]
+
+  install               Installs packages declared in package.json.
+
+  build                 Builds everything that needs to be built, caches
+                        results. Builds according to each package's "esy"
+                        entry in package.json. Before building each package,
+                        the environment is scrubbed clean then created according
+                        to dependencies.
+
+  shell                 The same as esy build-shell, but creates a "relaxed"
+                        environment - meaning it also inherits your existing
+                        shell.
+
+  release TYPE          Create a release of type TYPE ("dev", "pack" or "bin").
+
+  print-env             Prints esy environment on stdout.
+
+  build-shell           Drops into a shell with environment matching your
+                        package's build environment.
+
+  build-eject           Creates node_modules/.cache/esy/build-eject/Makefile,
+                        which is later can be used for building without the NodeJS
+                        runtime.
+
+                        Unsupported form: build-eject [cygwin | linux | darwin]
+                        Ejects a build for the specific platform. This
+                        build-eject form is not officially supported and will
+                        be removed soon. It is currently here for debugging
+                        purposes.
 
 
-One interesting thing about `esy` is that even the normal `esy build` command
-ejects to pure makefile, before building. This is a convenient way to ensure
-that `esy build-eject` always matches the behavior of `esy build`.
+  import-opam           Read a provided opam file and print esy-enabled
+                        package.json conents on stdout. Example:
 
+                          esy import-opam lwt 3.0.0 ./opam
+
+  <command>             Executes <command> as if you had executed it inside of
+                        esy shell.
+
+```
 
 ## Try An Example
 
 ```
 # Make sure esy is installed
-npm install -g "git://github.com/reasonml/esy.git#beta-v0.0.3"
+npm install -g @esy-ocaml/esy
 
 # Clone the example esy project
 git clone git@github.com:esy-ocaml/esy-ocaml-project.git
 
 cd esy-ocaml-project
 
-# Now install and build it
+# Install project dependencies
 esy install
+
+# Build project
 esy build
 
-# Now run some commands inside the environment
-esy                 # What's the project environment look like?
-esy which ocamlopt  # Run a command within the environment
+# Now run some commands inside the project's environment
+esy ./_install/bin/hello.native
+esy ./_install/bin/hello.byte
+
+# Shell into project's environment
+esy shell
 ```
 
 ## Enjoy The Cache
@@ -215,15 +257,14 @@ commands.
 
 ##### Global Cache
 
-When building projects, most globally cached artifacts are stored in `~/.esy/store`.
+When building projects, most globally cached artifacts are stored in `~/.esy`.
 
     ~/.esy/
      ├─ OtherStuffHereToo.md
-     └─ store/
-        ├── _build
-        ├── _install
-        └── _insttmp
-
+     └─ v3.x.x___long_enough_padding_for_relocating_binaries___/
+        ├── b # build dir
+        ├── i # installation dir
+        └── s # staging dir
 
 The global store's `_build` directory contains the logs for each package that
 is build (whether or not it was successful). The `_install` contains the final
@@ -252,7 +293,6 @@ Cached environment computations (for commands such as `esy cmd`) are stored in
 Support for "ejecting" a build is computed and stored in
 `./node_modules/.cache/_esy/build-eject`.
 
-
     ./node_modules/
      └─ .cache/
         └─ _esy/
@@ -267,9 +307,9 @@ Support for "ejecting" a build is computed and stored in
            │        └─ eject-env
            └─ store/
               ├── ThisIsBuildCacheForSymlinked
-              ├── _build
-              ├── _install
-              └── _insttmp
+              ├── b
+              ├── i
+              └── s
 
 #### Debugging
 
@@ -292,7 +332,7 @@ precompute those opam package.json's and want the cache busted.
 
 #### Issues
 
-Issues are still tracked at [the old `esy` repo](https://github.com/jordwalke/esy).
+Issues are tracked at [esy-ocaml/esy](https://github.com/esy-ocaml/esy-core).
 
 #### Tests
 
@@ -300,19 +340,15 @@ Issues are still tracked at [the old `esy` repo](https://github.com/jordwalke/es
 npm run test
 ```
 
-#### Developing
+#### Developing: esy-core
 
-When developing `esy` (or cloning the repo to use locally), you must have
-`filterdiff` installed (which you can obtain via `brew install patchutils`).
+To make changes to `esy-core` and test them locally:
 
-To make changes to `esy` and test them locally:
-
-    % git clone git://github.com/reasonml/esy.git
-    % cd esy
+    % git clone git://github.com/esy-ocaml/esy-core.git
+    % cd esy-core
     % make bootstrap
-    % make convert-opam-packages
 
-##### Developing: esy install
+##### Developing: esy-install
 
 The repo is a fork of yarn package manager, the fork has changes to allow
 installing opam packages via `@opam/` npm scope. If you need to work on this
