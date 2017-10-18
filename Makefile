@@ -82,9 +82,11 @@ build-release:
 publish: build-release
 	@(cd $(RELEASE_ROOT) && npm publish --access public)
 
-bump-version:
-ifndef BUMP_VERSION
-	@echo 'Provide BUMP_VERSION=major|minor|patch, exiting...'
-	@exit 1
-endif
-	@npm version $(BUMP_VERSION)
+bump-major-version:
+	@npm version major
+
+bump-minor-version:
+	@npm version minor
+
+bump-patch-version:
+	@npm version patch
