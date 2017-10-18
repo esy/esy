@@ -1,6 +1,6 @@
 {
   "name": "@esy-ocaml/esy",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Esy sandboxes for compiled languages",
   "main": "lib/index.js",
   "scripts": {
