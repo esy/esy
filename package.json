@@ -6,6 +6,9 @@
   "scripts": {
     "test": "make test"
   },
+  "bin": {
+    "esy": "./bin/esy"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reasonml/esy.git"
