@@ -54,3 +54,13 @@ build-release:
 	@cp $(PWD)/bin/esy $(RELEASE_ROOT)/bin/
 	@node ./scripts/build-webpack.js ./dist/bin
 	@node ./scripts/generate-esy-install-package-json.js > $(RELEASE_ROOT)/package.json
+
+publish: build-release
+	@(cd $(RELEASE_ROOT) && npm publish --access public)
+
+bump-version:
+ifndef BUMP_VERSION
+	@echo 'Provide BUMP_VERSION=major|minor|patch, exiting...'
+	@exit 1
+endif
+	@npm version $(BUMP_VERSION)
