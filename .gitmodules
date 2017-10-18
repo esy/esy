@@ -1,3 +1,0 @@
-[submodule "esy-install"]
-	path = esy-install
-	url = git@github.com:esy-ocaml/esy-install.git
