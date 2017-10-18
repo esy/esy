@@ -51,6 +51,7 @@
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "@esy-ocaml/esy-opam": "0.0.4",
+    "@esy-ocaml/esy-install": "1.2.x",
     "fs-extra": "^3.0.1",
     "loud-rejection": "^1.6.0",
     "mkdirp": "^0.5.1",
