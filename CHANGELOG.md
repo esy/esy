@@ -1,6 +1,13 @@
 # CHANGELOG
 
-## 0.10.0
+## 0.0.11
+
+* Fix bug with `esy install` which didn't invalidate lockfile entries based on
+  OCaml compiler version.
+
+* Allow to override `peerDependencies` for `@opam-alpha/*` packages.
+
+## 0.0.10
 
 * Rename package to `esy`:
 
