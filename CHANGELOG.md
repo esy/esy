@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## NEXT
+
+* Do not copy `node_modules`, `_build`, `_install`, `_release` directories over
+  to `$cur__target_dir` for in-source builds. That means mich faster builds for
+  top level packages.
+
+* Defer creating `_build` symlink to `$cur__target_dir` for top level packages.
+
+  That prevented `jbuilder` to work for top level builds.
+
 ## 0.0.13
 
 * Generate readable targets for packages in ejected builds.
