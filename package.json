@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reasonml/esy.git"
+    "url": "git+https://github.com/esy-ocaml/esy.git"
   },
   "keywords": [
     "esy",
@@ -31,9 +31,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/reasonml/esy/issues"
+    "url": "https://github.com/esy-ocaml/esy/issues"
   },
-  "homepage": "https://github.com/reasonml/esy#readme",
+  "homepage": "https://github.com/esy-ocaml/esy#readme",
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
