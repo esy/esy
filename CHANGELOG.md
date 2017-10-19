@@ -10,7 +10,10 @@
       make shell.sandbox/node_modules/packagename
 
 * `esy install` command now uses its own cache directory. Previously it used
-  Yarn's cache directory
+  Yarn's cache directory.
+
+* `esy import-opam` command now tries to guess the correct version for OCaml
+  compiler to add to `"devDependencies"`.
 
 ## 0.0.12
 

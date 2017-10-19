@@ -13,6 +13,7 @@ process.noDeprecation = true;
 
 import type {BuildSandbox, BuildTask, BuildPlatform} from '../types';
 
+import * as semver from 'semver';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as pfs from '../lib/fs';
@@ -382,6 +383,11 @@ async function releaseCommand(sandboxPath, _commandName, type, ...args) {
   });
 }
 
+const AVAILABLE_OCAML_COMPILERS = [
+  ['4.4.2', 'esy-ocaml/ocaml#4.4.2+esy'],
+  ['4.2.3', 'esy-ocaml/ocaml#4.2.3+esy'],
+];
+
 async function importOpamCommand(
   sandboxPath,
   _commandName,
@@ -397,10 +403,20 @@ async function importOpamCommand(
   const packageJson = EsyOpam.renderOpam(packageName, packageVersion, opam);
   // We inject "ocaml" into devDependencies as this is something which is have
   // to be done usually.
-  packageJson.devDependencies = {
-    ...packageJson.devDependencies,
-    ocaml: 'esy-ocaml/ocaml#esy',
-  };
+  packageJson.peerDependencies = packageJson.peerDependencies || {};
+  packageJson.devDependencies = packageJson.devDependencies || {};
+  const ocamlReq = packageJson.peerDependencies.ocaml || 'x.x.x';
+  for (const [version, resolution] of AVAILABLE_OCAML_COMPILERS) {
+    if (semver.satisfies(version, ocamlReq)) {
+      packageJson.devDependencies.ocaml = resolution;
+      break;
+    }
+  }
+  // We don't need this as only opam-fetcher from esy-install can apply them. We
+  // expect developers to apply needed patches before releasing converted
+  // package on github or elsewhere.
+  // $FlowFixMe: suppress therefore...
+  delete packageJson._esy_opam_patches;
   console.log(JSON.stringify(packageJson, null, 2));
 }
 
