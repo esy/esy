@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.12
+
+* Fix invokation of `esy-install` command.
+
 ## 0.0.11
 
 * Fix bug with `esy install` which didn't invalidate lockfile entries based on
