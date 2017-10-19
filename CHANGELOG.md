@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## UNRELEASED
+## 0.0.13
 
 * Generate readable targets for packages in ejected builds.
 
@@ -14,6 +14,10 @@
 
 * `esy import-opam` command now tries to guess the correct version for OCaml
   compiler to add to `"devDependencies"`.
+
+* Fixes to convertation of opam versions into npm's semver versions.
+
+  Handle `v\d.\d.\d` correctly and tags which contain `.`.
 
 ## 0.0.12
 
