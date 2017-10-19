@@ -105,9 +105,11 @@ callBuiltInCommand() {
 }
 
 callBuiltInCommand__esyInstall() {
-  # This is how we resolve esy-install package location.
+  # This is how we resolve esy-install executable location within the
+  # dependency.
   ESY_INSTALL=`(cd $SCRIPTDIR && node -p "require.resolve('@esy-ocaml/esy-install/bin/esy-install.js')")`
-  node $ESY_INSTALL $@
+  ESY_INSTALL_CACHE="${SCRIPTDIR}/../_esyInstallCache-${ESY__CACHE_VERSION}"
+  node $ESY_INSTALL --cache-folder "$ESY_INSTALL_CACHE" $@
 }
 
 printHelp() {

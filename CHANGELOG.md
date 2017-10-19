@@ -9,6 +9,9 @@
       make build.sandbox/node_modules/packagename
       make shell.sandbox/node_modules/packagename
 
+* `esy install` command now uses its own cache directory. Previously it used
+  Yarn's cache directory
+
 ## 0.0.12
 
 * Fix invocation of `esy-install` command.
