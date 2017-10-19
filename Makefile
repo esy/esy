@@ -56,10 +56,10 @@ clean:
 #
 
 test:
-	@ESY__TEST=yes $(BIN)/jest
+	@$(BIN)/jest
 
 test-watch:
-	@ESY__TEST=yes $(BIN)/jest --watch
+	@$(BIN)/jest --watch
 
 test-esy-release:
 	@echo "Running integration tests for 'esy release' command"

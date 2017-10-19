@@ -23,6 +23,7 @@ Object {
       },
       "shouldBePersisted": false,
       "sourcePath": "node_modules/dep",
+      "sourceType": "transient",
       "version": "0.1.0",
     },
   },
@@ -45,6 +46,7 @@ Object {
   },
   "shouldBePersisted": false,
   "sourcePath": "",
+  "sourceType": "transient",
   "version": "0.1.0",
 }
 `;
@@ -69,6 +71,7 @@ Object {
   },
   "shouldBePersisted": false,
   "sourcePath": "",
+  "sourceType": "transient",
   "version": "0.1.0",
 }
 `;
@@ -104,6 +107,7 @@ Object {
       },
       "shouldBePersisted": false,
       "sourcePath": "node_modules/dep",
+      "sourceType": "transient",
       "version": "0.1.0",
     },
   },
@@ -131,6 +135,7 @@ Object {
   },
   "shouldBePersisted": false,
   "sourcePath": "",
+  "sourceType": "transient",
   "version": "0.1.0",
 }
 `;
@@ -164,6 +169,7 @@ Object {
   },
   "shouldBePersisted": false,
   "sourcePath": "",
+  "sourceType": "transient",
   "version": "0.1.0",
 }
 `;

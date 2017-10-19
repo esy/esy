@@ -258,7 +258,7 @@ function calculateBuildId(
     },
     dependencies: Array.from(dependencies.values(), dep => dep.id),
   });
-  if (process.env.ESY__TEST) {
+  if (process.env.NODE_ENV === 'test') {
     return `${normalizePackageName(name)}-${version || '0.0.0'}`;
   } else {
     return `${normalizePackageName(name)}-${version || '0.0.0'}-${h.slice(0, 8)}`;
