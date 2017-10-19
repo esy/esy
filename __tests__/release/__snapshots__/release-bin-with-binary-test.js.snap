@@ -59,8 +59,7 @@ exports[`installation 1`] = `
 | | | | | | | | | s
 | | | | | package.json
 | | | | | say-hello.exe
-| | | | | test.js
-| | | | | yarn.lock"
+| | | | | test.js"
 `;
 
 exports[`installation stdout 1`] = `
@@ -99,7 +98,6 @@ exports[`release stdout 1`] = `
 "*** Creating bin-type release for with-binary...
 *** Installing esy for the release...
 *** Installing dependencies...
-warning with-binary@0.1.0: No license field
 *** Building the release...
 [1;37m*** with-binary @ 0.1.0: building from source...[0m
 [0;32m*** with-binary @ 0.1.0: build complete[0m"

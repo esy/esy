@@ -55,8 +55,7 @@ exports[`installation 1`] = `
 | | | | | | | | | i
 | | | | | | | | | s
 | | | | | package.json
-| | | | | test.js
-| | | | | yarn.lock"
+| | | | | test.js"
 `;
 
 exports[`installation stdout 1`] = `
@@ -67,7 +66,7 @@ exports[`installation stdout 1`] = `
 
 *** Installing esy for the release...
 *** Installing dependencies...
-warning minimal@0.1.0: No license field
+error Could not open cafile: EISDIR: illegal operation on a directory, read
 *** Building the release...
 [1;37m*** minimal @ 0.1.0: building from source...[0m
 [0;32m*** minimal @ 0.1.0: build complete[0m

@@ -36,7 +36,7 @@ export async function cleanUp() {
   }
 }
 
-export const esyRoot = path.dirname(path.dirname(path.dirname(__dirname)));
+export const esyRoot = path.dirname(path.dirname(__dirname));
 export const esyBin = path.join(esyRoot, 'bin', 'esy');
 
 function spawn(command, args, options) {
@@ -47,13 +47,11 @@ function spawn(command, args, options) {
 }
 
 export function run(command: string, ...args: string[]) {
-  const env = {...process.env, ESY__TEST: 'yes'};
-  return spawn(command, args, {env});
+  return spawn(command, args);
 }
 
 export function runIn(project: string, command: string, ...args: string[]) {
-  const env = {...process.env, ESY__TEST: 'yes'};
-  return spawn(command, args, {cwd: project, env});
+  return spawn(command, args, {cwd: project});
 }
 
 export async function mkdtemp() {
