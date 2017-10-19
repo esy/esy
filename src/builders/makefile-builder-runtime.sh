@@ -39,8 +39,12 @@ _esy-prepare-build-env () {
   # for in-source builds copy sources over to build location
   if [ "$esy_build__type" == "in-source" ]; then
     rm -rf $cur__root;
-    rsync --quiet --archive \
-      --exclude "$cur__root" \
+    rsync --quiet --archive     \
+      --exclude "$cur__root"    \
+      --exclude "node_modules"  \
+      --exclude "_build"        \
+      --exclude "_install"      \
+      --exclude "_release"      \
       $esy_build__source_root/ $cur__root
   fi
 

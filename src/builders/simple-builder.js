@@ -19,12 +19,7 @@ import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util'
 
 const INSTALL_DIRS = ['lib', 'bin', 'sbin', 'man', 'doc', 'share', 'stublibs', 'etc'];
 const BUILD_DIRS = ['_esy'];
-const PATHS_TO_IGNORE = [
-  Config.STORE_BUILD_TREE,
-  Config.STORE_INSTALL_TREE,
-  Config.STORE_STAGE_TREE,
-  'node_modules',
-];
+const PATHS_TO_IGNORE = ['_build', '_install', '_release', 'node_modules'];
 const IGNORE_FOR_CHECKSUM = [
   'node_modules',
   '_esy',
