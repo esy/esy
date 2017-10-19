@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## NEXT
+
+* Pin `@esy-opam/esy-install` package to an exact version.
+
 ## 0.0.9
 
 * Make escaping shell commands more robust.
