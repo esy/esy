@@ -106,7 +106,7 @@ callBuiltInCommand() {
 
 callBuiltInCommand__esyInstall() {
   # This is how we resolve esy-install package location.
-  ESY_INSTALL=`(cd $SCRIPTDIR && node -p "require.resolve('@esy-ocaml/esy-install/bin/yarn.js')")`
+  ESY_INSTALL=`(cd $SCRIPTDIR && node -p "require.resolve('@esy-ocaml/esy-install/bin/esy-install.js')")`
   node $ESY_INSTALL $@
 }
 
