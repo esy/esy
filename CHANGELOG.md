@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## NEXT
+## 0.10.0
+
+* Rename package to `esy`:
+
+  Use `npm install -g esy` to install esy now.
 
 * Pin `@esy-opam/esy-install` package to an exact version.
 
