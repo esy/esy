@@ -187,7 +187,8 @@ export function renderToMakefile(
   ];
 
   function createBuildRuleName(build, target): string {
-    return `${build.id}.${target}`;
+    const id = build.sourcePath === '' ? 'sandbox' : `sandbox/${build.sourcePath}`;
+    return `${target}.${id}`;
   }
 
   function createBuildRule(

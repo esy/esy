@@ -1,8 +1,17 @@
 # CHANGELOG
 
+## UNRELEASED
+
+* Generate readable targets for packages in ejected builds.
+
+  For example:
+
+      make build.sandbox/node_modules/packagename
+      make shell.sandbox/node_modules/packagename
+
 ## 0.0.12
 
-* Fix invokation of `esy-install` command.
+* Fix invocation of `esy-install` command.
 
 ## 0.0.11
 
