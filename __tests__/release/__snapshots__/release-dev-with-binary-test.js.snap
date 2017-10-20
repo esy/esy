@@ -4,14 +4,14 @@ exports[`installation 1`] = `
 "<root>
 | bin
 | | say-hello.exe
-| | with-binary
+| | with-binary-esy-sandbox
 | etc
 | lib
 | | node_modules
 | | | with-binary
 | | | | .bin
 | | | | | say-hello.exe
-| | | | | with-binary
+| | | | | with-binary-esy-sandbox
 | | | | package.json
 | | | | postinstall.sh
 | | | | prerelease.sh
@@ -64,7 +64,7 @@ exports[`installation 1`] = `
 
 exports[`installation stdout 1`] = `
 "/tmp/TMPDIR/npm/bin/say-hello.exe -> /tmp/TMPDIR/npm/lib/node_modules/with-binary/.bin/say-hello.exe
-/tmp/TMPDIR/npm/bin/with-binary -> /tmp/TMPDIR/npm/lib/node_modules/with-binary/.bin/with-binary
+/tmp/TMPDIR/npm/bin/with-binary-esy-sandbox -> /tmp/TMPDIR/npm/lib/node_modules/with-binary/.bin/with-binary-esy-sandbox
 
 > with-binary@0.1.0 postinstall /tmp/TMPDIR/npm/lib/node_modules/with-binary
 > ./postinstall.sh
@@ -86,7 +86,7 @@ exports[`release 1`] = `
 | dev
 | | .bin
 | | | say-hello.exe
-| | | with-binary
+| | | with-binary-esy-sandbox
 | | package.json
 | | postinstall.sh
 | | prerelease.sh
