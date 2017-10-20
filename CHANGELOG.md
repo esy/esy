@@ -2,6 +2,14 @@
 
 ## NEXT
 
+* Make `esy release` not require dependency on Esy:
+
+  * For "dev"-releases we make them install the same version of Esy which was
+    used for producing the release.
+
+  * For "bin"-releases and "pack"-releases we don't need Esy installation at
+    all.
+
 * Command line interface improvements:
 
   * Add `esy version` command, same as `esy -v/--version`.
