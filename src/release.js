@@ -1,86 +1,17 @@
 /**
- * # Using And Releasing CLI apps.
+ * Implementation of `esy release` process.
  *
- * ### Using Released Packages
+ * Release types:
  *
- *     npm install -g git://github.com/reasonml/reason-cli.git#beta-v-1.13.5-dev
- *     npm install -g git://github.com/reasonml/reason-cli.git#beta-v-1.13.5-pack
- *     npm install -g git://github.com/reasonml/reason-cli.git#beta-v-1.13.5-bin-darwin
- *
- * There are three separate package releases for each version, which are simply
- * published "snapshots" of the typical full clean build. Throughout the process
- * of a full from scratch install and build, if you were to take snapshots along
- * the way, you'd see an increasingly simpler state of the world until finally you
- * end up with the pure binary release which does not need to download
- * dependencies, and does not need to build anything at all.
- *
- * The release utility performs this download/build/install process and snapshots
- * the state of the world at three separate moments. The three snapshots are named
- * `dev`, `pack`, and `bin`.
- *
- * **Dev**: Dev releases perform everything on the client installer machine
+ * **dev**: Dev releases perform everything on the client installer machine
  * (download, build).
  *
- * **Pack**: Pack releases perform download and "pack"ing on the "server", and
+ * **pack**: Pack releases perform download and "pack"ing on the "server", and
  * then only builds will be performed on the client. This snapshots a giant
  * tarball of all dependencies' source files into the release.
  *
- * **Bin**: Bin releases perform everything on "the server", and "the client"
+ * **bin**: Bin releases perform everything on "the server", and "the client"
  * installs a package consisting only of binary executables.
- *
- * In the main repo's package.json, a list of `releasedBinaries` is provided,
- * which will expose npm binary wrappers for each of the specified binary names.
- * When creating releases the `actualInstall/package.json` is used as a template
- * for the packages that are actually build/installed.
- *
- * ### TroubleShooting
- *
- * Each published binary includes the built-in ability to troubleshoot where each
- * binary is resolved to.  If something is going wrong with your `refmt` command,
- * you can see which released binary `refmt` *actually* invokes in the release. We
- * use the `----where` flag with four `-` characters because it's unlikely to
- * conflict with any meaningful parameters of binaries like `refmt`.
- *
- * ```
- * refmt ----where
- *
- * > /path/to/npm-packages/lib/reason-cli/actualInstall/builds/reason/bin/refmt
- *
- * ```
- *
- * ### Wrapping Features:
- *
- * - Mitigates relocatability and cross platform packaging issues via command
- *   wrappers.
- * - When any one binary in the collection of "releasedBinaries" is invoked, that
- *   process can reference the other binaries in the collection without having to
- *   pay for wrapping cost. Suppose `merlin` invokes `refmt` often. Starting
- *   `merlin` via the released package, will ensure that `merlin`'s running
- *   process sees the `refmt` binary without the wrapper script.
- *
- *
- * ### Making New Releases
- *
- * Inside of your package's `package.json` field, specify a field `releasedBinaries:
- * ["exeName", "anotherName"]`, then these release utilities will automatically
- * create releasable packages that expose those binaries via npm's standard `bin`
- * feature. You won't populate the `bin` field in your `package.json` - the
- * release utilities will do so for you in the releases.
- *
- * The build stages are as follows. A release is created (essentially) by stopping
- * in between stages and publishing the state of the world to git/npm.
- *
- *     Dev -> Pack -> Bin
- *
- * If you `npm install` on the Dev Release, you essentially carry out the
- * remainder of the stages (Pack, and Bin) on the installing client.  If you `npm
- * install` the result of the Pack Release, you carry out the remaining stages on
- * the client (Bin). If you install the Bin release, you've installed the complete
- * compilation result onto the client.
- *
- * There's some slight differences between that simple description and what
- * actually happens: we might do some trivial configuration to set the build
- * destination to be different for the bin release etc.
  *
  *                                     RELEASE PROCESS
  *
@@ -115,8 +46,7 @@
  *      ○─ Npm puts binaries in path   ○─ Npm puts binaries in path  ○─ Npm puts binaries in path.
  *
  *
- *
- * For BinRelease, it doesn't make sense to use any build cache, so the `Makefile`
+ * For 'bin' releases, it doesn't make sense to use any build cache, so the `Makefile`
  * at the root of this project substitutes placeholders in the generated binary
  * wrappers indicating where the build cache should be.
  *
@@ -221,7 +151,7 @@ type BuildReleaseConfig = {
  * This cleans up those files that just bloat the installation, creating a lean
  * executable distribution.
  */
-var extensionsToDeleteForBinaryRelease = [
+const extensionsToDeleteForBinaryRelease = [
   'Makefile',
   'README',
   'CHANGES',
@@ -234,33 +164,9 @@ var extensionsToDeleteForBinaryRelease = [
   '*.txt',
 ];
 
-var pathPatternsToDeleteForBinaryRelease = ['*/doc/*'];
+const pathPatternsToDeleteForBinaryRelease = ['*/doc/*'];
 
-var scrubBinaryReleaseCommandExtensions = function(searchDir) {
-  return (
-    'find ' +
-    searchDir +
-    ' -type f \\( -name ' +
-    extensionsToDeleteForBinaryRelease
-      .map(ext => {
-        return "'" + ext + "'";
-      })
-      .join(' -o -name ') +
-    ' \\) -delete'
-  );
-};
-
-var scrubBinaryReleaseCommandPathPatterns = function(searchDir) {
-  return (
-    'find ' +
-    searchDir +
-    ' -type f \\( -path ' +
-    pathPatternsToDeleteForBinaryRelease.join(' -o -path ') +
-    ' \\) -delete'
-  );
-};
-
-var postinstallScriptSupport = outdent`
+const postinstallScriptSupport = outdent`
 
   # Exporting so we can call it from xargs
   # https://stackoverflow.com/questions/11003418/calling-functions-with-xargs-within-a-bash-script
@@ -295,7 +201,7 @@ var postinstallScriptSupport = outdent`
   }
 `;
 
-var launchBinScriptSupport = outdent`
+const launchBinScriptSupport = outdent`
 
   printError() {
     echo >&2 "ERROR:";
@@ -308,22 +214,46 @@ var launchBinScriptSupport = outdent`
 
 `;
 
-var escapeBashVarName = function(str) {
-  var map = {'.': 'd', _: '_', '-': 'h'};
-  var replacer = match => (map.hasOwnProperty(match) ? '_' + map[match] : match);
+function scrubBinaryReleaseCommandExtensions(searchDir) {
+  return (
+    'find ' +
+    searchDir +
+    ' -type f \\( -name ' +
+    extensionsToDeleteForBinaryRelease
+      .map(ext => {
+        return "'" + ext + "'";
+      })
+      .join(' -o -name ') +
+    ' \\) -delete'
+  );
+}
+
+function scrubBinaryReleaseCommandPathPatterns(searchDir) {
+  return (
+    'find ' +
+    searchDir +
+    ' -type f \\( -path ' +
+    pathPatternsToDeleteForBinaryRelease.join(' -o -path ') +
+    ' \\) -delete'
+  );
+}
+
+function escapeBashVarName(str) {
+  const map = {'.': 'd', _: '_', '-': 'h'};
+  const replacer = match => (map.hasOwnProperty(match) ? '_' + map[match] : match);
   return str.replace(/./g, replacer);
-};
+}
 
-var getReleasedBinaries = function(pkg) {
+function getReleasedBinaries(pkg) {
   return pkg && pkg.esy && pkg.esy.release && pkg.esy.release.releasedBinaries;
-};
+}
 
-var createLaunchBinSh = function(releaseType, pkg, binaryName) {
-  var packageName = pkg.name;
+function createCommandWrapper(releaseType, pkg, commandName) {
+  const packageName = pkg.name;
   const sandboxBin = getSandboxBinName(packageName);
-  var packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
-  var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
-  var releasedBinaries = getReleasedBinaries(pkg);
+  const packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
+  const binaryNameUppercase = escapeBashVarName(commandName.toUpperCase());
+  const releasedBinaries = getReleasedBinaries(pkg);
   return outdent`
     #!/bin/bash
 
@@ -348,11 +278,11 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
         printError;
         exit 1;
       }
-    ${binaryName !== sandboxBin ? `
+    ${commandName !== sandboxBin ? `
       if [ "$1" == "----where" ]; then
-        which "${binaryName}"
+        which "${commandName}"
       else
-        exec "${binaryName}" "$@"
+        exec "${commandName}" "$@"
       fi
       ` : `
       if [[ "$1" == ""  ]]; then
@@ -364,8 +294,8 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
                                        .join(',')} "]"
         echo "- ${sandboxBin} bash"
         echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
-        echo "- binaryName ----where"
-        echo "  Prints the location of binaryName"
+        echo "- commandName ----where"
+        echo "  Prints the location of commandName"
         echo "  Example: ${(pkg.releasedBinaries || ['<no_binaries>'])[0]} ----where"
         echo "- Note: Running builds and scripts from within "${sandboxBin} bash" will typically increase performance of builds."
         echo ""
@@ -386,14 +316,14 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
     fi
 
   `;
-};
+}
 
-var debug = process.env['DEBUG'];
+const debug = process.env['DEBUG'];
 
-var types = ['dev', 'pack', 'bin'];
-var releaseStage = ['forPreparingRelease', 'forClientInstallation'];
+const types = ['dev', 'pack', 'bin'];
+const releaseStage = ['forPreparingRelease', 'forClientInstallation'];
 
-var actions = {
+const actions = {
   dev: {
     installEsy: 'forClientInstallation',
     download: 'forClientInstallation',
@@ -426,7 +356,7 @@ var actions = {
   },
 };
 
-var buildLocallyAndRelocate = {
+const buildLocallyAndRelocate = {
   dev: false,
   pack: false,
   bin: true,
@@ -438,7 +368,7 @@ var buildLocallyAndRelocate = {
  * This strips all dependency info and add "bin" metadata.
  */
 async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
-  var copy = JSON.parse(JSON.stringify(pkg));
+  let copy = JSON.parse(JSON.stringify(pkg));
 
   // We don't manage dependencies with npm, esy is being installed via a
   // postinstall script and then it is used to manage release dependencies.
@@ -447,15 +377,15 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
 
   // Populate "bin" metadata.
   await fs.mkdirp(path.join(releasePath, '.bin'));
-  var binsToWrite = getBinsToWrite(releaseType, releasePath, pkg);
-  var packageJsonBins = {};
-  for (var i = 0; i < binsToWrite.length; i++) {
-    var toWrite = binsToWrite[i];
+  const binsToWrite = getBinsToWrite(releaseType, releasePath, pkg);
+  const packageJsonBins = {};
+  for (let i = 0; i < binsToWrite.length; i++) {
+    const toWrite = binsToWrite[i];
     await fs.writeFile(path.join(releasePath, toWrite.path), toWrite.contents);
     await fs.chmod(path.join(releasePath, toWrite.path), /* octal 0755 */ 493);
     packageJsonBins[toWrite.name] = toWrite.path;
   }
-  var copy = addBins(packageJsonBins, copy);
+  copy = addBins(packageJsonBins, copy);
 
   // Add postinstall script
   copy.scripts.postinstall = './postinstall.sh';
@@ -467,28 +397,28 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
  * Derive esy release package.
  */
 async function deriveEsyReleasePackage(pkg, releasePath, releaseType) {
-  var copy = JSON.parse(JSON.stringify(pkg));
+  const copy = JSON.parse(JSON.stringify(pkg));
   delete copy.dependencies.esy;
   delete copy.devDependencies.esy;
   return copy;
 }
 
-var addBins = function(bins, pkg) {
-  var copy = JSON.parse(JSON.stringify(pkg));
+const addBins = function(bins, pkg) {
+  const copy = JSON.parse(JSON.stringify(pkg));
   copy.bin = bins;
   delete copy.releasedBinaries;
   return copy;
 };
 
-var addPostinstallScript = function(pkg) {
-  var copy = JSON.parse(JSON.stringify(pkg));
+const addPostinstallScript = function(pkg) {
+  const copy = JSON.parse(JSON.stringify(pkg));
   copy.scripts = copy.scripts || {};
   copy.scripts.postinstall = './postinstall.sh';
   return copy;
 };
 
-var removePostinstallScript = function(pkg) {
-  var copy = JSON.parse(JSON.stringify(pkg));
+const removePostinstallScript = function(pkg) {
+  const copy = JSON.parse(JSON.stringify(pkg));
   copy.scripts = copy.scripts || {};
   copy.scripts.postinstall = '';
   return copy;
@@ -499,9 +429,9 @@ async function putJson(filename, pkg) {
 }
 
 async function verifyBinSetup(pkg) {
-  var whosInCharge =
+  const whosInCharge =
     ' Run make clean first. The release script needs to be in charge of generating the binaries.';
-  var binDirExists = await fs.exists('./.bin');
+  const binDirExists = await fs.exists('./.bin');
   if (binDirExists) {
     throw new Error(
       whosInCharge +
@@ -536,18 +466,18 @@ async function verifyBinSetup(pkg) {
  * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
  * the release in as many destinations as possible.
  */
-var createInstallScript = function(releaseStage, releaseType, pkg) {
-  var shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
-  var shouldDownload = actions[releaseType].download === releaseStage;
-  var shouldPack = actions[releaseType].pack === releaseStage;
-  var shouldCompressPack = actions[releaseType].compressPack === releaseStage;
-  var shouldDecompressPack = actions[releaseType].decompressPack === releaseStage;
-  var shouldBuildPackages = actions[releaseType].buildPackages === releaseStage;
-  var shouldCompressBuiltPackages =
+const createInstallScript = function(releaseStage, releaseType, pkg) {
+  const shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
+  const shouldDownload = actions[releaseType].download === releaseStage;
+  const shouldPack = actions[releaseType].pack === releaseStage;
+  const shouldCompressPack = actions[releaseType].compressPack === releaseStage;
+  const shouldDecompressPack = actions[releaseType].decompressPack === releaseStage;
+  const shouldBuildPackages = actions[releaseType].buildPackages === releaseStage;
+  const shouldCompressBuiltPackages =
     actions[releaseType].compressBuiltPackages === releaseStage;
-  var shouldDecompressAndRelocateBuiltPackages =
+  const shouldDecompressAndRelocateBuiltPackages =
     actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
-  var message = outdent`
+  const message = outdent`
 
     #
     # Release releaseType: "${releaseType}"
@@ -565,10 +495,10 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
   `;
 
-  var deleteFromBinaryRelease =
+  const deleteFromBinaryRelease =
     pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
 
-  var installEsyCmds = outdent`
+  const installEsyCmds = outdent`
 
     #
     # installEsy
@@ -583,7 +513,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
   `;
 
-  var downloadCmds = outdent`
+  const downloadCmds = outdent`
 
     #
     # download
@@ -599,7 +529,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     cd $PACKAGE_ROOT
 
   `;
-  var packCmds = outdent`
+  const packCmds = outdent`
 
     #
     # Pack
@@ -612,7 +542,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     cd $PACKAGE_ROOT
 
   `;
-  var compressPackCmds = outdent`
+  const compressPackCmds = outdent`
 
     #
     # compressPack
@@ -624,7 +554,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     rm -rf $ESY_EJECT__SANDBOX
 
   `;
-  var decompressPackCmds = outdent`
+  const decompressPackCmds = outdent`
 
     #
     # decompressPack
@@ -645,7 +575,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     rm -rf "$ESY_EJECT__SANDBOX.tar"
 
   `;
-  var buildPackagesCmds = outdent`
+  const buildPackagesCmds = outdent`
 
     #
     # buildPackages
@@ -677,7 +607,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
    * [[ "zzz" =~ ^h(.[a-z]*) ]] && echo ${BASH_REMATCH[1]}
    * Prints out empty
    */
-  var compressBuiltPackagesCmds = outdent`
+  const compressBuiltPackagesCmds = outdent`
 
     #
     # compressBuiltPackages
@@ -717,7 +647,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
     rm -rf $ESY_EJECT__SANDBOX
 
   `;
-  var decompressAndRelocateBuiltPackagesCmds = outdent`
+  const decompressAndRelocateBuiltPackagesCmds = outdent`
 
     #
     # decompressAndRelocateBuiltPackages
@@ -758,17 +688,17 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
   }
   // Notice how we comment out each section which doesn't apply to this
   // combination of releaseStage/releaseType.
-  var installEsy = renderCommands(installEsyCmds, shouldInstallEsy);
-  var download = renderCommands(downloadCmds, shouldDownload);
-  var pack = renderCommands(packCmds, shouldPack);
-  var compressPack = renderCommands(compressPackCmds, shouldCompressPack);
-  var decompressPack = renderCommands(decompressPackCmds, shouldDecompressPack);
-  var buildPackages = renderCommands(buildPackagesCmds, shouldBuildPackages);
-  var compressBuiltPackages = renderCommands(
+  const installEsy = renderCommands(installEsyCmds, shouldInstallEsy);
+  const download = renderCommands(downloadCmds, shouldDownload);
+  const pack = renderCommands(packCmds, shouldPack);
+  const compressPack = renderCommands(compressPackCmds, shouldCompressPack);
+  const decompressPack = renderCommands(decompressPackCmds, shouldDecompressPack);
+  const buildPackages = renderCommands(buildPackagesCmds, shouldBuildPackages);
+  const compressBuiltPackages = renderCommands(
     compressBuiltPackagesCmds,
     shouldCompressBuiltPackages,
   );
-  var decompressAndRelocateBuiltPackages = renderCommands(
+  const decompressAndRelocateBuiltPackages = renderCommands(
     decompressAndRelocateBuiltPackagesCmds,
     shouldDecompressAndRelocateBuiltPackages,
   );
@@ -833,36 +763,29 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
 const getSandboxBinName = (packageName: string) => `${packageName}-esy-sandbox`;
 
-var getBinsToWrite = function(releaseType, releasePath, pkg) {
-  var ret = [];
-  var releasedBinaries = getReleasedBinaries(pkg);
+function getBinsToWrite(releaseType, releasePath, pkg) {
+  const ret = [];
+  const releasedBinaries = getReleasedBinaries(pkg);
   if (releasedBinaries) {
-    for (var i = 0; i < releasedBinaries.length; i++) {
-      var binaryName = releasedBinaries[i];
-      var destPath = path.join('.bin', binaryName);
+    for (let i = 0; i < releasedBinaries.length; i++) {
+      const commandName = releasedBinaries[i];
+      const destPath = path.join('.bin', commandName);
       ret.push({
-        name: binaryName,
+        name: commandName,
         path: destPath,
-        contents: createLaunchBinSh(releaseType, pkg, binaryName),
+        contents: createCommandWrapper(releaseType, pkg, commandName),
       });
-      /*
-       * ret.push({
-       *   name: binaryName + '.cmd',
-       *   path: path.join(destPath + '.cmd'),
-       *   contents: createLaunchBinSh(releaseType, packageNameUppercase, binaryName)
-       * });
-       */
     }
   }
   const sandboxBinName = getSandboxBinName(pkg.name);
-  var destPath = path.join('.bin', sandboxBinName);
+  const destPath = path.join('.bin', sandboxBinName);
   ret.push({
     name: sandboxBinName,
     path: destPath,
-    contents: createLaunchBinSh(releaseType, pkg, sandboxBinName),
+    contents: createCommandWrapper(releaseType, pkg, sandboxBinName),
   });
   return ret;
-};
+}
 
 async function putExecutable(filename, contents) {
   await fs.writeFile(filename, contents);
@@ -870,8 +793,8 @@ async function putExecutable(filename, contents) {
 }
 
 async function readPackageJson(filename) {
-  var packageJson = await fs.readFile(filename);
-  var pkg = JSON.parse(packageJson);
+  const packageJson = await fs.readFile(filename);
+  const pkg = JSON.parse(packageJson);
   // Perform normalizations
   if (pkg.dependencies == null) {
     pkg.dependencies = {};
@@ -890,7 +813,7 @@ async function readPackageJson(filename) {
   }
   // Store esy dependency info separately so we can handle it in postinstall
   // scirpt independently of npm dependency management.
-  var esyDependency = pkg.dependencies.esy || pkg.devDependencies.esy;
+  const esyDependency = pkg.dependencies.esy || pkg.devDependencies.esy;
   if (esyDependency == null) {
     throw new Error('package should have esy declared as dependency');
   }
