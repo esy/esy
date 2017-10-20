@@ -3,6 +3,7 @@
 <PROJECT_ROOT>/lib/.*
 <PROJECT_ROOT>/node_modules/y18n/test/.*
 <PROJECT_ROOT>/bin/EsyYarnCache-.*
+<PROJECT_ROOT>/_esyInstallCache-3.x.x/.*
 
 [include]
 
