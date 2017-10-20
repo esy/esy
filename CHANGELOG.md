@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## NEXT
+## 0.0.16
 
 * Make `esy release` not require dependency on Esy:
 
