@@ -202,7 +202,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as bashgen from './builders/bashgen';
 import outdent from 'outdent';
-import {DESIRED_ESY_STORE_PATH_LENGTH} from './build-config';
+import {DESIRED_ESY_STORE_PATH_LENGTH, ESY_STORE_VERSION} from './build-config';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
@@ -211,8 +211,6 @@ type BuildReleaseConfig = {
   version: string,
   sandboxPath: string,
 };
-
-var storeVersion = '3.x.x';
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
@@ -329,7 +327,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
   return outdent`
     #!/bin/bash
 
-    export ESY__STORE_VERSION=${storeVersion}
+    export ESY__STORE_VERSION=${ESY_STORE_VERSION}
     ${launchBinScriptSupport}
     if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
@@ -793,7 +791,7 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
 
     export PACKAGE_ROOT="$SCRIPTDIR"
 
-    export ESY__STORE_VERSION="${storeVersion}"
+    export ESY__STORE_VERSION="${ESY_STORE_VERSION}"
 
     export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
     export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject"
