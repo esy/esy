@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## NEXT
+## 0.0.14
+
+* Fix `esy install` to work on Node 4.x.
 
 * Do not copy `node_modules`, `_build`, `_install`, `_release` directories over
   to `$cur__target_dir` for in-source builds. That means mich faster builds for
