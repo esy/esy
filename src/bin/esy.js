@@ -13,6 +13,7 @@ process.noDeprecation = true;
 
 import type {BuildSandbox, BuildTask, BuildPlatform} from '../types';
 
+import invariant from 'invariant';
 import * as semver from 'semver';
 import * as os from 'os';
 import * as fs from 'fs';
@@ -177,23 +178,22 @@ function determineBuildPlatformFromArgument(arg): BuildPlatform {
     } else if (arg === 'cygwin') {
       return 'cygwin';
     }
-    throw new Error(
-      'Specified build platform ' +
-        arg +
-        ' is invalid: Pass one of "linux", "cygwin", or "darwin"',
-    );
+    onError(outdent`
+      Specified build platform ${arg} is invalid: Pass one of "linux", "cygwin", or "darwin".
+    `);
+    invariant(false, 'Impossible to reach, just to make flow happy');
   }
 }
 
 function formatError(message: string, stack?: string) {
-  let result = `${chalk.red('ERROR')} ${message}`;
+  let result = `${chalk.red('error:')} ${message}`;
   if (stack != null) {
     result += `\n${stack}`;
   }
   return result;
 }
 
-function error(error: Error | string) {
+function onError(error: Error | string) {
   const message = String(error.message ? error.message : error);
   const stack = error.stack ? String(error.stack) : undefined;
   console.log(formatError(message, stack));
@@ -344,7 +344,7 @@ async function buildCommand(sandboxPath, _commandName) {
   }
 
   if (failures.length > 0) {
-    process.exit(1);
+    onError('build failed');
   }
 }
 
@@ -371,12 +371,24 @@ const AVAILABLE_RELEASE_TYPE = ['dev', 'pack', 'bin'];
 
 async function releaseCommand(sandboxPath, _commandName, type, ...args) {
   if (type == null) {
-    throw new Error('esy release: provide type');
+    onError(outdent`
+      Provide release type as argument (dev, pack or bin), examples:
+
+          esy release dev
+          esy release pack
+          esy release bin
+
+    `);
   }
   if (AVAILABLE_RELEASE_TYPE.indexOf(type) === -1) {
-    throw new Error(
-      `esy release: invalid release type, must be one of: ${AVAILABLE_RELEASE_TYPE.join(', ')}`,
-    );
+    onError(outdent`
+      Invalid release type '${type}', must be one of dev, pack or bin, examples:
+
+          esy release dev
+          esy release pack
+          esy release bin
+
+    `);
   }
   const {buildRelease} = require('../release');
   const pkg = await pfs.readJson(path.join(sandboxPath, 'package.json'));
@@ -400,7 +412,7 @@ async function importOpamCommand(
   opamFilename,
 ) {
   if (opamFilename == null) {
-    error(`usage: esy import-opam PACKAGENAME PACKAGEVERSION OPAMFILENAME`);
+    onError(`usage: esy import-opam PACKAGENAME PACKAGEVERSION OPAMFILENAME`);
   }
   const opamData = await pfs.readFile(opamFilename);
   const opam = EsyOpam.parseOpam(opamData);
@@ -467,5 +479,5 @@ async function main() {
   }
 }
 
-main().catch(error);
+main().catch(onError);
 loudRejection();
