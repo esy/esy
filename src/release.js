@@ -201,19 +201,6 @@ const postinstallScriptSupport = outdent`
   }
 `;
 
-const launchBinScriptSupport = outdent`
-
-  printError() {
-    echo >&2 "ERROR:";
-    echo >&2 "$0 command is not installed correctly. ";
-    TROUBLESHOOTING="When installing <package_name>, did you see any errors in the log? "
-    TROUBLESHOOTING="$TROUBLESHOOTING - What does (which <binary_name>) return? "
-    TROUBLESHOOTING="$TROUBLESHOOTING - Please file a github issue on <package_name>'s repo."
-    echo >&2 "$TROUBLESHOOTING";
-  }
-
-`;
-
 function scrubBinaryReleaseCommandExtensions(searchDir) {
   return (
     'find ' +
@@ -244,21 +231,78 @@ function escapeBashVarName(str) {
   return str.replace(/./g, replacer);
 }
 
-function getReleasedBinaries(pkg) {
+function getCommandsToRelease(pkg) {
   return pkg && pkg.esy && pkg.esy.release && pkg.esy.release.releasedBinaries;
 }
 
-function createCommandWrapper(releaseType, pkg, commandName) {
+function createCommandWrapper(pkg, commandName) {
   const packageName = pkg.name;
-  const sandboxBin = getSandboxBinName(packageName);
+  const sandboxEntryCommandName = getSandboxEntryCommandName(packageName);
   const packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
   const binaryNameUppercase = escapeBashVarName(commandName.toUpperCase());
-  const releasedBinaries = getReleasedBinaries(pkg);
+  const commandsToRelease = getCommandsToRelease(pkg) || [];
+  const releasedBinariesStr = commandsToRelease
+    .concat(sandboxEntryCommandName)
+    .join(', ');
+
+  const execute = commandName !== sandboxEntryCommandName
+    ? outdent`
+      if [ "$1" == "----where" ]; then
+        which "${commandName}"
+      else
+        exec "${commandName}" "$@"
+      fi
+      `
+    : outdent`
+      if [[ "$1" == ""  ]]; then
+        cat << EOF
+
+      Welcome to ${packageName}
+
+      The following commands are available: ${releasedBinariesStr}
+
+      Note:
+
+      - ${sandboxEntryCommandName} bash
+
+        Starts a sandboxed bash shell with access to the ${packageName} environment.
+
+        Running builds and scripts from within "${sandboxEntryCommandName} bash" will typically increase
+        the performance as environment is already sourced.
+
+      - <command name> ----where
+
+        Prints the location of <command name>
+
+        Example: ocaml ----where
+
+      EOF
+      else
+        if [ "$1" == "bash" ]; then
+          # Important to pass --noprofile, and --rcfile so that the user's
+          # .bashrc doesn't run and the npm global packages don't get put in front
+          # of the already constructed PATH.
+          bash --noprofile --rcfile <(echo 'export PS1="[${packageName} sandbox]"')
+        else
+          echo "Invalid argument $1, type ${sandboxEntryCommandName} for help"
+        fi
+      fi
+      `;
+
   return outdent`
     #!/bin/bash
 
     export ESY__STORE_VERSION=${ESY_STORE_VERSION}
-    ${launchBinScriptSupport}
+
+    printError() {
+      echo >&2 "ERROR:";
+      echo >&2 "$0 command is not installed correctly. ";
+      TROUBLESHOOTING="When installing <package_name>, did you see any errors in the log? "
+      TROUBLESHOOTING="$TROUBLESHOOTING - What does (which <binary_name>) return? "
+      TROUBLESHOOTING="$TROUBLESHOOTING - Please file a github issue on <package_name>'s repo."
+      echo >&2 "$TROUBLESHOOTING";
+    }
+
     if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
         ${bashgen.defineScriptDir}
@@ -278,38 +322,7 @@ function createCommandWrapper(releaseType, pkg, commandName) {
         printError;
         exit 1;
       }
-    ${commandName !== sandboxBin ? `
-      if [ "$1" == "----where" ]; then
-        which "${commandName}"
-      else
-        exec "${commandName}" "$@"
-      fi
-      ` : `
-      if [[ "$1" == ""  ]]; then
-        echo ""
-        echo "Welcome to ${packageName}"
-        echo "-------------------------"
-        echo "Installed Binaries: [" ${(releasedBinaries || [])
-                                       .concat([sandboxBin])
-                                       .join(',')} "]"
-        echo "- ${sandboxBin} bash"
-        echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
-        echo "- commandName ----where"
-        echo "  Prints the location of commandName"
-        echo "  Example: ${(pkg.releasedBinaries || ['<no_binaries>'])[0]} ----where"
-        echo "- Note: Running builds and scripts from within "${sandboxBin} bash" will typically increase performance of builds."
-        echo ""
-      else
-        if [ "$1" == "bash" ]; then
-          # Important to pass --noprofile, and --rcfile so that the user's
-          # .bashrc doesn't run and the npm global packages don't get put in front
-          # of the already constructed PATH.
-          bash --noprofile --rcfile <(echo 'export PS1="${'⏣ ' + packageName + ': $PS1'}"')
-        else
-          echo "Invalid argument $1, type reason-cli for help"
-        fi
-      fi
-      `}
+      ${execute}
     else
       printError;
       exit 1;
@@ -317,11 +330,6 @@ function createCommandWrapper(releaseType, pkg, commandName) {
 
   `;
 }
-
-const debug = process.env['DEBUG'];
-
-const types = ['dev', 'pack', 'bin'];
-const releaseStage = ['forPreparingRelease', 'forClientInstallation'];
 
 const actions = {
   dev: {
@@ -356,12 +364,6 @@ const actions = {
   },
 };
 
-const buildLocallyAndRelocate = {
-  dev: false,
-  pack: false,
-  bin: true,
-};
-
 /**
  * Derive npm release package.
  *
@@ -377,7 +379,7 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
 
   // Populate "bin" metadata.
   await fs.mkdirp(path.join(releasePath, '.bin'));
-  const binsToWrite = getBinsToWrite(releaseType, releasePath, pkg);
+  const binsToWrite = getSandboxCommands(releaseType, releasePath, pkg);
   const packageJsonBins = {};
   for (let i = 0; i < binsToWrite.length; i++) {
     const toWrite = binsToWrite[i];
@@ -385,7 +387,7 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
     await fs.chmod(path.join(releasePath, toWrite.path), /* octal 0755 */ 493);
     packageJsonBins[toWrite.name] = toWrite.path;
   }
-  copy = addBins(packageJsonBins, copy);
+  copy.bin = packageJsonBins;
 
   // Add postinstall script
   copy.scripts.postinstall = './postinstall.sh';
@@ -403,45 +405,26 @@ async function deriveEsyReleasePackage(pkg, releasePath, releaseType) {
   return copy;
 }
 
-const addBins = function(bins, pkg) {
-  const copy = JSON.parse(JSON.stringify(pkg));
-  copy.bin = bins;
-  delete copy.releasedBinaries;
-  return copy;
-};
-
-const addPostinstallScript = function(pkg) {
-  const copy = JSON.parse(JSON.stringify(pkg));
-  copy.scripts = copy.scripts || {};
-  copy.scripts.postinstall = './postinstall.sh';
-  return copy;
-};
-
-const removePostinstallScript = function(pkg) {
-  const copy = JSON.parse(JSON.stringify(pkg));
-  copy.scripts = copy.scripts || {};
-  copy.scripts.postinstall = '';
-  return copy;
-};
-
 async function putJson(filename, pkg) {
   await fs.writeFile(filename, JSON.stringify(pkg, null, 2), 'utf8');
 }
 
-async function verifyBinSetup(pkg) {
-  const whosInCharge =
-    ' Run make clean first. The release script needs to be in charge of generating the binaries.';
-  const binDirExists = await fs.exists('./.bin');
+async function verifyBinSetup(sandboxPath, pkg) {
+  const binDirExists = await fs.exists(path.join(sandboxPath, '.bin'));
   if (binDirExists) {
     throw new Error(
-      whosInCharge +
-        'Found existing binaries dir .bin. This should not exist. Release script creates it.',
+      outdent`
+      Run make clean first. The release script needs to be in charge of generating the binaries.
+      Found existing binaries dir .bin. This should not exist. Release script creates it.
+    `,
     );
   }
   if (pkg.bin) {
     throw new Error(
-      whosInCharge +
-        'Package.json has a bin field. It should have a "releasedBinaries" field instead - a list of released binary names.',
+      outdent`
+      Run make clean first. The release script needs to be in charge of generating the binaries.
+      package.json has a bin field. It should have a "commandsToRelease" field instead - a list of released binary names.
+    `,
     );
   }
 }
@@ -466,7 +449,7 @@ async function verifyBinSetup(pkg) {
  * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
  * the release in as many destinations as possible.
  */
-const createInstallScript = function(releaseStage, releaseType, pkg) {
+function createInstallScript(releaseStage, releaseType, pkg) {
   const shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
   const shouldDownload = actions[releaseType].download === releaseStage;
   const shouldPack = actions[releaseType].pack === releaseStage;
@@ -759,32 +742,38 @@ const createInstallScript = function(releaseStage, releaseType, pkg) {
     # cleanup
     rm -rf ./_esy
   `;
-};
+}
 
-const getSandboxBinName = (packageName: string) => `${packageName}-esy-sandbox`;
+function getSandboxEntryCommandName(packageName: string) {
+  return `${packageName}-esy-sandbox`;
+}
 
-function getBinsToWrite(releaseType, releasePath, pkg) {
-  const ret = [];
-  const releasedBinaries = getReleasedBinaries(pkg);
-  if (releasedBinaries) {
-    for (let i = 0; i < releasedBinaries.length; i++) {
-      const commandName = releasedBinaries[i];
+function getSandboxCommands(releaseType, releasePath, pkg) {
+  const commands = [];
+
+  const commandsToRelease = getCommandsToRelease(pkg);
+  if (commandsToRelease) {
+    for (let i = 0; i < commandsToRelease.length; i++) {
+      const commandName = commandsToRelease[i];
       const destPath = path.join('.bin', commandName);
-      ret.push({
+      commands.push({
         name: commandName,
         path: destPath,
-        contents: createCommandWrapper(releaseType, pkg, commandName),
+        contents: createCommandWrapper(pkg, commandName),
       });
     }
   }
-  const sandboxBinName = getSandboxBinName(pkg.name);
-  const destPath = path.join('.bin', sandboxBinName);
-  ret.push({
-    name: sandboxBinName,
+
+  // Generate sandbox entry command
+  const sandboxEntryCommandName = getSandboxEntryCommandName(pkg.name);
+  const destPath = path.join('.bin', sandboxEntryCommandName);
+  commands.push({
+    name: sandboxEntryCommandName,
     path: destPath,
-    contents: createCommandWrapper(releaseType, pkg, sandboxBinName),
+    contents: createCommandWrapper(pkg, sandboxEntryCommandName),
   });
-  return ret;
+
+  return commands;
 }
 
 async function putExecutable(filename, contents) {
@@ -846,7 +835,7 @@ export async function buildRelease(config: BuildReleaseConfig) {
   await fs.unlink(tarFilename);
 
   const pkg = await readPackageJson(path.join(esyReleasePath, 'package.json'));
-  await verifyBinSetup(pkg);
+  await verifyBinSetup(sandboxPath, pkg);
 
   console.log(`*** Creating ${releaseType}-type release for ${pkg.name}...`);
 
