@@ -52,7 +52,7 @@
     "webpack": "^3.8.1"
   },
   "dependencies": {
-    "@esy-ocaml/esy-install": "1.2.1002",
+    "@esy-ocaml/esy-install": "1.2.1003",
     "@esy-ocaml/esy-opam": "0.0.5",
     "babel-polyfill": "^6.23.0",
     "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4",
