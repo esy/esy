@@ -81,6 +81,7 @@ build-release:
 
 publish: build-release
 	@(cd $(RELEASE_ROOT) && npm publish --access public)
+	@git push && git push --tags
 
 bump-major-version:
 	@npm version major
