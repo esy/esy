@@ -189,6 +189,9 @@ elif [ $# -eq 1 ]; then
     build-eject)
       callBuiltInCommand__buildEject
       ;;
+    release)
+      callBuiltInCommand release $@
+      ;;
     build)
       callBuiltInCommand build
       ;;
