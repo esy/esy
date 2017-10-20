@@ -342,6 +342,10 @@ async function buildCommand(sandboxPath, _commandName) {
       );
     }
   }
+
+  if (failures.length > 0) {
+    process.exit(1);
+  }
 }
 
 async function buildEjectCommand(
