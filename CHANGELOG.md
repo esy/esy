@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## NEXT
+
+* Command line interface improvements:
+
+  * Add `esy version` command, same as `esy -v/--version`.
+
+  * Add `esy help` command, same as `esy -h/--help`.
+
+  * Fix `esy version` to print the version of the package but not the version of
+    Esy specification.
+
+  * Fix `esy release` invocation (with no arguments) to forward to the JS
+    implementation.
+
+* Fix `esy release` to handle releases with commands of the same name as the
+  project itself.
+
+  Previously such commands were shadowed by the sandbox entry point script. Now
+  we generate sandbox entry point scripts as `<proejctname>-esy-sandbox`, for
+  example `reason-cli-esy-sandbox`.
+
 ## 0.0.15
 
 * Make `esy build` exit with process return code `1` in case of failures.
