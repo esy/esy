@@ -17,16 +17,20 @@ import * as Config from '../build-config';
 import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
 
-const INSTALL_DIRS = ['lib', 'bin', 'sbin', 'man', 'doc', 'share', 'stublibs', 'etc'];
-const BUILD_DIRS = ['_esy'];
-const PATHS_TO_IGNORE = ['_build', '_install', '_release', 'node_modules'];
-const IGNORE_FOR_CHECKSUM = [
-  'node_modules',
-  '_esy',
-  Config.STORE_BUILD_TREE,
-  Config.STORE_INSTALL_TREE,
-  Config.STORE_STAGE_TREE,
+const INSTALL_DIR_STRUCTURE = [
+  'lib',
+  'bin',
+  'sbin',
+  'man',
+  'doc',
+  'share',
+  'stublibs',
+  'etc',
 ];
+const BUILD_DIR_STRUCTURE = ['_esy'];
+
+const IGNORE_FOR_BUILD = ['_build', '_install', '_release', 'node_modules'];
+const IGNORE_FOR_CHECKSUM = ['_esy', '_build', '_install', '_release', 'node_modules'];
 
 const NUM_CPUS = os.cpus().length;
 
@@ -175,9 +179,23 @@ async function performBuild(
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
 
+  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, '_build');
+  const sandboxRootInstallTreeSymlink = path.join(config.sandboxPath, '_install');
+
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
   log('starting build');
+
+  // For top level build we need to remove `_build` and `_install` as in case of
+  // non mutating build it can interfere with the build itself. In case of
+  // mutating build they still be ignore then copying sources of to
+  // `$cur__target_dir`.
+  if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
+    await Promise.all([
+      unlinkOrRemove(sandboxRootBuildTreeSymlink),
+      unlinkOrRemove(sandboxRootInstallTreeSymlink),
+    ]);
+  }
 
   log('removing prev destination directories (if exist)');
   await Promise.all([
@@ -188,8 +206,8 @@ async function performBuild(
 
   log('creating destination directories');
   await Promise.all([
-    ...BUILD_DIRS.map(p => fs.mkdirp(config.getBuildPath(task.spec, p))),
-    ...INSTALL_DIRS.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
+    ...BUILD_DIR_STRUCTURE.map(p => fs.mkdirp(config.getBuildPath(task.spec, p))),
+    ...INSTALL_DIR_STRUCTURE.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
   ]);
 
   if (task.spec.mutatesSourcePath) {
@@ -198,7 +216,7 @@ async function performBuild(
       path.join(config.sandboxPath, task.spec.sourcePath),
       config.getBuildPath(task.spec),
       {
-        exclude: PATHS_TO_IGNORE.map(p =>
+        exclude: IGNORE_FOR_BUILD.map(p =>
           path.join(config.sandboxPath, task.spec.sourcePath, p),
         ),
       },
@@ -227,65 +245,70 @@ async function performBuild(
     'utf8',
   );
 
-  if (task.command != null) {
-    const commandList = task.command;
-    const logFilename = config.getBuildPath(task.spec, '_esy', 'log');
-    const logStream = nodefs.createWriteStream(logFilename);
-    for (let i = 0; i < commandList.length; i++) {
-      const {command, renderedCommand} = commandList[i];
-      log(`executing: ${command}`);
-      let sandboxedCommand = renderedCommand;
-      if (process.platform === 'darwin') {
-        sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
+  let buildSucceeded = false;
+
+  try {
+    if (task.command != null) {
+      const commandList = task.command;
+      const logFilename = config.getBuildPath(task.spec, '_esy', 'log');
+      const logStream = nodefs.createWriteStream(logFilename);
+      for (let i = 0; i < commandList.length; i++) {
+        const {command, renderedCommand} = commandList[i];
+        log(`executing: ${command}`);
+        let sandboxedCommand = renderedCommand;
+        if (process.platform === 'darwin') {
+          sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
+        }
+
+        await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
+        await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
+
+        const execution = await exec(sandboxedCommand, {
+          cwd: rootPath,
+          env: envForExec,
+          maxBuffer: Infinity,
+        });
+        // TODO: we need line-buffering here possibly?
+        interleaveStreams(
+          execution.process.stdout,
+          execution.process.stderr,
+        ).pipe(logStream, {end: false});
+        const {code} = await execution.exit;
+        if (code !== 0) {
+          throw new BuildTaskError(task, logFilename);
+        }
       }
+      await endWritableStream(logStream);
 
-      await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
-      await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
-
-      const execution = await exec(sandboxedCommand, {
-        cwd: rootPath,
-        env: envForExec,
-        maxBuffer: Infinity,
-      });
-      // TODO: we need line-buffering here possibly?
-      interleaveStreams(
-        execution.process.stdout,
-        execution.process.stderr,
-      ).pipe(logStream, {end: false});
-      const {code} = await execution.exit;
-      if (code !== 0) {
-        throw new BuildTaskError(task, logFilename);
-      }
-    }
-    await endWritableStream(logStream);
-
-    log('rewriting paths in build artefacts');
-    const rewriteQueue = new PromiseQueue({concurrency: 20});
-    const files = await fs.walk(config.getInstallPath(task.spec));
-    await Promise.all(
-      files.map(file =>
-        rewriteQueue.add(() =>
-          rewritePathInFile(file.absolute, installPath, finalInstallPath),
+      log('rewriting paths in build artefacts');
+      const rewriteQueue = new PromiseQueue({concurrency: 20});
+      const files = await fs.walk(config.getInstallPath(task.spec));
+      await Promise.all(
+        files.map(file =>
+          rewriteQueue.add(() =>
+            rewritePathInFile(file.absolute, installPath, finalInstallPath),
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  log('finalizing build');
+    log('finalizing build');
+    await fs.rename(installPath, finalInstallPath);
 
-  await fs.rename(installPath, finalInstallPath);
-
-  if (task.spec === sandbox.root) {
-    await Promise.all([
-      fs.symlink(
-        finalInstallPath,
-        path.join(config.sandboxPath, task.spec.sourcePath, '_install'),
-      ),
-      fs.symlink(
-        buildPath,
-        path.join(config.sandboxPath, task.spec.sourcePath, '_build'),
-      ),
-    ]);
+    buildSucceeded = true;
+  } finally {
+    if (task.spec === sandbox.root) {
+      // Those can be either created by esy or by previous build process so we
+      // forcefully remove them.
+      await Promise.all([
+        unlinkOrRemove(sandboxRootBuildTreeSymlink),
+        unlinkOrRemove(sandboxRootInstallTreeSymlink),
+      ]);
+      await Promise.all([
+        fs.symlink(buildPath, sandboxRootBuildTreeSymlink),
+        buildSucceeded && fs.symlink(finalInstallPath, sandboxRootInstallTreeSymlink),
+      ]);
+    }
   }
 }
 
@@ -295,6 +318,25 @@ async function initStore(storePath) {
       fs.mkdirp(path.join(storePath, p)),
     ),
   );
+}
+
+async function unlinkOrRemove(p) {
+  let stats = null;
+  try {
+    stats = await fs.lstat(p);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return;
+    }
+    throw err;
+  }
+  if (stats != null) {
+    if (stats.isSymbolicLink()) {
+      await fs.unlink(p);
+    } else {
+      await fs.rmdir(p);
+    }
+  }
 }
 
 class BuildTaskError extends Error {
