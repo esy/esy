@@ -136,11 +136,32 @@ import {DESIRED_ESY_STORE_PATH_LENGTH, ESY_STORE_VERSION} from './build-config';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
+type ReleaseStage = 'forClientInstallation' | 'forPreparingRelease';
+
+type ReleaseActionsSpec = {
+  installEsy: ?ReleaseStage,
+  configureEsy: ?ReleaseStage,
+  download: ?ReleaseStage,
+  pack: ?ReleaseStage,
+  compressPack: ?ReleaseStage,
+  decompressPack: ?ReleaseStage,
+  buildPackages: ?ReleaseStage,
+  compressBuiltPackages: ?ReleaseStage,
+  decompressAndRelocateBuiltPackages: ?ReleaseStage,
+};
+
 type BuildReleaseConfig = {
   type: ReleaseType,
   version: string,
   sandboxPath: string,
 };
+
+// This is invariant both for dev and released versions of Esy as bin/esy always
+// calls into bin/esy.js (same dirname). `process.argv[1]` is the filename of
+// the script executed by `node`.
+const currentEsyExecutable = path.join(path.dirname(process.argv[1]), 'esy');
+
+const currentEsyVersion = require('../package.json').version;
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
@@ -331,19 +352,21 @@ function createCommandWrapper(pkg, commandName) {
   `;
 }
 
-const actions = {
+const actions: {[releaseType: ReleaseType]: ReleaseActionsSpec} = {
   dev: {
     installEsy: 'forClientInstallation',
+    configureEsy: null,
     download: 'forClientInstallation',
     pack: 'forClientInstallation',
-    compressPack: '',
-    decompressPack: '',
+    compressPack: null,
+    decompressPack: null,
     buildPackages: 'forClientInstallation',
     compressBuiltPackages: 'forClientInstallation',
     decompressAndRelocateBuiltPackages: 'forClientInstallation',
   },
   pack: {
-    installEsy: 'forPreparingRelease',
+    installEsy: null,
+    configureEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
     pack: 'forPreparingRelease',
     compressPack: 'forPreparingRelease',
@@ -353,11 +376,12 @@ const actions = {
     decompressAndRelocateBuiltPackages: 'forClientInstallation',
   },
   bin: {
-    installEsy: 'forPreparingRelease',
+    installEsy: null,
+    configureEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
     pack: 'forPreparingRelease',
-    compressPack: '',
-    decompressPack: '',
+    compressPack: null,
+    decompressPack: null,
     buildPackages: 'forPreparingRelease',
     compressBuiltPackages: 'forPreparingRelease',
     decompressAndRelocateBuiltPackages: 'forClientInstallation',
@@ -451,6 +475,7 @@ async function verifyBinSetup(sandboxPath, pkg) {
  * the release in as many destinations as possible.
  */
 function createInstallScript(releaseStage, releaseType, pkg) {
+  const shouldConfigureEsy = actions[releaseType].configureEsy === releaseStage;
   const shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
   const shouldDownload = actions[releaseType].download === releaseStage;
   const shouldPack = actions[releaseType].pack === releaseStage;
@@ -482,18 +507,29 @@ function createInstallScript(releaseStage, releaseType, pkg) {
   const deleteFromBinaryRelease =
     pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
 
+  const configureEsyCmds = outdent`
+
+    #
+    # configureEsy
+    #
+    export ESY_COMMAND="${currentEsyExecutable}"
+
+  `;
+
   const installEsyCmds = outdent`
 
     #
     # installEsy
     #
     echo '*** Installing esy for the release...'
-    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.esyDependency}")
+    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.release.esyDependency}")
     if [ $? -ne 0 ]; then
       echo "Failed to install esy..."
       echo $LOG
       exit 1
     fi
+    # overwrite esy command with just installed esy bin
+    export ESY_COMMAND="$PACKAGE_ROOT/_esy/bin/esy"
 
   `;
 
@@ -504,7 +540,7 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     #
     echo '*** Installing dependencies...'
     cd $ESY_EJECT__SANDBOX
-    LOG=$($PACKAGE_ROOT/_esy/bin/esy install)
+    LOG=$($ESY_COMMAND install)
     if [ $? -ne 0 ]; then
       echo "Failed to install dependencies..."
       echo $LOG
@@ -521,8 +557,9 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     # Peform build eject.  Warms up *just* the artifacts that require having a
     # modern node installed.
     # Generates the single Makefile etc.
+    echo '*** Ejecting build environment...'
     cd $ESY_EJECT__SANDBOX
-    $PACKAGE_ROOT/_esy/bin/esy build-eject
+    $ESY_COMMAND build-eject
     cd $PACKAGE_ROOT
 
   `;
@@ -672,6 +709,7 @@ function createInstallScript(releaseStage, releaseType, pkg) {
   }
   // Notice how we comment out each section which doesn't apply to this
   // combination of releaseStage/releaseType.
+  const configureEsy = renderCommands(configureEsyCmds, shouldConfigureEsy);
   const installEsy = renderCommands(installEsyCmds, shouldInstallEsy);
   const download = renderCommands(downloadCmds, shouldDownload);
   const pack = renderCommands(packCmds, shouldPack);
@@ -723,6 +761,8 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     # here temporarily. Sometimes the build location is the same as where we
     # copy them to inside the sandbox - sometimes not.
     export ESY_EJECT__TMP="$PACKAGE_ROOT/relBinaries"
+
+    ${configureEsy}
 
     ${installEsy}
 
@@ -782,9 +822,10 @@ async function putExecutable(filename, contents) {
   await fs.chmod(filename, /* octal 0755 */ 493);
 }
 
-async function readPackageJson(filename) {
+async function readPackageJson(releaseType, filename) {
   const packageJson = await fs.readFile(filename);
   const pkg = JSON.parse(packageJson);
+
   // Perform normalizations
   if (pkg.dependencies == null) {
     pkg.dependencies = {};
@@ -801,13 +842,11 @@ async function readPackageJson(filename) {
   if (pkg.esy.release == null) {
     pkg.esy.release = {};
   }
-  // Store esy dependency info separately so we can handle it in postinstall
-  // scirpt independently of npm dependency management.
-  const esyDependency = pkg.dependencies.esy || pkg.devDependencies.esy;
-  if (esyDependency == null) {
-    throw new Error('package should have esy declared as dependency');
-  }
-  pkg.esy.esyDependency = esyDependency;
+
+  // store current esy version which is going to be used for dev releases to
+  // bootstrap the sandbox environment
+  pkg.esy.release.esyDependency = currentEsyVersion;
+
   return pkg;
 }
 
@@ -835,7 +874,10 @@ export async function buildRelease(config: BuildReleaseConfig) {
   await fs.rename(path.join(sandboxPath, 'package'), esyReleasePath);
   await fs.unlink(tarFilename);
 
-  const pkg = await readPackageJson(path.join(esyReleasePath, 'package.json'));
+  const pkg = await readPackageJson(
+    releaseType,
+    path.join(esyReleasePath, 'package.json'),
+  );
   await verifyBinSetup(sandboxPath, pkg);
 
   console.log(`*** Creating ${releaseType}-type release for ${pkg.name}...`);
