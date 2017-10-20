@@ -375,6 +375,7 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
   // We don't manage dependencies with npm, esy is being installed via a
   // postinstall script and then it is used to manage release dependencies.
   copy.dependencies = {};
+  copy.peerDependencies = {};
   copy.devDependencies = {};
 
   // Populate "bin" metadata.
