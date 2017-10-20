@@ -322,6 +322,7 @@ var getReleasedBinaries = function(pkg) {
 
 var createLaunchBinSh = function(releaseType, pkg, binaryName) {
   var packageName = pkg.name;
+  const sandboxBin = getSandboxBinName(packageName);
   var packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
   var binaryNameUppercase = escapeBashVarName(binaryName.toUpperCase());
   var releasedBinaries = getReleasedBinaries(pkg);
@@ -349,7 +350,7 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
         printError;
         exit 1;
       }
-    ${binaryName !== packageName ? `
+    ${binaryName !== sandboxBin ? `
       if [ "$1" == "----where" ]; then
         which "${binaryName}"
       else
@@ -361,14 +362,14 @@ var createLaunchBinSh = function(releaseType, pkg, binaryName) {
         echo "Welcome to ${packageName}"
         echo "-------------------------"
         echo "Installed Binaries: [" ${(releasedBinaries || [])
-                                       .concat([packageName])
+                                       .concat([sandboxBin])
                                        .join(',')} "]"
-        echo "- ${packageName} bash"
+        echo "- ${sandboxBin} bash"
         echo   " Starts bash from the perspective of ${(releasedBinaries || ['<no_binaries>'])[0]} and installed binaries."
         echo "- binaryName ----where"
         echo "  Prints the location of binaryName"
         echo "  Example: ${(pkg.releasedBinaries || ['<no_binaries>'])[0]} ----where"
-        echo "- Note: Running builds and scripts from within "${packageName} bash" will typically increase performance of builds."
+        echo "- Note: Running builds and scripts from within "${sandboxBin} bash" will typically increase performance of builds."
         echo ""
       else
         if [ "$1" == "bash" ]; then
@@ -832,6 +833,8 @@ var createInstallScript = function(releaseStage, releaseType, pkg) {
   `;
 };
 
+const getSandboxBinName = (packageName: string) => `${packageName}-esy-sandbox`;
+
 var getBinsToWrite = function(releaseType, releasePath, pkg) {
   var ret = [];
   var releasedBinaries = getReleasedBinaries(pkg);
@@ -853,11 +856,12 @@ var getBinsToWrite = function(releaseType, releasePath, pkg) {
        */
     }
   }
-  var destPath = path.join('.bin', pkg.name);
+  const sandboxBinName = getSandboxBinName(pkg.name);
+  var destPath = path.join('.bin', sandboxBinName);
   ret.push({
-    name: pkg.name,
+    name: sandboxBinName,
     path: destPath,
-    contents: createLaunchBinSh(releaseType, pkg, pkg.name),
+    contents: createLaunchBinSh(releaseType, pkg, sandboxBinName),
   });
   return ret;
 };

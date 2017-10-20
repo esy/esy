@@ -3,13 +3,13 @@
 exports[`installation 1`] = `
 "<root>
 | bin
-| | minimal
+| | minimal-esy-sandbox
 | etc
 | lib
 | | node_modules
 | | | minimal
 | | | | .bin
-| | | | | minimal
+| | | | | minimal-esy-sandbox
 | | | | package.json
 | | | | postinstall.sh
 | | | | prerelease.sh
@@ -59,7 +59,7 @@ exports[`installation 1`] = `
 `;
 
 exports[`installation stdout 1`] = `
-"/tmp/TMPDIR/npm/bin/minimal -> /tmp/TMPDIR/npm/lib/node_modules/minimal/.bin/minimal
+"/tmp/TMPDIR/npm/bin/minimal-esy-sandbox -> /tmp/TMPDIR/npm/lib/node_modules/minimal/.bin/minimal-esy-sandbox
 
 > minimal@0.1.0 postinstall /tmp/TMPDIR/npm/lib/node_modules/minimal
 > ./postinstall.sh
@@ -80,7 +80,7 @@ exports[`release 1`] = `
 "<root>
 | dev
 | | .bin
-| | | minimal
+| | | minimal-esy-sandbox
 | | package.json
 | | postinstall.sh
 | | prerelease.sh
