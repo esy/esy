@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 0.0.15
+
+* Make `esy build` exit with process return code `1` in case of failures.
+
+  Not sure how I missed that!
+
+* More resilence when crteating symlinks for top level package from store
+  (`_build` and `_install`).
+
+  Previously we were seeing failures if for example there's `_build` directory
+  created by the build process itself.
+
+* Fix ejected builds to ignore `node_modules`, `_build`, `_install` and
+  `_release` directories when copying sources over to `$cur__target_dir`
+  directory for build.
+
+* Fix `esy build` command to ignore `_build`, `_install` and
+  `_release` directories when copying sources over to `$cur__target_dir`
+  directory for build.
+
 ## 0.0.14
 
 * Fix `esy install` to work on Node 4.x.
