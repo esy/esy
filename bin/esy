@@ -151,6 +151,10 @@ printHelp() {
 
                           esy import-opam lwt 3.0.0 ./opam
 
+  help                  Print this message.
+
+  version               Print esy version and exit
+
   <command>             Executes <command> as if you had executed it inside of
                         esy shell.
 
@@ -158,9 +162,7 @@ EOF
 }
 
 printVersion() {
-	cat <<EOF
-$ESY__VERSION.
-EOF
+  (cd $SCRIPTDIR/.. && node -p "require('./package.json').version")
 }
 
 callAnyCommand() {
@@ -204,14 +206,14 @@ elif [ $# -eq 1 ]; then
     install|add)
       callBuiltInCommand__esyInstall "$@"
       ;;
-    --version|-v)
+    version|--version|-v)
       printVersion
       ;;
-    --help|-h)
+    help|--help|-h)
       printHelp
       ;;
     -*)
-      echo Unknown option "$1" >&2
+      echo error: unknown option "$1" >&2
       exit 1
       ;;
     *)
