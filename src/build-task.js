@@ -108,17 +108,17 @@ export function fromBuildSpec(
     const PATH = [];
     const MAN_PATH = [];
 
-    for (const dep of scopes.allDependencies.values()) {
-      OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
-      PATH.push(config.getFinalInstallPath(dep.spec, 'bin'));
-      MAN_PATH.push(config.getFinalInstallPath(dep.spec, 'man'));
-    }
-
     // Optionally expose root's build PATH, MAN_PATH and OCAMLPATH
     if (scopes.spec === rootBuild && params.exposeOwnPath) {
       OCAMLPATH.push(config.getFinalInstallPath(rootBuild, 'lib'));
       PATH.push(config.getFinalInstallPath(rootBuild, 'bin'));
       MAN_PATH.push(config.getFinalInstallPath(rootBuild, 'man'));
+    }
+
+    for (const dep of scopes.allDependencies.values()) {
+      OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
+      PATH.push(config.getFinalInstallPath(dep.spec, 'bin'));
+      MAN_PATH.push(config.getFinalInstallPath(dep.spec, 'man'));
     }
 
     // In ideal world we wouldn't need it as the whole toolchain should be

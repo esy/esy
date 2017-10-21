@@ -8028,7 +8028,7 @@ Object {
   "exclusive": false,
   "exported": true,
   "name": "PATH",
-  "value": "<storePath>/i/dep/bin:<storePath>/i/app/bin:$PATH",
+  "value": "<storePath>/i/app/bin:<storePath>/i/dep/bin:$PATH",
 }
 `;
 
@@ -8038,6 +8038,6 @@ Object {
   "exclusive": true,
   "exported": true,
   "name": "OCAMLPATH",
-  "value": "<storePath>/i/dep/lib:<storePath>/i/app/lib",
+  "value": "<storePath>/i/app/lib:<storePath>/i/dep/lib",
 }
 `;
