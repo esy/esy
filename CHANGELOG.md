@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.0.18
+
+* Prioritize root's `bin/` and `lib/` in `$PATH` and `$OCAMLPATH`.
+
+  Root's binaries and ocamlfind libs should take precedence over deps.
+
 ## 0.0.17
 
 * Expose `$cur__lib` as part of the `$OCAMLPATH` in command env.
