@@ -48,14 +48,14 @@
 ## Install
 
 ```
-npm install -g @esy-ocaml/esy
+npm install -g esy
 ```
 
 If you had installed esy previously:
 
 ```
-npm uninstall -g @esy-ocaml/esy
 npm uninstall -g esy
+npm install -g esy
 ```
 
 ## Workflow
@@ -69,7 +69,7 @@ file, and then perform operations on that project.
 ```
 % esy
 
-  Usage: /Users/andreypopp/.nodenv/versions/8.2.1/bin/esy <command> [--help] [--version]
+  Usage: esy <command> [--help] [--version]
 
   install               Installs packages declared in package.json.
 
@@ -115,7 +115,7 @@ file, and then perform operations on that project.
 
 ```
 # Make sure esy is installed
-npm install -g @esy-ocaml/esy
+npm install -g esy
 
 # Clone the example esy project
 git clone git@github.com:esy-ocaml/esy-ocaml-project.git
@@ -130,7 +130,6 @@ esy build
 
 # Now run some commands inside the project's environment
 esy ./_install/bin/hello.native
-esy ./_install/bin/hello.byte
 
 # Shell into project's environment
 esy shell
@@ -340,7 +339,7 @@ Issues are tracked at [esy-ocaml/esy](https://github.com/esy-ocaml/esy-core).
 npm run test
 ```
 
-#### Developing: esy-core
+#### Developing
 
 To make changes to `esy-core` and test them locally:
 
@@ -348,72 +347,17 @@ To make changes to `esy-core` and test them locally:
     % cd esy-core
     % make bootstrap
 
-##### Developing: esy-install
-
-The repo is a fork of yarn package manager, the fork has changes to allow
-installing opam packages via `@opam/` npm scope. If you need to work on this
-functionality you need to follow yarn's dev workflow:
-
-    % npm run watch
-
-The command above rebuilds `esy install` command when source changes.
-
-##### Developing: esy core
-
-The esy core source tree is inside `esy/` subdirectory.
-
-    % cd esy
-
 Run:
 
     % make
 
 to see the description of development workflow.
 
-**NOTE:** When adding an npm dependency you need to run `yarn add <pkg name>`
-for both `esy-install` and `esy-core` packages.
-
-#### Developing: opam packages
-
-- Make sure you've ran `git submodule init` and `git submodule update`.
-- Add the OPAM package name and versions to
-  ./opam-packages-conversion/convertedPackages.txt
-- If the package/version was recently added to `OPAM`, you should `cd` into
-  `opam-packages-conversion/opam-repository`, `git fetch --all`, and then `git
-  checkout origin/master` to make sure you've got the latest OPAM universe that
-  you will convert from. `cd` back into the `esy` project root, and then `git
-  status` will show git changes for you to commit.
-- Make a new commit with all the above changes.
-- Push the update to `esy` `master`.
-- Clone a *fresh* new clone of `esy` (so that the submodules initialize
-  correctly), then publish a new beta release as described next.
-
-If an opam package fails to convert, inspect the output and fix any python
-errors that might be causing the package conversion failure.
-
-#### Pushing a Beta Release
+#### Pushinging releases
 
 On a clean branch off of `origin/master`, run
 
-    # Remove node_modules and esy/node_modules if they are from previous versions.
-    # Then npm install if needed.
-    cd esy
-    npm install
-    # Then cd into the *nested* esy directory and npm install if necessary
-    cd esy && npm install
-    # Go back into the root directory of the project
-    cd ..
-    which filterdiff || echo "You do not have filterdiff installed. Your build will fail! See README"
-    git submodule init
-    git submodule update
-    # Substitute your version number below
-    make beta-release VERSION=0.0.3
-
-Then follow the instructions for pushing a tagged release to github.
-
-Once pushed, other people can install that tagged release globally like this:
-
-    npm install -g git://github.com/reasonml/esy.git#beta-v0.0.3
+    % make bump-patch-version publish
 
 #### Debugging Failed `esy build`
 
