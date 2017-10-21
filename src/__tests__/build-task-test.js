@@ -356,5 +356,7 @@ describe('calculating env', function() {
     });
     const PATH = calculate(config, app, {exposeOwnPath: true}).env.get('PATH');
     expect(PATH).toMatchSnapshot();
+    const OCAMLPATH = calculate(config, app, {exposeOwnPath: true}).env.get('OCAMLPATH');
+    expect(OCAMLPATH).toMatchSnapshot();
   });
 });

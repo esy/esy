@@ -56,7 +56,7 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
 export function fromBuildSpec(
   rootBuild: BuildSpec,
   config: BuildConfig,
-  params?: BuildTaskParams,
+  params?: BuildTaskParams = {},
 ): BuildTask {
   const {
     task,
@@ -103,14 +103,33 @@ export function fromBuildSpec(
   function createTask(scopes): BuildTask {
     const env = new Map();
     const ocamlfindDest = config.getInstallPath(scopes.spec, 'lib');
-    const ocamlpath = Array.from(scopes.allDependencies.values())
-      .map(dep => config.getFinalInstallPath(dep.spec, 'lib'))
-      .join(getPathsDelimiter('OCAMLPATH', config.buildPlatform));
+
+    const OCAMLPATH = [];
+    const PATH = [];
+    const MAN_PATH = [];
+
+    for (const dep of scopes.allDependencies.values()) {
+      OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
+      PATH.push(config.getFinalInstallPath(dep.spec, 'bin'));
+      MAN_PATH.push(config.getFinalInstallPath(dep.spec, 'man'));
+    }
+
+    // Optionally expose root's build PATH, MAN_PATH and OCAMLPATH
+    if (scopes.spec === rootBuild && params.exposeOwnPath) {
+      OCAMLPATH.push(config.getFinalInstallPath(rootBuild, 'lib'));
+      PATH.push(config.getFinalInstallPath(rootBuild, 'bin'));
+      MAN_PATH.push(config.getFinalInstallPath(rootBuild, 'man'));
+    }
+
+    // In ideal world we wouldn't need it as the whole toolchain should be
+    // sandboxed. This isn't the case unfortunately.
+    PATH.push('$PATH');
+    MAN_PATH.push('$MAN_PATH');
 
     evalIntoEnv(env, [
       {
         name: 'OCAMLPATH',
-        value: ocamlpath,
+        value: OCAMLPATH.join(getPathsDelimiter('OCAMLPATH', config.buildPlatform)),
         exported: true,
         exclusive: true,
       },
@@ -135,37 +154,15 @@ export function fromBuildSpec(
       },
       {
         name: 'PATH',
-        value: Array.from(scopes.allDependencies.values())
-          .map(dep => config.getFinalInstallPath(dep.spec, 'bin'))
-          .concat('$PATH')
-          .join(getPathsDelimiter('PATH', config.buildPlatform)),
+        value: PATH.join(getPathsDelimiter('PATH', config.buildPlatform)),
         exported: true,
       },
       {
         name: 'MAN_PATH',
-        value: Array.from(scopes.allDependencies.values())
-          .map(dep => config.getFinalInstallPath(dep.spec, 'man'))
-          .concat('$MAN_PATH')
-          .join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
+        value: MAN_PATH.join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
         exported: true,
       },
     ]);
-
-    if (scopes.spec === rootBuild) {
-      // Check if we want to expose $cur__bin in $PATH
-      if (params != null && params.exposeOwnPath) {
-        evalIntoEnv(env, [
-          {
-            name: 'PATH',
-            value: `${config.getFinalInstallPath(rootBuild, 'bin')}:$PATH`,
-          },
-          {
-            name: 'MAN_PATH',
-            value: `${config.getFinalInstallPath(rootBuild, 'man')}:$MAN_PATH`,
-          },
-        ]);
-      }
-    }
 
     const errors = [];
 

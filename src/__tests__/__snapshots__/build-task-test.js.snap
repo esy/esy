@@ -8028,6 +8028,16 @@ Object {
   "exclusive": false,
   "exported": true,
   "name": "PATH",
-  "value": "<storePath>/i/app/bin:<storePath>/i/dep/bin:$PATH",
+  "value": "<storePath>/i/dep/bin:<storePath>/i/app/bin:$PATH",
+}
+`;
+
+exports[`calculating env exposing own $cur__bin in $PATH 2`] = `
+Object {
+  "builtIn": false,
+  "exclusive": true,
+  "exported": true,
+  "name": "OCAMLPATH",
+  "value": "<storePath>/i/dep/lib:<storePath>/i/app/lib",
 }
 `;
