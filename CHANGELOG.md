@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.17
+
+* Expose `$cur__lib` as part of the `$OCAMLPATH` in command env.
+
+  That means `esy <anycommand>` will make installed ocamlfind artefacts visible
+  for `<anycommand>`.
+
 ## 0.0.16
 
 * Make `esy release` not require dependency on Esy:
