@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.20
+
+* Packages produced by `esy release` command now can be installed with Yarn.
+
 ## 0.0.19
 
 * `@opam-alpha/*` namespaces for opam-converted packages is renamed to `@opam/*`
