@@ -1,6 +1,18 @@
 # CHANGELOG
 
-## NEXT
+## 0.0.19
+
+* `@opam-alpha/*` namespaces for opam-converted packages is renamed to `@opam/*`
+  namespace.
+
+  This is a major breaking change and means that you need to fix your
+  dependencies in `package.json` to use `@opam/*`:
+
+      {
+        "dependencies": {
+          "@opam/reason": "*"
+        }
+      }
 
 * Symlinks to install and build trees inside stores for a top level package now
   are called now `_esyinstall` and `_esybuild` correspondingly.
