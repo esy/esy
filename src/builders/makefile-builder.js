@@ -19,6 +19,12 @@ import {normalizePackageName} from '../util';
 import {renderEnv, renderSandboxSbConfig} from './util';
 import {singleQuote} from '../lib/shell';
 import * as bashgen from './bashgen';
+import {
+  ESY_STORE_VERSION,
+  STORE_BUILD_TREE,
+  STORE_STAGE_TREE,
+  STORE_INSTALL_TREE,
+} from '../constants';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
@@ -97,12 +103,12 @@ export function renderToMakefile(
     target: 'esy-store',
     phony: true,
     dependencies: [
-      `$(ESY_EJECT__STORE)/${Config.STORE_BUILD_TREE}`,
-      `$(ESY_EJECT__STORE)/${Config.STORE_INSTALL_TREE}`,
-      `$(ESY_EJECT__STORE)/${Config.STORE_STAGE_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
+      `$(ESY_EJECT__STORE)/${STORE_BUILD_TREE}`,
+      `$(ESY_EJECT__STORE)/${STORE_INSTALL_TREE}`,
+      `$(ESY_EJECT__STORE)/${STORE_STAGE_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_BUILD_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_INSTALL_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_STAGE_TREE}`,
     ],
   };
 
@@ -151,12 +157,12 @@ export function renderToMakefile(
     {
       type: 'rule',
       target: [
-        `$(ESY_EJECT__STORE)/${Config.STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__STORE)/${Config.STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__STORE)/${Config.STORE_STAGE_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${Config.STORE_STAGE_TREE}`,
+        `$(ESY_EJECT__STORE)/${STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__STORE)/${STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__STORE)/${STORE_STAGE_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_STAGE_TREE}`,
       ].join(' '),
       command: '@mkdir -p $(@)',
     },
@@ -309,7 +315,7 @@ export function renderToMakefile(
     contents: outdent`
       # Set the default value for ESY_EJECT__STORE if it's not defined.
       if [ -z \${ESY_EJECT__STORE+x} ]; then
-        export ESY_EJECT__STORE="$HOME/.esy/${Config.ESY_STORE_VERSION}"
+        export ESY_EJECT__STORE="$HOME/.esy/${ESY_STORE_VERSION}"
       fi
 
       ${Env.printEnvironment(rootTaskForCommand.env)}

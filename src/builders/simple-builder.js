@@ -16,6 +16,13 @@ import * as Graph from '../graph';
 import * as Config from '../build-config';
 import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
+import {
+  BUILD_TREE_SYMLINK,
+  INSTALL_TREE_SYMLINK,
+  STORE_BUILD_TREE,
+  STORE_STAGE_TREE,
+  STORE_INSTALL_TREE,
+} from '../constants';
 
 const INSTALL_DIR_STRUCTURE = [
   'lib',
@@ -29,8 +36,19 @@ const INSTALL_DIR_STRUCTURE = [
 ];
 const BUILD_DIR_STRUCTURE = ['_esy'];
 
-const IGNORE_FOR_BUILD = ['_build', '_install', '_release', 'node_modules'];
-const IGNORE_FOR_CHECKSUM = ['_esy', '_build', '_install', '_release', 'node_modules'];
+const IGNORE_FOR_BUILD = [
+  BUILD_TREE_SYMLINK,
+  INSTALL_TREE_SYMLINK,
+  '_release',
+  'node_modules',
+];
+const IGNORE_FOR_CHECKSUM = [
+  '_esy',
+  BUILD_TREE_SYMLINK,
+  INSTALL_TREE_SYMLINK,
+  '_release',
+  'node_modules',
+];
 
 const NUM_CPUS = os.cpus().length;
 
@@ -179,17 +197,20 @@ async function performBuild(
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
 
-  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, '_build');
-  const sandboxRootInstallTreeSymlink = path.join(config.sandboxPath, '_install');
+  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
+  const sandboxRootInstallTreeSymlink = path.join(
+    config.sandboxPath,
+    INSTALL_TREE_SYMLINK,
+  );
 
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
   log('starting build');
 
-  // For top level build we need to remove `_build` and `_install` as in case of
-  // non mutating build it can interfere with the build itself. In case of
-  // mutating build they still be ignore then copying sources of to
-  // `$cur__target_dir`.
+  // For top level build we need to remove build tree symlink and install tree
+  // symlink as in case of non mutating build it can interfere with the build
+  // itself. In case of mutating build they still be ignore then copying sources
+  // of to `$cur__target_dir`.
   if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
     await Promise.all([
       unlinkOrRemove(sandboxRootBuildTreeSymlink),
@@ -314,7 +335,7 @@ async function performBuild(
 
 async function initStore(storePath) {
   await Promise.all(
-    [Config.STORE_BUILD_TREE, Config.STORE_INSTALL_TREE, Config.STORE_STAGE_TREE].map(p =>
+    [STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE].map(p =>
       fs.mkdirp(path.join(storePath, p)),
     ),
   );

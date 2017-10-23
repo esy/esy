@@ -5,23 +5,13 @@
 import type {BuildSpec, BuildConfig, BuildPlatform} from './types';
 import * as path from 'path';
 import invariant from 'invariant';
-
-// The current version of esy store, bump it whenever the store layout changes.
-// We also have the same constant hardcoded into bin/esy executable for perf
-// reasons (we don't want to spawn additional processes to read from there).
-//
-// XXX: Update bin/esy if you change it.
-// TODO: We probably still want this be the source of truth so figure out how to
-// put this into bin/esy w/o any perf penalties.
-export const ESY_STORE_VERSION = '3.x.x';
-
-/**
- * Constants for tree names inside stores. We keep them short not to exhaust
- * available shebang length as install tree will be there.
- */
-export const STORE_BUILD_TREE = 'b';
-export const STORE_INSTALL_TREE = 'i';
-export const STORE_STAGE_TREE = 's';
+import {
+  STORE_BUILD_TREE,
+  STORE_INSTALL_TREE,
+  STORE_STAGE_TREE,
+  ESY_STORE_VERSION,
+  DESIRED_ESY_STORE_PATH_LENGTH,
+} from './constants';
 
 export function create(params: {
   storePath: string,
@@ -114,8 +104,3 @@ function sanitizePrefixPath(prefix) {
   prefix = prefix.replace(SANITIZE_SLASH_RE, '/');
   return prefix;
 }
-
-const DESIRED_SHEBANG_PATH_LENGTH = 127 - '!#'.length;
-const PATH_LENGTH_CONSUMED_BY_OCAMLRUN = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
-export const DESIRED_ESY_STORE_PATH_LENGTH =
-  DESIRED_SHEBANG_PATH_LENGTH - PATH_LENGTH_CONSUMED_BY_OCAMLRUN;

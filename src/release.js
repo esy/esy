@@ -132,7 +132,11 @@ import * as os from 'os';
 import * as path from 'path';
 import * as bashgen from './builders/bashgen';
 import outdent from 'outdent';
-import {DESIRED_ESY_STORE_PATH_LENGTH, ESY_STORE_VERSION} from './build-config';
+import {
+  ESY_STORE_VERSION,
+  DESIRED_ESY_STORE_PATH_LENGTH,
+  RELEASE_TREE,
+} from './constants';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
@@ -864,8 +868,8 @@ export async function buildRelease(config: BuildReleaseConfig) {
   const releaseTag = getReleaseTag(config);
 
   const sandboxPath = config.sandboxPath;
-  const releasePath = path.join(sandboxPath, '_release', releaseTag);
-  const esyReleasePath = path.join(sandboxPath, '_release', releaseTag, 'rel');
+  const releasePath = path.join(sandboxPath, RELEASE_TREE, releaseTag);
+  const esyReleasePath = path.join(sandboxPath, RELEASE_TREE, releaseTag, 'rel');
 
   const tarFilename = await child_process.spawn('npm', ['pack'], {cwd: sandboxPath});
   await child_process.spawn('tar', ['xzf', tarFilename]);

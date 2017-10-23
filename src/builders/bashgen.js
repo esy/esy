@@ -5,7 +5,7 @@
  */
 
 import outdent from 'outdent';
-import * as Config from '../build-config';
+import {DESIRED_ESY_STORE_PATH_LENGTH, ESY_STORE_VERSION} from '../constants';
 
 export const defineScriptDir = outdent`
 
@@ -44,10 +44,10 @@ export const defineEsyUtil = outdent`
     ESY_EJECT__PREFIX="$1"
     # Remove trailing slash if any.
     ESY_EJECT__PREFIX="\${ESY_EJECT__PREFIX%/}"
-    ESY_STORE_VERSION="${Config.ESY_STORE_VERSION}"
+    ESY_STORE_VERSION="${ESY_STORE_VERSION}"
 
     prefixLength=$(esyStrLength "$ESY_EJECT__PREFIX/$ESY_STORE_VERSION")
-    paddingLength=$(expr ${Config.DESIRED_ESY_STORE_PATH_LENGTH} - $prefixLength)
+    paddingLength=$(expr ${DESIRED_ESY_STORE_PATH_LENGTH} - $prefixLength)
 
     # Discover how much of the reserved relocation padding must be consumed.
     if [ "$paddingLength" -lt "0" ]; then
