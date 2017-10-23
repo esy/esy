@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## NEXT
+
+* Symlinks to install and build trees inside stores for a top level package now
+  are called now `_esyinstall` and `_esybuild` correspondingly.
+
+  This is not to clash with jbuilder and ocamlbuild which build into `_build` by
+  default. See #4.
+
 ## 0.0.18
 
 * Prioritize root's `bin/` and `lib/` in `$PATH` and `$OCAMLPATH`.
