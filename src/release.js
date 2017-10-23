@@ -143,6 +143,7 @@ type ReleaseType = 'dev' | 'pack' | 'bin';
 type ReleaseStage = 'forClientInstallation' | 'forPreparingRelease';
 
 type ReleaseActionsSpec = {
+  checkIfReleaseIsBuilt: ?ReleaseStage,
   installEsy: ?ReleaseStage,
   configureEsy: ?ReleaseStage,
   download: ?ReleaseStage,
@@ -152,6 +153,7 @@ type ReleaseActionsSpec = {
   buildPackages: ?ReleaseStage,
   compressBuiltPackages: ?ReleaseStage,
   decompressAndRelocateBuiltPackages: ?ReleaseStage,
+  markReleaseAsBuilt: ?ReleaseStage,
 };
 
 type BuildReleaseConfig = {
@@ -358,6 +360,7 @@ function createCommandWrapper(pkg, commandName) {
 
 const actions: {[releaseType: ReleaseType]: ReleaseActionsSpec} = {
   dev: {
+    checkIfReleaseIsBuilt: 'forClientInstallation',
     installEsy: 'forClientInstallation',
     configureEsy: null,
     download: 'forClientInstallation',
@@ -367,8 +370,10 @@ const actions: {[releaseType: ReleaseType]: ReleaseActionsSpec} = {
     buildPackages: 'forClientInstallation',
     compressBuiltPackages: 'forClientInstallation',
     decompressAndRelocateBuiltPackages: 'forClientInstallation',
+    markReleaseAsBuilt: 'forClientInstallation',
   },
   pack: {
+    checkIfReleaseIsBuilt: 'forClientInstallation',
     installEsy: null,
     configureEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
@@ -378,8 +383,10 @@ const actions: {[releaseType: ReleaseType]: ReleaseActionsSpec} = {
     buildPackages: 'forClientInstallation',
     compressBuiltPackages: 'forClientInstallation',
     decompressAndRelocateBuiltPackages: 'forClientInstallation',
+    markReleaseAsBuilt: 'forClientInstallation',
   },
   bin: {
+    checkIfReleaseIsBuilt: 'forClientInstallation',
     installEsy: null,
     configureEsy: 'forPreparingRelease',
     download: 'forPreparingRelease',
@@ -389,6 +396,7 @@ const actions: {[releaseType: ReleaseType]: ReleaseActionsSpec} = {
     buildPackages: 'forPreparingRelease',
     compressBuiltPackages: 'forPreparingRelease',
     decompressAndRelocateBuiltPackages: 'forClientInstallation',
+    markReleaseAsBuilt: 'forClientInstallation',
   },
 };
 
@@ -478,7 +486,9 @@ async function verifyBinSetup(sandboxPath, pkg) {
  * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
  * the release in as many destinations as possible.
  */
-function createInstallScript(releaseStage, releaseType, pkg) {
+function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseType, pkg) {
+  const shouldCheckIfReleaseIsBuilt =
+    actions[releaseType].checkIfReleaseIsBuilt === releaseStage;
   const shouldConfigureEsy = actions[releaseType].configureEsy === releaseStage;
   const shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
   const shouldDownload = actions[releaseType].download === releaseStage;
@@ -490,6 +500,9 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     actions[releaseType].compressBuiltPackages === releaseStage;
   const shouldDecompressAndRelocateBuiltPackages =
     actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
+  const shouldMarkReleaseAsBuilt =
+    actions[releaseType].markReleaseAsBuilt === releaseStage;
+
   const message = outdent`
 
     #
@@ -497,19 +510,34 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     # ------------------------------------------------------
     # Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
     #
-    # Install Esy: ${String(shouldInstallEsy)}
-    # Download: ${String(shouldDownload)}
-    # Pack: ${String(shouldPack)}
-    # Compress Pack: ${String(shouldCompressPack)}
-    # Decompress Pack: ${String(shouldDecompressPack)}
-    # Build Packages: ${String(shouldBuildPackages)}
-    # Compress Built Packages: ${String(shouldCompressBuiltPackages)}
-    # Decompress Built Packages: ${String(shouldDecompressAndRelocateBuiltPackages)}
+    # Check if release is built:    ${String(shouldCheckIfReleaseIsBuilt)}
+    # Configure Esy:                ${String(shouldConfigureEsy)}
+    # Install Esy:                  ${String(shouldInstallEsy)}
+    # Download:                     ${String(shouldDownload)}
+    # Pack:                         ${String(shouldPack)}
+    # Compress Pack:                ${String(shouldCompressPack)}
+    # Decompress Pack:              ${String(shouldDecompressPack)}
+    # Build Packages:               ${String(shouldBuildPackages)}
+    # Compress Built Packages:      ${String(shouldCompressBuiltPackages)}
+    # Decompress Built Packages:    ${String(shouldDecompressAndRelocateBuiltPackages)}
+    # Mark release as built:        ${String(shouldMarkReleaseAsBuilt)}
+    #
 
   `;
 
   const deleteFromBinaryRelease =
     pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
+
+  const checkIfReleaseIsBuiltCmds = outdent`
+
+    #
+    # checkIfReleaseIsBuilt
+    #
+    if [ -f "$PACKAGE_ROOT/records/done.txt" ]; then
+     exit 0;
+    fi
+
+  `;
 
   const configureEsyCmds = outdent`
 
@@ -611,7 +639,6 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     make -j -f "$ESY_EJECT__ROOT/Makefile"
     cd $PACKAGE_ROOT
 
-    mkdir $PACKAGE_ROOT/records
     cp \
       "$ESY_EJECT__ROOT/records/store-path.txt" \
       "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"
@@ -708,11 +735,25 @@ function createInstallScript(releaseStage, releaseType, pkg) {
 
   `;
 
+  const markReleaseAsBuiltCmds = outdent`
+
+    #
+    # markReleaseAsBuilt
+    #
+    touch "$PACKAGE_ROOT/records/done.txt"
+
+  `;
+
   function renderCommands(commands, enabled) {
+    // Notice how we comment out each section which doesn't apply to this
+    // combination of releaseStage/releaseType.
     return commands.split('\n').join(enabled ? '\n' : '\n# ');
   }
-  // Notice how we comment out each section which doesn't apply to this
-  // combination of releaseStage/releaseType.
+
+  const checkIfReleaseIsBuilt = renderCommands(
+    checkIfReleaseIsBuiltCmds,
+    shouldCheckIfReleaseIsBuilt,
+  );
   const configureEsy = renderCommands(configureEsyCmds, shouldConfigureEsy);
   const installEsy = renderCommands(installEsyCmds, shouldInstallEsy);
   const download = renderCommands(downloadCmds, shouldDownload);
@@ -727,6 +768,10 @@ function createInstallScript(releaseStage, releaseType, pkg) {
   const decompressAndRelocateBuiltPackages = renderCommands(
     decompressAndRelocateBuiltPackagesCmds,
     shouldDecompressAndRelocateBuiltPackages,
+  );
+  const markReleaseAsBuilt = renderCommands(
+    markReleaseAsBuiltCmds,
+    shouldMarkReleaseAsBuilt,
   );
   return outdent`
     #!/bin/bash
@@ -747,6 +792,8 @@ function createInstallScript(releaseStage, releaseType, pkg) {
 
     export PACKAGE_ROOT="$SCRIPTDIR"
 
+    mkdir -p "$PACKAGE_ROOT/records"
+
     export ESY__STORE_VERSION="${ESY_STORE_VERSION}"
 
     export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
@@ -766,6 +813,8 @@ function createInstallScript(releaseStage, releaseType, pkg) {
     # copy them to inside the sandbox - sometimes not.
     export ESY_EJECT__TMP="$PACKAGE_ROOT/relBinaries"
 
+    ${checkIfReleaseIsBuilt}
+
     ${configureEsy}
 
     ${installEsy}
@@ -784,8 +833,7 @@ function createInstallScript(releaseStage, releaseType, pkg) {
 
     ${decompressAndRelocateBuiltPackages}
 
-    # cleanup
-    rm -rf ./_esy
+    ${markReleaseAsBuilt}
   `;
 }
 
