@@ -5,8 +5,8 @@
 /**
  * Names of the symlinks to build and install trees of the sandbox.
  */
-export const BUILD_TREE_SYMLINK = '_build';
-export const INSTALL_TREE_SYMLINK = '_install';
+export const BUILD_TREE_SYMLINK = '_esybuild';
+export const INSTALL_TREE_SYMLINK = '_esyinstall';
 
 /**
  * Name of the tree used to store releases for the sandbox.
