@@ -962,4 +962,12 @@ export async function buildRelease(config: BuildReleaseConfig) {
     path.join(releasePath, 'postinstall.sh'),
     createInstallScript('forClientInstallation', releaseType, pkg),
   );
+
+  console.log(outdent`
+    *** Release package created
+
+        Location: ${path.relative(process.cwd(), releasePath)}
+        Release Type: ${releaseType}
+
+  `);
 }
