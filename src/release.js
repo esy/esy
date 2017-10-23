@@ -334,7 +334,7 @@ function createCommandWrapper(pkg, commandName) {
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
         ${bashgen.defineScriptDir}
         export ESY_EJECT__SANDBOX="$SCRIPTDIR/../rel"
-        export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject"
+        export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"
         export PACKAGE_ROOT="$SCRIPTDIR/.."
         # Remove dependency on esy and package managers in general
         # We fake it so that the eject store is the location where we relocated the
@@ -592,6 +592,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     echo '*** Ejecting build environment...'
     cd $ESY_EJECT__SANDBOX
     $ESY_COMMAND build-eject
+    mv $ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject $ESY_EJECT__SANDBOX/_esyEjectRoot
     cd $PACKAGE_ROOT
 
   `;
@@ -797,7 +798,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     export ESY__STORE_VERSION="${ESY_STORE_VERSION}"
 
     export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
-    export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject"
+    export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"
 
     # We Build into the ESY_EJECT__STORE, copy into ESY_EJECT__TMP, potentially
     # transport over the network then finally we copy artifacts into the
