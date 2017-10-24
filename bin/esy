@@ -151,6 +151,8 @@ printHelp() {
 
                           esy import-opam lwt 3.0.0 ./opam
 
+  config ls|get         Query esy configuration.
+
   help                  Print this message.
 
   version               Print esy version and exit
@@ -206,6 +208,9 @@ elif [ $# -eq 1 ]; then
       ensureCommandEnvEjected
       cat "$COMMAND_ENV_PATH"
       ;;
+    config)
+      callBuiltInCommand config
+      ;;
     install|add)
       callBuiltInCommand__esyInstall "$@"
       ;;
@@ -235,7 +240,10 @@ else
       callBuiltInCommand__esyInstall "$@"
       ;;
     release)
-      callBuiltInCommand release $@
+      callBuiltInCommand release "$@"
+      ;;
+    config)
+      callBuiltInCommand config "$@"
       ;;
     -*)
       echo Unknown option "$1" >&2

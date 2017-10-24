@@ -156,12 +156,38 @@ import * as EsyOpam from '@esy-ocaml/esy-opam';
  *  true/false flag and it doesn't take into account scope.
  */
 
-/**
- * Detect the default build platform based on the current OS.
- */
-const defaultBuildPlatform: BuildPlatform = process.platform === 'darwin'
-  ? 'darwin'
-  : process.platform === 'linux' ? 'linux' : 'linux';
+function getSandboxPath() {
+  if (process.env.ESY__SANDBOX != null) {
+    return process.env.ESY__SANDBOX;
+  } else {
+    // TODO: Need to change this to climb to closest package.json.
+    return process.cwd();
+  }
+}
+
+function getPrefixPath() {
+  if (process.env.ESY__PREFIX != null) {
+    return process.env.ESY__PREFIX;
+  } else {
+    return path.join(userHome, '.esy');
+  }
+}
+
+function getBuildPlatform() {
+  if (process.platform === 'darwin') {
+    return 'darwin';
+  } else if (process.platform === 'linux') {
+    return 'linux';
+  } else {
+    // think cygwin/wsl
+    return 'linux';
+  }
+}
+
+const prefixPath = getPrefixPath();
+const sandboxPath = getSandboxPath();
+const defaultBuildPlatform: BuildPlatform = getBuildPlatform();
+const actualArgs = process.argv.slice(2);
 
 /**
  * This is temporary, mostly here for testing. Soon, esy will automatically
@@ -211,10 +237,6 @@ async function getBuildSandbox(sandboxPath, options): Promise<BuildSandbox> {
   return sandbox;
 }
 
-const actualArgs = process.argv.slice(2);
-// TODO: Need to change this to climb to closest package.json.
-const sandboxPath = process.cwd();
-
 /**
  * To relocate binary artifacts, we need to replace all build-time paths that
  * occur in build artifacts with install-time paths, which very well may be on
@@ -242,12 +264,8 @@ const sandboxPath = process.cwd();
  * shebang consumed by the "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion, so
  * that more of that 127 can act as a padding.
  */
-var desiredShebangPathLength = 127 - '!#'.length;
-var pathLengthConsumedByOcamlrun = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
-var desiredEsyEjectStoreLength = desiredShebangPathLength - pathLengthConsumedByOcamlrun;
 
 function buildConfigForBuildCommand(buildPlatform: BuildPlatform) {
-  const prefixPath = process.env.ESY__PREFIX || path.join(userHome, '.esy');
   return Config.createForPrefix({prefixPath, sandboxPath, buildPlatform});
 }
 
@@ -436,11 +454,57 @@ async function importOpamCommand(
   console.log(JSON.stringify(packageJson, null, 2));
 }
 
+function configCommand(sandboxPath, _commandName, action, configKey) {
+  if (action == null) {
+    action = 'ls';
+  }
+
+  const config = buildConfigForBuildCommand(defaultBuildPlatform);
+
+  const configSpecs = {
+    'store-path': {
+      get: () => config.storePath,
+    },
+    'sandbox-path': {
+      get: () => config.sandboxPath,
+    },
+  };
+
+  switch (action) {
+    case 'get': {
+      const configSpec = configSpecs[configKey];
+      if (configSpec == null) {
+        const configKeySet = Object.keys(configSpecs);
+        onError(outdent`
+          usage: esy config get CONFIGKEY
+
+            where CONFIGKEY should be one of: ${configKeySet.join(', ')}
+
+        `);
+      }
+      console.log(configSpec.get());
+      break;
+    }
+    case 'ls':
+      for (const configKey of Object.keys(configSpecs)) {
+        const configSpec = configSpecs[configKey];
+        console.log(`${configKey}: ${configSpec.get()}`);
+      }
+      break;
+
+    default:
+      onError(outdent`
+        usage: esy config get|ls
+      `);
+  }
+}
+
 const builtInCommands = {
   'build-eject': buildEjectCommand,
   build: buildCommand,
   release: releaseCommand,
   'import-opam': importOpamCommand,
+  config: configCommand,
 };
 
 function indent(string, indent) {
