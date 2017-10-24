@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 0.0.21
+
+* Add `esy config` command.
+
+  `esy config ls` prints esy configuration values
+
+  `esy config get KEY` prints esy configuration value for a specific key
+
+  Example:
+
+  ```
+  % esy config get store-path
+  % esy config get sandbox-path
+  ```
+
 ## 0.0.20
 
 * Packages produced by `esy release` command now can be installed with Yarn.
