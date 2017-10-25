@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## NEXT
+
+* `command-env` bash scripts was generated with an incorrect default value for
+  a global store path.
+
 ## 0.0.23
 
 * Fixes `0.0.22` failure on Linux due to incorrectly computed store path
