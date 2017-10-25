@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.0.22
+
+* Packages converted from opam now depend on `@esy-ocaml/esy-installer` and
+  `@esy-ocaml/substs` packages from npm registry rather than on packages on
+  github.
+
 ## 0.0.21
 
 * Add `esy config` command.
