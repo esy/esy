@@ -11,7 +11,6 @@ import createLogger from 'debug';
 import outdent from 'outdent';
 
 import * as Graph from '../graph';
-import * as Config from '../build-config';
 import * as Task from '../build-task';
 import * as Env from '../environment';
 import * as Makefile from '../Makefile';
@@ -19,12 +18,7 @@ import {normalizePackageName} from '../util';
 import {renderEnv, renderSandboxSbConfig} from './util';
 import {singleQuote} from '../lib/shell';
 import * as bashgen from './bashgen';
-import {
-  ESY_STORE_VERSION,
-  STORE_BUILD_TREE,
-  STORE_STAGE_TREE,
-  STORE_INSTALL_TREE,
-} from '../constants';
+import {STORE_BUILD_TREE, STORE_STAGE_TREE, STORE_INSTALL_TREE} from '../constants';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
@@ -313,9 +307,11 @@ export function renderToMakefile(
   emitFile(outputPath, {
     filename: ['command-env'],
     contents: outdent`
+      ${bashgen.defineEsyUtil}
+
       # Set the default value for ESY_EJECT__STORE if it's not defined.
       if [ -z \${ESY_EJECT__STORE+x} ]; then
-        export ESY_EJECT__STORE="$HOME/.esy/${ESY_STORE_VERSION}"
+        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
       fi
 
       ${Env.printEnvironment(rootTaskForCommand.env)}

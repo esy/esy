@@ -21,16 +21,25 @@ export const STORE_BUILD_TREE = 'b';
 export const STORE_INSTALL_TREE = 'i';
 export const STORE_STAGE_TREE = 's';
 
-// The current version of esy store, bump it whenever the store layout changes.
-// We also have the same constant hardcoded into bin/esy executable for perf
-// reasons (we don't want to spawn additional processes to read from there).
-//
-// XXX: Update bin/esy if you change it.
-// TODO: We probably still want this be the source of truth so figure out how to
-// put this into bin/esy w/o any perf penalties.
+/**
+ * The current version of esy store, bump it whenever the store layout changes.
+ */
 export const ESY_STORE_VERSION = '3.x.x';
 
-const DESIRED_SHEBANG_PATH_LENGTH = 127 - '!#'.length;
-const PATH_LENGTH_CONSUMED_BY_OCAMLRUN = '/i/ocaml-n.00.000-########/bin/ocamlrun'.length;
-export const DESIRED_ESY_STORE_PATH_LENGTH =
-  DESIRED_SHEBANG_PATH_LENGTH - PATH_LENGTH_CONSUMED_BY_OCAMLRUN;
+/**
+ * This is a limit imposed by POSIX.
+ *
+ * Darwin is less strict with it but we found that Linux is.
+ */
+const MAX_SHEBANG_LENGTH = 127;
+
+/**
+ * This is how OCaml's ocamlrun executable path within store look like given the
+ * currently used versioning schema.
+ */
+const OCAMLRUN_STORE_PATH = 'ocaml-n.00.000-########/bin/ocamlrun';
+
+export const ESY_STORE_PADDING_LENGTH =
+  MAX_SHEBANG_LENGTH -
+  '!#'.length -
+  `/${STORE_INSTALL_TREE}/${OCAMLRUN_STORE_PATH}`.length;

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-ESY__VERSION="3.0.0"
 # The caches are compatible with any major version 3.
 ESY__CACHE_VERSION="3.x.x"
 

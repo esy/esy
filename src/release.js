@@ -132,11 +132,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as bashgen from './builders/bashgen';
 import outdent from 'outdent';
-import {
-  ESY_STORE_VERSION,
-  DESIRED_ESY_STORE_PATH_LENGTH,
-  RELEASE_TREE,
-} from './constants';
+import {RELEASE_TREE} from './constants';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
@@ -318,8 +314,6 @@ function createCommandWrapper(pkg, commandName) {
 
   return outdent`
     #!/bin/bash
-
-    export ESY__STORE_VERSION=${ESY_STORE_VERSION}
 
     printError() {
       echo >&2 "ERROR:";
@@ -794,8 +788,6 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     export PACKAGE_ROOT="$SCRIPTDIR"
 
     mkdir -p "$PACKAGE_ROOT/records"
-
-    export ESY__STORE_VERSION="${ESY_STORE_VERSION}"
 
     export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
     export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"

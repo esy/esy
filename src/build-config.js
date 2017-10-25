@@ -10,7 +10,7 @@ import {
   STORE_INSTALL_TREE,
   STORE_STAGE_TREE,
   ESY_STORE_VERSION,
-  DESIRED_ESY_STORE_PATH_LENGTH,
+  ESY_STORE_PADDING_LENGTH,
 } from './constants';
 
 export function create(params: {
@@ -75,12 +75,12 @@ export function createForPrefix(params: {
 
 export function getStorePathForPrefix(prefix: string): string {
   const prefixLength = `${prefix}/${ESY_STORE_VERSION}`.length;
-  const paddingLength = DESIRED_ESY_STORE_PATH_LENGTH - prefixLength;
+  const paddingLength = ESY_STORE_PADDING_LENGTH - prefix.length;
   invariant(
     paddingLength >= 0,
     `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
   );
-  return `${prefix}/${ESY_STORE_VERSION}`.padEnd(DESIRED_ESY_STORE_PATH_LENGTH, '_');
+  return `${prefix}/${ESY_STORE_VERSION}`.padEnd(ESY_STORE_PADDING_LENGTH, '_');
 }
 
 const REMOVE_TRAILING_SLASH_RE = /\/+$/g;
