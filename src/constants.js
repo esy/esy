@@ -31,6 +31,6 @@ export const STORE_STAGE_TREE = 's';
 export const ESY_STORE_VERSION = '3.x.x';
 
 const DESIRED_SHEBANG_PATH_LENGTH = 127 - '!#'.length;
-const PATH_LENGTH_CONSUMED_BY_OCAMLRUN = '/i/ocaml-n.00.0-########/bin/ocamlrun'.length;
+const PATH_LENGTH_CONSUMED_BY_OCAMLRUN = '/i/ocaml-n.00.000-########/bin/ocamlrun'.length;
 export const DESIRED_ESY_STORE_PATH_LENGTH =
   DESIRED_SHEBANG_PATH_LENGTH - PATH_LENGTH_CONSUMED_BY_OCAMLRUN;
