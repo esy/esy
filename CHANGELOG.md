@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.23
+
+* Fixes `0.0.22` failure on Linux due to incorrectly computed store path
+  padding.
+
 ## 0.0.22
 
 * Packages converted from opam now depend on `@esy-ocaml/esy-installer` and
