@@ -1,3 +1,4 @@
+RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
 
 #
@@ -80,7 +81,7 @@ build-release:
 	@node ./scripts/generate-esy-install-package-json.js > $(RELEASE_ROOT)/package.json
 
 publish: build-release
-	@(cd $(RELEASE_ROOT) && npm publish --access public)
+	@(cd $(RELEASE_ROOT) && npm publish --access public --tag $(RELEASE_TAG))
 	@git push && git push --tags
 
 bump-major-version:
