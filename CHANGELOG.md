@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## NEXT
+## 0.0.24
+
+* `esy install` was improved to handle opam converted package more inline with
+  the regular npm packages.
+
+  For example offline mirror feature of Yarn is now fully supported for opam
+  converted packages as well.
 
 * `command-env` bash scripts was generated with an incorrect default value for
   a global store path.
