@@ -144,6 +144,8 @@ printHelp() {
                         be removed soon. It is currently here for debugging
                         purposes.
 
+  install-cache         Manage installation cache (similar to 'yarn cache'
+                        command).
 
   import-opam           Read a provided opam file and print esy-enabled
                         package.json conents on stdout. Example:
@@ -222,6 +224,10 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand__esyInstall add "$@"
       ;;
+    install-cache)
+      shift
+      callBuiltInCommand__esyInstall cache "$@"
+      ;;
     version|--version|-v)
       printVersion
       ;;
@@ -253,6 +259,10 @@ else
     install|i)
       shift
       callBuiltInCommand__esyInstall install "$@"
+      ;;
+    install-cache)
+      shift
+      callBuiltInCommand__esyInstall cache "$@"
       ;;
     release)
       shift
