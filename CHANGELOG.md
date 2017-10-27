@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## NEXT
+
+* `esy install` command now supports same arguments as `yarn install`
+
+* Added `esy b` and `esy i` shortcuts for `esy build` and `esy install`
+  correspondingly.
+
+* Fix `esy add` command invocation.
+
+  Previously it failed to resolve opam packages for patterns without
+  constraints:
+
+      % esy add @opam/reason
+
+  Now it works correctly.
+
+* Fix `esy import-opam` to produce `package.json` with dependencies on OCaml
+  compiler published on npm registry.
+
 ## 0.0.25
 
 * Support for `esy.json`.
