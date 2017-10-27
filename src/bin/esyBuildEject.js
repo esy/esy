@@ -18,13 +18,13 @@ export default async function buildEjectCommand(ctx: CommandContext) {
   const buildPlatform: BuildPlatform = determineBuildPlatformFromArgument(
     ctx,
     buildPlatformArg,
-    ctx.config.buildPlatform,
+    ctx.buildPlatform,
   );
-  const sandbox = await getBuildSandbox(ctx.config.sandboxPath, {forRelease: true});
+  const sandbox = await getBuildSandbox(ctx, {forRelease: true});
   const buildConfig = buildConfigForBuildEjectCommand(buildPlatform);
   MakefileBuilder.renderToMakefile(
     sandbox,
-    path.join(ctx.config.sandboxPath, 'node_modules', '.cache', '_esy', 'build-eject'),
+    path.join(ctx.sandboxPath, 'node_modules', '.cache', '_esy', 'build-eject'),
     buildConfig,
   );
 }

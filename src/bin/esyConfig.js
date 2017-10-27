@@ -4,21 +4,25 @@
 
 import type {CommandContext} from './esy';
 
+import {getBuildConfig} from './esy';
+
 import outdent from 'outdent';
 
-export default function configCommand(ctx: CommandContext) {
+export default async function configCommand(ctx: CommandContext) {
   let [action, configKey] = ctx.args;
 
   if (action == null) {
     action = 'ls';
   }
 
+  const config = await getBuildConfig(ctx);
+
   const configSpecs = {
     'store-path': {
-      get: () => ctx.config.storePath,
+      get: () => config.storePath,
     },
     'sandbox-path': {
-      get: () => ctx.config.sandboxPath,
+      get: () => config.sandboxPath,
     },
   };
 

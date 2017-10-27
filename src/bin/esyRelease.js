@@ -34,10 +34,10 @@ export default async function releaseCommand(ctx: CommandContext) {
 
     `);
   }
-  const pkg = await readManifest(ctx.config.sandboxPath);
+  const pkg = await readManifest(ctx.sandboxPath);
   await buildRelease({
     type: (type: any),
     version: pkg.version,
-    sandboxPath: ctx.config.sandboxPath,
+    sandboxPath: ctx.sandboxPath,
   });
 }

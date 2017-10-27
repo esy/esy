@@ -10,7 +10,7 @@ import chalk from 'chalk';
 import outdent from 'outdent';
 
 import * as fs from '../lib/fs';
-import {indent, getBuildSandbox} from './esy';
+import {indent, getBuildSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
 
@@ -30,10 +30,11 @@ export default async function buildCommand(ctx: CommandContext) {
     return handler;
   }
 
-  const sandbox = await getBuildSandbox(ctx.config.sandboxPath);
-  const task: BuildTask = Task.fromBuildSandbox(sandbox, ctx.config);
+  const sandbox = await getBuildSandbox(ctx);
+  const config = await getBuildConfig(ctx);
+  const task: BuildTask = Task.fromBuildSandbox(sandbox, config);
   const failures = [];
-  await Builder.build(task, sandbox, ctx.config, (task, status) => {
+  await Builder.build(task, sandbox, config, (task, status) => {
     if (status.state === 'in-progress') {
       getReporterFor(task).status('building...');
     } else if (status.state === 'success') {

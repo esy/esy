@@ -12,8 +12,6 @@ import userHome from 'user-home';
 import * as path from 'path';
 import chalk from 'chalk';
 
-import * as Config from '../build-config';
-
 function getSandboxPath() {
   if (process.env.ESY__SANDBOX != null) {
     return process.env.ESY__SANDBOX;
@@ -43,11 +41,11 @@ function getBuildPlatform() {
 }
 
 export async function getBuildSandbox(
-  sandboxPath: string,
+  ctx: CommandContext,
   options?: SandboxOptions,
 ): Promise<BuildSandbox> {
   const Sandbox = require('../build-sandbox');
-  const sandbox = await Sandbox.fromDirectory(sandboxPath, options);
+  const sandbox = await Sandbox.fromDirectory(ctx.sandboxPath, options);
   if (sandbox.root.errors.length > 0) {
     sandbox.root.errors.forEach(error => {
       console.log(formatError(error.message));
@@ -55,6 +53,16 @@ export async function getBuildSandbox(
     process.exit(1);
   }
   return sandbox;
+}
+
+export async function getBuildConfig(ctx: CommandContext) {
+  const {createForPrefix} = require('../build-config');
+
+  return createForPrefix({
+    prefixPath: ctx.prefixPath,
+    sandboxPath: ctx.sandboxPath,
+    buildPlatform: ctx.buildPlatform,
+  });
 }
 
 function formatError(message: string, stack?: string) {
@@ -77,9 +85,13 @@ export function indent(string: string, indent: string) {
 }
 
 export type CommandContext = {
-  config: BuildConfig,
+  prefixPath: string,
+  sandboxPath: string,
+  buildPlatform: BuildPlatform,
+
   commandName: string,
   args: Array<string>,
+
   error(message: string): void,
 };
 
@@ -94,11 +106,9 @@ const commandsByName: {[name: string]: (CommandContext) => any} = {
 
 async function main() {
   const ctx: CommandContext = {
-    config: Config.createForPrefix({
-      prefixPath: getPrefixPath(),
-      sandboxPath: getSandboxPath(),
-      buildPlatform: getBuildPlatform(),
-    }),
+    prefixPath: getPrefixPath(),
+    sandboxPath: getSandboxPath(),
+    buildPlatform: getBuildPlatform(),
     commandName: process.argv[2],
     args: process.argv.slice(3),
     error: error,
