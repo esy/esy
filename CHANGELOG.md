@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 0.0.25
+
+* Support for `esy.json`.
+
+  Now if a project (or any dependency) has `esy.json` file then it will take
+  precedence over `package.json`.
+
+  This allow to use the same project both as a regular npm-compatible project
+  and an esy-compatible project.
+
+* Change lockfile filename to be `esy.lock`.
+
+  This is a soft breaking change. So it is advised to manually rename
+  `yarn.lock` to `esy.lock` within Esy projects to keep the lockfile.
+
 ## 0.0.24
 
 * `esy install` was improved to handle opam converted package more inline with
