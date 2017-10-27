@@ -4,14 +4,12 @@
 
 import type {CommandContext} from './esy';
 
-import * as fs from '../lib/fs';
 import * as EsyOpam from '@esy-ocaml/esy-opam';
 import * as semver from 'semver';
 
-const AVAILABLE_OCAML_COMPILERS = [
-  ['4.4.2', 'esy-ocaml/ocaml#4.4.2+esy'],
-  ['4.2.3', 'esy-ocaml/ocaml#4.2.3+esy'],
-];
+import * as fs from '../lib/fs';
+
+const AVAILABLE_OCAML_COMPILERS = [['4.4.2000', '~4.4.2000'], ['4.2.3000', '~4.2.3000']];
 
 export default async function importOpamCommand(ctx: CommandContext) {
   const [packageName, packageVersion, opamFilename] = ctx.args;
