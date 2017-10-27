@@ -248,7 +248,7 @@ else
       ;;
     add)
       shift
-      callBuiltInCommand__esyInstall "$@"
+      callBuiltInCommand__esyInstall add "$@"
       ;;
     install|i)
       shift
