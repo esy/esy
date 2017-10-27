@@ -191,13 +191,16 @@ elif [ $# -eq 1 ]; then
       callBuiltInCommand__buildEject
       ;;
     release)
-      callBuiltInCommand release $@
+      shift
+      callBuiltInCommand release "$@"
       ;;
-    build)
-      callBuiltInCommand build
+    build|b)
+      shift
+      callBuiltInCommand build "$@"
       ;;
     import-opam)
-      callBuiltInCommand import-opam
+      shift
+      callBuiltInCommand import-opam "$@"
       ;;
     shell)
       ensureCommandEnvEjected
@@ -208,10 +211,16 @@ elif [ $# -eq 1 ]; then
       cat "$COMMAND_ENV_PATH"
       ;;
     config)
-      callBuiltInCommand config
+      shift
+      callBuiltInCommand config "$@"
       ;;
-    install|add)
-      callBuiltInCommand__esyInstall "$@"
+    install|i)
+      shift
+      callBuiltInCommand__esyInstall install "$@"
+      ;;
+    add)
+      shift
+      callBuiltInCommand__esyInstall add "$@"
       ;;
     version|--version|-v)
       printVersion
@@ -230,18 +239,27 @@ elif [ $# -eq 1 ]; then
 else
   case $1 in
     import-opam)
+      shift
       callBuiltInCommand import-opam "$@"
       ;;
     build-eject)
+      shift
       callBuiltInCommand__buildEject "$@"
       ;;
     add)
+      shift
       callBuiltInCommand__esyInstall "$@"
       ;;
+    install|i)
+      shift
+      callBuiltInCommand__esyInstall install "$@"
+      ;;
     release)
+      shift
       callBuiltInCommand release "$@"
       ;;
     config)
+      shift
       callBuiltInCommand config "$@"
       ;;
     -*)
