@@ -87,7 +87,7 @@ ensureCommandEnvEjected () {
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    EJECTED_ENV=`node $SCRIPTDIR/esy.js 2>&1`
+    EJECTED_ENV=`node $SCRIPTDIR/esy.js print-env 2>&1`
     if [ $? -ne 0 ]; then
       echo "Failed to get environment:"
       printf "%s\n" "$EJECTED_ENV" >&2

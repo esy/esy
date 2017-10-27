@@ -56,7 +56,7 @@ type SandboxCrawlContext = {
   options: Options,
 };
 
-type Options = {
+export type Options = {
   forRelease?: boolean,
 };
 
