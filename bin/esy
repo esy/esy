@@ -38,7 +38,7 @@ BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
 COMMAND_ENV_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/command-env"
 
 if [ -d "$ESY__SANDBOX/node_modules" ]; then
-  DEPENDENCIES_PACKAGE_JSON=`find $ESY__SANDBOX/node_modules -name 'package.json'`
+  DEPENDENCIES_PACKAGE_JSON=`find $ESY__SANDBOX/node_modules -name 'package.json' -or -name 'esy.json'`
 else
   DEPENDENCIES_PACKAGE_JSON=""
 fi
@@ -52,7 +52,7 @@ needRebuildTarget () {
     NEED_REBUILD="true"
   else
     # check sandbox package.json
-    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ]; then
+    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ] || [ "$TARGET" -ot "$ESY__SANDBOX/esy.json" ]; then
       NEED_REBUILD="true"
     else
       # check each dependencies' package.json

@@ -409,7 +409,8 @@ async function releaseCommand(sandboxPath, _commandName, type, ...args) {
     `);
   }
   const {buildRelease} = require('../release');
-  const pkg = await pfs.readJson(path.join(sandboxPath, 'package.json'));
+  const {readManifest} = require('../build-sandbox');
+  const pkg = await readManifest(sandboxPath);
   await buildRelease({
     type,
     version: pkg.version,

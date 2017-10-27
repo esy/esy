@@ -10,6 +10,7 @@ import type {
 } from './types';
 
 import * as path from 'path';
+import invariant from 'invariant';
 import outdent from 'outdent';
 
 import * as fs from './lib/fs';
@@ -152,8 +153,7 @@ async function crawlBuild(
   sourcePath: string,
   context: SandboxCrawlContext,
 ): Promise<BuildSpec> {
-  const packageJsonPath = path.join(sourcePath, 'package.json');
-  const packageJson = await readPackageJson(packageJsonPath);
+  const packageJson = await readManifest(sourcePath);
   const isRootBuild = context.sandboxPath === sourcePath;
 
   let command: null | Array<string> | Array<Array<string>> = null;
@@ -220,25 +220,41 @@ function getEnvironment(): BuildEnvironment {
   ]);
 }
 
-async function readPackageJson(filename): Promise<PackageJson> {
-  const packageJson = await fs.readJson(filename);
-  if (packageJson.esy == null) {
-    packageJson.esy = {
-      build: null,
-      exportedEnv: {},
-      buildsInSource: false,
-    };
+export async function readManifest(packagePath: string): Promise<PackageJson> {
+  const manifestNames = ['esy.json', 'package.json'];
+
+  for (const manifestName of manifestNames) {
+    const manifestPath = path.join(packagePath, manifestName);
+    if (!await fs.exists(manifestPath)) {
+      continue;
+    }
+
+    const packageJson = await fs.readJson(manifestPath);
+    if (packageJson.esy == null) {
+      packageJson.esy = {
+        build: null,
+        exportedEnv: {},
+        buildsInSource: false,
+      };
+    }
+    if (packageJson.esy.build == null) {
+      packageJson.esy.build = null;
+    }
+    if (packageJson.esy.exportedEnv == null) {
+      packageJson.esy.exportedEnv = {};
+    }
+    if (packageJson.esy.buildsInSource == null) {
+      packageJson.esy.buildsInSource = false;
+    }
+    return packageJson;
   }
-  if (packageJson.esy.build == null) {
-    packageJson.esy.build = null;
-  }
-  if (packageJson.esy.exportedEnv == null) {
-    packageJson.esy.exportedEnv = {};
-  }
-  if (packageJson.esy.buildsInSource == null) {
-    packageJson.esy.buildsInSource = false;
-  }
-  return packageJson;
+
+  invariant(
+    false,
+    'Unable to find manifest in %s: tried %s',
+    packagePath,
+    manifestNames.join(', '),
+  );
 }
 
 function calculateBuildId(
