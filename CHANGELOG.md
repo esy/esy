@@ -16,6 +16,10 @@
 
   Now it works correctly.
 
+* Expose installation cache management via `esy install-cache` command.
+
+  This works similar to `yarn cache` and in fact is based on it.
+
 * Fix `esy import-opam` to produce `package.json` with dependencies on OCaml
   compiler published on npm registry.
 
