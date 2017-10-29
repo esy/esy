@@ -75,7 +75,7 @@ export function createForPrefix(params: {
 
 export function getStorePathForPrefix(prefix: string): string {
   const prefixLength = `${prefix}/${ESY_STORE_VERSION}`.length;
-  const paddingLength = ESY_STORE_PADDING_LENGTH - prefix.length;
+  const paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
   invariant(
     paddingLength >= 0,
     `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
