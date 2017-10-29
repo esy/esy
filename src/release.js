@@ -550,7 +550,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     echo '*** Installing esy for the release...'
     LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.release.esyDependency}")
     if [ $? -ne 0 ]; then
-      echo "Failed to install esy..."
+      echo "error: failed to install esy..."
       echo $LOG
       exit 1
     fi
@@ -568,7 +568,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     cd $ESY_EJECT__SANDBOX
     LOG=$($ESY_COMMAND install)
     if [ $? -ne 0 ]; then
-      echo "Failed to install dependencies..."
+      echo "error: failed to install dependencies..."
       echo $LOG
       exit 1
     fi
@@ -700,7 +700,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # decompressAndRelocateBuiltPackages
     #
     if [ -d "$ESY_EJECT__INSTALL_STORE" ]; then
-      echo >&2 "$ESY_EJECT__INSTALL_STORE already exists. This will not work. It has to be a new directory.";
+      echo >&2 "error: $ESY_EJECT__INSTALL_STORE already exists. This will not work. It has to be a new directory.";
       exit 1;
     fi
     serverEsyEjectStore=\`cat "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"\`
@@ -725,7 +725,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # Executing the replace string in parallel!
     # https://askubuntu.com/questions/431478/decompressing-multiple-files-at-once
     echo '*** Relocating artefacts to the final destination...'
-    find $ESY_EJECT__INSTALL_STORE -type f -print0 \
+    find "$ESY_EJECT__INSTALL_STORE" -type f -print0 \
       | xargs -0 -I {} -P 30 $ESY_EJECT__ROOT/bin/fastreplacestring.exe "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
 
   `;
