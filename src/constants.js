@@ -24,7 +24,7 @@ export const STORE_STAGE_TREE = 's';
 /**
  * The current version of esy store, bump it whenever the store layout changes.
  */
-export const ESY_STORE_VERSION = '3.x.x';
+export const ESY_STORE_VERSION = '3';
 
 /**
  * This is a limit imposed by POSIX.
