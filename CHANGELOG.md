@@ -1,6 +1,18 @@
 # CHANGELOG
 
-## NEXT
+## 0.0.27
+
+* Esy store version is now set to `3`.
+
+  This is made so the Esy prefix can be 4 chars longer. This makes a difference
+  for release installation locations as thise can be 4 chars longer too.
+
+* Change the name of the direction with esy store inside esy releases to be `r`.
+
+  The motivation is also to allow longer prefixes for release installation
+  locations.
+
+## 0.0.26
 
 * `esy install` command now supports same arguments as `yarn install`
 
