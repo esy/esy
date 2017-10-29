@@ -158,6 +158,8 @@ type BuildReleaseConfig = {
   sandboxPath: string,
 };
 
+const RELEASE_ESY_PREFIX_NAME = 'r';
+
 // This is invariant both for dev and released versions of Esy as bin/esy always
 // calls into bin/esy.js (same dirname). `process.argv[1]` is the filename of
 // the script executed by `node`.
@@ -327,7 +329,7 @@ function createCommandWrapper(pkg, commandName) {
     if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
         ${bashgen.defineScriptDir}
-        export ESY_EJECT__SANDBOX="$SCRIPTDIR/../rel"
+        export ESY_EJECT__SANDBOX="$SCRIPTDIR/../${RELEASE_ESY_PREFIX_NAME}"
         export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"
         export PACKAGE_ROOT="$SCRIPTDIR/.."
         # Remove dependency on esy and package managers in general
@@ -468,9 +470,9 @@ async function verifyBinSetup(sandboxPath, pkg) {
  *
  *        This will be replaced by the actual      This must remain.
  *        install location.
- *       +------------------------------+  +--------------------------------+
- *      /                                \/                                  \
- *   #!/path/to/rel/store___padding____/i/ocaml-4.02.3-d8a857f3/bin/ocamlrun
+ *       +----------------------------+  +--------------------------------+
+ *      /                              \/                                  \
+ *   #!/path/to/r/store___padding____/i/ocaml-4.02.3-d8a857f3/bin/ocamlrun
  *
  * The goal is to make this path exactly 127 characters long (maybe a little
  * less to allow room for some other shebangs like `ocamlrun.opt` etc?)
@@ -598,7 +600,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # Avoid npm stripping out vendored node_modules via tar. Merely renaming node_modules
     # is not sufficient!
     echo '*** Packing the release...'
-    tar -czf rel.tar.gz rel
+    tar -czf ${RELEASE_ESY_PREFIX_NAME}.tar.gz ${RELEASE_ESY_PREFIX_NAME}
     rm -rf $ESY_EJECT__SANDBOX
 
   `;
@@ -690,7 +692,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # eject store in its own tar so that all the symlinks in the store can be
     # relocated using tools that exist in the eject sandbox.
 
-    tar -czf rel.tar.gz rel
+    tar -czf ${RELEASE_ESY_PREFIX_NAME}.tar.gz ${RELEASE_ESY_PREFIX_NAME}
     rm -rf $ESY_EJECT__SANDBOX
 
   `;
@@ -789,7 +791,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
 
     mkdir -p "$PACKAGE_ROOT/records"
 
-    export ESY_EJECT__SANDBOX="$SCRIPTDIR/rel"
+    export ESY_EJECT__SANDBOX="$SCRIPTDIR/${RELEASE_ESY_PREFIX_NAME}"
     export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"
 
     # We Build into the ESY_EJECT__STORE, copy into ESY_EJECT__TMP, potentially
@@ -916,7 +918,12 @@ export async function buildRelease(config: BuildReleaseConfig) {
 
   const sandboxPath = config.sandboxPath;
   const releasePath = path.join(sandboxPath, RELEASE_TREE, releaseTag);
-  const esyReleasePath = path.join(sandboxPath, RELEASE_TREE, releaseTag, 'rel');
+  const esyReleasePath = path.join(
+    sandboxPath,
+    RELEASE_TREE,
+    releaseTag,
+    RELEASE_ESY_PREFIX_NAME,
+  );
 
   const tarFilename = await child_process.spawn('npm', ['pack'], {cwd: sandboxPath});
   await child_process.spawn('tar', ['xzf', tarFilename]);
@@ -937,7 +944,7 @@ export async function buildRelease(config: BuildReleaseConfig) {
   await putJson(path.join(releasePath, 'package.json'), npmPackage);
 
   const esyPackage = await deriveEsyReleasePackage(pkg, releasePath, releaseType);
-  await fs.mkdirp(path.join(releasePath, 'rel'));
+  await fs.mkdirp(esyReleasePath);
   await putJson(path.join(esyReleasePath, 'package.json'), esyPackage);
 
   await putExecutable(
