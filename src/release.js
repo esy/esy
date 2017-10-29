@@ -798,7 +798,13 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # begin with.  ESY_EJECT__INSTALL_STORE should not ever be used if we're
     # running on the server.
     export ESY_EJECT__INSTALL_ROOT="$ESY_EJECT__SANDBOX"
-    export ESY_EJECT__INSTALL_STORE=$(esyGetStorePathFromPrefix $ESY_EJECT__INSTALL_ROOT)
+    ESY_EJECT__INSTALL_STORE=$(esyGetStorePathFromPrefix $ESY_EJECT__INSTALL_ROOT)
+    if [ $? -ne 0 ]; then
+      echo "error: $ESY_EJECT__INSTALL_STORE"
+      exit 1
+    else
+      export ESY_EJECT__INSTALL_STORE
+    fi
 
     # Regardless of where artifacts are actually built, or where they will be
     # installed to, or if we're on the server/client we will copy artifacts
