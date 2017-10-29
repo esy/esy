@@ -2,6 +2,10 @@
 
 ## 0.0.27
 
+* Fix release installation not to ignore "too deep path" error silently.
+
+* Fix a check for a "too deep path" error.
+
 * Esy store version is now set to `3`.
 
   This is made so the Esy prefix can be 4 chars longer. This makes a difference
