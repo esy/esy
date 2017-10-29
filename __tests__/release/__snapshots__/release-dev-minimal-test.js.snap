@@ -8,18 +8,60 @@ exports[`installation 1`] = `
 | lib
 | | node_modules
 | | | minimal
+| | | | _esy
+| | | | | bin
+| | | | | | esy
+| | | | | etc
+| | | | | lib
+| | | | | | node_modules
+| | | | | | | esy
+| | | | | | | | _esyInstallCache-3.x.x
+| | | | | | | | | v1
+| | | | | | | | | | .tmp
+| | | | | | | | bin
+| | | | | | | | | esy
+| | | | | | | | | esy.js
+| | | | | | | | node_modules
+| | | | | | | | | .bin
+| | | | | | | | | | esy-install
+| | | | | | | | | @esy-ocaml
+| | | | | | | | | | esy-install
+| | | | | | | | | | | bin
+| | | | | | | | | | | | esy-install
+| | | | | | | | | | | | esy-install.js
+| | | | | | | | | | | package.json
+| | | | | | | | | | esy-opam
+| | | | | | | | | | | dist
+| | | | | | | | | | | | esy-opam.js
+| | | | | | | | | | | | esy-opam.js.flow
+| | | | | | | | | | | package.json
+| | | | | | | | | | | README.md
+| | | | | | | | package.json
 | | | | .bin
 | | | | | minimal-esy-sandbox
 | | | | package.json
 | | | | postinstall.sh
 | | | | prerelease.sh
-| | | | records
-| | | | | recordedClientBuildStorePath.txt
-| | | | | recordedClientInstallStorePath.txt
-| | | | | recordedCoppiedArtifacts.txt
-| | | | | recordedServerBuildStorePath.txt
-| | | | rel
-| | | | | 3.x.x______________________________
+| | | | r
+| | | | | _esyEjectRoot
+| | | | | | bin
+| | | | | | | fastreplacestring.cpp
+| | | | | | | fastreplacestring.exe
+| | | | | | | get-store-path
+| | | | | | | realpath
+| | | | | | | realpath.c
+| | | | | | | render-env
+| | | | | | | runtime.sh
+| | | | | | command-env
+| | | | | | eject-env
+| | | | | | Makefile
+| | | | | | records
+| | | | | | | final-install-path-set.txt
+| | | | | | | final-install-path-set.txt.in
+| | | | | | | store-path.txt
+| | | | | | | store-path.txt.in
+| | | | | | sandbox.sb.in
+| | | | | 3__________________________________
 | | | | | | i
 | | | | | | | minimal-0.1.0
 | | | | | | | | bin
@@ -32,30 +74,18 @@ exports[`installation 1`] = `
 | | | | | node_modules
 | | | | | | .cache
 | | | | | | | _esy
-| | | | | | | | build-eject
-| | | | | | | | | bin
-| | | | | | | | | | fastreplacestring.cpp
-| | | | | | | | | | fastreplacestring.exe
-| | | | | | | | | | get-store-path
-| | | | | | | | | | realpath
-| | | | | | | | | | realpath.c
-| | | | | | | | | | render-env
-| | | | | | | | | | runtime.sh
-| | | | | | | | | command-env
-| | | | | | | | | eject-env
-| | | | | | | | | Makefile
-| | | | | | | | | records
-| | | | | | | | | | final-install-path-set.txt
-| | | | | | | | | | final-install-path-set.txt.in
-| | | | | | | | | | store-path.txt
-| | | | | | | | | | store-path.txt.in
-| | | | | | | | | sandbox.sb.in
 | | | | | | | | store
 | | | | | | | | | b
 | | | | | | | | | i
 | | | | | | | | | s
 | | | | | package.json
-| | | | | test.js"
+| | | | | test.js
+| | | | records
+| | | | | done.txt
+| | | | | recordedClientBuildStorePath.txt
+| | | | | recordedClientInstallStorePath.txt
+| | | | | recordedCoppiedArtifacts.txt
+| | | | | recordedServerBuildStorePath.txt"
 `;
 
 exports[`installation stdout 1`] = `
@@ -85,9 +115,16 @@ exports[`release 1`] = `
 | | package.json
 | | postinstall.sh
 | | prerelease.sh
-| | rel
+| | r
 | | | package.json
-| | | test.js"
+| | | test.js
+| | records"
 `;
 
-exports[`release stdout 1`] = `"*** Creating dev-type release for minimal..."`;
+exports[`release stdout 1`] = `
+"*** Creating dev-type release for minimal...
+*** Release package created
+
+    Location: _release/dev
+    Release Type: dev"
+`;

@@ -15,13 +15,30 @@ exports[`installation 1`] = `
 | | | | package.json
 | | | | postinstall.sh
 | | | | prerelease.sh
-| | | | records
-| | | | | recordedClientBuildStorePath.txt
-| | | | | recordedClientInstallStorePath.txt
-| | | | | recordedCoppiedArtifacts.txt
-| | | | | recordedServerBuildStorePath.txt
-| | | | rel
-| | | | | 3.x.x_________________
+| | | | r
+| | | | | _esyEjectRoot
+| | | | | | bin
+| | | | | | | fastreplacestring.cpp
+| | | | | | | fastreplacestring.exe
+| | | | | | | get-store-path
+| | | | | | | realpath
+| | | | | | | realpath.c
+| | | | | | | render-env
+| | | | | | | runtime.sh
+| | | | | | command-env
+| | | | | | eject-env
+| | | | | | Makefile
+| | | | | | node_modules
+| | | | | | | dep
+| | | | | | | | eject-env
+| | | | | | | | sandbox.sb.in
+| | | | | | records
+| | | | | | | final-install-path-set.txt
+| | | | | | | final-install-path-set.txt.in
+| | | | | | | store-path.txt
+| | | | | | | store-path.txt.in
+| | | | | | sandbox.sb.in
+| | | | | 3_____________________
 | | | | | | i
 | | | | | | | dep-0.1.0
 | | | | | | | | bin
@@ -44,38 +61,22 @@ exports[`installation 1`] = `
 | | | | | | dep
 | | | | | | | package.json
 | | | | | | | say-hello.exe
+| | | | | esy.lock
 | | | | | node_modules
 | | | | | | .cache
 | | | | | | | _esy
-| | | | | | | | build-eject
-| | | | | | | | | bin
-| | | | | | | | | | fastreplacestring.cpp
-| | | | | | | | | | fastreplacestring.exe
-| | | | | | | | | | get-store-path
-| | | | | | | | | | realpath
-| | | | | | | | | | realpath.c
-| | | | | | | | | | render-env
-| | | | | | | | | | runtime.sh
-| | | | | | | | | command-env
-| | | | | | | | | eject-env
-| | | | | | | | | Makefile
-| | | | | | | | | node_modules
-| | | | | | | | | | dep
-| | | | | | | | | | | eject-env
-| | | | | | | | | | | sandbox.sb.in
-| | | | | | | | | records
-| | | | | | | | | | final-install-path-set.txt
-| | | | | | | | | | final-install-path-set.txt.in
-| | | | | | | | | | store-path.txt
-| | | | | | | | | | store-path.txt.in
-| | | | | | | | | sandbox.sb.in
 | | | | | | | | store
 | | | | | | | | | b
 | | | | | | | | | i
 | | | | | | | | | s
 | | | | | package.json
 | | | | | test.js
-| | | | | yarn.lock"
+| | | | records
+| | | | | done.txt
+| | | | | recordedClientBuildStorePath.txt
+| | | | | recordedClientInstallStorePath.txt
+| | | | | recordedCoppiedArtifacts.txt
+| | | | | recordedServerBuildStorePath.txt"
 `;
 
 exports[`installation stdout 1`] = `
@@ -100,11 +101,11 @@ exports[`release 1`] = `
 | | package.json
 | | postinstall.sh
 | | prerelease.sh
+| | r.tar.gz
 | | records
 | | | recordedClientBuildStorePath.txt
 | | | recordedCoppiedArtifacts.txt
 | | | recordedServerBuildStorePath.txt
-| | rel.tar.gz
 | | relBinaries
 | | | i
 | | | | dep-0.1.0.tar.gz
@@ -119,5 +120,9 @@ exports[`release stdout 1`] = `
 [1;37m*** dep @ 0.1.0: building from source...[0m
 [0;32m*** dep @ 0.1.0: build complete[0m
 [1;37m*** with-dep-with-binary @ 0.1.0: building from source...[0m
-[0;32m*** with-dep-with-binary @ 0.1.0: build complete[0m"
+[0;32m*** with-dep-with-binary @ 0.1.0: build complete[0m
+*** Release package created
+
+    Location: _release/bin-darwin
+    Release Type: bin"
 `;
