@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@esy-ocaml/esy-install@1.2.1009":
-  version "1.2.1009"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-install/-/esy-install-1.2.1009.tgz#5c10a52c4b4569e1b81e428fb16137abdb72341b"
+"@esy-ocaml/esy-install@1.2.1010":
+  version "1.2.1010"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-install/-/esy-install-1.2.1010.tgz#ae1068a74673cc2d051069c4d5ef008c2f3a99f5"
   dependencies:
     "@esy-ocaml/esy-opam" "0.0.7"
 
