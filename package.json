@@ -52,11 +52,12 @@
     "webpack": "^3.8.1"
   },
   "dependencies": {
-    "@esy-ocaml/esy-install": "1.2.1010",
+    "@esy-ocaml/esy-install": "1.2.1013",
     "@esy-ocaml/esy-opam": "0.0.7",
     "babel-polyfill": "^6.23.0",
     "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4",
     "fs-extra": "^3.0.1",
+    "json5": "^0.5.1",
     "loud-rejection": "^1.6.0",
     "mkdirp": "^0.5.1",
     "npm-hooks": "https://github.com/jordwalke/npm-hooks.git#1.0.0-clobber",

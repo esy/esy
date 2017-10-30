@@ -91,14 +91,14 @@ export function readFileSync(p: string) {
   return fs.readFileSync(p, 'utf8');
 }
 
-export async function readJson(p: string) {
+export async function readJson(p: string, parse: string => Function = JSON.parse) {
   const data = await readFile(p);
-  return JSON.parse(data);
+  return parse(data);
 }
 
-export function readJsonSync(p: string) {
+export function readJsonSync(p: string, parse: string => Function = JSON.parse) {
   const data = readFileSync(p);
-  return JSON.parse(data);
+  return parse(data);
 }
 
 const fsSymlink: (

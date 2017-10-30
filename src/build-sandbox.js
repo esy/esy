@@ -9,6 +9,7 @@ import type {
   EnvironmentVarExport,
 } from './types';
 
+import * as JSON5 from 'json5';
 import * as path from 'path';
 import invariant from 'invariant';
 import outdent from 'outdent';
@@ -229,7 +230,8 @@ export async function readManifest(packagePath: string): Promise<PackageJson> {
       continue;
     }
 
-    const packageJson = await fs.readJson(manifestPath);
+    const parse = manifestName === 'esy.json' ? JSON5.parse : JSON.parse;
+    const packageJson = await fs.readJson(manifestPath, parse);
     if (packageJson.esy == null) {
       packageJson.esy = {
         build: null,

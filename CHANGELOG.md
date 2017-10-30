@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.28
+
+* Support for installing packages with only `esy.json` available.
+
+* Add suport for JSON5-encoded `esy.json` manifests and fix edgecases related to
+  installation of packages with `esy.json`.
+
 ## 0.0.27
 
 * Fix release installation not to ignore "too deep path" error silently.
