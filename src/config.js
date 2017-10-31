@@ -3,12 +3,11 @@
  */
 
 import type {BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
-import * as path from 'path';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
-import * as P from './path';
+import * as path from './lib/path';
 
-function _create<Path: P.Path>(
+function _create<Path: path.Path>(
   sandboxPath: Path,
   store: Store<Path>,
   localStore: Store<Path>,
@@ -31,13 +30,13 @@ function _create<Path: P.Path>(
     readOnlyStores,
 
     getSourcePath: (build: BuildSpec, ...segments) => {
-      return P.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
+      return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
     },
     getRootPath: (build: BuildSpec, ...segments) => {
       if (build.mutatesSourcePath) {
         return genStorePath(STORE_BUILD_TREE, build, segments);
       } else {
-        return P.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
+        return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
       }
     },
     getBuildPath: (build: BuildSpec, ...segments) =>
@@ -55,7 +54,7 @@ export function create(params: {
   sandboxPath: string,
   buildPlatform: BuildPlatform,
   readOnlyStorePath: Array<string>,
-}): Config<P.AbstractPath> {
+}): Config<path.AbstractPath> {
   const {storePath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
   const store = S.forAbstractPath(storePath);
   const localStore = S.forAbstractPath(
@@ -63,7 +62,7 @@ export function create(params: {
   );
   const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
   return _create(
-    P.abstract(sandboxPath),
+    path.abstract(sandboxPath),
     store,
     localStore,
     readOnlyStores,
@@ -76,7 +75,7 @@ export function createForPrefix(params: {
   sandboxPath: string,
   buildPlatform: BuildPlatform,
   readOnlyStorePath: Array<string>,
-}): Config<P.AbsolutePath> {
+}): Config<path.AbsolutePath> {
   const {prefixPath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
   const store = S.forPrefixPath(prefixPath);
   const localStore = S.forAbsolutePath(
@@ -84,7 +83,7 @@ export function createForPrefix(params: {
   );
   const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
   return _create(
-    P.absolute(sandboxPath),
+    path.absolute(sandboxPath),
     store,
     localStore,
     readOnlyStores,

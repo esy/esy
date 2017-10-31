@@ -4,20 +4,19 @@
 
 import type {BuildSpec, BuildTask, Config, BuildSandbox} from '../types';
 
-import * as path from 'path';
 import * as fs from 'fs';
 import {sync as mkdirp} from 'mkdirp';
 import createLogger from 'debug';
 import outdent from 'outdent';
 
 import * as Graph from '../graph';
-import * as P from '../path';
 import * as Task from '../build-task';
 import * as Env from '../environment';
 import * as Makefile from '../Makefile';
 import {normalizePackageName} from '../util';
 import {renderEnv, renderSandboxSbConfig} from './util';
 import {singleQuote} from '../lib/shell';
+import * as path from '../lib/path';
 import * as bashgen from './bashgen';
 import {STORE_BUILD_TREE, STORE_STAGE_TREE, STORE_INSTALL_TREE} from '../constants';
 
@@ -37,7 +36,7 @@ const RUNTIME = fs.readFileSync(require.resolve('./makefile-builder-runtime.sh')
 export function renderToMakefile(
   sandbox: BuildSandbox,
   outputPath: string,
-  buildConfig: Config<P.Path>,
+  buildConfig: Config<path.Path>,
 ) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
 
