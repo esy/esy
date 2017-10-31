@@ -2,6 +2,14 @@
  * @flow
  */
 
+export type StoreTree = 'i' | 'b' | 's';
+
+export type Store = {
+  path: string,
+  has(BuildSpec): Promise<boolean>,
+  getPath(StoreTree, BuildSpec, ...path: Array<string>): string,
+};
+
 export type EnvironmentVar = {
   name: string,
   value: string,
@@ -109,15 +117,15 @@ export type BuildConfig = {
    */
   buildPlatform: BuildPlatform,
 
-  /**
-   * Path to the store used for a build.
-   */
-  storePath: string,
+  store: Store,
+
+  localStore: Store,
 
   /**
-   * Path to the local store used for a build.
+   * List of read only stores from which Esy could import built artifacts as
+   * needed.
    */
-  localStorePath: string,
+  readOnlyStores: Array<Store>,
 
   /**
    * Path to a sandbox root.

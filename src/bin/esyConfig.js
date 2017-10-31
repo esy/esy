@@ -19,7 +19,7 @@ export default async function configCommand(ctx: CommandContext) {
 
   const configSpecs = {
     'store-path': {
-      get: () => config.storePath,
+      get: () => config.store.path,
     },
     'sandbox-path': {
       get: () => config.sandboxPath,

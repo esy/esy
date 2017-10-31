@@ -89,7 +89,7 @@ export const build = async (
   config: BuildConfig,
   onBuildStateChange: (task: BuildTask, state: BuildState) => *,
 ) => {
-  await Promise.all([initStore(config.storePath), initStore(config.localStorePath)]);
+  await Promise.all([initStore(config.store.path), initStore(config.localStore.path)]);
   const performBuild = createBuilder(sandbox, config, onBuildStateChange);
 
   return await Graph.topologicalFold(
@@ -133,7 +133,7 @@ export const buildDependencies = async (
   config: BuildConfig,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
-  await Promise.all([initStore(config.storePath), initStore(config.localStorePath)]);
+  await Promise.all([initStore(config.store.path), initStore(config.localStore.path)]);
   const performBuild = createBuilder(sandbox, config, onBuildStateChange);
 
   return await Graph.topologicalFold(
@@ -206,12 +206,16 @@ const createBuilder = (
     await fs.writeFile(checksumFilename, checksum.trim());
   }
 
+  async function performBuildOrRelocate(task): Promise<void> {
+    await performBuild(task, config, sandbox);
+  }
+
   function performBuildWithStatusReport(task, forced = false): Promise<FinalBuildState> {
     return buildQueue.add(async () => {
       onBuildStateChange(task, {state: 'in-progress'});
       const startTime = Date.now();
       try {
-        await performBuild(task, config, sandbox);
+        await performBuildOrRelocate(task);
       } catch (error) {
         if (!(error instanceof BuildError)) {
           error = new InternalBuildError(task, error);
