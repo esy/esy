@@ -5,7 +5,6 @@
 import type {CommandContext} from './esy';
 
 import {getBuildConfig} from './esy';
-import * as P from '../path';
 
 import outdent from 'outdent';
 

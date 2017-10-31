@@ -53,6 +53,10 @@ export function toString(p: Path | string): string {
   return p;
 }
 
+export const sep: typeof path.sep = path.sep;
+
+export const relative: typeof path.relative = path.relative;
+
 function sanitizeAbsolutePath(p) {
   p = sanitizeConcretePath(p);
   invariant(path.isAbsolute(p), 'Should be absolute path but got: %s', p);

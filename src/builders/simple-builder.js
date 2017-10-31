@@ -6,16 +6,15 @@ import type {BuildTask, BuildSpec, Store, Config, BuildSandbox} from '../types';
 
 import invariant from 'invariant';
 import createLogger from 'debug';
-import * as path from 'path';
 import * as os from 'os';
 import * as nodefs from 'fs';
 
 import {PromiseQueue} from '../lib/Promise';
+import * as path from '../lib/path';
 import * as fs from '../lib/fs';
 import * as child from '../lib/child_process';
 import {fixupErrorSubclassing} from '../lib/lang';
 
-import * as P from '../path';
 import * as Graph from '../graph';
 import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
@@ -87,7 +86,7 @@ const BUILD_STATE_CACHED_SUCCESS = {
 export const build = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
-  config: Config<P.AbsolutePath>,
+  config: Config<path.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, state: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.store), initStore(config.localStore)]);
@@ -131,7 +130,7 @@ export const build = async (
 export const buildDependencies = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
-  config: Config<P.AbsolutePath>,
+  config: Config<path.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.store), initStore(config.localStore)]);
@@ -175,7 +174,7 @@ export const buildDependencies = async (
 
 const createBuilder = (
   sandbox: BuildSandbox,
-  config: Config<P.AbsolutePath>,
+  config: Config<path.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
   const buildQueue = new PromiseQueue({concurrency: NUM_CPUS});
@@ -301,7 +300,7 @@ type BuildDriver = {
 
 export async function withBuildDriver(
   task: BuildTask,
-  config: Config<P.AbsolutePath>,
+  config: Config<path.AbsolutePath>,
   sandbox: BuildSandbox,
   f: BuildDriver => Promise<void>,
 ): Promise<void> {
@@ -431,7 +430,7 @@ export async function withBuildDriver(
 
 async function performBuild(
   task: BuildTask,
-  config: Config<P.AbsolutePath>,
+  config: Config<path.AbsolutePath>,
   sandbox: BuildSandbox,
 ): Promise<void> {
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
@@ -493,10 +492,10 @@ async function performBuild(
   await withBuildDriver(task, config, sandbox, executeBuildCommands);
 }
 
-async function initStore(store: Store<P.AbsolutePath>) {
+async function initStore(store: Store<path.AbsolutePath>) {
   await Promise.all(
     [STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE].map(p =>
-      fs.mkdirp(P.toString(P.join(store.path, P.concrete(p)))),
+      fs.mkdirp(path.join(store.path, path.concrete(p))),
     ),
   );
 }
@@ -529,12 +528,12 @@ async function rewritePaths(path, from, to) {
 }
 
 async function relocateBuild(
-  from: Store<P.AbsolutePath>,
-  to: Store<P.AbsolutePath>,
+  from: Store<path.AbsolutePath>,
+  to: Store<path.AbsolutePath>,
   build: BuildSpec,
 ): Promise<void> {
   invariant(
-    P.length(from.path) === P.length(to.path),
+    from.path.length === to.path.length,
     'Cannot relocate between stores of different path length: %s and %s',
     from.path,
     to.path,
@@ -545,7 +544,7 @@ async function relocateBuild(
   const stagePath = path.join(stage, STORE_INSTALL_TREE);
   try {
     await fs.copydir(originPath, stagePath);
-    await rewritePaths(stagePath, P.toString(from.path), P.toString(to.path));
+    await rewritePaths(stagePath, from.path, to.path);
     await fs.mkdirp(path.dirname(destPath));
   } finally {
     fs.rmdir(stage);

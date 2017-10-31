@@ -6,7 +6,7 @@ import type {BuildSpec, Config, BuildEnvironment} from '../types';
 
 import * as child from 'child_process';
 import * as fs from '../lib/fs';
-import * as P from '../path';
+import * as path from '../lib/path';
 import outdent from 'outdent';
 
 type ConfigSpec = {
@@ -16,7 +16,7 @@ type ConfigSpec = {
 
 export function renderSandboxSbConfig(
   spec: BuildSpec,
-  config: Config<P.Path>,
+  config: Config<path.Path>,
   sandboxSpec?: ConfigSpec = {},
 ): string {
   const subpathList = pathList =>

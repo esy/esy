@@ -14,9 +14,9 @@ import type {
 import {substituteVariables} from 'var-expansion';
 
 import {doubleQuote} from './lib/shell';
+import * as path from './lib/path';
 import {normalizePackageName, mergeIntoMap, mapValuesMap} from './util';
 import * as Graph from './graph';
-import * as P from './path';
 import * as Env from './environment';
 
 type BuildTaskParams = {
@@ -56,7 +56,7 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
  */
 export function fromBuildSpec(
   rootBuild: BuildSpec,
-  config: Config<P.Path>,
+  config: Config<path.Path>,
   params?: BuildTaskParams = {},
 ): BuildTask {
   const {task} = Graph.topologicalFold(
@@ -254,7 +254,7 @@ function builtInEntries(...values) {
 
 function getBuiltInScope(
   spec: BuildSpec,
-  config: Config<P.Path>,
+  config: Config<path.Path>,
   currentlyBuilding?: boolean,
 ): BuildEnvironment {
   const prefix = currentlyBuilding ? 'cur' : normalizePackageName(spec.name);
@@ -410,7 +410,7 @@ export function expandWithScope<T: {value: string}>(
   return {rendered: rendered != null ? rendered : value};
 }
 
-export function fromBuildSandbox<Path: P.Path>(
+export function fromBuildSandbox<Path: path.Path>(
   sandbox: BuildSandbox,
   config: Config<Path>,
   params?: BuildTaskParams,
