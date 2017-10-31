@@ -9,7 +9,7 @@ export type StoreTree = 'i' | 'b' | 's';
 export type Store<+Path: P.Path> = {
   +path: Path,
   has(BuildSpec): Promise<boolean>,
-  getPath(StoreTree, BuildSpec, ...path: Array<string>): string,
+  getPath(StoreTree, BuildSpec, ...path: Array<string>): Path,
 };
 
 export type EnvironmentVar = {
@@ -112,7 +112,7 @@ export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
 /**
  * Build configuration.
  */
-export type Config<+Path: P.Path> = {
+export type Config<+Path: P.Path, RPath: Path = Path> = {
   /**
    * Which platform the build will actually be performed on. Not necessarily
    * the same platform that is constructing the build plan.
@@ -135,27 +135,27 @@ export type Config<+Path: P.Path> = {
    * string containing a file path. It very well might contain the name of an
    * environment variable that eventually will contain the actual path.
    */
-  +sandboxPath: string,
+  +sandboxPath: Path,
 
   /**
    * Generate path where sources of the builds are located.
    */
-  getSourcePath: (build: BuildSpec, ...segments: string[]) => string,
+  getSourcePath: (build: BuildSpec, ...segments: string[]) => RPath,
 
   /**
    * Generate path from where the build executes.
    */
-  getRootPath: (build: BuildSpec, ...segments: string[]) => string,
+  getRootPath: (build: BuildSpec, ...segments: string[]) => RPath,
 
   /**
    * Generate path where build artefacts should be placed.
    */
-  getBuildPath: (build: BuildSpec, ...segments: string[]) => string,
+  getBuildPath: (build: BuildSpec, ...segments: string[]) => RPath,
 
   /**
    * Generate path where installation artefacts should be placed.
    */
-  getInstallPath: (build: BuildSpec, ...segments: string[]) => string,
+  getInstallPath: (build: BuildSpec, ...segments: string[]) => RPath,
 
   /**
    * Generate path where finalized installation artefacts should be placed.
@@ -164,7 +164,7 @@ export type Config<+Path: P.Path> = {
    * do atomic installs (possible by buiilding in one location and then mv'ing
    * to another, final location).
    */
-  getFinalInstallPath: (build: BuildSpec, ...segments: string[]) => string,
+  getFinalInstallPath: (build: BuildSpec, ...segments: string[]) => RPath,
 };
 
 /**

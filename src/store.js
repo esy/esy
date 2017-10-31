@@ -26,7 +26,7 @@ function forPath<K: P.Path>(storePath: K): Store<K> {
     path: storePath,
 
     getPath(tree: StoreTree, build: BuildSpec, ...segments: string[]) {
-      return path.join(this.path, tree, build.id, ...segments);
+      return P.join(this.path, tree, build.id, ...segments);
     },
 
     has(build: BuildSpec): Promise<boolean> {
@@ -53,15 +53,12 @@ export function forPrefixPath(prefixPath: string): Store<P.AbsolutePath> {
 }
 
 export function getStorePathForPrefix(prefix: P.AbsolutePath): P.AbsolutePath {
-  const prefixLength = P.length(P.join(prefix, P.concrete(ESY_STORE_VERSION)));
+  const prefixLength = P.length(P.join(prefix, ESY_STORE_VERSION));
   const paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
   invariant(
     paddingLength >= 0,
     `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
   );
-  const p = `${P.toString(prefix)}/${ESY_STORE_VERSION}`.padEnd(
-    ESY_STORE_PADDING_LENGTH,
-    '_',
-  );
+  const p = P.join(prefix, ESY_STORE_VERSION).padEnd(ESY_STORE_PADDING_LENGTH, '_');
   return (p: any);
 }

@@ -9,7 +9,7 @@ import * as S from './store';
 import * as P from './path';
 
 function _create<Path: P.Path>(
-  sandboxPath,
+  sandboxPath: Path,
   store: Store<Path>,
   localStore: Store<Path>,
   readOnlyStores,
@@ -31,13 +31,13 @@ function _create<Path: P.Path>(
     readOnlyStores,
 
     getSourcePath: (build: BuildSpec, ...segments) => {
-      return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
+      return P.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
     },
     getRootPath: (build: BuildSpec, ...segments) => {
       if (build.mutatesSourcePath) {
         return genStorePath(STORE_BUILD_TREE, build, segments);
       } else {
-        return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
+        return P.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
       }
     },
     getBuildPath: (build: BuildSpec, ...segments) =>
@@ -62,7 +62,13 @@ export function create(params: {
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
   const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
-  return _create(sandboxPath, store, localStore, readOnlyStores, buildPlatform);
+  return _create(
+    P.abstract(sandboxPath),
+    store,
+    localStore,
+    readOnlyStores,
+    buildPlatform,
+  );
 }
 
 export function createForPrefix(params: {
@@ -77,5 +83,11 @@ export function createForPrefix(params: {
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
   const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
-  return _create(sandboxPath, store, localStore, readOnlyStores, buildPlatform);
+  return _create(
+    P.absolute(sandboxPath),
+    store,
+    localStore,
+    readOnlyStores,
+    buildPlatform,
+  );
 }

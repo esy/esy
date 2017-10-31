@@ -21,7 +21,7 @@ export opaque type ConcretePath: Path = string;
  */
 export opaque type AbstractPath: Path = string;
 
-export opaque type Path = AbsolutePath | ConcretePath | AbstractPath;
+export opaque type Path: string = AbsolutePath | ConcretePath | AbstractPath;
 
 export function absolute(p: string): AbsolutePath {
   p = sanitizeAbsolutePath(p);
@@ -37,15 +37,19 @@ export function abstract(p: string): AbstractPath {
   return p;
 }
 
-export function join<B: Path, P: ConcretePath>(base: B, ...p: P[]): B {
+export function join<B: Path | string>(base: B, ...p: string[]): B {
   return (path.join(base, ...p): any);
+}
+
+export function dirname<P: Path | string>(p: P): P {
+  return (path.dirname(p): any);
 }
 
 export function length(p: ConcretePath): number {
   return p.length;
 }
 
-export function toString(p: ConcretePath): string {
+export function toString(p: Path | string): string {
   return p;
 }
 

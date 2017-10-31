@@ -20,7 +20,7 @@ export default async function configCommand(ctx: CommandContext) {
 
   const configSpecs = {
     'store-path': {
-      get: () => P.toString(config.store.path),
+      get: () => config.store.path,
     },
     'sandbox-path': {
       get: () => config.sandboxPath,
