@@ -3,14 +3,14 @@
  */
 
 type Node<N: Node<*>> = {
-  id: string,
-  dependencies: Map<string, N>,
+  +id: string,
+  +dependencies: Map<string, N>,
 };
 
 /**
  * BF traverse for a dep graph.
  */
-export function traverse<N: Node<*>>(node: N, f: (N) => void) {
+export function traverse<N: Node<*>>(node: N, f: N => void) {
   const seen = new Set();
   const queue = [node];
   while (queue.length > 0) {
@@ -27,7 +27,7 @@ export function traverse<N: Node<*>>(node: N, f: (N) => void) {
 /**
  * DF traverse for a dep graph.
  */
-export function traverseDeepFirst<N: Node<*>>(node: N, f: (N) => void) {
+export function traverseDeepFirst<N: Node<*>>(node: N, f: N => void) {
   const seen = new Set();
   function traverse(node) {
     if (seen.has(node.id)) {

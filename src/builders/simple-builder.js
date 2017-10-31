@@ -255,13 +255,13 @@ async function performBuild(
 
   log('placing _esy/sandbox.conf');
   const darwinSandboxConfig = path.join(buildPath, '_esy', 'sandbox.sb');
-  const tempDirs = await Promise.all(
-    ['/tmp', process.env.TMPDIR].filter(Boolean).map(p => fs.realpath(p)),
-  );
+  const tempDirs: Array<Promise<?string>> = ['/tmp', process.env.TMPDIR]
+    .filter(Boolean)
+    .map(p => fs.realpath(p));
   await fs.writeFile(
     darwinSandboxConfig,
     renderSandboxSbConfig(task.spec, config, {
-      allowFileWrite: tempDirs,
+      allowFileWrite: await Promise.all(tempDirs),
     }),
     'utf8',
   );

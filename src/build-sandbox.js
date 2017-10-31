@@ -19,7 +19,7 @@ import {computeHash, resolve, normalizePackageName} from './util';
 import * as Env from './environment';
 
 export type EsyConfig = {
-  build: null | string | Array<string> | Array<Array<string>>,
+  build: null | string | Array<string | Array<string>>,
   buildsInSource: boolean,
   exportedEnv: {
     [name: string]: EnvironmentVarExport,
@@ -157,7 +157,7 @@ async function crawlBuild(
   const packageJson = await readManifest(sourcePath);
   const isRootBuild = context.sandboxPath === sourcePath;
 
-  let command: null | Array<string> | Array<Array<string>> = null;
+  let command: null | Array<string | Array<string>> = null;
   if (packageJson.esy.build != null) {
     if (!Array.isArray(packageJson.esy.build)) {
       // $FlowFixMe: ...

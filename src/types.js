@@ -25,19 +25,19 @@ export type EnvironmentVarExport = {
  */
 export type BuildSpec = {
   /** Unique identifier */
-  id: string,
+  +id: string,
 
   /** Build name */
-  name: string,
+  +name: string,
 
   /** Build version */
-  version: string,
+  +version: string,
 
   /** Command which is needed to execute build */
-  command: null | Array<string> | Array<Array<string>>,
+  +command: null | Array<string | Array<string>>,
 
   /** Environment exported by built. */
-  exportedEnv: {[name: string]: EnvironmentVarExport},
+  +exportedEnv: {[name: string]: EnvironmentVarExport},
 
   /**
    * Path tof the source tree relative to sandbox root.
@@ -45,7 +45,7 @@ export type BuildSpec = {
    * That's where sources are located but not necessary the location where the
    * build is executed as build process (or some other process) can relocate sources before the build.
    */
-  sourcePath: string,
+  +sourcePath: string,
 
   /**
    * Source type.
@@ -54,7 +54,7 @@ export type BuildSpec = {
    * 'transient' means sources can be changed between build invokations and we
    *             cannot simply cache artefacts.
    */
-  sourceType: 'immutable' | 'transient',
+  +sourceType: 'immutable' | 'transient',
 
   /**
    * If build mutates its own sourcePath.
@@ -62,7 +62,7 @@ export type BuildSpec = {
    * Builder must handle that case somehow, probably by copying sourcePath into
    * some temp location and doing a build from there.
    */
-  mutatesSourcePath: boolean,
+  +mutatesSourcePath: boolean,
 
   /**
    * If build should be persisted in store.
@@ -71,30 +71,30 @@ export type BuildSpec = {
    * they don't change at all. On the other side builds from dev sources
    * shouldn't be persisted.
    */
-  shouldBePersisted: boolean,
+  +shouldBePersisted: boolean,
 
   /**
    * Set of dependencies which must be build/installed before this build can
    * happen
    */
-  dependencies: Map<string, BuildSpec>,
+  +dependencies: Map<string, BuildSpec>,
 
   /**
    * A list of errors found in build definitions.
    */
-  errors: {message: string}[],
+  +errors: {message: string}[],
 };
 
 /**
  * A concrete build task with command list and env ready for execution.
  */
 export type BuildTask = {
-  id: string,
-  command: null | Array<{command: string, renderedCommand: string}>,
-  env: Map<string, EnvironmentVar>,
-  scope: Map<string, EnvironmentVar>,
-  dependencies: Map<string, BuildTask>,
-  spec: BuildSpec,
+  +id: string,
+  +command: null | Array<{command: string, renderedCommand: string}>,
+  +env: Map<string, EnvironmentVar>,
+  +scope: Map<string, EnvironmentVar>,
+  +dependencies: Map<string, BuildTask>,
+  +spec: BuildSpec,
 };
 
 export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
@@ -103,13 +103,11 @@ export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
  * Build configuration.
  */
 export type BuildConfig = {
-
   /**
    * Which platform the build will actually be performed on. Not necessarily
    * the same platform that is constructing the build plan.
    */
   buildPlatform: BuildPlatform,
-
 
   /**
    * Path to the store used for a build.

@@ -90,7 +90,7 @@ export async function read(rootDirname: string): Promise<Node[]> {
   }
 
   async function crawlDirectory(pathname: string, name: string): Promise<DirectoryNode> {
-    const tasks = [];
+    const tasks: Array<Promise<Node>> = [];
     for (const name of await fs.readdir(pathname)) {
       const nextPathname = path.join(pathname, name);
       const stat = await fs.stat(nextPathname);

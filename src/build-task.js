@@ -194,11 +194,9 @@ export function fromBuildSpec(
     mergeIntoMap(scope, getEvalScope(scopes.spec, scopes.dependencies, config));
     mergeIntoMap(scope, env);
 
-    const command = scopes.spec.command != null
-      ? scopes.spec.command.map((command: string | Array<string>) =>
-          renderCommand(command, scope),
-        )
-      : scopes.spec.command;
+    const command = scopes.spec.command == null
+      ? null
+      : scopes.spec.command.map(command => renderCommand(command, scope));
 
     return {
       id: scopes.spec.id,
