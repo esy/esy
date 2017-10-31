@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec, BuildConfig, BuildPlatform, StoreTree, Store} from './types';
+import type {BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
 import * as path from 'path';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
@@ -13,7 +13,7 @@ function _create({
   localStore,
   readOnlyStores,
   buildPlatform,
-}): BuildConfig {
+}): Config {
   const genStorePath = (tree: StoreTree, build: BuildSpec, segments: string[]) => {
     if (build.shouldBePersisted) {
       return store.getPath(tree, build, ...segments);
@@ -22,7 +22,7 @@ function _create({
     }
   };
 
-  const buildConfig: BuildConfig = {
+  const buildConfig: Config = {
     sandboxPath,
     store,
     localStore,
@@ -54,7 +54,7 @@ export function create(params: {
   sandboxPath: string,
   buildPlatform: BuildPlatform,
   readOnlyStorePathList?: Array<string>,
-}): BuildConfig {
+}): Config {
   const {storePath, sandboxPath, buildPlatform, readOnlyStorePathList = []} = params;
   const store = S.forPath(storePath);
   const localStore = S.forPath(

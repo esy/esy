@@ -4,7 +4,7 @@
 
 require('babel-polyfill');
 
-import type {BuildConfig, BuildSandbox, BuildTask, BuildPlatform} from '../types';
+import type {Config, BuildSandbox, BuildTask, BuildPlatform} from '../types';
 import type {Options as SandboxOptions} from '../build-sandbox';
 
 import loudRejection from 'loud-rejection';
@@ -56,7 +56,7 @@ export async function getBuildSandbox(
 }
 
 export async function getBuildConfig(ctx: CommandContext) {
-  const {createForPrefix} = require('../build-config');
+  const {createForPrefix} = require('../config');
 
   return createForPrefix({
     prefixPath: ctx.prefixPath,

@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec, BuildTask, BuildConfig, BuildSandbox} from '../types';
+import type {BuildSpec, BuildTask, Config, BuildSandbox} from '../types';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -36,7 +36,7 @@ const RUNTIME = fs.readFileSync(require.resolve('./makefile-builder-runtime.sh')
 export function renderToMakefile(
   sandbox: BuildSandbox,
   outputPath: string,
-  buildConfig: BuildConfig,
+  buildConfig: Config,
 ) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
 
