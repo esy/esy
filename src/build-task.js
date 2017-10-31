@@ -45,10 +45,10 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
   return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin'
     ? ';'
     : buildPlatform === 'cygwin' ||
-        buildPlatform === 'linux' ||
-        buildPlatform === 'darwin'
-        ? ':'
-        : ';';
+      buildPlatform === 'linux' ||
+      buildPlatform === 'darwin'
+      ? ':'
+      : ';';
 }
 
 /**
@@ -59,13 +59,14 @@ export function fromBuildSpec(
   config: Config<P.Path>,
   params?: BuildTaskParams = {},
 ): BuildTask {
-  const {
-    task,
-  } = Graph.topologicalFold(rootBuild, (dependencies, allDependencies, spec) => {
-    const scopes = computeScopes(dependencies, allDependencies, spec);
-    const task = createTask(scopes);
-    return {spec, scopes, task};
-  });
+  const {task} = Graph.topologicalFold(
+    rootBuild,
+    (dependencies, allDependencies, spec) => {
+      const scopes = computeScopes(dependencies, allDependencies, spec);
+      const task = createTask(scopes);
+      return {spec, scopes, task};
+    },
+  );
 
   function computeScopes(dependencies, allDependencies, spec) {
     // scope which is used to eval exported variables
@@ -149,7 +150,8 @@ export function fromBuildSpec(
       {
         name: 'OCAMLFIND_COMMANDS',
         // eslint-disable-next-line max-len
-        value: 'ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt',
+        value:
+          'ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt',
         exported: true,
         exclusive: true,
       },
@@ -195,9 +197,10 @@ export function fromBuildSpec(
     mergeIntoMap(scope, getEvalScope(scopes.spec, scopes.dependencies, config));
     mergeIntoMap(scope, env);
 
-    const command = scopes.spec.command == null
-      ? null
-      : scopes.spec.command.map(command => renderCommand(command, scope));
+    const command =
+      scopes.spec.command == null
+        ? null
+        : scopes.spec.command.map(command => renderCommand(command, scope));
 
     return {
       id: scopes.spec.id,
@@ -271,9 +274,10 @@ function getBuiltInScope(
     },
     {
       name: `${prefix}__root`,
-      value: currentlyBuilding && spec.mutatesSourcePath
-        ? config.getBuildPath(spec)
-        : config.getRootPath(spec),
+      value:
+        currentlyBuilding && spec.mutatesSourcePath
+          ? config.getBuildPath(spec)
+          : config.getRootPath(spec),
       spec,
     },
     {
@@ -406,9 +410,9 @@ export function expandWithScope<T: {value: string}>(
   return {rendered: rendered != null ? rendered : value};
 }
 
-export function fromBuildSandbox(
+export function fromBuildSandbox<Path: P.Path>(
   sandbox: BuildSandbox,
-  config: Config<P.Path>,
+  config: Config<Path>,
   params?: BuildTaskParams,
 ): BuildTask {
   const env = new Map();
