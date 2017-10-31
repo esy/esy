@@ -131,8 +131,11 @@ printHelp() {
 
   print-env             Prints esy environment on stdout.
 
-  build-shell           Drops into a shell with environment matching your
-                        package's build environment.
+  build-shell [path]    Drops into a shell with environment matching your
+                        package's build environment. If argument is provided
+                        then it should point to the package inside the current
+                        sandbox — that will initialize build shell for that
+                        specified package.
 
   build-eject           Creates node_modules/.cache/esy/build-eject/Makefile,
                         which is later can be used for building without the NodeJS
@@ -185,7 +188,7 @@ then
   printHelp
 elif [ $# -eq 1 ]; then
   case $1 in
-    build-shell|clean)
+    clean)
       callBuiltInCommand__buildEject
       make -j -s -f "$BUILD_EJECT_PATH/Makefile" "$1"
       ;;
@@ -199,6 +202,10 @@ elif [ $# -eq 1 ]; then
     build|b)
       shift
       callBuiltInCommand build "$@"
+      ;;
+    build-shell)
+      shift
+      callBuiltInCommand build-shell "$@"
       ;;
     import-opam)
       shift
@@ -255,6 +262,10 @@ else
     add)
       shift
       callBuiltInCommand__esyInstall add "$@"
+      ;;
+    build-shell)
+      shift
+      callBuiltInCommand build-shell "$@"
       ;;
     install|i)
       shift

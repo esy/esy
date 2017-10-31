@@ -73,10 +73,12 @@ function formatError(message: string, stack?: string) {
   return result;
 }
 
-function error(error: Error | string) {
-  const message = String(error.message ? error.message : error);
-  const stack = error.stack ? String(error.stack) : undefined;
-  console.log(formatError(message, stack));
+function error(error?: Error | string) {
+  if (error != null) {
+    const message = String(error.message ? error.message : error);
+    const stack = error.stack ? String(error.stack) : undefined;
+    console.log(formatError(message, stack));
+  }
   process.exit(1);
 }
 
@@ -92,12 +94,13 @@ export type CommandContext = {
   commandName: string,
   args: Array<string>,
 
-  error(message: string): void,
+  error(message?: string): any,
 };
 
 const commandsByName: {[name: string]: (CommandContext) => any} = {
   'build-eject': ctx => require('./esyBuildEject').default(ctx),
   build: ctx => require('./esyBuild').default(ctx),
+  'build-shell': ctx => require('./esyBuildShell').default(ctx),
   release: ctx => require('./esyRelease').default(ctx),
   'import-opam': ctx => require('./esyImportOpam').default(ctx),
   'print-env': ctx => require('./esyPrintEnv').default(ctx),
