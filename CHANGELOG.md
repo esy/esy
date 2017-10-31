@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## NEXT
+
+* Fix `esy build-shell` command to have exactly the same environment as `esy
+  build` operates in.
+
+* Allow to initialize a build shell for any package in a sandbox. Specify
+  a package by the path to its source:
+
+      % esy build-shell ./node_modules/@opam/reason
+
 ## 0.0.28
 
 * Support for installing packages with only `esy.json` available.
