@@ -29,6 +29,14 @@ function getPrefixPath() {
   }
 }
 
+function getReadOnlyStorePath() {
+  if (process.env.ESY__READ_ONLY_STORE_PATH != null) {
+    return process.env.ESY__READ_ONLY_STORE_PATH.split(':');
+  } else {
+    return [];
+  }
+}
+
 function getBuildPlatform() {
   if (process.platform === 'darwin') {
     return 'darwin';
@@ -62,6 +70,7 @@ export async function getBuildConfig(ctx: CommandContext) {
     prefixPath: ctx.prefixPath,
     sandboxPath: ctx.sandboxPath,
     buildPlatform: ctx.buildPlatform,
+    readOnlyStorePath: ctx.readOnlyStorePath,
   });
 }
 
@@ -89,6 +98,7 @@ export function indent(string: string, indent: string) {
 export type CommandContext = {
   prefixPath: string,
   sandboxPath: string,
+  readOnlyStorePath: Array<string>,
   buildPlatform: BuildPlatform,
 
   commandName: string,
@@ -110,6 +120,7 @@ const commandsByName: {[name: string]: (CommandContext) => any} = {
 async function main() {
   const ctx: CommandContext = {
     prefixPath: getPrefixPath(),
+    readOnlyStorePath: getReadOnlyStorePath(),
     sandboxPath: getSandboxPath(),
     buildPlatform: getBuildPlatform(),
     commandName: process.argv[2],

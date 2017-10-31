@@ -2,8 +2,9 @@
  * @flow
  */
 
-import type {BuildTask, Config, BuildSandbox} from '../types';
+import type {BuildTask, BuildSpec, Store, Config, BuildSandbox} from '../types';
 
+import invariant from 'invariant';
 import createLogger from 'debug';
 import * as path from 'path';
 import * as os from 'os';
@@ -14,6 +15,7 @@ import * as fs from '../lib/fs';
 import * as child from '../lib/child_process';
 import {fixupErrorSubclassing} from '../lib/lang';
 
+import * as P from '../path';
 import * as Graph from '../graph';
 import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
@@ -85,10 +87,10 @@ const BUILD_STATE_CACHED_SUCCESS = {
 export const build = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
-  config: Config,
+  config: Config<P.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, state: BuildState) => *,
 ) => {
-  await Promise.all([initStore(config.store.path), initStore(config.localStore.path)]);
+  await Promise.all([initStore(config.store), initStore(config.localStore)]);
   const performBuild = createBuilder(sandbox, config, onBuildStateChange);
 
   return await Graph.topologicalFold(
@@ -129,10 +131,10 @@ export const build = async (
 export const buildDependencies = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
-  config: Config,
+  config: Config<P.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
-  await Promise.all([initStore(config.store.path), initStore(config.localStore.path)]);
+  await Promise.all([initStore(config.store), initStore(config.localStore)]);
   const performBuild = createBuilder(sandbox, config, onBuildStateChange);
 
   return await Graph.topologicalFold(
@@ -173,7 +175,7 @@ export const buildDependencies = async (
 
 const createBuilder = (
   sandbox: BuildSandbox,
-  config: Config,
+  config: Config<P.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
   const buildQueue = new PromiseQueue({concurrency: NUM_CPUS});
@@ -206,6 +208,12 @@ const createBuilder = (
   }
 
   async function performBuildOrRelocate(task): Promise<void> {
+    for (const store of config.readOnlyStores) {
+      if (await store.has(task.spec)) {
+        await relocateBuild(store, config.store, task.spec);
+        return;
+      }
+    }
     await performBuild(task, config, sandbox);
   }
 
@@ -293,7 +301,7 @@ type BuildDriver = {
 
 export async function withBuildDriver(
   task: BuildTask,
-  config: Config,
+  config: Config<P.AbsolutePath>,
   sandbox: BuildSandbox,
   f: BuildDriver => Promise<void>,
 ): Promise<void> {
@@ -354,23 +362,6 @@ export async function withBuildDriver(
     'utf8',
   );
 
-  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
-  const sandboxRootInstallTreeSymlink = path.join(
-    config.sandboxPath,
-    INSTALL_TREE_SYMLINK,
-  );
-
-  // For top level build we need to remove build tree symlink and install tree
-  // symlink as in case of non mutating build it can interfere with the build
-  // itself. In case of mutating build they still be ignore then copying sources
-  // of to `$cur__target_dir`.
-  if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
-    await Promise.all([
-      unlinkOrRemove(sandboxRootBuildTreeSymlink),
-      unlinkOrRemove(sandboxRootInstallTreeSymlink),
-    ]);
-  }
-
   const logFilename = config.getBuildPath(task.spec, '_esy', 'log');
   const logStream = nodefs.createWriteStream(logFilename);
 
@@ -390,10 +381,10 @@ export async function withBuildDriver(
       maxBuffer: Infinity,
     });
     // TODO: we need line-buffering here possibly?
-    interleaveStreams(
-      execution.process.stdout,
-      execution.process.stderr,
-    ).pipe(logStream, {end: false});
+    interleaveStreams(execution.process.stdout, execution.process.stderr).pipe(
+      logStream,
+      {end: false},
+    );
     const {code} = await execution.exit;
     if (code !== 0) {
       throw new BuildCommandError(task, command, logFilename);
@@ -440,7 +431,7 @@ export async function withBuildDriver(
 
 async function performBuild(
   task: BuildTask,
-  config: Config,
+  config: Config<P.AbsolutePath>,
   sandbox: BuildSandbox,
 ): Promise<void> {
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
@@ -471,18 +462,10 @@ async function performBuild(
         }
 
         driver.log('rewriting paths in build artefacts');
-        const rewriteQueue = new PromiseQueue({concurrency: 20});
-        const files = await fs.walk(config.getInstallPath(task.spec));
-        await Promise.all(
-          files.map(file =>
-            rewriteQueue.add(() =>
-              rewritePathInFile(
-                file.absolute,
-                driver.installPath,
-                driver.finalInstallPath,
-              ),
-            ),
-          ),
+        await rewritePaths(
+          config.getInstallPath(task.spec),
+          driver.installPath,
+          driver.finalInstallPath,
         );
       }
 
@@ -510,10 +493,10 @@ async function performBuild(
   await withBuildDriver(task, config, sandbox, executeBuildCommands);
 }
 
-async function initStore(storePath) {
+async function initStore(store: Store<P.AbsolutePath>) {
   await Promise.all(
     [STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE].map(p =>
-      fs.mkdirp(path.join(storePath, p)),
+      fs.mkdirp(P.toString(P.join(store.path, P.concrete(p)))),
     ),
   );
 }
@@ -535,6 +518,39 @@ async function unlinkOrRemove(p) {
       await fs.rmdir(p);
     }
   }
+}
+
+async function rewritePaths(path, from, to) {
+  const rewriteQueue = new PromiseQueue({concurrency: 20});
+  const files = await fs.walk(path);
+  await Promise.all(
+    files.map(file => rewriteQueue.add(() => rewritePathInFile(file.absolute, from, to))),
+  );
+}
+
+async function relocateBuild(
+  from: Store<P.AbsolutePath>,
+  to: Store<P.AbsolutePath>,
+  build: BuildSpec,
+): Promise<void> {
+  invariant(
+    P.length(from.path) === P.length(to.path),
+    'Cannot relocate between stores of different path length: %s and %s',
+    from.path,
+    to.path,
+  );
+  const stage = await fs.mkdtemp(`reloc-build-${build.id}`);
+  const originPath = from.getPath(STORE_INSTALL_TREE, build);
+  const destPath = to.getPath(STORE_INSTALL_TREE, build);
+  const stagePath = path.join(stage, STORE_INSTALL_TREE);
+  try {
+    await fs.copydir(originPath, stagePath);
+    await rewritePaths(stagePath, P.toString(from.path), P.toString(to.path));
+    await fs.mkdirp(path.dirname(destPath));
+  } finally {
+    fs.rmdir(stage);
+  }
+  await fs.rename(stagePath, destPath);
 }
 
 /**
@@ -608,6 +624,7 @@ export class InteractiveCommandError extends BuildError {
  */
 export function collectBuildErrors(state: BuildStateFailure): Array<BuildError> {
   const errors = [];
+  const seen = new Set();
   const queue = [state.error];
 
   while (queue.length > 0) {
@@ -615,7 +632,10 @@ export function collectBuildErrors(state: BuildStateFailure): Array<BuildError> 
     if (error instanceof DependencyBuildError) {
       queue.push(...error.reasons);
     } else {
-      errors.push(error);
+      if (!seen.has(error)) {
+        seen.add(error);
+        errors.push(error);
+      }
     }
   }
 

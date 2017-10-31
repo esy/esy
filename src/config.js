@@ -6,14 +6,15 @@ import type {BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
 import * as path from 'path';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
+import * as P from './path';
 
-function _create({
+function _create<Path: P.Path>(
   sandboxPath,
-  store,
-  localStore,
+  store: Store<Path>,
+  localStore: Store<Path>,
   readOnlyStores,
   buildPlatform,
-}): Config {
+): Config<Path> {
   const genStorePath = (tree: StoreTree, build: BuildSpec, segments: string[]) => {
     if (build.shouldBePersisted) {
       return store.getPath(tree, build, ...segments);
@@ -22,7 +23,7 @@ function _create({
     }
   };
 
-  const buildConfig: Config = {
+  const buildConfig = {
     sandboxPath,
     store,
     localStore,
@@ -53,28 +54,28 @@ export function create(params: {
   storePath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
-  readOnlyStorePathList?: Array<string>,
-}): Config {
-  const {storePath, sandboxPath, buildPlatform, readOnlyStorePathList = []} = params;
-  const store = S.forPath(storePath);
-  const localStore = S.forPath(
+  readOnlyStorePath: Array<string>,
+}): Config<P.AbstractPath> {
+  const {storePath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
+  const store = S.forAbstractPath(storePath);
+  const localStore = S.forAbstractPath(
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
-  const readOnlyStores = readOnlyStorePathList.map(p => S.forPath(p));
-  return _create({sandboxPath, store, localStore, readOnlyStores, buildPlatform});
+  const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
+  return _create(sandboxPath, store, localStore, readOnlyStores, buildPlatform);
 }
 
 export function createForPrefix(params: {
   prefixPath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
-  readOnlyStorePathList?: Array<string>,
-}) {
-  const {prefixPath, sandboxPath, buildPlatform, readOnlyStorePathList = []} = params;
+  readOnlyStorePath: Array<string>,
+}): Config<P.AbsolutePath> {
+  const {prefixPath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
   const store = S.forPrefixPath(prefixPath);
-  const localStore = S.forPath(
+  const localStore = S.forAbsolutePath(
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
-  const readOnlyStores = readOnlyStorePathList.map(p => S.forPath(p));
-  return _create({sandboxPath, store, localStore, readOnlyStores, buildPlatform});
+  const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
+  return _create(sandboxPath, store, localStore, readOnlyStores, buildPlatform);
 }
