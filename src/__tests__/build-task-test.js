@@ -4,7 +4,7 @@
 
 import type {BuildSpec} from '../types';
 import {expandWithScope, renderWithScope, fromBuildSpec} from '../build-task';
-import * as Config from '../build-config';
+import * as Config from '../config';
 
 function calculate(config, spec, params) {
   const {env, scope} = fromBuildSpec(spec, config, params);

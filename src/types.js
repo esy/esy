@@ -110,7 +110,7 @@ export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
 /**
  * Build configuration.
  */
-export type BuildConfig = {
+export type Config = {
   /**
    * Which platform the build will actually be performed on. Not necessarily
    * the same platform that is constructing the build plan.

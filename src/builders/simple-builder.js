@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildTask, BuildConfig, BuildSandbox} from '../types';
+import type {BuildTask, Config, BuildSandbox} from '../types';
 
 import createLogger from 'debug';
 import * as path from 'path';
@@ -15,7 +15,6 @@ import * as child from '../lib/child_process';
 import {fixupErrorSubclassing} from '../lib/lang';
 
 import * as Graph from '../graph';
-import * as Config from '../build-config';
 import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
 import {
@@ -86,7 +85,7 @@ const BUILD_STATE_CACHED_SUCCESS = {
 export const build = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
-  config: BuildConfig,
+  config: Config,
   onBuildStateChange: (task: BuildTask, state: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.store.path), initStore(config.localStore.path)]);
@@ -130,7 +129,7 @@ export const build = async (
 export const buildDependencies = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
-  config: BuildConfig,
+  config: Config,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.store.path), initStore(config.localStore.path)]);
@@ -174,7 +173,7 @@ export const buildDependencies = async (
 
 const createBuilder = (
   sandbox: BuildSandbox,
-  config: BuildConfig,
+  config: Config,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
   const buildQueue = new PromiseQueue({concurrency: NUM_CPUS});
@@ -294,7 +293,7 @@ type BuildDriver = {
 
 export async function withBuildDriver(
   task: BuildTask,
-  config: BuildConfig,
+  config: Config,
   sandbox: BuildSandbox,
   f: BuildDriver => Promise<void>,
 ): Promise<void> {
@@ -441,7 +440,7 @@ export async function withBuildDriver(
 
 async function performBuild(
   task: BuildTask,
-  config: BuildConfig,
+  config: Config,
   sandbox: BuildSandbox,
 ): Promise<void> {
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);

@@ -5,7 +5,7 @@
 import type {
   BuildSandbox,
   BuildSpec,
-  BuildConfig,
+  Config,
   BuildTask,
   BuildEnvironment,
   BuildPlatform,
@@ -55,7 +55,7 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
  */
 export function fromBuildSpec(
   rootBuild: BuildSpec,
-  config: BuildConfig,
+  config: Config,
   params?: BuildTaskParams = {},
 ): BuildTask {
   const {
@@ -250,7 +250,7 @@ function builtInEntries(...values) {
 
 function getBuiltInScope(
   spec: BuildSpec,
-  config: BuildConfig,
+  config: Config,
   currentlyBuilding?: boolean,
 ): BuildEnvironment {
   const prefix = currentlyBuilding ? 'cur' : normalizePackageName(spec.name);
@@ -407,7 +407,7 @@ export function expandWithScope<T: {value: string}>(
 
 export function fromBuildSandbox(
   sandbox: BuildSandbox,
-  config: BuildConfig,
+  config: Config,
   params?: BuildTaskParams,
 ): BuildTask {
   const env = new Map();

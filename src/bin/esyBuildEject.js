@@ -10,7 +10,7 @@ import invariant from 'invariant';
 import outdent from 'outdent';
 
 import {getBuildSandbox} from './esy';
-import * as Config from '../build-config';
+import * as Config from '../config';
 import * as MakefileBuilder from '../builders/makefile-builder';
 
 export default async function buildEjectCommand(ctx: CommandContext) {
