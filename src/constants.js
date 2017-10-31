@@ -2,6 +2,8 @@
  * @flow
  */
 
+import type {StoreTree} from './types';
+
 /**
  * Names of the symlinks to build and install trees of the sandbox.
  */
@@ -17,9 +19,9 @@ export const RELEASE_TREE = '_release';
  * Constants for tree names inside stores. We keep them short not to exhaust
  * available shebang length as install tree will be there.
  */
-export const STORE_BUILD_TREE = 'b';
-export const STORE_INSTALL_TREE = 'i';
-export const STORE_STAGE_TREE = 's';
+export const STORE_BUILD_TREE: StoreTree = 'b';
+export const STORE_INSTALL_TREE: StoreTree = 'i';
+export const STORE_STAGE_TREE: StoreTree = 's';
 
 /**
  * The current version of esy store, bump it whenever the store layout changes.

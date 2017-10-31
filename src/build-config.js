@@ -2,105 +2,79 @@
  * @flow
  */
 
-import type {BuildSpec, BuildConfig, BuildPlatform} from './types';
+import type {BuildSpec, BuildConfig, BuildPlatform, StoreTree, Store} from './types';
 import * as path from 'path';
-import invariant from 'invariant';
-import {
-  STORE_BUILD_TREE,
-  STORE_INSTALL_TREE,
-  STORE_STAGE_TREE,
-  ESY_STORE_VERSION,
-  ESY_STORE_PADDING_LENGTH,
-} from './constants';
+import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
+import * as S from './store';
 
-export function create(params: {
-  storePath: string,
-  sandboxPath: string,
-  buildPlatform: BuildPlatform,
+function _create({
+  sandboxPath,
+  store,
+  localStore,
+  readOnlyStores,
+  buildPlatform,
 }): BuildConfig {
-  const {storePath, sandboxPath, buildPlatform} = params;
-  const localStorePath = path.join(
-    sandboxPath,
-    'node_modules',
-    '.cache',
-    '_esy',
-    'store',
-  );
-  const genStorePath = (build: BuildSpec, tree: string, segments: string[]) => {
+  const genStorePath = (tree: StoreTree, build: BuildSpec, segments: string[]) => {
     if (build.shouldBePersisted) {
-      return path.join(storePath, tree, build.id, ...segments);
+      return store.getPath(tree, build, ...segments);
     } else {
-      return path.join(localStorePath, tree, build.id, ...segments);
+      return localStore.getPath(tree, build, ...segments);
     }
   };
 
   const buildConfig: BuildConfig = {
     sandboxPath,
-    storePath,
-    localStorePath,
+    store,
+    localStore,
     buildPlatform,
+    readOnlyStores,
+
     getSourcePath: (build: BuildSpec, ...segments) => {
       return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
     },
     getRootPath: (build: BuildSpec, ...segments) => {
       if (build.mutatesSourcePath) {
-        return genStorePath(build, STORE_BUILD_TREE, segments);
+        return genStorePath(STORE_BUILD_TREE, build, segments);
       } else {
         return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
       }
     },
     getBuildPath: (build: BuildSpec, ...segments) =>
-      genStorePath(build, STORE_BUILD_TREE, segments),
+      genStorePath(STORE_BUILD_TREE, build, segments),
     getInstallPath: (build: BuildSpec, ...segments) =>
-      genStorePath(build, STORE_STAGE_TREE, segments),
+      genStorePath(STORE_STAGE_TREE, build, segments),
     getFinalInstallPath: (build: BuildSpec, ...segments) =>
-      genStorePath(build, STORE_INSTALL_TREE, segments),
+      genStorePath(STORE_INSTALL_TREE, build, segments),
   };
   return buildConfig;
+}
+
+export function create(params: {
+  storePath: string,
+  sandboxPath: string,
+  buildPlatform: BuildPlatform,
+  readOnlyStorePathList?: Array<string>,
+}): BuildConfig {
+  const {storePath, sandboxPath, buildPlatform, readOnlyStorePathList = []} = params;
+  const store = S.forPath(storePath);
+  const localStore = S.forPath(
+    path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
+  );
+  const readOnlyStores = readOnlyStorePathList.map(p => S.forPath(p));
+  return _create({sandboxPath, store, localStore, readOnlyStores, buildPlatform});
 }
 
 export function createForPrefix(params: {
   prefixPath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
+  readOnlyStorePathList?: Array<string>,
 }) {
-  const prefixPath = sanitizePrefixPath(params.prefixPath);
-  const storePath = getStorePathForPrefix(prefixPath);
-  return create({
-    storePath,
-    sandboxPath: params.sandboxPath,
-    buildPlatform: params.buildPlatform,
-  });
-}
-
-export function getStorePathForPrefix(prefix: string): string {
-  const prefixLength = `${prefix}/${ESY_STORE_VERSION}`.length;
-  const paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
-  invariant(
-    paddingLength >= 0,
-    `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
+  const {prefixPath, sandboxPath, buildPlatform, readOnlyStorePathList = []} = params;
+  const store = S.forPrefixPath(prefixPath);
+  const localStore = S.forPath(
+    path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
-  return `${prefix}/${ESY_STORE_VERSION}`.padEnd(ESY_STORE_PADDING_LENGTH, '_');
-}
-
-const REMOVE_TRAILING_SLASH_RE = /\/+$/g;
-const ENVIRONMENT_VAR_RE = /\$[a-zA-Z_]/g;
-const DOT_PATH_SEGMENT_RE = /\/\.\//g;
-const DOT_DOT_PATH_SEGMENT_RE = /\/\.\.\//g;
-const SANITIZE_SLASH_RE = /\/+/g;
-
-/**
- * It is important for prefix to be a real path, not containing environment
- * variables other artefacts.
- */
-function sanitizePrefixPath(prefix) {
-  invariant(DOT_PATH_SEGMENT_RE.exec(prefix) == null, 'Invalid Esy prefix value');
-  invariant(DOT_DOT_PATH_SEGMENT_RE.exec(prefix) == null, 'Invalid Esy prefix value');
-  invariant(
-    ENVIRONMENT_VAR_RE.exec(prefix) == null,
-    'Esy prefix path should not contain environment variable references',
-  );
-  prefix = prefix.replace(REMOVE_TRAILING_SLASH_RE, '');
-  prefix = prefix.replace(SANITIZE_SLASH_RE, '/');
-  return prefix;
+  const readOnlyStores = readOnlyStorePathList.map(p => S.forPath(p));
+  return _create({sandboxPath, store, localStore, readOnlyStores, buildPlatform});
 }
