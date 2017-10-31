@@ -5,6 +5,7 @@
 import type {CommandContext} from './esy';
 
 import {getBuildConfig} from './esy';
+import * as P from '../path';
 
 import outdent from 'outdent';
 
@@ -19,10 +20,13 @@ export default async function configCommand(ctx: CommandContext) {
 
   const configSpecs = {
     'store-path': {
-      get: () => config.store.path,
+      get: () => P.toString(config.store.path),
     },
     'sandbox-path': {
       get: () => config.sandboxPath,
+    },
+    'read-only-store-paths': {
+      get: () => config.readOnlyStores.map(s => s.path).join(':'),
     },
   };
 

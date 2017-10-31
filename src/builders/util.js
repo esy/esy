@@ -6,6 +6,7 @@ import type {BuildSpec, Config, BuildEnvironment} from '../types';
 
 import * as child from 'child_process';
 import * as fs from '../lib/fs';
+import * as P from '../path';
 import outdent from 'outdent';
 
 type ConfigSpec = {
@@ -15,11 +16,16 @@ type ConfigSpec = {
 
 export function renderSandboxSbConfig(
   spec: BuildSpec,
-  config: Config,
+  config: Config<P.Path>,
   sandboxSpec?: ConfigSpec = {},
 ): string {
   const subpathList = pathList =>
-    pathList ? pathList.filter(Boolean).map(path => `(subpath "${path}")`).join(' ') : '';
+    pathList
+      ? pathList
+          .filter(Boolean)
+          .map(path => `(subpath "${path}")`)
+          .join(' ')
+      : '';
 
   // TODO: Right now the only thing this sandbox configuration does is it
   // disallows writing into locations other than $cur__root,

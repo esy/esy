@@ -6,6 +6,7 @@ import type {BuildSpec, StoreTree, Store} from './types';
 
 import invariant from 'invariant';
 import * as path from 'path';
+import * as P from './path';
 
 import * as fs from './lib/fs';
 
@@ -20,7 +21,7 @@ import {
 /**
  * Create store.
  */
-export function forPath(storePath: string): Store {
+function forPath<K: P.Path>(storePath: K): Store<K> {
   return {
     path: storePath,
 
@@ -34,43 +35,33 @@ export function forPath(storePath: string): Store {
   };
 }
 
+export function forAbstractPath(storePath: string): Store<P.AbstractPath> {
+  return forPath(P.abstract(storePath));
+}
+
+export function forAbsolutePath(storePath: string): Store<P.AbsolutePath> {
+  return forPath(P.absolute(storePath));
+}
+
 /**
  * Create store based on a real prefix path.
  */
-export function forPrefixPath(prefixPath: string): Store {
-  prefixPath = sanitizePrefixPath(prefixPath);
-  const storePath = getStorePathForPrefix(prefixPath);
+export function forPrefixPath(prefixPath: string): Store<P.AbsolutePath> {
+  const conceretePrefixPath = P.absolute(prefixPath);
+  const storePath = getStorePathForPrefix(conceretePrefixPath);
   return forPath(storePath);
 }
 
-const REMOVE_TRAILING_SLASH_RE = /\/+$/g;
-const ENVIRONMENT_VAR_RE = /\$[a-zA-Z_]/g;
-const DOT_PATH_SEGMENT_RE = /\/\.\//g;
-const DOT_DOT_PATH_SEGMENT_RE = /\/\.\.\//g;
-const SANITIZE_SLASH_RE = /\/+/g;
-
-/**
- * It is important for prefix to be a real path, not containing environment
- * variables other artefacts.
- */
-function sanitizePrefixPath(prefix) {
-  invariant(DOT_PATH_SEGMENT_RE.exec(prefix) == null, 'Invalid Esy prefix value');
-  invariant(DOT_DOT_PATH_SEGMENT_RE.exec(prefix) == null, 'Invalid Esy prefix value');
-  invariant(
-    ENVIRONMENT_VAR_RE.exec(prefix) == null,
-    'Esy prefix path should not contain environment variable references',
-  );
-  prefix = prefix.replace(REMOVE_TRAILING_SLASH_RE, '');
-  prefix = prefix.replace(SANITIZE_SLASH_RE, '/');
-  return prefix;
-}
-
-export function getStorePathForPrefix(prefix: string): string {
-  const prefixLength = `${prefix}/${ESY_STORE_VERSION}`.length;
+export function getStorePathForPrefix(prefix: P.AbsolutePath): P.AbsolutePath {
+  const prefixLength = P.length(P.join(prefix, P.concrete(ESY_STORE_VERSION)));
   const paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
   invariant(
     paddingLength >= 0,
     `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
   );
-  return `${prefix}/${ESY_STORE_VERSION}`.padEnd(ESY_STORE_PADDING_LENGTH, '_');
+  const p = `${P.toString(prefix)}/${ESY_STORE_VERSION}`.padEnd(
+    ESY_STORE_PADDING_LENGTH,
+    '_',
+  );
+  return (p: any);
 }

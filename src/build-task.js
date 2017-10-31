@@ -16,6 +16,7 @@ import {substituteVariables} from 'var-expansion';
 import {doubleQuote} from './lib/shell';
 import {normalizePackageName, mergeIntoMap, mapValuesMap} from './util';
 import * as Graph from './graph';
+import * as P from './path';
 import * as Env from './environment';
 
 type BuildTaskParams = {
@@ -55,7 +56,7 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
  */
 export function fromBuildSpec(
   rootBuild: BuildSpec,
-  config: Config,
+  config: Config<P.Path>,
   params?: BuildTaskParams = {},
 ): BuildTask {
   const {
@@ -250,7 +251,7 @@ function builtInEntries(...values) {
 
 function getBuiltInScope(
   spec: BuildSpec,
-  config: Config,
+  config: Config<P.Path>,
   currentlyBuilding?: boolean,
 ): BuildEnvironment {
   const prefix = currentlyBuilding ? 'cur' : normalizePackageName(spec.name);
@@ -407,7 +408,7 @@ export function expandWithScope<T: {value: string}>(
 
 export function fromBuildSandbox(
   sandbox: BuildSandbox,
-  config: Config,
+  config: Config<P.Path>,
   params?: BuildTaskParams,
 ): BuildTask {
   const env = new Map();

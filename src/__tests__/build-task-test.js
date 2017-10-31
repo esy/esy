@@ -68,6 +68,7 @@ const config = Config.create({
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
   buildPlatform: 'linux',
+  readOnlyStorePath: [],
 });
 
 describe('renderWithScope()', function() {

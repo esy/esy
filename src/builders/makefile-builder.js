@@ -11,6 +11,7 @@ import createLogger from 'debug';
 import outdent from 'outdent';
 
 import * as Graph from '../graph';
+import * as P from '../path';
 import * as Task from '../build-task';
 import * as Env from '../environment';
 import * as Makefile from '../Makefile';
@@ -36,7 +37,7 @@ const RUNTIME = fs.readFileSync(require.resolve('./makefile-builder-runtime.sh')
 export function renderToMakefile(
   sandbox: BuildSandbox,
   outputPath: string,
-  buildConfig: Config,
+  buildConfig: Config<P.Path>,
 ) {
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
 
@@ -198,7 +199,9 @@ export function renderToMakefile(
     const command = [];
     if (rule.withBuildEnv) {
       command.push(outdent`
-        @$(shell_env_for__${normalizePackageName(build.id)}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
+        @$(shell_env_for__${normalizePackageName(
+          build.id,
+        )}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
         cd $esy_build__source_root
       `);
     }

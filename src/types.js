@@ -2,10 +2,12 @@
  * @flow
  */
 
+import * as P from './path';
+
 export type StoreTree = 'i' | 'b' | 's';
 
-export type Store = {
-  path: string,
+export type Store<+Path: P.Path> = {
+  +path: Path,
   has(BuildSpec): Promise<boolean>,
   getPath(StoreTree, BuildSpec, ...path: Array<string>): string,
 };
@@ -110,22 +112,22 @@ export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
 /**
  * Build configuration.
  */
-export type Config = {
+export type Config<+Path: P.Path> = {
   /**
    * Which platform the build will actually be performed on. Not necessarily
    * the same platform that is constructing the build plan.
    */
-  buildPlatform: BuildPlatform,
+  +buildPlatform: BuildPlatform,
 
-  store: Store,
+  +store: Store<Path>,
 
-  localStore: Store,
+  +localStore: Store<Path>,
 
   /**
    * List of read only stores from which Esy could import built artifacts as
    * needed.
    */
-  readOnlyStores: Array<Store>,
+  +readOnlyStores: Array<Store<P.AbsolutePath>>,
 
   /**
    * Path to a sandbox root.
@@ -133,7 +135,7 @@ export type Config = {
    * string containing a file path. It very well might contain the name of an
    * environment variable that eventually will contain the actual path.
    */
-  sandboxPath: string,
+  +sandboxPath: string,
 
   /**
    * Generate path where sources of the builds are located.
