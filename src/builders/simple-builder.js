@@ -12,6 +12,7 @@ import * as nodefs from 'fs';
 import {PromiseQueue} from '../lib/Promise';
 import * as fs from '../lib/fs';
 import * as child from '../lib/child_process';
+import {fixupErrorSubclassing} from '../lib/lang';
 
 import * as Graph from '../graph';
 import * as Config from '../build-config';
@@ -542,9 +543,7 @@ export class BuildError extends Error {
   constructor(task: BuildTask) {
     super(`build error: ${task.spec.name}`);
     this.task = task;
-
-    this.constructor = BuildError;
-    this.__proto__ = BuildError.prototype;
+    fixupErrorSubclassing(this, BuildError);
   }
 }
 
@@ -557,9 +556,7 @@ export class DependencyBuildError extends BuildError {
   constructor(task: BuildTask, reasons: Array<BuildError>) {
     super(task);
     this.reasons = reasons;
-
-    this.constructor = DependencyBuildError;
-    this.__proto__ = DependencyBuildError.prototype;
+    fixupErrorSubclassing(this, DependencyBuildError);
   }
 }
 
@@ -572,9 +569,7 @@ export class InternalBuildError extends BuildError {
   constructor(task: BuildTask, error: Error) {
     super(task);
     this.error = error;
-
-    this.constructor = InternalBuildError;
-    this.__proto__ = InternalBuildError.prototype;
+    fixupErrorSubclassing(this, InternalBuildError);
   }
 }
 
@@ -589,9 +584,7 @@ export class BuildCommandError extends BuildError {
     super(task);
     this.command = command;
     this.logFilename = logFilename;
-
-    this.constructor = BuildCommandError;
-    this.__proto__ = BuildCommandError.prototype;
+    fixupErrorSubclassing(this, BuildCommandError);
   }
 }
 
@@ -603,9 +596,7 @@ export class InteractiveCommandError extends BuildError {
 
   constructor(task: BuildTask) {
     super(task);
-
-    this.constructor = InteractiveCommandError;
-    this.__proto__ = InteractiveCommandError.prototype;
+    fixupErrorSubclassing(this, InteractiveCommandError);
   }
 }
 
