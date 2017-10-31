@@ -14,7 +14,7 @@ import {indent, getBuildSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
 
-export default async function buildCommand(ctx: CommandContext) {
+export function createBuildProgressReporter() {
   const observatory = configureObservatory({
     prefix: chalk.green('  → '),
   });
@@ -30,11 +30,7 @@ export default async function buildCommand(ctx: CommandContext) {
     return handler;
   }
 
-  const sandbox = await getBuildSandbox(ctx);
-  const config = await getBuildConfig(ctx);
-  const task: BuildTask = Task.fromBuildSandbox(sandbox, config);
-  const failures = [];
-  await Builder.build(task, sandbox, config, (task, status) => {
+  return (task: BuildTask, status: Builder.BuildState) => {
     if (status.state === 'in-progress') {
       getReporterFor(task).status('building...');
     } else if (status.state === 'success') {
@@ -45,47 +41,74 @@ export default async function buildCommand(ctx: CommandContext) {
         getReporterFor(task).done('BUILT').details(`unchanged`);
       }
     } else if (status.state === 'failure') {
-      failures.push({task, error: status.error});
       getReporterFor(task).fail('FAILED');
     }
-  });
-  for (const failure of failures) {
-    const {error} = failure;
-    if (error.logFilename) {
-      const {logFilename} = (error: any);
-      if (!failure.task.spec.shouldBePersisted) {
-        const logContents = fs.readFileSync(logFilename);
-        console.log(
-          outdent`
+  };
+}
 
-            ${chalk.red('FAILED')} ${failure.task.spec.name}, see log for details:
+export function reportBuildError(error: Builder.BuildError) {
+  const {spec} = error.task;
+  const banner = spec.sourcePath === '' ? spec.name : `${spec.name} (${spec.sourcePath})`;
+  if (error instanceof Builder.BuildCommandError) {
+    const {logFilename} = (error: any);
+    if (!error.task.spec.shouldBePersisted) {
+      const logContents = fs.readFileSync(logFilename);
+      console.log(
+        outdent`
 
-            ${chalk.red(indent(logContents, '  '))}
-            `,
-        );
-      } else {
-        console.log(
-          outdent`
+        ${chalk.red('FAILED')} ${banner}
+          The error happennded during execution of a build command, see log for details:
 
-            ${chalk.red('FAILED')} ${failure.task.spec.name}, see log for details:
-              ${logFilename}
-
-            `,
-        );
-      }
+          ${chalk.red(indent(logContents, '  '))}
+        `,
+      );
     } else {
       console.log(
         outdent`
 
-        ${chalk.red('FAILED')} ${failure.task.spec.name}:
-          ${failure.error}
+        ${chalk.red('FAILED')} ${banner}
+          The error happennded during execution of a build command, see the log file for details:
+          ${logFilename}
 
         `,
       );
     }
-  }
+  } else if (error instanceof Builder.InternalBuildError) {
+    console.log(
+      outdent`
 
-  if (failures.length > 0) {
-    ctx.error('build failed');
+      ${chalk.red('FAILED')} ${banner}
+        The error below is likely a bug in Esy itself, please report it.
+
+        ${chalk.red(error.error.stack)}
+
+      `,
+    );
+  } else {
+    console.log(
+      outdent`
+
+      ${chalk.red('FAILED')} ${banner}:
+        The error below is likely a bug in Esy itself, please report it.
+
+        ${chalk.red(error.stack)}
+
+      `,
+    );
+  }
+}
+
+export default async function esyBuild(ctx: CommandContext) {
+  const sandbox = await getBuildSandbox(ctx);
+  const config = await getBuildConfig(ctx);
+  const task: BuildTask = Task.fromBuildSandbox(sandbox, config);
+  const reporter = createBuildProgressReporter();
+  const state = await Builder.build(task, sandbox, config, reporter);
+  if (state.state === 'failure') {
+    const errors = Builder.collectBuildErrors(state);
+    for (const error of errors) {
+      reportBuildError(error);
+    }
+    ctx.error();
   }
 }
