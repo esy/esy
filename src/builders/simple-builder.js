@@ -11,6 +11,7 @@ import * as nodefs from 'fs';
 
 import {PromiseQueue} from '../lib/Promise';
 import * as fs from '../lib/fs';
+import * as child from '../lib/child_process';
 
 import * as Graph from '../graph';
 import * as Config from '../build-config';
@@ -23,6 +24,25 @@ import {
   STORE_STAGE_TREE,
   STORE_INSTALL_TREE,
 } from '../constants';
+
+type BuildStateSuccess = {
+  state: 'success',
+  timeEllapsed: ?number,
+  cached: boolean,
+  forced: boolean,
+};
+
+type BuildStateFailure = {
+  state: 'failure',
+  error: BuildError,
+};
+
+type BuildStateInpProgress = {
+  state: 'in-progress',
+};
+
+export type BuildState = BuildStateSuccess | BuildStateFailure | BuildStateInpProgress;
+export type FinalBuildState = BuildStateSuccess | BuildStateFailure;
 
 const INSTALL_DIR_STRUCTURE = [
   'lib',
@@ -52,26 +72,110 @@ const IGNORE_FOR_CHECKSUM = [
 
 const NUM_CPUS = os.cpus().length;
 
-type SuccessBuildState = {
+const BUILD_STATE_CACHED_SUCCESS = {
   state: 'success',
-  timeEllapsed: ?number,
-  cached: boolean,
-  forced: boolean,
+  timeEllapsed: null,
+  cached: true,
+  forced: false,
 };
-type FailureBuildState = {state: 'failure', error: Error};
-type InProgressBuildState = {state: 'in-progress'};
 
-export type BuildTaskState = SuccessBuildState | FailureBuildState | InProgressBuildState;
-export type FinalBuildState = SuccessBuildState | FailureBuildState;
-
+/**
+ * Build the entire sandbox starting from the `rootTask`.
+ */
 export const build = async (
-  task: BuildTask,
+  rootTask: BuildTask,
   sandbox: BuildSandbox,
   config: BuildConfig,
-  onTaskStatus: (task: BuildTask, status: BuildTaskState) => *,
+  onBuildStateChange: (task: BuildTask, state: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.storePath), initStore(config.localStorePath)]);
+  const performBuild = createBuilder(sandbox, config, onBuildStateChange);
 
+  return await Graph.topologicalFold(
+    rootTask,
+    async (
+      directDependencies: Map<string, Promise<FinalBuildState>>,
+      allDependencies,
+      task,
+    ) => {
+      const states = await Promise.all(directDependencies.values());
+
+      const failures = [];
+      for (const s of states) {
+        if (s.state === 'failure') {
+          failures.push(s);
+        }
+      }
+
+      if (failures.length > 0) {
+        // shortcut if some of the deps failed
+        return {
+          state: 'failure',
+          error: new DependencyBuildError(task, failures.map(state => state.error)),
+        };
+      } else if (states.some(state => state.state === 'success' && state.forced)) {
+        // if some of the deps were forced then force the rebuild too
+        return performBuild(task, true);
+      } else {
+        return performBuild(task);
+      }
+    },
+  );
+};
+
+/**
+ * Build all the sandbox but not the `rootTask`.
+ */
+export const buildDependencies = async (
+  rootTask: BuildTask,
+  sandbox: BuildSandbox,
+  config: BuildConfig,
+  onBuildStateChange: (task: BuildTask, status: BuildState) => *,
+) => {
+  await Promise.all([initStore(config.storePath), initStore(config.localStorePath)]);
+  const performBuild = createBuilder(sandbox, config, onBuildStateChange);
+
+  return await Graph.topologicalFold(
+    rootTask,
+    async (
+      directDependencies: Map<string, Promise<FinalBuildState>>,
+      allDependencies,
+      task,
+    ) => {
+      const states = await Promise.all(directDependencies.values());
+
+      const failures = [];
+      for (const s of states) {
+        if (s.state === 'failure') {
+          failures.push(s);
+        }
+      }
+
+      if (failures.length > 0) {
+        // shortcut if some of the deps failed
+        return {
+          state: 'failure',
+          error: new DependencyBuildError(task, failures.map(state => state.error)),
+        };
+      } else {
+        if (task === rootTask) {
+          return BUILD_STATE_CACHED_SUCCESS;
+        } else if (states.some(state => state.state === 'success' && state.forced)) {
+          // if some of the deps were forced then force the rebuild too
+          return performBuild(task, true);
+        } else {
+          return performBuild(task);
+        }
+      }
+    },
+  );
+};
+
+const createBuilder = (
+  sandbox: BuildSandbox,
+  config: BuildConfig,
+  onBuildStateChange: (task: BuildTask, status: BuildState) => *,
+) => {
   const buildQueue = new PromiseQueue({concurrency: NUM_CPUS});
   const taskInProgress = new Map();
 
@@ -101,17 +205,36 @@ export const build = async (
     await fs.writeFile(checksumFilename, checksum.trim());
   }
 
+  function performBuildWithStatusReport(task, forced = false): Promise<FinalBuildState> {
+    return buildQueue.add(async () => {
+      onBuildStateChange(task, {state: 'in-progress'});
+      const startTime = Date.now();
+      try {
+        await performBuild(task, config, sandbox);
+      } catch (error) {
+        if (!(error instanceof BuildError)) {
+          error = new InternalBuildError(task, error);
+        }
+        const state = {
+          state: 'failure',
+          error,
+        };
+        onBuildStateChange(task, state);
+        return state;
+      }
+      const endTime = Date.now();
+      const timeEllapsed = endTime - startTime;
+      const state = {state: 'success', timeEllapsed, cached: false, forced};
+      onBuildStateChange(task, state);
+      return state;
+    });
+  }
+
   async function performBuildMemoized(
     task: BuildTask,
-    forced = false,
+    forced: boolean = false,
   ): Promise<FinalBuildState> {
     const {spec} = task;
-    const cachedSuccessStatus = {
-      state: 'success',
-      timeEllapsed: null,
-      cached: true,
-      forced: false,
-    };
     let inProgress = taskInProgress.get(task.id);
     if (inProgress == null) {
       // if build task is forced (for example by one of the deps updated)
@@ -128,13 +251,13 @@ export const build = async (
       } else {
         const isInStore = await isSpecExistsInStore(spec);
         if (spec.shouldBePersisted && isInStore) {
-          onTaskStatus(task, cachedSuccessStatus);
-          inProgress = Promise.resolve(cachedSuccessStatus);
+          onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
+          inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
         } else if (!spec.shouldBePersisted) {
           const currentChecksum = await calculateSourceChecksum(spec);
           if (isInStore && (await readSourceChecksum(spec)) === currentChecksum) {
-            onTaskStatus(task, cachedSuccessStatus);
-            inProgress = Promise.resolve(cachedSuccessStatus);
+            onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
+            inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
           } else {
             inProgress = performBuildWithStatusReport(task, true).then(async result => {
               await writeStoreChecksum(spec, currentChecksum);
@@ -150,73 +273,34 @@ export const build = async (
     return inProgress;
   }
 
-  function performBuildWithStatusReport(task, forced = false): Promise<FinalBuildState> {
-    return buildQueue.add(async () => {
-      onTaskStatus(task, {state: 'in-progress'});
-      const startTime = Date.now();
-      try {
-        await performBuild(task, config, sandbox);
-      } catch (error) {
-        const state = {state: 'failure', error};
-        onTaskStatus(task, state);
-        return state;
-      }
-      const endTime = Date.now();
-      const timeEllapsed = endTime - startTime;
-      const state = {state: 'success', timeEllapsed, cached: false, forced};
-      onTaskStatus(task, state);
-      return state;
-    });
-  }
-
-  await Graph.topologicalFold(
-    task,
-    (directDependencies: Map<string, Promise<FinalBuildState>>, allDependencies, task) =>
-      Promise.all(directDependencies.values()).then(states => {
-        if (states.some(state => state.state === 'failure')) {
-          return Promise.resolve({
-            state: 'failure',
-            error: new Error('dependencies are not built'),
-          });
-        } else if (states.some(state => state.state === 'success' && state.forced)) {
-          return performBuildMemoized(task, true);
-        } else {
-          return performBuildMemoized(task);
-        }
-      }),
-  );
+  return performBuildMemoized;
 };
 
-async function performBuild(
+type BuildDriver = {
+  rootPath: string,
+  installPath: string,
+  finalInstallPath: string,
+  buildPath: string,
+  log: string => void,
+
+  executeCommand(command: string, renderedCommand?: string): Promise<void>,
+  spawnInteractiveProcess(command: string, args: string[]): Promise<void>,
+};
+
+export async function withBuildDriver(
   task: BuildTask,
   config: BuildConfig,
   sandbox: BuildSandbox,
+  f: BuildDriver => Promise<void>,
 ): Promise<void> {
   const rootPath = config.getRootPath(task.spec);
   const installPath = config.getInstallPath(task.spec);
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
 
-  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
-  const sandboxRootInstallTreeSymlink = path.join(
-    config.sandboxPath,
-    INSTALL_TREE_SYMLINK,
-  );
-
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
   log('starting build');
-
-  // For top level build we need to remove build tree symlink and install tree
-  // symlink as in case of non mutating build it can interfere with the build
-  // itself. In case of mutating build they still be ignore then copying sources
-  // of to `$cur__target_dir`.
-  if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
-    await Promise.all([
-      unlinkOrRemove(sandboxRootBuildTreeSymlink),
-      unlinkOrRemove(sandboxRootInstallTreeSymlink),
-    ]);
-  }
 
   log('removing prev destination directories (if exist)');
   await Promise.all([
@@ -266,71 +350,160 @@ async function performBuild(
     'utf8',
   );
 
-  let buildSucceeded = false;
+  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
+  const sandboxRootInstallTreeSymlink = path.join(
+    config.sandboxPath,
+    INSTALL_TREE_SYMLINK,
+  );
 
-  try {
-    if (task.command != null) {
-      const commandList = task.command;
-      const logFilename = config.getBuildPath(task.spec, '_esy', 'log');
-      const logStream = nodefs.createWriteStream(logFilename);
-      for (let i = 0; i < commandList.length; i++) {
-        const {command, renderedCommand} = commandList[i];
-        log(`executing: ${command}`);
-        let sandboxedCommand = renderedCommand;
-        if (process.platform === 'darwin') {
-          sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
-        }
+  // For top level build we need to remove build tree symlink and install tree
+  // symlink as in case of non mutating build it can interfere with the build
+  // itself. In case of mutating build they still be ignore then copying sources
+  // of to `$cur__target_dir`.
+  if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
+    await Promise.all([
+      unlinkOrRemove(sandboxRootBuildTreeSymlink),
+      unlinkOrRemove(sandboxRootInstallTreeSymlink),
+    ]);
+  }
 
-        await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
-        await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
+  const logFilename = config.getBuildPath(task.spec, '_esy', 'log');
+  const logStream = nodefs.createWriteStream(logFilename);
 
-        const execution = await exec(sandboxedCommand, {
-          cwd: rootPath,
-          env: envForExec,
-          maxBuffer: Infinity,
-        });
-        // TODO: we need line-buffering here possibly?
-        interleaveStreams(
-          execution.process.stdout,
-          execution.process.stderr,
-        ).pipe(logStream, {end: false});
-        const {code} = await execution.exit;
-        if (code !== 0) {
-          throw new BuildTaskError(task, logFilename);
-        }
-      }
-      await endWritableStream(logStream);
-
-      log('rewriting paths in build artefacts');
-      const rewriteQueue = new PromiseQueue({concurrency: 20});
-      const files = await fs.walk(config.getInstallPath(task.spec));
-      await Promise.all(
-        files.map(file =>
-          rewriteQueue.add(() =>
-            rewritePathInFile(file.absolute, installPath, finalInstallPath),
-          ),
-        ),
-      );
+  const executeCommand = async (command: string, renderedCommand?: string = command) => {
+    log(`executing: ${command}`);
+    let sandboxedCommand = renderedCommand;
+    if (process.platform === 'darwin') {
+      sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
     }
 
-    log('finalizing build');
-    await fs.rename(installPath, finalInstallPath);
+    await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
+    await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
 
-    buildSucceeded = true;
+    const execution = await exec(sandboxedCommand, {
+      cwd: rootPath,
+      env: envForExec,
+      maxBuffer: Infinity,
+    });
+    // TODO: we need line-buffering here possibly?
+    interleaveStreams(
+      execution.process.stdout,
+      execution.process.stderr,
+    ).pipe(logStream, {end: false});
+    const {code} = await execution.exit;
+    if (code !== 0) {
+      throw new BuildCommandError(task, command, logFilename);
+    }
+  };
+
+  const spawnInteractiveProcess = async (command: string, args: Array<string>) => {
+    log(`executing interactively: ${command}`);
+
+    if (process.platform === 'darwin') {
+      args = ['-f', darwinSandboxConfig, '--', command].concat(args);
+      command = 'sandbox-exec';
+    }
+
+    try {
+      await child.spawn(command, args, {
+        cwd: rootPath,
+        env: envForExec,
+        stdio: 'inherit',
+      });
+    } catch (err) {
+      throw new InteractiveCommandError(task);
+    }
+  };
+
+  const buildDriver: BuildDriver = {
+    rootPath,
+    installPath,
+    finalInstallPath,
+    buildPath,
+
+    executeCommand,
+    spawnInteractiveProcess,
+
+    log,
+  };
+
+  try {
+    await f(buildDriver);
   } finally {
-    if (task.spec === sandbox.root) {
-      // Those can be either created by esy or by previous build process so we
-      // forcefully remove them.
+    await endWritableStream(logStream);
+  }
+}
+
+async function performBuild(
+  task: BuildTask,
+  config: BuildConfig,
+  sandbox: BuildSandbox,
+): Promise<void> {
+  const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
+  const sandboxRootInstallTreeSymlink = path.join(
+    config.sandboxPath,
+    INSTALL_TREE_SYMLINK,
+  );
+
+  async function executeBuildCommands(driver: BuildDriver) {
+    // For top level build we need to remove build tree symlink and install tree
+    // symlink as in case of non mutating build it can interfere with the build
+    // itself. In case of mutating build they still be ignore then copying sources
+    // of to `$cur__target_dir`.
+    if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
       await Promise.all([
         unlinkOrRemove(sandboxRootBuildTreeSymlink),
         unlinkOrRemove(sandboxRootInstallTreeSymlink),
       ]);
-      await Promise.all([
-        fs.symlink(buildPath, sandboxRootBuildTreeSymlink),
-        buildSucceeded && fs.symlink(finalInstallPath, sandboxRootInstallTreeSymlink),
-      ]);
+    }
+
+    let buildSucceeded = false;
+
+    try {
+      if (task.command != null) {
+        const commandList = task.command;
+        for (const {command, renderedCommand} of task.command) {
+          await driver.executeCommand(command, renderedCommand);
+        }
+
+        driver.log('rewriting paths in build artefacts');
+        const rewriteQueue = new PromiseQueue({concurrency: 20});
+        const files = await fs.walk(config.getInstallPath(task.spec));
+        await Promise.all(
+          files.map(file =>
+            rewriteQueue.add(() =>
+              rewritePathInFile(
+                file.absolute,
+                driver.installPath,
+                driver.finalInstallPath,
+              ),
+            ),
+          ),
+        );
+      }
+
+      driver.log('finalizing build');
+      await fs.rename(driver.installPath, driver.finalInstallPath);
+
+      buildSucceeded = true;
+    } finally {
+      if (task.spec === sandbox.root) {
+        // Those can be either created by esy or by previous build process so we
+        // forcefully remove them.
+        await Promise.all([
+          unlinkOrRemove(sandboxRootBuildTreeSymlink),
+          unlinkOrRemove(sandboxRootInstallTreeSymlink),
+        ]);
+        await Promise.all([
+          fs.symlink(driver.buildPath, sandboxRootBuildTreeSymlink),
+          buildSucceeded &&
+            fs.symlink(driver.finalInstallPath, sandboxRootInstallTreeSymlink),
+        ]);
+      }
     }
   }
+
+  await withBuildDriver(task, config, sandbox, executeBuildCommands);
 }
 
 async function initStore(storePath) {
@@ -360,13 +533,97 @@ async function unlinkOrRemove(p) {
   }
 }
 
-class BuildTaskError extends Error {
-  logFilename: string;
+/**
+ * Base class for build errors.
+ */
+export class BuildError extends Error {
   task: BuildTask;
 
-  constructor(task: BuildTask, logFilename: string) {
-    super(`Build failed: ${task.spec.name}`);
+  constructor(task: BuildTask) {
+    super(`build error: ${task.spec.name}`);
     this.task = task;
-    this.logFilename = logFilename;
+
+    this.constructor = BuildError;
+    this.__proto__ = BuildError.prototype;
   }
+}
+
+/**
+ * Build error due to erronous dependencies.
+ */
+export class DependencyBuildError extends BuildError {
+  reasons: Array<BuildError>;
+
+  constructor(task: BuildTask, reasons: Array<BuildError>) {
+    super(task);
+    this.reasons = reasons;
+
+    this.constructor = DependencyBuildError;
+    this.__proto__ = DependencyBuildError.prototype;
+  }
+}
+
+/**
+ * Internal build error. A possible bug with Esy.
+ */
+export class InternalBuildError extends BuildError {
+  error: Error;
+
+  constructor(task: BuildTask, error: Error) {
+    super(task);
+    this.error = error;
+
+    this.constructor = InternalBuildError;
+    this.__proto__ = InternalBuildError.prototype;
+  }
+}
+
+/**
+ * Error happened during executing a build command.
+ */
+export class BuildCommandError extends BuildError {
+  command: string;
+  logFilename: string;
+
+  constructor(task: BuildTask, command: string, logFilename: string) {
+    super(task);
+    this.command = command;
+    this.logFilename = logFilename;
+
+    this.constructor = BuildCommandError;
+    this.__proto__ = BuildCommandError.prototype;
+  }
+}
+
+/**
+ * Error happened during executing an interactive command.
+ */
+export class InteractiveCommandError extends BuildError {
+  task: BuildTask;
+
+  constructor(task: BuildTask) {
+    super(task);
+
+    this.constructor = InteractiveCommandError;
+    this.__proto__ = InteractiveCommandError.prototype;
+  }
+}
+
+/**
+ * Collect all build errors.
+ */
+export function collectBuildErrors(state: BuildStateFailure): Array<BuildError> {
+  const errors = [];
+  const queue = [state.error];
+
+  while (queue.length > 0) {
+    const error = queue.shift();
+    if (error instanceof DependencyBuildError) {
+      queue.push(...error.reasons);
+    } else {
+      errors.push(error);
+    }
+  }
+
+  return errors;
 }
