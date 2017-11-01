@@ -7,8 +7,8 @@ import type {StoreTree} from './types';
 /**
  * Names of the symlinks to build and install trees of the sandbox.
  */
-export const BUILD_TREE_SYMLINK = '_esybuild';
-export const INSTALL_TREE_SYMLINK = '_esyinstall';
+export const BUILD_TREE_SYMLINK = '_build';
+export const INSTALL_TREE_SYMLINK = '_install';
 
 /**
  * Name of the tree used to store releases for the sandbox.
