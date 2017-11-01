@@ -20,7 +20,7 @@ import * as Env from './environment';
 
 export type EsyConfig = {
   build: null | string | Array<string | Array<string>>,
-  buildsInSource: boolean,
+  buildsInSource: true | false | '_build',
   exportedEnv: {
     [name: string]: EnvironmentVarExport,
   },
@@ -193,6 +193,10 @@ async function crawlBuild(
       !(isRootBuild || !isInstalled) || Boolean(context.options.forRelease),
     sourceType: isRootBuild || !isInstalled ? 'transient' : 'immutable',
     mutatesSourcePath: !!packageJson.esy.buildsInSource,
+    buildType:
+      packageJson.buildsInSource === true
+        ? 'in-source'
+        : packageJson.buildsInSource === '_build' ? '_build' : 'out-of-source',
     sourcePath: nextSourcePath,
     packageJson,
     dependencies,
@@ -233,11 +237,7 @@ export async function readManifest(packagePath: string): Promise<PackageJson> {
     const parse = manifestName === 'esy.json' ? JSON5.parse : JSON.parse;
     const packageJson = await fs.readJson(manifestPath, parse);
     if (packageJson.esy == null) {
-      packageJson.esy = {
-        build: null,
-        exportedEnv: {},
-        buildsInSource: false,
-      };
+      packageJson.esy = {};
     }
     if (packageJson.esy.build == null) {
       packageJson.esy.build = null;
