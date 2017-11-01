@@ -51,7 +51,9 @@ export function renderSandboxSbConfig(
          (subpath "${config.getRootPath(spec, '_build')}")
 
         ; $cur__root/*/.merlin
-         (regex "^${config.getRootPath(spec)}/.*/\.merlin$")
+         (regex "^${config.getRootPath(spec, '.*', '\\.merlin')}$")
+        ; $cur__root/.merlin
+         (regex "^${config.getRootPath(spec, '\\.merlin')}$")
         `
         : ''};
 
