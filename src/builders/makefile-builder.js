@@ -193,14 +193,18 @@ export function renderToMakefile(
 
   function createBuildRule(
     build: BuildSpec,
-    rule: {target: string, command: string, withBuildEnv?: boolean},
+    rule: {
+      target: string,
+      command: string,
+      withBuildEnv?: boolean,
+      dependencies: Array<string>,
+    },
   ): Makefile.MakeItem {
+    const shellPackageName = normalizePackageName(build.id);
     const command = [];
     if (rule.withBuildEnv) {
       command.push(outdent`
-        @$(shell_env_for__${normalizePackageName(
-          build.id,
-        )}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
+        @$(shell_env_for__${shellPackageName}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
         cd $esy_build__source_root
       `);
     }
@@ -214,6 +218,7 @@ export function renderToMakefile(
         ...Array.from(build.dependencies.values()).map(dep =>
           createBuildRuleName(dep, 'build'),
         ),
+        ...rule.dependencies,
       ],
       phony: true,
       command,
@@ -222,6 +227,10 @@ export function renderToMakefile(
 
   function visitTask(task: BuildTask) {
     log(`visit ${task.spec.id}`);
+
+    const shellPackageName = normalizePackageName(task.spec.id);
+    const ejectedPath = (...segments) =>
+      path.join('$(ESY_EJECT__ROOT)', ...packagePath, ...segments);
 
     const packagePath = task.spec.sourcePath.split(path.sep).filter(Boolean);
     const finalInstallPath = buildConfig.getFinalInstallPath(task.spec);
@@ -256,9 +265,9 @@ export function renderToMakefile(
           ESY_EJECT__SANDBOX: '$(ESY_EJECT__SANDBOX)',
           ESY_EJECT__ROOT: '$(ESY_EJECT__ROOT)',
         },
-        `source $(ESY_EJECT__ROOT)/${packagePath.join('/')}/eject-env`,
+        `source ${ejectedPath('eject-env')}`,
         {
-          esy_build__eject: `$(ESY_EJECT__ROOT)/${packagePath.join('/')}`,
+          esy_build__eject: ejectedPath(),
           esy_build__type: task.spec.buildType,
           esy_build__source_type: task.spec.sourceType,
           esy_build__key: task.id,
@@ -272,11 +281,19 @@ export function renderToMakefile(
       ],
     });
 
+    ruleSet.push({
+      type: 'rule',
+      target: ejectedPath('sandbox.sb'),
+      dependencies: [ejectedPath('sandbox.sb.in')],
+      command: `@$(shell_env_for__${shellPackageName}) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)`,
+    });
+
     ruleSet.push(
       createBuildRule(task.spec, {
         target: 'build',
         command: 'esy-build',
         withBuildEnv: true,
+        dependencies: [ejectedPath('sandbox.sb')],
       }),
     );
     ruleSet.push(
@@ -284,12 +301,14 @@ export function renderToMakefile(
         target: 'shell',
         command: 'esy-shell',
         withBuildEnv: true,
+        dependencies: [ejectedPath('sandbox.sb')],
       }),
     );
     ruleSet.push(
       createBuildRule(task.spec, {
         target: 'clean',
         command: 'esy-clean',
+        dependencies: [ejectedPath('sandbox.sb')],
       }),
     );
   }
