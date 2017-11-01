@@ -18,7 +18,7 @@ import {renderEnv, renderSandboxSbConfig} from './util';
 import {singleQuote} from '../lib/shell';
 import * as path from '../lib/path';
 import * as bashgen from './bashgen';
-import {STORE_BUILD_TREE, STORE_STAGE_TREE, STORE_INSTALL_TREE} from '../constants';
+import * as constants from '../constants';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
@@ -97,12 +97,12 @@ export function renderToMakefile(
     target: 'esy-store',
     phony: true,
     dependencies: [
-      `$(ESY_EJECT__STORE)/${STORE_BUILD_TREE}`,
-      `$(ESY_EJECT__STORE)/${STORE_INSTALL_TREE}`,
-      `$(ESY_EJECT__STORE)/${STORE_STAGE_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_BUILD_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_INSTALL_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_STAGE_TREE}`,
+      `$(ESY_EJECT__STORE)/${constants.STORE_BUILD_TREE}`,
+      `$(ESY_EJECT__STORE)/${constants.STORE_INSTALL_TREE}`,
+      `$(ESY_EJECT__STORE)/${constants.STORE_STAGE_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_BUILD_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_INSTALL_TREE}`,
+      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_STAGE_TREE}`,
     ],
   };
 
@@ -127,8 +127,8 @@ export function renderToMakefile(
       target: 'clean',
       phony: true,
       command: outdent`
-        rm $(ESY_EJECT__SANDBOX)/_build
-        rm $(ESY_EJECT__SANDBOX)/_install
+        rm -f $(ESY_EJECT__SANDBOX)/${constants.BUILD_TREE_SYMLINK}
+        rm -f $(ESY_EJECT__SANDBOX)/${constants.INSTALL_TREE_SYMLINK}
       `,
     },
 
@@ -151,12 +151,12 @@ export function renderToMakefile(
     {
       type: 'rule',
       target: [
-        `$(ESY_EJECT__STORE)/${STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__STORE)/${STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__STORE)/${STORE_STAGE_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${STORE_STAGE_TREE}`,
+        `$(ESY_EJECT__STORE)/${constants.STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__STORE)/${constants.STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__STORE)/${constants.STORE_STAGE_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_BUILD_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_INSTALL_TREE}`,
+        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_STAGE_TREE}`,
       ].join(' '),
       command: '@mkdir -p $(@)',
     },
