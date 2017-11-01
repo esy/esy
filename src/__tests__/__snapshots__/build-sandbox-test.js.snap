@@ -2,9 +2,11 @@
 
 exports[`build-sandbox builds a sandbox from a package with deps 1`] = `
 Object {
+  "buildType": "out-of-source",
   "command": null,
   "dependencies": Map {
     "dep-0.1.0" => Object {
+      "buildType": "out-of-source",
       "command": null,
       "dependencies": Map {},
       "errors": Array [],
@@ -53,6 +55,7 @@ Object {
 
 exports[`build-sandbox builds a sandbox from a single package 1`] = `
 Object {
+  "buildType": "out-of-source",
   "command": null,
   "dependencies": Map {},
   "errors": Array [],
@@ -78,9 +81,11 @@ Object {
 
 exports[`build-sandbox error: circular deps 1`] = `
 Object {
+  "buildType": "out-of-source",
   "command": null,
   "dependencies": Map {
     "dep-0.1.0" => Object {
+      "buildType": "out-of-source",
       "command": null,
       "dependencies": Map {},
       "errors": Array [
@@ -142,6 +147,7 @@ Object {
 
 exports[`build-sandbox error: missing a dep 1`] = `
 Object {
+  "buildType": "out-of-source",
   "command": null,
   "dependencies": Map {},
   "errors": Array [

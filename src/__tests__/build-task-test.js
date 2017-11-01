@@ -22,6 +22,7 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
     version: '0.1.0',
     sourcePath: name,
     sourceType: 'immutable',
+    buildType: 'out-of-source',
     dependencies,
     exportedEnv,
     mutatesSourcePath: false,

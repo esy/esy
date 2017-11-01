@@ -75,6 +75,15 @@ export type BuildSpec = {
   +mutatesSourcePath: boolean,
 
   /**
+   * Build type.
+   *
+   * 'out-of-source' means it doesn't pollute $cur__root
+   * '_build'        means it pollutes only $cur__root/_build inside the $cur__root
+   * 'in-source'     means it pollutes in $cur__root
+   */
+  +buildType: 'out-of-source' | '_build' | 'in-source',
+
+  /**
    * If build should be persisted in store.
    *
    * Builds from released versions of packages should be persisted in store as
