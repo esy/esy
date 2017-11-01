@@ -22,6 +22,14 @@ function _create<Path: path.Path>(
     }
   };
 
+  const requiresRootRelocation = (build: BuildSpec) => {
+    const isRoot = build.sourcePath === '';
+    return (
+      (isRoot && build.buildType === 'in-source') ||
+      (!isRoot && build.buildType !== 'out-of-source')
+    );
+  };
+
   const buildConfig = {
     sandboxPath,
     store,
@@ -29,11 +37,13 @@ function _create<Path: path.Path>(
     buildPlatform,
     readOnlyStores,
 
+    requiresRootRelocation,
+
     getSourcePath: (build: BuildSpec, ...segments) => {
       return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
     },
     getRootPath: (build: BuildSpec, ...segments) => {
-      if (build.mutatesSourcePath) {
+      if (requiresRootRelocation(build)) {
         return genStorePath(STORE_BUILD_TREE, build, segments);
       } else {
         return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);

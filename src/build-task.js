@@ -275,7 +275,7 @@ function getBuiltInScope(
     {
       name: `${prefix}__root`,
       value:
-        currentlyBuilding && spec.mutatesSourcePath
+        currentlyBuilding && config.requiresRootRelocation(spec)
           ? config.getBuildPath(spec)
           : config.getRootPath(spec),
       spec,

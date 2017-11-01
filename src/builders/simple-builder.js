@@ -60,6 +60,7 @@ const BUILD_DIR_STRUCTURE = ['_esy'];
 const IGNORE_FOR_BUILD = [
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
+  '_build', // this is needed b/c of buildType == '_build'
   '_release',
   'node_modules',
 ];
@@ -308,6 +309,7 @@ export async function withBuildDriver(
   const installPath = config.getInstallPath(task.spec);
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
+  const isRoot = sandbox.root === task.spec;
 
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
@@ -326,17 +328,13 @@ export async function withBuildDriver(
     ...INSTALL_DIR_STRUCTURE.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
   ]);
 
-  if (task.spec.mutatesSourcePath) {
+  if (config.requiresRootRelocation(task.spec)) {
     log('build mutates source directory, rsyncing sources to $cur__target_dir');
-    await fs.copydir(
-      path.join(config.sandboxPath, task.spec.sourcePath),
-      config.getBuildPath(task.spec),
-      {
-        exclude: IGNORE_FOR_BUILD.map(p =>
-          path.join(config.sandboxPath, task.spec.sourcePath, p),
-        ),
-      },
-    );
+    await fs.copydir(config.getSourcePath(task.spec), config.getBuildPath(task.spec), {
+      exclude: IGNORE_FOR_BUILD.map(p =>
+        path.join(config.sandboxPath, task.spec.sourcePath, p),
+      ),
+    });
   }
 
   const envForExec = {};
@@ -373,6 +371,7 @@ export async function withBuildDriver(
 
     await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
     await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
+    await writeIntoStream(logStream, `### CWD: ${rootPath}\n`);
 
     const execution = await exec(sandboxedCommand, {
       cwd: rootPath,
@@ -444,7 +443,7 @@ async function performBuild(
     // symlink as in case of non mutating build it can interfere with the build
     // itself. In case of mutating build they still be ignore then copying sources
     // of to `$cur__target_dir`.
-    if (task.spec === sandbox.root && !task.spec.mutatesSourcePath) {
+    if (task.spec === sandbox.root) {
       await Promise.all([
         unlinkOrRemove(sandboxRootBuildTreeSymlink),
         unlinkOrRemove(sandboxRootInstallTreeSymlink),

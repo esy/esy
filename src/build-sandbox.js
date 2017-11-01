@@ -192,11 +192,10 @@ async function crawlBuild(
     shouldBePersisted:
       !(isRootBuild || !isInstalled) || Boolean(context.options.forRelease),
     sourceType: isRootBuild || !isInstalled ? 'transient' : 'immutable',
-    mutatesSourcePath: !!packageJson.esy.buildsInSource,
     buildType:
-      packageJson.buildsInSource === true
-        ? 'in-source'
-        : packageJson.buildsInSource === '_build' ? '_build' : 'out-of-source',
+      packageJson.esy.buildsInSource === '_build'
+        ? '_build'
+        : Boolean(packageJson.esy.buildsInSource) ? 'in-source' : 'out-of-source',
     sourcePath: nextSourcePath,
     packageJson,
     dependencies,

@@ -57,7 +57,7 @@ export function reportBuildError(error: Builder.BuildError) {
   );
   if (error instanceof Builder.BuildCommandError) {
     const {logFilename} = (error: any);
-    if (!error.task.spec.shouldBePersisted) {
+    if (!error.task.spec.shouldBePersisted || process.env.CI) {
       const logContents = fs.readFileSync(logFilename);
       console.log(
         outdent`
@@ -78,7 +78,7 @@ export function reportBuildError(error: Builder.BuildError) {
         ${chalk.red('FAILED')} ${banner}
           The error happennded during execution of a build command, see the log file for details:
 
-          ${logFilename}
+            ${logFilename}
 
           To get into the build environment and debug it:
 
