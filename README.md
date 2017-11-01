@@ -358,15 +358,3 @@ to see the description of development workflow.
 On a clean branch off of `origin/master`, run
 
     % make bump-patch-version publish
-
-#### Debugging Failed `esy build`
-
-When  debugging esy build — do the following:
-
-1. `esy build-eject` creates `/node_modules/.cache/_esy/build-eject/Makefile`
-2. `make -f ./node_modules/.cache/_esy/build-eject/Makefile PKG_NAME.shell` will put you in a build env shell
-3. Try to run commands specified in `package.json's` esy build config and see what goes wrong.
-
-If the package is a converted opam package, you might want to inspect the
-generated package.json, as well as the original opam file and make sure that it
-was converted correctly.

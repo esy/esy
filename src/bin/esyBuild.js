@@ -52,7 +52,9 @@ export function createBuildProgressReporter() {
 
 export function reportBuildError(error: Builder.BuildError) {
   const {spec} = error.task;
-  const banner = spec.sourcePath === '' ? spec.name : `${spec.name} (${spec.sourcePath})`;
+  const banner = chalk.bold(
+    spec.sourcePath === '' ? spec.name : `${spec.name} (${spec.sourcePath})`,
+  );
   if (error instanceof Builder.BuildCommandError) {
     const {logFilename} = (error: any);
     if (!error.task.spec.shouldBePersisted) {
@@ -60,10 +62,13 @@ export function reportBuildError(error: Builder.BuildError) {
       console.log(
         outdent`
 
-        ${chalk.red('FAILED')} ${banner}
-          The error happennded during execution of a build command, see log for details:
+        ${chalk.red('FAILED')} ${banner}: build failed, see log:
 
-          ${chalk.red(indent(logContents, '  '))}
+        ${chalk.red(indent(logContents, '    '))}
+          To get into the build environment and debug it:
+
+            % esy build-shell ${error.task.spec.sourcePath}
+
         `,
       );
     } else {
@@ -72,7 +77,12 @@ export function reportBuildError(error: Builder.BuildError) {
 
         ${chalk.red('FAILED')} ${banner}
           The error happennded during execution of a build command, see the log file for details:
+
           ${logFilename}
+
+          To get into the build environment and debug it:
+
+            % esy build-shell ${error.task.spec.sourcePath}
 
         `,
       );
