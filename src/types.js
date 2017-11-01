@@ -67,14 +67,6 @@ export type BuildSpec = {
   +sourceType: 'immutable' | 'transient',
 
   /**
-   * If build mutates its own sourcePath.
-   *
-   * Builder must handle that case somehow, probably by copying sourcePath into
-   * some temp location and doing a build from there.
-   */
-  +mutatesSourcePath: boolean,
-
-  /**
    * Build type.
    *
    * 'out-of-source' means it doesn't pollute $cur__root
@@ -145,6 +137,11 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
    * environment variable that eventually will contain the actual path.
    */
   +sandboxPath: Path,
+
+  /**
+   * Check if build requires its root relocated.
+   */
+  requiresRootRelocation: (build: BuildSpec) => boolean,
 
   /**
    * Generate path where sources of the builds are located.

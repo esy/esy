@@ -19,6 +19,7 @@ export function renderSandboxSbConfig(
   config: Config<path.Path>,
   sandboxSpec?: ConfigSpec = {},
 ): string {
+  const isRoot = spec.sourcePath === '';
   const subpathList = pathList =>
     pathList
       ? pathList
@@ -43,6 +44,16 @@ export function renderSandboxSbConfig(
 
     (allow file-write*
       (literal "/dev/null")
+
+      ${isRoot && spec.buildType === '_build'
+        ? `
+        ; $cur__root/_build
+         (subpath "${config.getRootPath(spec, '_build')}")
+
+        ; $cur__root/*/.merlin
+         (regex "^${config.getRootPath(spec)}/.*/\.merlin$")
+        `
+        : ''};
 
       ; $cur__target_dir
       (subpath "${config.getBuildPath(spec)}")

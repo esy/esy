@@ -25,7 +25,6 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
     buildType: 'out-of-source',
     dependencies,
     exportedEnv,
-    mutatesSourcePath: false,
     shouldBePersisted: true,
     command: null,
     errors: [],
