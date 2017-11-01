@@ -432,18 +432,20 @@ async function performBuild(
   config: Config<path.AbsolutePath>,
   sandbox: BuildSandbox,
 ): Promise<void> {
+  const isRoot = task.spec.sourcePath === '';
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
   const sandboxRootInstallTreeSymlink = path.join(
     config.sandboxPath,
     INSTALL_TREE_SYMLINK,
   );
+  const symlinksAreNeeded = isRoot && task.spec.buildType !== '_build';
 
   async function executeBuildCommands(driver: BuildDriver) {
     // For top level build we need to remove build tree symlink and install tree
     // symlink as in case of non mutating build it can interfere with the build
     // itself. In case of mutating build they still be ignore then copying sources
     // of to `$cur__target_dir`.
-    if (task.spec === sandbox.root) {
+    if (symlinksAreNeeded) {
       await Promise.all([
         unlinkOrRemove(sandboxRootBuildTreeSymlink),
         unlinkOrRemove(sandboxRootInstallTreeSymlink),
@@ -472,7 +474,7 @@ async function performBuild(
 
       buildSucceeded = true;
     } finally {
-      if (task.spec === sandbox.root) {
+      if (symlinksAreNeeded) {
         // Those can be either created by esy or by previous build process so we
         // forcefully remove them.
         await Promise.all([
