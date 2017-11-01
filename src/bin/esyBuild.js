@@ -36,9 +36,13 @@ export function createBuildProgressReporter() {
     } else if (status.state === 'success') {
       const {timeEllapsed} = status;
       if (timeEllapsed != null) {
-        getReporterFor(task).done('BUILT').details(`in ${timeEllapsed / 1000}s`);
+        getReporterFor(task)
+          .done('BUILT')
+          .details(`in ${timeEllapsed / 1000}s`);
       } else if (!task.spec.shouldBePersisted) {
-        getReporterFor(task).done('BUILT').details(`unchanged`);
+        getReporterFor(task)
+          .done('BUILT')
+          .details(`unchanged`);
       }
     } else if (status.state === 'failure') {
       getReporterFor(task).fail('FAILED');

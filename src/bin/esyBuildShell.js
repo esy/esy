@@ -41,9 +41,10 @@ export default async function esyBuildShell(ctx: CommandContext) {
 
   const rootTask: BuildTask = Task.fromBuildSandbox(sandbox, config);
 
-  const task = packageSourcePath != null
-    ? findTaskBySourcePath(rootTask, path.resolve(process.cwd(), packageSourcePath))
-    : rootTask;
+  const task =
+    packageSourcePath != null
+      ? findTaskBySourcePath(rootTask, path.resolve(process.cwd(), packageSourcePath))
+      : rootTask;
 
   const reporter = createBuildProgressReporter();
   const state = await Builder.buildDependencies(task, sandbox, config, reporter);

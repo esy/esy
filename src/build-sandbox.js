@@ -189,8 +189,8 @@ async function crawlBuild(
     version: packageJson.version,
     exportedEnv: packageJson.esy.exportedEnv,
     command,
-    shouldBePersisted: !(isRootBuild || !isInstalled) ||
-      Boolean(context.options.forRelease),
+    shouldBePersisted:
+      !(isRootBuild || !isInstalled) || Boolean(context.options.forRelease),
     sourceType: isRootBuild || !isInstalled ? 'transient' : 'immutable',
     mutatesSourcePath: !!packageJson.esy.buildsInSource,
     sourcePath: nextSourcePath,
@@ -339,9 +339,10 @@ function formatCircularDependenciesError(dependency, context) {
 function formatMissingPackagesError(missingPackages, context) {
   const packagesToReport = missingPackages.slice(0, 3);
   const packagesMessage = packagesToReport.map(p => `"${p}"`).join(', ');
-  const extraPackagesMessage = missingPackages.length > packagesToReport.length
-    ? ` (and ${missingPackages.length - packagesToReport.length} more)`
-    : '';
+  const extraPackagesMessage =
+    missingPackages.length > packagesToReport.length
+      ? ` (and ${missingPackages.length - packagesToReport.length} more)`
+      : '';
   return outdent`
     Cannot resolve ${packagesMessage}${extraPackagesMessage} packages
       At ${context.dependencyTrace.join(' -> ')}

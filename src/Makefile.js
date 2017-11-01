@@ -149,7 +149,10 @@ function renderMakeRuleCommand(command) {
       )
       .join('\\\n');
   } else {
-    return command.split('\n').map(line => `\t${line};`).join('\\\n');
+    return command
+      .split('\n')
+      .map(line => `\t${line};`)
+      .join('\\\n');
   }
 }
 

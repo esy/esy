@@ -31,9 +31,10 @@ export function printEnvironment(env: BuildEnvironment) {
 
   for (const item of env.values()) {
     const key = item.spec != null ? item.spec.id : 'Esy Sandbox';
-    const header = item.spec != null
-      ? `${item.spec.name}@${item.spec.version} ${item.spec.sourcePath}`
-      : 'Esy Sandbox';
+    const header =
+      item.spec != null
+        ? `${item.spec.name}@${item.spec.version} ${item.spec.sourcePath}`
+        : 'Esy Sandbox';
     let group = groupsByBuild.get(key);
     if (group == null) {
       group = {header, env: []};

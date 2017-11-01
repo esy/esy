@@ -42,9 +42,10 @@ export async function write(rootDirname: string, nodes: Node[]): Promise<void> {
   invariant((await fs.readdir(rootDirname)).length === 0, 'Directory is not empty');
 
   async function writeFile(pathname: string, node: FileNode) {
-    const content = typeof node.content === 'string' || node.content instanceof Buffer
-      ? node.content
-      : JSON.stringify(node.content);
+    const content =
+      typeof node.content === 'string' || node.content instanceof Buffer
+        ? node.content
+        : JSON.stringify(node.content);
     await fs.writeFile(pathname, content);
   }
 

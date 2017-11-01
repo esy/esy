@@ -92,7 +92,10 @@ function error(error?: Error | string) {
 }
 
 export function indent(string: string, indent: string) {
-  return string.split('\n').map(line => indent + line).join('\n');
+  return string
+    .split('\n')
+    .map(line => indent + line)
+    .join('\n');
 }
 
 export type CommandContext = {

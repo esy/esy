@@ -270,15 +270,16 @@ function createCommandWrapper(pkg, commandName) {
     .concat(sandboxEntryCommandName)
     .join(', ');
 
-  const execute = commandName !== sandboxEntryCommandName
-    ? outdent`
+  const execute =
+    commandName !== sandboxEntryCommandName
+      ? outdent`
       if [ "$1" == "----where" ]; then
         which "${commandName}"
       else
         exec "${commandName}" "$@"
       fi
       `
-    : outdent`
+      : outdent`
       if [[ "$1" == ""  ]]; then
         cat << EOF
 
@@ -504,7 +505,9 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     #
     # Release releaseType: "${releaseType}"
     # ------------------------------------------------------
-    # Executed ${releaseStage === 'forPreparingRelease' ? 'while creating the release' : 'while installing the release on client machine'}
+    # Executed ${releaseStage === 'forPreparingRelease'
+      ? 'while creating the release'
+      : 'while installing the release on client machine'}
     #
     # Check if release is built:    ${String(shouldCheckIfReleaseIsBuilt)}
     # Configure Esy:                ${String(shouldConfigureEsy)}
@@ -550,7 +553,8 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # installEsy
     #
     echo '*** Installing esy for the release...'
-    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.release.esyDependency}")
+    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.release
+      .esyDependency}")
     if [ $? -ne 0 ]; then
       echo "error: failed to install esy..."
       echo $LOG
@@ -682,12 +686,16 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
       fi
     done
     cd "$PACKAGE_ROOT"
-    ${releaseStage === 'forPreparingRelease' ? scrubBinaryReleaseCommandPathPatterns('"$ESY_EJECT__TMP/i/"') : '#'}
-    ${releaseStage === 'forPreparingRelease' ? (deleteFromBinaryRelease || [])
+    ${releaseStage === 'forPreparingRelease'
+      ? scrubBinaryReleaseCommandPathPatterns('"$ESY_EJECT__TMP/i/"')
+      : '#'}
+    ${releaseStage === 'forPreparingRelease'
+      ? (deleteFromBinaryRelease || [])
           .map(function(pattern) {
             return 'rm ' + pattern;
           })
-          .join('\n') : ''}
+          .join('\n')
+      : ''}
     # Built packages have a special way of compressing the release, putting the
     # eject store in its own tar so that all the symlinks in the store can be
     # relocated using tools that exist in the eject sandbox.
