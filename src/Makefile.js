@@ -8,7 +8,7 @@ import outdent from 'outdent';
 import {doubleQuote} from './lib/shell';
 
 export type Env = {
-  [name: string]: null | string | QuotedString,
+  [name: string]: null | string | QuotedString | Array<string | QuotedString>,
 };
 
 export type MakefileItemDependency = string | MakefileItem;
@@ -141,16 +141,25 @@ function renderRuleDependencies(
   return rendered.join(' ');
 }
 
+function renderEnvValue(v: string | QuotedString) {
+  if (typeof v === 'string') {
+    return doubleQuote(v);
+  } else {
+    return v.value;
+  }
+}
+
 function renderEnv(env) {
   const lines = [];
   for (const k in env) {
     const v = env[k];
     if (v == null) {
       continue;
-    } else if (typeof v === 'string') {
-      lines.push(`\texport ${k}=${doubleQuote(v)};`);
+    } else if (Array.isArray(v)) {
+      const items = v.map(renderEnvValue);
+      lines.push(`\texport ${k}=(${items.join(' ')});`);
     } else {
-      lines.push(`\texport ${k}=${v.value};`);
+      lines.push(`\texport ${k}=${renderEnvValue(v)};`);
     }
   }
   return lines.join('\\\n');
