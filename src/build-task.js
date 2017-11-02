@@ -199,7 +199,7 @@ export function fromBuildSpec(
 
     const command =
       scopes.spec.command == null
-        ? null
+        ? []
         : scopes.spec.command.map(command => renderCommand(command, scope));
 
     return {
