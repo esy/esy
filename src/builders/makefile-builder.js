@@ -381,12 +381,18 @@ export function eject(
     dependencies: [rootBuildShellRule],
   });
 
+  // TODO: this can be generated automatically from non-phony rules
   const cleanRule = Makefile.createRule({
     target: 'clean',
     phony: true,
+    dependencies: [rootCleanRule],
     command: outdent`
-      rm -f ${sandboxPath(constants.BUILD_TREE_SYMLINK)}
+      @rm -f ${sandboxPath(constants.BUILD_TREE_SYMLINK)}
       rm -f ${sandboxPath(constants.INSTALL_TREE_SYMLINK)}
+      rm -f ${compileRealpathRule.target}
+      rm -f ${compileFastreplacestringRule.target}
+      rm -f ${storePathMetaRule.target}
+      rm -f ${finalInstallPathSetMetaRule.target}
     `,
   });
 
