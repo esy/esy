@@ -96,12 +96,17 @@ export type BuildSpec = {
   +errors: {message: string}[],
 };
 
+export type BuildTaskCommand = {
+  command: string,
+  renderedCommand: string,
+};
+
 /**
  * A concrete build task with command list and env ready for execution.
  */
 export type BuildTask = {
   +id: string,
-  +command: null | Array<{command: string, renderedCommand: string}>,
+  +command: Array<BuildTaskCommand>,
   +env: Map<string, EnvironmentVar>,
   +scope: Map<string, EnvironmentVar>,
   +dependencies: Map<string, BuildTask>,
