@@ -197,15 +197,18 @@ export function fromBuildSpec(
     mergeIntoMap(scope, getEvalScope(scopes.spec, scopes.dependencies, config));
     mergeIntoMap(scope, env);
 
-    const command =
-      scopes.spec.command == null
-        ? []
-        : scopes.spec.command.map(command => renderCommand(command, scope));
+    const buildCommand = scopes.spec.buildCommand.map(command =>
+      renderCommand(command, scope),
+    );
+    const installCommand = scopes.spec.installCommand.map(command =>
+      renderCommand(command, scope),
+    );
 
     return {
       id: scopes.spec.id,
       spec: scopes.spec,
-      command,
+      buildCommand,
+      installCommand,
       env,
       scope,
       dependencies: mapValuesMap(scopes.dependencies, dep => dep.task),

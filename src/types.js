@@ -44,7 +44,10 @@ export type BuildSpec = {
   +version: string,
 
   /** Command which is needed to execute build */
-  +command: null | Array<string | Array<string>>,
+  +buildCommand: Array<string | Array<string>>,
+
+  /** Command which is needed to execute install */
+  +installCommand: Array<string | Array<string>>,
 
   /** Environment exported by built. */
   +exportedEnv: {[name: string]: EnvironmentVarExport},
@@ -106,7 +109,8 @@ export type BuildTaskCommand = {
  */
 export type BuildTask = {
   +id: string,
-  +command: Array<BuildTaskCommand>,
+  +buildCommand: Array<BuildTaskCommand>,
+  +installCommand: Array<BuildTaskCommand>,
   +env: Map<string, EnvironmentVar>,
   +scope: Map<string, EnvironmentVar>,
   +dependencies: Map<string, BuildTask>,
@@ -188,3 +192,34 @@ export type BuildSandbox = {
   env: BuildEnvironment,
   root: BuildSpec,
 };
+
+/**
+ * This specifies Esy configuration within a package.json.
+ *
+ * Any change here likely results in minor or major version bump.
+ */
+export type EsySpec = {
+  /**
+   * Commands to execute during build phase.
+   */
+  build: CommandSpec,
+
+  /**
+   * Commands to execute during install phase.
+   */
+  install: CommandSpec,
+
+  /**
+   * Type of the build.
+   */
+  buildsInSource: true | false | '_build',
+
+  /**
+   * Environment exported by the package
+   */
+  exportedEnv: ExportEnvironmentSpec,
+};
+
+export type CommandSpec = null | string | Array<string | Array<string>>;
+
+export type ExportEnvironmentSpec = {[name: string]: EnvironmentVarExport};

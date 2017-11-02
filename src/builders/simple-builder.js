@@ -455,19 +455,20 @@ async function performBuild(
     let buildSucceeded = false;
 
     try {
-      if (task.command != null) {
-        const commandList = task.command;
-        for (const {command, renderedCommand} of task.command) {
-          await driver.executeCommand(command, renderedCommand);
-        }
-
-        driver.log('rewriting paths in build artefacts');
-        await rewritePaths(
-          config.getInstallPath(task.spec),
-          driver.installPath,
-          driver.finalInstallPath,
-        );
+      for (const {command, renderedCommand} of task.buildCommand) {
+        await driver.executeCommand(command, renderedCommand);
       }
+
+      for (const {command, renderedCommand} of task.installCommand) {
+        await driver.executeCommand(command, renderedCommand);
+      }
+
+      driver.log('rewriting paths in build artefacts');
+      await rewritePaths(
+        config.getInstallPath(task.spec),
+        driver.installPath,
+        driver.finalInstallPath,
+      );
 
       driver.log('finalizing build');
       await fs.rename(driver.installPath, driver.finalInstallPath);

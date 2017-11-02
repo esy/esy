@@ -7,6 +7,7 @@ import type {
   BuildSandbox,
   BuildEnvironment,
   EnvironmentVarExport,
+  EsySpec,
 } from './types';
 
 import * as JSON5 from 'json5';
@@ -17,14 +18,6 @@ import outdent from 'outdent';
 import * as fs from './lib/fs';
 import {computeHash, resolve, normalizePackageName} from './util';
 import * as Env from './environment';
-
-export type EsyConfig = {
-  build: null | string | Array<string | Array<string>>,
-  buildsInSource: true | false | '_build',
-  exportedEnv: {
-    [name: string]: EnvironmentVarExport,
-  },
-};
 
 export type PackageJson = {
   name: string,
@@ -41,7 +34,7 @@ export type PackageJson = {
   // github — it would be a URL to git repo and a sha1 hash of the tree.
   _resolved?: string,
 
-  esy: EsyConfig,
+  esy: EsySpec,
 };
 
 export type PackageJsonVersionSpec = {
@@ -157,15 +150,8 @@ async function crawlBuild(
   const packageJson = await readManifest(sourcePath);
   const isRootBuild = context.sandboxPath === sourcePath;
 
-  let command: null | Array<string | Array<string>> = null;
-  if (packageJson.esy.build != null) {
-    if (!Array.isArray(packageJson.esy.build)) {
-      // $FlowFixMe: ...
-      command = [packageJson.esy.build];
-    } else {
-      command = packageJson.esy.build;
-    }
-  }
+  let buildCommand = normalizeCommand(packageJson.esy.build);
+  let installCommand = normalizeCommand(packageJson.esy.install);
 
   const dependencySpecs = objectToDependencySpecs(
     packageJson.dependencies,
@@ -183,12 +169,13 @@ async function crawlBuild(
   const nextSourcePath = path.relative(context.sandboxPath, sourcePath);
   const id = calculateBuildId(context.env, packageJson, source, dependencies);
 
-  const spec = {
+  const spec: BuildSpec = {
     id,
     name: packageJson.name,
     version: packageJson.version,
     exportedEnv: packageJson.esy.exportedEnv,
-    command,
+    buildCommand,
+    installCommand,
     shouldBePersisted:
       !(isRootBuild || !isInstalled) || Boolean(context.options.forRelease),
     sourceType: isRootBuild || !isInstalled ? 'transient' : 'immutable',
@@ -240,6 +227,9 @@ export async function readManifest(packagePath: string): Promise<PackageJson> {
     }
     if (packageJson.esy.build == null) {
       packageJson.esy.build = null;
+    }
+    if (packageJson.esy.install == null) {
+      packageJson.esy.install = null;
     }
     if (packageJson.esy.exportedEnv == null) {
       packageJson.esy.exportedEnv = {};
@@ -347,4 +337,16 @@ function formatMissingPackagesError(missingPackages, context) {
       At ${context.dependencyTrace.join(' -> ')}
       Did you forget to run "esy install" command?
   `;
+}
+
+function normalizeCommand(
+  command: null | string | Array<string | Array<string>>,
+): Array<string | Array<string>> {
+  if (command == null) {
+    return [];
+  } else if (!Array.isArray(command)) {
+    return [command];
+  } else {
+    return command;
+  }
 }
