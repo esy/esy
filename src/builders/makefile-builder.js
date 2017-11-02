@@ -4,7 +4,6 @@
 
 import type {BuildSpec, BuildTask, Config, BuildSandbox} from '../types';
 
-import * as fs from 'fs';
 import {sync as mkdirp} from 'mkdirp';
 import createLogger from 'debug';
 import outdent from 'outdent';
@@ -16,6 +15,7 @@ import * as Makefile from '../Makefile';
 import {normalizePackageName} from '../util';
 import {renderEnv, renderSandboxSbConfig} from './util';
 import {singleQuote} from '../lib/shell';
+import * as fs from '../lib/fs';
 import * as path from '../lib/path';
 import * as bashgen from './bashgen';
 import * as constants from '../constants';
@@ -23,326 +23,34 @@ import * as constants from '../constants';
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
 
-const FASTREPLACESTRING = fs.readFileSync(
-  require.resolve('fastreplacestring/fastreplacestring.cpp'),
-  'utf8',
-);
-
-const RUNTIME = fs.readFileSync(require.resolve('./makefile-builder-runtime.sh'), 'utf8');
-
-/**
- * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
- */
-export function renderToMakefile(
-  sandbox: BuildSandbox,
-  outputPath: string,
-  buildConfig: Config<path.Path>,
-) {
-  log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
-
-  function emitInfoFile({filename, contents}) {
-    ruleSet.push({
-      type: 'rule',
-      target: `$(ESY_EJECT__ROOT)/records/${filename}`,
-      dependencies: [`$(ESY_EJECT__ROOT)/records/${filename}.in`, 'esy-root'],
-      shell: '/bin/bash',
-      command: '@$(shell_env_sandbox) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)',
-    });
-
-    emitFile(outputPath, {
-      filename: ['records', `${filename}.in`],
-      contents: contents + '\n',
-    });
-
-    initStoreRule.dependencies.push(`$(ESY_EJECT__ROOT)/records/${filename}`);
-  }
-
-  const finalInstallPathSet = [];
-
-  const prelude = [
-    {
-      type: 'raw',
-      value: 'SHELL := env -i /bin/bash --norc --noprofile',
-    },
-
-    // ESY_EJECT__ROOT is the root directory of the ejected Esy build
-    // environment.
-    {
-      type: 'raw',
-      value: 'ESY_EJECT__ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))',
-    },
-
-    // ESY_EJECT__PREFIX is the directory where esy keeps the store and other
-    // artefacts
-    {
-      type: 'raw',
-      value: `ESY_EJECT__PREFIX ?= $(HOME)/.esy`,
-    },
-
-    {
-      type: 'raw',
-      value: `ESY_EJECT__STORE = $(shell $(ESY_EJECT__ROOT)/bin/get-store-path $(ESY_EJECT__PREFIX))`,
-    },
-
-    // ESY_EJECT__SANDBOX is the sandbox directory, the directory where the root
-    // package resides.
-    {
-      type: 'raw',
-      value: 'ESY_EJECT__SANDBOX ?= $(CURDIR)',
-    },
-  ];
-
-  const initStoreRule = {
-    type: 'rule',
-    target: 'esy-store',
-    phony: true,
-    dependencies: [
-      `$(ESY_EJECT__STORE)/${constants.STORE_BUILD_TREE}`,
-      `$(ESY_EJECT__STORE)/${constants.STORE_INSTALL_TREE}`,
-      `$(ESY_EJECT__STORE)/${constants.STORE_STAGE_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_BUILD_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_INSTALL_TREE}`,
-      `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_STAGE_TREE}`,
-    ],
-  };
-
-  const ruleSet: Makefile.MakeItem[] = [
-    ...prelude,
-
-    // These are public API
-    {
-      type: 'rule',
-      target: 'build',
-      phony: true,
-      dependencies: [createBuildRuleName(sandbox.root, 'build')],
-    },
-    {
-      type: 'rule',
-      target: 'build-shell',
-      phony: true,
-      dependencies: [createBuildRuleName(sandbox.root, 'shell')],
-    },
-    {
-      type: 'rule',
-      target: 'clean',
-      phony: true,
-      command: outdent`
-        rm -f $(ESY_EJECT__SANDBOX)/${constants.BUILD_TREE_SYMLINK}
-        rm -f $(ESY_EJECT__SANDBOX)/${constants.INSTALL_TREE_SYMLINK}
-      `,
-    },
-
-    {
-      type: 'define',
-      name: `shell_env_sandbox`,
-      value: [
-        {
-          CI: process.env.CI ? process.env.CI : null,
-          TMPDIR: '$(TMPDIR)',
-          ESY_EJECT__PREFIX: '$(ESY_EJECT__PREFIX)',
-          ESY_EJECT__STORE: '$(ESY_EJECT__STORE)',
-          ESY_EJECT__SANDBOX: '$(ESY_EJECT__SANDBOX)',
-          ESY_EJECT__ROOT: '$(ESY_EJECT__ROOT)',
-        },
-      ],
-    },
-
-    // Create store directory structure
-    {
-      type: 'rule',
-      target: [
-        `$(ESY_EJECT__STORE)/${constants.STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__STORE)/${constants.STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__STORE)/${constants.STORE_STAGE_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_BUILD_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_INSTALL_TREE}`,
-        `$(ESY_EJECT__SANDBOX)/node_modules/.cache/_esy/store/${constants.STORE_STAGE_TREE}`,
-      ].join(' '),
-      command: '@mkdir -p $(@)',
-    },
-    {
-      type: 'rule',
-      target: 'esy-root',
-      phony: true,
-      dependencies: [
-        '$(ESY_EJECT__ROOT)/bin/realpath',
-        '$(ESY_EJECT__ROOT)/bin/fastreplacestring.exe',
-      ],
-    },
-    initStoreRule,
-    {
-      type: 'rule',
-      target: '$(ESY_EJECT__ROOT)/bin/realpath',
-      dependencies: ['$(ESY_EJECT__ROOT)/bin/realpath.c'],
-      shell: '/bin/bash',
-      command: '@gcc -o $(@) -x c $(<) 2> /dev/null',
-    },
-    {
-      type: 'rule',
-      target: '$(ESY_EJECT__ROOT)/bin/fastreplacestring.exe',
-      dependencies: ['$(ESY_EJECT__ROOT)/bin/fastreplacestring.cpp'],
-      shell: '/bin/bash',
-      command: '@g++ -Ofast -o $(@) $(<) 2> /dev/null',
-    },
-  ];
-
-  function createBuildRuleName(build, target): string {
-    const id = build.sourcePath === '' ? 'sandbox' : `sandbox/${build.sourcePath}`;
-    return `${target}.${id}`;
-  }
-
-  function createBuildRule(
-    build: BuildSpec,
-    rule: {
-      target: string,
-      command: string,
-      withBuildEnv?: boolean,
-      dependencies: Array<string>,
-    },
-  ): Makefile.MakeItem {
-    const shellPackageName = normalizePackageName(build.id);
-    const command = [];
-    if (rule.withBuildEnv) {
-      command.push(outdent`
-        @$(shell_env_for__${shellPackageName}) source $(ESY_EJECT__ROOT)/bin/runtime.sh
-        cd $esy_build__source_root
-      `);
-    }
-    command.push(rule.command);
-    return {
-      type: 'rule',
-      target: createBuildRuleName(build, rule.target),
-      dependencies: [
-        'esy-store',
-        'esy-root',
-        ...Array.from(build.dependencies.values()).map(dep =>
-          createBuildRuleName(dep, 'build'),
-        ),
-        ...rule.dependencies,
-      ],
-      phony: true,
-      command,
-    };
-  }
-
-  function visitTask(task: BuildTask) {
-    log(`visit ${task.spec.id}`);
-
-    const shellPackageName = normalizePackageName(task.spec.id);
-    const ejectedPath = (...segments) =>
-      path.join('$(ESY_EJECT__ROOT)', ...packagePath, ...segments);
-
-    const packagePath = task.spec.sourcePath.split(path.sep).filter(Boolean);
-    const finalInstallPath = buildConfig.getFinalInstallPath(task.spec);
-    finalInstallPathSet.push(finalInstallPath);
-
-    function emitBuildFile({filename, contents}) {
-      emitFile(outputPath, {filename: packagePath.concat(filename), contents});
-    }
-
-    // Emit env
-    emitBuildFile({
-      filename: 'eject-env',
-      contents: renderEnv(task.env),
-    });
-
-    // Generate macOS sandbox configuration (sandbox-exec command)
-    emitBuildFile({
-      filename: 'sandbox.sb.in',
-      contents: renderSandboxSbConfig(task.spec, buildConfig, {
-        allowFileWrite: ['$TMPDIR', '$TMPDIR_GLOBAL'],
-      }),
-    });
-
-    ruleSet.push({
-      type: 'define',
-      name: `shell_env_for__${normalizePackageName(task.spec.id)}`,
-      value: [
-        {
-          CI: process.env.CI ? process.env.CI : null,
-          TMPDIR: '$(TMPDIR)',
-          ESY_EJECT__STORE: '$(ESY_EJECT__STORE)',
-          ESY_EJECT__SANDBOX: '$(ESY_EJECT__SANDBOX)',
-          ESY_EJECT__ROOT: '$(ESY_EJECT__ROOT)',
-        },
-        `source ${ejectedPath('eject-env')}`,
-        {
-          esy_build__eject: ejectedPath(),
-          esy_build__type: task.spec.buildType,
-          esy_build__source_type: task.spec.sourceType,
-          esy_build__key: task.id,
-          esy_build__command: renderBuildTaskCommand(task) || 'true',
-          esy_build__source_root: path.join(
-            buildConfig.sandboxPath,
-            task.spec.sourcePath,
-          ),
-          esy_build__install: finalInstallPath,
-        },
-      ],
-    });
-
-    ruleSet.push({
-      type: 'rule',
-      target: ejectedPath('sandbox.sb'),
-      dependencies: [ejectedPath('sandbox.sb.in')],
-      command: `@$(shell_env_for__${shellPackageName}) $(ESY_EJECT__ROOT)/bin/render-env $(<) $(@)`,
-    });
-
-    ruleSet.push(
-      createBuildRule(task.spec, {
-        target: 'build',
-        command: 'esy-build',
-        withBuildEnv: true,
-        dependencies: [ejectedPath('sandbox.sb')],
-      }),
-    );
-    ruleSet.push(
-      createBuildRule(task.spec, {
-        target: 'shell',
-        command: 'esy-shell',
-        withBuildEnv: true,
-        dependencies: [ejectedPath('sandbox.sb')],
-      }),
-    );
-    ruleSet.push(
-      createBuildRule(task.spec, {
-        target: 'clean',
-        command: 'esy-clean',
-        dependencies: [ejectedPath('sandbox.sb')],
-      }),
-    );
-  }
-
-  // Emit build artefacts for packages
-  log('process dependency graph');
-  const rootTask = Task.fromBuildSandbox(sandbox, buildConfig);
-  Graph.traverse(rootTask, visitTask);
-
-  // Emit command-env
-  // TODO: we construct two task trees for build and for command-env, this is
-  // wasteful, so let's think how we can do that in a single pass.
-  const rootTaskForCommand = Task.fromBuildSandbox(sandbox, buildConfig, {
-    exposeOwnPath: true,
+function createRenderEnvRule(params: {target: string, input: string}) {
+  return Makefile.createRule({
+    target: params.target,
+    dependencies: [params.input, initRootRule.target],
+    shell: '/bin/bash',
+    command: `@$(shell_env_sandbox) ${bin.renderEnv} $(<) $(@)`,
   });
-  rootTaskForCommand.env.delete('SHELL');
-  emitFile(outputPath, {
-    filename: ['command-env'],
-    contents: outdent`
-      ${bashgen.defineEsyUtil}
+}
 
-      # Set the default value for ESY_EJECT__STORE if it's not defined.
-      if [ -z \${ESY_EJECT__STORE+x} ]; then
-        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
-      fi
-
-      ${Env.printEnvironment(rootTaskForCommand.env)}
-    `,
+function createMkdirRule(params: {target: string}) {
+  return Makefile.createRule({
+    target: params.target,
+    command: `@mkdir -p $(@)`,
   });
+}
 
-  // Now emit all build-wise artefacts
-  log('build environment');
+const bin = {
+  renderEnv: ejectedRootPath('bin', 'render-env'),
+  getStorePath: ejectedRootPath('bin', 'get-store-path'),
+  realpath: ejectedRootPath('bin', 'realpath'),
+  realpathSource: ejectedRootPath('bin', 'realpath.c'),
+  fastreplacestring: ejectedRootPath('bin', 'fastreplacestring.exe'),
+  fastreplacestringSource: ejectedRootPath('bin', 'fastreplacestring.cpp'),
+  runtime: ejectedRootPath('bin', 'runtime.sh'),
+};
 
-  emitFile(outputPath, {
+const files = {
+  commandEnv: {
     filename: ['bin/render-env'],
     executable: true,
     contents: outdent`
@@ -367,9 +75,9 @@ export function renderToMakefile(
         -e "s|\\$TMPDIR|$_TMPDIR|g"                 \\
         $1 > $2
     `,
-  });
+  },
 
-  emitFile(outputPath, {
+  getStorePath: {
     filename: ['bin/get-store-path'],
     executable: true,
     contents: outdent`
@@ -382,14 +90,14 @@ export function renderToMakefile(
 
       esyGetStorePathFromPrefix "$1"
     `,
-  });
+  },
 
-  emitFile(outputPath, {
+  fastreplacestringSource: {
     filename: ['bin', 'fastreplacestring.cpp'],
-    contents: FASTREPLACESTRING,
-  });
+    contents: fs.readFileSync(require.resolve('fastreplacestring/fastreplacestring.cpp')),
+  },
 
-  emitFile(outputPath, {
+  realpathSource: {
     filename: ['bin', 'realpath.c'],
     contents: outdent`
       #include<stdlib.h>
@@ -399,42 +107,345 @@ export function renderToMakefile(
         exit(0);
       }
     `,
-  });
+  },
 
-  emitFile(outputPath, {
+  runtimeSource: {
     filename: ['bin', 'runtime.sh'],
-    contents: RUNTIME,
-  });
+    contents: fs.readFileSync(require.resolve('./makefile-builder-runtime.sh')),
+  },
+};
 
-  emitInfoFile({
+const preludeRuleSet = [
+  {
+    type: 'raw',
+    value: 'SHELL := env -i /bin/bash --norc --noprofile',
+  },
+
+  // ESY_EJECT__ROOT is the root directory of the ejected Esy build
+  // environment.
+  {
+    type: 'raw',
+    value: 'ESY_EJECT__ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))',
+  },
+
+  // ESY_EJECT__PREFIX is the directory where esy keeps the store and other
+  // artefacts
+  {
+    type: 'raw',
+    value: `ESY_EJECT__PREFIX ?= $(HOME)/.esy`,
+  },
+
+  {
+    type: 'raw',
+    value: `ESY_EJECT__STORE = $(shell ${bin.getStorePath} $(ESY_EJECT__PREFIX))`,
+  },
+
+  // ESY_EJECT__SANDBOX is the sandbox directory, the directory where the root
+  // package resides.
+  {
+    type: 'raw',
+    value: 'ESY_EJECT__SANDBOX ?= $(CURDIR)',
+  },
+];
+
+const compileRealpathRule = Makefile.createRule({
+  target: bin.realpath,
+  dependencies: [bin.realpathSource],
+  shell: '/bin/bash',
+  command: '@gcc -o $(@) -x c $(<) 2> /dev/null',
+});
+
+const compileFastreplacestringRule = Makefile.createRule({
+  target: bin.fastreplacestring,
+  dependencies: [bin.fastreplacestringSource],
+  shell: '/bin/bash',
+  command: '@g++ -Ofast -o $(@) $(<) 2> /dev/null',
+});
+
+const initStoreRule = Makefile.createRule({
+  target: 'esy-store',
+  phony: true,
+  dependencies: [
+    createMkdirRule({target: storePath(constants.STORE_BUILD_TREE)}),
+    createMkdirRule({target: storePath(constants.STORE_INSTALL_TREE)}),
+    createMkdirRule({target: storePath(constants.STORE_STAGE_TREE)}),
+    createMkdirRule({target: localStorePath(constants.STORE_BUILD_TREE)}),
+    createMkdirRule({target: localStorePath(constants.STORE_INSTALL_TREE)}),
+    createMkdirRule({target: localStorePath(constants.STORE_STAGE_TREE)}),
+  ],
+});
+
+const initRootRule = Makefile.createRule({
+  target: 'esy-root',
+  phony: true,
+  dependencies: [compileRealpathRule, compileFastreplacestringRule],
+});
+
+const defineSandboxEnvRule = {
+  type: 'define',
+  name: `shell_env_sandbox`,
+  value: [
+    {
+      CI: process.env.CI ? process.env.CI : null,
+      TMPDIR: '$(TMPDIR)',
+      ESY_EJECT__PREFIX: '$(ESY_EJECT__PREFIX)',
+      ESY_EJECT__STORE: storePath(),
+      ESY_EJECT__SANDBOX: sandboxPath(),
+      ESY_EJECT__ROOT: ejectedRootPath(),
+    },
+  ],
+};
+
+/**
+ * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
+ */
+export function eject(
+  sandbox: BuildSandbox,
+  outputPath: string,
+  config: Config<path.Path>,
+) {
+  const buildFiles = [];
+  const finalInstallPathSet = [];
+
+  function generateMetaRule({filename, contents}) {
+    const input = ejectedRootPath('records', `${filename}.in`);
+    const target = ejectedRootPath('records', filename);
+    const rule = createRenderEnvRule({target, input});
+
+    buildFiles.push({
+      filename: ['records', `${filename}.in`],
+      contents: contents + '\n',
+    });
+
+    return rule;
+  }
+
+  function createBuildRule(
+    build: BuildSpec,
+    rule: {
+      target: string,
+      command: string,
+      withBuildEnv?: boolean,
+      dependencies: Array<Makefile.MakefileItemDependency>,
+    },
+  ): Makefile.MakefileItem {
+    const packageName = normalizePackageName(build.id);
+    const command = [];
+    if (rule.withBuildEnv) {
+      command.push(outdent`
+        @$(shell_env_for__${packageName}) source ${bin.runtime}
+        cd $esy_build__source_root
+      `);
+    }
+    command.push(rule.command);
+
+    const target = `${rule.target}.${build.sourcePath === ''
+      ? 'sandbox'
+      : `sandbox/${build.sourcePath}`}`;
+
+    return Makefile.createRule({
+      target,
+      dependencies: [bootstrapRule, ...rule.dependencies],
+      phony: true,
+      command,
+    });
+  }
+
+  function createBuildRules(directDependencies, allDependencies, task: BuildTask) {
+    log(`visit ${task.spec.id}`);
+
+    const packageName = normalizePackageName(task.spec.id);
+    const packagePath = task.spec.sourcePath.split(path.sep).filter(Boolean);
+
+    const finalInstallPath = config.getFinalInstallPath(task.spec);
+
+    // Emit env
+    buildFiles.push({
+      filename: packagePath.concat('eject-env'),
+      contents: renderEnv(task.env),
+    });
+
+    // Generate macOS sandbox configuration (sandbox-exec command)
+    buildFiles.push({
+      filename: packagePath.concat('sandbox.sb.in'),
+      contents: renderSandboxSbConfig(task.spec, config, {
+        allowFileWrite: ['$TMPDIR', '$TMPDIR_GLOBAL'],
+      }),
+    });
+
+    const envRule = {
+      type: 'define',
+      name: `shell_env_for__${normalizePackageName(task.spec.id)}`,
+      value: [
+        {
+          CI: process.env.CI ? process.env.CI : null,
+          TMPDIR: '$(TMPDIR)',
+          ESY_EJECT__STORE: storePath(),
+          ESY_EJECT__SANDBOX: sandboxPath(),
+          ESY_EJECT__ROOT: ejectedRootPath(),
+        },
+        `source ${ejectedRootPath(...packagePath, 'eject-env')}`,
+        {
+          esy_build__eject: ejectedRootPath(...packagePath),
+          esy_build__type: task.spec.buildType,
+          esy_build__source_type: task.spec.sourceType,
+          esy_build__key: task.id,
+          esy_build__command: renderBuildTaskCommand(task) || 'true',
+          esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
+          esy_build__install: finalInstallPath,
+        },
+      ],
+    };
+
+    const buildDependenciesRules = Array.from(directDependencies.values()).map(
+      rules => rules.buildRule,
+    );
+
+    const sandboxConfigRule = createRenderEnvRule({
+      target: ejectedRootPath(...packagePath, 'sandbox.sb'),
+      input: ejectedRootPath(...packagePath, 'sandbox.sb.in'),
+    });
+
+    const buildRule = createBuildRule(task.spec, {
+      target: 'build',
+      command: 'esy-build',
+      withBuildEnv: true,
+      dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRules],
+    });
+
+    const buildShellRule = createBuildRule(task.spec, {
+      target: 'shell',
+      command: 'esy-shell',
+      withBuildEnv: true,
+      dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRules],
+    });
+
+    const cleanRule = createBuildRule(task.spec, {
+      target: 'clean',
+      command: 'esy-clean',
+      dependencies: [envRule, sandboxConfigRule],
+    });
+
+    finalInstallPathSet.push(finalInstallPath);
+
+    return {buildRule, buildShellRule, cleanRule};
+  }
+
+  log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
+
+  // Emit build artefacts for packages
+  log('process dependency graph');
+  const rootTask = Task.fromBuildSandbox(sandbox, config);
+
+  const finalInstallPathSetMetaRule = generateMetaRule({
     filename: 'final-install-path-set.txt',
     contents: finalInstallPathSet.join('\n'),
   });
 
-  emitInfoFile({
+  const storePathMetaRule = generateMetaRule({
     filename: 'store-path.txt',
     contents: '$ESY_EJECT__STORE',
   });
 
-  // this should be the last statement as we mutate rules
-  emitFile(outputPath, {
-    filename: ['Makefile'],
-    contents: Makefile.renderMakefile(ruleSet),
+  const bootstrapRule = Makefile.createRule({
+    target: 'bootstrap',
+    phony: true,
+    dependencies: [
+      finalInstallPathSetMetaRule,
+      storePathMetaRule,
+      defineSandboxEnvRule,
+      initRootRule,
+      initStoreRule,
+    ],
   });
+
+  const {
+    buildRule: rootBuildRule,
+    buildShellRule: rootBuildShellRule,
+    cleanRule: rootCleanRule,
+  } = Graph.topologicalFold(rootTask, createBuildRules);
+
+  const buildRule = {
+    type: 'rule',
+    target: 'build',
+    phony: true,
+    dependencies: [rootBuildRule],
+  };
+
+  const buildShellRule = {
+    type: 'rule',
+    target: 'build-shell',
+    phony: true,
+    dependencies: [rootBuildShellRule],
+  };
+
+  const cleanRule = {
+    type: 'rule',
+    target: 'clean',
+    phony: true,
+    command: outdent`
+      rm -f ${sandboxPath(constants.BUILD_TREE_SYMLINK)}
+      rm -f ${sandboxPath(constants.INSTALL_TREE_SYMLINK)}
+    `,
+  };
+
+  const makefileFile = {
+    filename: ['Makefile'],
+    contents: Makefile.renderMakefile([
+      ...preludeRuleSet,
+      buildRule,
+      buildShellRule,
+      cleanRule,
+    ]),
+  };
+
+  const commandEnvFile = createCommandEnvFile(sandbox, config);
+
+  log('build environment');
+  Promise.all([
+    ...buildFiles.map(file => emitFile(outputPath, file)),
+    emitFile(outputPath, files.commandEnv),
+    emitFile(outputPath, files.getStorePath),
+    emitFile(outputPath, files.fastreplacestringSource),
+    emitFile(outputPath, files.realpathSource),
+    emitFile(outputPath, files.runtimeSource),
+    emitFile(outputPath, commandEnvFile),
+    emitFile(outputPath, makefileFile),
+  ]);
 }
 
-function emitFile(
+function createCommandEnvFile(sandbox, config) {
+  const task = Task.fromBuildSandbox(sandbox, config, {
+    exposeOwnPath: true,
+  });
+  task.env.delete('SHELL');
+  return {
+    filename: ['command-env'],
+    contents: outdent`
+      ${bashgen.defineEsyUtil}
+
+      # Set the default value for ESY_EJECT__STORE if it's not defined.
+      if [ -z \${ESY_EJECT__STORE+x} ]; then
+        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
+      fi
+
+      ${Env.printEnvironment(task.env)}
+    `,
+  };
+}
+
+async function emitFile(
   outputPath: string,
   file: {filename: Array<string>, contents: string, executable?: boolean},
 ) {
   const filename = path.join(outputPath, ...file.filename);
   log(`emit <ejectRootDir>/${file.filename.join('/')}`);
-  mkdirp(path.dirname(filename));
-  fs.writeFileSync(filename, file.contents);
+  await fs.mkdirp(path.dirname(filename));
+  await fs.writeFile(filename, file.contents);
   if (file.executable) {
     // fs.constants only became supported in node 6.7 or so.
     const mode = fs.constants && fs.constants.S_IRWXU ? fs.constants.S_IRWXU : 448;
-    fs.chmodSync(filename, mode);
+    await fs.chmod(filename, mode);
   }
 }
 
@@ -444,4 +455,20 @@ function renderBuildTaskCommand(task: BuildTask) {
   }
   const command = task.command.map(c => c.renderedCommand).join(' && ');
   return Makefile.quoted(singleQuote(command));
+}
+
+function ejectedRootPath(...segments) {
+  return path.join('$(ESY_EJECT__ROOT)', ...segments);
+}
+
+function sandboxPath(...segments) {
+  return path.join('$(ESY_EJECT__SANDBOX)', ...segments);
+}
+
+function storePath(...segments) {
+  return path.join('$(ESY_EJECT__STORE)', ...segments);
+}
+
+function localStorePath(...segments) {
+  return sandboxPath('node_modules', '.cache', '_esy', 'store', ...segments);
 }
