@@ -11,24 +11,26 @@ export type Env = {
   [name: string]: null | string | QuotedString,
 };
 
-export type MakeRule = {
+export type MakefileItemDependency = string | MakefileItem | Array<string | MakefileItem>;
+
+export type MakefileRuleItem = {
   type: 'rule',
   target: string,
   command?: ?string | Array<void | null | string | Env>,
   phony?: boolean,
-  dependencies?: Array<string>,
+  dependencies?: $ReadOnlyArray<MakefileItemDependency>,
   env?: Env,
   exportEnv?: Array<string>,
   shell?: string,
 };
 
-export type MakeDefine = {
+export type MakefileDefineItem = {
   type: 'define',
   name: string,
   value: string | Array<void | null | string | Env>,
 };
 
-export type MakeFile = {
+export type MakefileFileItem = {
   type: 'file',
   target?: string,
   filename: string,
@@ -36,36 +38,77 @@ export type MakeFile = {
   value: string,
 };
 
-export type MakeRawItem = {|
+export type MakefileRawItem = {|
   type: 'raw',
   value: string,
 |};
 
-export type MakeItem = MakeRule | MakeFile | MakeDefine | MakeRawItem;
+export type MakefileItem =
+  | MakefileRuleItem
+  | MakefileFileItem
+  | MakefileDefineItem
+  | MakefileRawItem;
 
-export function renderMakefile(items: Array<MakeItem>) {
-  return items
-    .map(item => {
-      if (item.type === 'rule') {
-        return renderMakeRule(item);
-      } else if (item.type === 'define') {
-        return renderMakeDefine(item);
-      } else if (item.type === 'raw') {
-        return renderMakeRawItem(item);
-      } else if (item.type === 'file') {
-        return renderMakeFile(item);
-      } else {
-        throw new Error('Unknown make item:' + JSON.stringify(item));
+export function renderMakefile(entries: Array<MakefileItem>) {
+  const seen = new Set();
+  const queue: Array<MakefileItem> = entries.slice(0);
+  const rendered = [];
+
+  function pushToQueue(dep) {
+    if (seen.has(dep)) {
+      return;
+    }
+    if (typeof dep === 'string') {
+      return;
+    }
+    queue.push(dep);
+  }
+
+  while (queue.length > 0) {
+    const item = queue.shift();
+    if (seen.has(item)) {
+      continue;
+    }
+    seen.add(item);
+    if (item.type === 'rule' && item.dependencies != null) {
+      for (const dep of item.dependencies) {
+        if (Array.isArray(dep)) {
+          dep.forEach(pushToQueue);
+        } else {
+          pushToQueue(dep);
+        }
       }
-    })
-    .join('\n\n');
+    }
+    rendered.push(renderMakefileItem(item));
+  }
+
+  return rendered.join('\n\n');
 }
 
-function renderMakeDefine({name, value}) {
-  return `define ${name}\n${escapeEnvVar(renderMakeRuleCommand(value))}\nendef`;
+function renderMakefileItem(item: MakefileItem) {
+  if (item.type === 'rule') {
+    return renderMakefileRuleItem(item);
+  } else if (item.type === 'define') {
+    return rendereMakefileDefineItem(item);
+  } else if (item.type === 'raw') {
+    return renderMakefileRawItem(item);
+  } else if (item.type === 'file') {
+    return renderMakefileFileItem(item);
+  } else {
+    throw new Error('Unknown make item:' + JSON.stringify(item));
+  }
 }
 
-function renderMakeFile({filename, value, target, dependencies = []}) {
+function rendereMakefileDefineItem({name, value}: MakefileDefineItem) {
+  return `define ${name}\n${escapeEnvVar(renderCommand(value))}\nendef`;
+}
+
+function renderMakefileFileItem({
+  filename,
+  value,
+  target,
+  dependencies = [],
+}: MakefileFileItem) {
   const id = escapeName(filename);
   let output = outdent`
     define ${id}__CONTENTS
@@ -86,13 +129,13 @@ function renderMakeFile({filename, value, target, dependencies = []}) {
   return output;
 }
 
-function renderMakeRawItem({value}) {
+function renderMakefileRawItem({value}: MakefileRawItem) {
   return value;
 }
 
-function renderMakeRule(rule) {
+function renderMakefileRuleItem(rule: MakefileRuleItem) {
   const {target, dependencies = [], command, phony, env, exportEnv, shell} = rule;
-  const header = `${target}: ${dependencies.join(' ')}`;
+  const header = `${target}: ${renderRuleDependencies(dependencies)}`;
 
   let prelude = '';
   if (exportEnv) {
@@ -110,9 +153,9 @@ function renderMakeRule(rule) {
   }
 
   if (command != null) {
-    const recipe = escapeEnvVar(renderMakeRuleCommand(command));
+    const recipe = escapeEnvVar(renderCommand(command));
     if (env) {
-      const envString = renderMakeRuleEnv(env);
+      const envString = renderEnv(env);
       return `${prelude}${header}\n${envString}\\\n${recipe}`;
     } else {
       return `${prelude}${header}\n${recipe}`;
@@ -122,7 +165,28 @@ function renderMakeRule(rule) {
   }
 }
 
-function renderMakeRuleEnv(env) {
+function renderRuleDependencies(
+  dependencies: $ReadOnlyArray<MakefileItemDependency>,
+): string {
+  const rendered: Array<string> = [];
+  function renderDep(dep) {
+    if (typeof dep === 'string') {
+      rendered.push(dep);
+    } else if (dep.type === 'rule') {
+      rendered.push(dep.target);
+    }
+  }
+  for (const dep of dependencies) {
+    if (Array.isArray(dep)) {
+      dep.forEach(renderDep);
+    } else {
+      renderDep(dep);
+    }
+  }
+  return rendered.join(' ');
+}
+
+function renderEnv(env) {
   const lines = [];
   for (const k in env) {
     const v = env[k];
@@ -137,16 +201,11 @@ function renderMakeRuleEnv(env) {
   return lines.join('\\\n');
 }
 
-function renderMakeRuleCommand(command) {
+function renderCommand(command) {
   if (Array.isArray(command)) {
     return command
       .filter(item => item != null)
-      .map(
-        item =>
-          typeof item === 'string'
-            ? renderMakeRuleCommand(item)
-            : renderMakeRuleEnv(item),
-      )
+      .map(item => (typeof item === 'string' ? renderCommand(item) : renderEnv(item)))
       .join('\\\n');
   } else {
     return command
@@ -168,4 +227,10 @@ type QuotedString = {type: 'quoted', value: string};
 
 export function quoted(value: string) {
   return {type: 'quoted', value};
+}
+
+export function createRule(
+  config: $Diff<MakefileRuleItem, {type: 'rule'}>,
+): MakefileRuleItem {
+  return {type: 'rule', ...config};
 }
