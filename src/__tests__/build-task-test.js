@@ -26,7 +26,8 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
     dependencies,
     exportedEnv,
     shouldBePersisted: true,
-    command: null,
+    buildCommand: [],
+    installCommand: [],
     errors: [],
   };
 }

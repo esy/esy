@@ -277,7 +277,8 @@ export function eject(
           esy_build__type: task.spec.buildType,
           esy_build__source_type: task.spec.sourceType,
           esy_build__key: task.id,
-          esy_build__build: renderBuildTaskCommand(task),
+          esy_build__build_command: renderBuildTaskCommand(task.buildCommand),
+          esy_build__install_command: renderBuildTaskCommand(task.installCommand),
           esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
           esy_build__install: finalInstallPath,
         },
@@ -457,8 +458,8 @@ async function emitFile(
   }
 }
 
-function renderBuildTaskCommand(task: BuildTask) {
-  return task.command.map(c => Makefile.quoted(singleQuote(c.renderedCommand)));
+function renderBuildTaskCommand(command) {
+  return command.map(c => Makefile.quoted(singleQuote(c.renderedCommand)));
 }
 
 function ejectedRootPath(...segments) {

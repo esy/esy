@@ -22,7 +22,8 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
     sourceType: 'immutable',
     buildType: 'out-of-source',
     shouldBePersisted: true,
-    command: null,
+    buildCommand: [],
+    installCommand: [],
     errors: [],
   };
 }
