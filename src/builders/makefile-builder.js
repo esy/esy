@@ -116,36 +116,25 @@ const files = {
 };
 
 const preludeRuleSet = [
-  {
-    type: 'raw',
-    value: 'SHELL := env -i /bin/bash --norc --noprofile',
-  },
+  Makefile.createRaw('SHELL := env -i /bin/bash --norc --noprofile'),
 
   // ESY_EJECT__ROOT is the root directory of the ejected Esy build
   // environment.
-  {
-    type: 'raw',
-    value: 'ESY_EJECT__ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))',
-  },
+  Makefile.createRaw(
+    'ESY_EJECT__ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))',
+  ),
 
   // ESY_EJECT__PREFIX is the directory where esy keeps the store and other
   // artefacts
-  {
-    type: 'raw',
-    value: `ESY_EJECT__PREFIX ?= $(HOME)/.esy`,
-  },
+  Makefile.createRaw('ESY_EJECT__PREFIX ?= $(HOME)/.esy'),
 
-  {
-    type: 'raw',
-    value: `ESY_EJECT__STORE = $(shell ${bin.getStorePath} $(ESY_EJECT__PREFIX))`,
-  },
+  Makefile.createRaw(
+    `ESY_EJECT__STORE = $(shell ${bin.getStorePath} $(ESY_EJECT__PREFIX))`,
+  ),
 
   // ESY_EJECT__SANDBOX is the sandbox directory, the directory where the root
   // package resides.
-  {
-    type: 'raw',
-    value: 'ESY_EJECT__SANDBOX ?= $(CURDIR)',
-  },
+  Makefile.createRaw('ESY_EJECT__SANDBOX ?= $(CURDIR)'),
 ];
 
 const compileRealpathRule = Makefile.createRule({
@@ -181,8 +170,7 @@ const initRootRule = Makefile.createRule({
   dependencies: [compileRealpathRule, compileFastreplacestringRule],
 });
 
-const defineSandboxEnvRule = {
-  type: 'define',
+const defineSandboxEnvRule = Makefile.createDefine({
   name: `shell_env_sandbox`,
   value: [
     {
@@ -194,7 +182,7 @@ const defineSandboxEnvRule = {
       ESY_EJECT__ROOT: ejectedRootPath(),
     },
   ],
-};
+});
 
 /**
  * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
@@ -273,8 +261,7 @@ export function eject(
       }),
     });
 
-    const envRule = {
-      type: 'define',
+    const envRule = Makefile.createDefine({
       name: `shell_env_for__${normalizePackageName(task.spec.id)}`,
       value: [
         {
@@ -295,11 +282,20 @@ export function eject(
           esy_build__install: finalInstallPath,
         },
       ],
-    };
+    });
 
-    const buildDependenciesRules = Array.from(directDependencies.values()).map(
-      rules => rules.buildRule,
-    );
+    const buildDependenciesRule = [];
+    const cleanDependenciesRule = [];
+
+    for (const depRules of directDependencies.values()) {
+      buildDependenciesRule.push(depRules.buildRule);
+      cleanDependenciesRule.push(depRules.cleanRule);
+    }
+
+    const rules = [];
+    for (const depRules of allDependencies.values()) {
+      rules.push(depRules.buildShellRule);
+    }
 
     const sandboxConfigRule = createRenderEnvRule({
       target: ejectedRootPath(...packagePath, 'sandbox.sb'),
@@ -310,25 +306,32 @@ export function eject(
       target: 'build',
       command: 'esy-build',
       withBuildEnv: true,
-      dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRules],
+      dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRule],
     });
 
     const buildShellRule = createBuildRule(task.spec, {
       target: 'shell',
       command: 'esy-shell',
       withBuildEnv: true,
-      dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRules],
+      dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRule],
     });
 
     const cleanRule = createBuildRule(task.spec, {
       target: 'clean',
-      command: 'esy-clean',
-      dependencies: [envRule, sandboxConfigRule],
+      command: outdent`
+        @rm -f ${sandboxConfigRule.target}
+      `,
+      dependencies: [...cleanDependenciesRule],
     });
 
     finalInstallPathSet.push(finalInstallPath);
 
-    return {buildRule, buildShellRule, cleanRule};
+    return {
+      buildRule,
+      buildShellRule,
+      cleanRule,
+      rules: Makefile.createGroup(...rules),
+    };
   }
 
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
@@ -363,31 +366,29 @@ export function eject(
     buildRule: rootBuildRule,
     buildShellRule: rootBuildShellRule,
     cleanRule: rootCleanRule,
+    rules,
   } = Graph.topologicalFold(rootTask, createBuildRules);
 
-  const buildRule = {
-    type: 'rule',
+  const buildRule = Makefile.createRule({
     target: 'build',
     phony: true,
     dependencies: [rootBuildRule],
-  };
+  });
 
-  const buildShellRule = {
-    type: 'rule',
+  const buildShellRule = Makefile.createRule({
     target: 'build-shell',
     phony: true,
     dependencies: [rootBuildShellRule],
-  };
+  });
 
-  const cleanRule = {
-    type: 'rule',
+  const cleanRule = Makefile.createRule({
     target: 'clean',
     phony: true,
     command: outdent`
       rm -f ${sandboxPath(constants.BUILD_TREE_SYMLINK)}
       rm -f ${sandboxPath(constants.INSTALL_TREE_SYMLINK)}
     `,
-  };
+  });
 
   const makefileFile = {
     filename: ['Makefile'],
@@ -396,6 +397,7 @@ export function eject(
       buildRule,
       buildShellRule,
       cleanRule,
+      rules,
     ]),
   };
 

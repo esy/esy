@@ -11,14 +11,19 @@ export type Env = {
   [name: string]: null | string | QuotedString,
 };
 
-export type MakefileItemDependency = string | MakefileItem | Array<string | MakefileItem>;
+export type MakefileItemDependency = string | MakefileItem;
+
+export type MakefileGroupItem = {
+  type: 'group',
+  dependencies: $ReadOnlyArray<MakefileItem>,
+};
 
 export type MakefileRuleItem = {
   type: 'rule',
   target: string,
   command?: ?string | Array<void | null | string | Env>,
   phony?: boolean,
-  dependencies?: $ReadOnlyArray<MakefileItemDependency>,
+  dependencies?: $ReadOnlyArray<string | MakefileItem>,
   env?: Env,
   exportEnv?: Array<string>,
   shell?: string,
@@ -30,14 +35,6 @@ export type MakefileDefineItem = {
   value: string | Array<void | null | string | Env>,
 };
 
-export type MakefileFileItem = {
-  type: 'file',
-  target?: string,
-  filename: string,
-  dependencies?: Array<string>,
-  value: string,
-};
-
 export type MakefileRawItem = {|
   type: 'raw',
   value: string,
@@ -45,24 +42,14 @@ export type MakefileRawItem = {|
 
 export type MakefileItem =
   | MakefileRuleItem
-  | MakefileFileItem
   | MakefileDefineItem
-  | MakefileRawItem;
+  | MakefileRawItem
+  | MakefileGroupItem;
 
 export function renderMakefile(entries: Array<MakefileItem>) {
   const seen = new Set();
   const queue: Array<MakefileItem> = entries.slice(0);
   const rendered = [];
-
-  function pushToQueue(dep) {
-    if (seen.has(dep)) {
-      return;
-    }
-    if (typeof dep === 'string') {
-      return;
-    }
-    queue.push(dep);
-  }
 
   while (queue.length > 0) {
     const item = queue.shift();
@@ -70,63 +57,38 @@ export function renderMakefile(entries: Array<MakefileItem>) {
       continue;
     }
     seen.add(item);
-    if (item.type === 'rule' && item.dependencies != null) {
+    rendered.push(renderMakefileItem(item));
+
+    if ((item.type === 'rule' || item.type === 'group') && item.dependencies != null) {
       for (const dep of item.dependencies) {
-        if (Array.isArray(dep)) {
-          dep.forEach(pushToQueue);
-        } else {
-          pushToQueue(dep);
+        if (seen.has(dep) || typeof dep === 'string') {
+          continue;
         }
+        queue.push(dep);
       }
     }
-    rendered.push(renderMakefileItem(item));
   }
 
   return rendered.join('\n\n');
 }
 
-function renderMakefileItem(item: MakefileItem) {
-  if (item.type === 'rule') {
-    return renderMakefileRuleItem(item);
-  } else if (item.type === 'define') {
-    return rendereMakefileDefineItem(item);
-  } else if (item.type === 'raw') {
-    return renderMakefileRawItem(item);
-  } else if (item.type === 'file') {
-    return renderMakefileFileItem(item);
-  } else {
-    throw new Error('Unknown make item:' + JSON.stringify(item));
+function renderMakefileItem(item: MakefileItem): ?string {
+  switch (item.type) {
+    case 'rule':
+      return renderMakefileRuleItem(item);
+    case 'define':
+      return rendereMakefileDefineItem(item);
+    case 'raw':
+      return renderMakefileRawItem(item);
+    case 'group':
+      return null;
+    default:
+      throw new Error(`Unknown item: ${JSON.stringify(item)}`);
   }
 }
 
 function rendereMakefileDefineItem({name, value}: MakefileDefineItem) {
   return `define ${name}\n${escapeEnvVar(renderCommand(value))}\nendef`;
-}
-
-function renderMakefileFileItem({
-  filename,
-  value,
-  target,
-  dependencies = [],
-}: MakefileFileItem) {
-  const id = escapeName(filename);
-  let output = outdent`
-    define ${id}__CONTENTS
-    ${escapeEnvVar(value)}
-    endef
-
-    export ${id}__CONTENTS
-
-    .PHONY: ${filename}
-    ${filename}: SHELL=/bin/bash
-    ${filename}: ${dependencies.join(' ')}
-    \tmkdir -p $(@D)
-    \tprintenv "${id}__CONTENTS" > $(@)
-  `;
-  if (target) {
-    output += `\n${target}: ${filename}`;
-  }
-  return output;
 }
 
 function renderMakefileRawItem({value}: MakefileRawItem) {
@@ -169,18 +131,11 @@ function renderRuleDependencies(
   dependencies: $ReadOnlyArray<MakefileItemDependency>,
 ): string {
   const rendered: Array<string> = [];
-  function renderDep(dep) {
+  for (const dep of dependencies) {
     if (typeof dep === 'string') {
       rendered.push(dep);
     } else if (dep.type === 'rule') {
       rendered.push(dep.target);
-    }
-  }
-  for (const dep of dependencies) {
-    if (Array.isArray(dep)) {
-      dep.forEach(renderDep);
-    } else {
-      renderDep(dep);
     }
   }
   return rendered.join(' ');
@@ -233,4 +188,18 @@ export function createRule(
   config: $Diff<MakefileRuleItem, {type: 'rule'}>,
 ): MakefileRuleItem {
   return {type: 'rule', ...config};
+}
+
+export function createDefine(
+  config: $Diff<MakefileDefineItem, {type: 'define'}>,
+): MakefileDefineItem {
+  return {type: 'define', ...config};
+}
+
+export function createRaw(value: string): MakefileRawItem {
+  return {type: 'raw', value};
+}
+
+export function createGroup(...dependencies: Array<MakefileItem>): MakefileGroupItem {
+  return {type: 'group', dependencies};
 }
