@@ -178,7 +178,7 @@ async function crawlBuild(
     installCommand,
     shouldBePersisted:
       !(isRootBuild || !isInstalled) || Boolean(context.options.forRelease),
-    sourceType: isRootBuild || !isInstalled ? 'transient' : 'immutable',
+    sourceType: isRootBuild ? 'root' : !isInstalled ? 'transient' : 'immutable',
     buildType:
       packageJson.esy.buildsInSource === '_build'
         ? '_build'
