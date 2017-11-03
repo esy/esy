@@ -10,9 +10,11 @@ import chalk from 'chalk';
 import outdent from 'outdent';
 
 import * as fs from '../lib/fs';
+import * as path from '../lib/path';
 import {indent, getBuildSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
+import * as ShellBuilder from '../builders/shell-builder';
 
 export function createBuildProgressReporter() {
   const observatory = configureObservatory({
@@ -117,6 +119,16 @@ export default async function esyBuild(ctx: CommandContext) {
   const config = await getBuildConfig(ctx);
   const task: BuildTask = Task.fromBuildSandbox(sandbox, config);
   const reporter = createBuildProgressReporter();
+
+  const ejectPath = path.join(
+    config.sandboxPath,
+    'node_modules',
+    '.cache',
+    '_esy',
+    'build',
+  );
+  await ShellBuilder.eject(ejectPath, task, sandbox, config);
+
   const state = await Builder.build(task, sandbox, config, reporter);
   if (state.state === 'failure') {
     const errors = Builder.collectBuildErrors(state);
