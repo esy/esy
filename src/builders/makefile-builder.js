@@ -408,7 +408,7 @@ export function eject(
     ]),
   };
 
-  const commandEnvFile = createCommandEnvFile(sandbox, config);
+  const commandEnvFile = createCommandEnvFile(rootTask);
 
   log('build environment');
   Promise.all([
@@ -423,11 +423,9 @@ export function eject(
   ]);
 }
 
-function createCommandEnvFile(sandbox, config) {
-  const task = Task.fromBuildSandbox(sandbox, config, {
-    exposeOwnPath: true,
-  });
-  task.env.delete('SHELL');
+function createCommandEnvFile(task) {
+  const env = new Map(task.env);
+  env.delete('SHELL');
   return {
     filename: ['command-env'],
     contents: outdent`
@@ -438,7 +436,7 @@ function createCommandEnvFile(sandbox, config) {
         export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
       fi
 
-      ${Env.printEnvironment(task.env)}
+      ${Env.printEnvironment(env)}
     `,
   };
 }

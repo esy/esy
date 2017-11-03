@@ -21,35 +21,7 @@ import * as Env from './environment';
 
 type BuildTaskParams = {
   env?: BuildEnvironment,
-  exposeOwnPath?: boolean,
 };
-
-/**
- * Logic to determine how file paths inside of env vars should be delimited.
- * For example, what separates file paths in the `PATH` env variable, or
- * `OCAMLPATH` variable? In an ideal world, the logic would be very simple:
- * `linux`/`darwin`/`cygwin` always uses `:`, and Windows/MinGW always uses
- * `;`, however there's some unfortunate edge cases to deal with - `esy` can
- * take care of all of that for you.
- */
-function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
-  // Error as a courtesy. This means something went wrong in the esy code, not
-  // consumer code. Should be fixed ASAP.
-  if (envVarName === '' || envVarName.charAt(0) === '$') {
-    throw new Error('Invalidly formed environment variable:' + envVarName);
-  }
-  if (buildPlatform === null || buildPlatform === undefined) {
-    throw new Error('Build platform not specified');
-  }
-  // Comprehensive pattern matching would be nice to have here!
-  return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin'
-    ? ';'
-    : buildPlatform === 'cygwin' ||
-      buildPlatform === 'linux' ||
-      buildPlatform === 'darwin'
-      ? ':'
-      : ';';
-}
 
 /**
  * Produce a task graph from a build spec graph.
@@ -109,13 +81,6 @@ export function fromBuildSpec(
     const OCAMLPATH = [];
     const PATH = [];
     const MAN_PATH = [];
-
-    // Optionally expose root's build PATH, MAN_PATH and OCAMLPATH
-    if (scopes.spec === rootBuild && params.exposeOwnPath) {
-      OCAMLPATH.push(config.getFinalInstallPath(rootBuild, 'lib'));
-      PATH.push(config.getFinalInstallPath(rootBuild, 'bin'));
-      MAN_PATH.push(config.getFinalInstallPath(rootBuild, 'man'));
-    }
 
     for (const dep of scopes.allDependencies.values()) {
       OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
@@ -426,4 +391,31 @@ export function fromBuildSandbox<Path: path.Path>(
     mergeIntoMap(env, params.env);
   }
   return fromBuildSpec(sandbox.root, config, {...params, env});
+}
+
+/**
+ * Logic to determine how file paths inside of env vars should be delimited.
+ * For example, what separates file paths in the `PATH` env variable, or
+ * `OCAMLPATH` variable? In an ideal world, the logic would be very simple:
+ * `linux`/`darwin`/`cygwin` always uses `:`, and Windows/MinGW always uses
+ * `;`, however there's some unfortunate edge cases to deal with - `esy` can
+ * take care of all of that for you.
+ */
+function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
+  // Error as a courtesy. This means something went wrong in the esy code, not
+  // consumer code. Should be fixed ASAP.
+  if (envVarName === '' || envVarName.charAt(0) === '$') {
+    throw new Error('Invalidly formed environment variable:' + envVarName);
+  }
+  if (buildPlatform === null || buildPlatform === undefined) {
+    throw new Error('Build platform not specified');
+  }
+  // Comprehensive pattern matching would be nice to have here!
+  return envVarName === 'OCAMLPATH' && buildPlatform === 'cygwin'
+    ? ';'
+    : buildPlatform === 'cygwin' ||
+      buildPlatform === 'linux' ||
+      buildPlatform === 'darwin'
+      ? ':'
+      : ';';
 }
