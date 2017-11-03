@@ -9,7 +9,7 @@
 #
 # Eject-specific build-specific variables:
 #
-#   $esy_build__eject_root - the location of build eject
+#   $esy_build__sandbox_config_darwin - the location of darwin (sandbox-exec)
 #   $esy_build__source_root - the location of real source root
 #   $esy_build__install_root - the location of final install
 #   $esy_build__build_type - the build type
@@ -22,7 +22,7 @@ set -e
 set -u
 set -o pipefail
 
-if [ "$TMPDIR" == "" ]; then
+if [ -z "${TMPDIR+x}" ] || [ "$TMPDIR" == "" ]; then
   unset TMPDIR
 fi
 
@@ -34,7 +34,7 @@ FG_RESET='\033[0m'
 # Configure sandbox mechanism
 ESY__SANDBOX_COMMAND=""
 case $(uname) in
-  Darwin*) ESY__SANDBOX_COMMAND="sandbox-exec -f $esy_build__eject_root/sandbox.sb";;
+  Darwin*) ESY__SANDBOX_COMMAND="sandbox-exec -f $esy_build__sandbox_config_darwin";;
   Linux*);;
   MSYS*);;
   *);;
@@ -56,21 +56,26 @@ esyPrepareBuild () {
     "$cur__share"           \
     "$cur__etc"
 
-  # for in-source builds copy sources over to build location
-  if [ "$esy_build__build_type" == "in-source" ] || [ "$esy_build__build_type" == "_build" ]; then
-    rm -rf "$cur__root";
-    rsync --quiet --archive     \
-      --exclude "$cur__root"    \
-      --exclude "node_modules"  \
-      --exclude "_build"        \
-      --exclude "_release"      \
-      --exclude "_esybuild"     \
-      --exclude "_esyinstall"   \
-      "$esy_build__source_root/" "$cur__root"
+  if [ "$esy_build__build_type" == "in-source" ]; then
+    esyCopySourceRoot
+  elif [ "$esy_build__build_type" == "_build" ] && [ "$esy_build__source_type" != "root" ] ; then
+    esyCopySourceRoot
   fi
 
   mkdir -p "$cur__target_dir/_esy"
 
+}
+
+esyCopySourceRoot () {
+  rm -rf "$cur__root";
+  rsync --quiet --archive     \
+    --exclude "$cur__root"    \
+    --exclude "node_modules"  \
+    --exclude "_build"        \
+    --exclude "_release"      \
+    --exclude "_esybuild"     \
+    --exclude "_esyinstall"   \
+    "$esy_build__source_root/" "$cur__root"
 }
 
 esyPerformBuild () {
@@ -95,7 +100,7 @@ esyPerformBuild () {
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      if [ ! -z "${CI+x}" ] ; then
+      if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
         echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
         cat "$BUILD_LOG" | sed  's/^/  /'
         echo -e "${FG_RESET}"
@@ -110,7 +115,7 @@ esyPerformBuild () {
 }
 
 esyBuild () {
-  if [ "$esy_build__source_type" == "transient" ]; then
+  if [ "$esy_build__source_type" != "immutable" ]; then
     esyClean
     esyPerformBuild
     esyPerformInstall
@@ -135,7 +140,7 @@ esyPerformInstall () {
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      if [ ! -z "${CI+x}" ] ; then
+      if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
         echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
         cat "$BUILD_LOG" | sed  's/^/  /'
         echo -e "${FG_RESET}"
