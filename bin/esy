@@ -78,7 +78,7 @@ callBuiltInCommand__build () {
     # stderr to nonblocking mode
     node $SCRIPTDIR/esy.js build "$@"
   else
-    exec "$BUILD_PATH"
+    exec "$BUILD_PATH" "$@"
   fi
 }
 
@@ -283,7 +283,14 @@ else
       ;;
     build|b)
       shift
-      callBuiltInCommand build "$@"
+      case "$1" in
+        -*)
+          callBuiltInCommand build "$@"
+          ;;
+        *)
+          callBuiltInCommand__build "$@"
+          ;;
+      esac
       ;;
     install-cache)
       shift
