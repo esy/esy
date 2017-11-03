@@ -8,7 +8,8 @@
 #   $esy_build__type - the build type
 #   $esy_build__source_type - the build source type
 #   $esy_build__source_root - the location of real source root
-#   $esy_build__command - the build command
+#   $esy_build__build_command - an array of build commands
+#   $esy_build__install_command - an arrau of install command
 #   $esy_build__install - the location of final install
 #
 
