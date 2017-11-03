@@ -22,12 +22,14 @@ function _create<Path: path.Path>(
     }
   };
 
-  const requiresRootRelocation = (build: BuildSpec) => {
-    const isRoot = build.sourcePath === '';
-    return (
-      (isRoot && build.buildType === 'in-source') ||
-      (!isRoot && build.buildType !== 'out-of-source')
-    );
+  const requiresRootRelocation = ({buildType, sourceType}: BuildSpec) => {
+    if (buildType === 'in-source') {
+      return true;
+    }
+    if (buildType === '_build' && sourceType !== 'root') {
+      return true;
+    }
+    return false;
   };
 
   const buildConfig = {
