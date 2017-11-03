@@ -156,8 +156,12 @@ function renderEnv(env) {
     if (v == null) {
       continue;
     } else if (Array.isArray(v)) {
-      const items = v.map(renderEnvValue);
-      lines.push(`\texport ${k}=(${items.join(' ')});`);
+      if (v.length === 0) {
+        lines.push(`\texport ${k}='';`);
+      } else {
+        const items = v.map(renderEnvValue);
+        lines.push(`\texport ${k}=(${items.join(' ')});`);
+      }
     } else {
       lines.push(`\texport ${k}=${renderEnvValue(v)};`);
     }
