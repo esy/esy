@@ -28,7 +28,7 @@ function createRenderEnvRule(params: {target: string, input: string}) {
     target: params.target,
     dependencies: [params.input, initRootRule.target],
     shell: '/bin/bash',
-    command: `@$(shell_env_sandbox) ${bin.renderEnv} $(<) $(@)`,
+    command: `@$(env_init) ${bin.renderEnv} $(<) $(@)`,
   });
 }
 
@@ -171,7 +171,7 @@ const initRootRule = Makefile.createRule({
 });
 
 const defineSandboxEnvRule = Makefile.createDefine({
-  name: `shell_env_sandbox`,
+  name: `env_init`,
   value: [
     {
       CI: process.env.CI ? process.env.CI : null,
@@ -221,7 +221,7 @@ export function eject(
     const command = [];
     if (rule.withBuildEnv) {
       command.push(outdent`
-        @$(shell_env_sandbox) $(shell_env_for__${packageName}) source ${bin.runtime}
+        @$(env_init) $(env__${packageName}) source ${bin.runtime}
         cd $esy_build__source_root
       `);
     }
@@ -262,7 +262,7 @@ export function eject(
     });
 
     const envRule = Makefile.createDefine({
-      name: `shell_env_for__${normalizePackageName(task.spec.id)}`,
+      name: `env__${packageName}`,
       value: [
         `source ${ejectedRootPath(...packagePath, 'eject-env')}`,
         {
