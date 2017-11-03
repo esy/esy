@@ -40,6 +40,21 @@ case $(uname) in
   *);;
 esac
 
+#
+# Execute command in build sandbox.
+#
+
+esyExecCommand () {
+  $ESY__SANDBOX_COMMAND /bin/bash   \
+    --noprofile --norc              \
+    -e -u -o pipefail               \
+    -c "$*"
+}
+
+#
+# Prepare build environment
+#
+
 esyPrepareBuild () {
 
   rm -rf "$cur__install"
@@ -66,6 +81,10 @@ esyPrepareBuild () {
 
 }
 
+#
+# Prepare build environment (copy sources to $cur__root)
+#
+
 esyCopySourceRoot () {
   rm -rf "$cur__root";
   rsync --quiet --archive     \
@@ -78,6 +97,10 @@ esyCopySourceRoot () {
     "$esy_build__source_root/" "$cur__root"
 }
 
+#
+# Perform build
+#
+
 esyPerformBuild () {
 
   esyPrepareBuild
@@ -85,24 +108,18 @@ esyPerformBuild () {
   cd "$cur__root"
 
   echo -e "${FG_WHITE}*** $cur__name @ $cur__version: building from source...${FG_RESET}"
-  BUILD_LOG="$cur__target_dir/_esy/log"
+  local buildLog="$cur__target_dir/_esy/log"
 
   # Run esy.build
   for cmd in "${esy_build__build_command[@]}"
   do
     set +e
-    echo "# COMMAND: $cmd" >> "$BUILD_LOG"
-    esyExecCommand "$cmd" >> "$BUILD_LOG" 2>&1
+    echo "# COMMAND: $cmd" >> "$buildLog"
+    esyExecCommand "$cmd" >> "$buildLog" 2>&1
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
-        echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
-        cat "$BUILD_LOG" | sed  's/^/  /'
-        echo -e "${FG_RESET}"
-      else
-        echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
-      fi
+      esyReportFailure "$buildLog"
       esyClean
       exit 1
     fi
@@ -110,42 +127,24 @@ esyPerformBuild () {
 
 }
 
-esyExecCommand () {
-  $ESY__SANDBOX_COMMAND /bin/bash   \
-    --noprofile --norc              \
-    -e -u -o pipefail               \
-    -c "$*"
-}
-
-esyBuild () {
-  if [ "$esy_build__source_type" != "immutable" ]; then
-    esyClean
-    esyPerformBuild
-    esyPerformInstall
-  elif [ ! -d "$esy_build__install_root" ]; then
-    esyPerformBuild
-    esyPerformInstall
-  fi
-}
+#
+# Perform install
+#
 
 esyPerformInstall () {
 
-  # Run esy.build
+  local buildLog="$cur__target_dir/_esy/log"
+
+  # Run esy.install
   for cmd in "${esy_build__install_command[@]}"
   do
     set +e
-    echo "# COMMAND: $cmd" >> "$BUILD_LOG"
-    esyExecCommand "$cmd" >> "$BUILD_LOG" 2>&1
+    echo "# COMMAND: $cmd" >> "$buildLog"
+    esyExecCommand "$cmd" >> "$buildLog" 2>&1
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
-        echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
-        cat "$BUILD_LOG" | sed  's/^/  /'
-        echo -e "${FG_RESET}"
-      else
-        echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
-      fi
+      esyReportFailure "$buildLog"
       esyClean
       exit 1
     fi
@@ -160,6 +159,40 @@ esyPerformInstall () {
 
 }
 
+#
+# Report build failure
+#
+
+esyReportFailure () {
+  local buildLog="$0"
+  if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
+    echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
+    cat "$buildLog" | sed  's/^/  /'
+    echo -e "${FG_RESET}"
+  else
+    echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed, see:\n\n $buildLog\n\nfor details${FG_RESET}"
+  fi
+}
+
+#
+# Build package
+#
+
+esyBuild () {
+  if [ "$esy_build__source_type" != "immutable" ]; then
+    esyClean
+    esyPerformBuild
+    esyPerformInstall
+  elif [ ! -d "$esy_build__install_root" ]; then
+    esyPerformBuild
+    esyPerformInstall
+  fi
+}
+
+#
+# Execute shell in build environment
+#
+
 esyShell () {
   esyPrepareBuild
   $ESY__SANDBOX_COMMAND /bin/bash   \
@@ -173,6 +206,10 @@ esyShell () {
       cd $cur__root
     ")
 }
+
+#
+# Clean build artifacts
+#
 
 esyClean () {
   rm -rf "$esy_build__install_root"
