@@ -14,7 +14,7 @@ export default async function esyPrintEnv(ctx: CommandContext) {
   // the build processes, staleness, package validity etc.
   const sandbox = await getBuildSandbox(ctx);
   const config = await getBuildConfig(ctx);
-  const task = Task.fromBuildSandbox(sandbox, config, {exposeOwnPath: true});
+  const task = Task.fromBuildSandbox(sandbox, config);
   // Sandbox env is more strict than we want it to be at runtime, filter
   // out $SHELL overrides.
   task.env.delete('SHELL');
