@@ -29,6 +29,8 @@ export const eject = async (
 ) => {
   const emitFile = (file: File) => emitFileInto(outputPath, file);
 
+  await fs.rmdir(outputPath);
+
   await emitFile({
     filename: ['build-env'],
     contents: environment.printEnvironment(task.env),
@@ -61,7 +63,7 @@ export const eject = async (
 
       ${defineScriptDir}
 
-      exec env -i /bin/bash "$SCRIPTDIR/_build"
+      exec env -i /bin/bash "$SCRIPTDIR/_build" "$@"
     `,
   });
 
@@ -91,7 +93,11 @@ export const eject = async (
 
       source "$SCRIPTDIR/runtime.sh"
 
-      esyPerformBuild
+      if [ $# -eq 0 ]; then
+        esyPerformBuild
+      else
+        esyExecCommand "$@"
+      fi
     `,
   });
 };
