@@ -2,7 +2,13 @@
  * @flow
  */
 
-import type {BuildSpec, BuildTask, Config, BuildSandbox} from '../types';
+import type {
+  BuildSpec,
+  BuildTask,
+  BuildTaskCommand,
+  Config,
+  BuildSandbox,
+} from '../types';
 
 import {sync as mkdirp} from 'mkdirp';
 import createLogger from 'debug';
@@ -266,7 +272,7 @@ export function eject(
       value: [
         `source ${ejectedRootPath(...packagePath, 'eject-env')}`,
         {
-          esy_build__eject_root: ejectedRootPath(...packagePath),
+          esy_build__sandbox_config_darwin: ejectedRootPath(...packagePath, 'sandbox.sb'),
           esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
           esy_build__install_root: finalInstallPath,
           esy_build__build_type: task.spec.buildType,
@@ -448,7 +454,7 @@ async function emitFile(
   }
 }
 
-function renderBuildTaskCommand(command) {
+export function renderBuildTaskCommand(command: Array<BuildTaskCommand>) {
   return command.map(c => Makefile.quoted(singleQuote(c.renderedCommand)));
 }
 
