@@ -297,14 +297,14 @@ export function eject(
 
     const buildRule = createBuildRule(task.spec, {
       target: 'build',
-      command: 'esy-build',
+      command: 'esyBuild',
       withBuildEnv: true,
       dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRule],
     });
 
     const buildShellRule = createBuildRule(task.spec, {
       target: 'shell',
-      command: 'esy-shell',
+      command: 'esyShell',
       withBuildEnv: true,
       dependencies: [envRule, sandboxConfigRule, ...buildDependenciesRule],
     });

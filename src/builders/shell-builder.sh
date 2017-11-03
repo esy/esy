@@ -40,21 +40,21 @@ case $(uname) in
   *);;
 esac
 
-_esy-prepare-build-env () {
+esyPrepareBuild () {
 
   rm -rf "$cur__install"
 
   # prepare build and installation directory
-  mkdir -p                \
-    $cur__target_dir      \
-    $cur__install         \
-    $cur__lib             \
-    $cur__bin             \
-    $cur__sbin            \
-    $cur__man             \
-    $cur__doc             \
-    $cur__share           \
-    $cur__etc
+  mkdir -p                  \
+    "$cur__target_dir"      \
+    "$cur__install"         \
+    "$cur__lib"             \
+    "$cur__bin"             \
+    "$cur__sbin"            \
+    "$cur__man"             \
+    "$cur__doc"             \
+    "$cur__share"           \
+    "$cur__etc"
 
   # for in-source builds copy sources over to build location
   if [ "$esy_build__build_type" == "in-source" ] || [ "$esy_build__build_type" == "_build" ]; then
@@ -73,9 +73,9 @@ _esy-prepare-build-env () {
 
 }
 
-_esy-perform-build () {
+esyPerformBuild () {
 
-  _esy-prepare-build-env
+  esyPrepareBuild
 
   cd "$cur__root"
 
@@ -102,7 +102,47 @@ _esy-perform-build () {
       else
         echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
       fi
-      esy-clean
+      esyClean
+      exit 1
+    fi
+  done
+
+}
+
+esyBuild () {
+  if [ "$esy_build__source_type" == "transient" ]; then
+    esyClean
+    esyPerformBuild
+    esyPerformInstall
+  elif [ ! -d "$esy_build__install_root" ]; then
+    esyPerformBuild
+    esyPerformInstall
+  fi
+}
+
+esyPerformInstall () {
+
+  # Run esy.build
+  for cmd in "${esy_build__install_command[@]}"
+  do
+    set +e
+    echo "# COMMAND: $cmd" >> "$BUILD_LOG"
+    $ESY__SANDBOX_COMMAND /bin/bash   \
+      --noprofile --norc              \
+      -e -u -o pipefail               \
+      -c "$cmd"                       \
+      >> "$BUILD_LOG" 2>&1
+    BUILD_RETURN_CODE="$?"
+    set -e
+    if [ "$BUILD_RETURN_CODE" != "0" ]; then
+      if [ ! -z "${CI+x}" ] ; then
+        echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
+        cat "$BUILD_LOG" | sed  's/^/  /'
+        echo -e "${FG_RESET}"
+      else
+        echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
+      fi
+      esyClean
       exit 1
     fi
   done
@@ -116,17 +156,8 @@ _esy-perform-build () {
 
 }
 
-esy-build () {
-  if [ "$esy_build__source_type" == "transient" ]; then
-    esy-clean
-    _esy-perform-build
-  elif [ ! -d "$esy_build__install_root" ]; then
-    _esy-perform-build
-  fi
-}
-
-esy-shell () {
-  _esy-prepare-build-env
+esyShell () {
+  esyPrepareBuild
   $ESY__SANDBOX_COMMAND /bin/bash   \
     --noprofile                     \
     --rcfile <(echo "
@@ -139,6 +170,6 @@ esy-shell () {
     ")
 }
 
-esy-clean () {
+esyClean () {
   rm -rf "$esy_build__install_root"
 }
