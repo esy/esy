@@ -111,7 +111,7 @@ const files = {
 
   runtimeSource: {
     filename: ['bin', 'runtime.sh'],
-    contents: fs.readFileSync(require.resolve('./makefile-builder-runtime.sh')),
+    contents: fs.readFileSync(require.resolve('./shell-builder.sh')),
   },
 };
 
