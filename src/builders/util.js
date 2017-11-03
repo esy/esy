@@ -54,6 +54,11 @@ export function renderSandboxSbConfig(
          (regex "^${config.getRootPath(spec, '.*', '\\.merlin')}$")
         ; $cur__root/.merlin
          (regex "^${config.getRootPath(spec, '\\.merlin')}$")
+
+        ; $cur__root/*/NAME.install
+         (regex "^${config.getRootPath(spec, '.*', '[^/]*\\.install')}$")
+        ; $cur__root/NAME.install
+         (regex "^${config.getRootPath(spec, '[^/]*\\.install')}$")
         `
         : ''};
 
