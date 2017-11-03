@@ -135,11 +135,7 @@ esyPerformInstall () {
   do
     set +e
     echo "# COMMAND: $cmd" >> "$BUILD_LOG"
-    $ESY__SANDBOX_COMMAND /bin/bash   \
-      --noprofile --norc              \
-      -e -u -o pipefail               \
-      -c "$cmd"                       \
-      >> "$BUILD_LOG" 2>&1
+    esyExecCommand "$cmd" >> "$BUILD_LOG" 2>&1
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
