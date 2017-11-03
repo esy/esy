@@ -66,8 +66,9 @@ export type BuildSpec = {
    * 'immutable' means we can persist build artefacts.
    * 'transient' means sources can be changed between build invokations and we
    *             cannot simply cache artefacts.
+   * 'root'      means this is the root project source
    */
-  +sourceType: 'immutable' | 'transient',
+  +sourceType: 'immutable' | 'transient' | 'root',
 
   /**
    * Build type.
