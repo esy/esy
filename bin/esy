@@ -35,6 +35,7 @@ if [ -z "${ESY__LOCAL_STORE+x}" ]; then
 fi
 
 BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
+BUILD_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build/build"
 COMMAND_ENV_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/command-env"
 
 if [ -d "$ESY__SANDBOX/node_modules" ]; then
@@ -54,6 +55,8 @@ needRebuildTarget () {
     # check sandbox package.json
     if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ] || [ "$TARGET" -ot "$ESY__SANDBOX/esy.json" ]; then
       NEED_REBUILD="true"
+    elif [ "$TARGET" -ot "$ESY__SANDBOX/esy.lock" ]; then
+      NEED_REBUILD="true"
     else
       # check each dependencies' package.json
       for dep in $DEPENDENCIES_PACKAGE_JSON; do
@@ -66,6 +69,17 @@ needRebuildTarget () {
   fi
 
   echo "$NEED_REBUILD"
+}
+
+callBuiltInCommand__build () {
+  if [ `needRebuildTarget "$BUILD_PATH"` == "true" ]; then
+    # Capture the error output
+    # Capturing stderr is very important to prevent nodejs from setting
+    # stderr to nonblocking mode
+    node $SCRIPTDIR/esy.js build "$@"
+  else
+    exec "$BUILD_PATH"
+  fi
 }
 
 callBuiltInCommand__buildEject () {
@@ -197,19 +211,19 @@ elif [ $# -eq 1 ]; then
       ;;
     release)
       shift
-      callBuiltInCommand release "$@"
+      callBuiltInCommand release
       ;;
     build|b)
       shift
-      callBuiltInCommand build "$@"
+      callBuiltInCommand__build
       ;;
     build-shell)
       shift
-      callBuiltInCommand build-shell "$@"
+      callBuiltInCommand build-shell
       ;;
     import-opam)
       shift
-      callBuiltInCommand import-opam "$@"
+      callBuiltInCommand import-opam
       ;;
     shell)
       ensureCommandEnvEjected
@@ -221,19 +235,15 @@ elif [ $# -eq 1 ]; then
       ;;
     config)
       shift
-      callBuiltInCommand config "$@"
+      callBuiltInCommand config
       ;;
     install|i)
       shift
-      callBuiltInCommand__esyInstall install "$@"
-      ;;
-    add)
-      shift
-      callBuiltInCommand__esyInstall add "$@"
+      callBuiltInCommand__esyInstall install
       ;;
     install-cache)
       shift
-      callBuiltInCommand__esyInstall cache "$@"
+      callBuiltInCommand__esyInstall cache
       ;;
     version|--version|-v)
       printVersion
@@ -270,6 +280,10 @@ else
     install|i)
       shift
       callBuiltInCommand__esyInstall install "$@"
+      ;;
+    build|b)
+      shift
+      callBuiltInCommand build "$@"
       ;;
     install-cache)
       shift

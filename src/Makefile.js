@@ -149,7 +149,7 @@ function renderEnvValue(v: string | QuotedString) {
   }
 }
 
-function renderEnv(env) {
+export function renderEnv(env: ?Env) {
   const lines = [];
   for (const k in env) {
     const v = env[k];
