@@ -39,7 +39,7 @@ BUILD_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build/build"
 COMMAND_ENV_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/command-env"
 
 if [ -d "$ESY__SANDBOX/node_modules" ]; then
-  DEPENDENCIES_PACKAGE_JSON=`find $ESY__SANDBOX/node_modules -name 'package.json' -or -name 'esy.json'`
+  DEPENDENCIES_PACKAGE_JSON=$(find "$ESY__SANDBOX/node_modules" -name 'package.json' -or -name 'esy.json')
 else
   DEPENDENCIES_PACKAGE_JSON=""
 fi
@@ -72,22 +72,26 @@ needRebuildTarget () {
 }
 
 callBuiltInCommand__build () {
-  if [ `needRebuildTarget "$BUILD_PATH"` == "true" ]; then
+  local needRebuild
+  needRebuild=$(needRebuildTarget "$BUILD_PATH")
+  if [ "$needRebuild" == "true" ]; then
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    node $SCRIPTDIR/esy.js build "$@"
+    node "$SCRIPTDIR/esy.js" build "$@"
   else
     exec "$BUILD_PATH" "$@"
   fi
 }
 
 callBuiltInCommand__buildEject () {
-  if [ `needRebuildTarget "$BUILD_EJECT_PATH/Makefile"` == "true" ]; then
+  local needRebuild
+  needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/Makefile")
+  if [ "$needRebuild" == "true" ]; then
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    EJECT_LOG=`node $SCRIPTDIR/esy.js build-eject "$BUILD_EJECT_PATH" $@ 2>&1`
+    EJECT_LOG=$(node "$SCRIPTDIR/esy.js" build-eject "$BUILD_EJECT_PATH" "$@" 2>&1)
     if [ $? -ne 0 ]; then
       echo "Failed to prepare build environment:"
       printf "%s\n" "$EJECT_LOG" >&2
@@ -97,32 +101,36 @@ callBuiltInCommand__buildEject () {
 }
 
 ensureCommandEnvEjected () {
-  if [ `needRebuildTarget "$COMMAND_ENV_PATH"` == "true" ]; then
+  local needRebuild
+  needRebuild=$(needRebuildTarget "$COMMAND_ENV_PATH")
+  if [ "$needRebuild" == "true" ]; then
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    EJECTED_ENV=`node $SCRIPTDIR/esy.js print-env 2>&1`
+    EJECTED_ENV=$(node "$SCRIPTDIR/esy.js" print-env 2>&1)
     if [ $? -ne 0 ]; then
       echo "Failed to get environment:"
       printf "%s\n" "$EJECTED_ENV" >&2
       exit 1
     else
-      mkdir -p `dirname $COMMAND_ENV_PATH`
+      local commandEnvDir
+      commandEnvDir=$(dirname "$COMMAND_ENV_PATH")
+      mkdir -p "$commandEnvDir"
       echo "$EJECTED_ENV" > "$COMMAND_ENV_PATH"
     fi
   fi
 }
 
 callBuiltInCommand() {
-	node $SCRIPTDIR/esy.js $@
+	node "$SCRIPTDIR/esy.js" "$@"
 }
 
 callBuiltInCommand__esyInstall() {
   # This is how we resolve esy-install executable location within the
   # dependency.
-  ESY_INSTALL=`(cd $SCRIPTDIR && node -p "require.resolve('@esy-ocaml/esy-install/bin/esy-install.js')")`
+  ESY_INSTALL=$(cd "$SCRIPTDIR" && node -p "require.resolve('@esy-ocaml/esy-install/bin/esy-install.js')")
   ESY_INSTALL_CACHE="${SCRIPTDIR}/../_esyInstallCache-${ESY__CACHE_VERSION}"
-  node $ESY_INSTALL --cache-folder "$ESY_INSTALL_CACHE" $@
+  node "$ESY_INSTALL" --cache-folder "$ESY_INSTALL_CACHE" "$@"
 }
 
 printHelp() {
@@ -130,16 +138,23 @@ printHelp() {
   Usage: $0 <command> [--help] [--version]
 
   install               Installs packages declared in package.json.
+  i
 
   build                 Builds everything that needs to be built, caches
-                        results. Builds according to each package's "esy"
+  b                     results. Builds according to each package's "esy"
                         entry in package.json. Before building each package,
                         the environment is scrubbed clean then created according
                         to dependencies.
 
+  build <command>       Builds everything that needs to be build, caches
+  b <command>           results. Then runs a command inside the root package's
+                        build environment.
+
   shell                 The same as esy build-shell, but creates a "relaxed"
                         environment - meaning it also inherits your existing
                         shell.
+
+  add <package>         Add a specified package to dependencies and installs it.
 
   release TYPE          Create a release of type TYPE ("dev", "pack" or "bin").
 
@@ -182,7 +197,7 @@ EOF
 }
 
 printVersion() {
-  (cd $SCRIPTDIR/.. && node -p "require('./package.json').version")
+  (cd "$SCRIPTDIR/.." && node -p "require('./package.json').version")
 }
 
 callAnyCommand() {
@@ -190,7 +205,7 @@ callAnyCommand() {
 
   source "$COMMAND_ENV_PATH"
   # Checks if command ($1) is present available
-  command -v $1 >/dev/null 2>&1 || {
+  command -v "$1" >/dev/null 2>&1 || {
   echo >&2 "$1 command is not installed.";
   exit 1;
   }
@@ -257,7 +272,7 @@ elif [ $# -eq 1 ]; then
       ;;
     *)
       callAnyCommand "$@"
-      break
+      ;;
   esac
 else
   case $1 in
@@ -310,7 +325,7 @@ else
       ;;
     *)
       callAnyCommand "$@"
-      break
+      ;;
   esac
 fi
 
