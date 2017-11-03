@@ -221,7 +221,7 @@ export function eject(
     const command = [];
     if (rule.withBuildEnv) {
       command.push(outdent`
-        @$(shell_env_for__${packageName}) source ${bin.runtime}
+        @$(shell_env_sandbox) $(shell_env_for__${packageName}) source ${bin.runtime}
         cd $esy_build__source_root
       `);
     }
@@ -264,23 +264,15 @@ export function eject(
     const envRule = Makefile.createDefine({
       name: `shell_env_for__${normalizePackageName(task.spec.id)}`,
       value: [
-        {
-          CI: process.env.CI ? process.env.CI : null,
-          TMPDIR: '$(TMPDIR)',
-          ESY_EJECT__STORE: storePath(),
-          ESY_EJECT__SANDBOX: sandboxPath(),
-          ESY_EJECT__ROOT: ejectedRootPath(),
-        },
         `source ${ejectedRootPath(...packagePath, 'eject-env')}`,
         {
-          esy_build__eject: ejectedRootPath(...packagePath),
-          esy_build__type: task.spec.buildType,
+          esy_build__eject_root: ejectedRootPath(...packagePath),
+          esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
+          esy_build__install_root: finalInstallPath,
+          esy_build__build_type: task.spec.buildType,
           esy_build__source_type: task.spec.sourceType,
-          esy_build__key: task.id,
           esy_build__build_command: renderBuildTaskCommand(task.buildCommand),
           esy_build__install_command: renderBuildTaskCommand(task.installCommand),
-          esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
-          esy_build__install: finalInstallPath,
         },
       ],
     });
