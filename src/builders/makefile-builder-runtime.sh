@@ -1,16 +1,21 @@
+#!/bin/bash
 #
 # Apart from esy environment, the following variables should be defined for this
 # script to work.
 #
+# Eject-specific sandbox-wide variables:
+#
 #   $ESY_EJECT__ROOT — the root of eject
 #
-#   $esy_build__eject - the location of build eject
-#   $esy_build__type - the build type
-#   $esy_build__source_type - the build source type
+# Eject-specific build-specific variables:
+#
+#   $esy_build__eject_root - the location of build eject
 #   $esy_build__source_root - the location of real source root
+#   $esy_build__install_root - the location of final install
+#   $esy_build__build_type - the build type
+#   $esy_build__source_type - the build source type
 #   $esy_build__build_command - an array of build commands
 #   $esy_build__install_command - an arrau of install command
-#   $esy_build__install - the location of final install
 #
 
 set -e
@@ -29,7 +34,7 @@ FG_RESET='\033[0m'
 # Configure sandbox mechanism
 ESY__SANDBOX_COMMAND=""
 case $(uname) in
-  Darwin*) ESY__SANDBOX_COMMAND="sandbox-exec -f $esy_build__eject/sandbox.sb";;
+  Darwin*) ESY__SANDBOX_COMMAND="sandbox-exec -f $esy_build__eject_root/sandbox.sb";;
   Linux*);;
   MSYS*);;
   *);;
@@ -37,7 +42,7 @@ esac
 
 _esy-prepare-build-env () {
 
-  rm -rf $cur__install
+  rm -rf "$cur__install"
 
   # prepare build and installation directory
   mkdir -p                \
@@ -52,8 +57,8 @@ _esy-prepare-build-env () {
     $cur__etc
 
   # for in-source builds copy sources over to build location
-  if [ "$esy_build__type" == "in-source" ] || [ "$esy_build__type" == "_build" ]; then
-    rm -rf $cur__root;
+  if [ "$esy_build__build_type" == "in-source" ] || [ "$esy_build__build_type" == "_build" ]; then
+    rm -rf "$cur__root";
     rsync --quiet --archive     \
       --exclude "$cur__root"    \
       --exclude "node_modules"  \
@@ -61,10 +66,10 @@ _esy-prepare-build-env () {
       --exclude "_release"      \
       --exclude "_esybuild"     \
       --exclude "_esyinstall"   \
-      $esy_build__source_root/ $cur__root
+      "$esy_build__source_root/" "$cur__root"
   fi
 
-  mkdir -p $cur__target_dir/_esy
+  mkdir -p "$cur__target_dir/_esy"
 
 }
 
@@ -72,7 +77,7 @@ _esy-perform-build () {
 
   _esy-prepare-build-env
 
-  cd $cur__root
+  cd "$cur__root"
 
   echo -e "${FG_WHITE}*** $cur__name @ $cur__version: building from source...${FG_RESET}"
   BUILD_LOG="$cur__target_dir/_esy/log"
@@ -103,10 +108,10 @@ _esy-perform-build () {
   done
 
   # Relocate installation
-  for filename in `find $cur__install -type f`; do
-    $ESY_EJECT__ROOT/bin/fastreplacestring.exe "$filename" "$cur__install" "$esy_build__install"
+  for filename in $(find $cur__install -type f); do
+    "$ESY_EJECT__ROOT/bin/fastreplacestring.exe" "$filename" "$cur__install" "$esy_build__install_root"
   done
-  mv $cur__install $esy_build__install
+  mv "$cur__install" "$esy_build__install_root"
   echo -e "${FG_GREEN}*** $cur__name @ $cur__version: build complete${FG_RESET}"
 
 }
@@ -115,7 +120,7 @@ esy-build () {
   if [ "$esy_build__source_type" == "transient" ]; then
     esy-clean
     _esy-perform-build
-  elif [ ! -d "$esy_build__install" ]; then
+  elif [ ! -d "$esy_build__install_root" ]; then
     _esy-perform-build
   fi
 }
@@ -135,5 +140,5 @@ esy-shell () {
 }
 
 esy-clean () {
-  rm -rf $esy_build__install
+  rm -rf "$esy_build__install_root"
 }
