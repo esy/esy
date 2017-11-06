@@ -199,18 +199,11 @@ export function eject(
   config: Config<path.Path>,
 ) {
   const buildFiles = [];
-  const finalInstallPathSet = [];
 
-  function generateMetaRule({filename, contents}) {
+  function generateMetaRule({filename}) {
     const input = ejectedRootPath('records', `${filename}.in`);
     const target = ejectedRootPath('records', filename);
     const rule = createRenderEnvRule({target, input});
-
-    buildFiles.push({
-      filename: ['records', `${filename}.in`],
-      contents: contents + '\n',
-    });
-
     return rule;
   }
 
@@ -323,13 +316,17 @@ export function eject(
       dependencies: [...cleanDependenciesRule],
     });
 
-    finalInstallPathSet.push(finalInstallPath);
+    const dependenciesInstallPathList = Array.from(allDependencies.values()).map(d =>
+      config.getFinalInstallPath(d.task.spec),
+    );
 
     return {
+      task: task,
       buildRule,
       buildShellRule,
       cleanRule,
       rules: Makefile.createGroup(...rules),
+      finalInstallPathSet: dependenciesInstallPathList.concat(finalInstallPath),
     };
   }
 
@@ -341,12 +338,10 @@ export function eject(
 
   const finalInstallPathSetMetaRule = generateMetaRule({
     filename: 'final-install-path-set.txt',
-    contents: finalInstallPathSet.join('\n'),
   });
 
   const storePathMetaRule = generateMetaRule({
     filename: 'store-path.txt',
-    contents: '$ESY_EJECT__STORE',
   });
 
   const bootstrapRule = Makefile.createRule({
@@ -366,6 +361,7 @@ export function eject(
     buildShellRule: rootBuildShellRule,
     cleanRule: rootCleanRule,
     rules,
+    finalInstallPathSet,
   } = Graph.topologicalFold(rootTask, createBuildRules);
 
   const buildRule = Makefile.createRule({
@@ -406,26 +402,49 @@ export function eject(
     ]),
   };
 
-  const commandEnvFile = createCommandEnvFile(rootTask);
+  const sandboxEnvFile = createSandboxEnv(rootTask, config);
 
   log('build environment');
   Promise.all([
     ...buildFiles.map(file => emitFile(outputPath, file)),
+    emitFile(outputPath, {
+      filename: ['records', `final-install-path-set.txt.in`],
+      contents: finalInstallPathSet.join('\n'),
+    }),
+    emitFile(outputPath, {
+      filename: ['records', `store-path.txt.in`],
+      contents: '$ESY_EJECT__STORE',
+    }),
     emitFile(outputPath, files.commandEnv),
     emitFile(outputPath, files.getStorePath),
     emitFile(outputPath, files.fastreplacestringSource),
     emitFile(outputPath, files.realpathSource),
     emitFile(outputPath, files.runtimeSource),
-    emitFile(outputPath, commandEnvFile),
+    emitFile(outputPath, sandboxEnvFile),
     emitFile(outputPath, makefileFile),
   ]);
 }
 
-function createCommandEnvFile(task) {
-  const env = new Map(task.env);
+function createSandboxEnv(task, config) {
+  // TODO: This is a hack before we get true env sandboxes (`esx` command).
+  const spec: BuildSpec = {
+    id: '__sandbox__',
+    name: '__sandbox__',
+    version: '0.0.0',
+    buildCommand: [],
+    installCommand: [],
+    exportedEnv: {},
+    sourcePath: '',
+    sourceType: 'root',
+    buildType: 'out-of-source',
+    shouldBePersisted: false,
+    dependencies: new Map([[task.spec.name, task.spec]]),
+    errors: task.spec.errors,
+  };
+  const {env} = Task.fromBuildSpec(spec, config);
   env.delete('SHELL');
   return {
-    filename: ['command-env'],
+    filename: ['sandbox-env'],
     contents: outdent`
       ${bashgen.defineEsyUtil}
 
