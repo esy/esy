@@ -2,12 +2,12 @@
 
 exports[`printEnvironment() printing environment 1`] = `
 "# Esy Sandbox
-export OCAMLPATH=\\"<storePath>/i/ocaml/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/lwt/lib\\"
+export OCAMLPATH=\\"<storePath>/i/lwt/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/ocaml/lib\\"
 export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
-export PATH=\\"<storePath>/i/ocaml/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/lwt/bin:$PATH\\"
-export MAN_PATH=\\"<storePath>/i/ocaml/man:<storePath>/i/ocamlfind/man:<storePath>/i/lwt/man:$MAN_PATH\\"
+export PATH=\\"<storePath>/i/lwt/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/ocaml/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>/i/ocaml/man:$MAN_PATH\\"
 # app@0.1.0 app
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
