@@ -12,6 +12,7 @@ import outdent from 'outdent';
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
 import {indent, getBuildSandbox, getBuildConfig} from './esy';
+import * as Sandbox from '../build-sandbox';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
 import * as ShellBuilder from '../builders/shell-builder';
@@ -132,16 +133,31 @@ export default async function esyBuild(ctx: CommandContext) {
     : Builder.build;
 
   const [state, _] = await Promise.all([
-    build(task, sandbox, config, reporter),
+    handleBuildState(build(task, config, reporter)),
     ejectingBuild,
   ]);
 
-  if (state.state === 'failure') {
-    const errors = Builder.collectBuildErrors(state);
-    for (const error of errors) {
-      reportBuildError(error);
+  async function handleBuildState(build) {
+    const state = await build;
+    if (state.state === 'failure') {
+      const errors = Builder.collectBuildErrors(state);
+      for (const error of errors) {
+        reportBuildError(error);
+      }
+      ctx.error();
     }
-    ctx.error();
+  }
+
+  await handleBuildState(build(task, config, reporter));
+
+  if (sandbox.devDependencies.size > 0) {
+    // TODO: we should perform this in parallel
+    for (const dep of sandbox.devDependencies.values()) {
+      const task = Task.fromBuildSpec(dep, config, {
+        env: Sandbox.getDefaultEnvironment(),
+      });
+      await handleBuildState(await build(task, config, reporter));
+    }
   }
 }
 

@@ -84,13 +84,11 @@ const BUILD_STATE_CACHED_SUCCESS = {
  */
 export const build = async (
   rootTask: BuildTask,
-  sandbox: BuildSandbox,
   config: Config<path.AbsolutePath>,
   onBuildStateChange?: (task: BuildTask, state: BuildState) => *,
 ) => {
   await initStores(config.store, config.localStore);
   const performBuild = createBuilder(
-    sandbox,
     config,
     onBuildStateChange || onBuildStateChangeNoop,
   );
@@ -132,13 +130,11 @@ export const build = async (
  */
 export const buildDependencies = async (
   rootTask: BuildTask,
-  sandbox: BuildSandbox,
   config: Config<path.AbsolutePath>,
   onBuildStateChange?: (task: BuildTask, status: BuildState) => *,
 ) => {
   await initStores(config.store, config.localStore);
   const performBuild = createBuilder(
-    sandbox,
     config,
     onBuildStateChange || onBuildStateChangeNoop,
   );
@@ -180,7 +176,6 @@ export const buildDependencies = async (
 };
 
 const createBuilder = (
-  sandbox: BuildSandbox,
   config: Config<path.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
@@ -219,7 +214,7 @@ const createBuilder = (
         return;
       }
     }
-    await performBuild(task, config, sandbox);
+    await performBuild(task, config);
   }
 
   function performBuildWithStatusReport(task, forced = false): Promise<FinalBuildState> {
@@ -312,14 +307,13 @@ type BuildDriver = {
 export async function withBuildDriver(
   task: BuildTask,
   config: Config<path.AbsolutePath>,
-  sandbox: BuildSandbox,
   f: BuildDriver => Promise<void>,
 ): Promise<void> {
   const rootPath = config.getRootPath(task.spec);
   const installPath = config.getInstallPath(task.spec);
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
-  const isRoot = sandbox.root === task.spec;
+  const isRoot = task.spec.buildType === 'root';
 
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
@@ -440,7 +434,6 @@ export async function withBuildDriver(
 async function performBuild(
   task: BuildTask,
   config: Config<path.AbsolutePath>,
-  sandbox: BuildSandbox,
 ): Promise<void> {
   const isRoot = task.spec.sourcePath === '';
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
@@ -501,7 +494,7 @@ async function performBuild(
     }
   }
 
-  await withBuildDriver(task, config, sandbox, executeBuildCommands);
+  await withBuildDriver(task, config, executeBuildCommands);
 }
 
 async function initStores(

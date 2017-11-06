@@ -82,7 +82,7 @@ export async function fromDirectory(
     return build;
   }
 
-  const env = getEnvironment();
+  const env = getDefaultEnvironment();
 
   const crawlContext = {
     env,
@@ -93,9 +93,15 @@ export async function fromDirectory(
     options,
   };
 
+  const rootManifest = await readManifest(sandboxPath);
   const root = await crawlBuild(sandboxPath, crawlContext);
+  const {dependencies: devDependencies} = await crawlDependencies(
+    sandboxPath,
+    objectToDependencySpecs(rootManifest.devDependencies),
+    crawlContext,
+  );
 
-  return {env, root};
+  return {env, devDependencies, root};
 }
 
 async function crawlDependencies(
@@ -192,7 +198,7 @@ async function crawlBuild(
   return spec;
 }
 
-function getEnvironment(): BuildEnvironment {
+export function getDefaultEnvironment(): BuildEnvironment {
   return Env.fromEntries([
     {
       name: 'PATH',
@@ -222,6 +228,15 @@ export async function readManifest(packagePath: string): Promise<PackageJson> {
 
     const parse = manifestName === 'esy.json' ? JSON5.parse : JSON.parse;
     const packageJson = await fs.readJson(manifestPath, parse);
+    if (packageJson.dependencies == null) {
+      packageJson.dependencies = {};
+    }
+    if (packageJson.peerDependencies == null) {
+      packageJson.peerDependencies = {};
+    }
+    if (packageJson.devDependencies == null) {
+      packageJson.devDependencies = {};
+    }
     if (packageJson.esy == null) {
       packageJson.esy = {};
     }
