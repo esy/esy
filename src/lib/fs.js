@@ -199,7 +199,7 @@ export function findMaxMtime(
       if (ignore(name)) {
         w.ignore(name);
       } else if (stat.isFile()) {
-        const mtime = stat.mtime.getTime();
+        const mtime = Math.floor(stat.mtime.getTime() / 1000);
         if (mtime > maxMtime) {
           maxMtime = mtime;
         }
