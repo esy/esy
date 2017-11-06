@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## NEXT
+## 0.0.29
 
 * `esy build` command was improved, more specifically:
 
