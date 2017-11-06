@@ -2,22 +2,24 @@
 
 exports[`build-sandbox builds a sandbox from a package with deps 1`] = `
 Object {
+  "buildCommand": Array [],
   "buildType": "out-of-source",
-  "command": null,
   "dependencies": Map {
     "dep-0.1.0" => Object {
+      "buildCommand": Array [],
       "buildType": "out-of-source",
-      "command": null,
       "dependencies": Map {},
       "errors": Array [],
       "exportedEnv": Object {},
       "id": "dep-0.1.0",
+      "installCommand": Array [],
       "name": "dep",
       "packageJson": Object {
         "esy": Object {
           "build": null,
           "buildsInSource": false,
           "exportedEnv": Object {},
+          "install": null,
         },
         "name": "dep",
         "version": "0.1.0",
@@ -31,6 +33,7 @@ Object {
   "errors": Array [],
   "exportedEnv": Object {},
   "id": "app-0.1.0",
+  "installCommand": Array [],
   "name": "app",
   "packageJson": Object {
     "dependencies": Object {
@@ -40,50 +43,53 @@ Object {
       "build": null,
       "buildsInSource": false,
       "exportedEnv": Object {},
+      "install": null,
     },
     "name": "app",
     "version": "0.1.0",
   },
   "shouldBePersisted": false,
   "sourcePath": "",
-  "sourceType": "transient",
+  "sourceType": "root",
   "version": "0.1.0",
 }
 `;
 
 exports[`build-sandbox builds a sandbox from a single package 1`] = `
 Object {
+  "buildCommand": Array [],
   "buildType": "out-of-source",
-  "command": null,
   "dependencies": Map {},
   "errors": Array [],
   "exportedEnv": Object {},
   "id": "app-0.1.0",
+  "installCommand": Array [],
   "name": "app",
   "packageJson": Object {
     "esy": Object {
       "build": null,
       "buildsInSource": false,
       "exportedEnv": Object {},
+      "install": null,
     },
     "name": "app",
     "version": "0.1.0",
   },
   "shouldBePersisted": false,
   "sourcePath": "",
-  "sourceType": "transient",
+  "sourceType": "root",
   "version": "0.1.0",
 }
 `;
 
 exports[`build-sandbox error: circular deps 1`] = `
 Object {
+  "buildCommand": Array [],
   "buildType": "out-of-source",
-  "command": null,
   "dependencies": Map {
     "dep-0.1.0" => Object {
+      "buildCommand": Array [],
       "buildType": "out-of-source",
-      "command": null,
       "dependencies": Map {},
       "errors": Array [
         Object {
@@ -93,6 +99,7 @@ Object {
       ],
       "exportedEnv": Object {},
       "id": "dep-0.1.0",
+      "installCommand": Array [],
       "name": "dep",
       "packageJson": Object {
         "dependencies": Object {
@@ -102,6 +109,7 @@ Object {
           "build": null,
           "buildsInSource": false,
           "exportedEnv": Object {},
+          "install": null,
         },
         "name": "dep",
         "version": "0.1.0",
@@ -120,6 +128,7 @@ Object {
   ],
   "exportedEnv": Object {},
   "id": "app-0.1.0",
+  "installCommand": Array [],
   "name": "app",
   "packageJson": Object {
     "dependencies": Object {
@@ -129,21 +138,22 @@ Object {
       "build": null,
       "buildsInSource": false,
       "exportedEnv": Object {},
+      "install": null,
     },
     "name": "app",
     "version": "0.1.0",
   },
   "shouldBePersisted": false,
   "sourcePath": "",
-  "sourceType": "transient",
+  "sourceType": "root",
   "version": "0.1.0",
 }
 `;
 
 exports[`build-sandbox error: missing a dep 1`] = `
 Object {
+  "buildCommand": Array [],
   "buildType": "out-of-source",
-  "command": null,
   "dependencies": Map {},
   "errors": Array [
     Object {
@@ -154,6 +164,7 @@ Object {
   ],
   "exportedEnv": Object {},
   "id": "app-0.1.0",
+  "installCommand": Array [],
   "name": "app",
   "packageJson": Object {
     "dependencies": Object {
@@ -163,13 +174,14 @@ Object {
       "build": null,
       "buildsInSource": false,
       "exportedEnv": Object {},
+      "install": null,
     },
     "name": "app",
     "version": "0.1.0",
   },
   "shouldBePersisted": false,
   "sourcePath": "",
-  "sourceType": "transient",
+  "sourceType": "root",
   "version": "0.1.0",
 }
 `;
