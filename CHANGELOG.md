@@ -2,6 +2,86 @@
 
 ## NEXT
 
+* `esy build` command was improved, more specifically:
+
+  * There's new build mode which activates with:
+
+    ```
+      "esy": {
+        "buildsInSource": "_build"
+      }
+    ```
+
+    config in `package.json`.
+
+    This mode configures root packages to build into `$cur__root/_build` without
+    source relocation. Thus enabling fast incremental builds for projects based
+    on jbuilder or ocamlbuild build systems.
+
+    Note that linked packages with `"buildsInSource": "_build"` are still built
+    byb relocating sources as it is unsafe to share `$cur__root/_build`
+    directory between several sandboxes.
+
+  * Packages now can describe installation commands separately from build
+    commands, by using:
+
+    ```
+      "esy": {
+        "install": ["make install"]
+      }
+    ```
+
+    config in `package.json`.
+
+    `esy build` invocation now only executes build steps (`"esy.build"` key in
+    `package.json`) for the root package build.
+
+  * `esy build` command now ejects a shell script for root build command &
+    environment:
+
+    ```
+    node_modules/.cache/_esy/bin/build
+    node_modules/.cache/_esy/bin/build-env
+    ```
+
+    On later invokations `esy build` will reuse ejected shell script to perform
+    root project's build process thus enabling invoking builds without spawning
+    Node runtime.
+
+    Ejected script invalidates either on any change to `package.json`
+    (implemented similarly to how ejected command env invalidates) or to changes
+    to linked packages.
+
+  * `esy build <anycommand>` is now supported.
+
+    This works similar to `esy <anycommand>` but invokes `<anycommand>` in build
+    environment rather than command environment.
+
+    Currently there are minor changes between build environment and command
+    environment but this is going to change soon.
+
+* `esy <anycommand>` and `esy shell` commands implementations changed, more
+  specifically:
+
+  * Their environment doesn't include root package's path in `$PATH`,
+    `$MAN_PATH` and `$OCAMLPATH`.
+
+  * The location of ejected environment changed from:
+
+    ```
+    node_modules/.cache/_esy/command-env
+    ```
+
+    to:
+
+    ```
+    node_modules/.cache/_esy/bin/command-env
+    ```
+
+  * Now `esy build --dependencies-only --silent` is called to eject the command
+    env. That means that if command environment is stale (any of `package.json`
+    files were modified) then Esy will check if it needs to build dependencies.
+
 * Fix `esy build-shell` command to have exactly the same environment as `esy
   build` operates in.
 
