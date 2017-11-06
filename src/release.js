@@ -337,7 +337,7 @@ function createCommandWrapper(pkg, commandName) {
         # We fake it so that the eject store is the location where we relocated the
         # binaries to.
         export ESY_EJECT__STORE=\`cat $PACKAGE_ROOT/records/recordedClientInstallStorePath.txt\`
-        ENV_PATH="$ESY_EJECT__ROOT/command-env"
+        ENV_PATH="$ESY_EJECT__ROOT/sandbox-env"
         source "$ENV_PATH"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED="sourced"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}="sourced"
