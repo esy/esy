@@ -22,10 +22,14 @@
     "timers": "fake",
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
-      "__tests__/fixtures/"
+      "<rootDir>/__tests__/fixtures/",
+      "<rootDir>/dist",
+      "<rootDir>/esyInstallCache-3.x.x"
     ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
+      "<rootDir>/dist",
+      "<rootDir>/esyInstallCache-3.x.x",
       "<rootDir>/lib"
     ]
   },
