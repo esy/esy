@@ -88,10 +88,14 @@ export const build = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
   config: Config<path.AbsolutePath>,
-  onBuildStateChange: (task: BuildTask, state: BuildState) => *,
+  onBuildStateChange?: (task: BuildTask, state: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.store), initStore(config.localStore)]);
-  const performBuild = createBuilder(sandbox, config, onBuildStateChange);
+  const performBuild = createBuilder(
+    sandbox,
+    config,
+    onBuildStateChange || onBuildStateChangeNoop,
+  );
 
   return await Graph.topologicalFold(
     rootTask,
@@ -132,10 +136,14 @@ export const buildDependencies = async (
   rootTask: BuildTask,
   sandbox: BuildSandbox,
   config: Config<path.AbsolutePath>,
-  onBuildStateChange: (task: BuildTask, status: BuildState) => *,
+  onBuildStateChange?: (task: BuildTask, status: BuildState) => *,
 ) => {
   await Promise.all([initStore(config.store), initStore(config.localStore)]);
-  const performBuild = createBuilder(sandbox, config, onBuildStateChange);
+  const performBuild = createBuilder(
+    sandbox,
+    config,
+    onBuildStateChange || onBuildStateChangeNoop,
+  );
 
   return await Graph.topologicalFold(
     rootTask,
@@ -646,3 +654,5 @@ export function collectBuildErrors(state: BuildStateFailure): Array<BuildError> 
 
   return errors;
 }
+
+function onBuildStateChangeNoop(task, state) {}
