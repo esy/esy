@@ -64,7 +64,7 @@ const IGNORE_FOR_BUILD = [
   '_release',
   'node_modules',
 ];
-const IGNORE_FOR_CHECKSUM = [
+const IGNORE_FOR_MTIME = [
   '_esy',
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
@@ -185,26 +185,26 @@ const createBuilder = (
     return fs.exists(config.getFinalInstallPath(spec));
   }
 
-  async function calculateSourceChecksum(spec) {
-    const ignoreForChecksum = new Set(
-      IGNORE_FOR_CHECKSUM.map(s => config.getSourcePath(spec, s)),
+  async function findBuildMtime(spec) {
+    const ignoreForMtime = new Set(
+      IGNORE_FOR_MTIME.map(s => config.getSourcePath(spec, s)),
     );
     const sourcePath = await fs.realpath(config.getSourcePath(spec));
-    return await fs.calculateMtimeChecksum(sourcePath, {
-      ignore: name => ignoreForChecksum.has(name),
+    return await fs.findMaxMtime(sourcePath, {
+      ignore: name => ignoreForMtime.has(name),
     });
   }
 
-  async function readSourceChecksum(spec) {
+  async function readBuildMtime(spec): Promise<number> {
     const checksumFilename = config.getBuildPath(spec, '_esy', 'checksum');
     return (await fs.exists(checksumFilename))
-      ? (await fs.readFile(checksumFilename)).trim()
-      : null;
+      ? parseInt(await fs.readFile(checksumFilename), 10)
+      : -Infinity;
   }
 
-  async function writeStoreChecksum(spec, checksum) {
+  async function writeBuildMtime(spec, checksum) {
     const checksumFilename = config.getBuildPath(spec, '_esy', 'checksum');
-    await fs.writeFile(checksumFilename, checksum.trim());
+    await fs.writeFile(checksumFilename, String(checksum));
   }
 
   async function performBuildOrRelocate(task): Promise<void> {
@@ -255,8 +255,8 @@ const createBuilder = (
           inProgress = performBuildWithStatusReport(task, true);
         } else {
           inProgress = performBuildWithStatusReport(task, true).then(async result => {
-            const currentChecksum = await calculateSourceChecksum(spec);
-            await writeStoreChecksum(spec, currentChecksum);
+            const maxMtime = await findBuildMtime(spec);
+            await writeBuildMtime(spec, maxMtime);
             return result;
           });
         }
@@ -266,13 +266,13 @@ const createBuilder = (
           onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
           inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
         } else if (!spec.shouldBePersisted) {
-          const currentChecksum = await calculateSourceChecksum(spec);
-          if (isInStore && (await readSourceChecksum(spec)) === currentChecksum) {
+          const maxMtime = await findBuildMtime(spec);
+          if (isInStore && (await readBuildMtime(spec)) < maxMtime) {
             onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
             inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
           } else {
             inProgress = performBuildWithStatusReport(task, true).then(async result => {
-              await writeStoreChecksum(spec, currentChecksum);
+              await writeBuildMtime(spec, maxMtime);
               return result;
             });
           }
