@@ -82,7 +82,9 @@ export function fromBuildSpec(
     const PATH = [];
     const MAN_PATH = [];
 
-    for (const dep of scopes.allDependencies.values()) {
+    const allDependencies = Array.from(scopes.allDependencies.values());
+    allDependencies.reverse();
+    for (const dep of allDependencies) {
       OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
       PATH.push(config.getFinalInstallPath(dep.spec, 'bin'));
       MAN_PATH.push(config.getFinalInstallPath(dep.spec, 'man'));
