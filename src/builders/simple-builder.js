@@ -180,7 +180,6 @@ const createBuilder = (
 ) => {
   const buildQueue = new PromiseQueue({concurrency: NUM_CPUS});
   const taskInProgress = new Map();
-
   function isSpecExistsInStore(spec) {
     return fs.exists(config.getFinalInstallPath(spec));
   }
@@ -196,15 +195,15 @@ const createBuilder = (
   }
 
   async function readBuildMtime(spec): Promise<number> {
-    const checksumFilename = config.getBuildPath(spec, '_esy', 'checksum');
+    const checksumFilename = config.getBuildPath(spec, '_esy', 'mtime');
     return (await fs.exists(checksumFilename))
       ? parseInt(await fs.readFile(checksumFilename), 10)
       : -Infinity;
   }
 
-  async function writeBuildMtime(spec, checksum) {
-    const checksumFilename = config.getBuildPath(spec, '_esy', 'checksum');
-    await fs.writeFile(checksumFilename, String(checksum));
+  async function writeBuildMtime(spec, mtime: number) {
+    const checksumFilename = config.getBuildPath(spec, '_esy', 'mtime');
+    await fs.writeFile(checksumFilename, String(mtime));
   }
 
   async function performBuildOrRelocate(task): Promise<void> {
@@ -246,6 +245,7 @@ const createBuilder = (
     task: BuildTask,
     forced: boolean = false,
   ): Promise<FinalBuildState> {
+    const log = createLogger(`esy:simple-builder:${task.spec.name}`);
     const {spec} = task;
     let inProgress = taskInProgress.get(task.id);
     if (inProgress == null) {
@@ -256,6 +256,7 @@ const createBuilder = (
         } else {
           inProgress = performBuildWithStatusReport(task, true).then(async result => {
             const maxMtime = await findBuildMtime(spec);
+            log('saving build mtime:', maxMtime);
             await writeBuildMtime(spec, maxMtime);
             return result;
           });
@@ -266,12 +267,15 @@ const createBuilder = (
           onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
           inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
         } else if (!spec.shouldBePersisted) {
+          const buildMtime = await readBuildMtime(spec);
           const maxMtime = await findBuildMtime(spec);
-          if (isInStore && (await readBuildMtime(spec)) < maxMtime) {
+          log('build mtime, current mtime:', buildMtime, maxMtime);
+          if (isInStore && maxMtime <= buildMtime) {
             onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
             inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
           } else {
             inProgress = performBuildWithStatusReport(task, true).then(async result => {
+              log('saving build mtime:', maxMtime);
               await writeBuildMtime(spec, maxMtime);
               return result;
             });
