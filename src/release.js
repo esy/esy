@@ -156,6 +156,7 @@ type BuildReleaseConfig = {
   type: ReleaseType,
   version: string,
   sandboxPath: string,
+  esyVersionForDevRelease: string,
 };
 
 const RELEASE_ESY_PREFIX_NAME = 'r';
@@ -164,8 +165,6 @@ const RELEASE_ESY_PREFIX_NAME = 'r';
 // calls into bin/esy.js (same dirname). `process.argv[1]` is the filename of
 // the script executed by `node`.
 const currentEsyExecutable = path.join(path.dirname(process.argv[1]), 'esy');
-
-const currentEsyVersion = require('../package.json').version;
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
@@ -483,7 +482,12 @@ async function verifyBinSetup(sandboxPath, pkg) {
  * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
  * the release in as many destinations as possible.
  */
-function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseType, pkg) {
+function createInstallScript(
+  releaseStage: ReleaseStage,
+  releaseType: ReleaseType,
+  pkg,
+  esyVersion,
+) {
   const shouldCheckIfReleaseIsBuilt =
     actions[releaseType].checkIfReleaseIsBuilt === releaseStage;
   const shouldConfigureEsy = actions[releaseType].configureEsy === releaseStage;
@@ -553,8 +557,7 @@ function createInstallScript(releaseStage: ReleaseStage, releaseType: ReleaseTyp
     # installEsy
     #
     echo '*** Installing esy for the release...'
-    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${pkg.esy.release
-      .esyDependency}")
+    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${esyVersion}")
     if [ $? -ne 0 ]; then
       echo "error: failed to install esy..."
       echo $LOG
@@ -904,10 +907,6 @@ async function readPackageJson(releaseType, filename) {
     pkg.esy.release = {};
   }
 
-  // store current esy version which is going to be used for dev releases to
-  // bootstrap the sandbox environment
-  pkg.esy.release.esyDependency = currentEsyVersion;
-
   return pkg;
 }
 
@@ -957,7 +956,12 @@ export async function buildRelease(config: BuildReleaseConfig) {
 
   await putExecutable(
     path.join(releasePath, 'prerelease.sh'),
-    createInstallScript('forPreparingRelease', releaseType, pkg),
+    createInstallScript(
+      'forPreparingRelease',
+      releaseType,
+      pkg,
+      config.esyVersionForDevRelease,
+    ),
   );
 
   // Now run prerelease.sh, we reset $ESY__SANDBOX as it's going to call esy
@@ -973,7 +977,12 @@ export async function buildRelease(config: BuildReleaseConfig) {
   // Actual Release: We leave the *actual* postinstall script to be executed on the host.
   await putExecutable(
     path.join(releasePath, 'postinstall.sh'),
-    createInstallScript('forClientInstallation', releaseType, pkg),
+    createInstallScript(
+      'forClientInstallation',
+      releaseType,
+      pkg,
+      config.esyVersionForDevRelease,
+    ),
   );
 
   console.log(outdent`
