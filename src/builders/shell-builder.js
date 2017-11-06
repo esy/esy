@@ -16,6 +16,7 @@ import * as Graph from '../graph';
 import {renderSandboxSbConfig} from './util';
 import {defineScriptDir} from './bashgen';
 import {renderEnv} from '../Makefile';
+import * as Sandbox from '../sandbox';
 import {renderBuildTaskCommand} from './makefile-builder';
 
 const log = createLogger('esy:shell-builder');
@@ -64,6 +65,11 @@ export const eject = async (
   await emitFile({
     filename: ['bin/build-env'],
     contents: environment.printEnvironment(task.env),
+  });
+
+  await emitFile({
+    filename: ['bin/command-env'],
+    contents: environment.printEnvironment(Sandbox.getCommandEnv(task, config)),
   });
 
   await emitFile({
