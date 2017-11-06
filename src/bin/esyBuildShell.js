@@ -47,7 +47,7 @@ export default async function esyBuildShell(ctx: CommandContext) {
       : rootTask;
 
   const reporter = createBuildProgressReporter();
-  const state = await Builder.buildDependencies(task, sandbox, config, reporter);
+  const state = await Builder.buildDependencies(task, config, reporter);
   if (state.state === 'failure') {
     const errors = Builder.collectBuildErrors(state);
     for (const error of errors) {
@@ -56,7 +56,7 @@ export default async function esyBuildShell(ctx: CommandContext) {
     ctx.error('build failed');
   }
 
-  await Builder.withBuildDriver(task, config, sandbox, async driver => {
+  await Builder.withBuildDriver(task, config, async driver => {
     await driver.spawnInteractiveProcess('/bin/bash', []);
   });
 }

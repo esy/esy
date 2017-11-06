@@ -202,6 +202,7 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
 export type BuildSandbox = {
   env: BuildEnvironment,
   root: BuildSpec,
+  devDependencies: Map<string, BuildSpec>,
 };
 
 /**

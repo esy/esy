@@ -9,7 +9,7 @@ import type {Options as SandboxOptions} from '../build-sandbox';
 
 import loudRejection from 'loud-rejection';
 import userHome from 'user-home';
-import * as path from 'path';
+import * as path from '../lib/path';
 import chalk from 'chalk';
 import parse from 'cli-argparse';
 
@@ -64,7 +64,9 @@ export async function getBuildSandbox(
   return sandbox;
 }
 
-export async function getBuildConfig(ctx: CommandContext) {
+export async function getBuildConfig(
+  ctx: CommandContext,
+): Promise<Config<path.AbsolutePath>> {
   const {createForPrefix} = require('../config');
 
   return createForPrefix({
