@@ -287,7 +287,7 @@ source tree, but as always your package can (and should try to) respect the out
 of source destination `$cur__target_dir`.
 
 Cached environment computations (for commands such as `esy cmd`) are stored in
-`./node_modules/.cache/_esy/command-env`
+`./node_modules/.cache/_esy/bin/command-env`
 
 Support for "ejecting" a build is computed and stored in
 `./node_modules/.cache/_esy/build-eject`.
@@ -295,7 +295,9 @@ Support for "ejecting" a build is computed and stored in
     ./node_modules/
      └─ .cache/
         └─ _esy/
-           ├─ command-env
+           ├─ bin/
+           │  ├─ build-env
+           │  └─ command-env
            ├─ build-eject/
            │  ├─ Makefile
            │  ├─ ...
