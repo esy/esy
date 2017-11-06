@@ -129,7 +129,11 @@ export default async function esyBuild(ctx: CommandContext) {
   );
   await ShellBuilder.eject(ejectPath, task, sandbox, config);
 
-  const state = await Builder.build(task, sandbox, config, reporter);
+  const build = ctx.options.flags.dependenciesOnly
+    ? Builder.buildDependencies
+    : Builder.build;
+
+  const state = await build(task, sandbox, config, reporter);
   if (state.state === 'failure') {
     const errors = Builder.collectBuildErrors(state);
     for (const error of errors) {
@@ -138,3 +142,7 @@ export default async function esyBuild(ctx: CommandContext) {
     ctx.error();
   }
 }
+
+export const options = {
+  flags: ['--dependencies-only'],
+};

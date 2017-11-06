@@ -35,7 +35,7 @@ if [ -z "${ESY__LOCAL_STORE+x}" ]; then
 fi
 
 BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
-BUILD_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build/build"
+BUILD_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build/bin/build"
 COMMAND_ENV_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/command-env"
 
 if [ -d "$ESY__SANDBOX/node_modules" ]; then
@@ -78,10 +78,9 @@ callBuiltInCommand__build () {
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    node "$SCRIPTDIR/esy.js" build "$@"
-  else
-    exec "$BUILD_PATH" "$@"
+    node "$SCRIPTDIR/esy.js" build --dependencies-only
   fi
+  exec "$BUILD_PATH" "$@"
 }
 
 callBuiltInCommand__buildEject () {

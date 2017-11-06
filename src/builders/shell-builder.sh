@@ -32,10 +32,15 @@ FG_WHITE='\033[1;37m'
 FG_RESET='\033[0m'
 
 # Configure sandbox mechanism
-ESY__SANDBOX_COMMAND=""
+esySandboxCommand=""
+esyMtimeCommand="stat -c %Y"
 case $(uname) in
-  Darwin*) ESY__SANDBOX_COMMAND="sandbox-exec -f $esy_build__sandbox_config_darwin";;
-  Linux*);;
+  Darwin*)
+    esySandboxCommand="sandbox-exec -f $esy_build__sandbox_config_darwin"
+    esyMtimeCommand="stat -f %m"
+    ;;
+  Linux*)
+    ;;
   MSYS*);;
   *);;
 esac
@@ -45,7 +50,7 @@ esac
 #
 
 esyExecCommand () {
-  $ESY__SANDBOX_COMMAND /bin/bash   \
+  $esySandboxCommand /bin/bash   \
     --noprofile --norc              \
     -e -u -o pipefail               \
     -c "$*"
@@ -107,7 +112,7 @@ esyPerformBuild () {
 
   cd "$cur__root"
 
-  echo -e "${FG_WHITE}*** $cur__name @ $cur__version: building from source...${FG_RESET}"
+  echo -e "${FG_GREEN}  → ${FG_RESET}$cur__name @ $cur__version"
   local buildLog="$cur__target_dir/_esy/log"
 
   # Run esy.build
@@ -155,7 +160,7 @@ esyPerformInstall () {
     "$ESY_EJECT__ROOT/bin/fastreplacestring.exe" "$filename" "$cur__install" "$esy_build__install_root"
   done
   mv "$cur__install" "$esy_build__install_root"
-  echo -e "${FG_GREEN}*** $cur__name @ $cur__version: build complete${FG_RESET}"
+  echo -e "${FG_GREEN}  → $cur__name @ $cur__version: build complete${FG_RESET}"
 
 }
 
@@ -166,12 +171,27 @@ esyPerformInstall () {
 esyReportFailure () {
   local buildLog="$0"
   if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
-    echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed:\n"
+    echo -e "${FG_RED}  → $cur__name @ $cur__version: build failed:\n"
     cat "$buildLog" | sed  's/^/  /'
     echo -e "${FG_RESET}"
   else
-    echo -e "${FG_RED}*** $cur__name @ $cur__version: build failed, see:\n\n $buildLog\n\nfor details${FG_RESET}"
+    echo -e "${FG_RED}  → $cur__name @ $cur__version: build failed, see:\n\n $buildLog\n\nfor details${FG_RESET}"
   fi
+}
+
+esyMaxBuildMtime () {
+  local root="$1"
+  local maxMtime
+  maxMtime=$(
+    find "$root" \
+    -not -path "$root/node_modules/*" -a \
+    -not -path "$root/node_modules" -a \
+    -not -path "$root/_build" -a \
+    -not -path "$root/_install" -a \
+    -not -path "$root/_esy" -a \
+    -not -path "$root/_release" -a \
+    -exec $esyMtimeCommand {} \; | sort -r | head -n1)
+  echo "$maxMtime"
 }
 
 #
@@ -195,7 +215,7 @@ esyBuild () {
 
 esyShell () {
   esyPrepareBuild
-  $ESY__SANDBOX_COMMAND /bin/bash   \
+  $esySandboxCommand /bin/bash   \
     --noprofile                     \
     --rcfile <(echo "
       export PS1=\"[$cur__name sandbox] $ \";
