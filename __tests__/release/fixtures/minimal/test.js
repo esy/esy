@@ -10,6 +10,7 @@ import {
   readDirectory,
   cleanUp,
   esyBin,
+  esyRoot,
   runIn,
   packAndNpmInstallGlobal,
   initFixtureSync,
@@ -19,14 +20,20 @@ export default function initTest(params: {releaseType: string}) {
   const fixture = initFixtureSync(__dirname);
   const description = `esy release ${params.releaseType}: ${fixture.description}`;
 
-  const releaseDir = params.releaseType === 'bin'
-    ? `bin-${os.platform()}`
-    : params.releaseType;
+  const releaseDir =
+    params.releaseType === 'bin' ? `bin-${os.platform()}` : params.releaseType;
 
   const test = async () => {
     await runIn(fixture.project, 'npm', 'install');
     expect(
-      await runIn(fixture.project, esyBin, 'release', params.releaseType),
+      await runIn(
+        fixture.project,
+        esyBin,
+        'release',
+        params.releaseType,
+        '--esy-version-for-dev-release',
+        esyRoot,
+      ),
     ).toMatchSnapshot('release stdout');
 
     expect(await readDirectory(fixture.project, '_release')).toMatchSnapshot('release');

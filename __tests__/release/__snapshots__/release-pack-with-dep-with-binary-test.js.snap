@@ -25,18 +25,20 @@ exports[`installation 1`] = `
 | | | | | | | realpath.c
 | | | | | | | render-env
 | | | | | | | runtime.sh
-| | | | | | command-env
 | | | | | | eject-env
 | | | | | | Makefile
 | | | | | | node_modules
 | | | | | | | dep
 | | | | | | | | eject-env
+| | | | | | | | sandbox.sb
 | | | | | | | | sandbox.sb.in
 | | | | | | records
 | | | | | | | final-install-path-set.txt
 | | | | | | | final-install-path-set.txt.in
 | | | | | | | store-path.txt
 | | | | | | | store-path.txt.in
+| | | | | | sandbox-env
+| | | | | | sandbox.sb
 | | | | | | sandbox.sb.in
 | | | | | 3_____________________
 | | | | | | i
@@ -88,10 +90,10 @@ exports[`installation stdout 1`] = `
 
 *** Unpacking the release...
 *** Building the release...
-[1;37m*** dep @ 0.1.0: building from source...[0m
-[0;32m*** dep @ 0.1.0: build complete[0m
-[1;37m*** with-dep-with-binary @ 0.1.0: building from source...[0m
-[0;32m*** with-dep-with-binary @ 0.1.0: build complete[0m
+[0;32m  → [0mdep @ 0.1.0
+[0;32m  → dep @ 0.1.0: build complete[0m
+[0;32m  → [0mwith-dep-with-binary @ 0.1.0
+[0;32m  → with-dep-with-binary @ 0.1.0: build complete[0m
 *** Decompressing artefacts...
 *** Relocating artefacts to the final destination...
 + with-dep-with-binary@0.1.0
