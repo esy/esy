@@ -23,7 +23,6 @@ exports[`installation 1`] = `
 | | | | | | | realpath.c
 | | | | | | | render-env
 | | | | | | | runtime.sh
-| | | | | | command-env
 | | | | | | eject-env
 | | | | | | Makefile
 | | | | | | records
@@ -31,6 +30,8 @@ exports[`installation 1`] = `
 | | | | | | | final-install-path-set.txt.in
 | | | | | | | store-path.txt
 | | | | | | | store-path.txt.in
+| | | | | | sandbox-env
+| | | | | | sandbox.sb
 | | | | | | sandbox.sb.in
 | | | | | 3__________________________________
 | | | | | | i
@@ -67,8 +68,8 @@ exports[`installation stdout 1`] = `
 
 *** Unpacking the release...
 *** Building the release...
-[1;37m*** minimal @ 0.1.0: building from source...[0m
-[0;32m*** minimal @ 0.1.0: build complete[0m
+[0;32m  → [0mminimal @ 0.1.0
+[0;32m  → minimal @ 0.1.0: build complete[0m
 *** Decompressing artefacts...
 *** Relocating artefacts to the final destination...
 + minimal@0.1.0

@@ -37,7 +37,6 @@ export default async function releaseCommand(ctx: CommandContext) {
     `);
   }
   const pkg = await readManifest(ctx.sandboxPath);
-  console.log(ctx.options);
   await buildRelease({
     type: (type: any),
     version: pkg.version,

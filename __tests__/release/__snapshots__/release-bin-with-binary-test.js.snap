@@ -25,7 +25,6 @@ exports[`installation 1`] = `
 | | | | | | | realpath.c
 | | | | | | | render-env
 | | | | | | | runtime.sh
-| | | | | | command-env
 | | | | | | eject-env
 | | | | | | Makefile
 | | | | | | records
@@ -33,6 +32,8 @@ exports[`installation 1`] = `
 | | | | | | | final-install-path-set.txt.in
 | | | | | | | store-path.txt
 | | | | | | | store-path.txt.in
+| | | | | | sandbox-env
+| | | | | | sandbox.sb
 | | | | | | sandbox.sb.in
 | | | | | 3______________________________
 | | | | | | i
@@ -100,8 +101,8 @@ exports[`release stdout 1`] = `
 *** Installing dependencies...
 *** Ejecting build environment...
 *** Building the release...
-[1;37m*** with-binary @ 0.1.0: building from source...[0m
-[0;32m*** with-binary @ 0.1.0: build complete[0m
+[0;32m  → [0mwith-binary @ 0.1.0
+[0;32m  → with-binary @ 0.1.0: build complete[0m
 *** Release package created
 
     Location: _release/bin-darwin
