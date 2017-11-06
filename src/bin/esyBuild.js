@@ -118,22 +118,22 @@ export default async function esyBuild(ctx: CommandContext) {
   const sandbox = await getBuildSandbox(ctx);
   const config = await getBuildConfig(ctx);
   const task: BuildTask = Task.fromBuildSandbox(sandbox, config);
-  const reporter = createBuildProgressReporter();
+  const reporter = ctx.options.flags.silent ? undefined : createBuildProgressReporter();
 
-  const ejectPath = path.join(
-    config.sandboxPath,
-    'node_modules',
-    '.cache',
-    '_esy',
-    'build',
-  );
-  await ShellBuilder.eject(ejectPath, task, sandbox, config);
+  let ejectingBuild = null;
+  if (ctx.options.options.eject != null) {
+    ejectingBuild = ShellBuilder.eject(ctx.options.options.eject, task, sandbox, config);
+  }
 
   const build = ctx.options.flags.dependenciesOnly
     ? Builder.buildDependencies
     : Builder.build;
 
-  const state = await build(task, sandbox, config, reporter);
+  const [state, _] = await Promise.all([
+    build(task, sandbox, config, reporter),
+    ejectingBuild,
+  ]);
+
   if (state.state === 'failure') {
     const errors = Builder.collectBuildErrors(state);
     for (const error of errors) {
@@ -144,5 +144,6 @@ export default async function esyBuild(ctx: CommandContext) {
 }
 
 export const options = {
-  flags: ['--dependencies-only'],
+  flags: ['--dependencies-only', '--silent'],
+  options: ['--eject'],
 };
