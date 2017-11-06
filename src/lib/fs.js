@@ -186,31 +186,30 @@ export async function walk(
   return files;
 }
 
-export function calculateMtimeChecksum(
+export function findMaxMtime(
   dirname: string,
   options?: {ignore?: string => boolean} = {},
-): Promise<string> {
+): Promise<number> {
   const ignore = options.ignore ? options.ignore : _filename => false;
-  const mtimes = new Map();
+  let maxMtime = -Infinity;
 
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve, reject) => {
     const w = walkDir(dirname);
     w.on('path', (name, stat) => {
       if (ignore(name)) {
         w.ignore(name);
-      }
-      if (stat.isFile()) {
-        mtimes.set(name, String(stat.mtime.getTime()));
+      } else if (stat.isFile()) {
+        const mtime = stat.mtime.getTime();
+        if (mtime > maxMtime) {
+          maxMtime = mtime;
+        }
       }
     });
     w.on('end', () => {
-      const filenames = Array.from(mtimes.keys());
-      filenames.sort();
-      const hasher = crypto.createHash('sha1');
-      for (const filename of filenames) {
-        hasher.update(mtimes.get(filename) || '');
-      }
-      resolve(hasher.digest('hex'));
+      resolve(maxMtime);
+    });
+    w.on('error', error => {
+      reject(error);
     });
   });
 }
