@@ -9,6 +9,8 @@ import outdent from 'outdent';
 import {buildRelease} from '../release';
 import {readManifest} from '../build-sandbox';
 
+const currentEsyVersion = require('../../package.json').version;
+
 const AVAILABLE_RELEASE_TYPE = ['dev', 'pack', 'bin'];
 
 export default async function releaseCommand(ctx: CommandContext) {
@@ -35,9 +37,16 @@ export default async function releaseCommand(ctx: CommandContext) {
     `);
   }
   const pkg = await readManifest(ctx.sandboxPath);
+  console.log(ctx.options);
   await buildRelease({
     type: (type: any),
     version: pkg.version,
     sandboxPath: ctx.sandboxPath,
+    esyVersionForDevRelease:
+      ctx.options.options.esyVersionForDevRelease || currentEsyVersion,
   });
 }
+
+export const options = {
+  options: ['--esy-version-for-dev-release'],
+};
