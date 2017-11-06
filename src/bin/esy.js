@@ -107,7 +107,10 @@ export type CommandContext = {
 
   commandName: string,
   args: Array<string>,
-  options: Object,
+  options: {
+    options: {[name: string]: string},
+    flags: {[name: string]: boolean},
+  },
 
   error(message?: string): any,
 };
@@ -137,16 +140,22 @@ async function main() {
   const command = commandsByName[commandName];
   if (command != null) {
     const commandImpl = command();
+    const options = parse(process.argv.slice(3), {...commandImpl.options, strict: true});
+    const args = [];
+    for (const opt of options.unparsed) {
+      if (opt.startsWith('-')) {
+        error(`unknown option ${opt}`);
+      }
+      args.push(opt);
+    }
     const commandCtx: CommandContext = {
       prefixPath: getPrefixPath(),
       readOnlyStorePath: getReadOnlyStorePath(),
       sandboxPath: getSandboxPath(),
       buildPlatform: getBuildPlatform(),
       commandName,
-      args: process.argv.slice(3),
-      options: commandImpl.options
-        ? parse(process.argv.slice(3), commandImpl.options)
-        : {},
+      args,
+      options,
       error: error,
     };
     await commandImpl.default(commandCtx);
