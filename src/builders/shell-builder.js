@@ -28,10 +28,16 @@ export const eject = async (
   sandbox: BuildSandbox,
   config: Config<path.AbsolutePath>,
 ) => {
-  const transientTasks = [];
+  const immutableDeps = [];
+  const transientDeps = [];
   Graph.traverse(task, task => {
-    if (task.spec.sourceType === 'transient') {
-      transientTasks.push(task);
+    switch (task.spec.sourceType) {
+      case 'transient':
+        transientDeps.push(task);
+        break;
+      case 'immutable':
+        immutableDeps.push(task);
+        break;
     }
   });
 
@@ -76,26 +82,38 @@ export const eject = async (
     }),
   });
 
-  const checkDependencies = await Promise.all(
-    transientTasks.map(async t => {
+  const checkImmutableDeps = immutableDeps.map(t => {
+    const installPath = config.getFinalInstallPath(t.spec);
+    return outdent`
+
+      if [ ! -d "${installPath}" ]; then
+        buildDependencies
+        return
+      fi
+
+    `;
+  });
+
+  const checkTransientDeps = await Promise.all(
+    transientDeps.map(async t => {
       const installPath = config.getFinalInstallPath(t.spec);
       const prevMtimePath = config.getBuildPath(t.spec, '_esy', 'mtime');
       const sourcePath = await fs.realpath(config.getSourcePath(t.spec));
       return outdent`
       if [ ! -d "${installPath}" ]; then
-        buildDependencies I
+        buildDependencies
         return
       fi
 
       if [ ! -f "${prevMtimePath}" ]; then
-        buildDependencies B
+        buildDependencies
         return
       fi
 
       prevMtime=$(cat "${prevMtimePath}")
       curMtime=$(findMaxMtime "${sourcePath}")
       if [ "$curMtime" -gt "$prevMtime" ]; then
-        buildDependencies MTIME
+        buildDependencies
         return
       fi
     `;
@@ -146,7 +164,8 @@ export const eject = async (
       }
 
       checkDependencies () {
-        ${checkDependencies.length > 0 ? checkDependencies.join('') : 'true'}
+        ${checkTransientDeps.length > 0 ? checkTransientDeps.join('') : 'true'}
+        ${checkImmutableDeps.length > 0 ? checkImmutableDeps.join('') : 'true'}
       }
 
       checkDependencies
