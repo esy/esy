@@ -11,6 +11,7 @@ import loudRejection from 'loud-rejection';
 import userHome from 'user-home';
 import * as path from 'path';
 import chalk from 'chalk';
+import parse from 'cli-argparse';
 
 function getSandboxPath() {
   if (process.env.ESY__SANDBOX != null) {
@@ -106,40 +107,51 @@ export type CommandContext = {
 
   commandName: string,
   args: Array<string>,
+  options: Object,
 
   error(message?: string): any,
 };
 
-const commandsByName: {[name: string]: (CommandContext) => any} = {
-  'build-eject': ctx => require('./esyBuildEject').default(ctx),
-  build: ctx => require('./esyBuild').default(ctx),
-  'build-shell': ctx => require('./esyBuildShell').default(ctx),
-  release: ctx => require('./esyRelease').default(ctx),
-  'import-opam': ctx => require('./esyImportOpam').default(ctx),
-  'print-env': ctx => require('./esyPrintEnv').default(ctx),
-  config: ctx => require('./esyConfig').default(ctx),
+type Command = {
+  default: CommandContext => any,
+  options?: Object,
+};
+
+const commandsByName: {[name: string]: () => Command} = {
+  'build-eject': () => require('./esyBuildEject'),
+  build: () => require('./esyBuild'),
+  'build-shell': () => require('./esyBuildShell'),
+  release: () => require('./esyRelease'),
+  'import-opam': () => require('./esyImportOpam'),
+  'print-env': () => require('./esyPrintEnv'),
+  config: () => require('./esyConfig'),
 };
 
 async function main() {
-  const ctx: CommandContext = {
-    prefixPath: getPrefixPath(),
-    readOnlyStorePath: getReadOnlyStorePath(),
-    sandboxPath: getSandboxPath(),
-    buildPlatform: getBuildPlatform(),
-    commandName: process.argv[2],
-    args: process.argv.slice(3),
-    error: error,
-  };
+  const commandName = process.argv[2];
 
-  if (ctx.commandName == null) {
-    ctx.error(`no command provided`);
+  if (commandName == null) {
+    error(`no command provided`);
   }
 
-  const command = commandsByName[ctx.commandName];
+  const command = commandsByName[commandName];
   if (command != null) {
-    await command(ctx);
+    const commandImpl = command();
+    const commandCtx: CommandContext = {
+      prefixPath: getPrefixPath(),
+      readOnlyStorePath: getReadOnlyStorePath(),
+      sandboxPath: getSandboxPath(),
+      buildPlatform: getBuildPlatform(),
+      commandName,
+      args: process.argv.slice(3),
+      options: commandImpl.options
+        ? parse(process.argv.slice(3), commandImpl.options)
+        : {},
+      error: error,
+    };
+    await commandImpl.default(commandCtx);
   } else {
-    ctx.error(`unknown command: ${ctx.commandName}`);
+    error(`unknown command: ${commandName}`);
   }
 }
 

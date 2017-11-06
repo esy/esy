@@ -1223,6 +1223,10 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
+cli-argparse@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/cli-argparse/-/cli-argparse-1.1.2.tgz#0a44e1761289b5708755a72a48494c46fcae39b6"
+
 cliui@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/cliui/-/cliui-2.1.0.tgz#4b475760ff80264c762c3a1719032e91c7fea0d1"
