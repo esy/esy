@@ -16,6 +16,7 @@ import outdent from 'outdent';
 
 import * as Graph from '../graph';
 import * as Task from '../build-task';
+import * as Sandbox from '../sandbox';
 import * as Env from '../environment';
 import * as Makefile from '../Makefile';
 import {normalizePackageName} from '../util';
@@ -402,7 +403,19 @@ export function eject(
     ]),
   };
 
-  const sandboxEnvFile = createSandboxEnv(rootTask, config);
+  const sandboxEnvFile = {
+    filename: ['sandbox-env'],
+    contents: outdent`
+      ${bashgen.defineEsyUtil}
+
+      # Set the default value for ESY_EJECT__STORE if it's not defined.
+      if [ -z \${ESY_EJECT__STORE+x} ]; then
+        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
+      fi
+
+      ${Env.printEnvironment(Sandbox.getSandboxEnv(rootTask, config))}
+    `,
+  };
 
   log('build environment');
   Promise.all([
@@ -423,39 +436,6 @@ export function eject(
     emitFile(outputPath, sandboxEnvFile),
     emitFile(outputPath, makefileFile),
   ]);
-}
-
-function createSandboxEnv(task, config) {
-  // TODO: This is a hack before we get true env sandboxes (`esx` command).
-  const spec: BuildSpec = {
-    id: '__sandbox__',
-    name: '__sandbox__',
-    version: '0.0.0',
-    buildCommand: [],
-    installCommand: [],
-    exportedEnv: {},
-    sourcePath: '',
-    sourceType: 'root',
-    buildType: 'out-of-source',
-    shouldBePersisted: false,
-    dependencies: new Map([[task.spec.name, task.spec]]),
-    errors: task.spec.errors,
-  };
-  const {env} = Task.fromBuildSpec(spec, config);
-  env.delete('SHELL');
-  return {
-    filename: ['sandbox-env'],
-    contents: outdent`
-      ${bashgen.defineEsyUtil}
-
-      # Set the default value for ESY_EJECT__STORE if it's not defined.
-      if [ -z \${ESY_EJECT__STORE+x} ]; then
-        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
-      fi
-
-      ${Env.printEnvironment(env)}
-    `,
-  };
 }
 
 async function emitFile(

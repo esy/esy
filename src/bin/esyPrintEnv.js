@@ -6,6 +6,7 @@ import type {CommandContext} from './esy';
 
 import {getBuildSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
+import * as Sandbox from '../sandbox';
 import * as Env from '../environment';
 
 export default async function esyPrintEnv(ctx: CommandContext) {
@@ -15,8 +16,6 @@ export default async function esyPrintEnv(ctx: CommandContext) {
   const sandbox = await getBuildSandbox(ctx);
   const config = await getBuildConfig(ctx);
   const task = Task.fromBuildSandbox(sandbox, config);
-  // Sandbox env is more strict than we want it to be at runtime, filter
-  // out $SHELL overrides.
-  task.env.delete('SHELL');
+  const env = Sandbox.getCommandEnv(task, config);
   console.log(Env.printEnvironment(task.env));
 }
