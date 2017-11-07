@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 0.0.30
+
+* Command `esy install` now uses `.esyrc` instead of `.yarnrc` for
+  configuration.
+
+  If you have `.yarnrc` file in your project which is used only for esy then you
+  should do:
+
+  ```
+  mv .yarnrc .esyrc
+  ```
+
+* Fixed a bug with `esy install` which executed an unrelated `yarn` executable
+  in some custom environment setups. Now `esy install` executes only own code.
+
+* Fixed a bug with `esy install` which prevented the command run under `root`
+  user. This was uncovered when running `esy install` under docker.
+
 ## 0.0.29
 
 * `esy build` command was improved, more specifically:
