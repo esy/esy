@@ -5,6 +5,8 @@
 * Fix an issue with `esy build/shell/<anycommand>` not to react properly on
   build failure.
 
+* Use pretty paths to stores without paddings (a lot of underscores).
+
 ## 0.0.30
 
 * Command `esy install` now uses `.esyrc` instead of `.yarnrc` for
