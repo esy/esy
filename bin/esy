@@ -85,6 +85,9 @@ ensureBuildEjected () {
     node "$SCRIPTDIR/esy.js" build \
       --dependencies-only \
       --eject "$BUILD_EJECT_PATH" "$@"
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
   fi
 }
 
