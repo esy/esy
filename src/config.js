@@ -3,9 +3,12 @@
  */
 
 import type {BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
+import * as os from 'os';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
 import * as path from './lib/path';
+
+const NUM_CPUS = os.cpus().length;
 
 function _create<Path: path.Path>(
   sandboxPath: Path,
@@ -38,7 +41,7 @@ function _create<Path: path.Path>(
     localStore,
     buildPlatform,
     readOnlyStores,
-
+    buildConcurrency: NUM_CPUS,
     requiresRootRelocation,
 
     getSourcePath: (build: BuildSpec, ...segments) => {

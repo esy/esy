@@ -72,8 +72,6 @@ const IGNORE_FOR_MTIME = [
   'node_modules',
 ];
 
-const NUM_CPUS = os.cpus().length;
-
 const BUILD_STATE_CACHED_SUCCESS = {
   state: 'success',
   timeEllapsed: null,
@@ -186,7 +184,7 @@ const createBuilder = (
   config: Config<path.AbsolutePath>,
   onBuildStateChange: (task: BuildTask, status: BuildState) => *,
 ) => {
-  const buildQueue = new PromiseQueue({concurrency: NUM_CPUS});
+  const buildQueue = new PromiseQueue({concurrency: config.buildConcurrency});
   const taskInProgress = new Map();
   function isSpecExistsInStore(spec) {
     return fs.exists(config.getFinalInstallPath(spec));

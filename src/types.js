@@ -137,6 +137,8 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
 
   +localStore: Store<Path>,
 
+  +buildConcurrency: number,
+
   /**
    * List of read only stores from which Esy could import built artifacts as
    * needed.
