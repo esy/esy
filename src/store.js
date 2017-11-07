@@ -20,9 +20,12 @@ import {
 /**
  * Create store.
  */
-function forPath<K: path.Path>(storePath: K): Store<K> {
+function forPath<K: path.Path>(storePath: K, prettyStorePath?: K = storePath): Store<K> {
   return {
     path: storePath,
+    prettyPath: prettyStorePath,
+
+    version: ESY_STORE_VERSION,
 
     getPath(tree: StoreTree, build: BuildSpec, ...segments: string[]) {
       return path.join(this.path, tree, build.id, ...segments);
@@ -48,7 +51,8 @@ export function forAbsolutePath(storePath: string): Store<path.AbsolutePath> {
 export function forPrefixPath(prefixPath: string): Store<path.AbsolutePath> {
   const conceretePrefixPath = path.absolute(prefixPath);
   const storePath = getStorePathForPrefix(conceretePrefixPath);
-  return forPath(storePath);
+  const prettyStorePath = path.join(conceretePrefixPath, ESY_STORE_VERSION);
+  return forPath(storePath, prettyStorePath);
 }
 
 export function getStorePathForPrefix(prefix: path.AbsolutePath): path.AbsolutePath {

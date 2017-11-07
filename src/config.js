@@ -57,6 +57,15 @@ function _create<Path: path.Path>(
       genStorePath(STORE_STAGE_TREE, build, segments),
     getFinalInstallPath: (build: BuildSpec, ...segments) =>
       genStorePath(STORE_INSTALL_TREE, build, segments),
+
+    prettifyPath: (p: string) => {
+      if (store.path.indexOf(p) === -1) {
+        const relative = p.slice(store.path.length);
+        return path.join(store.prettyPath, relative);
+      } else {
+        return p;
+      }
+    },
   };
   return buildConfig;
 }

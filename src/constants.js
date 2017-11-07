@@ -3,6 +3,7 @@
  */
 
 import type {StoreTree} from './types';
+import * as path from './lib/path';
 
 /**
  * Names of the symlinks to build and install trees of the sandbox.

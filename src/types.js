@@ -8,6 +8,9 @@ export type StoreTree = 'i' | 'b' | 's';
 
 export type Store<+Path: path.Path> = {
   +path: Path,
+  +prettyPath: Path,
+  +version: string,
+
   has(BuildSpec): Promise<boolean>,
   getPath(StoreTree, BuildSpec, ...path: Array<string>): Path,
 };
@@ -181,6 +184,11 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
    * to another, final location).
    */
   getFinalInstallPath: (build: BuildSpec, ...segments: string[]) => RPath,
+
+  /**
+   * Generate a pretty version of the path if possible.
+   */
+  prettifyPath: (path: string) => string,
 };
 
 /**

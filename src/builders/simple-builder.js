@@ -90,7 +90,7 @@ export const build = async (
   config: Config<path.AbsolutePath>,
   onBuildStateChange?: (task: BuildTask, state: BuildState) => *,
 ) => {
-  await Promise.all([initStore(config.store), initStore(config.localStore)]);
+  await initStores(config.store, config.localStore);
   const performBuild = createBuilder(
     sandbox,
     config,
@@ -138,7 +138,7 @@ export const buildDependencies = async (
   config: Config<path.AbsolutePath>,
   onBuildStateChange?: (task: BuildTask, status: BuildState) => *,
 ) => {
-  await Promise.all([initStore(config.store), initStore(config.localStore)]);
+  await initStores(config.store, config.localStore);
   const performBuild = createBuilder(
     sandbox,
     config,
@@ -397,7 +397,7 @@ export async function withBuildDriver(
     );
     const {code} = await execution.exit;
     if (code !== 0) {
-      throw new BuildCommandError(task, command, logFilename);
+      throw new BuildCommandError(task, command, config.prettifyPath(logFilename));
     }
   };
 
@@ -506,12 +506,21 @@ async function performBuild(
   await withBuildDriver(task, config, sandbox, executeBuildCommands);
 }
 
-async function initStore(store: Store<path.AbsolutePath>) {
-  await Promise.all(
-    [STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE].map(p =>
-      fs.mkdirp(path.join(store.path, path.concrete(p))),
-    ),
-  );
+async function initStores(
+  store: Store<path.AbsolutePath>,
+  localStore: Store<path.AbsolutePath>,
+) {
+  await Promise.all([
+    fs.mkdirp(path.join(store.path, STORE_BUILD_TREE)),
+    fs.mkdirp(path.join(store.path, STORE_INSTALL_TREE)),
+    fs.mkdirp(path.join(store.path, STORE_STAGE_TREE)),
+    fs.mkdirp(path.join(localStore.path, STORE_BUILD_TREE)),
+    fs.mkdirp(path.join(localStore.path, STORE_INSTALL_TREE)),
+    fs.mkdirp(path.join(localStore.path, STORE_STAGE_TREE)),
+  ]);
+  if (store.path !== store.prettyPath) {
+    fs.symlink(store.path, store.prettyPath);
+  }
 }
 
 async function unlinkOrRemove(p) {
