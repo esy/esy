@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.31
+
+* Fix an issue with `esy build/shell/<anycommand>` not to react properly on
+  build failure.
+
 ## 0.0.30
 
 * Command `esy install` now uses `.esyrc` instead of `.yarnrc` for
