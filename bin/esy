@@ -113,7 +113,11 @@ callBuiltInCommand__esyInstall() {
   # dependency.
   ESY_INSTALL=$(cd "$SCRIPTDIR" && node -p "require.resolve('@esy-ocaml/esy-install/bin/esy-install.js')")
   ESY_INSTALL_CACHE="${SCRIPTDIR}/../_esyInstallCache-${ESY__CACHE_VERSION}"
-  node "$ESY_INSTALL" --cache-folder "$ESY_INSTALL_CACHE" "$@"
+  # We set YARN_IGNORE_PATH to prevent esy-install from adhering to "yarn-path"
+  # in ".esyrc", we'll revisit this if we'd ever need this feature in the future.
+  # For now we'd like more robust setups with explicit bindings between
+  # executables.
+  YARN_IGNORE_PATH="1" node "$ESY_INSTALL" --cache-folder "$ESY_INSTALL_CACHE" "$@"
 }
 
 printHelp() {
