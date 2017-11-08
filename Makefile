@@ -70,7 +70,7 @@ test-esy-build:
 	@$(BIN)/jest ./__tests__/build/*-test.js
 
 test:
-	@$(BIN)/jest ./src/__tests__ ./__tests__/release/*-test.js ./__tests__/build/*-test.js
+	@$(BIN)/jest ./src/__tests__ ./__tests__/build/*-test.js
 
 #
 # Release
