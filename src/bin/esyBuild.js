@@ -38,9 +38,11 @@ export function createBuildProgressReporter() {
     } else if (status.state === 'success') {
       const {timeEllapsed} = status;
       if (timeEllapsed != null) {
+        const timeEllapsedPretty =
+          process.env.NODE_ENV === 'test' ? 'NNN' : String(timeEllapsed / 1000);
         getReporterFor(task)
           .done('BUILT')
-          .details(`in ${timeEllapsed / 1000}s`);
+          .details(`in ${timeEllapsedPretty}s`);
       } else if (!task.spec.shouldBePersisted) {
         getReporterFor(task)
           .done('BUILT')
