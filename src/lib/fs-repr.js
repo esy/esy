@@ -72,7 +72,16 @@ export async function write(rootDirname: string, nodes: Node[]): Promise<void> {
   await writeDirectory(rootDirname, {type: 'directory', name: '<root>', nodes});
 }
 
-export async function read(rootDirname: string): Promise<Node[]> {
+export type ReadOptions = {
+  filter?: (filename: string) => boolean,
+};
+
+export async function read(
+  rootDirname: string,
+  options?: ReadOptions = {},
+): Promise<Node[]> {
+  const {filter} = options;
+
   function crawlFile(pathname: string, name: string): Promise<FileNode> {
     return Promise.resolve({
       type: 'file',
@@ -90,17 +99,25 @@ export async function read(rootDirname: string): Promise<Node[]> {
     };
   }
 
-  async function crawlDirectory(pathname: string, name: string): Promise<DirectoryNode> {
+  async function crawlDirectory(
+    pathname: string,
+    name: string,
+    relpath: string,
+  ): Promise<DirectoryNode> {
     const tasks: Array<Promise<Node>> = [];
-    for (const name of await fs.readdir(pathname)) {
-      const nextPathname = path.join(pathname, name);
+    for (const n of await fs.readdir(pathname)) {
+      const nextPathname = path.join(pathname, n);
+      const nextRelpath = path.join(relpath, n);
+      if (filter != null && !filter(nextRelpath)) {
+        continue;
+      }
       const stat = await fs.stat(nextPathname);
       if (stat.isSymbolicLink()) {
-        tasks.push(crawlLink(nextPathname, name));
+        tasks.push(crawlLink(nextPathname, n));
       } else if (stat.isFile()) {
-        tasks.push(crawlFile(nextPathname, name));
+        tasks.push(crawlFile(nextPathname, n));
       } else if (stat.isDirectory()) {
-        tasks.push(crawlDirectory(nextPathname, name));
+        tasks.push(crawlDirectory(nextPathname, n, nextRelpath));
       }
     }
     const nodes = await Promise.all(tasks);
@@ -108,6 +125,6 @@ export async function read(rootDirname: string): Promise<Node[]> {
     return {type: 'directory', name, nodes};
   }
 
-  const {nodes} = await crawlDirectory(rootDirname, '<root>');
+  const {nodes} = await crawlDirectory(rootDirname, '<root>', '<root>');
   return nodes;
 }
