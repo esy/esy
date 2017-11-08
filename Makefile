@@ -56,15 +56,19 @@ clean:
 # Test
 #
 
-test:
+
+test-unit:
 	@$(BIN)/jest src/
 
-test-watch:
+test-unit-watch:
 	@$(BIN)/jest src/ --watch
 
 test-esy-release:
 	@echo "Running integration tests for 'esy release' command"
 	@$(BIN)/jest ./__tests__/release/*-test.js
+
+test:
+	@$(BIN)/jest ./src/__tests__ ./__tests__/release/*-test.js
 
 #
 # Release
