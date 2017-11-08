@@ -5,6 +5,8 @@
 * Fix an issue with `esy build/shell/<anycommand>` not to react properly on
   build failure.
 
+* Fix error reporting in ejected builds to report the actual log file contents.
+
 * Use pretty paths to stores without paddings (a lot of underscores).
 
 ## 0.0.30
