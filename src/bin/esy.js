@@ -4,7 +4,7 @@
 
 require('babel-polyfill');
 
-import type {Config, BuildSandbox, BuildTask, BuildPlatform} from '../types';
+import type {Config, Sandbox, BuildTask, BuildPlatform} from '../types';
 import type {Options as SandboxOptions} from '../build-sandbox';
 
 import loudRejection from 'loud-rejection';
@@ -49,10 +49,10 @@ function getBuildPlatform() {
   }
 }
 
-export async function getBuildSandbox(
+export async function getSandbox(
   ctx: CommandContext,
   options?: SandboxOptions,
-): Promise<BuildSandbox> {
+): Promise<Sandbox> {
   const Sandbox = require('../build-sandbox');
   const sandbox = await Sandbox.fromDirectory(ctx.sandboxPath, options);
   if (sandbox.root.errors.length > 0) {

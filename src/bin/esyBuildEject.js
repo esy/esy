@@ -9,7 +9,7 @@ import * as path from 'path';
 import invariant from 'invariant';
 import outdent from 'outdent';
 
-import {getBuildSandbox} from './esy';
+import {getSandbox} from './esy';
 import * as Config from '../config';
 import * as MakefileBuilder from '../builders/makefile-builder';
 
@@ -20,7 +20,7 @@ export default async function buildEjectCommand(ctx: CommandContext) {
     buildPlatformArg,
     ctx.buildPlatform,
   );
-  const sandbox = await getBuildSandbox(ctx, {forRelease: true});
+  const sandbox = await getSandbox(ctx, {forRelease: true});
   const buildConfig = createConfig(buildPlatform);
   MakefileBuilder.eject(
     sandbox,

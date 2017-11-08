@@ -3,7 +3,7 @@
  */
 
 import type {
-  BuildSandbox,
+  Sandbox,
   BuildSpec,
   Config,
   BuildTask,
@@ -380,8 +380,8 @@ export function expandWithScope<T: {value: string}>(
   return {rendered: rendered != null ? rendered : value};
 }
 
-export function fromBuildSandbox<Path: path.Path>(
-  sandbox: BuildSandbox,
+export function fromSandbox<Path: path.Path>(
+  sandbox: Sandbox,
   config: Config<Path>,
   params?: BuildTaskParams,
 ): BuildTask {
