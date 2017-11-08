@@ -11,7 +11,7 @@ import outdent from 'outdent';
 
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
-import {indent, getBuildSandbox, getBuildConfig} from './esy';
+import {indent, getSandbox, getBuildConfig} from './esy';
 import * as Sandbox from '../build-sandbox';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
@@ -118,9 +118,9 @@ export function reportBuildError(error: Builder.BuildError) {
 }
 
 export default async function esyBuild(ctx: CommandContext) {
-  const sandbox = await getBuildSandbox(ctx);
+  const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
-  const task: BuildTask = Task.fromBuildSandbox(sandbox, config);
+  const task: BuildTask = Task.fromSandbox(sandbox, config);
   const reporter = ctx.options.flags.silent ? undefined : createBuildProgressReporter();
 
   let ejectingBuild = null;

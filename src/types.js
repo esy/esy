@@ -199,7 +199,7 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
  * Note that usually builds do not exist outside of build sandboxes as their own
  * identities a made dependent on a global env of the sandbox.
  */
-export type BuildSandbox = {
+export type Sandbox = {
   env: BuildEnvironment,
   root: BuildSpec,
   devDependencies: Map<string, BuildSpec>,

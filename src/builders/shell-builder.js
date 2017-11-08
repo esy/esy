@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildTask, BuildTaskCommand, BuildSandbox, Config} from '../types';
+import type {BuildTask, BuildTaskCommand, Sandbox, Config} from '../types';
 
 import * as os from 'os';
 import outdent from 'outdent';
@@ -16,7 +16,7 @@ import * as Graph from '../graph';
 import {renderSandboxSbConfig} from './util';
 import {defineScriptDir} from './bashgen';
 import {renderEnv} from '../Makefile';
-import * as Sandbox from '../sandbox';
+import * as S from '../sandbox';
 import {renderBuildTaskCommand} from './makefile-builder';
 
 const log = createLogger('esy:shell-builder');
@@ -26,7 +26,7 @@ const RUNTIME = fs.readFileSync(require.resolve('./shell-builder.sh'));
 export const eject = async (
   outputPath: string,
   task: BuildTask,
-  sandbox: BuildSandbox,
+  sandbox: Sandbox,
   config: Config<path.AbsolutePath>,
 ) => {
   const immutableDeps = [];
@@ -69,7 +69,7 @@ export const eject = async (
 
   await emitFile({
     filename: ['bin/command-env'],
-    contents: environment.printEnvironment(Sandbox.getCommandEnv(task, config)),
+    contents: environment.printEnvironment(S.getCommandEnv(task, config)),
   });
 
   await emitFile({

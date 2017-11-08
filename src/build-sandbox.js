@@ -4,7 +4,7 @@
 
 import type {
   BuildSpec,
-  BuildSandbox,
+  Sandbox,
   BuildEnvironment,
   EnvironmentVarExport,
   EsySpec,
@@ -57,7 +57,7 @@ export type Options = {
 export async function fromDirectory(
   sandboxPath: string,
   options: Options = {},
-): Promise<BuildSandbox> {
+): Promise<Sandbox> {
   // Caching module resolution actually speed ups sandbox crawling a lot.
   const resolutionCache: Map<string, Promise<string>> = new Map();
 
@@ -365,3 +365,4 @@ function normalizeCommand(
     return command;
   }
 }
+

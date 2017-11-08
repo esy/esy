@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildTask, BuildSpec, Store, Config, BuildSandbox} from '../types';
+import type {BuildTask, BuildSpec, Store, Config, Sandbox} from '../types';
 
 import invariant from 'invariant';
 import createLogger from 'debug';
