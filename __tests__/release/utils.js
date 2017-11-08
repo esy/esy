@@ -1,7 +1,6 @@
 /**
  * @flow
  */
-
 import * as path from 'path';
 import outdent from 'outdent';
 import * as fs from '../../src/lib/fs';
@@ -22,7 +21,7 @@ function showNode(node: fsRepr.Node, indent = 0): string {
   throw new Error(`unknown node: ${JSON.stringify(node)}`);
 }
 
-export async function readDirectory(name: string, options: fsRepr.ReadOptions) {
+export async function readDirectory(name: string, options?: fsRepr.ReadOptions = {}) {
   const nodes = await fsRepr.read(name, options);
   return showNode(fsRepr.directory('<root>', nodes));
 }
@@ -134,6 +133,7 @@ export function initFixtureSync(fixturePath: string) {
   const project = path.join(root, 'project');
   const npmPrefix = path.join(root, 'npm');
   const esyPrefix = path.join(root, 'esy');
+  const localEsyPrefix = path.join(project, 'node_modules', '.cache', '_esy');
 
   fs.copydirSync(fixturePath, project);
 
@@ -187,6 +187,7 @@ export function initFixtureSync(fixturePath: string) {
     project,
     npmPrefix,
     esyPrefix,
+    localEsyPrefix,
 
     esy,
     esyRelease,

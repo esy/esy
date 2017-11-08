@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build stdout 1`] = `
+"→ dep-of-with-linked-dep @ 1.0.0                         
+[NaNA  → dep-of-with-linked-dep @ 1.0.0             building... [NaNB[59D[NaNA  → dep-of-with-linked-dep @ 1.0.0                   BUILT [NaNB[59D[NaNA  → dep-of-with-linked-dep @ 1.0.0                   BUILT in NNNs[NaNB[66D[0;32m  → [0mwith-linked-dep @ 1.0.0"
+`;
+
+exports[`dep exec stdout 1`] = `"dep-of-with-linked-dep"`;
+
+exports[`esy local prefix dir 1`] = `
+"<root>
+| bin
+| | _build
+| | _shell
+| | build
+| | build-dependencies
+| | build-env
+| | command-env
+| | runtime.sh
+| | sandbox.sb
+| | shell
+| store
+| | b
+| | | dep_of_with_linked_dep-1.0.0
+| | | | _esy
+| | | | | env
+| | | | | log
+| | | | | mtime
+| | | | | sandbox.sb
+| | | | dep-of-with-linked-dep
+| | | with_linked_dep-1.0.0
+| | | | _esy
+| | | | | log
+| | | | with-linked-dep
+| | i
+| | | dep_of_with_linked_dep-1.0.0
+| | | | bin
+| | | | | dep-of-with-linked-dep
+| | | | doc
+| | | | etc
+| | | | lib
+| | | | man
+| | | | sbin
+| | | | share
+| | | | stublibs
+| | s
+| | | with_linked_dep-1.0.0
+| | | | bin
+| | | | doc
+| | | | etc
+| | | | lib
+| | | | man
+| | | | sbin
+| | | | share"
+`;
+
+exports[`esy prefix dir 1`] = `
+"<root>
+| 3
+| | b
+| | i
+| | s
+| 3_____________________________________________________________________
+| | b
+| | i
+| | s"
+`;

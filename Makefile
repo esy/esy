@@ -64,11 +64,13 @@ test-unit-watch:
 	@$(BIN)/jest src/ --watch
 
 test-esy-release:
-	@echo "Running integration tests for 'esy release' command"
 	@$(BIN)/jest ./__tests__/release/*-test.js
 
+test-esy-build:
+	@$(BIN)/jest ./__tests__/build/*-test.js
+
 test:
-	@$(BIN)/jest ./src/__tests__ ./__tests__/release/*-test.js
+	@$(BIN)/jest ./src/__tests__ ./__tests__/release/*-test.js ./__tests__/build/*-test.js
 
 #
 # Release
