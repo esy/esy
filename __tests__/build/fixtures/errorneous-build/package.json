@@ -1,0 +1,10 @@
+{
+  "name": "errorneous-build",
+  "version": "1.0.0",
+  "license": "MIT",
+  "esy": {
+    "build": [
+      "false"
+    ]
+  }
+}
