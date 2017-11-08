@@ -2,6 +2,8 @@
  * @flow
  */
 
+jest.setTimeout(200000);
+
 import * as path from 'path';
 import * as fs from '../../src/lib/fs';
 import {initFixtureSync, readDirectory, cleanUp} from '../release/utils';
@@ -10,7 +12,7 @@ const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'with-linked-de
 
 fs.copydirSync(
   path.join(__dirname, 'fixtures', 'dep-of-with-linked-dep'),
-  path.join(fixture.root, 'dep-of-with-linked-dep')
+  path.join(fixture.root, 'dep-of-with-linked-dep'),
 );
 
 test(`build ${fixture.description}`, async function() {
@@ -24,7 +26,9 @@ test(`build ${fixture.description}`, async function() {
   expect(esyLocalPrefixDir).toMatchSnapshot('esy local prefix dir');
 
   // dep executable is available in env
-  const depExecStdout = await fixture.esy(['dep-of-with-linked-dep'], {cwd: fixture.project});
+  const depExecStdout = await fixture.esy(['dep-of-with-linked-dep'], {
+    cwd: fixture.project,
+  });
   expect(depExecStdout).toMatchSnapshot('dep exec stdout');
 });
 
