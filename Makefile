@@ -39,6 +39,9 @@ help:
 bootstrap:
 	@yarn
 
+doctoc:
+	@$(BIN)/doctoc --notitle ./README.md
+
 #
 # Build
 #
