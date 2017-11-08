@@ -64,7 +64,7 @@ test-watch:
 
 test-esy-release:
 	@echo "Running integration tests for 'esy release' command"
-	@$(BIN)/jest --runInBand ./__tests__/release/*-test.js
+	@$(BIN)/jest ./__tests__/release/*-test.js
 
 #
 # Release

@@ -22,8 +22,8 @@ function showNode(node: fsRepr.Node, indent = 0): string {
   throw new Error(`unknown node: ${JSON.stringify(node)}`);
 }
 
-export async function readDirectory(...name: string[]) {
-  const nodes = await fsRepr.read(path.join(...name));
+export async function readDirectory(name: string, options: fsRepr.ReadOptions) {
+  const nodes = await fsRepr.read(name, options);
   return showNode(fsRepr.directory('<root>', nodes));
 }
 
@@ -39,9 +39,12 @@ export async function cleanUp() {
 export const esyRoot = path.dirname(path.dirname(__dirname));
 export const esyBin = path.join(esyRoot, 'bin', 'esy');
 
-function spawn(command, args, options) {
+function spawn(command, args, options = {}) {
   if (process.env.DEBUG != null) {
-    console.log('EXECUTE', `${command} ${args.join(' ')}`);
+    console.log(outdent`
+      CWD ${options.cwd || process.cwd()}
+      EXECUTE ${command} ${args.join(' ')}
+    `);
   }
   return child.spawn(command, args, options);
 }
@@ -70,24 +73,6 @@ export function mkdtempSync() {
   const dir = fs._mkdtempSync(root);
   tempDirectoriesCreatedDuringTestRun.push(dir);
   return dir;
-}
-
-export async function packAndNpmInstallGlobal(fixture: Fixture, ...p: string[]) {
-  const whatToInstall = path.join(fixture.project, ...p);
-  const tarballFilename = await spawn('npm', ['pack'], {
-    env: process.env,
-    cwd: whatToInstall,
-  });
-  const stdout = await run(
-    'npm',
-    'install',
-    '--global',
-    '--prefix',
-    fixture.npmPrefix,
-    path.join(whatToInstall, tarballFilename),
-  );
-  // sanitize stdout so we can match against it
-  return sanitizeNpmOutput(stdout);
 }
 
 function sanitizeNpmOutput(out) {
@@ -148,6 +133,7 @@ export function initFixtureSync(fixturePath: string) {
   }
   const project = path.join(root, 'project');
   const npmPrefix = path.join(root, 'npm');
+  const esyPrefix = path.join(root, 'esy');
 
   fs.copydirSync(fixturePath, project);
 
@@ -158,10 +144,54 @@ export function initFixtureSync(fixturePath: string) {
   packageJson.devDependencies.esy = esyRoot;
   fs.writeFileSync(packageJsonFilename, JSON.stringify(packageJson, null, 2), 'utf8');
 
+  const env = {
+    ...process.env,
+    ESY__PREFIX: esyPrefix,
+  };
+
+  const esy = (args: string[], options?: Object = {}) => {
+    options = {...options, env: {...options.env, ...env}};
+    return spawn(esyBin, args, options);
+  };
+
+  const esyRelease = (releaseType: string) => {
+    return esy(['release', releaseType, '--esy-version-for-dev-release', esyRoot], {
+      cwd: project,
+    });
+  };
+
+  const npm = (args: string[], options?: Object = {}) => {
+    options = {...options, env: {...options.env, ...env}};
+    return spawn('npm', args, options);
+  };
+
+  const npmPackAndInstall = async (p: string[]) => {
+    const whatToInstall = path.join(project, ...p);
+    const tarballFilename = await npm(['pack'], {
+      cwd: whatToInstall,
+    });
+    const stdout = await npm([
+      'install',
+      '--global',
+      '--prefix',
+      npmPrefix,
+      path.join(whatToInstall, tarballFilename),
+    ]);
+    // sanitize stdout so we can match against it
+    return sanitizeNpmOutput(stdout);
+  };
+
   return {
     description: packageJson.description || packageJson.name,
     root,
     project,
     npmPrefix,
+    esyPrefix,
+
+    esy,
+    esyRelease,
+
+    npm,
+    npmPackAndInstall,
   };
 }
