@@ -2,6 +2,8 @@
  * @flow
  */
 
+jest.setTimeout(200000);
+
 import * as path from 'path';
 import {initFixtureSync, readDirectory, cleanUp} from '../release/utils';
 
@@ -10,7 +12,7 @@ const fixture = initFixtureSync(path.join(__dirname, 'fixtures', 'errorneous-bui
 test(`build ${fixture.description}`, async function() {
   try {
     await fixture.esy(['build'], {cwd: fixture.project});
-  } catch(err) {
+  } catch (err) {
     return;
   }
   // fail if we are here

@@ -2,6 +2,8 @@
  * @flow
  */
 
+jest.setTimeout(200000);
+
 import * as path from 'path';
 import {initFixtureSync, readDirectory, cleanUp} from '../release/utils';
 
