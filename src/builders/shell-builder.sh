@@ -169,7 +169,7 @@ esyPerformInstall () {
 #
 
 esyReportFailure () {
-  local buildLog="$0"
+  local buildLog="$1"
   if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
     echo -e "${FG_RED}  → $cur__name @ $cur__version: build failed:\n"
     cat "$buildLog" | sed  's/^/  /'
