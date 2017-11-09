@@ -403,7 +403,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
         export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
       fi
 
-      ${Env.printEnvironment(S.getSandboxEnv(rootTask, config))}
+      ${Env.printEnvironment(S.getSandboxEnv(sandbox, config))}
     `,
   };
 

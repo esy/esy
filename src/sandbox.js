@@ -2,20 +2,37 @@
  * @flow
  */
 
-import type {Config, BuildTask, BuildSpec, EnvironmentVar} from './types';
+import type {Config, Sandbox, BuildTask, BuildSpec, EnvironmentVar} from './types';
 import * as Task from './build-task';
 
+/**
+ * Command env is used to execute arbitrary commands within the sandbox
+ * environment.
+ *
+ * Mainly used for dev, for example you'd want Merlin to be run
+ * within this environment.
+ */
 export function getCommandEnv(
-  task: BuildTask,
+  sandbox: Sandbox,
   config: Config<*>,
 ): Map<string, EnvironmentVar> {
+  const task = Task.fromSandbox(sandbox, config, {
+    includeDevDependencies: true,
+  });
   const env = new Map(task.env);
+  // we are not interested in overriden $SHELL here as user might have its own
+  // customizations in .profile or shell's .rc files.
   env.delete('SHELL');
   return env;
 }
 
+/**
+ * Sandbox env represent the environment which includes the root package.
+ *
+ * Mainly used to test the package as it's like it being installed.
+ */
 export function getSandboxEnv(
-  task: BuildTask,
+  sandbox: Sandbox,
   config: Config<*>,
 ): Map<string, EnvironmentVar> {
   const spec: BuildSpec = {
@@ -29,8 +46,8 @@ export function getSandboxEnv(
     sourceType: 'root',
     buildType: 'out-of-source',
     shouldBePersisted: false,
-    dependencies: new Map([[task.spec.name, task.spec]]),
-    errors: task.spec.errors,
+    dependencies: new Map([[sandbox.root.name, sandbox.root]]),
+    errors: sandbox.root.errors,
   };
   const {env} = Task.fromBuildSpec(spec, config);
   env.delete('SHELL');
