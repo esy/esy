@@ -17,11 +17,25 @@ import {renderSandboxSbConfig} from './util';
 import {defineScriptDir} from './bashgen';
 import {renderEnv} from '../Makefile';
 import * as S from '../sandbox';
+import * as T from '../build-task';
 import {renderBuildTaskCommand} from './makefile-builder';
 
 const log = createLogger('esy:shell-builder');
 
 const RUNTIME = fs.readFileSync(require.resolve('./shell-builder.sh'));
+
+function collectDependencies(root, immutableDeps, transientDeps) {
+  Graph.traverse(root, task => {
+    switch (task.spec.sourceType) {
+      case 'transient':
+        transientDeps.set(task.id, task);
+        break;
+      case 'immutable':
+        immutableDeps.set(task.id, task);
+        break;
+    }
+  });
+}
 
 export const eject = async (
   outputPath: string,
@@ -29,18 +43,14 @@ export const eject = async (
   sandbox: Sandbox,
   config: Config<path.AbsolutePath>,
 ) => {
-  const immutableDeps = [];
-  const transientDeps = [];
-  Graph.traverse(task, task => {
-    switch (task.spec.sourceType) {
-      case 'transient':
-        transientDeps.push(task);
-        break;
-      case 'immutable':
-        immutableDeps.push(task);
-        break;
-    }
-  });
+  const immutableDeps = new Map();
+  const transientDeps = new Map();
+
+  collectDependencies(task, immutableDeps, transientDeps);
+  for (const devDep of sandbox.devDependencies.values()) {
+    const task = T.fromBuildSpec(devDep, config);
+    collectDependencies(task, immutableDeps, transientDeps);
+  }
 
   const esyBuildWrapperEnv = {
     ESY_EJECT__ROOT: outputPath,
@@ -69,7 +79,7 @@ export const eject = async (
 
   await emitFile({
     filename: ['bin/command-env'],
-    contents: environment.printEnvironment(S.getCommandEnv(task, config)),
+    contents: environment.printEnvironment(S.getCommandEnv(sandbox, config)),
   });
 
   await emitFile({
@@ -88,7 +98,7 @@ export const eject = async (
     }),
   });
 
-  const checkImmutableDeps = immutableDeps.map(t => {
+  const checkImmutableDeps = Array.from(immutableDeps.values()).map(t => {
     const installPath = config.getFinalInstallPath(t.spec);
     return outdent`
 
@@ -101,7 +111,7 @@ export const eject = async (
   });
 
   const checkTransientDeps = await Promise.all(
-    transientDeps.map(async t => {
+    Array.from(transientDeps.values()).map(async t => {
       const installPath = config.getFinalInstallPath(t.spec);
       const prevMtimePath = config.getBuildPath(t.spec, '_esy', 'mtime');
       const sourcePath = await fs.realpath(config.getSourcePath(t.spec));
