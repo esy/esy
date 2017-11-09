@@ -28,6 +28,10 @@
   - [Directory Layout](#directory-layout)
     - [Global Cache](#global-cache)
     - [Top Level Project Build Artifacts](#top-level-project-build-artifacts)
+    - [Integration with OPAM packages repository](#integration-with-opam-packages-repository)
+      - [Consuming published OPAM packages](#consuming-published-opam-packages)
+      - [Converting OPAM packages manually](#converting-opam-packages-manually)
+      - [Implementation notes](#implementation-notes)
 - [Developing](#developing)
   - [Running Tests](#running-tests)
   - [Issues](#issues)
@@ -540,6 +544,46 @@ Support for "ejecting" a build is computed and stored in
               ├── i
               └── s
 
+#### Integration with OPAM packages repository
+
+##### Consuming published OPAM packages
+
+During `esy install` command running Esy resolves dependencies within the
+`@opam/*` npm scope using a special resolver which looks for a package in the
+OPAM repository.
+
+It converts OPAM package metadata into `package.json` with `esy` config section
+inferred and installs the OPAM package like any regular package inside the
+project's `node_modules` directory.
+
+For example, after running the following command:
+
+```
+% esy add @opam/lwt
+```
+
+You can inspect `node_modules/@opam/lwt/package.json` for Esy build configuration.
+
+##### Converting OPAM packages manually
+
+Esy provides a command `esy import-opam` which can be used like this to convert
+OPAM packages manually into `package.json`-based packages. For example to
+convert an lwt package from a repo:
+
+```
+% git clone https://github.com/ocsigen/lwt
+% cd lwt
+% esy import-opam lwt 3.1.0 ./opam > package.json
+```
+
+##### Implementation notes
+
+Code for `esy install` command (along with `esy add` and `esy install-cache`
+commands) is based on a fork of yarn — [esy-ocaml/esy-install][].
+
+OPAM to `package.json` metadata convertation is handled by
+[esy-ocaml/esy-opam][].
+
 ## Developing
 
 To make changes to `esy` and test them locally:
@@ -590,6 +634,8 @@ Release tag `next` is used to publish preview releases.
 [esy-ocaml-project]: https://github.com/esy-ocaml/esy-ocaml-project
 [esy-reason-project]: https://github.com/esy-ocaml/esy-ocaml-project
 [esy-ocaml/esy]: https://github.com/esy-ocaml/esy
+[esy-ocaml/esy-install]: https://github.com/esy-ocaml/esy-install
+[esy-ocaml/esy-opam]: https://github.com/esy-ocaml/esy-opam
 [OPAM]: https://opam.ocaml.org
 [npm]: https://npmjs.org
 [Reason]: https://reasonml.github.io
