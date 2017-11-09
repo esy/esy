@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.0.32
+
+* `esy shell` and `esy <anycommand>` now include dev-time dependencies (declared
+  via `devDependencies` in `package.json`) in the environment.
+
+  Examples of dev-time dependencies are `@opam/merlin`, `@opam/ocp-indent`
+  packages. Those are only used during development and are not used during the
+  build or runtime.
+
 ## 0.0.31
 
 * Fix an issue with `esy build/shell/<anycommand>` not to react properly on
