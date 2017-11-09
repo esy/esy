@@ -72,8 +72,12 @@ test-esy-release:
 test-esy-build:
 	@$(BIN)/jest ./__tests__/build/*-test.js
 
+test-e2e:
+	(cd __tests__ && bash symlink-workflow-test.sh)
+
 test:
 	@$(BIN)/jest ./src/__tests__ ./__tests__/build/*-test.js
+	$(MAKE) test-e2e
 
 #
 # Release
