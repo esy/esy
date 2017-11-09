@@ -2,6 +2,8 @@
 
 `package.json` workflow for native development with Reason/OCaml.
 
+[![Build Status](https://travis-ci.org/esy-ocaml/esy.svg?branch=master)](https://travis-ci.org/esy-ocaml/esy)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
