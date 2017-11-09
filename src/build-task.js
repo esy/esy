@@ -19,72 +19,92 @@ import {normalizePackageName, mergeIntoMap, mapValuesMap} from './util';
 import * as Graph from './graph';
 import * as Env from './environment';
 
-type BuildTaskParams = {
+type FromSandboxParams = {
+  env?: BuildEnvironment,
+  includeDevDependencies?: true,
+};
+
+export function fromSandbox<Path: path.Path>(
+  sandbox: Sandbox,
+  config: Config<Path>,
+  params?: FromSandboxParams = {},
+): BuildTask {
+  const env = new Map();
+  if (sandbox.env) {
+    mergeIntoMap(env, sandbox.env);
+  }
+  if (params.env != null) {
+    mergeIntoMap(env, params.env);
+  }
+  let spec = sandbox.root;
+  if (params.includeDevDependencies) {
+    spec = {...spec};
+    for (const devDep of sandbox.devDependencies.values()) {
+      spec.dependencies.set(devDep.id, devDep);
+    }
+  }
+  return fromBuildSpec(spec, config, {env});
+}
+
+type FromBuildSpecParams = {
   env?: BuildEnvironment,
 };
+
+type BuildScopes = {
+  localScope: BuildEnvironment,
+  globalScope: BuildEnvironment,
+};
+
+type FoldState = {
+  spec: BuildSpec,
+  task: BuildTask,
+  dependencies: Array<FoldState>,
+  allDependencies: Array<FoldState>,
+} & BuildScopes;
 
 /**
  * Produce a task graph from a build spec graph.
  */
 export function fromBuildSpec(
-  rootBuild: BuildSpec,
+  rootSpec: BuildSpec,
   config: Config<path.Path>,
-  params?: BuildTaskParams = {},
+  params?: FromBuildSpecParams = {},
 ): BuildTask {
   const {task} = Graph.topologicalFold(
-    rootBuild,
-    (dependencies, allDependencies, spec) => {
-      const scopes = computeScopes(dependencies, allDependencies, spec);
-      const task = createTask(scopes);
-      return {spec, scopes, task};
+    rootSpec,
+    (dependenciesMap, allDependenciesMap, spec) => {
+      const dependencies = Array.from(dependenciesMap.values());
+      const allDependencies = Array.from(allDependenciesMap.values());
+      const {localScope, globalScope} = computeScopes(
+        config,
+        dependencies,
+        allDependencies,
+        spec,
+      );
+      const task = createTask(spec, dependencies, allDependencies, {
+        localScope,
+        globalScope,
+      });
+      return {spec, task, dependencies, allDependencies, localScope, globalScope};
     },
   );
 
-  function computeScopes(dependencies, allDependencies, spec) {
-    // scope which is used to eval exported variables
-    const evalScope = getEvalScope(spec, dependencies, config);
-    // global env vars exported from a spec
-    const globalScope = new Map();
-    // local env vars exported from a spec
-    const localScope = new Map();
-    for (const name in spec.exportedEnv) {
-      const envConfig = spec.exportedEnv[name];
-      const value = renderWithScope(envConfig.val, evalScope).rendered;
-      const item = {
-        name,
-        value,
-        spec,
-        builtIn: false,
-        exported: true,
-        exclusive: Boolean(envConfig.exclusive),
-      };
-      if (envConfig.scope === 'global') {
-        globalScope.set(name, item);
-      } else {
-        localScope.set(name, item);
-      }
-    }
-    const scopes = {
-      spec,
-      localScope,
-      globalScope,
-      dependencies,
-      allDependencies,
-    };
-    return scopes;
-  }
-
-  function createTask(scopes): BuildTask {
+  function createTask(
+    spec: BuildSpec,
+    dependencies: Array<FoldState>,
+    allDependencies: Array<FoldState>,
+    scopes: BuildScopes,
+  ): BuildTask {
     const env = new Map();
-    const ocamlfindDest = config.getInstallPath(scopes.spec, 'lib');
+    const ocamlfindDest = config.getInstallPath(spec, 'lib');
 
     const OCAMLPATH = [];
     const PATH = [];
     const MAN_PATH = [];
 
-    const allDependencies = Array.from(scopes.allDependencies.values());
-    allDependencies.reverse();
-    for (const dep of allDependencies) {
+    const reversedAllDependencies = Array.from(allDependencies);
+    reversedAllDependencies.reverse();
+    for (const dep of reversedAllDependencies) {
       OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
       PATH.push(config.getFinalInstallPath(dep.spec, 'bin'));
       MAN_PATH.push(config.getFinalInstallPath(dep.spec, 'man'));
@@ -137,11 +157,11 @@ export function fromBuildSpec(
     const errors = [];
 
     // $cur__name, $cur__version and so on...
-    mergeIntoMap(env, getBuiltInScope(scopes.spec, config, true));
+    mergeIntoMap(env, getBuiltInScope(spec, config, true));
 
     // direct deps' local scopes
-    for (const dep of scopes.dependencies.values()) {
-      mergeIntoMap(env, dep.scopes.localScope);
+    for (const dep of dependencies) {
+      mergeIntoMap(env, dep.localScope);
     }
     // build's own local scope
     mergeIntoMap(env, scopes.localScope);
@@ -149,8 +169,8 @@ export function fromBuildSpec(
     mergeIntoMap(
       env,
       Env.merge(
-        Array.from(scopes.allDependencies.values())
-          .map(dep => dep.scopes.globalScope)
+        Array.from(allDependencies)
+          .map(dep => dep.globalScope)
           .concat(scopes.globalScope),
         evalIntoEnv,
       ),
@@ -161,26 +181,59 @@ export function fromBuildSpec(
     }
 
     const scope = new Map();
-    mergeIntoMap(scope, getEvalScope(scopes.spec, scopes.dependencies, config));
+    mergeIntoMap(scope, getEvalScope(spec, dependencies, config));
     mergeIntoMap(scope, env);
 
-    const buildCommand = scopes.spec.buildCommand.map(command =>
-      renderCommand(command, scope),
-    );
-    const installCommand = scopes.spec.installCommand.map(command =>
+    const buildCommand = spec.buildCommand.map(command => renderCommand(command, scope));
+    const installCommand = spec.installCommand.map(command =>
       renderCommand(command, scope),
     );
 
     return {
-      id: scopes.spec.id,
-      spec: scopes.spec,
+      id: spec.id,
+      spec,
       buildCommand,
       installCommand,
       env,
       scope,
-      dependencies: mapValuesMap(scopes.dependencies, dep => dep.task),
+      dependencies: dependencies.reduce((dependencies, {task}) => {
+        dependencies.set(task.id, task);
+        return dependencies;
+      }, new Map()),
       errors,
     };
+  }
+
+  function computeScopes(
+    config: Config<*>,
+    dependencies: Array<FoldState>,
+    allDependencies: Array<FoldState>,
+    spec,
+  ): BuildScopes {
+    // scope which is used to eval exported variables
+    const evalScope = getEvalScope(spec, dependencies, config);
+    // global env vars exported from a spec
+    const globalScope = new Map();
+    // local env vars exported from a spec
+    const localScope = new Map();
+    for (const name in spec.exportedEnv) {
+      const envConfig = spec.exportedEnv[name];
+      const value = renderWithScope(envConfig.val, evalScope).rendered;
+      const item = {
+        name,
+        value,
+        spec,
+        builtIn: false,
+        exported: true,
+        exclusive: Boolean(envConfig.exclusive),
+      };
+      if (envConfig.scope === 'global') {
+        globalScope.set(name, item);
+      } else {
+        localScope.set(name, item);
+      }
+    }
+    return {localScope, globalScope};
   }
 
   function renderCommand(command: Array<string> | string, scope) {
@@ -332,11 +385,15 @@ function evalIntoEnv<V: {name: string, value: string}>(
   return scope;
 }
 
-function getEvalScope(spec: BuildSpec, dependencies, config): BuildEnvironment {
+function getEvalScope(
+  spec: BuildSpec,
+  dependencies: Array<FoldState>,
+  config,
+): BuildEnvironment {
   const evalScope = new Map();
-  for (const dep of dependencies.values()) {
+  for (const dep of dependencies) {
     mergeIntoMap(evalScope, getBuiltInScope(dep.spec, config));
-    mergeIntoMap(evalScope, dep.scopes.localScope);
+    mergeIntoMap(evalScope, dep.localScope);
   }
   mergeIntoMap(evalScope, getBuiltInScope(spec, config));
   return evalScope;
@@ -378,21 +435,6 @@ export function expandWithScope<T: {value: string}>(
     },
   });
   return {rendered: rendered != null ? rendered : value};
-}
-
-export function fromSandbox<Path: path.Path>(
-  sandbox: Sandbox,
-  config: Config<Path>,
-  params?: BuildTaskParams,
-): BuildTask {
-  const env = new Map();
-  if (sandbox.env) {
-    mergeIntoMap(env, sandbox.env);
-  }
-  if (params != null && params.env != null) {
-    mergeIntoMap(env, params.env);
-  }
-  return fromBuildSpec(sandbox.root, config, {...params, env});
 }
 
 /**

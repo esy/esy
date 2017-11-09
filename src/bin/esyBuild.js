@@ -133,31 +133,25 @@ export default async function esyBuild(ctx: CommandContext) {
     : Builder.build;
 
   const [state, _] = await Promise.all([
-    handleBuildState(build(task, config, reporter)),
+    handleBuildFinalState(ctx, build(task, config, reporter)),
     ejectingBuild,
   ]);
 
-  async function handleBuildState(build) {
-    const state = await build;
-    if (state.state === 'failure') {
-      const errors = Builder.collectBuildErrors(state);
-      for (const error of errors) {
-        reportBuildError(error);
-      }
-      ctx.error();
-    }
+  // TODO: parallelize it
+  for (const devDep of sandbox.devDependencies.values()) {
+    const task = Task.fromBuildSpec(devDep, config, {env: sandbox.env});
+    await handleBuildFinalState(ctx, Builder.build(task, config, reporter));
   }
+}
 
-  await handleBuildState(build(task, config, reporter));
-
-  if (sandbox.devDependencies.size > 0) {
-    // TODO: we should perform this in parallel
-    for (const dep of sandbox.devDependencies.values()) {
-      const task = Task.fromBuildSpec(dep, config, {
-        env: Sandbox.getDefaultEnvironment(),
-      });
-      await handleBuildState(await build(task, config, reporter));
+async function handleBuildFinalState(ctx, build) {
+  const state = await build;
+  if (state.state === 'failure') {
+    const errors = Builder.collectBuildErrors(state);
+    for (const error of errors) {
+      reportBuildError(error);
     }
+    ctx.error();
   }
 }
 
