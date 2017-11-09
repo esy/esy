@@ -1,0 +1,15 @@
+{
+  "name": "dep",
+  "version": "1.0.0",
+  "license": "MIT",
+  "esy": {
+    "build": [
+      "cp $cur__root/dep $cur__target_dir/$cur__name",
+      "chmod +x $cur__target_dir/$cur__name"
+    ],
+    "install": [
+      "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+    ]
+  },
+  "dependencies": {}
+}
