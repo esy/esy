@@ -54,14 +54,15 @@ within the familiar npm-like workflow:
 
 ### For OPAM users
 
-For those who familiar with [OPAM][], esy provides a powerful alternative:
+For those who familiar with [OPAM][], esy provides a powerful alternative (to
+the `opam` tool, OPAM packages are still accessible with Esy):
 
 - Manages OCaml compilers and dependencies on a per project basis.
 
 - Sandboxes project environment by exposing only those packages which are
   defined as dependencies.
 
-- Fast parallel builds which are agressively cached.
+- Fast parallel builds which are agressively cached (even across different projects).
 
 - Keeps the ability to use packages published on OPAM repository.
 
@@ -194,24 +195,24 @@ This is how it looks for a [jbuilder][] based project:
 
   "esy": {
     "build": [
-      "jbuilder build bin/hello.exe"
+      "jbuilder build"
     ],
     "install": [
-      "jbuilder build @install",
-      "jbuilder install --prefix=$cur__install"
+      "esy-installer"
     ],
     "buildsinsource": "_build"
   },
 
   "dependencies": {
-    "anotherpackage": "1.0.0"
+    "anotherpackage": "1.0.0",
+    "@esy-ocaml/esy-installer"
   }
 }
 ```
 
 #### Specify Build & Install Commands
 
-The crucial pieces of configuration are `esy.build` and `esy.install` keys, then
+The crucial pieces of configuration are `esy.build` and `esy.install` keys, they
 specify how to build and install built artifacts.
 
 ##### `esy.build`
@@ -220,14 +221,13 @@ Describe how your project's default targets should be built by specifying
 a list of commands with `esy.build` config key.
 
 For example for a [jbuilder][] based project you'd want to call `jbuilder build`
-command for each of the target which is going to be installed later:
+command.
 
 ```
 {
   "esy": {
     "build": [
-      "jbuilder build bin/hello.exe",
-      "jbuilder build lib/MyLib.cmxa",
+      "jbuilder build",
     ]
   }
 }
@@ -241,24 +241,21 @@ when user calls `esy build` command.
 Describe how you project's built artifacts should be installed by specifying a
 list of commands with `esy.install` config key.
 
-For example for a [jbuilder][] based project you'd want to generate an `.install`
-file and then call `jbuild install` command:
-
-
 ```
 {
   "esy": {
     "build": [...],
     "install": [
-      "jbuilder build @install",
-      "jbuilder install --prefix $cur__install",
+      "esy-installer"
     ]
   }
 }
 ```
 
-Note the `$cur__install` variable which is used for an installation prefix. This
-variable is a part of [build environment](#build-environment) provided by Esy.
+For `jbuilder` based projects (and other projects which maintain `.install` file
+in opam format) that could be just a single `esy-installer` invokation. The
+command is a thin wrapper over `opam-installer` which configures it with Esy
+defaults.
 
 #### Enforcing Out Of Source Builds
 
