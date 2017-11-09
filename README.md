@@ -2,9 +2,9 @@
 
 `package.json` workflow for native development with Reason/OCaml.
 
-[![Travis](https://img.shields.io/travis/esy-ocaml/esy.svg)]()
-[![npm](https://img.shields.io/npm/v/esy.svg)]()
-[![npm (tag)](https://img.shields.io/npm/v/esy/next.svg)]()
+[![Travis](https://img.shields.io/travis/esy-ocaml/esy.svg)](https://travis-ci.org/esy-ocaml/esy)
+[![npm](https://img.shields.io/npm/v/esy.svg)](https://www.npmjs.com/package/esy)
+[![npm (tag)](https://img.shields.io/npm/v/esy/next.svg)](https://www.npmjs.com/package/esy)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
