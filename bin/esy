@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# The caches are compatible with any major version 3.
-ESY__CACHE_VERSION="3.x.x"
-
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -192,7 +189,8 @@ callAnyCommand() {
 
 if [ $# -eq 0 ]
 then
-  printHelp
+  callBuiltInCommand install
+  callBuiltInCommand__build
 elif [ $# -eq 1 ]; then
   case $1 in
     clean)
@@ -237,6 +235,7 @@ elif [ $# -eq 1 ]; then
     add)
       shift
       callBuiltInCommand add "$@"
+      callBuiltInCommand__build
       ;;
     install-cache)
       shift
