@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {CommandContext} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 
 import outdent from 'outdent';
 
@@ -13,8 +13,11 @@ const currentEsyVersion = require('../../package.json').version;
 
 const AVAILABLE_RELEASE_TYPE = ['dev', 'pack', 'bin'];
 
-export default async function releaseCommand(ctx: CommandContext) {
-  const [type, ...args] = ctx.args;
+export default async function releaseCommand(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
+  const [type, ...args] = invocation.args;
 
   if (type == null) {
     ctx.error(outdent`
@@ -42,7 +45,7 @@ export default async function releaseCommand(ctx: CommandContext) {
     version: pkg.version,
     sandboxPath: ctx.sandboxPath,
     esyVersionForDevRelease:
-      ctx.options.options.esyVersionForDevRelease || currentEsyVersion,
+      invocation.options.options.esyVersionForDevRelease || currentEsyVersion,
   });
 }
 

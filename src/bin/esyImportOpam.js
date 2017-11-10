@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {CommandContext} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 
 import * as EsyOpam from '@esy-ocaml/esy-opam';
 import * as semver from 'semver';
@@ -11,8 +11,11 @@ import * as fs from '../lib/fs';
 
 const AVAILABLE_OCAML_COMPILERS = [['4.4.2000', '~4.4.2000'], ['4.2.3000', '~4.2.3000']];
 
-export default async function importOpamCommand(ctx: CommandContext) {
-  const [packageName, packageVersion, opamFilename] = ctx.args;
+export default async function importOpamCommand(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
+  const [packageName, packageVersion, opamFilename] = invocation.args;
   if (opamFilename == null) {
     ctx.error(`usage: esy import-opam PACKAGENAME PACKAGEVERSION OPAMFILENAME`);
   }

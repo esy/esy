@@ -6,12 +6,15 @@ require('babel-polyfill');
 
 import type {Config, Sandbox, BuildTask, BuildPlatform} from '../types';
 import type {Options as SandboxOptions} from '../build-sandbox';
+import ConsoleReporter from '@esy-ocaml/esy-install/src/reporters/console/console-reporter';
 
 import loudRejection from 'loud-rejection';
 import userHome from 'user-home';
 import * as path from '../lib/path';
 import chalk from 'chalk';
 import parse from 'cli-argparse';
+
+const pkg = require('../../package.json');
 
 function getSandboxPath() {
   if (process.env.ESY__SANDBOX != null) {
@@ -78,7 +81,7 @@ export async function getBuildConfig(
 }
 
 function formatError(message: string, stack?: string) {
-  let result = `${chalk.red('error:')} ${message}`;
+  let result = message;
   if (stack != null) {
     result += `\n${stack}`;
   }
@@ -101,40 +104,28 @@ export function indent(string: string, indent: string) {
     .join('\n');
 }
 
-export function runYarnCommand() {
-  const doubleDashIndex = process.argv.findIndex(element => element === '--');
-  const startArgs = process.argv.slice(0, 2);
-  const args = process.argv.slice(
-    2,
-    doubleDashIndex === -1 ? process.argv.length : doubleDashIndex,
-  );
-  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
-
-  const installCacheFolder = path.join(getPrefixPath(), 'install-cache');
-  args.unshift('--cache-folder', installCacheFolder);
-
-  const EsyInstall = require('@esy-ocaml/esy-install/src/cli/index');
-  EsyInstall.main({startArgs, args, endArgs});
-}
-
 export type CommandContext = {
   prefixPath: string,
   sandboxPath: string,
   readOnlyStorePath: Array<string>,
   buildPlatform: BuildPlatform,
+  executeCommand: (commandName: string, args: string[]) => Promise<void>,
+  version: string,
+  reporter: ConsoleReporter,
+  error(message?: string): any,
+};
 
+export type CommandInvocation = {
   commandName: string,
   args: Array<string>,
   options: {
     options: {[name: string]: string},
     flags: {[name: string]: boolean},
   },
-
-  error(message?: string): any,
 };
 
 type Command = {
-  default: CommandContext => any,
+  default: (CommandContext, CommandInvocation) => any,
   options?: Object,
 };
 
@@ -154,32 +145,60 @@ const commandsByName: {[name: string]: () => Command} = {
 async function main() {
   const commandName = process.argv[2];
 
+  const isTTY = (process.stdout: any).isTTY;
+  const reporter = new ConsoleReporter({
+    emoji: isTTY,
+    verbose: false,
+    noProgress: !isTTY,
+    isSilent: process.env.ESY__SILENT === '1',
+  });
+  const error = (error?: Error | string) => {
+    if (error != null) {
+      const message = String(error.message ? error.message : error);
+      const stack = error.stack ? String(error.stack) : undefined;
+      reporter.error(formatError(message, stack));
+    }
+    reporter.close();
+    process.exit(1);
+  };
+
   if (commandName == null) {
-    error(`no command provided`);
+    error('no command provided');
   }
 
   const command = commandsByName[commandName];
   if (command != null) {
-    const commandImpl = command();
-    const options = parse(process.argv.slice(3), {...commandImpl.options, strict: true});
-    const args = [];
-    for (const opt of options.unparsed) {
-      if (opt.startsWith('-')) {
-        error(`unknown option ${opt}`);
+    reporter.header(commandName, pkg);
+
+    async function executeCommand(commandName, initialArgs) {
+      const command = commandsByName[commandName];
+      const commandImpl = command();
+      const options = parse(initialArgs, {
+        ...commandImpl.options,
+        strict: true,
+      });
+      const args = [];
+      for (const opt of options.unparsed) {
+        if (opt.startsWith('-')) {
+          error(`unknown option ${opt}`);
+        }
+        args.push(opt);
       }
-      args.push(opt);
+      await commandImpl.default(commandCtx, {commandName, args, options});
     }
+
     const commandCtx: CommandContext = {
+      version: pkg.version,
       prefixPath: getPrefixPath(),
       readOnlyStorePath: getReadOnlyStorePath(),
       sandboxPath: getSandboxPath(),
       buildPlatform: getBuildPlatform(),
-      commandName,
-      args,
-      options,
-      error: error,
+      executeCommand,
+      error,
+      reporter,
     };
-    await commandImpl.default(commandCtx);
+
+    await executeCommand(commandName, process.argv.slice(3));
   } else {
     error(`unknown command: ${commandName}`);
   }

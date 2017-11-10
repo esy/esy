@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {CommandContext} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 import type {BuildPlatform} from '../types';
 
 import * as path from 'path';
@@ -13,8 +13,11 @@ import {getSandbox} from './esy';
 import * as Config from '../config';
 import * as MakefileBuilder from '../builders/makefile-builder';
 
-export default async function buildEjectCommand(ctx: CommandContext) {
-  const [_buildEjectPath, buildPlatformArg] = ctx.args;
+export default async function buildEjectCommand(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
+  const [_buildEjectPath, buildPlatformArg] = invocation.args;
   const buildPlatform: BuildPlatform = determineBuildPlatformFromArgument(
     ctx,
     buildPlatformArg,

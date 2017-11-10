@@ -2,14 +2,17 @@
  * @flow
  */
 
-import type {CommandContext} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 
 import {getBuildConfig} from './esy';
 
 import outdent from 'outdent';
 
-export default async function configCommand(ctx: CommandContext) {
-  let [action, configKey] = ctx.args;
+export default async function configCommand(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
+  let [action, configKey] = invocation.args;
 
   if (action == null) {
     action = 'ls';

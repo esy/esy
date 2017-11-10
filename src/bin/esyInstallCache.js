@@ -2,9 +2,12 @@
  * @flow
  */
 
-import {type CommandContext, runYarnCommand} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
+import runYarnCommand from './runYarnCommand';
 
-export default async function esyInstall(ctx: CommandContext) {
-  process.argv[2] = 'cache';
-  runYarnCommand();
+export default async function esyInstallCache(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
+  await runYarnCommand(ctx, invocation, 'cache');
 }

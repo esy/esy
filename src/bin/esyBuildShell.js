@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {CommandContext} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 import type {BuildTask} from '../types';
 
 import {settings as configureObservatory} from 'observatory';
@@ -16,7 +16,10 @@ import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
 import {reportBuildError, createBuildProgressReporter} from './esyBuild';
 
-export default async function esyBuildShell(ctx: CommandContext) {
+export default async function esyBuildShell(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
   function findTaskBySourcePath(task: BuildTask, packageSourcePath) {
     const predicate = task =>
       path.join(config.sandboxPath, task.spec.sourcePath) === packageSourcePath;
@@ -34,7 +37,7 @@ export default async function esyBuildShell(ctx: CommandContext) {
     );
   }
 
-  const [packageSourcePath] = ctx.args;
+  const [packageSourcePath] = invocation.args;
 
   const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
