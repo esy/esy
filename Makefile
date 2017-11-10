@@ -37,6 +37,8 @@ help:
 	@echo "$$HELP"
 
 bootstrap:
+	@git submodule init
+	@git submodule update
 	@yarn
 
 doctoc:
