@@ -2,8 +2,12 @@
  * @flow
  */
 
-import {type CommandContext, runYarnCommand} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 
-export default async function esyInstall(ctx: CommandContext) {
-  runYarnCommand();
+import * as path from 'path';
+import runYarnCommand from './runYarnCommand.js';
+import esyBuild from './esyBuild.js';
+
+export default async function esyAdd(ctx: CommandContext, invocation: CommandInvocation) {
+  await runYarnCommand(ctx, invocation, 'add');
 }

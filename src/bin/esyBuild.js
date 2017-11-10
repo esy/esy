@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {CommandContext} from './esy';
+import type {CommandContext, CommandInvocation} from './esy';
 import type {BuildTask} from '../types';
 
 import {settings as configureObservatory} from 'observatory';
@@ -117,18 +117,28 @@ export function reportBuildError(error: Builder.BuildError) {
   }
 }
 
-export default async function esyBuild(ctx: CommandContext) {
+export default async function esyBuild(
+  ctx: CommandContext,
+  invocation: CommandInvocation,
+) {
   const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
   const task: BuildTask = Task.fromSandbox(sandbox, config);
-  const reporter = ctx.options.flags.silent ? undefined : createBuildProgressReporter();
+  const reporter = invocation.options.flags.silent
+    ? undefined
+    : createBuildProgressReporter();
 
   let ejectingBuild = null;
-  if (ctx.options.options.eject != null) {
-    ejectingBuild = ShellBuilder.eject(ctx.options.options.eject, task, sandbox, config);
+  if (invocation.options.options.eject != null) {
+    ejectingBuild = ShellBuilder.eject(
+      invocation.options.options.eject,
+      task,
+      sandbox,
+      config,
+    );
   }
 
-  const build = ctx.options.flags.dependenciesOnly
+  const build = invocation.options.flags.dependenciesOnly
     ? Builder.buildDependencies
     : Builder.build;
 
