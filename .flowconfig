@@ -1,5 +1,6 @@
 [ignore]
 <PROJECT_ROOT>/coverage/.*
+<PROJECT_ROOT>/esy-install/__tests__/.*
 <PROJECT_ROOT>/lib/.*
 <PROJECT_ROOT>/node_modules/y18n/test/.*
 <PROJECT_ROOT>/bin/EsyYarnCache-.*

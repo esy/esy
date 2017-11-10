@@ -111,18 +111,6 @@ callBuiltInCommand() {
 	node "$SCRIPTDIR/esy.js" "$@"
 }
 
-callBuiltInCommand__esyInstall() {
-  # This is how we resolve esy-install executable location within the
-  # dependency.
-  ESY_INSTALL=$(cd "$SCRIPTDIR" && node -p "require.resolve('@esy-ocaml/esy-install/bin/esy-install.js')")
-  ESY_INSTALL_CACHE="${SCRIPTDIR}/../_esyInstallCache-${ESY__CACHE_VERSION}"
-  # We set YARN_IGNORE_PATH to prevent esy-install from adhering to "yarn-path"
-  # in ".esyrc", we'll revisit this if we'd ever need this feature in the future.
-  # For now we'd like more robust setups with explicit bindings between
-  # executables.
-  YARN_IGNORE_PATH="1" node "$ESY_INSTALL" --cache-folder "$ESY_INSTALL_CACHE" "$@"
-}
-
 printHelp() {
   cat <<EOF
   Usage: $0 <command> [--help] [--version]
@@ -244,11 +232,15 @@ elif [ $# -eq 1 ]; then
       ;;
     install|i)
       shift
-      callBuiltInCommand__esyInstall install
+      callBuiltInCommand install
+      ;;
+    add)
+      shift
+      callBuiltInCommand add "$@"
       ;;
     install-cache)
       shift
-      callBuiltInCommand__esyInstall cache
+      callBuiltInCommand install-cache
       ;;
     version|--version|-v)
       printVersion
@@ -276,7 +268,7 @@ else
       ;;
     add)
       shift
-      callBuiltInCommand__esyInstall add "$@"
+      callBuiltInCommand add "$@"
       ;;
     build-shell)
       shift
@@ -284,7 +276,7 @@ else
       ;;
     install|i)
       shift
-      callBuiltInCommand__esyInstall install "$@"
+      callBuiltInCommand install "$@"
       ;;
     build|b)
       shift
@@ -299,7 +291,7 @@ else
       ;;
     install-cache)
       shift
-      callBuiltInCommand__esyInstall cache "$@"
+      callBuiltInCommand install-cache "$@"
       ;;
     release)
       shift

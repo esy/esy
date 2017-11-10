@@ -13,7 +13,6 @@ const releasePackageJson = {
   description: packageJson.description,
   dependencies: {
     '@esy-ocaml/esy-opam': packageJson.dependencies['@esy-ocaml/esy-opam'],
-    '@esy-ocaml/esy-install': packageJson.dependencies['@esy-ocaml/esy-install'],
   },
   engines: packageJson.engines,
   repository: packageJson.repository,

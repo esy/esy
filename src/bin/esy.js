@@ -101,6 +101,22 @@ export function indent(string: string, indent: string) {
     .join('\n');
 }
 
+export function runYarnCommand() {
+  const doubleDashIndex = process.argv.findIndex(element => element === '--');
+  const startArgs = process.argv.slice(0, 2);
+  const args = process.argv.slice(
+    2,
+    doubleDashIndex === -1 ? process.argv.length : doubleDashIndex,
+  );
+  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
+
+  const installCacheFolder = path.join(getPrefixPath(), 'install-cache');
+  args.unshift('--cache-folder', installCacheFolder);
+
+  const EsyInstall = require('@esy-ocaml/esy-install/src/cli/index');
+  EsyInstall.main({startArgs, args, endArgs});
+}
+
 export type CommandContext = {
   prefixPath: string,
   sandboxPath: string,
@@ -123,13 +139,16 @@ type Command = {
 };
 
 const commandsByName: {[name: string]: () => Command} = {
-  'build-eject': () => require('./esyBuildEject'),
   build: () => require('./esyBuild'),
-  'build-shell': () => require('./esyBuildShell'),
   release: () => require('./esyRelease'),
+  config: () => require('./esyConfig'),
+  install: () => require('./esyInstall'),
+  add: () => require('./esyAdd'),
+  'build-eject': () => require('./esyBuildEject'),
+  'build-shell': () => require('./esyBuildShell'),
   'import-opam': () => require('./esyImportOpam'),
   'print-env': () => require('./esyPrintEnv'),
-  config: () => require('./esyConfig'),
+  'install-cache': () => require('./esyInstallCache'),
 };
 
 async function main() {
