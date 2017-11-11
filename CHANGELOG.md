@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.0.34
+
+* Fix `esy add` to actually build after the install.
+
+* Run `esy` command wrapper with with `-e` so that we fail on errors.
+
 ## 0.0.33
 
 * Make `esy` invocation perform `esy install` and then `esy build`.
