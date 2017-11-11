@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 0.0.33
+
+* Make `esy` invocation perform `esy install` and then `esy build`.
+
+  This makes the workflow for starting a development on a project:
+
+  ```
+  % git clone project
+  % cd project
+  % esy
+  ```
+
+  Also if you change something in `package.json` you need to run:
+
+  ```
+  % esy
+  ```
+
+  Pretty simple and consistent with how Yarn behave.
+
+* Make `esy add <pkg>` automatically execute `esy build` after the installation
+  of the new package.
+
+  Previously users were required to call `esy build` manually.
+
+* Update OPAM package conversion to include `test`-filtered packages only
+  `devDependencies` (see #33 for details).
+
 ## 0.0.32
 
 * `esy shell` and `esy <anycommand>` now include dev-time dependencies (declared
