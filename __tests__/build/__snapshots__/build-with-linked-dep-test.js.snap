@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`build stdout 1`] = `
-"esy build v0.0.32
+"esy build v0.0.33
   → dep-of-with-linked-dep @ 1.0.0                         
 [NaNA  → dep-of-with-linked-dep @ 1.0.0             building... [NaNB[59D[NaNA  → dep-of-with-linked-dep @ 1.0.0                   BUILT [NaNB[59D[NaNA  → dep-of-with-linked-dep @ 1.0.0                   BUILT in NNNs[NaNB[66D[0;32m  → [0mwith-linked-dep @ 1.0.0"
 `;
