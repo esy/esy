@@ -15,6 +15,10 @@ import chalk from 'chalk';
 import parse from 'cli-argparse';
 
 const pkg = require('../../package.json');
+// for deterministic test output
+if (process.env.NODE_ENV === 'test') {
+  pkg.version = '0.0.0';
+}
 
 function getSandboxPath() {
   if (process.env.ESY__SANDBOX != null) {

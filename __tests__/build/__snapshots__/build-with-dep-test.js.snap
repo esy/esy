@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`build stdout 1`] = `
-"esy build v0.0.34
+"esy build v0.0.0
   → dep @ 1.0.0                                            
 [NaNA  → dep @ 1.0.0                                building... [NaNB[59D[NaNA  → dep @ 1.0.0                                      BUILT [NaNB[59D[NaNA  → dep @ 1.0.0                                      BUILT in NNNs[NaNB[66D[0;32m  → [0mwith-dep @ 1.0.0"
 `;
@@ -10,16 +10,17 @@ exports[`dep exec stdout 1`] = `"dep"`;
 
 exports[`esy local prefix dir 1`] = `
 "<root>
-| bin
-| | _build
-| | _shell
-| | build
-| | build-dependencies
-| | build-env
-| | command-env
-| | runtime.sh
-| | sandbox.sb
-| | shell
+| build
+| | bin
+| | | _build
+| | | _shell
+| | | build
+| | | build-dependencies
+| | | build-env
+| | | command-env
+| | | runtime.sh
+| | | sandbox.sb
+| | | shell
 | store
 | | b
 | | | with_dep-1.0.0
