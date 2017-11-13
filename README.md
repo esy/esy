@@ -636,7 +636,7 @@ To publish under custom release tag:
 Release tag `next` is used to publish preview releases.
 
 [esy-ocaml-project]: https://github.com/esy-ocaml/esy-ocaml-project
-[esy-reason-project]: https://github.com/esy-ocaml/esy-ocaml-project
+[esy-reason-project]: https://github.com/esy-ocaml/esy-reason-project
 [esy-ocaml/esy]: https://github.com/esy-ocaml/esy
 [esy-ocaml/esy-install]: https://github.com/esy-ocaml/esy-install
 [esy-ocaml/esy-opam]: https://github.com/esy-ocaml/esy-opam
