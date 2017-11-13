@@ -114,6 +114,7 @@ esyPerformBuild () {
 
   echo -e "${FG_GREEN}  → ${FG_RESET}$cur__name @ $cur__version"
   local buildLog="$cur__target_dir/_esy/log"
+  rm "$buildLog"
 
   # Run esy.build
   for cmd in "${esy_build__build_command[@]}"
