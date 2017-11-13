@@ -14,6 +14,9 @@
 
   Previously it was updating `package.json` even if `esy.json` was present.
 
+* Fix reporting errors with log files residing in sandbox-local stores (see
+  #38).
+
 ## 0.0.34
 
 * Fix `esy add` to actually build after the install.
