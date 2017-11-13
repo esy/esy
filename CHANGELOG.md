@@ -17,6 +17,8 @@
 * Fix reporting errors with log files residing in sandbox-local stores (see
   #38).
 
+* Shell builder now clears build log before performing the build (see #31).
+
 ## 0.0.34
 
 * Fix `esy add` to actually build after the install.
