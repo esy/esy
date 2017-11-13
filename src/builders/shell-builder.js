@@ -101,12 +101,10 @@ export const eject = async (
   const checkImmutableDeps = Array.from(immutableDeps.values()).map(t => {
     const installPath = config.getFinalInstallPath(t.spec);
     return outdent`
-
       if [ ! -d "${installPath}" ]; then
         buildDependencies
         return
       fi
-
     `;
   });
 
@@ -180,8 +178,8 @@ export const eject = async (
       }
 
       checkDependencies () {
-        ${checkTransientDeps.length > 0 ? checkTransientDeps.join('') : 'true'}
-        ${checkImmutableDeps.length > 0 ? checkImmutableDeps.join('') : 'true'}
+        ${checkTransientDeps.length > 0 ? checkTransientDeps.join('\n') : 'true'}
+        ${checkImmutableDeps.length > 0 ? checkImmutableDeps.join('\n') : 'true'}
       }
 
       checkDependencies
