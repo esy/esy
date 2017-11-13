@@ -310,6 +310,7 @@ export async function withBuildDriver(
   f: BuildDriver => Promise<void>,
 ): Promise<void> {
   const rootPath = config.getRootPath(task.spec);
+  const sourcePath = await fs.realpath(config.getSourcePath(task.spec));
   const installPath = config.getInstallPath(task.spec);
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
@@ -334,7 +335,7 @@ export async function withBuildDriver(
 
   if (config.requiresRootRelocation(task.spec)) {
     log('build mutates source directory, rsyncing sources to $cur__target_dir');
-    await fs.copydir(config.getSourcePath(task.spec), config.getBuildPath(task.spec), {
+    await fs.copydir(sourcePath, buildPath, {
       exclude: IGNORE_FOR_BUILD.map(p =>
         path.join(config.sandboxPath, task.spec.sourcePath, p),
       ),
