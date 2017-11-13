@@ -196,6 +196,11 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
    * Generate a pretty version of the path if possible.
    */
   prettifyPath: (path: string) => string,
+
+  /**
+   * Generate path for the sandbox based on package requests.
+   */
+  getSandboxPath: (requests: Array<string>) => string,
 };
 
 /**

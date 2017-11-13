@@ -64,9 +64,12 @@ export function getSandboxEnv(
 }
 
 import * as fs from './lib/fs';
+import * as path from './lib/path';
 import invariant from 'invariant';
+import {LOCKFILE_FILENAME} from '@esy-ocaml/esy-install/src/constants';
 import PackageResolver from '@esy-ocaml/esy-install/src/package-resolver';
 import Lockfile from '@esy-ocaml/esy-install/src/lockfile';
+import {stringify as lockStringify} from '@esy-ocaml/esy-install/src/lockfile';
 import YarnConfig from '@esy-ocaml/esy-install/src/config';
 import * as fetcher from '@esy-ocaml/esy-install/src/package-fetcher';
 import type {Manifest} from '@esy-ocaml/esy-install/src/types';
@@ -82,8 +85,8 @@ export async function resolveRequestToLockfile(
   return (1: any);
 }
 
-async function createResolver(config, sandboxPath, patterns: Array<string>) {
-  const requests = patterns.map(pattern => ({
+async function createResolver(config, sandboxPath, requests: Array<string>) {
+  const yarnRequests = requests.map(pattern => ({
     pattern,
     registry: 'npm',
     optional: false,
@@ -95,7 +98,15 @@ async function createResolver(config, sandboxPath, patterns: Array<string>) {
   await yarnConfig.init();
 
   const packageResolver = new PackageResolver(yarnConfig, lockfile);
-  await packageResolver.init(requests);
+  await packageResolver.init(yarnRequests);
+
+  // write lockfile
+  const lockfileObject = lockfile.getLockfile(packageResolver.patterns);
+  const lockfileFilename = path.join(sandboxPath, LOCKFILE_FILENAME);
+  const lockSource = lockStringify(lockfileObject, false, true);
+  await fs.writeFile(lockfileFilename, lockSource);
+
+  lockfile.cache = lockfileObject;
 
   const manifests: Array<Manifest> = await fetcher.fetch(
     packageResolver.getManifests(),
@@ -153,11 +164,12 @@ async function createResolver(config, sandboxPath, patterns: Array<string>) {
 }
 
 export async function fromRequest(
+  request: Array<string>,
   config: Config<*>,
-  req: SandboxRequest,
-  sandboxPath: string,
 ): Promise<Sandbox> {
-  const resolve = await createResolver(config, sandboxPath, req.packageSet);
+  const sandboxPath = config.getSandboxPath(request);
+  await fs.mkdirp(sandboxPath);
+  const resolve = await createResolver(config, sandboxPath, request);
   const env = getDefaultEnvironment();
 
   const resolutionCache: Map<string, Promise<string>> = new Map();
@@ -197,7 +209,7 @@ export async function fromRequest(
     options: {forRelease: true},
   };
 
-  const dependenciesReqs = req.packageSet.map(pattern => {
+  const dependenciesReqs = request.map(pattern => {
     const {name, spec} = parseDependencyPattern(pattern);
     return {type: 'regular', name, spec, pattern};
   });
