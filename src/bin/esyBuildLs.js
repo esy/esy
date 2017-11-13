@@ -7,6 +7,7 @@ import type {BuildSpec, Config} from '../types';
 
 import chalk from 'chalk';
 import * as fs from '../lib/fs';
+import * as path from '../lib/path';
 
 import {getSandbox, getBuildConfig} from './esy';
 
@@ -42,21 +43,33 @@ async function formatBuildSpecTree(
     }
   }
 
-  const prefix = indent === 0 ? '' : isLast ? '└── ' : '├── ';
-  let name = `${spec.name}@${spec.version}`;
-  if (indent > 0) {
-    name = `${name} (at ${spec.sourcePath})`;
+  const version = chalk.grey(`@${spec.version}`);
+  let name = `${spec.name}${version}`;
+  if (indent > 0 && spec.sourceType === 'transient') {
+    let loc = await fs.realpath(path.join(config.sandboxPath, spec.sourcePath));
+    loc = path.relative(config.sandboxPath, loc);
+    name = `${name} ${chalk.grey(loc)}`;
   }
-  const status = (await fs.exists(config.getFinalInstallPath(spec)))
-    ? chalk.green('built')
-    : chalk.blue('pending');
-  name = `${name} ${status}`;
+  const info = await formatBuildInfo(config, spec);
+  name = `${name} ${info}`;
   if (hasSeenIt) {
     name = chalk.grey(name);
   }
 
+  const prefix = indent === 0 ? '' : isLast ? '└── ' : '├── ';
   let line = `${prefix}${name}`;
   line = line.padStart(line.length + (indent - 1) * 4, '│   ');
 
   return [line].concat(await Promise.all(dependenciesLines)).join('\n');
+}
+
+async function formatBuildInfo(config, spec) {
+  const buildStatus = (await fs.exists(config.getFinalInstallPath(spec)))
+    ? chalk.green('[built]')
+    : chalk.blue('[build pending]');
+  let info = [buildStatus];
+  if (spec.sourceType === 'transient') {
+    info.push(chalk.blue('[local source]'));
+  }
+  return info.join(' ');
 }
