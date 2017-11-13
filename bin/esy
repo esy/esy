@@ -34,7 +34,7 @@ if [ -z "${ESY__LOCAL_STORE+x}" ]; then
 fi
 
 MAKEFILE_BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
-BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy"
+BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build"
 
 if [ -d "$ESY__SANDBOX/node_modules" ]; then
   DEPENDENCIES_PACKAGE_JSON=$(find "$ESY__SANDBOX/node_modules" -name 'package.json' -or -name 'esy.json')

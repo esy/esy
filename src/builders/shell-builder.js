@@ -159,7 +159,8 @@ export const eject = async (
 
       buildDependencies () {
         (cd "$ESY_SANDBOX" && \
-         "${process.argv[0]}" "${process.argv[1]}" build --dependencies-only)
+         "${process.argv[0]}" "${process
+      .argv[1]}" build --dependencies-only --eject "${outputPath}")
       }
 
       findMaxMtime () {
