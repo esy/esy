@@ -210,6 +210,10 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand__build
       ;;
+    build-ls)
+      shift
+      callBuiltInCommand build-ls
+      ;;
     build-shell)
       shift
       callBuiltInCommand build-shell
@@ -271,6 +275,10 @@ else
       shift
       callBuiltInCommand add "$@"
       callBuiltInCommand__build
+      ;;
+    build-ls)
+      shift
+      callBuiltInCommand build-ls "$@"
       ;;
     build-shell)
       shift

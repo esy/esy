@@ -131,6 +131,7 @@ type Command = {
 
 const commandsByName: {[name: string]: () => Command} = {
   build: () => require('./esyBuild'),
+  'build-ls': () => require('./esyBuildLs'),
   release: () => require('./esyRelease'),
   config: () => require('./esyConfig'),
   install: () => require('./esyInstall'),
