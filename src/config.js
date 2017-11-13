@@ -62,7 +62,7 @@ function _create<Path: path.Path>(
       genStorePath(STORE_INSTALL_TREE, build, segments),
 
     prettifyPath: (p: string) => {
-      if (store.path.indexOf(p) === -1) {
+      if (p.indexOf(store.path) === 0) {
         const relative = p.slice(store.path.length);
         return path.join(store.prettyPath, relative);
       } else {
