@@ -7,6 +7,7 @@ import * as os from 'os';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
 import * as path from './lib/path';
+import * as crypto from './lib/crypto';
 
 const NUM_CPUS = os.cpus().length;
 
@@ -77,6 +78,16 @@ function _create<Path: path.Path>(
       } else {
         return p;
       }
+    },
+
+    getSandboxPath: (requests: Array<string>) => {
+      // TODO: normalize requests?
+      requests = requests.slice(0);
+      requests.sort();
+      const id = crypto.hash(requests.join(' '));
+      // TODO: how to get prefix? is it availble in any config?
+      const prefixPath = path.dirname(store.path);
+      return path.join(prefixPath, 'sandbox', id);
     },
   };
   return buildConfig;

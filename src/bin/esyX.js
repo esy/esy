@@ -12,11 +12,9 @@ import * as T from '../build-task';
 import * as B from '../builders/simple-builder';
 
 export default async function esyX(ctx: CommandContext, invocation: CommandInvocation) {
-  const packages = Array.isArray(invocation.options.options.package)
-    ? invocation.options.options.package
-    : [invocation.options.options.package];
+  const requests = toArray(invocation.options.options.request);
   const config = await getBuildConfig(ctx);
-  const sandbox = await S.fromRequest(config, {packageSet: packages}, process.cwd());
+  const sandbox = await S.fromRequest(requests, config);
   const task = T.fromSandbox(sandbox, config);
   await handleFinalBuildState(
     ctx,
@@ -27,8 +25,12 @@ export default async function esyX(ctx: CommandContext, invocation: CommandInvoc
 }
 
 export const options = {
-  options: ['-p', '--package'],
+  options: ['-r', '--request'],
   alias: {
-    '-p': 'package',
+    '-r': 'request',
   },
 };
+
+function toArray(v) {
+  return [].concat(v);
+}
