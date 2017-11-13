@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 0.0.35
+
+* Add (undocumented yet) `esy build-ls` command.
+
+  This prints the build tree with build info.
+
+* Fix race condition between build process and build ejection (see #40).
+
+* Fix build error when building linked packages (see #36).
+
+* Fix `esy add` to update the correct manifest (see #36).
+
+  Previously it was updating `package.json` even if `esy.json` was present.
+
 ## 0.0.34
 
 * Fix `esy add` to actually build after the install.
