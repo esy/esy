@@ -77,6 +77,7 @@ export async function getBuildConfig(
   const {createForPrefix} = require('../config');
 
   return createForPrefix({
+    reporter: ctx.reporter,
     prefixPath: ctx.prefixPath,
     sandboxPath: ctx.sandboxPath,
     buildPlatform: ctx.buildPlatform,
@@ -140,6 +141,7 @@ const commandsByName: {[name: string]: () => Command} = {
   config: () => require('./esyConfig'),
   install: () => require('./esyInstall'),
   add: () => require('./esyAdd'),
+  x: () => require('./esyX'),
   'build-eject': () => require('./esyBuildEject'),
   'build-shell': () => require('./esyBuildShell'),
   'import-opam': () => require('./esyImportOpam'),

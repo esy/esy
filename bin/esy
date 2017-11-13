@@ -247,6 +247,9 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand install-cache
       ;;
+    x)
+      callBuiltInCommand x
+      ;;
     version|--version|-v)
       printVersion
       ;;
@@ -310,6 +313,9 @@ else
     config)
       shift
       callBuiltInCommand config "$@"
+      ;;
+    x)
+      callBuiltInCommand x "$@"
       ;;
     -*)
       echo Unknown option "$1" >&2

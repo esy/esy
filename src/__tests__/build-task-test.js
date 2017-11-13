@@ -4,6 +4,7 @@
 
 import type {BuildSpec} from '../types';
 import {expandWithScope, renderWithScope, fromBuildSpec} from '../build-task';
+import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import * as Config from '../config';
 
 function calculate(config, spec, params) {
@@ -66,6 +67,7 @@ const lwt = build({
 });
 
 const config = Config.create({
+  reporter: new NoopReporter(),
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
   buildPlatform: 'linux',

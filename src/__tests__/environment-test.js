@@ -2,6 +2,7 @@
  * @flow
  */
 
+import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import type {BuildSpec} from '../types';
 import {create as createConfig} from '../config';
 import {fromBuildSpec} from '../build-task';
@@ -29,6 +30,7 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
 }
 
 const config = createConfig({
+  reporter: new NoopReporter(),
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
   buildPlatform: 'linux',

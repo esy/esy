@@ -3,6 +3,9 @@
  */
 
 import * as path from './lib/path';
+import type {Reporter} from '@esy-ocaml/esy-install/src/reporters';
+
+export type {Reporter};
 
 export type StoreTree = 'i' | 'b' | 's';
 
@@ -127,6 +130,8 @@ export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
  * Build configuration.
  */
 export type Config<+Path: path.Path, RPath: Path = Path> = {
+  reporter: Reporter,
+
   /**
    * Which platform the build will actually be performed on. Not necessarily
    * the same platform that is constructing the build plan.

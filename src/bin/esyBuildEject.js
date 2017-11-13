@@ -24,7 +24,7 @@ export default async function buildEjectCommand(
     ctx.buildPlatform,
   );
   const sandbox = await getSandbox(ctx, {forRelease: true});
-  const buildConfig = createConfig(buildPlatform);
+  const buildConfig = createConfig(ctx, buildPlatform);
   MakefileBuilder.eject(
     sandbox,
     path.join(ctx.sandboxPath, 'node_modules', '.cache', '_esy', 'build-eject'),
@@ -40,10 +40,11 @@ export default async function buildEjectCommand(
  * That means that build env is generated in a way which can be configured later
  * with `$ESY_EJECT__SANDBOX` and `$ESY_EJECT__STORE` environment variables.
  */
-function createConfig(buildPlatform: BuildPlatform) {
+function createConfig(ctx, buildPlatform: BuildPlatform) {
   const STORE_PATH = '$ESY_EJECT__STORE';
   const SANDBOX_PATH = '$ESY_EJECT__SANDBOX';
   const buildConfig = Config.create({
+    reporter: ctx.reporter,
     storePath: STORE_PATH,
     sandboxPath: SANDBOX_PATH,
     buildPlatform,
