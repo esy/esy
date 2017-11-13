@@ -16,16 +16,16 @@ import invariant from 'invariant';
 import outdent from 'outdent';
 
 import * as fs from './lib/fs';
-import {computeHash, resolve, normalizePackageName} from './util';
+import {computeHash, resolve as resolveNodeModule, normalizePackageName} from './util';
 import * as Env from './environment';
 
 export type PackageJson = {
   name: string,
   version: string,
-  dependencies?: PackageJsonVersionSpec,
-  peerDependencies?: PackageJsonVersionSpec,
-  devDependencies?: PackageJsonVersionSpec,
-  optionalDependencies?: PackageJsonVersionSpec,
+  dependencies: PackageJsonVersionSpec,
+  peerDependencies: PackageJsonVersionSpec,
+  devDependencies: PackageJsonVersionSpec,
+  optionalDependencies: PackageJsonVersionSpec,
 
   // This is specific to npm, make sure we get rid of that if we want to port to
   // other package installers.
@@ -37,16 +37,23 @@ export type PackageJson = {
   esy: EsySpec,
 };
 
+export type Dependency = {
+  type: 'regular' | 'dev' | 'peer',
+  pattern: string,
+  name: string,
+  spec: string,
+};
+
 export type PackageJsonVersionSpec = {
   [name: string]: string,
 };
 
-type SandboxCrawlContext = {
+export type SandboxCrawlContext = {
   env: BuildEnvironment,
   sandboxPath: string,
   dependencyTrace: Array<string>,
   crawlBuild: (sourcePath: string, context: SandboxCrawlContext) => Promise<BuildSpec>,
-  resolve: (moduleName: string, baseDirectory: string) => Promise<string>,
+  resolve: (spec: Dependency, baseDirectory: string) => Promise<string>,
   options: Options,
 };
 
@@ -54,18 +61,18 @@ export type Options = {
   forRelease?: boolean,
 };
 
-export async function fromDirectory(
+export function getSandboxCrawlContext(
   sandboxPath: string,
-  options: Options = {},
-): Promise<Sandbox> {
-  // Caching module resolution actually speed ups sandbox crawling a lot.
+  env: BuildEnvironment,
+  options: Options,
+) {
   const resolutionCache: Map<string, Promise<string>> = new Map();
 
-  function resolveCached(packageName, baseDir): Promise<string> {
-    const key = `${baseDir}__${packageName}`;
+  function resolveCached(spec, baseDir): Promise<string> {
+    const key = `${baseDir}__${spec.name}`;
     let resolution = resolutionCache.get(key);
     if (resolution == null) {
-      resolution = resolve(packageName, baseDir);
+      resolution = resolveNodeModule(`${spec.name}/package.json`, baseDir);
       resolutionCache.set(key, resolution);
     }
     return resolution;
@@ -82,9 +89,7 @@ export async function fromDirectory(
     return build;
   }
 
-  const env = getDefaultEnvironment();
-
-  const crawlContext = {
+  const crawlContext: SandboxCrawlContext = {
     env,
     sandboxPath,
     resolve: resolveCached,
@@ -92,21 +97,50 @@ export async function fromDirectory(
     dependencyTrace: [],
     options,
   };
+  return crawlContext;
+}
 
-  const rootManifest = await readManifest(sandboxPath);
+function dependenciesFromObj(
+  type: 'regular' | 'peer' | 'dev',
+  obj: {[name: string]: string},
+): Dependency[] {
+  const reqs = [];
+  for (const name in obj) {
+    const spec = obj[name];
+    reqs.push({
+      type,
+      name,
+      spec,
+      pattern: `${name}@${spec}`,
+    });
+  }
+  return reqs;
+}
+
+export async function fromDirectory(
+  sandboxPath: string,
+  options: Options = {},
+): Promise<Sandbox> {
+  // Caching module resolution actually speed ups sandbox crawling a lot.
+  const env = getDefaultEnvironment();
+  const crawlContext = getSandboxCrawlContext(sandboxPath, env, options);
+
+  const rootManifest: PackageJson = await readManifest(sandboxPath);
   const root = await crawlBuild(sandboxPath, crawlContext);
+
+  const devDependenciesReqs = dependenciesFromObj('dev', rootManifest.devDependencies);
   const {dependencies: devDependencies} = await crawlDependencies(
     sandboxPath,
-    objectToDependencySpecs(rootManifest.devDependencies),
+    devDependenciesReqs,
     crawlContext,
   );
 
   return {env, devDependencies, root};
 }
 
-async function crawlDependencies(
+export async function crawlDependencies(
   baseDir: string,
-  dependencySpecs: string[],
+  dependencySpecs: Dependency[],
   context: SandboxCrawlContext,
 ): Promise<{dependencies: Map<string, BuildSpec>, errors: Array<{message: string}>}> {
   const dependencies = new Map();
@@ -114,20 +148,18 @@ async function crawlDependencies(
   const missingPackages = [];
 
   for (const spec of dependencySpecs) {
-    const {name} = parseDependencySpec(spec);
-
-    if (context.dependencyTrace.indexOf(name) > -1) {
+    if (context.dependencyTrace.indexOf(spec.name) > -1) {
       errors.push({
-        message: formatCircularDependenciesError(name, context),
+        message: formatCircularDependenciesError(spec.name, context),
       });
       continue;
     }
 
     let dependencyPackageJsonPath = '/does/not/exists';
     try {
-      dependencyPackageJsonPath = await context.resolve(`${name}/package.json`, baseDir);
+      dependencyPackageJsonPath = await context.resolve(spec, baseDir);
     } catch (_err) {
-      missingPackages.push(name);
+      missingPackages.push(spec.name);
       continue;
     }
 
@@ -149,21 +181,34 @@ async function crawlDependencies(
   return {dependencies, errors};
 }
 
-async function crawlBuild(
+export async function crawlBuild(
   sourcePath: string,
   context: SandboxCrawlContext,
 ): Promise<BuildSpec> {
-  const packageJson = await readManifest(sourcePath);
+  const packageJson: PackageJson = await readManifest(sourcePath);
   const isRootBuild = context.sandboxPath === sourcePath;
 
   let buildCommand = normalizeCommand(packageJson.esy.build);
   let installCommand = normalizeCommand(packageJson.esy.install);
 
-  const dependencySpecs = objectToDependencySpecs(
-    packageJson.dependencies,
-    packageJson.peerDependencies,
-  );
-  const {dependencies, errors} = await crawlDependencies(sourcePath, dependencySpecs, {
+  const dependenciesReqs: Dependency[] = [];
+  const dependenciesSeen = new Set();
+  for (const dep of dependenciesFromObj('regular', packageJson.dependencies)) {
+    if (dependenciesSeen.has(dep.pattern)) {
+      continue;
+    }
+    dependenciesSeen.add(dep.pattern);
+    dependenciesReqs.push(dep);
+  }
+  for (const dep of dependenciesFromObj('peer', packageJson.peerDependencies)) {
+    if (dependenciesSeen.has(dep.pattern)) {
+      continue;
+    }
+    dependenciesSeen.add(dep.pattern);
+    dependenciesReqs.push(dep);
+  }
+
+  const {dependencies, errors} = await crawlDependencies(sourcePath, dependenciesReqs, {
     ...context,
     dependencyTrace: context.dependencyTrace.concat(packageJson.name),
   });
@@ -172,7 +217,9 @@ async function crawlBuild(
   const isInstalled = packageJson._resolved != null;
   const realSourcePath = await fs.realpath(sourcePath);
   const source = packageJson._resolved || `local:${realSourcePath}`;
-  const nextSourcePath = path.relative(context.sandboxPath, sourcePath);
+  const nextSourcePath = sourcePath.startsWith(context.sandboxPath)
+    ? path.relative(context.sandboxPath, sourcePath)
+    : realSourcePath;
   const id = calculateBuildId(context.env, packageJson, source, dependencies);
 
   const spec: BuildSpec = {
@@ -306,31 +353,14 @@ function hash(value: mixed) {
   }
 }
 
-function parseDependencySpec(spec: string): {name: string, versionSpec: string} {
-  if (spec.startsWith('@')) {
-    const [_, name, versionSpec] = spec.split('@', 3);
-    return {name: '@' + name, versionSpec};
+export function parseDependencyPattern(pattern: string): {name: string, spec: string} {
+  if (pattern.startsWith('@')) {
+    const [_, name, spec] = pattern.split('@', 3);
+    return {name: '@' + name, spec};
   } else {
-    const [name, versionSpec] = spec.split('@');
-    return {name, versionSpec};
+    const [name, spec] = pattern.split('@');
+    return {name, spec};
   }
-}
-
-function objectToDependencySpecs(...objs) {
-  const dependencySpecList = [];
-  for (const obj of objs) {
-    if (obj == null) {
-      continue;
-    }
-    for (const name in obj) {
-      const versionSpec = obj[name];
-      const dependencySpec = `${name}@${versionSpec}`;
-      if (dependencySpecList.indexOf(dependencySpec) === -1) {
-        dependencySpecList.push(dependencySpec);
-      }
-    }
-  }
-  return dependencySpecList;
 }
 
 function formatCircularDependenciesError(dependency, context) {
@@ -365,4 +395,3 @@ function normalizeCommand(
     return command;
   }
 }
-

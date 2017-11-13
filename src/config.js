@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
+import type {Reporter, BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
 import * as os from 'os';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
@@ -16,6 +16,7 @@ function _create<Path: path.Path>(
   localStore: Store<Path>,
   readOnlyStores,
   buildPlatform,
+  reporter: Reporter,
 ): Config<Path> {
   const genStorePath = (tree: StoreTree, build: BuildSpec, segments: string[]) => {
     if (build.shouldBePersisted) {
@@ -35,7 +36,16 @@ function _create<Path: path.Path>(
     return false;
   };
 
-  const buildConfig = {
+  function getSourcePath(build: BuildSpec, ...segments): Path {
+    if (build.sourcePath.startsWith('/')) {
+      return (path.join(build.sourcePath, ...segments): any);
+    } else {
+      return (path.join(buildConfig.sandboxPath, build.sourcePath, ...segments): any);
+    }
+  }
+
+  const buildConfig: Config<Path> = {
+    reporter,
     sandboxPath,
     store,
     localStore,
@@ -44,14 +54,13 @@ function _create<Path: path.Path>(
     buildConcurrency: NUM_CPUS,
     requiresRootRelocation,
 
-    getSourcePath: (build: BuildSpec, ...segments) => {
-      return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
-    },
+    getSourcePath,
+
     getRootPath: (build: BuildSpec, ...segments) => {
       if (requiresRootRelocation(build)) {
         return genStorePath(STORE_BUILD_TREE, build, segments);
       } else {
-        return path.join(buildConfig.sandboxPath, build.sourcePath, ...segments);
+        return getSourcePath(build, ...segments);
       }
     },
     getBuildPath: (build: BuildSpec, ...segments) =>
@@ -74,12 +83,13 @@ function _create<Path: path.Path>(
 }
 
 export function create(params: {
+  reporter: Reporter,
   storePath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
   readOnlyStorePath: Array<string>,
 }): Config<path.AbstractPath> {
-  const {storePath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
+  const {reporter, storePath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
   const store = S.forAbstractPath(storePath);
   const localStore = S.forAbstractPath(
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
@@ -91,16 +101,18 @@ export function create(params: {
     localStore,
     readOnlyStores,
     buildPlatform,
+    reporter,
   );
 }
 
 export function createForPrefix(params: {
+  reporter: Reporter,
   prefixPath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
   readOnlyStorePath: Array<string>,
 }): Config<path.AbsolutePath> {
-  const {prefixPath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
+  const {reporter, prefixPath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
   const store = S.forPrefixPath(prefixPath);
   const localStore = S.forAbsolutePath(
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
@@ -112,5 +124,6 @@ export function createForPrefix(params: {
     localStore,
     readOnlyStores,
     buildPlatform,
+    reporter,
   );
 }
