@@ -15,7 +15,7 @@ import * as B from '../builders/simple-builder';
 export default async function esyX(ctx: CommandContext, invocation: CommandInvocation) {
   const requests = toArray(invocation.options.options.request);
   const config = await getBuildConfig(ctx);
-  const sandbox = await GlobalSandbox.fromRequest(requests, config);
+  const sandbox = await GlobalSandbox.create(requests, config);
   const task = T.fromSandbox(sandbox, config);
   await handleFinalBuildState(
     ctx,
