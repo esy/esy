@@ -265,9 +265,6 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand install-cache
       ;;
-    global-exec)
-      callBuiltInCommand global-exec
-      ;;
     x)
       callBuiltInCommand__x
       ;;
@@ -334,9 +331,6 @@ else
     config)
       shift
       callBuiltInCommand config "$@"
-      ;;
-    global-exec)
-      callBuiltInCommand global-exec "$@"
       ;;
     x)
       callBuiltInCommand__x "$@"

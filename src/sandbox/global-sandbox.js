@@ -130,10 +130,10 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
 }
 
 export async function create(
+  sandboxPath: string,
   request: Array<string>,
   config: Config<*>,
 ): Promise<Sandbox> {
-  const sandboxPath = config.getSandboxPath(request);
   await fs.mkdirp(sandboxPath);
   const resolve = await createResolver(config, sandboxPath, request);
   const env = Crawl.getDefaultEnvironment();
