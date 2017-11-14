@@ -74,6 +74,24 @@ callBuiltInCommand__build () {
   exec "$BUILD_EJECT_PATH/bin/build" "$@"
 }
 
+callBuiltInCommand__x () {
+  ensureBuildEjected --silent
+  local installOutput
+  installOutput=$("$BUILD_EJECT_PATH/bin/install")
+  if [ $? -ne 0 ]; then
+    echo "$installOutput"
+    exit 1
+  fi
+  source "$BUILD_EJECT_PATH/bin/sandbox-env"
+  shift
+  # Checks if command ($1) is present available
+  command -v "$1" >/dev/null 2>&1 || {
+    echo >&2 "$1 command is not installed.";
+    exit 1;
+  }
+  exec "$@"
+}
+
 ensureBuildEjected () {
   local needRebuild
   needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/bin/build")
@@ -247,8 +265,11 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand install-cache
       ;;
+    global-exec)
+      callBuiltInCommand global-exec
+      ;;
     x)
-      callBuiltInCommand x
+      callBuiltInCommand__x
       ;;
     version|--version|-v)
       printVersion
@@ -314,8 +335,11 @@ else
       shift
       callBuiltInCommand config "$@"
       ;;
+    global-exec)
+      callBuiltInCommand global-exec "$@"
+      ;;
     x)
-      callBuiltInCommand x "$@"
+      callBuiltInCommand__x "$@"
       ;;
     -*)
       echo Unknown option "$1" >&2
