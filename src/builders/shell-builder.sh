@@ -161,7 +161,7 @@ esyPerformInstall () {
     "$ESY_EJECT__ROOT/bin/fastreplacestring.exe" "$filename" "$cur__install" "$esy_build__install_root"
   done
   mv "$cur__install" "$esy_build__install_root"
-  echo -e "${FG_GREEN}  → $cur__name @ $cur__version: build complete${FG_RESET}"
+  echo -e "${FG_GREEN}  → $cur__name @ $cur__version: complete${FG_RESET}"
 
 }
 

@@ -10,6 +10,7 @@ import createLogger from 'debug';
 
 import * as path from '../lib/path';
 import * as fs from '../lib/fs';
+import * as child from '../lib/child_process';
 import {singleQuote} from '../lib/shell';
 import * as environment from '../environment';
 import * as Graph from '../graph';
@@ -80,6 +81,11 @@ export const eject = async (
   await emitFile({
     filename: ['bin/command-env'],
     contents: environment.printEnvironment(S.getCommandEnv(sandbox, config)),
+  });
+
+  await emitFile({
+    filename: ['bin/sandbox-env'],
+    contents: environment.printEnvironment(S.getSandboxEnv(sandbox, config)),
   });
 
   await emitFile({
@@ -204,6 +210,22 @@ export const eject = async (
   });
 
   await emitFile({
+    filename: ['bin/install'],
+    executable: true,
+    contents: outdent`
+      #!/bin/bash
+
+      set -e
+      set -o pipefail
+
+      ${renderEnv(esyBuildWrapperEnv)}
+
+      $ESY_EJECT__ROOT/bin/build-dependencies
+      exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_install" "$@"
+    `,
+  });
+
+  await emitFile({
     filename: ['bin/shell'],
     executable: true,
     contents: outdent`
@@ -239,6 +261,23 @@ export const eject = async (
   });
 
   await emitFile({
+    filename: ['bin/_install'],
+    contents: outdent`
+      set -e
+      set -o pipefail
+
+      ${renderEnv(esyBuildEnv)}
+
+      source "$ESY_EJECT__ROOT/bin/build-env"
+      source "$ESY_EJECT__ROOT/bin/runtime.sh"
+
+      rm -rf "$esy_build__install_root"
+      esyPerformBuild
+      esyPerformInstall
+    `,
+  });
+
+  await emitFile({
     filename: ['bin/_shell'],
     contents: outdent`
 
@@ -250,6 +289,18 @@ export const eject = async (
       esyShell
     `,
   });
+
+  await emitFile({
+    filename: ['bin/fastreplacestring.cpp'],
+    contents: fs.readFileSync(require.resolve('fastreplacestring/fastreplacestring.cpp')),
+  });
+
+  await child.spawn('g++', [
+    '-Ofast',
+    '-o',
+    path.join(outputPath, 'bin', 'fastreplacestring.exe'),
+    path.join(outputPath, 'bin', 'fastreplacestring.cpp'),
+  ]);
 };
 
 type File = {

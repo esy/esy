@@ -141,7 +141,7 @@ const commandsByName: {[name: string]: () => Command} = {
   config: () => require('./esyConfig'),
   install: () => require('./esyInstall'),
   add: () => require('./esyAdd'),
-  x: () => require('./esyX'),
+  'global-exec': () => require('./esyGlobalExec'),
   'build-eject': () => require('./esyBuildEject'),
   'build-shell': () => require('./esyBuildShell'),
   'import-opam': () => require('./esyImportOpam'),
