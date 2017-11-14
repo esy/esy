@@ -10,12 +10,17 @@ exports[`esy local prefix dir 1`] = `
 | build
 | | bin
 | | | _build
+| | | _install
 | | | _shell
 | | | build
 | | | build-dependencies
 | | | build-env
 | | | command-env
+| | | fastreplacestring.cpp
+| | | fastreplacestring.exe
+| | | install
 | | | runtime.sh
+| | | sandbox-env
 | | | sandbox.sb
 | | | shell
 | store

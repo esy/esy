@@ -32,6 +32,9 @@
       "<rootDir>/dist",
       "<rootDir>/esyInstallCache-3.x.x",
       "<rootDir>/lib"
+    ],
+    "transformIgnorePatterns": [
+      "<rootDir>/node_modules/(?!@esy-ocaml/esy-install)"
     ]
   },
   "license": "MIT",
