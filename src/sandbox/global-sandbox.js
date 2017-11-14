@@ -76,8 +76,16 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
       for (const v of versions) {
         if (semver.satisfies(v, dep.spec)) {
           const manifest = versionMap.get(v);
-          if (manifest != null && manifest._loc != null) {
-            return path.dirname(manifest._loc);
+          if (
+            manifest != null &&
+            manifest._loc != null &&
+            manifest._remote != null &&
+            manifest._remote.resolved != null
+          ) {
+            return {
+              resolved: manifest._remote.resolved,
+              sourcePath: path.dirname(manifest._loc),
+            };
           }
         }
       }
@@ -88,19 +96,32 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
         return null;
       }
       const manifest = manifestLocByResolution.get(lockedManifest.resolved);
-      if (manifest == null || manifest._loc == null) {
+      if (
+        manifest != null &&
+        manifest._loc != null &&
+        manifest._remote != null &&
+        manifest._remote.resolved != null
+      ) {
+        return {
+          resolved: manifest._remote.resolved,
+          sourcePath: path.dirname(manifest._loc),
+        };
+      } else {
         return null;
       }
-      return path.dirname(manifest._loc);
     }
   };
 
   const resolver = async dep => {
-    const sourcePath = await resolveCacheLocation(dep);
-    if (sourcePath == null) {
+    const res = await resolveCacheLocation(dep);
+    if (res == null) {
       return null;
     } else {
+      const {sourcePath, resolved} = res;
       const {manifest} = await M.read(sourcePath);
+      // This is what esy-install do. We probably need to consolidate this in a
+      // single place.
+      manifest._resolved = resolved;
       return {manifest, sourcePath};
     }
   };
@@ -108,7 +129,7 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
   return resolver;
 }
 
-export async function fromRequest(
+export async function create(
   request: Array<string>,
   config: Config<*>,
 ): Promise<Sandbox> {
