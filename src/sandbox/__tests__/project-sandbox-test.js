@@ -2,9 +2,9 @@
  * @flow
  */
 
-import * as fs from '../lib/fs';
-import * as FSRepr from '../lib/fs-repr';
-import {fromDirectory} from '../build-sandbox';
+import * as fs from '../../lib/fs';
+import * as FSRepr from '../../lib/fs-repr';
+import {create} from '../project-sandbox';
 
 function pkg(packageJson, ...dependencies) {
   const nodes = [FSRepr.file('package.json', packageJson)];
@@ -43,7 +43,7 @@ describe('build-sandbox', function() {
         version: '0.1.0',
       }).nodes,
     );
-    const sandbox = await fromDirectory(sandboxDir);
+    const sandbox = await create(sandboxDir);
     expect(sandbox.root).toMatchSnapshot();
   });
 
@@ -63,7 +63,7 @@ describe('build-sandbox', function() {
         }),
       ).nodes,
     );
-    const sandbox = await fromDirectory(sandboxDir);
+    const sandbox = await create(sandboxDir);
     expect(sandbox.root).toMatchSnapshot();
   });
 
@@ -77,7 +77,7 @@ describe('build-sandbox', function() {
         },
       }).nodes,
     );
-    const sandbox = await fromDirectory(sandboxDir);
+    const sandbox = await create(sandboxDir);
     expect(sandbox.root).toMatchSnapshot();
   });
 
@@ -100,7 +100,7 @@ describe('build-sandbox', function() {
         }),
       ).nodes,
     );
-    const sandbox = await fromDirectory(sandboxDir);
+    const sandbox = await create(sandboxDir);
     expect(sandbox.root).toMatchSnapshot();
   });
 });

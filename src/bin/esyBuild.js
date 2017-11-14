@@ -12,7 +12,6 @@ import outdent from 'outdent';
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
 import {indent, getSandbox, getBuildConfig} from './esy';
-import * as Sandbox from '../build-sandbox';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
 import * as ShellBuilder from '../builders/shell-builder';

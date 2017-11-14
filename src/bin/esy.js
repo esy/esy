@@ -5,7 +5,7 @@
 require('babel-polyfill');
 
 import type {Config, Sandbox, BuildTask, BuildPlatform} from '../types';
-import type {Options as SandboxOptions} from '../build-sandbox';
+import type {Options as SandboxOptions} from '../sandbox/project-sandbox';
 import ConsoleReporter from '@esy-ocaml/esy-install/src/reporters/console/console-reporter';
 
 import loudRejection from 'loud-rejection';
@@ -60,8 +60,8 @@ export async function getSandbox(
   ctx: CommandContext,
   options?: SandboxOptions,
 ): Promise<Sandbox> {
-  const Sandbox = require('../build-sandbox');
-  const sandbox = await Sandbox.fromDirectory(ctx.sandboxPath, options);
+  const ProjectSandbox = require('../sandbox/project-sandbox');
+  const sandbox = await ProjectSandbox.create(ctx.sandboxPath, options);
   if (sandbox.root.errors.length > 0) {
     sandbox.root.errors.forEach(error => {
       console.log(formatError(error.message));

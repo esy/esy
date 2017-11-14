@@ -215,12 +215,37 @@ export type Sandbox = {
   devDependencies: Map<string, BuildSpec>,
 };
 
+export type PackageManifestDependenciesCollection = {
+  [name: string]: string,
+};
+
+export type PackageManifest = {
+  name: string,
+  version: string,
+
+  dependencies: PackageManifestDependenciesCollection,
+  peerDependencies: PackageManifestDependenciesCollection,
+  devDependencies: PackageManifestDependenciesCollection,
+  optionalDependencies: PackageManifestDependenciesCollection,
+
+  // This is specific to npm, make sure we get rid of that if we want to port to
+  // other package installers.
+  //
+  // npm puts a resolved name there, for example for packages installed from
+  // github — it would be a URL to git repo and a sha1 hash of the tree.
+  _resolved?: string,
+
+  _loc?: string,
+
+  esy: EsyPackageManifest,
+};
+
 /**
  * This specifies Esy configuration within a package.json.
  *
  * Any change here likely results in minor or major version bump.
  */
-export type EsySpec = {
+export type EsyPackageManifest = {
   /**
    * Commands to execute during build phase.
    */
@@ -242,6 +267,6 @@ export type EsySpec = {
   exportedEnv: ExportEnvironmentSpec,
 };
 
-export type CommandSpec = null | string | Array<string | Array<string>>;
+export type CommandSpec = Array<string | Array<string>>;
 
 export type ExportEnvironmentSpec = {[name: string]: EnvironmentVarExport};

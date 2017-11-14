@@ -2,70 +2,11 @@
  * @flow
  */
 
-import type {Config, Sandbox, BuildTask, BuildSpec, EnvironmentVar} from './types';
-import semver from 'semver';
-import * as EsyOpam from '@esy-ocaml/esy-opam';
-import * as Task from './build-task';
-import {
-  type SandboxCrawlContext,
-  getDefaultEnvironment,
-  crawlDependencies,
-  crawlBuild,
-  parseDependencyPattern,
-} from './build-sandbox';
-
-/**
- * Command env is used to execute arbitrary commands within the sandbox
- * environment.
- *
- * Mainly used for dev, for example you'd want Merlin to be run
- * within this environment.
- */
-export function getCommandEnv(
-  sandbox: Sandbox,
-  config: Config<*>,
-): Map<string, EnvironmentVar> {
-  const task = Task.fromSandbox(sandbox, config, {
-    includeDevDependencies: true,
-  });
-  const env = new Map(task.env);
-  // we are not interested in overriden $SHELL here as user might have its own
-  // customizations in .profile or shell's .rc files.
-  env.delete('SHELL');
-  return env;
-}
-
-/**
- * Sandbox env represent the environment which includes the root package.
- *
- * Mainly used to test the package as it's like it being installed.
- */
-export function getSandboxEnv(
-  sandbox: Sandbox,
-  config: Config<*>,
-): Map<string, EnvironmentVar> {
-  const spec: BuildSpec = {
-    id: '__sandbox__',
-    name: '__sandbox__',
-    version: '0.0.0',
-    buildCommand: [],
-    installCommand: [],
-    exportedEnv: {},
-    sourcePath: '',
-    sourceType: 'root',
-    buildType: 'out-of-source',
-    shouldBePersisted: false,
-    dependencies: new Map([[sandbox.root.name, sandbox.root]]),
-    errors: sandbox.root.errors,
-  };
-  const {env} = Task.fromBuildSpec(spec, config);
-  env.delete('SHELL');
-  return env;
-}
-
-import * as fs from './lib/fs';
-import * as path from './lib/path';
+import type {Config, Sandbox, BuildSpec} from '../types';
 import invariant from 'invariant';
+import semver from 'semver';
+
+import * as EsyOpam from '@esy-ocaml/esy-opam';
 import {LOCKFILE_FILENAME} from '@esy-ocaml/esy-install/src/constants';
 import PackageResolver from '@esy-ocaml/esy-install/src/package-resolver';
 import Lockfile from '@esy-ocaml/esy-install/src/lockfile';
@@ -74,16 +15,10 @@ import YarnConfig from '@esy-ocaml/esy-install/src/config';
 import * as fetcher from '@esy-ocaml/esy-install/src/package-fetcher';
 import type {Manifest} from '@esy-ocaml/esy-install/src/types';
 
-type SandboxRequest = {
-  packageSet: Array<string>,
-};
-
-export async function resolveRequestToLockfile(
-  config: Config<*>,
-  req: SandboxRequest,
-): Promise<Lockfile> {
-  return (1: any);
-}
+import * as fs from '../lib/fs';
+import * as path from '../lib/path';
+import * as M from '../package-manifest';
+import * as Crawl from './crawl';
 
 async function createResolver(config, sandboxPath, requests: Array<string>) {
   const yarnRequests = requests.map(pattern => ({
@@ -128,7 +63,7 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
     }
   }
 
-  const resolver = async dep => {
+  const resolveCacheLocation = async dep => {
     if (dep.type === 'peer') {
       // peer dep resolutions aren't stored in a lockfile so we resolve them
       // against installed packages here
@@ -142,7 +77,7 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
         if (semver.satisfies(v, dep.spec)) {
           const manifest = versionMap.get(v);
           if (manifest != null && manifest._loc != null) {
-            return manifest._loc;
+            return path.dirname(manifest._loc);
           }
         }
       }
@@ -156,7 +91,17 @@ async function createResolver(config, sandboxPath, requests: Array<string>) {
       if (manifest == null || manifest._loc == null) {
         return null;
       }
-      return manifest._loc;
+      return path.dirname(manifest._loc);
+    }
+  };
+
+  const resolver = async dep => {
+    const sourcePath = await resolveCacheLocation(dep);
+    if (sourcePath == null) {
+      return null;
+    } else {
+      const {manifest} = await M.read(sourcePath);
+      return {manifest, sourcePath};
     }
   };
 
@@ -170,50 +115,52 @@ export async function fromRequest(
   const sandboxPath = config.getSandboxPath(request);
   await fs.mkdirp(sandboxPath);
   const resolve = await createResolver(config, sandboxPath, request);
-  const env = getDefaultEnvironment();
+  const env = Crawl.getDefaultEnvironment();
 
-  const resolutionCache: Map<string, Promise<string>> = new Map();
+  const resolutionCache = new Map();
 
-  async function resolveOrFail(spec) {
-    const resolution = await resolve(spec);
-    // TODO: proper error here
-    invariant(resolution != null, 'Unable to resolve: %s', spec.pattern);
-    return resolution;
-  }
-
-  function resolveCached(spec, baseDir): Promise<string> {
+  function resolveManifestCached(spec, baseDir) {
     let resolution = resolutionCache.get(spec.pattern);
     if (resolution == null) {
-      resolution = resolveOrFail(spec);
+      resolution = resolve(spec);
       resolutionCache.set(spec.pattern, resolution);
     }
     return resolution;
   }
 
   const buildCache: Map<string, Promise<BuildSpec>> = new Map();
-  function crawlBuildCached(sourcePath, context): Promise<BuildSpec> {
-    let build = buildCache.get(sourcePath);
+  function crawlBuildCached(context: Crawl.SandboxCrawlContext): Promise<BuildSpec> {
+    const key = context.sourcePath;
+    let build = buildCache.get(key);
     if (build == null) {
-      build = crawlBuild(sourcePath, context);
-      buildCache.set(sourcePath, build);
+      build = Crawl.crawlBuild(context);
+      buildCache.set(key, build);
     }
     return build;
   }
 
-  const crawlContext: SandboxCrawlContext = {
-    env: getDefaultEnvironment(),
-    sandboxPath: '/tmp',
-    resolve: resolveCached,
+  const manifest = M.normalizeManifest({
+    name: '__sandbox__',
+    version: '0.0.0',
+  });
+
+  const crawlContext: Crawl.SandboxCrawlContext = {
+    manifest,
+    sourcePath: sandboxPath,
+
+    env,
+    sandboxPath,
+    resolveManifest: resolveManifestCached,
     crawlBuild: crawlBuildCached,
     dependencyTrace: [],
     options: {forRelease: true},
   };
 
   const dependenciesReqs = request.map(pattern => {
-    const {name, spec} = parseDependencyPattern(pattern);
+    const {name, spec} = Crawl.parseDependencyPattern(pattern);
     return {type: 'regular', name, spec, pattern};
   });
-  const {dependencies} = await crawlDependencies('/tmp', dependenciesReqs, crawlContext);
+  const {dependencies} = await Crawl.crawlDependencies(dependenciesReqs, crawlContext);
   const root: BuildSpec = {
     id: '__sandbox__',
     name: '__sandbox__',

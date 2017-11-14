@@ -3,11 +3,12 @@
  */
 
 import type {CommandContext, CommandInvocation} from './esy';
+import type {PackageManifest} from '../types';
 
 import outdent from 'outdent';
 
 import {buildRelease} from '../release';
-import {readManifest} from '../build-sandbox';
+import * as M from '../package-manifest';
 
 const currentEsyVersion = require('../../package.json').version;
 
@@ -39,10 +40,10 @@ export default async function releaseCommand(
 
     `);
   }
-  const pkg = await readManifest(ctx.sandboxPath);
+  const {manifest} = await M.read(ctx.sandboxPath);
   await buildRelease({
     type: (type: any),
-    version: pkg.version,
+    version: manifest.version,
     sandboxPath: ctx.sandboxPath,
     esyVersionForDevRelease:
       invocation.options.options.esyVersionForDevRelease || currentEsyVersion,
