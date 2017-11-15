@@ -71,7 +71,11 @@ needRebuildTarget () {
 
 callBuiltInCommand__build () {
   ensureBuildEjected
-  exec "$BUILD_EJECT_PATH/bin/build" "$@"
+  if [ $# -eq 0 ]; then
+    exec "$BUILD_EJECT_PATH/bin/build"
+  else
+    exec "$BUILD_EJECT_PATH/bin/build-exec" "$@"
+  fi
 }
 
 callBuiltInCommand__x () {
