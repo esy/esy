@@ -70,7 +70,7 @@ needRebuildTarget () {
 }
 
 callBuiltInCommand__build () {
-  ensureBuildEjected --silent
+  ensureBuildEjected
   exec "$BUILD_EJECT_PATH/bin/build" "$@"
 }
 
