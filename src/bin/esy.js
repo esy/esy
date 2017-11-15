@@ -162,7 +162,7 @@ async function main() {
 
   const isTTY = (process.stdout: any).isTTY;
   const reporter = new ConsoleReporter({
-    emoji: isTTY,
+    emoji: false,
     verbose: false,
     noProgress: !isTTY,
     isSilent: process.env.ESY__SILENT === '1',

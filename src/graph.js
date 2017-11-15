@@ -7,6 +7,14 @@ type Node<N: Node<*>> = {
   +dependencies: Map<string, N>,
 };
 
+export function size(node: Node<*>): number {
+  let size = 0;
+  traverse(node, () => {
+    size += 1;
+  });
+  return size;
+}
+
 /**
  * BF traverse for a dep graph.
  */
