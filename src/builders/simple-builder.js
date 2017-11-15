@@ -8,6 +8,7 @@ import invariant from 'invariant';
 import createLogger from 'debug';
 import * as os from 'os';
 import * as nodefs from 'fs';
+import jsonStableStringify from 'json-stable-stringify';
 
 import {PromiseQueue} from '../lib/Promise';
 import * as path from '../lib/path';
@@ -370,6 +371,10 @@ export async function withBuildDriver(
   for (const item of task.env.values()) {
     envForExec[item.name] = item.value;
   }
+
+  log('placing _esy/idInfo');
+  const idInfoPath = path.join(buildPath, '_esy', 'idInfo');
+  await fs.writeFile(idInfoPath, jsonStableStringify(task.spec.idInfo, {space: '  '}));
 
   log('placing _esy/env');
   const envPath = path.join(buildPath, '_esy', 'env');

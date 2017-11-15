@@ -43,6 +43,9 @@ export type BuildSpec = {
   /** Unique identifier */
   +id: string,
 
+  /** Unique identifier */
+  +idInfo: mixed,
+
   /** Build name */
   +name: string,
 
