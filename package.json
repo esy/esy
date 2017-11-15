@@ -7,8 +7,7 @@
     "test": "make test"
   },
   "bin": {
-    "esy": "./bin/esy",
-    "esx": "./bin/esx"
+    "esy": "./bin/esy"
   },
   "repository": {
     "type": "git",
