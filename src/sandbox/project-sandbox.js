@@ -57,7 +57,7 @@ export async function create(
 
   const {manifest, filename: manifestFilename} = await M.read(sandboxPath);
 
-  const crawlContext: Crawl.SandboxCrawlContext = {
+  const crawlContext: Crawl.Context = {
     manifest,
     env,
     sourcePath: sandboxPath,

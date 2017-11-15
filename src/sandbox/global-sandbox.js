@@ -150,7 +150,7 @@ export async function create(
   }
 
   const buildCache: Map<string, Promise<BuildSpec>> = new Map();
-  function crawlBuildCached(context: Crawl.SandboxCrawlContext): Promise<BuildSpec> {
+  function crawlBuildCached(context: Crawl.Context): Promise<BuildSpec> {
     const key = context.sourcePath;
     let build = buildCache.get(key);
     if (build == null) {
@@ -165,7 +165,7 @@ export async function create(
     version: '0.0.0',
   });
 
-  const crawlContext: Crawl.SandboxCrawlContext = {
+  const crawlContext: Crawl.Context = {
     manifest,
     sourcePath: sandboxPath,
 

@@ -20,18 +20,15 @@ import {computeHash, resolve as resolveNodeModule, normalizePackageName} from '.
 import * as Env from '../environment';
 import * as M from '../package-manifest';
 
-export type SandboxCrawlContext = {
+export type Context = {
   manifest: PackageManifest,
   sourcePath: string,
 
   env: BuildEnvironment,
   sandboxPath: string,
   dependencyTrace: Array<string>,
-  crawlBuild: (context: SandboxCrawlContext) => Promise<BuildSpec>,
-  resolveManifest: (
-    dep: Dependency,
-    context: SandboxCrawlContext,
-  ) => Promise<?Resolution>,
+  crawlBuild: (context: Context) => Promise<BuildSpec>,
+  resolveManifest: (dep: Dependency, context: Context) => Promise<?Resolution>,
   options: Options,
 };
 
@@ -51,89 +48,9 @@ export type Options = {
   forRelease?: boolean,
 };
 
-export function dependenciesFromObj(
-  type: 'regular' | 'peer' | 'dev',
-  obj: {[name: string]: string},
-): Dependency[] {
-  const reqs = [];
-  for (const name in obj) {
-    const spec = obj[name];
-    reqs.push({
-      type,
-      name,
-      spec,
-      pattern: `${name}@${spec}`,
-    });
-  }
-  return reqs;
-}
-
-export async function fromDirectory(
-  sandboxPath: string,
-  options: Options = {},
-): Promise<Sandbox> {
-  const manifestResolutionCache = new Map();
-
-  function resolveManifestCached(dep, context): Promise<?Resolution> {
-    const baseDirectory = context.sourcePath;
-    const key = `${baseDirectory}__${dep.name}`;
-    let resolution = manifestResolutionCache.get(key);
-    if (resolution == null) {
-      resolution = M.resolve(dep.name, baseDirectory).then(res => {
-        if (res == null) {
-          return res;
-        }
-        return {
-          manifest: res.manifest,
-          sourcePath: path.dirname(res.filename),
-        };
-      });
-      manifestResolutionCache.set(key, resolution);
-    }
-    return resolution;
-  }
-
-  const buildCache: Map<string, Promise<BuildSpec>> = new Map();
-
-  function crawlBuildCached(context): Promise<BuildSpec> {
-    const key = context.sourcePath;
-    let build = buildCache.get(key);
-    if (build == null) {
-      build = crawlBuild(context);
-      buildCache.set(key, build);
-    }
-    return build;
-  }
-
-  const env = getDefaultEnvironment();
-
-  const {manifest, filename: manifestFilename} = await M.read(sandboxPath);
-
-  const crawlContext: SandboxCrawlContext = {
-    manifest,
-    env,
-    sourcePath: sandboxPath,
-    sandboxPath,
-    resolveManifest: resolveManifestCached,
-    crawlBuild: crawlBuildCached,
-    dependencyTrace: [],
-    options,
-  };
-
-  const root = await crawlBuildCached(crawlContext);
-
-  const devDependenciesReqs = dependenciesFromObj('dev', manifest.devDependencies);
-  const {dependencies: devDependencies} = await crawlDependencies(
-    devDependenciesReqs,
-    crawlContext,
-  );
-
-  return {env, devDependencies, root};
-}
-
 export async function crawlDependencies<R>(
   dependencySpecs: Dependency[],
-  context: SandboxCrawlContext,
+  context: Context,
 ): Promise<{dependencies: Map<string, BuildSpec>, errors: Array<{message: string}>}> {
   const dependencies = new Map();
   const errors = [];
@@ -172,7 +89,7 @@ export async function crawlDependencies<R>(
   return {dependencies, errors};
 }
 
-export async function crawlBuild<R>(context: SandboxCrawlContext): Promise<BuildSpec> {
+export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
   const dependenciesReqs: Dependency[] = [];
   const dependenciesSeen = new Set();
   for (const dep of dependenciesFromObj('regular', context.manifest.dependencies)) {
@@ -325,4 +242,21 @@ function formatMissingPackagesError(missingPackages, context) {
       At ${context.dependencyTrace.join(' -> ')}
       Did you forget to run "esy install" command?
   `;
+}
+
+export function dependenciesFromObj(
+  type: 'regular' | 'peer' | 'dev',
+  obj: {[name: string]: string},
+): Dependency[] {
+  const reqs = [];
+  for (const name in obj) {
+    const spec = obj[name];
+    reqs.push({
+      type,
+      name,
+      spec,
+      pattern: `${name}@${spec}`,
+    });
+  }
+  return reqs;
 }
