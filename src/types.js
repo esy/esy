@@ -215,6 +215,8 @@ export type Sandbox = {
   devDependencies: Map<string, BuildSpec>,
 };
 
+export type SandboxType = 'project' | 'global';
+
 export type PackageManifestDependenciesCollection = {
   [name: string]: string,
 };
@@ -265,6 +267,8 @@ export type EsyPackageManifest = {
    * Environment exported by the package
    */
   exportedEnv: ExportEnvironmentSpec,
+
+  sandboxType: SandboxType,
 };
 
 export type CommandSpec = Array<string | Array<string>>;

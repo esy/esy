@@ -13,6 +13,7 @@ import * as fs from '../lib/fs';
 import * as path from '../lib/path';
 import {indent, getSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
+import * as M from '../package-manifest';
 import * as Builder from '../builders/simple-builder';
 import * as ShellBuilder from '../builders/shell-builder';
 
@@ -120,8 +121,9 @@ export default async function esyBuild(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
+  const {manifest: {esy: {sandboxType}}} = await M.read(config.sandboxPath);
+  const sandbox = await getSandbox(ctx, {sandboxType});
   const task: BuildTask = Task.fromSandbox(sandbox, config);
   const reporter = invocation.options.flags.silent
     ? undefined
