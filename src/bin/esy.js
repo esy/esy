@@ -23,8 +23,8 @@ if (process.env.NODE_ENV === 'test') {
 class HighSeverityReporter extends NoopReporter {
   reporter: Reporter;
 
-  constructor(reporter, opts) {
-    super(opts);
+  constructor(reporter) {
+    super();
     this.reporter = reporter;
   }
 
@@ -209,9 +209,9 @@ async function main() {
     isSilent: process.env.ESY__SILENT === '1',
   });
 
-  const reporter = !flags.silent
-    ? consoleReporter
-    : new HighSeverityReporter(consoleReporter);
+  const highSeverityReporter = new HighSeverityReporter(consoleReporter);
+
+  const reporter = !flags.silent ? consoleReporter : highSeverityReporter;
 
   const error = (error?: Error | string) => {
     if (error != null) {
