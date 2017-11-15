@@ -31,25 +31,6 @@ class HighSeverityReporter extends NoopReporter {
   error(...args) {
     return this.reporter.error(...args);
   }
-
-  // XXX: We need to override this from NoopReporter because we use identity
-  // equality with spinners and NoopReporter just uses a single spinner object
-  // for an activitySet.
-  activitySet(total: number, workers: number) {
-    const spinners = [];
-    for (let i = 0; i < workers; i++) {
-      spinners.push({
-        clear() {},
-        setPrefix() {},
-        tick() {},
-        end() {},
-      });
-    }
-    return {
-      spinners,
-      end() {},
-    };
-  }
 }
 
 function getSandboxPath() {
