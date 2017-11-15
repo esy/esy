@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.36
+
+* Add `esy x <anycommand>` invocation which allows to execute `<anycommand>` as
+  if the project is installed (executables are in `$PATH` and so on).
+
+* New build progress reporter which is consistent with `esy install` command.
+
 ## 0.0.35
 
 * Add (undocumented yet) `esy build-ls` command.
