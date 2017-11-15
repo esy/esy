@@ -217,9 +217,9 @@ async function main() {
     if (error != null) {
       const message = String(error.message ? error.message : error);
       const stack = error.stack ? String(error.stack) : undefined;
-      consoleReporter.error(formatError(message, stack));
+      reporter.error(formatError(message, stack));
     }
-    consoleReporter.close();
+    reporter.close();
     process.exit(1);
   };
 
