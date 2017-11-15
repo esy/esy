@@ -38,6 +38,7 @@ export function getSandboxEnv(
 ): Map<string, EnvironmentVar> {
   const spec: BuildSpec = {
     id: '__sandbox__',
+    idInfo: null,
     name: '__sandbox__',
     version: '0.0.0',
     buildCommand: [],

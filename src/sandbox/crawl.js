@@ -11,11 +11,13 @@ import type {
 } from '../types';
 
 import * as JSON5 from 'json5';
+import jsonStableStringify from 'json-stable-stringify';
 import * as path from 'path';
 import invariant from 'invariant';
 import outdent from 'outdent';
 
 import * as fs from '../lib/fs';
+import * as crypto from '../lib/crypto';
 import {computeHash, resolve as resolveNodeModule, normalizePackageName} from '../util';
 import * as Env from '../environment';
 import * as M from '../package-manifest';
@@ -129,11 +131,16 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     ? path.relative(context.sandboxPath, context.sourcePath)
     : realSourcePath;
 
-  const source = context.manifest._resolved || `local:${realSourcePath}`;
-  const id = calculateBuildId(context.env, context.manifest, source, dependencies);
+  const {id, info: idInfo} = calculateBuildIdentity(
+    context.env,
+    context.manifest,
+    realSourcePath,
+    dependencies,
+  );
 
   const spec: BuildSpec = {
     id,
+    idInfo,
     name: context.manifest.name,
     version: context.manifest.version,
     exportedEnv: context.manifest.esy.exportedEnv,
@@ -170,14 +177,15 @@ export function getDefaultEnvironment(): BuildEnvironment {
   ]);
 }
 
-function calculateBuildId(
+function calculateBuildIdentity(
   env: BuildEnvironment,
   manifest: PackageManifest,
-  source: string,
+  sourcePath: string,
   dependencies: Map<string, BuildSpec>,
-): string {
+): {id: string, info: mixed} {
+  const source = manifest._resolved || `local:${sourcePath}`;
   const {name, version, esy} = manifest;
-  const h = hash({
+  const info = {
     env,
     source,
     manifest: {
@@ -186,31 +194,13 @@ function calculateBuildId(
       esy,
     },
     dependencies: Array.from(dependencies.values(), dep => dep.id),
-  });
-  if (process.env.NODE_ENV === 'test') {
-    return `${normalizePackageName(name)}-${version || '0.0.0'}`;
-  } else {
-    return `${normalizePackageName(name)}-${version || '0.0.0'}-${h.slice(0, 8)}`;
-  }
-}
-
-function hash(value: mixed) {
-  if (typeof value === 'object') {
-    if (value === null) {
-      return hash('null');
-    } else if (!Array.isArray(value)) {
-      const v = value;
-      const keys = Object.keys(v);
-      keys.sort();
-      return hash(keys.map(k => [k, v[k]]));
-    } else {
-      return hash(JSON.stringify(value.map(hash)));
-    }
-  } else if (value === undefined) {
-    return hash('undefined');
-  } else {
-    return computeHash(JSON.stringify(value));
-  }
+  };
+  const h = crypto.hash(jsonStableStringify(info, {space: '  '}), 'sha1');
+  const id =
+    process.env.NODE_ENV === 'test'
+      ? `${normalizePackageName(name)}-${version || '0.0.0'}`
+      : `${normalizePackageName(name)}-${version || '0.0.0'}-${h.slice(0, 8)}`;
+  return {id, info};
 }
 
 export function parseDependencyPattern(pattern: string): {name: string, spec: string} {

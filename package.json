@@ -68,6 +68,7 @@
     "cli-argparse": "^1.1.2",
     "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4",
     "fs-extra": "^3.0.1",
+    "json-stable-stringify": "https://github.com/substack/json-stable-stringify",
     "json5": "^0.5.1",
     "loud-rejection": "^1.6.0",
     "mkdirp": "^0.5.1",

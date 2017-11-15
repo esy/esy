@@ -15,6 +15,7 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
   }
   return {
     id: name,
+    idInfo: null,
     name,
     version: '0.1.0',
     dependencies,

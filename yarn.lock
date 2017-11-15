@@ -3065,6 +3065,12 @@ json-stable-stringify@^1.0.1:
   dependencies:
     jsonify "~0.0.0"
 
+"json-stable-stringify@https://github.com/substack/json-stable-stringify":
+  version "1.0.1"
+  resolved "https://github.com/substack/json-stable-stringify#e43ca2a1dcfc39bf1514684492767ef6040d1f3e"
+  dependencies:
+    jsonify "~0.0.0"
+
 json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"

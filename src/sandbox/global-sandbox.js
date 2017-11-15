@@ -97,6 +97,7 @@ export async function create(sandboxPath: string, options: Options): Promise<San
   const {dependencies} = await Crawl.crawlDependencies(dependenciesReqs, crawlContext);
   const root: BuildSpec = {
     id: '__sandbox__',
+    idInfo: null,
     name: '__sandbox__',
     version: '0.0.0',
     buildCommand: [],
