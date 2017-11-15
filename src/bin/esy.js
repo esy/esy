@@ -4,9 +4,9 @@
 
 require('babel-polyfill');
 
-import type {Config, Sandbox, BuildTask, BuildPlatform} from '../types';
+import type {Config, Reporter, Sandbox, BuildTask, BuildPlatform} from '../types';
 import type {Options as SandboxOptions} from '../sandbox/project-sandbox';
-import ConsoleReporter from '@esy-ocaml/esy-install/src/reporters/console/console-reporter';
+import {ConsoleReporter, NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 
 import loudRejection from 'loud-rejection';
 import userHome from 'user-home';
@@ -124,7 +124,7 @@ export type CommandContext = {
   buildPlatform: BuildPlatform,
   executeCommand: (commandName: string, args: string[]) => Promise<void>,
   version: string,
-  reporter: ConsoleReporter,
+  reporter: Reporter,
   error(message?: string): any,
 };
 
@@ -157,23 +157,54 @@ const commandsByName: {[name: string]: () => Command} = {
   'install-cache': () => require('./esyInstallCache'),
 };
 
+const options = {
+  flags: ['--silent'],
+};
+
 async function main() {
-  const commandName = process.argv[2];
+  let commandName = null;
+  const opts = [];
+  const args = [];
+
+  // We consiume all options which go before the command (if any), then we
+  // collect all remainings into `args` which then willbe processed by command
+  // specific argument parser.
+  for (let arg of process.argv.slice(2)) {
+    arg = arg.trim();
+    if (arg === '') {
+      continue;
+    }
+    if (commandName == null) {
+      if (arg.startsWith('-')) {
+        opts.push(arg);
+      } else {
+        commandName = arg;
+      }
+    } else {
+      args.push(arg);
+    }
+  }
+
+  const {flags} = parse(opts, options);
 
   const isTTY = (process.stdout: any).isTTY;
-  const reporter = new ConsoleReporter({
+
+  const consoleReporter = new ConsoleReporter({
     emoji: false,
     verbose: false,
     noProgress: !isTTY,
     isSilent: process.env.ESY__SILENT === '1',
   });
+
+  const reporter = !flags.silent ? consoleReporter : new NoopReporter();
+
   const error = (error?: Error | string) => {
     if (error != null) {
       const message = String(error.message ? error.message : error);
       const stack = error.stack ? String(error.stack) : undefined;
-      reporter.error(formatError(message, stack));
+      consoleReporter.error(formatError(message, stack));
     }
-    reporter.close();
+    consoleReporter.close();
     process.exit(1);
   };
 
@@ -181,9 +212,20 @@ async function main() {
     error('no command provided');
   }
 
-  const command = commandsByName[commandName];
-  if (command != null) {
+  if (commandName != null && commandsByName[commandName] != null) {
+    const command = commandsByName[commandName];
     reporter.header(commandName, pkg);
+
+    const commandCtx: CommandContext = {
+      version: pkg.version,
+      prefixPath: getPrefixPath(),
+      readOnlyStorePath: getReadOnlyStorePath(),
+      sandboxPath: getSandboxPath(),
+      buildPlatform: getBuildPlatform(),
+      executeCommand,
+      error,
+      reporter,
+    };
 
     async function executeCommand(commandName, initialArgs) {
       const command = commandsByName[commandName];
@@ -202,19 +244,8 @@ async function main() {
       await commandImpl.default(commandCtx, {commandName, args, options});
     }
 
-    const commandCtx: CommandContext = {
-      version: pkg.version,
-      prefixPath: getPrefixPath(),
-      readOnlyStorePath: getReadOnlyStorePath(),
-      sandboxPath: getSandboxPath(),
-      buildPlatform: getBuildPlatform(),
-      executeCommand,
-      error,
-      reporter,
-    };
-
-    await executeCommand(commandName, process.argv.slice(3));
-  } else {
+    await executeCommand(commandName, args);
+  } else if (commandName != null) {
     error(`unknown command: ${commandName}`);
   }
 }

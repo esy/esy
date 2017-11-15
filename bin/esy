@@ -70,7 +70,7 @@ needRebuildTarget () {
 }
 
 callBuiltInCommand__build () {
-  ensureBuildEjected
+  ensureBuildEjected --silent
   exec "$BUILD_EJECT_PATH/bin/build" "$@"
 }
 
@@ -93,13 +93,18 @@ callBuiltInCommand__x () {
 }
 
 ensureBuildEjected () {
+  local esyArgs
+  if [ "$1" == "--silent" ]; then
+    esyArgs="$esyArgs --silent"
+    shift
+  fi
   local needRebuild
   needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/bin/build")
   if [ "$needRebuild" == "true" ]; then
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    node "$SCRIPTDIR/esy.js" build \
+    node "$SCRIPTDIR/esy.js" "$esyArgs" build \
       --dependencies-only \
       --eject "$BUILD_EJECT_PATH" "$@"
     if [ $? -ne 0 ]; then
@@ -241,7 +246,7 @@ elif [ $# -eq 1 ]; then
       callBuiltInCommand import-opam
       ;;
     shell)
-      ensureBuildEjected --silent
+      ensureBuildEjected
       ENV="$BUILD_EJECT_PATH/bin/command-env" PS1="esy % " sh
       ;;
     print-env)
