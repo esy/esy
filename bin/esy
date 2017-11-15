@@ -94,16 +94,14 @@ callBuiltInCommand__x () {
 
 ensureBuildEjected () {
   local esyArgs
-  if [ "$1" == "--silent" ]; then
-    esyArgs="$esyArgs --silent"
-    shift
-  fi
   local needRebuild
   needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/bin/build")
   if [ "$needRebuild" == "true" ]; then
-    # Capture the error output
-    # Capturing stderr is very important to prevent nodejs from setting
-    # stderr to nonblocking mode
+    if [ "$1" == "--silent" ]; then
+      (>&2 echo "info: rebuilding project, this will take some time...")
+      esyArgs="$esyArgs --silent"
+      shift
+    fi
     node "$SCRIPTDIR/esy.js" "$esyArgs" build \
       --dependencies-only \
       --eject "$BUILD_EJECT_PATH" "$@"

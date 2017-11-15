@@ -140,6 +140,9 @@ export const eject = async (
     }),
   );
 
+  const nodeCmd = process.argv[0];
+  const esyCmd = process.argv[1];
+
   await emitFile({
     filename: ['bin/build-dependencies'],
     executable: true,
@@ -164,9 +167,9 @@ export const eject = async (
       esac
 
       buildDependencies () {
+        (>&2 echo "info: rebuilding project, this will take some time...")
         (cd "$ESY_SANDBOX" && \
-         "${process.argv[0]}" "${process
-      .argv[1]}" build --dependencies-only --eject "${outputPath}")
+         "${nodeCmd}" "${esyCmd}" --silent build --dependencies-only --eject "${outputPath}")
       }
 
       findMaxMtime () {
