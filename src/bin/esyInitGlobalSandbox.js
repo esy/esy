@@ -7,6 +7,7 @@ import type {CommandContext, CommandInvocation} from './esy';
 import {getSandbox, getBuildConfig} from './esy';
 import {handleFinalBuildState, createBuildProgressReporter} from './esyBuild';
 import * as GlobalSandbox from '../sandbox/global-sandbox';
+import * as C from '../config';
 import * as S from '../sandbox';
 import * as E from '../environment';
 import * as T from '../build-task';
@@ -18,14 +19,31 @@ export default async function esyInitGlobalSandbox(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  const [outputPath] = invocation.args;
-  if (outputPath == null) {
+  const [sandboxPath] = invocation.args;
+  if (sandboxPath == null) {
     ctx.error('provide path for the ejected sandbox');
   }
 
-  const requests = toArray(invocation.options.options.require);
-  const config = await getBuildConfig(ctx);
-  const sandbox = await GlobalSandbox.create(outputPath, requests, config);
+  const request = toArray(invocation.options.options.require);
+
+  const config = C.createForPrefix({
+    reporter: ctx.reporter,
+    prefixPath: ctx.prefixPath,
+    sandboxPath,
+    buildPlatform: ctx.buildPlatform,
+    readOnlyStorePath: ctx.readOnlyStorePath,
+  });
+
+  await GlobalSandbox.initialize(sandboxPath, request, {
+    installCachePath: path.join(ctx.prefixPath, 'install-cache'),
+    reporter: config.reporter,
+  });
+
+  const sandbox = await GlobalSandbox.create(sandboxPath, {
+    installCachePath: path.join(ctx.prefixPath, 'install-cache'),
+    reporter: config.reporter,
+  });
+
   const task = T.fromSandbox(sandbox, config);
 
   const buildDependencies = handleFinalBuildState(
@@ -34,7 +52,7 @@ export default async function esyInitGlobalSandbox(
   );
 
   const ejectSandbox = ShellBuilder.eject(
-    path.join(outputPath, 'build'),
+    path.join(sandboxPath, 'build'),
     task,
     sandbox,
     config,

@@ -80,6 +80,8 @@ SANDBOX_PATH="$ESY__PREFIX/sandbox/$SANDBOX_ID"
 
 if [ ! -d "$SANDBOX_PATH" ]; then
   node "$SCRIPTDIR/esy.js" init-global-sandbox $REQUIRE_ARGS "$SANDBOX_PATH"
+else
+  (cd $SANDBOX_PATH && $SANDBOX_PATH/build/bin/build-dependencies)
 fi
 
 source "$SANDBOX_PATH/build/bin/command-env"

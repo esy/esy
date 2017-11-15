@@ -58,10 +58,18 @@ function getBuildPlatform() {
 
 export async function getSandbox(
   ctx: CommandContext,
-  options?: SandboxOptions,
+  options?: {forRelease?: boolean, sandboxType?: 'global' | 'project'} = {},
 ): Promise<Sandbox> {
-  const ProjectSandbox = require('../sandbox/project-sandbox');
-  const sandbox = await ProjectSandbox.create(ctx.sandboxPath, options);
+  const {sandboxType = 'project', forRelease = false} = options;
+  const S =
+    sandboxType === 'project'
+      ? require('../sandbox/project-sandbox')
+      : require('../sandbox/global-sandbox');
+  const sandbox = await S.create(ctx.sandboxPath, {
+    installCachePath: path.join(ctx.prefixPath, 'install-cache'),
+    reporter: ctx.reporter,
+    forRelease,
+  });
   if (sandbox.root.errors.length > 0) {
     sandbox.root.errors.forEach(error => {
       console.log(formatError(error.message));
