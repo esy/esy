@@ -232,7 +232,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
         return spinner;
       }
     }
-    invariant(false, 'Cannot acquire spinner for the task');
+    return dummySpinner;
   }
 
   function freeSpinner(spinner) {
@@ -683,3 +683,10 @@ export function collectBuildErrors(state: BuildStateFailure): Array<BuildError> 
 
   return errors;
 }
+
+const dummySpinner = {
+  clear() {},
+  setPrefix(a, b) {},
+  tick(m) {},
+  end() {},
+};
