@@ -231,18 +231,7 @@ async function main() {
     const command = commandsByName[commandName];
     reporter.header(commandName, pkg);
 
-    const commandCtx: CommandContext = {
-      version: pkg.version,
-      prefixPath: getPrefixPath(),
-      readOnlyStorePath: getReadOnlyStorePath(),
-      sandboxPath: getSandboxPath(),
-      buildPlatform: getBuildPlatform(),
-      executeCommand,
-      error,
-      reporter,
-    };
-
-    async function executeCommand(commandName, initialArgs) {
+    const executeCommand = async (commandName, initialArgs) => {
       const command = commandsByName[commandName];
       const commandImpl = command();
       const options = parse(initialArgs, {
@@ -257,7 +246,18 @@ async function main() {
         args.push(opt);
       }
       await commandImpl.default(commandCtx, {commandName, args, options});
-    }
+    };
+
+    const commandCtx: CommandContext = {
+      version: pkg.version,
+      prefixPath: getPrefixPath(),
+      readOnlyStorePath: getReadOnlyStorePath(),
+      sandboxPath: getSandboxPath(),
+      buildPlatform: getBuildPlatform(),
+      executeCommand,
+      error,
+      reporter,
+    };
 
     await executeCommand(commandName, args);
   } else if (commandName != null) {
