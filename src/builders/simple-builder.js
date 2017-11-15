@@ -82,18 +82,16 @@ const BUILD_STATE_CACHED_SUCCESS = {
 /**
  * Build the entire sandbox starting from the `rootTask`.
  */
-export const build = async (
-  rootTask: BuildTask,
-  config: Config<path.AbsolutePath>,
-  onBuildStateChange?: (task: BuildTask, state: BuildState) => *,
-) => {
+export const build = async (rootTask: BuildTask, config: Config<path.AbsolutePath>) => {
   await initStores(config.store, config.localStore);
-  const performBuild = createBuilder(
-    config,
-    onBuildStateChange || onBuildStateChangeNoop,
-  );
 
-  return await Graph.topologicalFold(
+  // TODO: we need to know in advance how much builds will be performed, now we
+  // approximate this by the total size of the bild graph
+  const total = Graph.size(rootTask);
+  const activitySet = config.reporter.activitySet(total, config.buildConcurrency);
+  const performBuild = createBuilder(config, activitySet);
+
+  const state = await Graph.topologicalFold(
     rootTask,
     async (
       directDependencies: Map<string, Promise<FinalBuildState>>,
@@ -123,6 +121,10 @@ export const build = async (
       }
     },
   );
+
+  activitySet.end();
+
+  return state;
 };
 
 /**
@@ -131,15 +133,16 @@ export const build = async (
 export const buildDependencies = async (
   rootTask: BuildTask,
   config: Config<path.AbsolutePath>,
-  onBuildStateChange?: (task: BuildTask, status: BuildState) => *,
 ) => {
   await initStores(config.store, config.localStore);
-  const performBuild = createBuilder(
-    config,
-    onBuildStateChange || onBuildStateChangeNoop,
-  );
 
-  return await Graph.topologicalFold(
+  // TODO: we need to know in advance how much builds will be performed, now we
+  // approximate this by the total size of the bild graph
+  const total = Graph.size(rootTask) - 1;
+  const activitySet = config.reporter.activitySet(total, config.buildConcurrency);
+  const performBuild = createBuilder(config, activitySet);
+
+  const state = await Graph.topologicalFold(
     rootTask,
     async (
       directDependencies: Map<string, Promise<FinalBuildState>>,
@@ -173,14 +176,16 @@ export const buildDependencies = async (
       }
     },
   );
+
+  activitySet.end();
+
+  return state;
 };
 
-const createBuilder = (
-  config: Config<path.AbsolutePath>,
-  onBuildStateChange: (task: BuildTask, status: BuildState) => *,
-) => {
+const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
   const buildQueue = new PromiseQueue({concurrency: config.buildConcurrency});
   const taskInProgress = new Map();
+
   function isSpecExistsInStore(spec) {
     return fs.exists(config.getFinalInstallPath(spec));
   }
@@ -207,22 +212,42 @@ const createBuilder = (
     await fs.writeFile(checksumFilename, String(mtime));
   }
 
-  async function performBuildOrRelocate(task): Promise<void> {
+  async function performBuildOrRelocate(task, spinner): Promise<void> {
     for (const store of config.readOnlyStores) {
       if (await store.has(task.spec)) {
         await relocateBuild(store, config.store, task.spec);
         return;
       }
     }
-    await performBuild(task, config);
+    await performBuild(task, config, spinner);
+  }
+
+  const acquiredSpinners = new Set();
+  let buildNumber = 0;
+
+  function acquireSpinner() {
+    for (const spinner of activitySet.spinners) {
+      if (!acquiredSpinners.has(spinner)) {
+        acquiredSpinners.add(spinner);
+        return spinner;
+      }
+    }
+    invariant(false, 'Cannot acquire spinner for the task');
+  }
+
+  function freeSpinner(spinner) {
+    spinner.clear();
+    acquiredSpinners.delete(spinner);
   }
 
   function performBuildWithStatusReport(task, forced = false): Promise<FinalBuildState> {
     return buildQueue.add(async () => {
-      onBuildStateChange(task, {state: 'in-progress'});
+      buildNumber += 1;
+      const spinner = acquireSpinner();
+      spinner.setPrefix(buildNumber, `building ${task.spec.name}@${task.spec.version}`);
       const startTime = Date.now();
       try {
-        await performBuildOrRelocate(task);
+        await performBuildOrRelocate(task, spinner);
       } catch (error) {
         if (!(error instanceof BuildError)) {
           error = new InternalBuildError(task, error);
@@ -231,13 +256,12 @@ const createBuilder = (
           state: 'failure',
           error,
         };
-        onBuildStateChange(task, state);
         return state;
       }
       const endTime = Date.now();
       const timeEllapsed = endTime - startTime;
       const state = {state: 'success', timeEllapsed, cached: false, forced};
-      onBuildStateChange(task, state);
+      freeSpinner(spinner);
       return state;
     });
   }
@@ -265,14 +289,14 @@ const createBuilder = (
       } else {
         const isInStore = await isSpecExistsInStore(spec);
         if (spec.shouldBePersisted && isInStore) {
-          onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
+          //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
           inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
         } else if (!spec.shouldBePersisted) {
           const buildMtime = await readBuildMtime(spec);
           const maxMtime = await findBuildMtime(spec);
           log('build mtime, current mtime:', buildMtime, maxMtime);
           if (isInStore && maxMtime <= buildMtime) {
-            onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
+            //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
             inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
           } else {
             inProgress = performBuildWithStatusReport(task, true).then(async result => {
@@ -435,6 +459,7 @@ export async function withBuildDriver(
 async function performBuild(
   task: BuildTask,
   config: Config<path.AbsolutePath>,
+  spinner,
 ): Promise<void> {
   const isRoot = task.spec.sourcePath === '';
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
@@ -460,14 +485,17 @@ async function performBuild(
 
     try {
       for (const {command, renderedCommand} of task.buildCommand) {
+        spinner.tick(command);
         await driver.executeCommand(command, renderedCommand);
       }
 
       for (const {command, renderedCommand} of task.installCommand) {
+        spinner.tick(command);
         await driver.executeCommand(command, renderedCommand);
       }
 
       driver.log('rewriting paths in build artefacts');
+      spinner.tick('finishing...');
       await rewritePaths(
         config.getInstallPath(task.spec),
         driver.installPath,

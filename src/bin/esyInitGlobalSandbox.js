@@ -5,7 +5,7 @@
 import type {CommandContext, CommandInvocation} from './esy';
 
 import {getSandbox, getBuildConfig} from './esy';
-import {handleFinalBuildState, createBuildProgressReporter} from './esyBuild';
+import {handleFinalBuildState} from './esyBuild';
 import * as GlobalSandbox from '../sandbox/global-sandbox';
 import * as C from '../config';
 import * as S from '../sandbox';
@@ -46,10 +46,7 @@ export default async function esyInitGlobalSandbox(
 
   const task = T.fromSandbox(sandbox, config);
 
-  const buildDependencies = handleFinalBuildState(
-    ctx,
-    B.buildDependencies(task, config, createBuildProgressReporter()),
-  );
+  const buildDependencies = handleFinalBuildState(ctx, B.buildDependencies(task, config));
 
   const ejectSandbox = ShellBuilder.eject(
     path.join(sandboxPath, 'build'),

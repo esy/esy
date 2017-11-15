@@ -14,7 +14,7 @@ import * as fs from '../lib/fs';
 import {indent, getSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
-import {reportBuildError, createBuildProgressReporter} from './esyBuild';
+import {reportBuildError} from './esyBuild';
 
 export default async function esyBuildShell(
   ctx: CommandContext,
@@ -49,12 +49,11 @@ export default async function esyBuildShell(
       ? findTaskBySourcePath(rootTask, path.resolve(process.cwd(), packageSourcePath))
       : rootTask;
 
-  const reporter = createBuildProgressReporter();
-  const state = await Builder.buildDependencies(task, config, reporter);
+  const state = await Builder.buildDependencies(task, config);
   if (state.state === 'failure') {
     const errors = Builder.collectBuildErrors(state);
     for (const error of errors) {
-      reportBuildError(error);
+      reportBuildError(ctx, error);
     }
     ctx.error('build failed');
   }
