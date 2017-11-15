@@ -31,7 +31,7 @@ FG_GREEN='\033[0;32m'
 FG_WHITE='\033[1;37m'
 FG_RESET='\033[0m'
 
-# Configure sandbox mechanism
+esyBuildLog="$cur__target_dir/_esy/log"
 esySandboxCommand=""
 esyMtimeCommand="stat -c %Y"
 case $(uname) in
@@ -45,14 +45,29 @@ case $(uname) in
   *);;
 esac
 
+esyMessageBegin="$cur__name@$cur__version: building..."
+esyMessageComplete="$cur__name@$cur__version: done"
+esyMessageSeeLog="${FG_RED}$cur__name@$cur__version: build failed, see:\n\n $esyBuildLog\n\nfor details${FG_RESET}"
+esyMessageSeeLogInlineHeader="${FG_RED}$cur__name@$cur__version: build failed:\n${FG_RESET}"
+
 #
 # Execute command in build sandbox.
 #
 
 esyExecCommand () {
+  if [ "$1" == "--silent" ]; then
+    shift
+    echo "# COMMAND: " "$@" >> "$esyBuildLog"
+    esyExecCommandInSandbox "$@" >> "$esyBuildLog" 2>&1
+  else
+    esyExecCommandInSandbox "$@"
+  fi
+}
+
+esyExecCommandInSandbox () {
   $esySandboxCommand /bin/bash   \
-    --noprofile --norc              \
-    -e -u -o pipefail               \
+    --noprofile --norc           \
+    -e -u -o pipefail            \
     -c "$*"
 }
 
@@ -83,6 +98,7 @@ esyPrepareBuild () {
   fi
 
   mkdir -p "$cur__target_dir/_esy"
+  rm -f "$esyBuildLog"
 
 }
 
@@ -112,20 +128,17 @@ esyPerformBuild () {
 
   cd "$cur__root"
 
-  echo -e "${FG_GREEN}  → ${FG_RESET}$cur__name @ $cur__version"
-  local buildLog="$cur__target_dir/_esy/log"
-  rm -f "$buildLog"
-
   # Run esy.build
   for cmd in "${esy_build__build_command[@]}"
   do
     set +e
-    echo "# COMMAND: $cmd" >> "$buildLog"
-    esyExecCommand "$cmd" >> "$buildLog" 2>&1
+    esyExecCommand "$@" "$cmd"
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      esyReportFailure "$buildLog"
+      if [ "$1" == "--silent" ]; then
+        esyReportFailure
+      fi
       esyClean
       exit 1
     fi
@@ -138,19 +151,17 @@ esyPerformBuild () {
 #
 
 esyPerformInstall () {
-
-  local buildLog="$cur__target_dir/_esy/log"
-
   # Run esy.install
   for cmd in "${esy_build__install_command[@]}"
   do
     set +e
-    echo "# COMMAND: $cmd" >> "$buildLog"
-    esyExecCommand "$cmd" >> "$buildLog" 2>&1
+    esyExecCommand "$@" "$cmd"
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      esyReportFailure "$buildLog"
+      if [ "$1" == "--silent" ]; then
+        esyReportFailure
+      fi
       esyClean
       exit 1
     fi
@@ -161,7 +172,6 @@ esyPerformInstall () {
     "$ESY_EJECT__ROOT/bin/fastreplacestring.exe" "$filename" "$cur__install" "$esy_build__install_root"
   done
   mv "$cur__install" "$esy_build__install_root"
-  echo -e "${FG_GREEN}  → $cur__name @ $cur__version: complete${FG_RESET}"
 
 }
 
@@ -170,13 +180,13 @@ esyPerformInstall () {
 #
 
 esyReportFailure () {
-  local buildLog="$1"
   if [ "$esy_build__source_type" != "immutable" ] || [ ! -z "${CI+x}" ] ; then
-    echo -e "${FG_RED}  → $cur__name @ $cur__version: build failed:\n"
-    cat "$buildLog" | sed  's/^/  /'
+    echo -e "$esyMessageSeeLogInlineHeader"
+    echo -e "${FG_RED}"
+    cat "$esyBuildLog" | sed  's/^/  /'
     echo -e "${FG_RESET}"
   else
-    echo -e "${FG_RED}  → $cur__name @ $cur__version: build failed, see:\n\n $buildLog\n\nfor details${FG_RESET}"
+    echo -e "$esyMessageSeeLog"
   fi
 }
 
@@ -201,12 +211,16 @@ esyMaxBuildMtime () {
 
 esyBuild () {
   if [ "$esy_build__source_type" != "immutable" ]; then
+    echo -e "$esyMessageBegin"
     esyClean
-    esyPerformBuild
-    esyPerformInstall
+    esyPerformBuild --silent
+    esyPerformInstall --silent
+    echo -e "$esyMessageComplete"
   elif [ ! -d "$esy_build__install_root" ]; then
-    esyPerformBuild
-    esyPerformInstall
+    echo -e "$esyMessageBegin"
+    esyPerformBuild --silent
+    esyPerformInstall --silent
+    echo -e "$esyMessageComplete"
   fi
 }
 
@@ -222,8 +236,6 @@ esyShell () {
       export PS1=\"[$cur__name sandbox] $ \";
       source $ESY_EJECT__ROOT/bin/runtime.sh;
       set +e
-      set +u
-      set +o pipefail
       cd $cur__root
     ")
 }
