@@ -7,6 +7,21 @@
 
 * New build progress reporter which is consistent with `esy install` command.
 
+* Fix a bug with how build hashes are computed.
+
+* Add experimental `esx` command.
+
+  This is analogue to `esx`. It allows to initialize ad-hoc snadboxes with
+  needed packages and run commands right away:
+
+  ```
+  % esx -r ocaml -r @opam/reason rtop
+  ```
+
+  The command above will init a sandbox with `ocaml` and `@opam/reason` packages
+  inside and run `rtop` command (provided by `@opam/reason`). Such sandboxes are
+  cached so the next invocations have almost zero overhead.
+
 ## 0.0.35
 
 * Add (undocumented yet) `esy build-ls` command.
