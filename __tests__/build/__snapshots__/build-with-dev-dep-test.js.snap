@@ -2,9 +2,7 @@
 
 exports[`build stdout 1`] = `
 "esy build v0.0.0
-  → dep @ 1.0.0                                            
-[NaNA  → dep @ 1.0.0                                building... [NaNB[59D[NaNA  → dep @ 1.0.0                                      BUILT [NaNB[59D[NaNA  → dep @ 1.0.0                                      BUILT in NNNs[NaNB[66D  → dev-dep @ 1.0.0                                        
-[NaNA  → dev-dep @ 1.0.0                            building... [NaNB[59D[NaNA  → dev-dep @ 1.0.0                                  BUILT [NaNB[59D[NaNA  → dev-dep @ 1.0.0                                  BUILT in NNNs[NaNB[66D[0;32m  → [0mwith-dev-dep @ 1.0.0"
+[0;32m  → [0mwith-dev-dep @ 1.0.0"
 `;
 
 exports[`dep exec stdout 1`] = `"dep"`;
