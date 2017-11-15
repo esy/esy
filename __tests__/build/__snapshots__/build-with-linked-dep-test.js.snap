@@ -1,9 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`build stdout 1`] = `
-"esy build v0.0.0
-[0;32m  → [0mwith-linked-dep @ 1.0.0"
-`;
+exports[`build stdout 1`] = `"esy build v0.0.0"`;
 
 exports[`dep exec stdout 1`] = `"dep-of-with-linked-dep"`;
 
@@ -38,7 +35,6 @@ exports[`esy local prefix dir 1`] = `
 | | | | dep-of-with-linked-dep
 | | | with_linked_dep-1.0.0
 | | | | _esy
-| | | | | log
 | | | | with-linked-dep
 | | i
 | | | dep_of_with_linked_dep-1.0.0
