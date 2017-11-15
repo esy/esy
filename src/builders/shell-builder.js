@@ -108,7 +108,7 @@ export const eject = async (
     const installPath = config.getFinalInstallPath(t.spec);
     return outdent`
       if [ ! -d "${installPath}" ]; then
-        buildDependencies
+        buildDependencies "$@"
         return
       fi
     `;
@@ -121,19 +121,19 @@ export const eject = async (
       const sourcePath = await fs.realpath(config.getSourcePath(t.spec));
       return outdent`
       if [ ! -d "${installPath}" ]; then
-        buildDependencies
+        buildDependencies "$@"
         return
       fi
 
       if [ ! -f "${prevMtimePath}" ]; then
-        buildDependencies
+        buildDependencies "$@"
         return
       fi
 
       prevMtime=$(cat "${prevMtimePath}")
       curMtime=$(findMaxMtime "${sourcePath}")
       if [ "$curMtime" -gt "$prevMtime" ]; then
-        buildDependencies
+        buildDependencies "$@"
         return
       fi
     `;
@@ -167,9 +167,11 @@ export const eject = async (
       esac
 
       buildDependencies () {
-        (>&2 echo "info: rebuilding project, this will take some time...")
+        if [ "$1" == "--silent" ]; then
+          (>&2 echo "info: rebuilding project, this will take some time...")
+        fi
         (cd "$ESY_SANDBOX" && \
-         "${nodeCmd}" "${esyCmd}" --silent build --dependencies-only --eject "${outputPath}")
+         "${nodeCmd}" "${esyCmd}" "$@" build --dependencies-only --eject "${outputPath}")
       }
 
       findMaxMtime () {
@@ -192,7 +194,7 @@ export const eject = async (
         ${checkImmutableDeps.length > 0 ? checkImmutableDeps.join('\n') : 'true'}
       }
 
-      checkDependencies
+      checkDependencies "$@"
     `,
   });
 
@@ -208,6 +210,22 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
+      exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_build"
+    `,
+  });
+
+  await emitFile({
+    filename: ['bin/build-exec'],
+    executable: true,
+    contents: outdent`
+      #!/bin/bash
+
+      set -e
+      set -o pipefail
+
+      ${renderEnv(esyBuildWrapperEnv)}
+
+      $ESY_EJECT__ROOT/bin/build-dependencies --silent
       exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_build" "$@"
     `,
   });
