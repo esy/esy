@@ -683,5 +683,3 @@ export function collectBuildErrors(state: BuildStateFailure): Array<BuildError> 
 
   return errors;
 }
-
-function onBuildStateChangeNoop(task, state) {}
