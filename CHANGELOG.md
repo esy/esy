@@ -7,6 +7,8 @@
 
 * New build progress reporter which is consistent with `esy install` command.
 
+* `esy build` command now shows output of build commands on stdout.
+
 * Fix a bug with how build hashes are computed.
 
 * Add experimental `esx` command.
