@@ -19,6 +19,7 @@ exports[`esy local prefix dir 1`] = `
 | | | build
 | | | build-dependencies
 | | | build-env
+| | | build-exec
 | | | command-env
 | | | fastreplacestring.cpp
 | | | fastreplacestring.exe
@@ -52,12 +53,14 @@ exports[`esy prefix dir 1`] = `
 | | | dep-1.0.0
 | | | | _esy
 | | | | | env
+| | | | | idInfo
 | | | | | log
 | | | | | sandbox.sb
 | | | | dep
 | | | dev_dep-1.0.0
 | | | | _esy
 | | | | | env
+| | | | | idInfo
 | | | | | log
 | | | | | sandbox.sb
 | | | | dev-dep
@@ -88,12 +91,14 @@ exports[`esy prefix dir 1`] = `
 | | | dep-1.0.0
 | | | | _esy
 | | | | | env
+| | | | | idInfo
 | | | | | log
 | | | | | sandbox.sb
 | | | | dep
 | | | dev_dep-1.0.0
 | | | | _esy
 | | | | | env
+| | | | | idInfo
 | | | | | log
 | | | | | sandbox.sb
 | | | | dev-dep

@@ -17,6 +17,7 @@ exports[`esy local prefix dir 1`] = `
 | | | build
 | | | build-dependencies
 | | | build-env
+| | | build-exec
 | | | command-env
 | | | fastreplacestring.cpp
 | | | fastreplacestring.exe
@@ -30,6 +31,7 @@ exports[`esy local prefix dir 1`] = `
 | | | dep_of_with_linked_dep-1.0.0
 | | | | _esy
 | | | | | env
+| | | | | idInfo
 | | | | | log
 | | | | | mtime
 | | | | | sandbox.sb
