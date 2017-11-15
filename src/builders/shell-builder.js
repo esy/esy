@@ -293,8 +293,8 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/runtime.sh"
 
       rm -rf "$esy_build__install_root"
-      esyPerformBuild
-      esyPerformInstall
+      esyPerformBuild --silent
+      esyPerformInstall --silent
     `,
   });
 
