@@ -20,6 +20,19 @@ if (process.env.NODE_ENV === 'test') {
   pkg.version = '0.0.0';
 }
 
+class HighSeverityReporter extends NoopReporter {
+  reporter: Reporter;
+
+  constructor(reporter, opts) {
+    super(opts);
+    this.reporter = reporter;
+  }
+
+  error(...args) {
+    return this.reporter.error(...args);
+  }
+}
+
 function getSandboxPath() {
   if (process.env.ESY__SANDBOX != null) {
     return process.env.ESY__SANDBOX;
@@ -196,7 +209,9 @@ async function main() {
     isSilent: process.env.ESY__SILENT === '1',
   });
 
-  const reporter = !flags.silent ? consoleReporter : new NoopReporter();
+  const reporter = !flags.silent
+    ? consoleReporter
+    : new HighSeverityReporter(consoleReporter);
 
   const error = (error?: Error | string) => {
     if (error != null) {
