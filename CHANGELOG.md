@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.37
+
+* Fixes `0.0.36` release which was broken due to a missing `esx` executable in
+  the distribution.
+
 ## 0.0.36
 
 * Add `esy x <anycommand>` invocation which allows to execute `<anycommand>` as
