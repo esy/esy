@@ -2,7 +2,7 @@
 
 `package.json` workflow for native development with Reason/OCaml.
 
-[![Travis](https://img.shields.io/travis/esy-ocaml/esy.svg)](https://travis-ci.org/esy-ocaml/esy)
+[![Travis](https://img.shields.io/travis/esy/esy.svg)](https://travis-ci.org/esy/esy)
 [![npm](https://img.shields.io/npm/v/esy.svg)](https://www.npmjs.com/package/esy)
 [![npm (tag)](https://img.shields.io/npm/v/esy/next.svg)](https://www.npmjs.com/package/esy)
 
@@ -593,7 +593,7 @@ OPAM to `package.json` metadata convertation is handled by
 To make changes to `esy` and test them locally:
 
 ```
-% git clone git://github.com/esy-ocaml/esy.git
+% git clone git://github.com/esy/esy.git
 % cd esy
 % make bootstrap
 ```
@@ -614,7 +614,7 @@ to see the description of development workflow.
 
 ### Issues
 
-Issues are tracked at [esy-ocaml/esy][].
+Issues are tracked at [esy/esy][].
 
 ### Publishing Releases
 
@@ -637,7 +637,7 @@ Release tag `next` is used to publish preview releases.
 
 [esy-ocaml-project]: https://github.com/esy-ocaml/esy-ocaml-project
 [esy-reason-project]: https://github.com/esy-ocaml/esy-reason-project
-[esy-ocaml/esy]: https://github.com/esy-ocaml/esy
+[esy/esy]: https://github.com/esy/esy
 [esy-ocaml/esy-install]: https://github.com/esy-ocaml/esy-install
 [esy-ocaml/esy-opam]: https://github.com/esy-ocaml/esy-opam
 [OPAM]: https://opam.ocaml.org
