@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.38
+
+* Fixes a bug with error in case of build failure which shadowed the actual build
+  failure (see #49).
+
 ## 0.0.37
 
 * Fixes `0.0.36` release which was broken due to a missing `esx` executable in
