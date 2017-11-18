@@ -594,10 +594,10 @@ async function relocateBuild(
     await fs.copydir(originPath, stagePath);
     await rewritePaths(stagePath, from.path, to.path);
     await fs.mkdirp(path.dirname(destPath));
+    await fs.rename(stagePath, destPath);
   } finally {
     fs.rmdir(stage);
   }
-  await fs.rename(stagePath, destPath);
 }
 
 /**
