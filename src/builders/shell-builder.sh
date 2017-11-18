@@ -55,7 +55,7 @@ esyMessageSeeLogInlineHeader="${FG_RED}$cur__name@$cur__version: build failed:\n
 #
 
 esyExecCommand () {
-  if [ "$1" == "--silent" ]; then
+  if [ "${1:-}" == "--silent" ]; then
     shift
     echo "# COMMAND: " "$@" >> "$esyBuildLog"
     esyExecCommandInSandbox "$@" >> "$esyBuildLog" 2>&1
@@ -136,7 +136,7 @@ esyPerformBuild () {
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      if [ "$1" == "--silent" ]; then
+      if [ "${1:-}" == "--silent" ]; then
         esyReportFailure
       fi
       esyClean
@@ -159,7 +159,7 @@ esyPerformInstall () {
     BUILD_RETURN_CODE="$?"
     set -e
     if [ "$BUILD_RETURN_CODE" != "0" ]; then
-      if [ "$1" == "--silent" ]; then
+      if [ "${1:-}" == "--silent" ]; then
         esyReportFailure
       fi
       esyClean
