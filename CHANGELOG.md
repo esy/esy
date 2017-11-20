@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.0.39
+
+* Use OPAM version ordering when solving dependencies for `@opam/*` packages.
+
+* Fixes to unpackacking OPAM packages' tarballs.
+
 ## 0.0.38
 
 * Fixes a bug with error in case of build failure which shadowed the actual build
