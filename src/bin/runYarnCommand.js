@@ -373,7 +373,7 @@ async function main(
     .catch((err: Error) => {
       ctx.reporter.verbose(err.stack);
 
-      if (err instanceof MessageError) {
+      if (err.constructor && err.constructor.name === 'MessageError') {
         ctx.reporter.error(err.message);
       } else {
         onUnexpectedError(err);
