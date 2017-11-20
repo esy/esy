@@ -277,6 +277,7 @@ export const eject = async (
         esyPrepareBuild
         esyPerformBuild
       else
+        esyPrepareBuild
         esyExecCommand "$@"
       fi
     `,

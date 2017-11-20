@@ -78,6 +78,7 @@ esyExecCommandInSandbox () {
 esyPrepareBuild () {
 
   rm -rf "$cur__install"
+  rm -rf "$esy_build__install_root"
 
   # prepare build and installation directory
   mkdir -p                  \
