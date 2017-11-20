@@ -274,6 +274,7 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/runtime.sh"
 
       if [ $# -eq 0 ]; then
+        esyPrepareBuild
         esyPerformBuild
       else
         esyExecCommand "$@"
@@ -292,9 +293,11 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/build-env"
       source "$ESY_EJECT__ROOT/bin/runtime.sh"
 
-      rm -rf "$esy_build__install_root"
-      esyPerformBuild --silent
-      esyPerformInstall --silent
+      if [ ! -d "$esy_build__install_root" ]; then
+        esyPrepareBuild
+        esyPerformBuild --silent
+        esyPerformInstall --silent
+      fi
     `,
   });
 

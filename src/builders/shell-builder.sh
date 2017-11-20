@@ -124,8 +124,6 @@ esyCopySourceRoot () {
 
 esyPerformBuild () {
 
-  esyPrepareBuild
-
   cd "$cur__root"
 
   # Run esy.build
@@ -213,11 +211,13 @@ esyBuild () {
   if [ "$esy_build__source_type" != "immutable" ]; then
     echo -e "$esyMessageBegin"
     esyClean
+    esyPrepareBuild
     esyPerformBuild --silent
     esyPerformInstall --silent
     echo -e "$esyMessageComplete"
   elif [ ! -d "$esy_build__install_root" ]; then
     echo -e "$esyMessageBegin"
+    esyPrepareBuild
     esyPerformBuild --silent
     esyPerformInstall --silent
     echo -e "$esyMessageComplete"
