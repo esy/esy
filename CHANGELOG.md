@@ -6,6 +6,10 @@
 
 * Fixes to unpackacking OPAM packages' tarballs.
 
+* Make `esy x <anycommand>` command invocaton to perform installation only once.
+
+  That makes subsequent runs of `esy x <anycommand>` to be substantially faster.
+
 ## 0.0.38
 
 * Fixes a bug with error in case of build failure which shadowed the actual build
