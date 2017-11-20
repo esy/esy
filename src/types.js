@@ -39,7 +39,7 @@ export type EnvironmentVarExport = {
 /**
  * Describes build.
  */
-export type BuildSpec = {
+export type BuildSpec = {|
   /** Unique identifier */
   +id: string,
 
@@ -89,15 +89,6 @@ export type BuildSpec = {
   +buildType: 'out-of-source' | '_build' | 'in-source',
 
   /**
-   * If build should be persisted in store.
-   *
-   * Builds from released versions of packages should be persisted in store as
-   * they don't change at all. On the other side builds from dev sources
-   * shouldn't be persisted.
-   */
-  +shouldBePersisted: boolean,
-
-  /**
    * Set of dependencies which must be build/installed before this build can
    * happen
    */
@@ -107,7 +98,7 @@ export type BuildSpec = {
    * A list of errors found in build definitions.
    */
   +errors: {message: string}[],
-};
+|};
 
 export type BuildTaskCommand = {
   command: string,

@@ -38,7 +38,7 @@ export function fromSandbox<Path: path.Path>(
   }
   let spec = sandbox.root;
   if (params.includeDevDependencies) {
-    spec = {...spec};
+    spec = ({...spec, dependencies: new Map(spec.dependencies)}: any);
     for (const devDep of sandbox.devDependencies.values()) {
       spec.dependencies.set(devDep.id, devDep);
     }

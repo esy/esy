@@ -18,7 +18,7 @@ import outdent from 'outdent';
 
 import * as fs from '../lib/fs';
 import * as crypto from '../lib/crypto';
-import {computeHash, resolve as resolveNodeModule, normalizePackageName} from '../util';
+import {resolve as resolveNodeModule, normalizePackageName} from '../util';
 import * as Env from '../environment';
 import * as M from '../package-manifest';
 
@@ -118,9 +118,24 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
 
   const isInstalled = context.manifest._resolved != null;
 
+  let hasTransientDep = false;
+  for (const dep of dependencies.values()) {
+    if (dep.sourceType === 'transient') {
+      hasTransientDep = true;
+      break;
+    }
+  }
+
   const isRoot = context.sandboxPath === context.sourcePath;
 
-  const sourceType = isRoot ? 'root' : !isInstalled ? 'transient' : 'immutable';
+  let sourceType = isRoot
+    ? 'root'
+    : !isInstalled || hasTransientDep ? 'transient' : 'immutable';
+
+  if (context.options.forRelease) {
+    sourceType = 'immutable';
+  }
+
   const buildType =
     context.manifest.esy.buildsInSource === '_build'
       ? '_build'
@@ -146,11 +161,9 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     exportedEnv: context.manifest.esy.exportedEnv,
     buildCommand: context.manifest.esy.build,
     installCommand: context.manifest.esy.install,
-    shouldBePersisted: !(isRoot || !isInstalled) || Boolean(context.options.forRelease),
     sourceType,
     buildType,
     sourcePath,
-    manifest: context.manifest,
     dependencies,
     errors: nextErrors,
   };

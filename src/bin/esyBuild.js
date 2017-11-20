@@ -24,7 +24,7 @@ export function reportBuildError(ctx: CommandContext, error: Builder.BuildError)
 
   if (error instanceof Builder.BuildCommandError) {
     const {logFilename} = (error: any);
-    if (!error.task.spec.shouldBePersisted || process.env.CI) {
+    if (error.task.spec.sourceType !== 'immutable' || process.env.CI) {
       const logContents = fs.readFileSync(logFilename);
       ctx.reporter.error(outdent`
         ${banner} failed to build, see log:
