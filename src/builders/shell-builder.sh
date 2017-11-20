@@ -77,6 +77,7 @@ esyExecCommandInSandbox () {
 
 esyPrepareBuild () {
 
+  # this invalidates installation
   rm -rf "$cur__install"
   rm -rf "$esy_build__install_root"
 
@@ -94,8 +95,9 @@ esyPrepareBuild () {
 
   if [ "$esy_build__build_type" == "in-source" ]; then
     esyCopySourceRoot
-  elif [ "$esy_build__build_type" == "_build" ] && [ "$esy_build__source_type" != "root" ] ; then
-    esyCopySourceRoot
+  elif [ "$esy_build__build_type" == "_build" ]; then
+    rm -rf "$esy_build__source_root/_build"
+    ln -s "$cur__target_dir" "$esy_build__source_root/_build"
   fi
 
   mkdir -p "$cur__target_dir/_esy"
