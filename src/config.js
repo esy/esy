@@ -20,7 +20,7 @@ function _create<Path: path.Path>(
   reporter: Reporter,
 ): Config<Path> {
   const genStorePath = (tree: StoreTree, build: BuildSpec, segments: string[]) => {
-    if (build.shouldBePersisted) {
+    if (build.sourceType === 'immutable') {
       return store.getPath(tree, build, ...segments);
     } else {
       return localStore.getPath(tree, build, ...segments);

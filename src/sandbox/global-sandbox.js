@@ -106,7 +106,6 @@ export async function create(sandboxPath: string, options: Options): Promise<San
     sourcePath: '',
     sourceType: 'root',
     buildType: 'out-of-source',
-    shouldBePersisted: false,
     dependencies,
     // TODO:
     errors: [],

@@ -47,7 +47,6 @@ export function getSandboxEnv(
     sourcePath: '',
     sourceType: 'root',
     buildType: 'out-of-source',
-    shouldBePersisted: false,
     dependencies: new Map([[sandbox.root.name, sandbox.root]]),
     errors: sandbox.root.errors,
   };

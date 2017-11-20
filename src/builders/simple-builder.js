@@ -277,7 +277,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     if (inProgress == null) {
       // if build task is forced (for example by one of the deps updated)
       if (forced) {
-        if (task.spec.shouldBePersisted) {
+        if (task.spec.sourceType === 'immutable') {
           inProgress = performBuildWithStatusReport(task, true);
         } else {
           inProgress = performBuildWithStatusReport(task, true).then(async result => {
@@ -289,10 +289,10 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
         }
       } else {
         const isInStore = await isSpecExistsInStore(spec);
-        if (spec.shouldBePersisted && isInStore) {
+        if (spec.sourceType === 'immutable' && isInStore) {
           //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
           inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
-        } else if (!spec.shouldBePersisted) {
+        } else if (spec.sourceType !== 'immutable') {
           const buildMtime = await readBuildMtime(spec);
           const maxMtime = await findBuildMtime(spec);
           log('build mtime, current mtime:', buildMtime, maxMtime);
