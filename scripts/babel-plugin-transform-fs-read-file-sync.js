@@ -20,7 +20,7 @@ module.exports = function(babel) {
             path.replaceWith(
               t.callExpression(t.identifier('require'), [
                 t.stringLiteral(`raw-loader!${moduleNode.value}`),
-              ]),
+              ])
             );
           }
         }

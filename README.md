@@ -525,6 +525,9 @@ of source destination `$cur__target_dir`.
 Cached environment computations (for commands such as `esy cmd`) are stored in
 `./node_modules/.cache/_esy/bin/command-env`
 
+A convenience executable that runs arbitrary commands within the `command-env`
+is stored at `./node_modules/.cache/_esy/bin/command-exec`.
+
 Support for "ejecting" a build is computed and stored in
 `./node_modules/.cache/_esy/build-eject`.
 

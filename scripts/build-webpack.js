@@ -10,7 +10,7 @@ const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
 const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
 const babelPluginTrasnformFsReadFileSync = require.resolve(
-  './babel-plugin-transform-fs-read-file-sync.js',
+  './babel-plugin-transform-fs-read-file-sync.js'
 );
 
 babelRc.plugins.unshift(babelPluginTrasnformFsReadFileSync);

@@ -84,6 +84,15 @@ export const eject = async (
   });
 
   await emitFile({
+    filename: ['bin/command-exec'],
+    executable: true,
+    contents: outdent`
+      ${environment.printEnvironment(S.getCommandEnv(sandbox, config))}
+      exec "$@"
+    `
+  });
+
+  await emitFile({
     filename: ['bin/sandbox-env'],
     contents: environment.printEnvironment(S.getSandboxEnv(sandbox, config)),
   });
