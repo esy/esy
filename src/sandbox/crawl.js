@@ -8,6 +8,7 @@ import type {
   BuildEnvironment,
   EnvironmentVarExport,
   PackageManifest,
+  Reporter,
 } from '../types';
 
 import * as JSON5 from 'json5';
@@ -20,11 +21,12 @@ import * as fs from '../lib/fs';
 import * as crypto from '../lib/crypto';
 import {resolve as resolveNodeModule, normalizePackageName} from '../util';
 import * as Env from '../environment';
+import * as constants from '../constants';
 import * as M from '../package-manifest';
 
 export type Context = {
   manifest: PackageManifest,
-  sourcePath: string,
+  packagePath: string,
 
   env: BuildEnvironment,
   sandboxPath: string,
@@ -32,6 +34,7 @@ export type Context = {
   crawlBuild: (context: Context) => Promise<BuildSpec>,
   resolveManifest: (dep: Dependency, context: Context) => Promise<?Resolution>,
   options: Options,
+  reporter: Reporter,
 };
 
 export type Dependency = {
@@ -59,6 +62,9 @@ export async function crawlDependencies<R>(
   const missingPackages = [];
 
   for (const spec of dependencySpecs) {
+    context.reporter.verbose(
+      `crawl-build-depenedency: ${spec.pattern} at ${context.packagePath}`,
+    );
     if (context.dependencyTrace.indexOf(spec.name) > -1) {
       errors.push({
         message: formatCircularDependenciesError(spec.name, context),
@@ -75,7 +81,7 @@ export async function crawlDependencies<R>(
     const build = await context.crawlBuild({
       ...context,
       manifest: resolution.manifest,
-      sourcePath: resolution.sourcePath,
+      packagePath: resolution.sourcePath,
     });
 
     errors.push(...build.errors);
@@ -92,6 +98,7 @@ export async function crawlDependencies<R>(
 }
 
 export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
+  context.reporter.verbose(`crawl-build: ${context.packagePath}`);
   const dependenciesReqs: Dependency[] = [];
   const dependenciesSeen = new Set();
   for (const dep of dependenciesFromObj('regular', context.manifest.dependencies)) {
@@ -126,7 +133,7 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     }
   }
 
-  const isRoot = context.sandboxPath === context.sourcePath;
+  const isRoot = context.sandboxPath === context.packagePath;
 
   let sourceType = isRoot
     ? 'root'
@@ -141,15 +148,19 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
       ? '_build'
       : Boolean(context.manifest.esy.buildsInSource) ? 'in-source' : 'out-of-source';
 
-  const realSourcePath = await fs.realpath(context.sourcePath);
-  const sourcePath = context.sourcePath.startsWith(context.sandboxPath)
-    ? path.relative(context.sandboxPath, context.sourcePath)
-    : realSourcePath;
+  const linkReference = path.join(context.packagePath, constants.REFERENCE_FILENAME);
+
+  let sourcePath = context.packagePath;
+  if (await fs.exists(linkReference)) {
+    sourcePath = await fs.readFile(linkReference);
+    sourcePath = sourcePath.trim();
+  }
+  sourcePath = await fs.realpath(sourcePath);
 
   const {id, info: idInfo} = calculateBuildIdentity(
     context.env,
     context.manifest,
-    realSourcePath,
+    sourcePath,
     dependencies,
   );
 
@@ -162,6 +173,7 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     buildCommand: context.manifest.esy.build,
     installCommand: context.manifest.esy.install,
     sourceType,
+    packagePath: path.relative(context.sandboxPath, context.packagePath),
     buildType,
     sourcePath,
     dependencies,

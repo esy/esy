@@ -17,6 +17,11 @@ export const INSTALL_TREE_SYMLINK = '_install';
 export const RELEASE_TREE = '_release';
 
 /**
+ * Name of the file used to declare references to source trees.
+ */
+export const REFERENCE_FILENAME = '_esylink';
+
+/**
  * Constants for tree names inside stores. We keep them short not to exhaust
  * available shebang length as install tree will be there.
  */

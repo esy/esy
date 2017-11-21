@@ -61,7 +61,7 @@ export const eject = async (
   const esyBuildEnv = {
     ESY_EJECT__ROOT: outputPath,
     esy_build__sandbox_config_darwin: path.join('$ESY_EJECT__ROOT', 'bin', 'sandbox.sb'),
-    esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
+    esy_build__source_root: task.spec.sourcePath,
     esy_build__install_root: config.getFinalInstallPath(task.spec),
     esy_build__build_type: task.spec.buildType,
     esy_build__source_type: task.spec.sourceType,

@@ -47,6 +47,7 @@ export async function initialize(
 
 export async function create(sandboxPath: string, options: Options): Promise<Sandbox> {
   const {manifest} = await M.read(sandboxPath);
+  const reporter = options.reporter || new NoopReporter();
 
   const request = [];
   for (const name in manifest.dependencies) {
@@ -69,7 +70,7 @@ export async function create(sandboxPath: string, options: Options): Promise<San
 
   const buildCache: Map<string, Promise<BuildSpec>> = new Map();
   function crawlBuildCached(context: Crawl.Context): Promise<BuildSpec> {
-    const key = context.sourcePath;
+    const key = context.packagePath;
     let build = buildCache.get(key);
     if (build == null) {
       build = Crawl.crawlBuild(context);
@@ -79,8 +80,9 @@ export async function create(sandboxPath: string, options: Options): Promise<San
   }
 
   const crawlContext: Crawl.Context = {
+    reporter,
     manifest,
-    sourcePath: sandboxPath,
+    packagePath: sandboxPath,
 
     env,
     sandboxPath,
@@ -104,6 +106,7 @@ export async function create(sandboxPath: string, options: Options): Promise<San
     installCommand: [],
     exportedEnv: {},
     sourcePath: '',
+    packagePath: '',
     sourceType: 'root',
     buildType: 'out-of-source',
     dependencies,

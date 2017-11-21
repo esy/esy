@@ -41,6 +41,10 @@ export function join<B: Path | string>(base: B, ...p: string[]): B {
   return (path.join(base, ...p): any);
 }
 
+export function basename<P: Path | string>(p: P): string {
+  return path.basename(p);
+}
+
 export function dirname<P: Path | string>(p: P): P {
   return (path.dirname(p): any);
 }

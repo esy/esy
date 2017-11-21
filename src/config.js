@@ -38,11 +38,7 @@ function _create<Path: path.Path>(
   };
 
   function getSourcePath(build: BuildSpec, ...segments): Path {
-    if (build.sourcePath.startsWith('/')) {
-      return (path.join(build.sourcePath, ...segments): any);
-    } else {
-      return (path.join(buildConfig.sandboxPath, build.sourcePath, ...segments): any);
-    }
+    return (path.join(build.sourcePath, ...segments): any);
   }
 
   const buildConfig: Config<Path> = {

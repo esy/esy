@@ -171,7 +171,7 @@ const commandsByName: {[name: string]: () => Command} = {
 };
 
 const options = {
-  flags: ['--silent'],
+  flags: ['--silent', '--verbose'],
 };
 
 async function main() {
@@ -204,7 +204,7 @@ async function main() {
 
   const consoleReporter = new ConsoleReporter({
     emoji: false,
-    verbose: false,
+    verbose: flags.verbose,
     noProgress: !isTTY,
     isSilent: process.env.ESY__SILENT === '1',
   });

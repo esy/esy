@@ -33,7 +33,7 @@ export function printEnvironment(env: BuildEnvironment) {
     const key = item.spec != null ? item.spec.id : 'Esy Sandbox';
     const header =
       item.spec != null
-        ? `${item.spec.name}@${item.spec.version} ${item.spec.sourcePath}`
+        ? `${item.spec.name}@${item.spec.version} ${item.spec.packagePath}`
         : 'Esy Sandbox';
     let group = groupsByBuild.get(key);
     if (group == null) {

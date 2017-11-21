@@ -361,9 +361,7 @@ export async function withBuildDriver(
   if (config.requiresRootRelocation(task.spec)) {
     log('build mutates source directory, rsyncing sources to $cur__target_dir');
     await fs.copydir(sourcePath, buildPath, {
-      exclude: IGNORE_FOR_BUILD.map(p =>
-        path.join(config.sandboxPath, task.spec.sourcePath, p),
-      ),
+      exclude: IGNORE_FOR_BUILD.map(p => path.join(task.spec.sourcePath, p)),
     });
   }
 
@@ -466,7 +464,7 @@ async function performBuild(
   config: Config<path.AbsolutePath>,
   spinner,
 ): Promise<void> {
-  const isRoot = task.spec.sourcePath === '';
+  const isRoot = task.spec.packagePath === '';
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
   const sandboxRootInstallTreeSymlink = path.join(
     config.sandboxPath,

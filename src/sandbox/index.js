@@ -45,6 +45,7 @@ export function getSandboxEnv(
     installCommand: [],
     exportedEnv: {},
     sourcePath: '',
+    packagePath: '',
     sourceType: 'root',
     buildType: 'out-of-source',
     dependencies: new Map([[sandbox.root.name, sandbox.root]]),
