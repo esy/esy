@@ -46,7 +46,7 @@ async function formatBuildSpecTree(
   const version = chalk.grey(`@${spec.version}`);
   let name = `${spec.name}${version}`;
   if (indent > 0 && spec.sourceType === 'transient') {
-    const loc = path.relative(config.sandboxPath, spec.sourcePath);
+    const loc = path.relative(config.sandboxPath, config.getSourcePath(spec));
     name = `${name} ${chalk.grey(loc)}`;
   }
   const info = await formatBuildInfo(config, spec);

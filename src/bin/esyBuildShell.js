@@ -20,9 +20,9 @@ export default async function esyBuildShell(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  function findTaskBySourcePath(task: BuildTask, packageSourcePath) {
+  function findTaskBySourcePath(task: BuildTask, packagePath) {
     const predicate = task =>
-      path.join(config.sandboxPath, task.spec.packagePath) === packageSourcePath;
+      path.join(config.sandboxPath, task.spec.packagePath) === packagePath;
     const queue: BuildTask[] = [task];
     while (queue.length > 0) {
       const t = queue.shift();
@@ -33,11 +33,11 @@ export default async function esyBuildShell(
     }
 
     return ctx.error(
-      `unable to initialize build shell for ${packageSourcePath}: no such package found`,
+      `unable to initialize build shell for ${packagePath}: no such package found`,
     );
   }
 
-  const [packageSourcePath] = invocation.args;
+  const [packagePath] = invocation.args;
 
   const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
@@ -45,8 +45,8 @@ export default async function esyBuildShell(
   const rootTask: BuildTask = Task.fromSandbox(sandbox, config);
 
   const task =
-    packageSourcePath != null
-      ? findTaskBySourcePath(rootTask, path.resolve(process.cwd(), packageSourcePath))
+    packagePath != null
+      ? findTaskBySourcePath(rootTask, path.resolve(process.cwd(), packagePath))
       : rootTask;
 
   const state = await Builder.buildDependencies(task, config);

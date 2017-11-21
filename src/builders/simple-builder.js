@@ -195,7 +195,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     const ignoreForMtime = new Set(
       IGNORE_FOR_MTIME.map(s => config.getSourcePath(spec, s)),
     );
-    const sourcePath = await fs.realpath(config.getSourcePath(spec));
+    const sourcePath = config.getSourcePath(spec);
     return await fs.findMaxMtime(sourcePath, {
       ignore: name => ignoreForMtime.has(name),
     });
@@ -335,7 +335,7 @@ export async function withBuildDriver(
   f: BuildDriver => Promise<void>,
 ): Promise<void> {
   const rootPath = config.getRootPath(task.spec);
-  const sourcePath = await fs.realpath(config.getSourcePath(task.spec));
+  const sourcePath = config.getSourcePath(task.spec);
   const installPath = config.getInstallPath(task.spec);
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
@@ -358,7 +358,7 @@ export async function withBuildDriver(
     case 'in-source': {
       log('build mutates source directory, rsyncing sources to $cur__target_dir');
       await fs.copydir(sourcePath, buildPath, {
-        exclude: IGNORE_FOR_BUILD.map(p => path.join(task.spec.sourcePath, p)),
+        exclude: IGNORE_FOR_BUILD.map(p => config.getSourcePath(task.spec, p)),
       });
       break;
     }

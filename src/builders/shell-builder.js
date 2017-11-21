@@ -61,7 +61,7 @@ export const eject = async (
   const esyBuildEnv = {
     ESY_EJECT__ROOT: outputPath,
     esy_build__sandbox_config_darwin: path.join('$ESY_EJECT__ROOT', 'bin', 'sandbox.sb'),
-    esy_build__source_root: task.spec.sourcePath,
+    esy_build__source_root: config.getSourcePath(task.spec),
     esy_build__install_root: config.getFinalInstallPath(task.spec),
     esy_build__build_type: task.spec.buildType,
     esy_build__source_type: task.spec.sourceType,
@@ -89,7 +89,7 @@ export const eject = async (
     contents: outdent`
       ${environment.printEnvironment(S.getCommandEnv(sandbox, config))}
       exec "$@"
-    `
+    `,
   });
 
   await emitFile({
@@ -127,7 +127,7 @@ export const eject = async (
     Array.from(transientDeps.values()).map(async t => {
       const installPath = config.getFinalInstallPath(t.spec);
       const prevMtimePath = config.getBuildPath(t.spec, '_esy', 'mtime');
-      const sourcePath = await fs.realpath(config.getSourcePath(t.spec));
+      const sourcePath = config.getSourcePath(t.spec);
       return outdent`
       if [ ! -d "${installPath}" ]; then
         buildDependencies "$@"

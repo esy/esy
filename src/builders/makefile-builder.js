@@ -257,7 +257,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
         `source ${ejectedRootPath(...packagePath, 'eject-env')}`,
         {
           esy_build__sandbox_config_darwin: ejectedRootPath(...packagePath, 'sandbox.sb'),
-          esy_build__source_root: task.spec.sourcePath,
+          esy_build__source_root: config.getSourcePath(task.spec),
           esy_build__install_root: finalInstallPath,
           esy_build__build_type: task.spec.buildType,
           esy_build__source_type: task.spec.sourceType,
