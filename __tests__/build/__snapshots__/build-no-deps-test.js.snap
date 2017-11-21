@@ -14,6 +14,7 @@ exports[`esy local prefix dir 1`] = `
 | | | build-env
 | | | build-exec
 | | | command-env
+| | | command-exec
 | | | fastreplacestring.cpp
 | | | fastreplacestring.exe
 | | | install
