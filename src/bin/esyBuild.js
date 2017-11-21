@@ -56,7 +56,7 @@ export function reportBuildError(ctx: CommandContext, error: Builder.BuildError)
 
         The error below is likely a bug in Esy itself, please report it.
 
-        ${chalk.red(error.error.stack)}
+          ${chalk.red(error.error.stack)}
 
       `,
     );
@@ -67,7 +67,7 @@ export function reportBuildError(ctx: CommandContext, error: Builder.BuildError)
 
         The error below is likely a bug in Esy itself, please report it.
 
-        ${chalk.red(error.stack)}
+          ${chalk.red(error.stack)}
 
       `,
     );
