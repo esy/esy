@@ -2,15 +2,17 @@
  * @flow
  */
 
-import type {BuildSpec, Sandbox} from '../types';
+import type {BuildSpec, Sandbox, Reporter} from '../types';
 
 import * as path from 'path';
 
+import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import * as M from '../package-manifest';
 import * as Crawl from './crawl';
 
 export type Options = {
   forRelease?: boolean,
+  reporter?: Reporter,
 };
 
 /**
@@ -20,10 +22,11 @@ export async function create(
   sandboxPath: string,
   options: Options = {},
 ): Promise<Sandbox> {
+  const reporter = options.reporter || new NoopReporter();
   const manifestResolutionCache = new Map();
 
   function resolveManifestCached(dep, context): Promise<?Crawl.Resolution> {
-    const baseDirectory = context.sourcePath;
+    const baseDirectory = context.packagePath;
     const key = `${baseDirectory}__${dep.name}`;
     let resolution = manifestResolutionCache.get(key);
     if (resolution == null) {
@@ -31,9 +34,13 @@ export async function create(
         if (res == null) {
           return res;
         }
+        const sourcePath = path.dirname(res.filename);
+        reporter.verbose(
+          `resolved ${dep.name} at ${context.packagePath} to ${sourcePath}`,
+        );
         return {
           manifest: res.manifest,
-          sourcePath: path.dirname(res.filename),
+          sourcePath,
         };
       });
       manifestResolutionCache.set(key, resolution);
@@ -44,7 +51,7 @@ export async function create(
   const buildCache: Map<string, Promise<BuildSpec>> = new Map();
 
   function crawlBuildCached(context): Promise<BuildSpec> {
-    const key = context.sourcePath;
+    const key = context.packagePath;
     let build = buildCache.get(key);
     if (build == null) {
       build = Crawl.crawlBuild(context);
@@ -58,9 +65,10 @@ export async function create(
   const {manifest, filename: manifestFilename} = await M.read(sandboxPath);
 
   const crawlContext: Crawl.Context = {
+    reporter,
     manifest,
     env,
-    sourcePath: sandboxPath,
+    packagePath: sandboxPath,
     sandboxPath,
     resolveManifest: resolveManifestCached,
     crawlBuild: crawlBuildCached,

@@ -217,9 +217,9 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
     }
     command.push(rule.command);
 
-    const target = `${rule.target}.${build.sourcePath === ''
+    const target = `${rule.target}.${build.packagePath === ''
       ? 'sandbox'
-      : `sandbox/${build.sourcePath}`}`;
+      : `sandbox/${build.packagePath}`}`;
 
     return Makefile.createRule({
       target,
@@ -233,7 +233,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
     log(`visit ${task.spec.id}`);
 
     const packageName = normalizePackageName(task.spec.id);
-    const packagePath = task.spec.sourcePath.split(path.sep).filter(Boolean);
+    const packagePath = task.spec.packagePath.split(path.sep).filter(Boolean);
 
     const finalInstallPath = config.getFinalInstallPath(task.spec);
 
@@ -257,7 +257,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
         `source ${ejectedRootPath(...packagePath, 'eject-env')}`,
         {
           esy_build__sandbox_config_darwin: ejectedRootPath(...packagePath, 'sandbox.sb'),
-          esy_build__source_root: path.join(config.sandboxPath, task.spec.sourcePath),
+          esy_build__source_root: task.spec.sourcePath,
           esy_build__install_root: finalInstallPath,
           esy_build__build_type: task.spec.buildType,
           esy_build__source_type: task.spec.sourceType,

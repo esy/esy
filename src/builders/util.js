@@ -19,7 +19,7 @@ export function renderSandboxSbConfig(
   config: Config<path.Path>,
   sandboxSpec?: ConfigSpec = {},
 ): string {
-  const isRoot = spec.sourcePath === '';
+  const isRoot = spec.packagePath === '';
   const subpathList = pathList =>
     pathList
       ? pathList

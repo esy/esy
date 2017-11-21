@@ -62,7 +62,14 @@ export type BuildSpec = {|
   +exportedEnv: {[name: string]: EnvironmentVarExport},
 
   /**
-   * Path tof the source tree relative to sandbox root.
+   * Path to the package declaration.
+   *
+   * Note that it might not be the same as source path.
+   */
+  +packagePath: string,
+
+  /**
+   * Path to the source tree.
    *
    * That's where sources are located but not necessary the location where the
    * build is executed as build process (or some other process) can relocate sources before the build.

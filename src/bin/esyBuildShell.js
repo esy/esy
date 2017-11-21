@@ -22,7 +22,7 @@ export default async function esyBuildShell(
 ) {
   function findTaskBySourcePath(task: BuildTask, packageSourcePath) {
     const predicate = task =>
-      path.join(config.sandboxPath, task.spec.sourcePath) === packageSourcePath;
+      path.join(config.sandboxPath, task.spec.packagePath) === packageSourcePath;
     const queue: BuildTask[] = [task];
     while (queue.length > 0) {
       const t = queue.shift();
