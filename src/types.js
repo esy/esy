@@ -160,11 +160,6 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
   +sandboxPath: Path,
 
   /**
-   * Check if build requires its root relocated.
-   */
-  requiresRootRelocation: (build: BuildSpec) => boolean,
-
-  /**
    * Generate path where sources of the builds are located.
    */
   getSourcePath: (build: BuildSpec, ...segments: string[]) => RPath,

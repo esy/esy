@@ -75,7 +75,7 @@ esyExecCommandInSandbox () {
 # Prepare build environment
 #
 
-esyPrepareBuild () {
+esyPrepare () {
 
   # this invalidates installation
   rm -rf "$cur__install"
@@ -95,14 +95,30 @@ esyPrepareBuild () {
 
   if [ "$esy_build__build_type" == "in-source" ]; then
     esyCopySourceRoot
+
   elif [ "$esy_build__build_type" == "_build" ]; then
-    rm -rf "$esy_build__source_root/_build"
-    ln -s "$cur__target_dir" "$esy_build__source_root/_build"
+
+    if [ -d "$esy_build__source_root/_build" ]; then
+      mv "$esy_build__source_root/_build" "$cur__target_dir/_build.prev"
+    fi
+
+    mkdir -p "$cur__target_dir/_build"
+    mv "$cur__target_dir/_build" "$esy_build__source_root/_build"
   fi
 
   mkdir -p "$cur__target_dir/_esy"
   rm -f "$esyBuildLog"
 
+}
+
+esyComplete () {
+  if [ "$esy_build__build_type" == "_build" ]; then
+    mv "$esy_build__source_root/_build" "$cur__target_dir/_build"
+
+    if [ -d "$cur__target_dir/_build.prev" ]; then
+      mv "$cur__target_dir/_build.prev" "$esy_build__source_root/_build"
+    fi
+  fi
 }
 
 #
@@ -214,15 +230,17 @@ esyBuild () {
   if [ "$esy_build__source_type" != "immutable" ]; then
     echo -e "$esyMessageBegin"
     esyClean
-    esyPrepareBuild
+    esyPrepare
     esyPerformBuild --silent
     esyPerformInstall --silent
+    esyComplete
     echo -e "$esyMessageComplete"
   elif [ ! -d "$esy_build__install_root" ]; then
     echo -e "$esyMessageBegin"
-    esyPrepareBuild
+    esyPrepare
     esyPerformBuild --silent
     esyPerformInstall --silent
+    esyComplete
     echo -e "$esyMessageComplete"
   fi
 }
@@ -232,7 +250,7 @@ esyBuild () {
 #
 
 esyShell () {
-  esyPrepareBuild
+  esyPrepare
   $esySandboxCommand /bin/bash   \
     --noprofile                     \
     --rcfile <(echo "
@@ -241,6 +259,7 @@ esyShell () {
       set +e
       cd $cur__root
     ")
+  esyComplete
 }
 
 #

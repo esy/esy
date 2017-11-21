@@ -27,16 +27,6 @@ function _create<Path: path.Path>(
     }
   };
 
-  const requiresRootRelocation = ({buildType, sourceType}: BuildSpec) => {
-    if (buildType === 'in-source') {
-      return true;
-    }
-    if (buildType === '_build' && sourceType !== 'root') {
-      return true;
-    }
-    return false;
-  };
-
   function getSourcePath(build: BuildSpec, ...segments): Path {
     return (path.join(build.sourcePath, ...segments): any);
   }
@@ -49,12 +39,11 @@ function _create<Path: path.Path>(
     buildPlatform,
     readOnlyStores,
     buildConcurrency: NUM_CPUS,
-    requiresRootRelocation,
 
     getSourcePath,
 
     getRootPath: (build: BuildSpec, ...segments) => {
-      if (requiresRootRelocation(build)) {
+      if (build.buildType === 'in-source') {
         return genStorePath(STORE_BUILD_TREE, build, segments);
       } else {
         return getSourcePath(build, ...segments);

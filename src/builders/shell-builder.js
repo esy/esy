@@ -188,12 +188,15 @@ export const eject = async (
         local maxMtime
         maxMtime=$(
           find "$root" \
+          -type f -a \
+          -not -name ".merlin" -a \
+          -not -name "*.install" -a \
           -not -path "$root/node_modules/*" -a \
           -not -path "$root/node_modules" -a \
           -not -path "$root/_build" -a \
           -not -path "$root/_install" -a \
           -not -path "$root/_esy" -a \
-          -not -path "$root/_release" -a \
+          -not -path "$root/_release" \
           -exec $getMtime {} \\; | sort -r | head -n1)
         echo "$maxMtime"
       }
@@ -283,11 +286,13 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/runtime.sh"
 
       if [ $# -eq 0 ]; then
-        esyPrepareBuild
+        esyPrepare
         esyPerformBuild
+        esyComplete
       else
-        esyPrepareBuild
+        esyPrepare
         esyExecCommand "$@"
+        esyComplete
       fi
     `,
   });
@@ -304,9 +309,10 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/runtime.sh"
 
       if [ ! -d "$esy_build__install_root" ]; then
-        esyPrepareBuild
+        esyPrepare
         esyPerformBuild --silent
         esyPerformInstall --silent
+        esyComplete
       fi
     `,
   });

@@ -45,7 +45,7 @@ export function renderSandboxSbConfig(
     (allow file-write*
       (literal "/dev/null")
 
-      ${isRoot && spec.buildType === '_build'
+      ${spec.buildType === '_build'
         ? `
         ; $cur__root/_build
          (subpath "${config.getRootPath(spec, '_build')}")

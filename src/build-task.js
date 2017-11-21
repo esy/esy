@@ -297,10 +297,7 @@ function getBuiltInScope(
     },
     {
       name: `${prefix}__root`,
-      value:
-        currentlyBuilding && config.requiresRootRelocation(spec)
-          ? config.getBuildPath(spec)
-          : config.getRootPath(spec),
+      value: config.getRootPath(spec),
       spec,
     },
     {
