@@ -62,7 +62,7 @@ export type BuildSpec = {|
   +exportedEnv: {[name: string]: EnvironmentVarExport},
 
   /**
-   * Path to the package declaration.
+   * Path to the package declaration inside `node_modules` directory.
    *
    * Note that it might not be the same as source path.
    */
@@ -73,6 +73,9 @@ export type BuildSpec = {|
    *
    * That's where sources are located but not necessary the location where the
    * build is executed as build process (or some other process) can relocate sources before the build.
+   *
+   * This can be either an absolute path (for packages outside of the sandbox)
+   * or a relative path within the sandbox root.
    */
   +sourcePath: string,
 

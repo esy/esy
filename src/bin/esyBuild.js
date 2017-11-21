@@ -19,8 +19,9 @@ import * as ShellBuilder from '../builders/shell-builder';
 export function reportBuildError(ctx: CommandContext, error: Builder.BuildError) {
   const {spec} = error.task;
 
-  const banner = spec.sourcePath === '' ? spec.name : `${spec.name} (${spec.sourcePath})`;
-  const debugCommand = `esy build-shell ${error.task.spec.sourcePath}`;
+  const banner =
+    spec.packagePath === '' ? spec.name : `${spec.name} (${spec.packagePath})`;
+  const debugCommand = `esy build-shell ${error.task.spec.packagePath}`;
 
   if (error instanceof Builder.BuildCommandError) {
     const {logFilename} = (error: any);

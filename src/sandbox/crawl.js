@@ -155,12 +155,18 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     sourcePath = await fs.readFile(linkReference);
     sourcePath = sourcePath.trim();
   }
-  sourcePath = await fs.realpath(sourcePath);
+  const realSourcePath = await fs.realpath(sourcePath);
+
+  if (realSourcePath.indexOf(context.sandboxPath) === 0) {
+    sourcePath = path.relative(context.sandboxPath, realSourcePath);
+  } else {
+    sourcePath = realSourcePath;
+  }
 
   const {id, info: idInfo} = calculateBuildIdentity(
     context.env,
     context.manifest,
-    sourcePath,
+    realSourcePath,
     dependencies,
   );
 
