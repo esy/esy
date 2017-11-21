@@ -346,11 +346,7 @@ export async function withBuildDriver(
   log('starting build');
 
   log('removing prev destination directories (if exist)');
-  await Promise.all([
-    fs.rmdir(finalInstallPath),
-    fs.rmdir(installPath),
-    fs.rmdir(buildPath),
-  ]);
+  await Promise.all([fs.rmdir(finalInstallPath), fs.rmdir(installPath)]);
 
   log('creating destination directories');
   await Promise.all([
@@ -358,11 +354,22 @@ export async function withBuildDriver(
     ...INSTALL_DIR_STRUCTURE.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
   ]);
 
-  if (config.requiresRootRelocation(task.spec)) {
-    log('build mutates source directory, rsyncing sources to $cur__target_dir');
-    await fs.copydir(sourcePath, buildPath, {
-      exclude: IGNORE_FOR_BUILD.map(p => path.join(task.spec.sourcePath, p)),
-    });
+  switch (task.spec.buildType) {
+    case 'in-source': {
+      log('build mutates source directory, rsyncing sources to $cur__target_dir');
+      await fs.copydir(sourcePath, buildPath, {
+        exclude: IGNORE_FOR_BUILD.map(p => path.join(task.spec.sourcePath, p)),
+      });
+      break;
+    }
+    case '_build': {
+      const buildDir = config.getRootPath(task.spec, '_build');
+      const buildTargetDir = config.getBuildPath(task.spec, '_build');
+      const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
+      await renameIfExists(buildDir, buildBackupDir);
+      await renameIfExists(buildTargetDir, buildDir);
+      break;
+    }
   }
 
   const envForExec = {};
@@ -453,8 +460,21 @@ export async function withBuildDriver(
   };
 
   try {
+    console.log(await fs.readdir(rootPath));
+    console.log(await fs.readdir(rootPath));
     await f(buildDriver);
   } finally {
+    switch (task.spec.buildType) {
+      case '_build': {
+        const buildDir = config.getRootPath(task.spec, '_build');
+        const buildTargetDir = config.getBuildPath(task.spec, '_build');
+        const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
+        await renameIfExists(buildDir, buildTargetDir);
+        await renameIfExists(buildBackupDir, buildDir);
+        break;
+      }
+    }
+
     await endWritableStream(logStream);
   }
 }
@@ -543,6 +563,18 @@ async function initStores(
   ]);
   if (store.path !== store.prettyPath) {
     fs.symlink(store.path, store.prettyPath);
+  }
+}
+
+async function renameIfExists(src, dst) {
+  try {
+    await fs.rename(src, dst);
+  } catch (err) {
+    if (!await fs.exists(src)) {
+      return;
+    } else {
+      throw err;
+    }
   }
 }
 
