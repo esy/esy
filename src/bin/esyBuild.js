@@ -38,7 +38,7 @@ export function reportBuildError(ctx: CommandContext, error: Builder.BuildError)
     } else {
       ctx.reporter.error(
         outdent`
-          ${banner} failied to build, see log for details:
+          ${banner} failed to build, see log for details:
 
             ${chalk.bold(logFilename)}
 
