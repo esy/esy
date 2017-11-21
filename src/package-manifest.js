@@ -22,23 +22,34 @@ export async function resolve(
   packageName: string,
   baseDirectory: string,
 ): Promise<?ManifestResult> {
-  for (const manifestName of MANIFEST_NAME_LIST) {
-    let manifestPath = null;
+  async function resolveToManifestPath(manifestName) {
     try {
-      manifestPath = await resolveNodeModule(
-        `${packageName}/${manifestName}`,
-        baseDirectory,
-      );
+      return await resolveNodeModule(`${packageName}/${manifestName}`, baseDirectory);
     } catch (_err) {
-      continue;
-    }
-    if (manifestPath != null) {
-      const parse = manifestName === 'esy.json' ? JSON5.parse : JSON.parse;
-      const manifest = await fs.readJson(manifestPath, parse);
-      return {manifest: normalizeManifest(manifest), filename: manifestPath};
+      return null;
     }
   }
-  return null;
+
+  // Resolve all posible manifests and choose the one which is deeper in the
+  // filesystem, with the Node modules layout deeper means more specific for the
+  // package.
+  //
+  // TODO: Instead consider changin the search strategy to find esy.json or
+  // package.json first at each directory level and only then recurse up the
+  // directory tree.
+  let manifestPaths = await Promise.all(MANIFEST_NAME_LIST.map(resolveToManifestPath));
+  manifestPaths = manifestPaths.filter(Boolean);
+  manifestPaths.sort((a, b) => b.length - a.length);
+
+  if (manifestPaths.length === 0) {
+    return null;
+  } else {
+    const manifestPath = manifestPaths[0];
+    const manifestName = path.basename(manifestPath);
+    const parse = manifestName === 'esy.json' ? JSON5.parse : JSON.parse;
+    const manifest = await fs.readJson(manifestPath, parse);
+    return {manifest: normalizeManifest(manifest), filename: manifestPath};
+  }
 }
 
 export async function read(packagePath: string): Promise<ManifestResult> {
