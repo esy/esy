@@ -460,8 +460,6 @@ export async function withBuildDriver(
   };
 
   try {
-    console.log(await fs.readdir(rootPath));
-    console.log(await fs.readdir(rootPath));
     await f(buildDriver);
   } finally {
     switch (task.spec.buildType) {
