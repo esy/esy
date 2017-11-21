@@ -67,7 +67,7 @@ async function formatBuildInfo(config, spec) {
     ? chalk.green('[built]')
     : chalk.blue('[build pending]');
   let info = [buildStatus];
-  if (spec.sourceType === 'transient') {
+  if (spec.sourceType === 'transient' || spec.sourceType === 'root') {
     info.push(chalk.blue('[local source]'));
   }
   return info.join(' ');
