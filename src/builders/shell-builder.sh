@@ -96,7 +96,7 @@ esyPrepare () {
   if [ "$esy_build__build_type" == "in-source" ]; then
     esyCopySourceRoot
 
-  elif [ "$esy_build__build_type" == "_build" ]; then
+  elif [ "$esy_build__build_type" == "_build" ] && [ "$esy_build__source_type" == "transient" ]; then
 
     if [ -d "$esy_build__source_root/_build" ]; then
       mv "$esy_build__source_root/_build" "$cur__target_dir/_build.prev"
@@ -112,7 +112,7 @@ esyPrepare () {
 }
 
 esyComplete () {
-  if [ "$esy_build__build_type" == "_build" ]; then
+  if [ "$esy_build__build_type" == "_build" ] && [ "$esy_build__source_type" == "transient" ]; then
     mv "$esy_build__source_root/_build" "$cur__target_dir/_build"
 
     if [ -d "$cur__target_dir/_build.prev" ]; then
