@@ -187,7 +187,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
   const buildQueue = new PromiseQueue({concurrency: config.buildConcurrency});
   const taskInProgress = new Map();
 
-  function isSpecExistsInStore(spec) {
+  function checkIfIsInStore(spec) {
     return fs.exists(config.getFinalInstallPath(spec));
   }
 
@@ -288,7 +288,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
           });
         }
       } else {
-        const isInStore = await isSpecExistsInStore(spec);
+        const isInStore = await checkIfIsInStore(spec);
         if (spec.sourceType === 'immutable' && isInStore) {
           //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
           inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
