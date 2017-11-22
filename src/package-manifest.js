@@ -39,7 +39,7 @@ export async function resolve(
   // directory tree.
   let manifestPaths = await Promise.all(MANIFEST_NAME_LIST.map(resolveToManifestPath));
   manifestPaths = manifestPaths.filter(Boolean);
-  manifestPaths.sort((a, b) => b.length - a.length);
+  manifestPaths.sort((a, b) => path.dirname(b).length - path.dirname(a).length);
 
   if (manifestPaths.length === 0) {
     return null;
