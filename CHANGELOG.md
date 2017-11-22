@@ -10,6 +10,18 @@
 
   That makes subsequent runs of `esy x <anycommand>` to be substantially faster.
 
+* Add `command-exec` executable to ejected root builds. This is used by
+  ocaml-language-server package to automatically configure itself to use Esy
+  sandboxed environment.
+
+  See freebroccolo/ocaml-language-server#68 for more info.
+
+* Fix builds with dependency graphs with linked packages.
+
+  Previously builds which depend on transient packages were put into a global
+  store which is incorrect. Instead those builds are marked as transient too and
+  being put into sandbox local store.
+
 ## 0.0.38
 
 * Fixes a bug with error in case of build failure which shadowed the actual build
