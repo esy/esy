@@ -10,6 +10,10 @@
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.9.tgz#e12f833cf26bde327de5adace81fd927b52fd06e"
 
+"@esy-ocaml/flock@esy-ocaml/flock":
+  version "0.2.3"
+  resolved "https://codeload.github.com/esy-ocaml/flock/tar.gz/243b7b61a5ad5d6e529172e03025729a45acdd7f"
+
 abab@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/abab/-/abab-1.0.3.tgz#b81de5f7274ec4e756d797cd834f303642724e5d"
@@ -3059,13 +3063,7 @@ json-schema@0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.2.3.tgz#b480c892e59a2f05954ce727bd3f2a4e882f9e13"
 
-json-stable-stringify@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/json-stable-stringify/-/json-stable-stringify-1.0.1.tgz#9a759d39c5f2ff503fd5300646ed445f88c4f9af"
-  dependencies:
-    jsonify "~0.0.0"
-
-"json-stable-stringify@https://github.com/substack/json-stable-stringify":
+json-stable-stringify@^1.0.1, "json-stable-stringify@https://github.com/substack/json-stable-stringify":
   version "1.0.1"
   resolved "https://github.com/substack/json-stable-stringify#e43ca2a1dcfc39bf1514684492767ef6040d1f3e"
   dependencies:
