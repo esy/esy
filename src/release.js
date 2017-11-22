@@ -164,7 +164,10 @@ const RELEASE_ESY_PREFIX_NAME = 'r';
 // This is invariant both for dev and released versions of Esy as bin/esy always
 // calls into bin/esy.js (same dirname). `process.argv[1]` is the filename of
 // the script executed by `node`.
-const currentEsyExecutable = path.join(path.dirname(process.argv[1]), 'esy');
+//
+// We use `_esy` instead of `esy` here so we don't try to acquire lock
+// recursively.
+const currentEsyExecutable = path.join(path.dirname(process.argv[1]), '_esy');
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
