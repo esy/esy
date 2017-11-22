@@ -255,11 +255,16 @@ esyMaxBuildMtime () {
 #
 
 esyWithBuildEnv () {
+  local returnCode
   esyPrepare
   set +e
   ("$@")
+  returnCode="$?"
   set -e
   esyComplete
+  if [ $returnCode -ne 0 ]; then
+    exit $returnCode
+  fi
 }
 
 #
