@@ -255,7 +255,7 @@ esyShell () {
     --noprofile                     \
     --rcfile <(echo "
       export PS1=\"[$cur__name sandbox] $ \";
-      source $ESY_EJECT__ROOT/bin/runtime.sh;
+      source $ESY_EJECT__ROOT/bin/shell-builder.sh;
       set +e
       cd $cur__root
     ")

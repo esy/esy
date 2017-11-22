@@ -98,7 +98,7 @@ export const eject = async (
   });
 
   await emitFile({
-    filename: ['bin/runtime.sh'],
+    filename: ['bin/shell-builder.sh'],
     contents: RUNTIME,
   });
 
@@ -283,7 +283,7 @@ export const eject = async (
       ${renderEnv(esyBuildEnv)}
 
       source "$ESY_EJECT__ROOT/bin/build-env"
-      source "$ESY_EJECT__ROOT/bin/runtime.sh"
+      source "$ESY_EJECT__ROOT/bin/shell-builder.sh"
 
       if [ $# -eq 0 ]; then
         esyPrepare
@@ -306,7 +306,7 @@ export const eject = async (
       ${renderEnv(esyBuildEnv)}
 
       source "$ESY_EJECT__ROOT/bin/build-env"
-      source "$ESY_EJECT__ROOT/bin/runtime.sh"
+      source "$ESY_EJECT__ROOT/bin/shell-builder.sh"
 
       if [ ! -d "$esy_build__install_root" ]; then
         esyPrepare
@@ -324,7 +324,7 @@ export const eject = async (
       ${renderEnv(esyBuildEnv)}
 
       source "$ESY_EJECT__ROOT/bin/build-env"
-      source "$ESY_EJECT__ROOT/bin/runtime.sh"
+      source "$ESY_EJECT__ROOT/bin/shell-builder.sh"
 
       esyShell
     `,

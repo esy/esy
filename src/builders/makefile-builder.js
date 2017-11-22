@@ -47,7 +47,7 @@ const bin = {
   realpathSource: ejectedRootPath('bin', 'realpath.c'),
   fastreplacestring: ejectedRootPath('bin', 'fastreplacestring.exe'),
   fastreplacestringSource: ejectedRootPath('bin', 'fastreplacestring.cpp'),
-  runtime: ejectedRootPath('bin', 'runtime.sh'),
+  runtime: ejectedRootPath('bin', 'shell-builder.sh'),
 };
 
 const files = {
@@ -111,7 +111,7 @@ const files = {
   },
 
   runtimeSource: {
-    filename: ['bin', 'runtime.sh'],
+    filename: ['bin', 'shell-builder.sh'],
     contents: fs.readFileSync(require.resolve('./shell-builder.sh')),
   },
 };
