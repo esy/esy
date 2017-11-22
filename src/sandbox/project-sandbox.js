@@ -4,7 +4,8 @@
 
 import type {BuildSpec, Sandbox, Reporter} from '../types';
 
-import * as path from 'path';
+import * as path from '../lib/path';
+import * as fs from '../lib/fs';
 
 import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import * as M from '../package-manifest';
@@ -22,6 +23,7 @@ export async function create(
   sandboxPath: string,
   options: Options = {},
 ): Promise<Sandbox> {
+  sandboxPath = await fs.realpath(sandboxPath);
   const reporter = options.reporter || new NoopReporter();
   const manifestResolutionCache = new Map();
 

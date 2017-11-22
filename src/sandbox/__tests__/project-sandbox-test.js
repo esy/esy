@@ -41,6 +41,7 @@ describe('build-sandbox', function() {
       pkg({
         name: 'app',
         version: '0.1.0',
+        _resolved: 'app',
       }).nodes,
     );
     const sandbox = await create(sandboxDir);
@@ -56,10 +57,12 @@ describe('build-sandbox', function() {
           dependencies: {
             dep: '*',
           },
+          _resolved: 'app',
         },
         pkg({
           name: 'dep',
           version: '0.1.0',
+          _resolved: 'dep',
         }),
       ).nodes,
     );
@@ -75,6 +78,7 @@ describe('build-sandbox', function() {
         dependencies: {
           dep: '*',
         },
+        _resolved: 'app',
       }).nodes,
     );
     const sandbox = await create(sandboxDir);
@@ -90,6 +94,7 @@ describe('build-sandbox', function() {
           dependencies: {
             dep: '*',
           },
+          _resolved: 'app',
         },
         pkg({
           name: 'dep',
@@ -97,6 +102,7 @@ describe('build-sandbox', function() {
           dependencies: {
             app: '*',
           },
+          _resolved: 'dep',
         }),
       ).nodes,
     );
