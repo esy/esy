@@ -50,7 +50,15 @@ function _create<Path: path.Path>(
     getRootPath: (build: BuildSpec, ...segments) => {
       if (build.buildType === 'in-source') {
         return genStorePath(STORE_BUILD_TREE, build, segments);
-      } else {
+      } else if (build.buildType === '_build') {
+        if (build.sourceType === 'immutable') {
+          return genStorePath(STORE_BUILD_TREE, build, segments);
+        } else if (build.sourceType === 'transient') {
+          return getSourcePath(build, ...segments);
+        } else if (build.sourceType === 'root') {
+          return getSourcePath(build, ...segments);
+        }
+      } else if (build.buildType === 'out-of-source') {
         return getSourcePath(build, ...segments);
       }
     },

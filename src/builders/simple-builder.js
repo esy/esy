@@ -343,7 +343,8 @@ export async function withBuildDriver(
 
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
-  log('starting build');
+  log('buildType', task.spec.buildType);
+  log('sourceType', task.spec.sourceType);
 
   log('removing prev destination directories (if exist)');
   await Promise.all([fs.rmdir(finalInstallPath), fs.rmdir(installPath)]);
@@ -354,22 +355,41 @@ export async function withBuildDriver(
     ...INSTALL_DIR_STRUCTURE.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
   ]);
 
-  switch (task.spec.buildType) {
-    case 'in-source': {
-      log('build mutates source directory, rsyncing sources to $cur__target_dir');
-      await fs.copydir(sourcePath, buildPath, {
-        exclude: IGNORE_FOR_BUILD.map(p => config.getSourcePath(task.spec, p)),
-      });
-      break;
+  const relocateSource = async () => {
+    log('relocating sources to root path');
+    await fs.copydir(sourcePath, rootPath, {
+      exclude: IGNORE_FOR_BUILD.map(p => config.getSourcePath(task.spec, p)),
+    });
+  };
+
+  const relocateBuildDir = async () => {
+    const buildDir = config.getRootPath(task.spec, '_build');
+    const buildTargetDir = config.getBuildPath(task.spec, '_build');
+    const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
+    await renameIfExists(buildDir, buildBackupDir);
+    await renameIfExists(buildTargetDir, buildDir);
+  };
+
+  const relocateBuildDirComplete = async () => {
+    const buildDir = config.getRootPath(task.spec, '_build');
+    const buildTargetDir = config.getBuildPath(task.spec, '_build');
+    const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
+    await renameIfExists(buildDir, buildTargetDir);
+    await renameIfExists(buildBackupDir, buildDir);
+  };
+
+  if (task.spec.buildType === 'in-source') {
+    await relocateSource();
+  } else if (task.spec.buildType === '_build') {
+    if (task.spec.sourceType === 'immutable') {
+      await relocateSource();
+    } else if (task.spec.sourceType === 'transient') {
+      await relocateBuildDir();
+    } else if (task.spec.sourceType === 'root') {
+      // nothing
     }
-    case '_build': {
-      const buildDir = config.getRootPath(task.spec, '_build');
-      const buildTargetDir = config.getBuildPath(task.spec, '_build');
-      const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
-      await renameIfExists(buildDir, buildBackupDir);
-      await renameIfExists(buildTargetDir, buildDir);
-      break;
-    }
+  } else if (task.spec.buildType === 'out-of-source') {
+    // nothing
   }
 
   const envForExec = {};
@@ -462,15 +482,18 @@ export async function withBuildDriver(
   try {
     await f(buildDriver);
   } finally {
-    switch (task.spec.buildType) {
-      case '_build': {
-        const buildDir = config.getRootPath(task.spec, '_build');
-        const buildTargetDir = config.getBuildPath(task.spec, '_build');
-        const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
-        await renameIfExists(buildDir, buildTargetDir);
-        await renameIfExists(buildBackupDir, buildDir);
-        break;
+    if (task.spec.buildType === 'in-source') {
+      // nothing
+    } else if (task.spec.buildType === '_build') {
+      if (task.spec.sourceType === 'immutable') {
+        // nothing
+      } else if (task.spec.sourceType === 'transient') {
+        await relocateBuildDirComplete();
+      } else if (task.spec.sourceType === 'root') {
+        // nothing
       }
+    } else if (task.spec.buildType === 'out-of-source') {
+      // nothing
     }
 
     await endWritableStream(logStream);
