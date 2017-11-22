@@ -589,6 +589,7 @@ async function initStores(
 
 async function renameIfExists(src, dst) {
   try {
+    await fs.rmdir(dst);
     await fs.rename(src, dst);
   } catch (err) {
     if (!await fs.exists(src)) {
