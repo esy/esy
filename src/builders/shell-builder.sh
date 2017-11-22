@@ -94,16 +94,17 @@ esyPrepare () {
     "$cur__etc"
 
   if [ "$esy_build__build_type" == "in-source" ]; then
-    esyCopySourceRoot
-
-  elif [ "$esy_build__build_type" == "_build" ] && [ "$esy_build__source_type" == "transient" ]; then
-
-    if [ -d "$esy_build__source_root/_build" ]; then
-      mv "$esy_build__source_root/_build" "$cur__target_dir/_build.prev"
-    fi
-
-    mkdir -p "$cur__target_dir/_build"
-    mv "$cur__target_dir/_build" "$esy_build__source_root/_build"
+    esyRelocateSource
+  elif [ "$esy_build__build_type" == "_build" ]; then
+   if [ "$esy_build__source_type" == "immutable" ]; then
+    esyRelocateSource
+   elif [ "$esy_build__source_type" == "transient" ]; then
+     esyRelocateBuildDir
+   elif [ "$esy_build__source_type" == "root" ]; then
+    true
+   fi
+  elif [ "$esy_build__build_type" == "out-of-source" ]; then
+    true
   fi
 
   mkdir -p "$cur__target_dir/_esy"
@@ -113,12 +114,18 @@ esyPrepare () {
 }
 
 esyComplete () {
-  if [ "$esy_build__build_type" == "_build" ] && [ "$esy_build__source_type" == "transient" ]; then
-    mv "$esy_build__source_root/_build" "$cur__target_dir/_build"
-
-    if [ -d "$cur__target_dir/_build.prev" ]; then
-      mv "$cur__target_dir/_build.prev" "$esy_build__source_root/_build"
-    fi
+  if [ "$esy_build__build_type" == "in-source" ]; then
+    true
+  elif [ "$esy_build__build_type" == "_build" ]; then
+   if [ "$esy_build__source_type" == "immutable" ]; then
+    true
+   elif [ "$esy_build__source_type" == "transient" ]; then
+     esyRelocateBuildDirComplete
+   elif [ "$esy_build__source_type" == "root" ]; then
+    true
+   fi
+  elif [ "$esy_build__build_type" == "out-of-source" ]; then
+    true
   fi
 }
 
@@ -126,7 +133,7 @@ esyComplete () {
 # Prepare build environment (copy sources to $cur__root)
 #
 
-esyCopySourceRoot () {
+esyRelocateSource () {
   rm -rf "$cur__root";
   rsync --quiet --archive     \
     --exclude "$cur__root"    \
@@ -136,6 +143,28 @@ esyCopySourceRoot () {
     --exclude "_esybuild"     \
     --exclude "_esyinstall"   \
     "$esy_build__source_root/" "$cur__root"
+}
+
+esyRelocateBuildDir () {
+  # save original _build
+  if [ -d "$esy_build__source_root/_build" ]; then
+    mv "$esy_build__source_root/_build" "$cur__target_dir/_build.prev"
+  fi
+
+  mkdir -p "$cur__target_dir/_build"
+  mv "$cur__target_dir/_build" "$esy_build__source_root/_build"
+}
+
+esyRelocateBuildDirComplete () {
+  # save _build
+  if [ -d "$esy_build__source_root/_build" ]; then
+    mv "$esy_build__source_root/_build" "$cur__target_dir/_build"
+  fi
+
+  # restore original _build
+  if [ -d "$cur__target_dir/_build.prev" ]; then
+    mv "$cur__target_dir/_build.prev" "$esy_build__source_root/_build"
+  fi
 }
 
 #
