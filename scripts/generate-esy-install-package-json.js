@@ -6,6 +6,8 @@ const fs = require('fs');
 const packageJsonFilename = require.resolve('../package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonFilename, 'utf8'));
 
+const RESOLVE_FLOCK_PATH = `${'`'}node -p 'require.resolve("@esy-ocaml/flock/flock")'${'`'}`;
+
 const releasePackageJson = {
   name: packageJson.name,
   version: packageJson.version,
@@ -13,6 +15,10 @@ const releasePackageJson = {
   description: packageJson.description,
   dependencies: {
     '@esy-ocaml/esy-opam': packageJson.dependencies['@esy-ocaml/esy-opam'],
+    '@esy-ocaml/flock': packageJson.dependencies['@esy-ocaml/flock'],
+  },
+  scripts: {
+    postinstall: `(cd bin/ && ln -s ${RESOLVE_FLOCK_PATH} ./flock)`,
   },
   engines: packageJson.engines,
   repository: packageJson.repository,

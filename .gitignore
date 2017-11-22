@@ -3,3 +3,4 @@
 /lib
 /dist
 /_esyInstallCache-*
+/bin/flock
