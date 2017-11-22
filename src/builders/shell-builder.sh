@@ -109,6 +109,7 @@ esyPrepare () {
   mkdir -p "$cur__target_dir/_esy"
   rm -f "$esyBuildLog"
 
+  cd "$cur__root"
 }
 
 esyComplete () {
@@ -141,9 +142,7 @@ esyCopySourceRoot () {
 # Perform build
 #
 
-esyPerformBuild () {
-
-  cd "$cur__root"
+esyRunBuildCommands () {
 
   # Run esy.build
   for cmd in "${esy_build__build_command[@]}"
@@ -167,7 +166,7 @@ esyPerformBuild () {
 # Perform install
 #
 
-esyPerformInstall () {
+esyRunInstallCommands () {
   # Run esy.install
   for cmd in "${esy_build__install_command[@]}"
   do
@@ -223,24 +222,35 @@ esyMaxBuildMtime () {
 }
 
 #
+# Execute with arguments within the build environment
+#
+
+esyWithBuildEnv () {
+  esyPrepare
+  set +e
+  ("$@")
+  set -e
+  esyComplete
+}
+
+#
 # Build package
 #
+
+_esyBuild () {
+  esyRunBuildCommands --silent
+  esyRunInstallCommands --silent
+}
 
 esyBuild () {
   if [ "$esy_build__source_type" != "immutable" ]; then
     echo -e "$esyMessageBegin"
     esyClean
-    esyPrepare
-    esyPerformBuild --silent
-    esyPerformInstall --silent
-    esyComplete
+    esyWithBuildEnv _esyBuild
     echo -e "$esyMessageComplete"
   elif [ ! -d "$esy_build__install_root" ]; then
     echo -e "$esyMessageBegin"
-    esyPrepare
-    esyPerformBuild --silent
-    esyPerformInstall --silent
-    esyComplete
+    esyWithBuildEnv _esyBuild
     echo -e "$esyMessageComplete"
   fi
 }
@@ -249,8 +259,7 @@ esyBuild () {
 # Execute shell in build environment
 #
 
-esyShell () {
-  esyPrepare
+_esyShell () {
   $esySandboxCommand /bin/bash   \
     --noprofile                     \
     --rcfile <(echo "
@@ -259,7 +268,10 @@ esyShell () {
       set +e
       cd $cur__root
     ")
-  esyComplete
+}
+
+esyShell () {
+  esyWithBuildEnv _esyShell
 }
 
 #
