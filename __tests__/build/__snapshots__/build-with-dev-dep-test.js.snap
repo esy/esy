@@ -22,10 +22,10 @@ exports[`esy local prefix dir 1`] = `
 | | | fastreplacestring.cpp
 | | | fastreplacestring.exe
 | | | install
-| | | runtime.sh
 | | | sandbox-env
 | | | sandbox.sb
 | | | shell
+| | | shell-builder.sh
 | store
 | | b
 | | | with_dev_dep-1.0.0
