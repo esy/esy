@@ -286,13 +286,9 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/shell-builder.sh"
 
       if [ $# -eq 0 ]; then
-        esyPrepare
-        esyPerformBuild
-        esyComplete
+        esyWithBuildEnv esyRunBuildCommands
       else
-        esyPrepare
-        esyExecCommand "$@"
-        esyComplete
+        esyWithBuildEnv esyExecCommand "$@"
       fi
     `,
   });
@@ -308,11 +304,13 @@ export const eject = async (
       source "$ESY_EJECT__ROOT/bin/build-env"
       source "$ESY_EJECT__ROOT/bin/shell-builder.sh"
 
+      _makeBuild () {
+        esyRunBuildCommands --silent
+        esyRunInstallCommands --silent
+      }
+
       if [ ! -d "$esy_build__install_root" ]; then
-        esyPrepare
-        esyPerformBuild --silent
-        esyPerformInstall --silent
-        esyComplete
+        esyWithBuildEnv _makeBuild
       fi
     `,
   });
