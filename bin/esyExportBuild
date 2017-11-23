@@ -25,7 +25,7 @@ stageBuildPath="$stageDir/$buildId"
 outputDir="$PWD/_export"
 outputPath="$outputDir/$buildId.tar.gz"
 
-originEsyPrefix=$(dirname "$buildPath")
+originEsyPrefix=$(dirname $(dirname "$buildPath"))
 destEsyPrefix=${originEsyPrefix//?/_}
 
 function _do () {
