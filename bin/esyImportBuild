@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+set -e
+set -u
+set -o pipefail
+
+BINDIR=$(dirname "$0")
+
+if [ -z "${ESY__SANDBOX+x}" ]; then
+  export ESY__SANDBOX="$PWD"
+fi
+if [ -z "${ESY__PREFIX+x}" ]; then
+  export ESY__PREFIX="$HOME/.esy"
+fi
+if [ -z "${ESY__LOCAL_STORE+x}" ]; then
+  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
+fi
+
+strLen() {
+  # run in a subprocess to override $LANG variable
+  LANG=C /bin/bash -c 'echo "${#0}"' "$1"
+}
+
+packPath="$1"
+packName=$(basename "${packPath%.tar.gz}")
+
+stageDir=$(mktemp -d)
+stageBuildPath="$stageDir/$packName"
+
+destStorePath=$("$BINDIR/esyGetStorePath" "$ESY__PREFIX")
+destStorePathLen=$(strLen "$destStorePath")
+
+function _do () {
+  set -e
+  set -u
+  set -o pipefail
+
+  local originStorePath
+
+  echo "$packName: importing..."
+
+  if [ -d "$destStorePath/i/$packName" ]; then
+    echo "$packName: already exists in store, skipping..."
+    exit 0
+  fi
+
+  cp "$packPath" "$stageDir/$packName.tar.gz"
+  (cd "$stageDir" && tar xzf "$stageDir/$packName.tar.gz")
+  originStorePath=$(cat "$stageDir/$packName/_esy/storePrefix")
+  originStorePathLen=$(strLen "$originStorePath")
+
+  if [ "$originStorePathLen" -ne "$destStorePathLen" ]; then
+    echo "error: unable to import build artefact: store path length mismatch"
+    exit 1
+  fi
+
+  find "$stageBuildPath" -type f -print0 \
+    | xargs -0 -I {} -P 30 "$BINDIR/fastreplacestring.exe" "{}" "$originStorePath" "$destStorePath"
+
+  mkdir -p "$destStorePath/i"
+  mv "$stageBuildPath" "$destStorePath/i"
+
+  echo "$packName: done"
+}
+
+set +e
+(_do)
+ret="$?"
+set -e
+
+rm -rf "$stageDir"
+
+if [ $ret -ne 0 ]; then
+  exit 1
+fi

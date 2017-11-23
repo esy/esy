@@ -290,7 +290,11 @@ elif [ $# -eq 1 ]; then
       ;;
     export-build)
       shift
-      exec "$SCRIPTDIR/esyExportBuild" "$@"
+      exec "$SCRIPTDIR/esyExportBuild"
+      ;;
+    import-build)
+      shift
+      exec "$SCRIPTDIR/esyImportBuild"
       ;;
     x)
       callBuiltInCommand__x
@@ -366,6 +370,10 @@ else
     export-build)
       shift
       exec "$SCRIPTDIR/esyExportBuild" "$@"
+      ;;
+    import-build)
+      shift
+      exec "$SCRIPTDIR/esyImportBuild" "$@"
       ;;
     config)
       shift
