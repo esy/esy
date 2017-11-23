@@ -4,3 +4,4 @@
 /dist
 /_esyInstallCache-*
 /bin/flock
+/bin/fastreplacestring.exe
