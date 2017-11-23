@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "make test",
-    "postinstall": "(cd bin && rm -f ./flock && ln -s `node -p 'require.resolve(\"@esy-ocaml/flock/flock\")'` ./flock)"
+    "postinstall": "bash ./scripts/postinstall.sh"
   },
   "bin": {
     "esy": "./bin/esy",
