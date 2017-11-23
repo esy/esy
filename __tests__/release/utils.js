@@ -40,8 +40,9 @@ export const esyRoot = path.dirname(path.dirname(__dirname));
 // We use version of esy executable w/o lock so we can run in parallel. We make
 // sure we use isolated sources for tests so this is ok.
 export const esyBin = path.join(esyRoot, 'bin', '_esy');
+export const testUtilsBash = require.resolve('../testlib.sh');
 
-function spawn(command, args, options = {}) {
+export function spawn(command: string, args: string[], options: any = {}) {
   if (process.env.DEBUG != null) {
     console.log(outdent`
       CWD ${options.cwd || process.cwd()}
@@ -184,6 +185,23 @@ export function initFixtureSync(fixturePath: string) {
     return sanitizeNpmOutput(stdout);
   };
 
+  const shellInProject = async (script: string) => {
+    script = `
+      source "${testUtilsBash}"
+
+      function esy () {
+        "${esyBin}" "$@"
+      }
+
+      set -u
+      set -o pipefail
+
+      ${script}
+    `;
+    const options = {env: {...env}, cwd: project};
+    console.log(await spawn('/bin/bash', ['-c', script], options));
+  };
+
   return {
     description: packageJson.description || packageJson.name,
     root,
@@ -197,5 +215,7 @@ export function initFixtureSync(fixturePath: string) {
 
     npm,
     npmPackAndInstall,
+
+    shellInProject,
   };
 }

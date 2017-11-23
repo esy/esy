@@ -12,6 +12,6 @@
     ]
   },
   "dependencies": {
-    "dep-of-with-linked-dep": "*"
+    "dep": "*"
   }
 }
