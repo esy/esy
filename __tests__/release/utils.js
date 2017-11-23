@@ -36,7 +36,10 @@ export async function cleanUp() {
 }
 
 export const esyRoot = path.dirname(path.dirname(__dirname));
-export const esyBin = path.join(esyRoot, 'bin', 'esy');
+
+// We use version of esy executable w/o lock so we can run in parallel. We make
+// sure we use isolated sources for tests so this is ok.
+export const esyBin = path.join(esyRoot, 'bin', '_esy');
 
 function spawn(command, args, options = {}) {
   if (process.env.DEBUG != null) {
@@ -151,12 +154,7 @@ export function initFixtureSync(fixturePath: string) {
 
   const esy = (args: string[], options?: Object = {}) => {
     options = {...options, env: {...options.env, ...env}};
-    try {
-      return spawn(esyBin, args, options);
-    } catch (err) {
-      console.log(err);
-      throw err;
-    }
+    return spawn(esyBin, args, options);
   };
 
   const esyRelease = (releaseType: string) => {
