@@ -23,13 +23,13 @@ set +e
 # run bin/_esy and convert failure to exit 2 so we can distinguish between esy
 # failure and lock failure
 ESY_COMMAND="$SCRIPTDIR/_esy ${@}"
-"$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$ESY_COMMAND && exit 2"
+"$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$ESY_COMMAND || exit 2"
 
 retCode="$?"
 if [ $retCode -eq 1 ]; then
   echo >&2 "error: another esy process is running, exiting...";
   echo >&2 "       you can remove $LOCKFILENAME if you are sure that's not the case";
   exit 1
-elif [ $retCode -ne 2 ]; then
+elif [ $retCode -ne 0 ]; then
   exit 1
 fi
