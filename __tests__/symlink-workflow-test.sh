@@ -15,10 +15,10 @@ ls -la node_modules
 
 run esy build
 
-assert_stdout 'esy dep' 'HELLO'
+assertStdout 'esy dep' 'HELLO'
 
 run esy add link:../another-dep
-assert_stdout 'esy another-dep' 'HELLO'
+assertStdout 'esy another-dep' 'HELLO'
 
 # just for debug
 cat package.json
@@ -32,4 +32,4 @@ echo HELLO_MODIFIED
 EOF
 
 run esy build
-assert_stdout 'esy dep' 'HELLO_MODIFIED'
+assertStdout 'esy dep' 'HELLO_MODIFIED'
