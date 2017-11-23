@@ -10,7 +10,7 @@
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.9.tgz#e12f833cf26bde327de5adace81fd927b52fd06e"
 
-"@esy-ocaml/flock@esy-ocaml/flock":
+"@esy-ocaml/flock@esy-ocaml/flock#v0.2.3":
   version "0.2.3"
   resolved "https://codeload.github.com/esy-ocaml/flock/tar.gz/243b7b61a5ad5d6e529172e03025729a45acdd7f"
 
