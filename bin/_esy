@@ -189,6 +189,11 @@ printHelp() {
 
                           esy import-opam lwt 3.0.0 ./opam
 
+  import                Import artefacts into store.
+  on-demand
+
+  export-dependencies   Export all dependencies of the current sandbox.
+
   config ls|get         Query esy configuration.
 
   help                  Print this message.
@@ -275,6 +280,18 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand install-cache
       ;;
+    import|on-demand)
+      shift
+      callBuiltInCommand import
+      ;;
+    export-dependencies)
+      shift
+      callBuiltInCommand export-dependencies
+      ;;
+    export-build)
+      shift
+      exec "$SCRIPTDIR/esyExportBuild" "$@"
+      ;;
     x)
       callBuiltInCommand__x
       ;;
@@ -337,6 +354,18 @@ else
     release)
       shift
       callBuiltInCommand release "$@"
+      ;;
+    import|on-demand)
+      shift
+      callBuiltInCommand import "$@"
+      ;;
+    export-dependencies)
+      shift
+      callBuiltInCommand export "$@"
+      ;;
+    export-build)
+      shift
+      exec "$SCRIPTDIR/esyExportBuild" "$@"
       ;;
     config)
       shift
