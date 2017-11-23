@@ -81,8 +81,11 @@ callBuiltInCommand__build () {
 callBuiltInCommand__x () {
   ensureBuildEjected --silent
   local installOutput
+  set +e
   installOutput=$("$BUILD_EJECT_PATH/bin/install")
-  if [ $? -ne 0 ]; then
+  local ret="$?"
+  set -e
+  if [ $ret -ne 0 ]; then
     echo "$installOutput"
     exit 1
   fi
