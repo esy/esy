@@ -23,7 +23,7 @@ set +e
 # run bin/_esy and convert failure to exit 2 so we can distinguish between esy
 # failure and lock failure
 ESY_COMMAND="$SCRIPTDIR/_esy ${@}"
-"$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$ESY_COMMAND || exit 2"
+"$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$ESY_COMMAND && exit 2"
 
 retCode="$?"
 if [ $retCode -eq 1 ]; then

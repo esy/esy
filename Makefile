@@ -69,10 +69,10 @@ test-unit-watch:
 	@$(BIN)/jest src/ --watch
 
 test-esy-release:
-	@$(BIN)/jest ./__tests__/release/*-test.js
+	@$(BIN)/jest --runInBand ./__tests__/release/*-test.js
 
 test-esy-build:
-	@$(BIN)/jest ./__tests__/build/*-test.js
+	@$(BIN)/jest --runInBand ./__tests__/build/*-test.js
 
 test-e2e:
 	(cd __tests__ && bash symlink-workflow-test.sh)

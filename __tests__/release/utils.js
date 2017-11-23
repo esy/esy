@@ -151,7 +151,12 @@ export function initFixtureSync(fixturePath: string) {
 
   const esy = (args: string[], options?: Object = {}) => {
     options = {...options, env: {...options.env, ...env}};
-    return spawn(esyBin, args, options);
+    try {
+      return spawn(esyBin, args, options);
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
   };
 
   const esyRelease = (releaseType: string) => {
