@@ -11,6 +11,7 @@ import * as Env from '../environment';
 import * as Graph from '../graph.js';
 import * as Child from '../lib/child_process.js';
 import * as fs from '../lib/fs.js';
+import {PromiseQueue} from '../lib/Promise.js';
 
 const esyBin = require.resolve('../../bin/_esy');
 
@@ -49,10 +50,14 @@ export default async function esyExport(ctx: CommandContext) {
     ctx.error('unable to export some of the artefacts, run "esy build" command');
   }
 
+  const exportQueue = new PromiseQueue({concurrency: config.buildConcurrency});
+
   await Promise.all(
-    toExport.map(async build => {
-      const finalInstallPath = config.getFinalInstallPath(build);
-      await Child.spawn(esyBin, ['export-build', finalInstallPath], {stdio: 'inherit'});
-    }),
+    toExport.map(build =>
+      exportQueue.add(async () => {
+        const finalInstallPath = config.getFinalInstallPath(build);
+        await Child.spawn(esyBin, ['export-build', finalInstallPath], {stdio: 'inherit'});
+      }),
+    ),
   );
 }
