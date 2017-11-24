@@ -5,6 +5,8 @@ set -u
 set -o pipefail
 
 BINDIR=$(dirname "$0")
+# shellcheck source=./esyConfig.sh
+source "$BINDIR/esyConfig.sh"
 
 if [ -z "${ESY__SANDBOX+x}" ]; then
   export ESY__SANDBOX="$PWD"
@@ -34,8 +36,9 @@ function _do () {
   set -o pipefail
 
   cp -r "$buildPath" "$stageBuildPath"
-  find "$stageBuildPath" -type f -print0 \
-    | xargs -0 -I {} -P 30 "$BINDIR/fastreplacestring.exe" "{}" "$originEsyPrefix" "$destEsyPrefix"
+
+  esyRewriteStorePrefix "$stageBuildPath" "$originEsyPrefix" "$destEsyPrefix"
+
   mkdir -p "$stageBuildPath/_esy"
   echo "$destEsyPrefix" > "$stageBuildPath/_esy/storePrefix"
   mkdir -p "$outputDir"
