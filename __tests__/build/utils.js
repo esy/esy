@@ -74,6 +74,8 @@ export function initFixtureSync(fixturePath: string) {
       set -u
       set -o pipefail
 
+      run esy config ls
+
       ${script}
     `;
     const options = {env: {...env}, cwd: project};
