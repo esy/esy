@@ -547,6 +547,15 @@ async function performBuild(
       );
 
       driver.log('finalizing build');
+
+      // saving esy metadata
+      await fs.mkdirp(path.join(driver.installPath, '_esy'));
+      await fs.writeFile(
+        path.join(driver.installPath, '_esy', 'storePrefix'),
+        config.store.path,
+      );
+
+      // mv is an atomic op so this is how we implement transactional builds
       await fs.rename(driver.installPath, driver.finalInstallPath);
 
       buildSucceeded = true;

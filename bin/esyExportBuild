@@ -8,16 +8,6 @@ BINDIR=$(dirname "$0")
 # shellcheck source=./esyConfig.sh
 source "$BINDIR/esyConfig.sh"
 
-if [ -z "${ESY__SANDBOX+x}" ]; then
-  export ESY__SANDBOX="$PWD"
-fi
-if [ -z "${ESY__PREFIX+x}" ]; then
-  export ESY__PREFIX="$HOME/.esy"
-fi
-if [ -z "${ESY__LOCAL_STORE+x}" ]; then
-  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
-fi
-
 buildPath="$1"
 buildId=$(basename "$buildPath")
 
@@ -27,26 +17,29 @@ stageBuildPath="$stageDir/$buildId"
 outputDir="$PWD/_export"
 outputPath="$outputDir/$buildId.tar.gz"
 
-originEsyPrefix=$(dirname $(dirname "$buildPath"))
-destEsyPrefix=${originEsyPrefix//?/_}
-
 function _do () {
   set -e
   set -u
   set -o pipefail
 
+  local origStorePath
+  local destStorePath
+
   cp -r "$buildPath" "$stageBuildPath"
 
-  esyRewriteStorePrefix "$stageBuildPath" "$originEsyPrefix" "$destEsyPrefix"
+  origStorePath=$(cat "$stageBuildPath/_esy/storePrefix")
+  destStorePath=${origStorePath//?/_}
 
-  mkdir -p "$stageBuildPath/_esy"
-  echo "$destEsyPrefix" > "$stageBuildPath/_esy/storePrefix"
+  esyRewriteStorePrefix "$stageBuildPath" "$origStorePath" "$destStorePath"
+
   mkdir -p "$outputDir"
   rm -rf "$outputPath"
+
   (cd "$stageDir" && tar -czf "$outputPath" "$buildId")
 }
 
 echo "$buildId: exporting..."
+
 set +e
 (_do)
 ret="$?"

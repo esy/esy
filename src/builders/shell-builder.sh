@@ -6,6 +6,7 @@
 # Eject-specific sandbox-wide variables:
 #
 #   $ESY_EJECT__ROOT — the root of eject
+#   $ESY_EJECT__STORE — the store path
 #
 # Eject-specific build-specific variables:
 #
@@ -216,6 +217,10 @@ esyRunInstallCommands () {
   for filename in $(find $cur__install -type f); do
     "$ESY_EJECT__ROOT/bin/fastreplacestring.exe" "$filename" "$cur__install" "$esy_build__install_root"
   done
+
+  mkdir -p "$cur__install/_esy"
+  echo "$ESY_EJECT__STORE" > "$cur__install/_esy/storePrefix"
+
   mv "$cur__install" "$esy_build__install_root"
 
 }

@@ -55,11 +55,13 @@ export const eject = async (
 
   const esyBuildWrapperEnv = {
     ESY_EJECT__ROOT: outputPath,
+    ESY_EJECT__STORE: config.store.path,
     ESY_SANDBOX: config.sandboxPath,
   };
 
   const esyBuildEnv = {
     ESY_EJECT__ROOT: outputPath,
+    ESY_EJECT__STORE: config.store.path,
     esy_build__sandbox_config_darwin: path.join('$ESY_EJECT__ROOT', 'bin', 'sandbox.sb'),
     esy_build__source_root: config.getSourcePath(task.spec),
     esy_build__install_root: config.getFinalInstallPath(task.spec),
