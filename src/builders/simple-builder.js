@@ -214,11 +214,13 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     await fs.writeFile(checksumFilename, String(mtime));
   }
 
-  async function performBuildOrImport(task, spinner): Promise<void> {
+  async function performBuildOrImport(task, log, spinner): Promise<void> {
     for (const importPath of config.importPaths) {
       for (const basename of [task.spec.id, `${task.spec.id}.tar.gz`]) {
         const buildPath = path.join(importPath, basename);
+        log(`testing for import: ${buildPath}`);
         if (await fs.exists(buildPath)) {
+          log(`importing build: ${buildPath}`);
           await importBuild(config, buildPath);
           return;
         }
@@ -245,14 +247,18 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     acquiredSpinners.delete(spinner);
   }
 
-  function performBuildWithStatusReport(task, forced = false): Promise<FinalBuildState> {
+  function performBuildWithStatusReport(
+    task,
+    log,
+    forced = false,
+  ): Promise<FinalBuildState> {
     return buildQueue.add(async () => {
       buildNumber += 1;
       const spinner = acquireSpinner();
       spinner.setPrefix(buildNumber, `building ${task.spec.name}@${task.spec.version}`);
       const startTime = Date.now();
       try {
-        await performBuildOrImport(task, spinner);
+        await performBuildOrImport(task, log, spinner);
       } catch (error) {
         if (!(error instanceof BuildError)) {
           error = new InternalBuildError(task, error);
@@ -282,9 +288,13 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
       // if build task is forced (for example by one of the deps updated)
       if (forced) {
         if (task.spec.sourceType === 'immutable') {
-          inProgress = performBuildWithStatusReport(task, true);
+          inProgress = performBuildWithStatusReport(task, log, true);
         } else {
-          inProgress = performBuildWithStatusReport(task, true).then(async result => {
+          inProgress = performBuildWithStatusReport(
+            task,
+            log,
+            true,
+          ).then(async result => {
             const maxMtime = await findBuildMtime(spec);
             log('saving build mtime:', maxMtime);
             await writeBuildMtime(spec, maxMtime);
@@ -304,14 +314,18 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
             //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
             inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
           } else {
-            inProgress = performBuildWithStatusReport(task, true).then(async result => {
+            inProgress = performBuildWithStatusReport(
+              task,
+              log,
+              true,
+            ).then(async result => {
               log('saving build mtime:', maxMtime);
               await writeBuildMtime(spec, maxMtime);
               return result;
             });
           }
         } else {
-          inProgress = performBuildWithStatusReport(task);
+          inProgress = performBuildWithStatusReport(task, log);
         }
       }
       taskInProgress.set(task.id, inProgress);

@@ -13,7 +13,7 @@ type Rc = {
 export function getRcConfigForCwd(cwd: string): Rc {
   return rcUtil.findRc('esy', cwd, (fileText, filePath) => {
     const filePathDir = path.dirname(filePath);
-    const {object: values} = parse(fileText, 'yarnrc');
+    const {object: values} = parse(fileText, 'esyrc');
 
     if (values['esy-import-path'] == null) {
       values['esy-import-path'] = [];
