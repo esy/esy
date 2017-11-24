@@ -5,3 +5,4 @@
 /_esyInstallCache-*
 /bin/flock
 /bin/fastreplacestring.exe
+/bin/esyConfig.sh

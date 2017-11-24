@@ -157,6 +157,7 @@ export type CommandInvocation = {
 type Command = {
   default: (CommandContext, CommandInvocation) => any,
   options?: Object,
+  noHeader?: boolean,
 };
 
 const commandsByName: {[name: string]: () => Command} = {
@@ -174,6 +175,7 @@ const commandsByName: {[name: string]: () => Command} = {
   'install-cache': () => require('./esyInstallCache'),
   import: () => require('./esyImport'),
   'export-dependencies': () => require('./esyExportDependencies'),
+  autoconf: () => require('./esyAutoconf'),
 };
 
 const options = {
@@ -235,11 +237,13 @@ async function main() {
 
   if (commandName != null && commandsByName[commandName] != null) {
     const command = commandsByName[commandName];
-    reporter.header(commandName, pkg);
 
     const executeCommand = async (commandName, initialArgs) => {
       const command = commandsByName[commandName];
       const commandImpl = command();
+      if (!commandImpl.noHeader) {
+        reporter.header(commandName, pkg);
+      }
       const options = parse(initialArgs, {
         ...commandImpl.options,
         strict: true,
