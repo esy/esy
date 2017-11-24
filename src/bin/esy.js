@@ -13,12 +13,16 @@ import userHome from 'user-home';
 import * as path from '../lib/path';
 import chalk from 'chalk';
 import parse from 'cli-argparse';
+import * as rc from '../rc.js';
 
 const pkg = require('../../package.json');
 // for deterministic test output
 if (process.env.NODE_ENV === 'test') {
   pkg.version = '0.0.0';
 }
+
+const cwd = process.cwd();
+const rcConfig = rc.getRcConfigForCwd(cwd);
 
 class HighSeverityReporter extends NoopReporter {
   reporter: Reporter;
@@ -38,7 +42,7 @@ function getSandboxPath() {
     return process.env.ESY__SANDBOX;
   } else {
     // TODO: Need to change this to climb to closest package.json.
-    return process.cwd();
+    return cwd;
   }
 }
 
@@ -54,7 +58,7 @@ function getImportPaths() {
   if (process.env.ESY__IMPORT_PATH != null) {
     return process.env.ESY__IMPORT_PATH.split(':');
   } else {
-    return [];
+    return rcConfig['esy-import-path'];
   }
 }
 
