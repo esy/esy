@@ -4,15 +4,26 @@ set -e
 set -u
 set -o pipefail
 
-BINDIR=$(dirname "$0")
-# shellcheck source=./esyConfig.sh
-source "$BINDIR/esyConfig.sh"
+esyCommandHelp() {
+  cat <<EOF
+usage: esy import-build <path-to-build>
 
-packPath="$1"
-packName=$(basename "${packPath%.tar.gz}")
+This command imports the build from <path-to-build> into the global store.
+The build can be either a directory or a tar.gz archive.
+
+EOF
+}
+
+BINDIR=$(dirname "$0")
+
+# shellcheck source=./esyRuntime.sh
+source "$BINDIR/esyRuntime.sh"
+
+buildPath="$1"
+buildId=$(basename "${buildPath%.tar.gz}")
 
 stageDir=$(mktemp -d)
-stageBuildPath="$stageDir/$packName"
+stageBuildPath="$stageDir/$buildId"
 
 destStorePath=$(esyGetStorePathFromPrefix "$ESY__PREFIX")
 destStorePathLen=$(esyStrLen "$destStorePath")
@@ -22,31 +33,36 @@ function _do () {
   set -u
   set -o pipefail
 
-  local originStorePath
+  local origStorePath
 
-  echo "$packName: importing..."
+  echo "$buildId: importing..."
 
-  if [ -d "$destStorePath/i/$packName" ]; then
-    echo "$packName: already exists in store, skipping..."
+  if [ -d "$destStorePath/i/$buildId" ]; then
+    echo "$buildId: already exists in store, skipping..."
     exit 0
   fi
 
-  cp "$packPath" "$stageDir/$packName.tar.gz"
-  (cd "$stageDir" && tar xzf "$stageDir/$packName.tar.gz")
-  originStorePath=$(cat "$stageDir/$packName/_esy/storePrefix")
-  originStorePathLen=$(esyStrLen "$originStorePath")
+  if [[ "$buildPath" == *.tar.gz ]]; then
+    cp "$buildPath" "$stageBuildPath.tar.gz"
+    (cd "$stageDir" && tar xzf "$stageBuildPath.tar.gz")
+  else
+    cp -rf "$buildPath" "$stageBuildPath"
+  fi
 
-  if [ "$originStorePathLen" -ne "$destStorePathLen" ]; then
-    echo "error: unable to import build artefact: store path length mismatch"
+  origStorePath=$(cat "$stageBuildPath/_esy/storePrefix")
+  origStorePathLen=$(esyStrLen "$origStorePath")
+
+  if [ "$origStorePathLen" -ne "$destStorePathLen" ]; then
+    echo "error: unable to import build: store path length mismatch"
     exit 1
   fi
 
-  esyRewriteStorePrefix "$stageBuildPath" "$originStorePath" "$destStorePath"
+  esyRewriteStorePrefix "$stageBuildPath" "$origStorePath" "$destStorePath"
 
   mkdir -p "$destStorePath/i"
   mv "$stageBuildPath" "$destStorePath/i"
 
-  echo "$packName: done"
+  echo "$buildId: done"
 }
 
 set +e

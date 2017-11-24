@@ -4,9 +4,22 @@ set -e
 set -u
 set -o pipefail
 
+esyCommandHelp() {
+  cat <<EOF
+usage: esy export-build <build-id>
+
+This command exports the build specified by the <build-id> from global
+store into \$PWD/_export/<build-id>.tar.gz archive.
+
+This build can be imported by the 'esy import-build' command.
+
+EOF
+}
+
 BINDIR=$(dirname "$0")
-# shellcheck source=./esyConfig.sh
-source "$BINDIR/esyConfig.sh"
+
+# shellcheck source=./esyRuntime.sh
+source "$BINDIR/esyRuntime.sh"
 
 buildPath="$1"
 buildId=$(basename "$buildPath")
