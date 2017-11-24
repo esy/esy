@@ -133,7 +133,7 @@ export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
 /**
  * Build configuration.
  */
-export type Config<+Path: path.Path, RPath: Path = Path> = {
+export type Config<+Path: path.Path, RPath: Path = Path> = {|
   reporter: Reporter,
 
   /**
@@ -152,7 +152,7 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
    * List of read only stores from which Esy could import built artifacts as
    * needed.
    */
-  +readOnlyStores: Array<Store<path.AbsolutePath>>,
+  +importPaths: Array<path.AbsolutePath>,
 
   /**
    * Path to a sandbox root.
@@ -200,7 +200,7 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {
    * Generate path for the sandbox based on package requests.
    */
   getSandboxPath: (requests: Array<string>) => string,
-};
+|};
 
 /**
  * A build root together with a global env.

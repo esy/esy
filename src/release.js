@@ -132,7 +132,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as bashgen from './builders/bashgen';
 import outdent from 'outdent';
-import {RELEASE_TREE} from './constants';
+import {RELEASE_TREE, CURRENT_ESY_EXECUTABLE} from './constants';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
 
@@ -160,14 +160,6 @@ type BuildReleaseConfig = {
 };
 
 const RELEASE_ESY_PREFIX_NAME = 'r';
-
-// This is invariant both for dev and released versions of Esy as bin/esy always
-// calls into bin/esy.js (same dirname). `process.argv[1]` is the filename of
-// the script executed by `node`.
-//
-// We use `_esy` instead of `esy` here so we don't try to acquire lock
-// recursively.
-const currentEsyExecutable = path.join(path.dirname(process.argv[1]), '_esy');
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
@@ -550,7 +542,7 @@ function createInstallScript(
     #
     # configureEsy
     #
-    export ESY_COMMAND="${currentEsyExecutable}"
+    export ESY_COMMAND="${CURRENT_ESY_EXECUTABLE}"
 
   `;
 

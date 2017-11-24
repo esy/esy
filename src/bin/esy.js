@@ -50,9 +50,9 @@ function getPrefixPath() {
   }
 }
 
-function getReadOnlyStorePath() {
-  if (process.env.ESY__READ_ONLY_STORE_PATH != null) {
-    return process.env.ESY__READ_ONLY_STORE_PATH.split(':');
+function getImportPaths() {
+  if (process.env.ESY__IMPORT_PATH != null) {
+    return process.env.ESY__IMPORT_PATH.split(':');
   } else {
     return [];
   }
@@ -102,7 +102,7 @@ export async function getBuildConfig(
     prefixPath: ctx.prefixPath,
     sandboxPath: ctx.sandboxPath,
     buildPlatform: ctx.buildPlatform,
-    readOnlyStorePath: ctx.readOnlyStorePath,
+    importPaths: ctx.importPaths,
   });
 }
 
@@ -133,7 +133,7 @@ export function indent(string: string, indent: string) {
 export type CommandContext = {
   prefixPath: string,
   sandboxPath: string,
-  readOnlyStorePath: Array<string>,
+  importPaths: Array<string>,
   buildPlatform: BuildPlatform,
   executeCommand: (commandName: string, args: string[]) => Promise<void>,
   version: string,
@@ -253,7 +253,7 @@ async function main() {
     const commandCtx: CommandContext = {
       version: pkg.version,
       prefixPath: getPrefixPath(),
-      readOnlyStorePath: getReadOnlyStorePath(),
+      importPaths: getImportPaths(),
       sandboxPath: getSandboxPath(),
       buildPlatform: getBuildPlatform(),
       executeCommand,

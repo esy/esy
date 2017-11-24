@@ -31,7 +31,7 @@ export default async function esyInitGlobalSandbox(
     prefixPath: ctx.prefixPath,
     sandboxPath,
     buildPlatform: ctx.buildPlatform,
-    readOnlyStorePath: ctx.readOnlyStorePath,
+    importPaths: ctx.importPaths,
   });
 
   await GlobalSandbox.initialize(sandboxPath, request, {

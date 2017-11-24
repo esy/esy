@@ -35,7 +35,6 @@ const config = createConfig({
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
   buildPlatform: 'linux',
-  readOnlyStorePath: [],
 });
 
 const ocaml = build({
