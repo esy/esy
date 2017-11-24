@@ -93,3 +93,10 @@ esyGetStorePathFromPrefix() {
   padding=$(esyRepeatCharacter '_' "$paddingLength")
   echo "$esyPrefix/$storeVersion$padding"
 }
+
+if [ -n "$(type -t esyCommandHelp)" ] && [ "$(type -t esyCommandHelp)" = function ]; then
+  if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+    esyCommandHelp
+    exit 0
+  fi
+fi
