@@ -48,7 +48,6 @@ function createConfig(ctx, buildPlatform: BuildPlatform) {
     storePath: STORE_PATH,
     sandboxPath: SANDBOX_PATH,
     buildPlatform,
-    readOnlyStorePath: [],
   });
   return buildConfig;
 }

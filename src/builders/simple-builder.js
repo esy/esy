@@ -25,6 +25,7 @@ import {
   STORE_BUILD_TREE,
   STORE_STAGE_TREE,
   STORE_INSTALL_TREE,
+  CURRENT_ESY_EXECUTABLE,
 } from '../constants';
 
 type BuildStateSuccess = {
@@ -213,11 +214,14 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     await fs.writeFile(checksumFilename, String(mtime));
   }
 
-  async function performBuildOrRelocate(task, spinner): Promise<void> {
-    for (const store of config.readOnlyStores) {
-      if (await store.has(task.spec)) {
-        await relocateBuild(store, config.store, task.spec);
-        return;
+  async function performBuildOrImport(task, spinner): Promise<void> {
+    for (const importPath of config.importPaths) {
+      for (const basename of [task.spec.id, `${task.spec.id}.tar.gz`]) {
+        const buildPath = path.join(importPath, basename);
+        if (await fs.exists(buildPath)) {
+          await importBuild(config, buildPath);
+          return;
+        }
       }
     }
     await performBuild(task, config, spinner);
@@ -248,7 +252,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
       spinner.setPrefix(buildNumber, `building ${task.spec.name}@${task.spec.version}`);
       const startTime = Date.now();
       try {
-        await performBuildOrRelocate(task, spinner);
+        await performBuildOrImport(task, spinner);
       } catch (error) {
         if (!(error instanceof BuildError)) {
           error = new InternalBuildError(task, error);
@@ -636,29 +640,16 @@ async function rewritePaths(path, from, to) {
   );
 }
 
-async function relocateBuild(
-  from: Store<path.AbsolutePath>,
-  to: Store<path.AbsolutePath>,
-  build: BuildSpec,
+async function importBuild(
+  config: Config<path.AbsolutePath>,
+  buildPath: path.AbsolutePath,
 ): Promise<void> {
-  invariant(
-    from.path.length === to.path.length,
-    'Cannot relocate between stores of different path length: %s and %s',
-    from.path,
-    to.path,
-  );
-  const stage = await fs.mkdtemp(`reloc-build-${build.id}`);
-  const originPath = from.getPath(STORE_INSTALL_TREE, build);
-  const destPath = to.getPath(STORE_INSTALL_TREE, build);
-  const stagePath = path.join(stage, STORE_INSTALL_TREE);
-  try {
-    await fs.copydir(originPath, stagePath);
-    await rewritePaths(stagePath, from.path, to.path);
-    await fs.mkdirp(path.dirname(destPath));
-    await fs.rename(stagePath, destPath);
-  } finally {
-    fs.rmdir(stage);
-  }
+  const env = {
+    ...process.env,
+    ESY__SANDBOX: config.sandboxPath,
+    ESY__STORE: config.store.path,
+  };
+  await child.spawn(CURRENT_ESY_EXECUTABLE, ['import-build', buildPath], {env});
 }
 
 /**

@@ -27,8 +27,8 @@ export default async function configCommand(
     'sandbox-path': {
       get: () => config.sandboxPath,
     },
-    'read-only-store-paths': {
-      get: () => config.readOnlyStores.map(s => s.path).join(':'),
+    'import-paths': {
+      get: () => config.importPaths.join(':'),
     },
   };
 

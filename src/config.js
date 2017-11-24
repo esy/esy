@@ -4,6 +4,7 @@
 
 import type {Reporter, BuildSpec, Config, BuildPlatform, StoreTree, Store} from './types';
 import * as os from 'os';
+import invariant from 'invariant';
 import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constants';
 import * as S from './store';
 import * as path from './lib/path';
@@ -15,16 +16,16 @@ function _create<Path: path.Path>(
   sandboxPath: Path,
   store: Store<Path>,
   localStore: Store<Path>,
-  readOnlyStores,
+  importPaths: Array<path.AbsolutePath>,
   buildPlatform,
   reporter: Reporter,
 ): Config<Path> {
   const genStorePath = (tree: StoreTree, build: BuildSpec, segments: string[]) => {
-    if (build.sourceType === 'immutable') {
-      return store.getPath(tree, build, ...segments);
-    } else {
-      return localStore.getPath(tree, build, ...segments);
-    }
+    const path: Path =
+      build.sourceType === 'immutable'
+        ? store.getPath(tree, build, ...segments)
+        : localStore.getPath(tree, build, ...segments);
+    return path;
   };
 
   function getSourcePath(build: BuildSpec, ...segments): Path {
@@ -42,7 +43,7 @@ function _create<Path: path.Path>(
     store,
     localStore,
     buildPlatform,
-    readOnlyStores,
+    importPaths,
     buildConcurrency: NUM_CPUS,
 
     getSourcePath,
@@ -61,6 +62,7 @@ function _create<Path: path.Path>(
       } else if (build.buildType === 'out-of-source') {
         return getSourcePath(build, ...segments);
       }
+      invariant(false, 'Impossible happened');
     },
     getBuildPath: (build: BuildSpec, ...segments) =>
       genStorePath(STORE_BUILD_TREE, build, segments),
@@ -96,19 +98,18 @@ export function create(params: {
   storePath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
-  readOnlyStorePath: Array<string>,
+  importPaths?: Array<string>,
 }): Config<path.AbstractPath> {
-  const {reporter, storePath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
+  const {reporter, storePath, sandboxPath, buildPlatform, importPaths = []} = params;
   const store = S.forAbstractPath(storePath);
   const localStore = S.forAbstractPath(
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
-  const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
   return _create(
     path.abstract(sandboxPath),
     store,
     localStore,
-    readOnlyStores,
+    importPaths.map(path.absolute),
     buildPlatform,
     reporter,
   );
@@ -119,19 +120,18 @@ export function createForPrefix(params: {
   prefixPath: string,
   sandboxPath: string,
   buildPlatform: BuildPlatform,
-  readOnlyStorePath: Array<string>,
+  importPaths?: Array<string>,
 }): Config<path.AbsolutePath> {
-  const {reporter, prefixPath, sandboxPath, buildPlatform, readOnlyStorePath} = params;
+  const {reporter, prefixPath, sandboxPath, buildPlatform, importPaths = []} = params;
   const store = S.forPrefixPath(prefixPath);
   const localStore = S.forAbsolutePath(
     path.join(sandboxPath, 'node_modules', '.cache', '_esy', 'store'),
   );
-  const readOnlyStores = readOnlyStorePath.map(p => S.forAbsolutePath(p));
   return _create(
     path.absolute(sandboxPath),
     store,
     localStore,
-    readOnlyStores,
+    importPaths.map(path.absolute),
     buildPlatform,
     reporter,
   );
