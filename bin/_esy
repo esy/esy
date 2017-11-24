@@ -11,18 +11,6 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-# Had to remove this so that we could just use one command `esy` which we
-# forward everything to.
-# We'll have to reimplement v that feature in the actual js impl.
-# CURDIR=`pwd`
-# while [ ! -e "$CURDIR/package.json" ]; do
-#     if [ "$CURDIR" == "/" ]; then
-#         echo "Cannot find package.json" >&2
-#         exit 1
-#     fi
-#     CURDIR=`cd $CURDIR/..; pwd`
-# done
-
 if [ -z "${ESY__SANDBOX+x}" ]; then
   export ESY__SANDBOX="$PWD"
 fi
@@ -140,28 +128,19 @@ callBuiltInCommand() {
 
 printHelp() {
   cat <<EOF
-  Usage: $0 <command> [--help] [--version]
+Usage: $0 <command> [--help] [--version]
+
+Install all dependencies and build the current project.
+
+Avaialble subcommands:
 
   install               Installs packages declared in package.json.
   i
 
-  build                 Builds everything that needs to be built, caches
-  b                     results. Builds according to each package's "esy"
-                        entry in package.json. Before building each package,
-                        the environment is scrubbed clean then created according
-                        to dependencies.
-
-  build <command>       Builds everything that needs to be build, caches
-  b <command>           results. Then runs a command inside the root package's
-                        build environment.
-
-  shell                 The same as esy build-shell, but creates a "relaxed"
-                        environment - meaning it also inherits your existing
-                        shell.
+  build                 Run build commands for the project.
+  b                     (as specified in "esy.build" key within package.json)
 
   add <package>         Add a specified package to dependencies and installs it.
-
-  release TYPE          Create a release of type TYPE ("dev", "pack" or "bin").
 
   print-env             Prints esy environment on stdout.
 
@@ -171,15 +150,33 @@ printHelp() {
                         sandbox — that will initialize build shell for that
                         specified package.
 
-  build-eject           Creates node_modules/.cache/esy/build-eject/Makefile,
-                        which is later can be used for building without the NodeJS
-                        runtime.
+  shell                 Drops into development shell.
+                        Less strict than build-shell and allows access to
+                        devDependencies.
 
-                        Unsupported form: build-eject [cygwin | linux | darwin]
-                        Ejects a build for the specific platform. This
-                        build-eject form is not officially supported and will
-                        be removed soon. It is currently here for debugging
-                        purposes.
+  version               Print esy version and exit
+
+  build <command>       Run command inside the build environment.
+  b <command>
+
+  x <command>           Run command as if the package is already installed.
+                        Useful for testing.
+
+  <command>             Executes <command> as if you had executed it inside of
+                        esy shell.
+
+  help                  Show detailed help.
+
+EOF
+}
+
+printDetailedHelp () {
+  less <<EOF
+$(printHelp)
+
+Advanced commands:
+
+  release TYPE          Create a release of type TYPE ("dev", "pack" or "bin").
 
   install-cache         Manage installation cache (similar to 'yarn cache'
                         command).
@@ -189,19 +186,33 @@ printHelp() {
 
                           esy import-opam lwt 3.0.0 ./opam
 
-  import                Import artefacts into store.
-  on-demand
+  config ls             Query esy configuration.
+  config get
 
   export-dependencies   Export all dependencies of the current sandbox.
 
-  config ls|get         Query esy configuration.
+  export-build <id>     Exports build by <id> from global store and puts it
+                        into _export/<id>.tar.gz archive.
 
-  help                  Print this message.
+  import-build <path>   Imports build from <path> and puts it into global store.
+                        The <path> can point either to the archive produced by
+                        "esy export-build" command or to the directory.
 
-  version               Print esy version and exit
+Environment variables:
 
-  <command>             Executes <command> as if you had executed it inside of
-                        esy shell.
+  ESY__SANDBOX          Path to the current sandbox.
+
+  ESY__PREFIX           Path to the global Esy prefix where Esy puts its
+                        caches.
+
+Configuration file (.esyrc):
+
+  esy-import-path       Path to the directory with exported builds which will be
+                        loooked up during build processes to import builds from.
+
+  <yarn config vars>    All yarn configuration parameters are supported. They
+                        only take effect for yarn-based commands such as
+                        "esy install", "esy add" and so on.
 
 EOF
 }
@@ -302,7 +313,10 @@ elif [ $# -eq 1 ]; then
     version|--version|-v)
       printVersion
       ;;
-    help|--help|-h)
+    help)
+      printDetailedHelp
+      ;;
+    --help|-h)
       printHelp
       ;;
     -*)
