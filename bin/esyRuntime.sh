@@ -17,6 +17,11 @@
 #     echo "Hello, I work on "$ESY__SANDBOX"
 #
 
+BINDIR=$(dirname "$0")
+
+# shellcheck source=./esyConfig.sh
+source "$BINDIR/esyConfig.sh"
+
 if [ -z "${ESY__SANDBOX+x}" ]; then
   export ESY__SANDBOX="$PWD"
 fi
@@ -26,8 +31,6 @@ fi
 if [ -z "${ESY__LOCAL_STORE+x}" ]; then
   export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
 fi
-
-BINDIR=$(dirname "$0")
 
 #
 # Get length of the string in C locale
@@ -82,7 +85,7 @@ esyGetStorePathFromPrefix() {
   esyPrefix="${esyPrefix%/}"
 
   prefixLength=$(esyStrLen "$esyPrefix/$storeVersion")
-  paddingLength=$((86 - prefixLength))
+  paddingLength=$((ESY__STORE_PADDING_LENGTH - prefixLength))
 
   # Discover how much of the reserved relocation padding must be consumed.
   if [ "$paddingLength" -lt "0" ]; then
