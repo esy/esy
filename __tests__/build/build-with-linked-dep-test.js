@@ -2,10 +2,11 @@
  * @flow
  */
 
-import {defineTestCaseWithShell} from './utils';
+import * as path from 'path';
+import {defineTestCaseWithShell} from '../utils';
 
 defineTestCaseWithShell(
-  'with-linked-dep',
+  path.join(__dirname, 'fixtures', 'with-linked-dep'),
   `
     run esy build
 
