@@ -113,12 +113,7 @@ callBuiltInCommand__buildEject () {
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    EJECT_LOG=$(node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@" 2>&1)
-    if [ $? -ne 0 ]; then
-      echo "Failed to prepare build environment:"
-      printf "%s\n" "$EJECT_LOG" >&2
-      exit 1
-    fi
+    node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@"
   fi
 }
 

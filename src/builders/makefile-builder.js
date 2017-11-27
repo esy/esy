@@ -114,6 +114,28 @@ const files = {
     filename: ['bin', 'shell-builder.sh'],
     contents: fs.readFileSync(require.resolve('./shell-builder.sh')),
   },
+
+  esyRuntimeSh: {
+    filename: ['bin', 'esyRuntime.sh'],
+    contents: fs.readFileSync(require.resolve('../../bin/esyRuntime.sh')),
+  },
+
+  esyConfigSh: {
+    filename: ['bin', 'esyConfig.sh'],
+    contents: fs.readFileSync(require.resolve('../../bin/esyConfig.sh')),
+  },
+
+  esyImportBuild: {
+    filename: ['bin', 'esyImportBuild'],
+    contents: fs.readFileSync(require.resolve('../../bin/esyImportBuild')),
+    executable: true,
+  },
+
+  esyExportBuild: {
+    filename: ['bin', 'esyExportBuild'],
+    contents: fs.readFileSync(require.resolve('../../bin/esyExportBuild')),
+    executable: true,
+  },
 };
 
 const preludeRuleSet = [
@@ -229,8 +251,12 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
     });
   }
 
+  const tasks = [];
+
   function createBuildRules(directDependencies, allDependencies, task: BuildTask) {
     log(`visit ${task.spec.id}`);
+
+    tasks.push(task);
 
     const packageName = normalizePackageName(task.spec.id);
     const packagePath = task.spec.packagePath.split(path.sep).filter(Boolean);
@@ -307,17 +333,12 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
       dependencies: [...cleanDependenciesRule],
     });
 
-    const dependenciesInstallPathList = Array.from(allDependencies.values()).map(d =>
-      config.getFinalInstallPath(d.task.spec),
-    );
-
     return {
       task: task,
       buildRule,
       buildShellRule,
       cleanRule,
       rules: Makefile.createGroup(...rules),
-      finalInstallPathSet: dependenciesInstallPathList.concat(finalInstallPath),
     };
   }
 
@@ -327,24 +348,10 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
   log('process dependency graph');
   const rootTask = Task.fromSandbox(sandbox, config);
 
-  const finalInstallPathSetMetaRule = generateMetaRule({
-    filename: 'final-install-path-set.txt',
-  });
-
-  const storePathMetaRule = generateMetaRule({
-    filename: 'store-path.txt',
-  });
-
   const bootstrapRule = Makefile.createRule({
     target: 'bootstrap',
     phony: true,
-    dependencies: [
-      finalInstallPathSetMetaRule,
-      storePathMetaRule,
-      defineSandboxEnvRule,
-      initRootRule,
-      initStoreRule,
-    ],
+    dependencies: [defineSandboxEnvRule, initRootRule, initStoreRule],
   });
 
   const {
@@ -352,7 +359,6 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
     buildShellRule: rootBuildShellRule,
     cleanRule: rootCleanRule,
     rules,
-    finalInstallPathSet,
   } = Graph.topologicalFold(rootTask, createBuildRules);
 
   const buildRule = Makefile.createRule({
@@ -377,9 +383,15 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
       rm -f ${sandboxPath(constants.INSTALL_TREE_SYMLINK)}
       rm -f ${compileRealpathRule.target}
       rm -f ${compileFastreplacestringRule.target}
-      rm -f ${storePathMetaRule.target}
-      rm -f ${finalInstallPathSetMetaRule.target}
     `,
+  });
+
+  const listInstallPathsRule = Makefile.createRule({
+    target: 'list-install-paths',
+    phony: true,
+    command: `@$(env_init) ${tasks
+      .map(task => `echo "${config.getFinalInstallPath(task.spec)}"`)
+      .join('\n')}`,
   });
 
   const makefileFile = {
@@ -389,6 +401,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
       buildRule,
       buildShellRule,
       cleanRule,
+      listInstallPathsRule,
       rules,
     ]),
   };
@@ -398,9 +411,14 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
     contents: outdent`
       ${bashgen.defineEsyUtil}
 
+      # Set the default value for ESY_EJECT__PREFIX if it's not defined.
+      if [ -z \${ESY_EJECT__PREFIX+x} ]; then
+        export ESY_EJECT__PREFIX="$HOME/.esy"
+      fi
+
       # Set the default value for ESY_EJECT__STORE if it's not defined.
       if [ -z \${ESY_EJECT__STORE+x} ]; then
-        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$HOME/.esy")
+        export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$ESY_EJECT__PREFIX")
       fi
 
       ${Env.printEnvironment(S.getSandboxEnv(sandbox, config))}
@@ -410,19 +428,15 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
   log('build environment');
   Promise.all([
     ...buildFiles.map(file => emitFile(outputPath, file)),
-    emitFile(outputPath, {
-      filename: ['records', `final-install-path-set.txt.in`],
-      contents: finalInstallPathSet.join('\n'),
-    }),
-    emitFile(outputPath, {
-      filename: ['records', `store-path.txt.in`],
-      contents: '$ESY_EJECT__STORE',
-    }),
     emitFile(outputPath, files.commandEnv),
     emitFile(outputPath, files.getStorePath),
     emitFile(outputPath, files.fastreplacestringSource),
     emitFile(outputPath, files.realpathSource),
     emitFile(outputPath, files.runtimeSource),
+    emitFile(outputPath, files.esyRuntimeSh),
+    emitFile(outputPath, files.esyConfigSh),
+    emitFile(outputPath, files.esyImportBuild),
+    emitFile(outputPath, files.esyExportBuild),
     emitFile(outputPath, sandboxEnvFile),
     emitFile(outputPath, makefileFile),
   ]);

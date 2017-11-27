@@ -138,28 +138,12 @@ type ReleaseType = 'dev' | 'pack' | 'bin';
 
 type ReleaseStage = 'forClientInstallation' | 'forPreparingRelease';
 
-type ReleaseActionsSpec = {
-  checkIfReleaseIsBuilt: ?ReleaseStage,
-  installEsy: ?ReleaseStage,
-  configureEsy: ?ReleaseStage,
-  download: ?ReleaseStage,
-  pack: ?ReleaseStage,
-  compressPack: ?ReleaseStage,
-  decompressPack: ?ReleaseStage,
-  buildPackages: ?ReleaseStage,
-  compressBuiltPackages: ?ReleaseStage,
-  decompressAndRelocateBuiltPackages: ?ReleaseStage,
-  markReleaseAsBuilt: ?ReleaseStage,
-};
-
 type BuildReleaseConfig = {
   type: ReleaseType,
   version: string,
   sandboxPath: string,
   esyVersionForDevRelease: string,
 };
-
-const RELEASE_ESY_PREFIX_NAME = 'r';
 
 /**
  * TODO: Make this language agnostic. Nothing else in the eject/build process
@@ -184,41 +168,6 @@ const extensionsToDeleteForBinaryRelease = [
 ];
 
 const pathPatternsToDeleteForBinaryRelease = ['*/doc/*'];
-
-const postinstallScriptSupport = outdent`
-
-  # Exporting so we can call it from xargs
-  # https://stackoverflow.com/questions/11003418/calling-functions-with-xargs-within-a-bash-script
-  unzipAndUntarFixupLinks() {
-    serverEsyEjectStore=$1
-    gunzip "$2"
-    # Beware of the issues of using "which". https://stackoverflow.com/a/677212
-    # Also: hash is only safe/reliable to use in bash, so make sure shebang line is bash.
-    if hash bsdtar 2>/dev/null; then
-      bsdtar -s "|\${serverEsyEjectStore}|\${ESY_EJECT__INSTALL_STORE}|gs" -xf ./\`basename "$2" .gz\`
-    else
-      if hash tar 2>/dev/null; then
-        # Supply --warning=no-unknown-keyword to supresses warnings when packed on OSX
-        tar --warning=no-unknown-keyword --transform="s|\${serverEsyEjectStore}|\${ESY_EJECT__INSTALL_STORE}|" -xf ./\`basename "$2" .gz\`
-      else
-        echo >&2 "Installation requires either bsdtar or tar - neither is found.  Aborting.";
-      fi
-    fi
-    # remove the .tar file
-    rm ./\`basename "$2" .gz\`
-  }
-  export -f unzipAndUntarFixupLinks
-
-  printByteLengthError() {
-    echo >&2 "ERROR:";
-    echo >&2 "  $1";
-    echo >&2 "Could not perform binary build or installation because the location you are installing to ";
-    echo >&2 "is too 'deep' in the file system. That sounds like a strange limitation, but ";
-    echo >&2 "the scripts contain shebangs that encode this path to executable, and posix ";
-    echo >&2 "systems limit the length of those shebang lines to 127.";
-    echo >&2 "";
-  }
-`;
 
 function scrubBinaryReleaseCommandExtensions(searchDir) {
   return (
@@ -302,7 +251,7 @@ function createCommandWrapper(pkg, commandName) {
           # Important to pass --noprofile, and --rcfile so that the user's
           # .bashrc doesn't run and the npm global packages don't get put in front
           # of the already constructed PATH.
-          bash --noprofile --rcfile <(echo 'export PS1="[${packageName} sandbox]"')
+          bash --noprofile --rcfile <(echo 'export PS1="[${packageName} sandbox] "')
         else
           echo "Invalid argument $1, type ${sandboxEntryCommandName} for help"
         fi
@@ -324,15 +273,10 @@ function createCommandWrapper(pkg, commandName) {
     if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}+x} ]; then
       if [ -z \${${packageNameUppercase}__ENVIRONMENTSOURCED+x} ]; then
         ${bashgen.defineScriptDir}
-        export ESY_EJECT__SANDBOX="$SCRIPTDIR/../${RELEASE_ESY_PREFIX_NAME}"
-        export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"
-        export PACKAGE_ROOT="$SCRIPTDIR/.."
-        # Remove dependency on esy and package managers in general
-        # We fake it so that the eject store is the location where we relocated the
-        # binaries to.
-        export ESY_EJECT__STORE=\`cat $PACKAGE_ROOT/records/recordedClientInstallStorePath.txt\`
-        ENV_PATH="$ESY_EJECT__ROOT/sandbox-env"
-        source "$ENV_PATH"
+        esyReleasePackageRoot=$(dirname "$SCRIPTDIR")
+        export ESY_EJECT__PREFIX="$esyReleasePackageRoot"
+        esySandboxEnv="$esyReleasePackageRoot/r/build-eject/sandbox-env"
+        source "$esySandboxEnv"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED="sourced"
         export ${packageNameUppercase}__ENVIRONMENTSOURCED__${binaryNameUppercase}="sourced"
       fi
@@ -349,54 +293,12 @@ function createCommandWrapper(pkg, commandName) {
   `;
 }
 
-const actions: {[releaseType: ReleaseType]: ReleaseActionsSpec} = {
-  dev: {
-    checkIfReleaseIsBuilt: 'forClientInstallation',
-    installEsy: 'forClientInstallation',
-    configureEsy: null,
-    download: 'forClientInstallation',
-    pack: 'forClientInstallation',
-    compressPack: null,
-    decompressPack: null,
-    buildPackages: 'forClientInstallation',
-    compressBuiltPackages: 'forClientInstallation',
-    decompressAndRelocateBuiltPackages: 'forClientInstallation',
-    markReleaseAsBuilt: 'forClientInstallation',
-  },
-  pack: {
-    checkIfReleaseIsBuilt: 'forClientInstallation',
-    installEsy: null,
-    configureEsy: 'forPreparingRelease',
-    download: 'forPreparingRelease',
-    pack: 'forPreparingRelease',
-    compressPack: 'forPreparingRelease',
-    decompressPack: 'forClientInstallation',
-    buildPackages: 'forClientInstallation',
-    compressBuiltPackages: 'forClientInstallation',
-    decompressAndRelocateBuiltPackages: 'forClientInstallation',
-    markReleaseAsBuilt: 'forClientInstallation',
-  },
-  bin: {
-    checkIfReleaseIsBuilt: 'forClientInstallation',
-    installEsy: null,
-    configureEsy: 'forPreparingRelease',
-    download: 'forPreparingRelease',
-    pack: 'forPreparingRelease',
-    compressPack: null,
-    decompressPack: null,
-    buildPackages: 'forPreparingRelease',
-    compressBuiltPackages: 'forPreparingRelease',
-    decompressAndRelocateBuiltPackages: 'forClientInstallation',
-    markReleaseAsBuilt: 'forClientInstallation',
-  },
-};
-
 /**
  * Derive npm release package.
  *
  * This strips all dependency info and add "bin" metadata.
  */
-async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
+async function deriveNpmPackageJson(pkg, releasePackagePath, releaseType) {
   let copy = JSON.parse(JSON.stringify(pkg));
 
   // We don't manage dependencies with npm, esy is being installed via a
@@ -406,19 +308,19 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
   copy.devDependencies = {};
 
   // Populate "bin" metadata.
-  await fs.mkdirp(path.join(releasePath, '.bin'));
-  const binsToWrite = getSandboxCommands(releaseType, releasePath, pkg);
+  await fs.mkdirp(path.join(releasePackagePath, '.bin'));
+  const binsToWrite = getSandboxCommands(releaseType, releasePackagePath, pkg);
   const packageJsonBins = {};
   for (let i = 0; i < binsToWrite.length; i++) {
     const toWrite = binsToWrite[i];
-    await fs.writeFile(path.join(releasePath, toWrite.path), toWrite.contents);
-    await fs.chmod(path.join(releasePath, toWrite.path), /* octal 0755 */ 493);
+    await fs.writeFile(path.join(releasePackagePath, toWrite.path), toWrite.contents);
+    await fs.chmod(path.join(releasePackagePath, toWrite.path), /* octal 0755 */ 493);
     packageJsonBins[toWrite.name] = toWrite.path;
   }
   copy.bin = packageJsonBins;
 
   // Add postinstall script
-  copy.scripts.postinstall = './postinstall.sh';
+  copy.scripts.postinstall = `./bin/esyBuildRelease ${releaseType} install`;
 
   return copy;
 }
@@ -426,7 +328,7 @@ async function deriveNpmReleasePackage(pkg, releasePath, releaseType) {
 /**
  * Derive esy release package.
  */
-async function deriveEsyReleasePackage(pkg, releasePath, releaseType) {
+async function deriveEsyPackageJson(pkg, releasePackagePath, releaseType) {
   const copy = JSON.parse(JSON.stringify(pkg));
   delete copy.dependencies.esy;
   delete copy.devDependencies.esy;
@@ -457,398 +359,11 @@ async function verifyBinSetup(sandboxPath, pkg) {
   }
 }
 
-/**
- * To relocate binary artifacts: We need to make sure that the length of
- * shebang lines do not exceed 127 (common on most linuxes).
- *
- * For binary releases, they will be built in the form of:
- *
- *        This will be replaced by the actual      This must remain.
- *        install location.
- *       +----------------------------+  +--------------------------------+
- *      /                              \/                                  \
- *   #!/path/to/r/store___padding____/i/ocaml-4.02.3-d8a857f3/bin/ocamlrun
- *
- * The goal is to make this path exactly 127 characters long (maybe a little
- * less to allow room for some other shebangs like `ocamlrun.opt` etc?)
- *
- * Therefore, it is optimal to make this path as long as possible, but no
- * longer than 127 characters, while minimizing the size of the final
- * "ocaml-4.02.3-d8a857f3/bin/ocamlrun" portion. That allows installation of
- * the release in as many destinations as possible.
- */
-function createInstallScript(
-  releaseStage: ReleaseStage,
-  releaseType: ReleaseType,
-  pkg,
-  esyVersion,
-) {
-  const shouldCheckIfReleaseIsBuilt =
-    actions[releaseType].checkIfReleaseIsBuilt === releaseStage;
-  const shouldConfigureEsy = actions[releaseType].configureEsy === releaseStage;
-  const shouldInstallEsy = actions[releaseType].installEsy === releaseStage;
-  const shouldDownload = actions[releaseType].download === releaseStage;
-  const shouldPack = actions[releaseType].pack === releaseStage;
-  const shouldCompressPack = actions[releaseType].compressPack === releaseStage;
-  const shouldDecompressPack = actions[releaseType].decompressPack === releaseStage;
-  const shouldBuildPackages = actions[releaseType].buildPackages === releaseStage;
-  const shouldCompressBuiltPackages =
-    actions[releaseType].compressBuiltPackages === releaseStage;
-  const shouldDecompressAndRelocateBuiltPackages =
-    actions[releaseType].decompressAndRelocateBuiltPackages === releaseStage;
-  const shouldMarkReleaseAsBuilt =
-    actions[releaseType].markReleaseAsBuilt === releaseStage;
-
-  const message = outdent`
-
-    #
-    # Release releaseType: "${releaseType}"
-    # ------------------------------------------------------
-    # Executed ${releaseStage === 'forPreparingRelease'
-      ? 'while creating the release'
-      : 'while installing the release on client machine'}
-    #
-    # Check if release is built:    ${String(shouldCheckIfReleaseIsBuilt)}
-    # Configure Esy:                ${String(shouldConfigureEsy)}
-    # Install Esy:                  ${String(shouldInstallEsy)}
-    # Download:                     ${String(shouldDownload)}
-    # Pack:                         ${String(shouldPack)}
-    # Compress Pack:                ${String(shouldCompressPack)}
-    # Decompress Pack:              ${String(shouldDecompressPack)}
-    # Build Packages:               ${String(shouldBuildPackages)}
-    # Compress Built Packages:      ${String(shouldCompressBuiltPackages)}
-    # Decompress Built Packages:    ${String(shouldDecompressAndRelocateBuiltPackages)}
-    # Mark release as built:        ${String(shouldMarkReleaseAsBuilt)}
-    #
-
-  `;
-
-  const deleteFromBinaryRelease =
-    pkg.esy && pkg.esy.release && pkg.esy.release.deleteFromBinaryRelease;
-
-  const checkIfReleaseIsBuiltCmds = outdent`
-
-    #
-    # checkIfReleaseIsBuilt
-    #
-    if [ -f "$PACKAGE_ROOT/records/done.txt" ]; then
-     exit 0;
-    fi
-
-  `;
-
-  const configureEsyCmds = outdent`
-
-    #
-    # configureEsy
-    #
-    export ESY_COMMAND="${CURRENT_ESY_EXECUTABLE}"
-
-  `;
-
-  const installEsyCmds = outdent`
-
-    #
-    # installEsy
-    #
-    echo '*** Installing esy for the release...'
-    LOG=$(npm install --global --prefix "$PACKAGE_ROOT/_esy" "esy@${esyVersion}")
-    if [ $? -ne 0 ]; then
-      echo "error: failed to install esy..."
-      echo $LOG
-      exit 1
-    fi
-    # overwrite esy command with just installed esy bin
-    export ESY_COMMAND="$PACKAGE_ROOT/_esy/bin/esy"
-
-  `;
-
-  const downloadCmds = outdent`
-
-    #
-    # download
-    #
-    echo '*** Installing dependencies...'
-    cd $ESY_EJECT__SANDBOX
-    LOG=$($ESY_COMMAND install)
-    if [ $? -ne 0 ]; then
-      echo "error: failed to install dependencies..."
-      echo $LOG
-      exit 1
-    fi
-    cd $PACKAGE_ROOT
-
-  `;
-  const packCmds = outdent`
-
-    #
-    # Pack
-    #
-    # Peform build eject.  Warms up *just* the artifacts that require having a
-    # modern node installed.
-    # Generates the single Makefile etc.
-    echo '*** Ejecting build environment...'
-    cd $ESY_EJECT__SANDBOX
-    $ESY_COMMAND build-eject
-    mv $ESY_EJECT__SANDBOX/node_modules/.cache/_esy/build-eject $ESY_EJECT__SANDBOX/_esyEjectRoot
-    cd $PACKAGE_ROOT
-
-  `;
-  const compressPackCmds = outdent`
-
-    #
-    # compressPack
-    #
-    # Avoid npm stripping out vendored node_modules via tar. Merely renaming node_modules
-    # is not sufficient!
-    echo '*** Packing the release...'
-    tar -czf ${RELEASE_ESY_PREFIX_NAME}.tar.gz ${RELEASE_ESY_PREFIX_NAME}
-    rm -rf $ESY_EJECT__SANDBOX
-
-  `;
-  const decompressPackCmds = outdent`
-
-    #
-    # decompressPack
-    #
-    # Avoid npm stripping out vendored node_modules.
-    echo '*** Unpacking the release...'
-    gunzip "$ESY_EJECT__SANDBOX.tar.gz"
-    if hash bsdtar 2>/dev/null; then
-      bsdtar -xf "$ESY_EJECT__SANDBOX.tar"
-    else
-      if hash tar 2>/dev/null; then
-        # Supply --warning=no-unknown-keyword to supresses warnings when packed on OSX
-        tar --warning=no-unknown-keyword -xf "$ESY_EJECT__SANDBOX.tar"
-      else
-        echo >&2 "Installation requires either bsdtar or tar - neither is found.  Aborting.";
-      fi
-    fi
-    rm -rf "$ESY_EJECT__SANDBOX.tar"
-
-  `;
-  const buildPackagesCmds = outdent`
-
-    #
-    # buildPackages
-    #
-    # Always reserve enough path space to perform relocation.
-    echo '*** Building the release...'
-    cd $ESY_EJECT__SANDBOX
-    make -j -f "$ESY_EJECT__ROOT/Makefile"
-    cd $PACKAGE_ROOT
-
-    cp \
-      "$ESY_EJECT__ROOT/records/store-path.txt" \
-      "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"
-    # For client side builds, recordedServerBuildStorePath is equal to recordedClientBuildStorePath.
-    # For prebuilt binaries these will differ, and recordedClientBuildStorePath.txt is overwritten.
-    cp \
-      "$ESY_EJECT__ROOT/records/store-path.txt" \
-      "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
-
-  `;
-
-  /**
-   * In bash:
-   * [[ "hellow4orld" =~ ^h(.[a-z]*) ]] && echo ${BASH_REMATCH[0]}
-   * Prints out: hellow
-   * [[ "zzz" =~ ^h(.[a-z]*) ]] && echo ${BASH_REMATCH[1]}
-   * Prints out: ellow
-   * [[ "zzz" =~ ^h(.[a-z]*) ]] && echo ${BASH_REMATCH[1]}
-   * Prints out empty
-   */
-  const compressBuiltPackagesCmds = outdent`
-
-    #
-    # compressBuiltPackages
-    #
-    # Double backslash in es6 literals becomes one backslash
-    # Must use . instead of source for some reason.
-    # Remove the sources, keep the .cache which has some helpful information.
-    mv "$ESY_EJECT__SANDBOX/node_modules" "$ESY_EJECT__SANDBOX/node_modules_tmp"
-    mkdir -p "$ESY_EJECT__SANDBOX/node_modules"
-    mv "$ESY_EJECT__SANDBOX/node_modules_tmp/.cache" "$ESY_EJECT__SANDBOX/node_modules/.cache"
-    rm -rf "$ESY_EJECT__SANDBOX/node_modules_tmp"
-    # Copy over the installation artifacts.
-
-    mkdir -p "$ESY_EJECT__TMP/i"
-    # Grab all the install directories
-    for res in $(cat $ESY_EJECT__ROOT/records/final-install-path-set.txt); do
-      if [[ "$res" != ""  ]]; then
-        cp -r "$res" "$ESY_EJECT__TMP/i/"
-        cd "$ESY_EJECT__TMP/i/"
-        tar -czf \`basename "$res"\`.tar.gz \`basename "$res"\`
-        rm -rf \`basename "$res"\`
-        echo "$res" >> $PACKAGE_ROOT/records/recordedCoppiedArtifacts.txt
-      fi
-    done
-    cd "$PACKAGE_ROOT"
-    ${releaseStage === 'forPreparingRelease'
-      ? scrubBinaryReleaseCommandPathPatterns('"$ESY_EJECT__TMP/i/"')
-      : '#'}
-    ${releaseStage === 'forPreparingRelease'
-      ? (deleteFromBinaryRelease || [])
-          .map(function(pattern) {
-            return 'rm ' + pattern;
-          })
-          .join('\n')
-      : ''}
-    # Built packages have a special way of compressing the release, putting the
-    # eject store in its own tar so that all the symlinks in the store can be
-    # relocated using tools that exist in the eject sandbox.
-
-    tar -czf ${RELEASE_ESY_PREFIX_NAME}.tar.gz ${RELEASE_ESY_PREFIX_NAME}
-    rm -rf $ESY_EJECT__SANDBOX
-
-  `;
-  const decompressAndRelocateBuiltPackagesCmds = outdent`
-
-    #
-    # decompressAndRelocateBuiltPackages
-    #
-    if [ -d "$ESY_EJECT__INSTALL_STORE" ]; then
-      echo >&2 "error: $ESY_EJECT__INSTALL_STORE already exists. This will not work. It has to be a new directory.";
-      exit 1;
-    fi
-    serverEsyEjectStore=\`cat "$PACKAGE_ROOT/records/recordedServerBuildStorePath.txt"\`
-    serverEsyEjectStoreDirName=\`basename "$serverEsyEjectStore"\`
-
-    # Decompress the actual sandbox:
-    unzipAndUntarFixupLinks "$serverEsyEjectStore" "$ESY_EJECT__SANDBOX.tar.gz"
-
-    cd "$ESY_EJECT__TMP/i/"
-    # Executing the untar/unzip in parallel!
-    echo '*** Decompressing artefacts...'
-    find . -name '*.gz' -print0 | xargs -0 -I {} -P 30 bash -c "unzipAndUntarFixupLinks $serverEsyEjectStore {}"
-
-    cd "$PACKAGE_ROOT"
-    mv "$ESY_EJECT__TMP" "$ESY_EJECT__INSTALL_STORE"
-    # Write the final store path, overwritting the (original) path on server.
-    echo "$ESY_EJECT__INSTALL_STORE" > "$PACKAGE_ROOT/records/recordedClientInstallStorePath.txt"
-
-    # Not that this is really even used for anything once on the client.
-    # We use the install store. Still, this might be good for debugging.
-    cp "$ESY_EJECT__ROOT/records/store-path.txt" "$PACKAGE_ROOT/records/recordedClientBuildStorePath.txt"
-    # Executing the replace string in parallel!
-    # https://askubuntu.com/questions/431478/decompressing-multiple-files-at-once
-    echo '*** Relocating artefacts to the final destination...'
-    find "$ESY_EJECT__INSTALL_STORE" -type f -print0 \
-      | xargs -0 -I {} -P 30 $ESY_EJECT__ROOT/bin/fastreplacestring.exe "{}" "$serverEsyEjectStore" "$ESY_EJECT__INSTALL_STORE"
-
-  `;
-
-  const markReleaseAsBuiltCmds = outdent`
-
-    #
-    # markReleaseAsBuilt
-    #
-    touch "$PACKAGE_ROOT/records/done.txt"
-
-  `;
-
-  function renderCommands(commands, enabled) {
-    // Notice how we comment out each section which doesn't apply to this
-    // combination of releaseStage/releaseType.
-    return commands.split('\n').join(enabled ? '\n' : '\n# ');
-  }
-
-  const checkIfReleaseIsBuilt = renderCommands(
-    checkIfReleaseIsBuiltCmds,
-    shouldCheckIfReleaseIsBuilt,
-  );
-  const configureEsy = renderCommands(configureEsyCmds, shouldConfigureEsy);
-  const installEsy = renderCommands(installEsyCmds, shouldInstallEsy);
-  const download = renderCommands(downloadCmds, shouldDownload);
-  const pack = renderCommands(packCmds, shouldPack);
-  const compressPack = renderCommands(compressPackCmds, shouldCompressPack);
-  const decompressPack = renderCommands(decompressPackCmds, shouldDecompressPack);
-  const buildPackages = renderCommands(buildPackagesCmds, shouldBuildPackages);
-  const compressBuiltPackages = renderCommands(
-    compressBuiltPackagesCmds,
-    shouldCompressBuiltPackages,
-  );
-  const decompressAndRelocateBuiltPackages = renderCommands(
-    decompressAndRelocateBuiltPackagesCmds,
-    shouldDecompressAndRelocateBuiltPackages,
-  );
-  const markReleaseAsBuilt = renderCommands(
-    markReleaseAsBuiltCmds,
-    shouldMarkReleaseAsBuilt,
-  );
-  return outdent`
-    #!/bin/bash
-
-    set -e
-
-    ${postinstallScriptSupport}
-
-    ${message}
-
-    #                server               |              client
-    #                                     |
-    # ESY_EJECT__STORE -> ESY_EJECT__TMP  |  ESY_EJECT__TMP -> ESY_EJECT__INSTALL_STORE
-    # =================================================================================
-
-    ${bashgen.defineScriptDir}
-    ${bashgen.defineEsyUtil}
-
-    export PACKAGE_ROOT="$SCRIPTDIR"
-
-    mkdir -p "$PACKAGE_ROOT/records"
-
-    export ESY_EJECT__SANDBOX="$SCRIPTDIR/${RELEASE_ESY_PREFIX_NAME}"
-    export ESY_EJECT__ROOT="$ESY_EJECT__SANDBOX/_esyEjectRoot"
-
-    # We Build into the ESY_EJECT__STORE, copy into ESY_EJECT__TMP, potentially
-    # transport over the network then finally we copy artifacts into the
-    # ESY_EJECT__INSTALL_STORE and relocate them as if they were built there to
-    # begin with.  ESY_EJECT__INSTALL_STORE should not ever be used if we're
-    # running on the server.
-    export ESY_EJECT__INSTALL_ROOT="$ESY_EJECT__SANDBOX"
-    ESY_EJECT__INSTALL_STORE=$(esyGetStorePathFromPrefix $ESY_EJECT__INSTALL_ROOT)
-    if [ $? -ne 0 ]; then
-      echo "error: $ESY_EJECT__INSTALL_STORE"
-      exit 1
-    else
-      export ESY_EJECT__INSTALL_STORE
-    fi
-
-    # Regardless of where artifacts are actually built, or where they will be
-    # installed to, or if we're on the server/client we will copy artifacts
-    # here temporarily. Sometimes the build location is the same as where we
-    # copy them to inside the sandbox - sometimes not.
-    export ESY_EJECT__TMP="$PACKAGE_ROOT/relBinaries"
-
-    ${checkIfReleaseIsBuilt}
-
-    ${configureEsy}
-
-    ${installEsy}
-
-    ${download}
-
-    ${pack}
-
-    ${compressPack}
-
-    ${decompressPack}
-
-    ${buildPackages}
-
-    ${compressBuiltPackages}
-
-    ${decompressAndRelocateBuiltPackages}
-
-    ${markReleaseAsBuilt}
-  `;
-}
-
 function getSandboxEntryCommandName(packageName: string) {
   return `${packageName}-esy-sandbox`;
 }
 
-function getSandboxCommands(releaseType, releasePath, pkg) {
+function getSandboxCommands(releaseType, releasePackagePath, pkg) {
   const commands = [];
 
   const commandsToRelease = getCommandsToRelease(pkg);
@@ -919,71 +434,58 @@ export async function buildRelease(config: BuildReleaseConfig) {
   const releaseTag = getReleaseTag(config);
 
   const sandboxPath = config.sandboxPath;
-  const releasePath = path.join(sandboxPath, RELEASE_TREE, releaseTag);
-  const esyReleasePath = path.join(
-    sandboxPath,
-    RELEASE_TREE,
-    releaseTag,
-    RELEASE_ESY_PREFIX_NAME,
-  );
 
+  const releasePackagePath = path.join(sandboxPath, RELEASE_TREE, releaseTag);
+  const releaseSandboxPath = path.join(releasePackagePath, 'r');
+
+  // init releaseSandboxPath
   const tarFilename = await child_process.spawn('npm', ['pack'], {cwd: sandboxPath});
   await child_process.spawn('tar', ['xzf', tarFilename]);
-  await fs.rmdir(releasePath);
-  await fs.mkdirp(releasePath);
-  await fs.rename(path.join(sandboxPath, 'package'), esyReleasePath);
+  await fs.rmdir(releasePackagePath);
+  await fs.mkdirp(releasePackagePath);
+  await fs.rename(path.join(sandboxPath, 'package'), releaseSandboxPath);
   await fs.unlink(tarFilename);
 
   const pkg = await readPackageJson(
     releaseType,
-    path.join(esyReleasePath, 'package.json'),
+    path.join(releaseSandboxPath, 'package.json'),
   );
   await verifyBinSetup(sandboxPath, pkg);
 
-  console.log(`*** Creating ${releaseType}-type release for ${pkg.name}...`);
+  const npmPackage = await deriveNpmPackageJson(pkg, releasePackagePath, releaseType);
+  await putJson(path.join(releasePackagePath, 'package.json'), npmPackage);
 
-  const npmPackage = await deriveNpmReleasePackage(pkg, releasePath, releaseType);
-  await putJson(path.join(releasePath, 'package.json'), npmPackage);
+  const esyPackage = await deriveEsyPackageJson(pkg, releasePackagePath, releaseType);
+  await fs.mkdirp(releaseSandboxPath);
+  await putJson(path.join(releaseSandboxPath, 'package.json'), esyPackage);
 
-  const esyPackage = await deriveEsyReleasePackage(pkg, releasePath, releaseType);
-  await fs.mkdirp(esyReleasePath);
-  await putJson(path.join(esyReleasePath, 'package.json'), esyPackage);
+  const BIN = ['esyConfig.sh', 'esyRuntime.sh', 'esyBuildRelease'];
 
-  await putExecutable(
-    path.join(releasePath, 'prerelease.sh'),
-    createInstallScript(
-      'forPreparingRelease',
-      releaseType,
-      pkg,
-      config.esyVersionForDevRelease,
-    ),
+  await fs.mkdirp(path.join(releasePackagePath, 'bin'));
+  const binDir = path.dirname(CURRENT_ESY_EXECUTABLE);
+  await Promise.all(
+    BIN.map(async name => {
+      await fs.copy(path.join(binDir, name), path.join(releasePackagePath, 'bin', name));
+    }),
   );
 
   // Now run prerelease.sh, we reset $ESY__SANDBOX as it's going to call esy
   // recursively but leave $ESY__STORE & $ESY__LOCAL_STORE in place.
-  const env = {...process.env};
+  const env = {
+    ...process.env,
+    ESY__COMMAND: CURRENT_ESY_EXECUTABLE,
+  };
   delete env.ESY__SANDBOX;
-  await child_process.spawn('bash', ['./prerelease.sh'], {
+  await child_process.spawn('bin/esyBuildRelease', [releaseType, 'prepare'], {
     env,
-    cwd: releasePath,
+    cwd: releasePackagePath,
     stdio: 'inherit',
   });
-
-  // Actual Release: We leave the *actual* postinstall script to be executed on the host.
-  await putExecutable(
-    path.join(releasePath, 'postinstall.sh'),
-    createInstallScript(
-      'forClientInstallation',
-      releaseType,
-      pkg,
-      config.esyVersionForDevRelease,
-    ),
-  );
 
   console.log(outdent`
     *** Release package created
 
-        Location: ${path.relative(process.cwd(), releasePath)}
+        Location: ${path.relative(process.cwd(), releasePackagePath)}
         Release Type: ${releaseType}
 
   `);
