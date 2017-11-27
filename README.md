@@ -609,6 +609,17 @@ Run:
 
 to see the description of development workflow.
 
+### Testing Locally
+
+```
+% make build-release
+% npm remove -g esy
+% npm install -g dist
+```
+
+Now you may run `esy` commands using your local version of `esy`.
+
+
 ### Running Tests
 
 ```
