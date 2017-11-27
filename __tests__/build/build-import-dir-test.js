@@ -2,10 +2,11 @@
  * @flow
  */
 
-import {defineTestCaseWithShell} from './utils';
+import * as path from 'path';
+import {defineTestCaseWithShell} from '../utils';
 
 defineTestCaseWithShell(
-  'import-archive',
+  path.join(__dirname, 'fixtures', 'import-archive'),
   `
     run esy build
     run esy export-dependencies

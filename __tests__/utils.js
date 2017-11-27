@@ -5,17 +5,62 @@
 jest.setTimeout(200000);
 
 import * as path from 'path';
-import * as fs from '../../src/lib/fs';
+import * as fs from '../src/lib/fs';
+import * as child from '../src/lib/child_process.js';
 import outdent from 'outdent';
-import {mkdtempSync, spawn, cleanUp} from '../release/utils';
 
 const DEBUG_TEST_LOC = '/tmp/esydbg';
 
-export const esyRoot = path.dirname(path.dirname(__dirname));
+export const esyRoot = path.dirname(__dirname);
 // We use version of esy executable w/o lock so we can run in parallel. We make
 // sure we use isolated sources for tests so this is ok.
 export const esyBin = path.join(esyRoot, 'bin', '_esy');
-export const testUtilsBash = require.resolve('../testlib.sh');
+export const testUtilsBash = require.resolve('./testlib.sh');
+
+let tempDirectoriesCreatedDuringTestRun = [];
+
+export async function cleanUp() {
+  if (tempDirectoriesCreatedDuringTestRun.length > 0) {
+    await Promise.all(tempDirectoriesCreatedDuringTestRun.map(p => fs.rmdir(p)));
+    tempDirectoriesCreatedDuringTestRun = [];
+  }
+}
+
+export function spawn(command: string, args: string[], options: any = {}) {
+  if (process.env.DEBUG != null) {
+    console.log(outdent`
+      CWD ${options.cwd || process.cwd()}
+      EXECUTE ${command} ${args.join(' ')}
+    `);
+  }
+  return child.spawn(command, args, options);
+}
+
+export function run(command: string, ...args: string[]) {
+  return spawn(command, args);
+}
+
+export function runIn(project: string, command: string, ...args: string[]) {
+  return spawn(command, args, {cwd: project});
+}
+
+export async function mkdtemp() {
+  // We should be using `os.tmpdir()` instead but it's too long so we cannot
+  // relocate binaries there.
+  const root = '/tmp/';
+  const dir = await fs._mkdtemp(root);
+  tempDirectoriesCreatedDuringTestRun.push(dir);
+  return dir;
+}
+
+export function mkdtempSync() {
+  // We should be using `os.tmpdir()` instead but it's too long so we cannot
+  // relocate binaries there.
+  const root = '/tmp/';
+  const dir = fs._mkdtempSync(root);
+  tempDirectoriesCreatedDuringTestRun.push(dir);
+  return dir;
+}
 
 /**
  * Initialize fixture.
@@ -93,8 +138,8 @@ export function initFixtureSync(fixturePath: string) {
   };
 }
 
-export function defineTestCaseWithShell(fixtureName: string, shellScript: string) {
-  const fixture = initFixtureSync(path.join(__dirname, 'fixtures', fixtureName));
+export function defineTestCaseWithShell(fixturePath: string, shellScript: string) {
+  const fixture = initFixtureSync(fixturePath);
 
   test(`build ${fixture.description}`, async function() {
     await fixture.shellInProject(shellScript);
