@@ -78,7 +78,7 @@ test-e2e:
 	(cd __tests__ && bash symlink-workflow-test.sh)
 
 test:
-	@$(BIN)/jest ./src/__tests__ ./__tests__/build/*-test.js
+	@$(BIN)/jest ./src/__tests__ ./__tests__/build/*-test.js ./__tests__/release/*-test.js
 	$(MAKE) test-e2e
 
 #
