@@ -376,7 +376,7 @@ else
       shift
       callBuiltInCommand import "$@"
       ;;
-    export-dependencies)
+    on-demand|export-dependencies)
       shift
       callBuiltInCommand export-dependencies "$@"
       ;;
