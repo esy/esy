@@ -98,6 +98,10 @@ build-release:
 	@cp $(PWD)/bin/esy $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/_esy $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/esx $(RELEASE_ROOT)/bin/
+	@cp $(PWD)/bin/esyBuildRelease $(RELEASE_ROOT)/bin/esyBuildRelease
+	@cp $(PWD)/bin/esyExportBuild $(RELEASE_ROOT)/bin/esyExportBuild
+	@cp $(PWD)/bin/esyImportBuild $(RELEASE_ROOT)/bin/esyImportBuild
+	@cp $(PWD)/bin/esyRuntime.sh $(RELEASE_ROOT)/bin/esyRuntime.sh
 	@node ./scripts/build-webpack.js ./dist/bin
 	@node ./scripts/generate-esy-install-package-json.js > $(RELEASE_ROOT)/package.json
 
