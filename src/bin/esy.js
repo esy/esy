@@ -175,6 +175,7 @@ const commandsByName: {[name: string]: () => Command} = {
   'install-cache': () => require('./esyInstallCache'),
   import: () => require('./esyImport'),
   'export-dependencies': () => require('./esyExportDependencies'),
+  'import-dependencies': () => require('./esyImportDependencies'),
   autoconf: () => require('./esyAutoconf'),
 };
 
