@@ -131,26 +131,30 @@ export const eject = async (
       const prevMtimePath = config.getBuildPath(t.spec, '_esy', 'mtime');
       const sourcePath = config.getSourcePath(t.spec);
       return outdent`
-      if [ "$ESY__LOG_ACTION" == "yes" ]; then
-        echo "# ACTION: build-dependencies: checking dep ${t.spec
-          .packagePath} for staleness"
-      fi
 
       if [ ! -d "${installPath}" ]; then
         buildDependencies "$@"
         return
       fi
 
-      if [ ! -f "${prevMtimePath}" ]; then
-        buildDependencies "$@"
-        return
-      fi
+      if [ "$performStalenessCheck" == "yes" ]; then
 
-      prevMtime=$(cat "${prevMtimePath}")
-      curMtime=$(findMaxMtime "${sourcePath}")
-      if [ "$curMtime" -gt "$prevMtime" ]; then
-        buildDependencies "$@"
-        return
+        if [ "$ESY__LOG_ACTION" == "yes" ]; then
+          echo "# ACTION: build-dependencies: staleness check ${t.spec.packagePath}"
+        fi
+
+        if [ ! -f "${prevMtimePath}" ]; then
+          buildDependencies "$@"
+          return
+        fi
+
+        prevMtime=$(cat "${prevMtimePath}")
+        curMtime=$(findMaxMtime "${sourcePath}")
+        if [ "$curMtime" -gt "$prevMtime" ]; then
+          buildDependencies "$@"
+          return
+        fi
+
       fi
     `;
     }),
@@ -167,6 +171,13 @@ export const eject = async (
 
       set -e
       set -o pipefail
+
+      performStalenessCheck="yes"
+
+      if [ "$1" == "--ignore-staleness-check" ]; then
+        performStalenessCheck="no"
+        shift
+      fi
 
       if [ "$ESY__LOG_ACTION" == "yes" ]; then
         echo "# ACTION: build-dependencies: checking if dependencies are built"
@@ -233,7 +244,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_build"
+      exec env -i ESY__LOG_ACTION="$ESY__LOG_ACTION" /bin/bash "$ESY_EJECT__ROOT/bin/_build"
     `,
   });
 
@@ -249,7 +260,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies --silent
-      exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_build" "$@"
+      exec env -i ESY__LOG_ACTION="$ESY__LOG_ACTION" /bin/bash "$ESY_EJECT__ROOT/bin/_build" "$@"
     `,
   });
 
@@ -264,7 +275,7 @@ export const eject = async (
 
       ${renderEnv(esyBuildWrapperEnv)}
 
-      $ESY_EJECT__ROOT/bin/build-dependencies
+      $ESY_EJECT__ROOT/bin/build-dependencies --ignore-staleness-check
       exec env -i ESY__LOG_ACTION="$ESY__LOG_ACTION" /bin/bash "$ESY_EJECT__ROOT/bin/_install" "$@"
     `,
   });
@@ -281,7 +292,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_shell" "$@"
+      exec env -i ESY__LOG_ACTION="$ESY__LOG_ACTION" /bin/bash "$ESY_EJECT__ROOT/bin/_shell" "$@"
     `,
   });
 
