@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.43
+
+* Fix undefined variable reference in `$NODE_ENV`.
+
 ## 0.0.42
 
 * Fixes 0.0.41 broken release by adding postinstall.sh script.
