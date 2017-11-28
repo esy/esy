@@ -54,7 +54,7 @@ esyRelease__installEsy () {
   # FIXME: During tests we do want to use the current esy executable... consider
   # to override $ESY__VERSION in some way compatible with npm to install from
   # the current esy checkout.
-  if [ "$NODE_ENV" == "test" ]; then
+  if [ ! -z "${NODE_ENV+x}" ] && [ "$NODE_ENV" == "test" ]; then
     return
   fi
 
