@@ -82,6 +82,9 @@ export function normalizeManifest(manifest: Object): PackageManifest {
   if (manifest.devDependencies == null) {
     manifest.devDependencies = {};
   }
+  if (manifest.scripts == null) {
+    manifest.scripts = {};
+  }
   if (manifest.esy == null) {
     manifest.esy = {};
   }
@@ -89,6 +92,9 @@ export function normalizeManifest(manifest: Object): PackageManifest {
   manifest.esy.build = normalizeCommand(manifest.esy.build);
   manifest.esy.install = normalizeCommand(manifest.esy.install);
 
+  if (manifest.esy.release == null) {
+    manifest.esy.release = {};
+  }
   if (manifest.esy.exportedEnv == null) {
     manifest.esy.exportedEnv = {};
   }

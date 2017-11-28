@@ -268,6 +268,25 @@ export type EsyPackageManifest = {
   exportedEnv: ExportEnvironmentSpec,
 
   sandboxType: SandboxType,
+
+  /**
+   * Configuration related to the releases produced by `esy release` command.
+   */
+  release: {
+    /**
+     * List of executable names to be exposed by the release installation.
+     */
+    releasedBinaries?: Array<string>,
+
+    /**
+     * List of package names to be deleted from the binary releases.
+     *
+     * This is usually used to exclude build time dependencies. Later when we
+     * get support for build time dependencies in Esy we can deprecate this
+     * configuration field.
+     */
+    deleteFromBinaryRelease?: Array<string>,
+  },
 };
 
 export type CommandSpec = Array<string | Array<string>>;

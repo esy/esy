@@ -133,10 +133,9 @@ import * as path from 'path';
 import * as bashgen from './builders/bashgen';
 import outdent from 'outdent';
 import {RELEASE_TREE, CURRENT_ESY_EXECUTABLE} from './constants';
+import * as PackageManifest from './package-manifest.js';
 
 type ReleaseType = 'dev' | 'pack' | 'bin';
-
-type ReleaseStage = 'forClientInstallation' | 'forPreparingRelease';
 
 type BuildReleaseConfig = {
   type: ReleaseType,
@@ -145,70 +144,27 @@ type BuildReleaseConfig = {
   esyVersionForDevRelease: string,
 };
 
-/**
- * TODO: Make this language agnostic. Nothing else in the eject/build process
- * is really specific to Reason/OCaml.  Binary _install directories *shouldn't*
- * contain some of these artifacts, but very often they do. For other
- * extensions, they are left around for the sake of linking/building against
- * those packages, but aren't useful as a form of binary executable releases.
- * This cleans up those files that just bloat the installation, creating a lean
- * executable distribution.
- */
-const extensionsToDeleteForBinaryRelease = [
-  'Makefile',
-  'README',
-  'CHANGES',
-  'LICENSE',
-  '_tags',
-  '*.pdf',
-  '*.md',
-  '*.org',
-  '*.org',
-  '*.txt',
-];
-
-const pathPatternsToDeleteForBinaryRelease = ['*/doc/*'];
-
-function scrubBinaryReleaseCommandExtensions(searchDir) {
-  return (
-    'find ' +
-    searchDir +
-    ' -type f \\( -name ' +
-    extensionsToDeleteForBinaryRelease
-      .map(ext => {
-        return "'" + ext + "'";
-      })
-      .join(' -o -name ') +
-    ' \\) -delete'
-  );
-}
-
-function scrubBinaryReleaseCommandPathPatterns(searchDir) {
-  return (
-    'find ' +
-    searchDir +
-    ' -type f \\( -path ' +
-    pathPatternsToDeleteForBinaryRelease.join(' -o -path ') +
-    ' \\) -delete'
-  );
-}
-
 function escapeBashVarName(str) {
   const map = {'.': 'd', _: '_', '-': 'h'};
   const replacer = match => (map.hasOwnProperty(match) ? '_' + map[match] : match);
   return str.replace(/./g, replacer);
 }
 
-function getCommandsToRelease(pkg) {
-  return pkg && pkg.esy && pkg.esy.release && pkg.esy.release.releasedBinaries;
+function getCommandsToRelease(manifest) {
+  return (
+    manifest &&
+    manifest.esy &&
+    manifest.esy.release &&
+    manifest.esy.release.releasedBinaries
+  );
 }
 
-function createCommandWrapper(pkg, commandName) {
-  const packageName = pkg.name;
+function createCommandWrapper(manifest, commandName) {
+  const packageName = manifest.name;
   const sandboxEntryCommandName = getSandboxEntryCommandName(packageName);
-  const packageNameUppercase = escapeBashVarName(pkg.name.toUpperCase());
+  const packageNameUppercase = escapeBashVarName(manifest.name.toUpperCase());
   const binaryNameUppercase = escapeBashVarName(commandName.toUpperCase());
-  const commandsToRelease = getCommandsToRelease(pkg) || [];
+  const commandsToRelease = getCommandsToRelease(manifest) || [];
   const releasedBinariesStr = commandsToRelease
     .concat(sandboxEntryCommandName)
     .join(', ');
@@ -298,8 +254,8 @@ function createCommandWrapper(pkg, commandName) {
  *
  * This strips all dependency info and add "bin" metadata.
  */
-async function deriveNpmPackageJson(pkg, releasePackagePath, releaseType) {
-  let copy = JSON.parse(JSON.stringify(pkg));
+async function deriveNpmPackageJson(manifest, releasePackagePath, releaseType) {
+  let copy = JSON.parse(JSON.stringify(manifest));
 
   // We don't manage dependencies with npm, esy is being installed via a
   // postinstall script and then it is used to manage release dependencies.
@@ -309,7 +265,7 @@ async function deriveNpmPackageJson(pkg, releasePackagePath, releaseType) {
 
   // Populate "bin" metadata.
   await fs.mkdirp(path.join(releasePackagePath, '.bin'));
-  const binsToWrite = getSandboxCommands(releaseType, releasePackagePath, pkg);
+  const binsToWrite = getSandboxCommands(releaseType, releasePackagePath, manifest);
   const packageJsonBins = {};
   for (let i = 0; i < binsToWrite.length; i++) {
     const toWrite = binsToWrite[i];
@@ -328,18 +284,18 @@ async function deriveNpmPackageJson(pkg, releasePackagePath, releaseType) {
 /**
  * Derive esy release package.
  */
-async function deriveEsyPackageJson(pkg, releasePackagePath, releaseType) {
-  const copy = JSON.parse(JSON.stringify(pkg));
+async function deriveEsyPackageJson(manifest, releasePackagePath, releaseType) {
+  const copy = JSON.parse(JSON.stringify(manifest));
   delete copy.dependencies.esy;
   delete copy.devDependencies.esy;
   return copy;
 }
 
-async function putJson(filename, pkg) {
-  await fs.writeFile(filename, JSON.stringify(pkg, null, 2), 'utf8');
+async function putJson(filename, manifest) {
+  await fs.writeFile(filename, JSON.stringify(manifest, null, 2), 'utf8');
 }
 
-async function verifyBinSetup(sandboxPath, pkg) {
+async function verifyBinSetup(sandboxPath, manifest) {
   const binDirExists = await fs.exists(path.join(sandboxPath, '.bin'));
   if (binDirExists) {
     throw new Error(
@@ -349,7 +305,7 @@ async function verifyBinSetup(sandboxPath, pkg) {
     `,
     );
   }
-  if (pkg.bin) {
+  if (manifest.bin) {
     throw new Error(
       outdent`
       Run make clean first. The release script needs to be in charge of generating the binaries.
@@ -363,10 +319,10 @@ function getSandboxEntryCommandName(packageName: string) {
   return `${packageName}-esy-sandbox`;
 }
 
-function getSandboxCommands(releaseType, releasePackagePath, pkg) {
+function getSandboxCommands(releaseType, releasePackagePath, manifest) {
   const commands = [];
 
-  const commandsToRelease = getCommandsToRelease(pkg);
+  const commandsToRelease = getCommandsToRelease(manifest);
   if (commandsToRelease) {
     for (let i = 0; i < commandsToRelease.length; i++) {
       const commandName = commandsToRelease[i];
@@ -374,18 +330,18 @@ function getSandboxCommands(releaseType, releasePackagePath, pkg) {
       commands.push({
         name: commandName,
         path: destPath,
-        contents: createCommandWrapper(pkg, commandName),
+        contents: createCommandWrapper(manifest, commandName),
       });
     }
   }
 
   // Generate sandbox entry command
-  const sandboxEntryCommandName = getSandboxEntryCommandName(pkg.name);
+  const sandboxEntryCommandName = getSandboxEntryCommandName(manifest.name);
   const destPath = path.join('.bin', sandboxEntryCommandName);
   commands.push({
     name: sandboxEntryCommandName,
     path: destPath,
-    contents: createCommandWrapper(pkg, sandboxEntryCommandName),
+    contents: createCommandWrapper(manifest, sandboxEntryCommandName),
   });
 
   return commands;
@@ -394,30 +350,6 @@ function getSandboxCommands(releaseType, releasePackagePath, pkg) {
 async function putExecutable(filename, contents) {
   await fs.writeFile(filename, contents);
   await fs.chmod(filename, /* octal 0755 */ 493);
-}
-
-async function readPackageJson(releaseType, filename) {
-  const packageJson = await fs.readFile(filename);
-  const pkg = JSON.parse(packageJson);
-
-  // Perform normalizations
-  if (pkg.dependencies == null) {
-    pkg.dependencies = {};
-  }
-  if (pkg.devDependencies == null) {
-    pkg.devDependencies = {};
-  }
-  if (pkg.scripts == null) {
-    pkg.scripts = {};
-  }
-  if (pkg.esy == null) {
-    pkg.esy = {};
-  }
-  if (pkg.esy.release == null) {
-    pkg.esy.release = {};
-  }
-
-  return pkg;
 }
 
 function getReleaseTag(config) {
@@ -446,18 +378,31 @@ export async function buildRelease(config: BuildReleaseConfig) {
   await fs.rename(path.join(sandboxPath, 'package'), releaseSandboxPath);
   await fs.unlink(tarFilename);
 
-  const pkg = await readPackageJson(
-    releaseType,
-    path.join(releaseSandboxPath, 'package.json'),
-  );
-  await verifyBinSetup(sandboxPath, pkg);
+  const {manifest} = await PackageManifest.read(releaseSandboxPath);
+  await verifyBinSetup(sandboxPath, manifest);
 
-  const npmPackage = await deriveNpmPackageJson(pkg, releasePackagePath, releaseType);
+  const npmPackage = await deriveNpmPackageJson(
+    manifest,
+    releasePackagePath,
+    releaseType,
+  );
   await putJson(path.join(releasePackagePath, 'package.json'), npmPackage);
 
-  const esyPackage = await deriveEsyPackageJson(pkg, releasePackagePath, releaseType);
+  const esyPackage = await deriveEsyPackageJson(
+    manifest,
+    releasePackagePath,
+    releaseType,
+  );
   await fs.mkdirp(releaseSandboxPath);
   await putJson(path.join(releaseSandboxPath, 'package.json'), esyPackage);
+
+  if (manifest.esy.release.deleteFromBinaryRelease != null) {
+    const patterns = manifest.esy.release.deleteFromBinaryRelease.join('\n');
+    await fs.writeFile(
+      path.join(releasePackagePath, 'deleteFromBinaryRelease'),
+      patterns,
+    );
+  }
 
   const BIN = ['esyConfig.sh', 'esyRuntime.sh', 'esyBuildRelease'];
 
