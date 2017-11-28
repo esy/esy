@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.42
+
+* Fixes 0.0.41 broken release by adding postinstall.sh script.
+
 ## 0.0.41
 
 * Fixes 0.0.40 broken release by adding missing executables.
