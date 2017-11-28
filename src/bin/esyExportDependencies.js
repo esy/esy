@@ -15,7 +15,7 @@ import {PromiseQueue} from '../lib/Promise.js';
 
 const esyBin = require.resolve('../../bin/_esy');
 
-export default async function esyExport(ctx: CommandContext) {
+export default async function esyExportDependencies(ctx: CommandContext) {
   const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
 
