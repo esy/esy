@@ -119,6 +119,13 @@ esyRelease__compressBuilds () {
 
   cd "$releasePackagePath"
 
+  if [ -f "$releasePackagePath/deleteFromBinaryRelease" ]; then
+    cat "$releasePackagePath/deleteFromBinaryRelease" | while read pattern; do
+      echo "excluding from binary release: $pattern"
+      rm -f $releaseSandboxPath/_export/$pattern
+    done
+  fi
+
   makeR clean
 
   mv "$releaseSandboxPath/node_modules" "$releaseSandboxPath/node_modules_tmp"
