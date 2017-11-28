@@ -41,15 +41,29 @@
 
   (think of jbuilder and ocamlbuild)
 
-* Add lock for esy invocations: only single esy command is allowed to run at the
-  same time. Any other invocaton will be aborted with an error immediately upon
-  startup.
+* Make `esy x <anycommand>` invocation faster.
 
+  Esy won't perform linked dependencies staleness checks and won't trigger a
+  build process anymore. It assumes the project was fully built before.
+
+  For the cases where we want always fresh build artifacts you can combine it
+  with `esy b`:
+
+  ```
+  % esy b && esy x <anycommand>
+  ```
 
 * Do not use symlinks for `link:` dependencies.
 
   Instead use `_esylink` marker. That prevents linked package's dependencies
   leaking into sandbox.
+
+* Add lock for esy invocations: only single esy command is allowed to run at the
+  same time.
+
+  Any other invocaton will be aborted with an error immediately upon startup.
+
+  This ensures there's no corruption of build artifacts for linked dependencies.
 
 * Fix a bug in dependency resolution which caused a wrong version of dependency
   to appear with mixed `esy.json` and `package.json` packages.
