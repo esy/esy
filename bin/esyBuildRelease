@@ -38,11 +38,11 @@ esyR () {
 }
 
 makeR () {
-  # During "prepare" phase we use Esy store inside $HOME which is likely
+  # During "prepare" phase we use the default use Esy store which is likely
   # prewarmed. During "install" phase though we can't do that so we stick to the
   # store inside the release package.
   if [ "$releaseStage" == "prepare" ]; then
-    make ESY_EJECT__PREFIX="$HOME/.esy" -f "$releaseSandboxEjectPath/Makefile" "$@"
+    make -f "$releaseSandboxEjectPath/Makefile" "$@"
   elif [ "$releaseStage" == "install" ]; then
     make ESY_EJECT__PREFIX="$releasePackagePath" -f "$releaseSandboxEjectPath/Makefile" "$@"
   fi
