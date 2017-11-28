@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.0.44
+
+* Fix too coarse locking.
+
+  Now we lock only if we can possibly call into Node.
+
 ## 0.0.43
 
 * Fix undefined variable reference in `$NODE_ENV`.
