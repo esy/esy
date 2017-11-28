@@ -327,7 +327,7 @@ esyClean () {
 }
 
 esyLogAction () {
-  if [ ! -z "${ESY__LOG_ACTION+x}" ]; then
+  if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
     echo "# ACTION:" "$@"
   fi
 }
