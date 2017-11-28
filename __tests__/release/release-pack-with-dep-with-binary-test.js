@@ -14,6 +14,6 @@ defineTestCaseWithShell(
     run npmGlobal pack
     run npmGlobal -g install ./with-dep-with-binary-0.1.0.tgz
 
-    run say-hello.exe
+    assertStdout say-hello.exe HELLO
   `,
 );
