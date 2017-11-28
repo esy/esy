@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.41
+
+* Fixes 0.0.40 broken release by adding missing executables.
+
 ## 0.0.40
 
 * Add a suite of commands to import and export builds to/from store.
