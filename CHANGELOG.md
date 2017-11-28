@@ -1,5 +1,57 @@
 # CHANGELOG
 
+## 0.0.40
+
+* Add a suite of commands to import and export builds to/from store.
+
+  * `esy export-dependencies` - exports dependencies of the current sandbox as
+    gzipped tarballs inside the `_export` directory.
+
+    Example:
+
+    ```
+    % esy export-dependencies
+    ```
+
+  * `esy import-dependencies <dir>` - imports dependencies of the current
+    sandbox into a store.
+
+    From a directory produced by the `esy export-dependencies` command:
+
+    ```
+    % esy import-dependencies ./_export
+    ```
+
+    From another Esy store:
+
+    ```
+    % esy import-dependencies /path/to/esy/store/i
+    ```
+
+* Enable incremental builds for linked dependencies which are configured with:
+
+  ```
+  "esy": {
+    "buildsInSource": "_build",
+    ...
+  }
+  ```
+
+  (think of jbuilder and ocamlbuild)
+
+* Add lock for esy invocations: only single esy command is allowed to run at the
+  same time. Any other invocaton will be aborted with an error immediately upon
+  startup.
+
+
+* Do not use symlinks for `link:` dependencies.
+
+  Instead use `_esylink` marker. That prevents linked package's dependencies
+  leaking into sandbox.
+
+* Fix a bug in dependency resolution which caused a wrong version of dependency
+  to appear with mixed `esy.json` and `package.json` packages.
+
 ## 0.0.39
 
 * Use OPAM version ordering when solving dependencies for `@opam/*` packages.
