@@ -2,11 +2,18 @@
  * @flow
  */
 
-jest.setTimeout(200000);
+import * as path from 'path';
+import {defineTestCaseWithShell} from '../utils';
 
-import testWithDepWithBinary from './fixtures/with-dep-with-binary/test';
+defineTestCaseWithShell(
+  path.join(__dirname, 'fixtures', 'with-dep-with-binary'),
+  `
+    run esy release dev
+    run cd _release/dev
 
-const testCase = testWithDepWithBinary({releaseType: 'dev'});
+    run npmGlobal pack
+    run npmGlobal -g install ./with-dep-with-binary-0.1.0.tgz
 
-test(testCase.description, testCase.test);
-afterAll(testCase.cleanUp);
+    run say-hello.exe
+  `,
+);

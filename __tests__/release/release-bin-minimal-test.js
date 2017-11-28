@@ -2,11 +2,16 @@
  * @flow
  */
 
-jest.setTimeout(200000);
+import * as path from 'path';
+import {defineTestCaseWithShell} from '../utils';
 
-import testMinimal from './fixtures/minimal/test';
+defineTestCaseWithShell(
+  path.join(__dirname, 'fixtures', 'minimal'),
+  `
+    run esy release bin
+    run cd _release/bin-*
+    run npmGlobal pack
+    run npmGlobal install ./minimal-0.1.0.tgz
 
-const testCase = testMinimal({releaseType: 'bin'});
-
-test(testCase.description, testCase.test);
-afterAll(testCase.cleanUp);
+  `,
+);

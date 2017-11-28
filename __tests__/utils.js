@@ -116,6 +116,12 @@ export function initFixtureSync(fixturePath: string) {
         "${esyBin}" "$@"
       }
 
+      function npmGlobal () {
+        npm --prefix "${npmPrefix}" "$@"
+      }
+
+      export PATH="${npmPrefix}/bin:$PATH"
+
       set -u
       set -o pipefail
 

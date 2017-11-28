@@ -4,9 +4,15 @@
 
 jest.setTimeout(200000);
 
-import testMinimal from './fixtures/minimal/test';
+import * as path from 'path';
+import {defineTestCaseWithShell} from '../utils';
 
-const testCase = testMinimal({releaseType: 'pack'});
-
-test(testCase.description, testCase.test);
-afterAll(testCase.cleanUp);
+defineTestCaseWithShell(
+  path.join(__dirname, 'fixtures', 'minimal'),
+  `
+    run esy release pack
+    run cd _release/pack
+    run npmGlobal pack
+    run npmGlobal install ./minimal-0.1.0.tgz
+  `,
+);
