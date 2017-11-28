@@ -286,10 +286,6 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand install-cache
       ;;
-    import|on-demand)
-      shift
-      callBuiltInCommand import
-      ;;
     export-dependencies)
       shift
       callBuiltInCommand export-dependencies
@@ -371,10 +367,6 @@ else
     release)
       shift
       callBuiltInCommand release "$@"
-      ;;
-    import|on-demand)
-      shift
-      callBuiltInCommand import "$@"
       ;;
     on-demand|export-dependencies)
       shift

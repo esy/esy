@@ -173,7 +173,6 @@ const commandsByName: {[name: string]: () => Command} = {
   'import-opam': () => require('./esyImportOpam'),
   'print-env': () => require('./esyPrintEnv'),
   'install-cache': () => require('./esyInstallCache'),
-  import: () => require('./esyImport'),
   'export-dependencies': () => require('./esyExportDependencies'),
   'import-dependencies': () => require('./esyImportDependencies'),
   autoconf: () => require('./esyAutoconf'),
