@@ -42,9 +42,9 @@ makeR () {
   # prewarmed. During "install" phase though we can't do that so we stick to the
   # store inside the release package.
   if [ "$releaseStage" == "prepare" ]; then
-    make -f "$releaseSandboxEjectPath/Makefile" "$@"
+    make -s -f "$releaseSandboxEjectPath/Makefile" "$@"
   elif [ "$releaseStage" == "install" ]; then
-    make ESY_EJECT__PREFIX="$releasePackagePath" -f "$releaseSandboxEjectPath/Makefile" "$@"
+    make -s ESY_EJECT__PREFIX="$releasePackagePath" -f "$releaseSandboxEjectPath/Makefile" "$@"
   fi
 }
 
