@@ -14,7 +14,7 @@ const DEBUG_TEST_LOC = '/tmp/esydbg';
 export const esyRoot = path.dirname(__dirname);
 // We use version of esy executable w/o lock so we can run in parallel. We make
 // sure we use isolated sources for tests so this is ok.
-export const esyBin = path.join(esyRoot, 'bin', '_esy');
+export const esyBin = path.join(esyRoot, 'bin', 'esy');
 export const testUtilsBash = require.resolve('./testlib.sh');
 
 let tempDirectoriesCreatedDuringTestRun = [];
@@ -120,7 +120,7 @@ export function initFixtureSync(fixturePath: string) {
         npm --prefix "${npmPrefix}" "$@"
       }
 
-      export ESY__COMMAND="${require.resolve('../bin/_esy')}"
+      export ESY__COMMAND="${require.resolve('../bin/esy')}"
       export PATH="${npmPrefix}/bin:$PATH"
 
       set -u

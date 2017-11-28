@@ -96,7 +96,6 @@ build-release:
 	@mkdir -p $(RELEASE_ROOT)
 	@mkdir -p $(RELEASE_ROOT)/bin
 	@cp $(PWD)/bin/esy $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/_esy $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/esx $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/esyBuildRelease $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/esyExportBuild $(RELEASE_ROOT)/bin/

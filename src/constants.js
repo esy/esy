@@ -8,10 +8,7 @@ import * as path from './lib/path';
 // This is invariant both for dev and released versions of Esy as bin/esy always
 // calls into bin/esy.js (same dirname). `process.argv[1]` is the filename of
 // the script executed by `node`.
-//
-// We use `_esy` instead of `esy` here so we don't try to acquire lock
-// recursively.
-export const CURRENT_ESY_EXECUTABLE = path.join(path.dirname(process.argv[1]), '_esy');
+export const CURRENT_ESY_EXECUTABLE = path.join(path.dirname(process.argv[1]), 'esy');
 
 /**
  * Names of the symlinks to build and install trees of the sandbox.

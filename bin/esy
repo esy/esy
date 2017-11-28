@@ -11,25 +11,440 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+if [ -z "${ESY__SANDBOX+x}" ]; then
+  export ESY__SANDBOX="$PWD"
+fi
 if [ -z "${ESY__PREFIX+x}" ]; then
   export ESY__PREFIX="$HOME/.esy"
+fi
+if [ -z "${ESY__LOCAL_STORE+x}" ]; then
+  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
 fi
 
 mkdir -p "$ESY__PREFIX"
 LOCKFILENAME="$ESY__PREFIX/lock"
 
-set +e
+MAKEFILE_BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
+BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build"
 
-# run bin/_esy and convert failure to exit 2 so we can distinguish between esy
-# failure and lock failure
-ESY_COMMAND="$SCRIPTDIR/_esy ${@}"
-"$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$ESY_COMMAND || exit 2"
-
-retCode="$?"
-if [ $retCode -eq 1 ]; then
-  echo >&2 "error: another esy process is running, exiting...";
-  echo >&2 "       you can remove $LOCKFILENAME if you are sure that's not the case";
-  exit 1
-elif [ $retCode -ne 0 ]; then
-  exit 1
+if [ -d "$ESY__SANDBOX/node_modules" ]; then
+  DEPENDENCIES_PACKAGE_JSON=$(find "$ESY__SANDBOX/node_modules" -name 'package.json' -or -name 'esy.json')
+else
+  DEPENDENCIES_PACKAGE_JSON=""
 fi
+
+needRebuildTarget () {
+  TARGET="$1"
+  NEED_REBUILD="false"
+
+  # check if target exist
+  if [ ! -f "$TARGET" ]; then
+    NEED_REBUILD="true"
+  else
+    # check sandbox package.json
+    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ] || [ "$TARGET" -ot "$ESY__SANDBOX/esy.json" ]; then
+      NEED_REBUILD="true"
+    elif [ "$TARGET" -ot "$ESY__SANDBOX/esy.lock" ]; then
+      NEED_REBUILD="true"
+    else
+      # check each dependencies' package.json
+      for dep in $DEPENDENCIES_PACKAGE_JSON; do
+        if [ "$TARGET" -ot "$dep" ]; then
+          NEED_REBUILD="true"
+          break
+        fi
+      done
+    fi
+  fi
+
+  echo "$NEED_REBUILD"
+}
+
+runCommand () {
+  local suppressOutput
+  local output
+  local ret
+
+  if [ "$1" == "--suppressOutput" ]; then
+    suppressOutput="yes"
+    shift
+  fi
+
+  set +e
+  if [ "$suppressOutput" == "yes" ]; then
+    output=$("$@")
+    ret="$?"
+  else
+    "$@"
+    ret="$?"
+  fi
+  set -e
+
+  if [ $ret -ne 0 ]; then
+    if [ "$suppressOutput" == "yes" ]; then
+      echo "$output"
+    fi
+    exit 1
+  fi
+
+  if [ "$ESY__LOG_ACTION" == "yes" ] && [ "$suppressOutput" == "yes" ]; then
+    echo "$output" | grep "# ACTION:"
+  fi
+}
+
+runLocked () {
+  local command="$@"
+  set +e
+  "$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$command || exit 2"
+  retCode="$?"
+  set -e
+  if [ $retCode -eq 1 ]; then
+    echo >&2 "error: another esy process is running, exiting...";
+    echo >&2 "       you can remove $LOCKFILENAME if you are sure that's not the case";
+    exit 1
+  elif [ $retCode -ne 0 ]; then
+    exit 1
+  fi
+}
+
+callBuiltInCommand__build () {
+  ensureBuildEjected
+  if [ $# -eq 0 ]; then
+    runLocked "$BUILD_EJECT_PATH/bin/build"
+  else
+    runLocked "$BUILD_EJECT_PATH/bin/build-exec" "$@"
+  fi
+}
+
+callBuiltInCommand__x () {
+  ensureBuildEjected --silent
+  runCommand --suppressOutput runLocked "$BUILD_EJECT_PATH/bin/install"
+  source "$BUILD_EJECT_PATH/bin/sandbox-env"
+  shift
+  # Checks if command ($1) is present available
+  command -v "$1" >/dev/null 2>&1 || {
+    echo >&2 "$1 command is not installed.";
+    exit 1;
+  }
+  exec "$@"
+}
+
+ensureBuildEjected () {
+  local esyArgs
+  local needRebuild
+  needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/bin/build")
+  if [ "$needRebuild" == "true" ]; then
+    if [ "$1" == "--silent" ]; then
+      (>&2 echo "info: rebuilding project, this will take some time...")
+      esyArgs="$esyArgs --silent"
+      shift
+    fi
+    runCommand runLocked node "$SCRIPTDIR/esy.js" "$esyArgs" build \
+      --dependencies-only \
+      --eject "$BUILD_EJECT_PATH" "$@"
+  fi
+}
+
+callBuiltInCommand__buildEject () {
+  local needRebuild
+  needRebuild=$(needRebuildTarget "$MAKEFILE_BUILD_EJECT_PATH/Makefile")
+  if [ "$needRebuild" == "true" ]; then
+    # Capture the error output
+    # Capturing stderr is very important to prevent nodejs from setting
+    # stderr to nonblocking mode
+    runCommand runLocked node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@"
+  fi
+}
+
+callBuiltInCommand() {
+	runLocked node "$SCRIPTDIR/esy.js" "$@"
+}
+
+printHelp() {
+  cat <<EOF
+Usage: $0 <command> [--help] [--version]
+
+Install all dependencies and build the current project.
+
+Avaialble subcommands:
+
+  install               Installs packages declared in package.json.
+  i
+
+  build                 Run build commands for the project.
+  b                     (as specified in "esy.build" key within package.json)
+
+  add <package>         Add a specified package to dependencies and installs it.
+
+  print-env             Prints esy environment on stdout.
+
+  build-shell [path]    Drops into a shell with environment matching your
+                        package's build environment. If argument is provided
+                        then it should point to the package inside the current
+                        sandbox — that will initialize build shell for that
+                        specified package.
+
+  shell                 Drops into development shell.
+                        Less strict than build-shell and allows access to
+                        devDependencies.
+
+  version               Print esy version and exit
+
+  build <command>       Run command inside the build environment.
+  b <command>
+
+  x <command>           Run command as if the package is already installed.
+                        Useful for testing.
+
+  <command>             Executes <command> as if you had executed it inside of
+                        esy shell.
+
+  help                  Show detailed help.
+
+EOF
+}
+
+printDetailedHelp () {
+  less <<EOF
+$(printHelp)
+
+Advanced commands:
+
+  release TYPE                Create a release of type TYPE ("dev", "pack" or "bin").
+
+  install-cache               Manage installation cache (similar to 'yarn cache'
+                              command).
+
+  import-opam                 Read a provided opam file and print esy-enabled
+                              package.json conents on stdout. Example:
+
+                                esy import-opam lwt 3.0.0 ./opam
+
+  config ls                   Query esy configuration.
+  config get
+
+  export-dependencies         Export all dependencies of the current sandbox.
+
+  import-dependencies <path>  Try to import dependencies for the current
+                              sandbox from the <path> (previously populated by
+                              esy export-dependencies command or pointing to the
+                              "store/i" directory. If <path> is not provided
+                              then PWD/_export is going to be used.
+
+
+Environment variables:
+
+  ESY__SANDBOX          Path to the current sandbox.
+
+  ESY__PREFIX           Path to the global Esy prefix where Esy puts its
+                        caches.
+
+Configuration file (.esyrc):
+
+  esy-import-path       Path to the directory with exported builds which will be
+                        loooked up during build processes to import builds from.
+
+  <yarn config vars>    All yarn configuration parameters are supported. They
+                        only take effect for yarn-based commands such as
+                        "esy install", "esy add" and so on.
+
+EOF
+}
+
+printVersion() {
+  (cd "$SCRIPTDIR/.." && node -p "require('./package.json').version")
+}
+
+callAnyCommand() {
+  ensureBuildEjected --silent
+
+  source "$BUILD_EJECT_PATH/bin/command-env"
+  # Checks if command ($1) is present available
+  command -v "$1" >/dev/null 2>&1 || {
+  echo >&2 "$1 command is not installed.";
+  exit 1;
+  }
+  exec "$@"
+}
+
+if [ $# -eq 0 ]
+then
+  callBuiltInCommand install
+  callBuiltInCommand__build
+elif [ $# -eq 1 ]; then
+  case $1 in
+    clean)
+      callBuiltInCommand__buildEject
+      make -j -s -f "$MAKEFILE_BUILD_EJECT_PATH/Makefile" "$1"
+      ;;
+    build-eject)
+      callBuiltInCommand__buildEject
+      ;;
+    release)
+      shift
+      callBuiltInCommand release
+      ;;
+    build|b)
+      shift
+      callBuiltInCommand__build
+      ;;
+    _build)
+      shift
+      callBuiltInCommand build
+      ;;
+    build-ls)
+      shift
+      callBuiltInCommand build-ls
+      ;;
+    build-shell)
+      shift
+      callBuiltInCommand build-shell
+      ;;
+    import-opam)
+      shift
+      callBuiltInCommand import-opam
+      ;;
+    shell)
+      ensureBuildEjected
+      ENV="$BUILD_EJECT_PATH/bin/command-env" PS1="esy % " sh
+      ;;
+    print-env)
+      ensureBuildEjected --silent
+      cat "$BUILD_EJECT_PATH/bin/command-env"
+      ;;
+    config)
+      shift
+      callBuiltInCommand config
+      ;;
+    install|i)
+      shift
+      callBuiltInCommand install
+      ;;
+    add)
+      shift
+      callBuiltInCommand add "$@"
+      callBuiltInCommand__build
+      ;;
+    install-cache)
+      shift
+      callBuiltInCommand install-cache
+      ;;
+    export-dependencies)
+      shift
+      callBuiltInCommand export-dependencies
+      ;;
+    import-dependencies)
+      shift
+      callBuiltInCommand import-dependencies
+      ;;
+    export-build)
+      shift
+      exec "$SCRIPTDIR/esyExportBuild"
+      ;;
+    import-build)
+      shift
+      exec "$SCRIPTDIR/esyImportBuild"
+      ;;
+    x)
+      callBuiltInCommand__x
+      ;;
+    version|--version|-v)
+      printVersion
+      ;;
+    help)
+      printDetailedHelp
+      ;;
+    --help|-h)
+      printHelp
+      ;;
+    -*)
+      echo error: unknown option "$1" >&2
+      exit 1
+      ;;
+    *)
+      callAnyCommand "$@"
+      ;;
+  esac
+else
+  case $1 in
+    import-opam)
+      shift
+      callBuiltInCommand import-opam "$@"
+      ;;
+    build-eject)
+      shift
+      callBuiltInCommand__buildEject "$@"
+      ;;
+    add)
+      shift
+      callBuiltInCommand add "$@"
+      callBuiltInCommand__build
+      ;;
+    build-ls)
+      shift
+      callBuiltInCommand build-ls "$@"
+      ;;
+    build-shell)
+      shift
+      callBuiltInCommand build-shell "$@"
+      ;;
+    install|i)
+      shift
+      callBuiltInCommand install "$@"
+      ;;
+    build|b)
+      shift
+      case "$1" in
+        -*)
+          callBuiltInCommand build "$@"
+          ;;
+        *)
+          callBuiltInCommand__build "$@"
+          ;;
+      esac
+      ;;
+    _build)
+      shift
+      callBuiltInCommand build "$@"
+      ;;
+    install-cache)
+      shift
+      callBuiltInCommand install-cache "$@"
+      ;;
+    release)
+      shift
+      callBuiltInCommand release "$@"
+      ;;
+    on-demand|export-dependencies)
+      shift
+      callBuiltInCommand export-dependencies "$@"
+      ;;
+    import-dependencies)
+      shift
+      callBuiltInCommand import-dependencies "$@"
+      ;;
+    export-build)
+      shift
+      exec "$SCRIPTDIR/esyExportBuild" "$@"
+      ;;
+    import-build)
+      shift
+      exec "$SCRIPTDIR/esyImportBuild" "$@"
+      ;;
+    config)
+      shift
+      callBuiltInCommand config "$@"
+      ;;
+    x)
+      callBuiltInCommand__x "$@"
+      ;;
+    -*)
+      echo Unknown option "$1" >&2
+      exit 1
+      ;;
+    *)
+      callAnyCommand "$@"
+      ;;
+  esac
+fi
+
