@@ -12,7 +12,8 @@ defineTestCaseWithShell(
   `
     run esy release dev
     run cd _release/dev
-    ls ./
-    ls ./r
+
+    run npmGlobal pack
+    run npmGlobal install ./minimal-0.1.0.tgz
   `,
 );

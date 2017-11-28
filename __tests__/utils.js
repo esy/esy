@@ -120,6 +120,7 @@ export function initFixtureSync(fixturePath: string) {
         npm --prefix "${npmPrefix}" "$@"
       }
 
+      export ESY__COMMAND="${require.resolve('../bin/_esy')}"
       export PATH="${npmPrefix}/bin:$PATH"
 
       set -u

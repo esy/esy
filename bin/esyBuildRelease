@@ -51,6 +51,13 @@ makeR () {
 esyRelease__installEsy () {
   local log
 
+  # FIXME: During tests we do want to use the current esy executable... consider
+  # to override $ESY__VERSION in some way compatible with npm to install from
+  # the current esy checkout.
+  if [ "$NODE_ENV" == "test" ]; then
+    return
+  fi
+
   echo '*** Installing esy for the release...'
   log=$(npm install --global --prefix "$releasePackagePath/_esy" "esy@$ESY__VERSION")
   if [ $? -ne 0 ]; then
