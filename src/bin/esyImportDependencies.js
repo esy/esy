@@ -13,8 +13,7 @@ import * as Child from '../lib/child_process.js';
 import * as fs from '../lib/fs.js';
 import * as path from '../lib/path.js';
 import {PromiseQueue} from '../lib/Promise.js';
-
-const esyBin = require.resolve('../../bin/_esy');
+import * as constants from '../constants.js';
 
 export default async function esyImportDependencies(
   ctx: CommandContext,
@@ -46,7 +45,9 @@ export default async function esyImportDependencies(
   const importQueue = new PromiseQueue({concurrency: config.buildConcurrency});
 
   async function importBuild(buildPath) {
-    await Child.spawn(esyBin, ['import-build', buildPath], {stdio: 'inherit'});
+    await Child.spawn(constants.CURRENT_ESY_EXECUTABLE, ['import-build', buildPath], {
+      stdio: 'inherit',
+    });
   }
 
   function importBuildPaths(build) {

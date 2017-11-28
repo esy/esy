@@ -12,8 +12,7 @@ import * as Graph from '../graph.js';
 import * as Child from '../lib/child_process.js';
 import * as fs from '../lib/fs.js';
 import {PromiseQueue} from '../lib/Promise.js';
-
-const esyBin = require.resolve('../../bin/_esy');
+import * as constants from '../constants.js';
 
 export default async function esyExportDependencies(ctx: CommandContext) {
   const sandbox = await getSandbox(ctx);
@@ -56,7 +55,11 @@ export default async function esyExportDependencies(ctx: CommandContext) {
     toExport.map(build =>
       exportQueue.add(async () => {
         const finalInstallPath = config.getFinalInstallPath(build);
-        await Child.spawn(esyBin, ['export-build', finalInstallPath], {stdio: 'inherit'});
+        await Child.spawn(
+          constants.CURRENT_ESY_EXECUTABLE,
+          ['export-build', finalInstallPath],
+          {stdio: 'inherit'},
+        );
       }),
     ),
   );
