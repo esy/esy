@@ -146,7 +146,7 @@ export function initFixtureSync(fixturePath: string) {
 }
 
 export function defineTestCaseWithShell(fixturePath: string, shellScript: string) {
-  jest.setTimeout(200000);
+  jest.setTimeout(500000);
 
   const fixture = initFixtureSync(fixturePath);
 
