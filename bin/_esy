@@ -57,6 +57,38 @@ needRebuildTarget () {
   echo "$NEED_REBUILD"
 }
 
+runCommand () {
+  local suppressOutput
+  local output
+  local ret
+
+  if [ "$1" == "--suppressOutput" ]; then
+    suppressOutput="yes"
+    shift
+  fi
+
+  set +e
+  if [ "$suppressOutput" == "yes" ]; then
+    output=$("$@")
+    ret="$?"
+  else
+    "$@"
+    ret="$?"
+  fi
+  set -e
+
+  if [ $ret -ne 0 ]; then
+    if [ "$suppressOutput" == "yes" ]; then
+      echo "$output"
+    fi
+    exit 1
+  fi
+
+  if [ "$ESY__LOG_ACTION" == "yes" ] && [ "$suppressOutput" == "yes" ]; then
+    echo "$output" | grep "# ACTION:"
+  fi
+}
+
 callBuiltInCommand__build () {
   ensureBuildEjected
   if [ $# -eq 0 ]; then
@@ -68,15 +100,7 @@ callBuiltInCommand__build () {
 
 callBuiltInCommand__x () {
   ensureBuildEjected --silent
-  local installOutput
-  set +e
-  installOutput=$("$BUILD_EJECT_PATH/bin/install")
-  local ret="$?"
-  set -e
-  if [ $ret -ne 0 ]; then
-    echo "$installOutput"
-    exit 1
-  fi
+  runCommand --suppressOutput "$BUILD_EJECT_PATH/bin/install"
   source "$BUILD_EJECT_PATH/bin/sandbox-env"
   shift
   # Checks if command ($1) is present available
@@ -97,12 +121,9 @@ ensureBuildEjected () {
       esyArgs="$esyArgs --silent"
       shift
     fi
-    node "$SCRIPTDIR/esy.js" "$esyArgs" build \
+    runCommand node "$SCRIPTDIR/esy.js" "$esyArgs" build \
       --dependencies-only \
       --eject "$BUILD_EJECT_PATH" "$@"
-    if [ $? -ne 0 ]; then
-      exit 1
-    fi
   fi
 }
 
@@ -113,7 +134,7 @@ callBuiltInCommand__buildEject () {
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@"
+    runCommand node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@"
   fi
 }
 

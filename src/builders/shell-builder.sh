@@ -174,6 +174,8 @@ esyRelocateBuildDirComplete () {
 
 esyRunBuildCommands () {
 
+  esyLogAction "esyRunBuildCommands"
+
   # Run esy.build
   for cmd in "${esy_build__build_command[@]}"
   do
@@ -197,6 +199,9 @@ esyRunBuildCommands () {
 #
 
 esyRunInstallCommands () {
+
+  esyLogAction "esyRunInstallCommands"
+
   # Run esy.install
   for cmd in "${esy_build__install_command[@]}"
   do
@@ -319,4 +324,10 @@ esyShell () {
 
 esyClean () {
   rm -rf "$esy_build__install_root"
+}
+
+esyLogAction () {
+  if [ ! -z "${ESY__LOG_ACTION+x}" ]; then
+    echo "# ACTION:" "$@"
+  fi
 }

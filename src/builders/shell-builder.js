@@ -131,6 +131,11 @@ export const eject = async (
       const prevMtimePath = config.getBuildPath(t.spec, '_esy', 'mtime');
       const sourcePath = config.getSourcePath(t.spec);
       return outdent`
+      if [ "$ESY__LOG_ACTION" == "yes" ]; then
+        echo "# ACTION: build-dependencies: checking dep ${t.spec
+          .packagePath} for staleness"
+      fi
+
       if [ ! -d "${installPath}" ]; then
         buildDependencies "$@"
         return
@@ -162,6 +167,10 @@ export const eject = async (
 
       set -e
       set -o pipefail
+
+      if [ "$ESY__LOG_ACTION" == "yes" ]; then
+        echo "# ACTION: build-dependencies: checking if dependencies are built"
+      fi
 
       ${renderEnv(esyBuildWrapperEnv)}
 
@@ -256,7 +265,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      exec env -i /bin/bash "$ESY_EJECT__ROOT/bin/_install" "$@"
+      exec env -i ESY__LOG_ACTION="$ESY__LOG_ACTION" /bin/bash "$ESY_EJECT__ROOT/bin/_install" "$@"
     `,
   });
 
