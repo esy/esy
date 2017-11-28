@@ -4,14 +4,16 @@
 
 * Add a suite of commands to import and export builds to/from store.
 
-  * `esy export-dependencies` - exports dependencies of the current sandbox as
-    gzipped tarballs inside the `_export` directory.
+  * `esy export-dependencies` - exports dependencies of the current sandbox.
 
     Example:
 
     ```
     % esy export-dependencies
     ```
+
+    This command produces an `_export` directory with a set of gzipped tarballs
+    for each of the current project's dependencies.
 
   * `esy import-dependencies <dir>` - imports dependencies of the current
     sandbox into a store.
