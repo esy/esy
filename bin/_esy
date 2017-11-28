@@ -171,27 +171,27 @@ $(printHelp)
 
 Advanced commands:
 
-  release TYPE          Create a release of type TYPE ("dev", "pack" or "bin").
+  release TYPE                Create a release of type TYPE ("dev", "pack" or "bin").
 
-  install-cache         Manage installation cache (similar to 'yarn cache'
-                        command).
+  install-cache               Manage installation cache (similar to 'yarn cache'
+                              command).
 
-  import-opam           Read a provided opam file and print esy-enabled
-                        package.json conents on stdout. Example:
+  import-opam                 Read a provided opam file and print esy-enabled
+                              package.json conents on stdout. Example:
 
-                          esy import-opam lwt 3.0.0 ./opam
+                                esy import-opam lwt 3.0.0 ./opam
 
-  config ls             Query esy configuration.
+  config ls                   Query esy configuration.
   config get
 
-  export-dependencies   Export all dependencies of the current sandbox.
+  export-dependencies         Export all dependencies of the current sandbox.
 
-  export-build <id>     Exports build by <id> from global store and puts it
-                        into _export/<id>.tar.gz archive.
+  import-dependencies <path>  Try to import dependencies for the current
+                              sandbox from the <path> (previously populated by
+                              esy export-dependencies command or pointing to the
+                              "store/i" directory. If <path> is not provided
+                              then PWD/_export is going to be used.
 
-  import-build <path>   Imports build from <path> and puts it into global store.
-                        The <path> can point either to the archive produced by
-                        "esy export-build" command or to the directory.
 
 Environment variables:
 
@@ -294,6 +294,10 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand export-dependencies
       ;;
+    import-dependencies)
+      shift
+      callBuiltInCommand import-dependencies
+      ;;
     export-build)
       shift
       exec "$SCRIPTDIR/esyExportBuild"
@@ -374,7 +378,11 @@ else
       ;;
     export-dependencies)
       shift
-      callBuiltInCommand export "$@"
+      callBuiltInCommand export-dependencies "$@"
+      ;;
+    import-dependencies)
+      shift
+      callBuiltInCommand import-dependencies "$@"
       ;;
     export-build)
       shift
