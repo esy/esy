@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.0.46
+
+* Fix `esy import-opam` not to print command header so the output can be piped
+  to a `package.json`:
+
+  ```
+  % esy import-opam <name> <version> <path/to/opam/file> > package.json
+  ```
+
 ## 0.0.45
 
 * Fix to locking not to acquire a lock when one is already acquired.
