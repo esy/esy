@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.47
+
+* Fixes to `esy install` command to allow overrides for patches and install
+  commands for OPAM packages.
+
 ## 0.0.46
 
 * Fix `esy import-opam` not to print command header so the output can be piped
