@@ -138,11 +138,22 @@ esyGetStorePathFromPrefix() {
   echo "$esyPrefix/$storeVersion$padding"
 }
 
-esyLogAction () {
-  if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
-    >&2 echo "# ACTION:" "$@"
+esyLogEnabled () {
+  if [ ! -z "${DEBUG+x}" ] && [[ "$1" = $DEBUG ]]; then
+    return 0
+  else
+    return 1
   fi
 }
+
+esyLog () {
+  local level="$1"
+  shift
+  if esyLogEnabled $level; then
+    >&2 echo "  $level" "$@"
+  fi
+}
+
 
 if [ -n "$(type -t esyCommandHelp)" ] && [ "$(type -t esyCommandHelp)" = function ]; then
   if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then

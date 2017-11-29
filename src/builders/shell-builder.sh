@@ -78,7 +78,7 @@ esyExecCommandInSandbox () {
 
 esyPrepare () {
 
-  esyLogAction "esyPrepare"
+  esyLog "esy:shell-builder" "esyPrepare"
 
   # this invalidates installation
   rm -rf "$cur__install"
@@ -117,7 +117,7 @@ esyPrepare () {
 }
 
 esyComplete () {
-  esyLogAction "esyComplete"
+  esyLog "esy:shell-builder" "esyComplete"
   if [ "$esy_build__build_type" == "in-source" ]; then
     true
   elif [ "$esy_build__build_type" == "_build" ]; then
@@ -138,7 +138,7 @@ esyComplete () {
 #
 
 esyRelocateSource () {
-  esyLogAction "esyRelocateSource"
+  esyLog "esy:shell-builder" "esyRelocateSource"
   rm -rf "$cur__root";
   rsync --quiet --archive     \
     --exclude "$cur__root"    \
@@ -151,7 +151,7 @@ esyRelocateSource () {
 }
 
 esyRelocateBuildDir () {
-  esyLogAction "esyRelocateBuildDir"
+  esyLog "esy:shell-builder" "esyRelocateBuildDir"
 
   # save original _build
   if [ -d "$esy_build__source_root/_build" ]; then
@@ -163,7 +163,7 @@ esyRelocateBuildDir () {
 }
 
 esyRelocateBuildDirComplete () {
-  esyLogAction "esyRelocateBuildDirComplete"
+  esyLog "esy:shell-builder" "esyRelocateBuildDirComplete"
 
   # save _build
   if [ -d "$esy_build__source_root/_build" ]; then
@@ -181,8 +181,7 @@ esyRelocateBuildDirComplete () {
 #
 
 esyRunBuildCommands () {
-
-  esyLogAction "esyRunBuildCommands"
+  esyLog "esy:shell-builder" "esyRunBuildCommands"
 
   # Run esy.build
   for cmd in "${esy_build__build_command[@]}"
@@ -207,8 +206,7 @@ esyRunBuildCommands () {
 #
 
 esyRunInstallCommands () {
-
-  esyLogAction "esyRunInstallCommands"
+  esyLog "esy:shell-builder" "esyRunInstallCommands"
 
   # Run esy.install
   for cmd in "${esy_build__install_command[@]}"
@@ -334,8 +332,18 @@ esyClean () {
   rm -rf "$esy_build__install_root"
 }
 
-esyLogAction () {
-  if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
-    >&2 echo "# ACTION:" "$@"
+esyLogEnabled () {
+  if [ ! -z "${DEBUG+x}" ] && [[ "$1" = $DEBUG ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+esyLog () {
+  local level="$1"
+  shift
+  if esyLogEnabled $level; then
+    >&2 echo "  $level" "$@"
   fi
 }

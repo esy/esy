@@ -11,15 +11,8 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-if [ -z "${ESY__SANDBOX+x}" ]; then
-  export ESY__SANDBOX="$PWD"
-fi
-if [ -z "${ESY__PREFIX+x}" ]; then
-  export ESY__PREFIX="$HOME/.esy"
-fi
-if [ -z "${ESY__LOCAL_STORE+x}" ]; then
-  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
-fi
+# shellcheck source=./esyRuntime.sh
+source "$SCRIPTDIR/esyRuntime.sh"
 
 mkdir -p "$ESY__PREFIX"
 ESY__LOCK="$ESY__PREFIX/lock"
@@ -33,17 +26,11 @@ else
   DEPENDENCIES_PACKAGE_JSON=""
 fi
 
-esyLogAction () {
-  if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
-    >&2 echo "# ACTION:" "$@"
-  fi
-}
-
 needRebuildTarget () {
   TARGET="$1"
   NEED_REBUILD="false"
 
-  esyLogAction "needRebuildTarget $TARGET"
+  esyLog "esy:bin" "needRebuildTarget $TARGET"
 
   # check if target exist
   if [ ! -f "$TARGET" ]; then

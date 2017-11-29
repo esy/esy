@@ -213,7 +213,7 @@ async function main() {
   const consoleReporter = new ConsoleReporter({
     emoji: false,
     verbose: flags.verbose,
-    noProgress: !isTTY,
+    noProgress: !isTTY || (process.env.DEBUG != null && process.env.DEBUG !== ''),
     isSilent: process.env.ESY__SILENT === '1',
   });
 
