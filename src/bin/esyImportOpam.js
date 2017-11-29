@@ -40,3 +40,5 @@ export default async function importOpamCommand(
   delete packageJson._esy_opam_patches;
   console.log(JSON.stringify(packageJson, null, 2));
 }
+
+export const noHeader = true;
