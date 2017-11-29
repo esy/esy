@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.45
+
+* Fix to locking not to acquire a lock when one is already acquired.
+
 ## 0.0.44
 
 * Fix too coarse locking.
