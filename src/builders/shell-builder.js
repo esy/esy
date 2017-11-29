@@ -115,6 +115,16 @@ export const eject = async (
     }),
   });
 
+  await emitFile({
+    filename: ['bin/esyRuntime.sh'],
+    contents: fs.readFileSync(require.resolve('../../bin/esyRuntime.sh')),
+  });
+
+  await emitFile({
+    filename: ['bin/esyConfig.sh'],
+    contents: fs.readFileSync(require.resolve('../../bin/esyConfig.sh')),
+  });
+
   const checkImmutableDeps = Array.from(immutableDeps.values()).map(t => {
     const installPath = config.getFinalInstallPath(t.spec);
     return outdent`
@@ -139,9 +149,7 @@ export const eject = async (
 
       if [ "$performStalenessCheck" == "yes" ]; then
 
-        if [ "$ESY__LOG_ACTION" == "yes" ]; then
-          echo "# ACTION: build-dependencies: staleness check ${t.spec.packagePath}"
-        fi
+        esyLogAction "build-dependencies: staleness check ${t.spec.packagePath}"
 
         if [ ! -f "${prevMtimePath}" ]; then
           buildDependencies "$@"
@@ -149,7 +157,8 @@ export const eject = async (
         fi
 
         prevMtime=$(cat "${prevMtimePath}")
-        curMtime=$(findMaxMtime "${sourcePath}")
+        curMtime=$(esyFindSourceModTime "${sourcePath}")
+
         if [ "$curMtime" -gt "$prevMtime" ]; then
           buildDependencies "$@"
           return
@@ -172,6 +181,11 @@ export const eject = async (
       set -e
       set -o pipefail
 
+      BINDIR=$(dirname "$0")
+
+      source "$BINDIR/esyConfig.sh"
+      source "$BINDIR/esyRuntime.sh"
+
       performStalenessCheck="yes"
 
       if [ "$1" == "--ignore-staleness-check" ]; then
@@ -179,23 +193,9 @@ export const eject = async (
         shift
       fi
 
-      if [ "$ESY__LOG_ACTION" == "yes" ]; then
-        echo "# ACTION: build-dependencies: checking if dependencies are built"
-      fi
+      esyLogAction "build-dependencies: checking if dependencies are built"
 
       ${renderEnv(esyBuildWrapperEnv)}
-
-      # Configure sandbox mechanism
-      getMtime="stat -c %Y"
-      case $(uname) in
-        Darwin*)
-          getMtime="stat -f %m"
-          ;;
-        Linux*)
-          ;;
-        MSYS*);;
-        *);;
-      esac
 
       buildDependencies () {
         if [ "$1" == "--silent" ]; then
@@ -203,24 +203,6 @@ export const eject = async (
         fi
         (cd "$ESY_SANDBOX" && \
          "${nodeCmd}" "${esyCmd}" "$@" build --dependencies-only --eject "${outputPath}")
-      }
-
-      findMaxMtime () {
-        local root="$1"
-        local maxMtime
-        maxMtime=$(
-          find "$root" \
-          -type f -a \
-          -not -name ".merlin" -a \
-          -not -name "*.install" -a \
-          -not -path "$root/node_modules/*" -a \
-          -not -path "$root/node_modules" -a \
-          -not -path "$root/_build" -a \
-          -not -path "$root/_install" -a \
-          -not -path "$root/_esy" -a \
-          -not -path "$root/_release" \
-          -exec $getMtime {} \\; | sort -r | head -n1)
-        echo "$maxMtime"
       }
 
       checkDependencies () {

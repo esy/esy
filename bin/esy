@@ -33,9 +33,17 @@ else
   DEPENDENCIES_PACKAGE_JSON=""
 fi
 
+esyLogAction () {
+  if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
+    >&2 echo "# ACTION:" "$@"
+  fi
+}
+
 needRebuildTarget () {
   TARGET="$1"
   NEED_REBUILD="false"
+
+  esyLogAction "needRebuildTarget $TARGET"
 
   # check if target exist
   if [ ! -f "$TARGET" ]; then

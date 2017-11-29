@@ -68,6 +68,47 @@ esyRewriteStorePrefix () {
 }
 
 #
+# Find source modification time
+#
+# Example:
+#
+#   esyFindSourceModTime /path/to/source
+#
+
+modTimeCommand="stat -c %Y"
+case $(uname) in
+  Darwin*)
+    modTimeCommand="stat -f %m"
+    ;;
+  Linux*)
+    ;;
+  MSYS*);;
+  *);;
+esac
+
+esyFindSourceModTime () {
+  local root="$1"
+  local maxMtime
+  maxMtime=$(
+    find "$root" \
+    -type f -a \
+    -not -name ".merlin" -a \
+    -not -name "*.install" -a \
+    -not -path "$root/node_modules/*" -a \
+    -not -path "$root/node_modules" -a \
+    -not -path "$root/_build/*" -a \
+    -not -path "$root/_build" -a \
+    -not -path "$root/_install/*" -a \
+    -not -path "$root/_install" -a \
+    -not -path "$root/_esy/*" -a \
+    -not -path "$root/_esy" -a \
+    -not -path "$root/_release/*" \
+    -not -path "$root/_release" \
+    -exec $modTimeCommand {} \; | sort -r | head -n1)
+  echo "$maxMtime"
+}
+
+#
 # Get global store path based on the prefix path.
 #
 # Example:
@@ -95,6 +136,12 @@ esyGetStorePathFromPrefix() {
 
   padding=$(esyRepeatCharacter '_' "$paddingLength")
   echo "$esyPrefix/$storeVersion$padding"
+}
+
+esyLogAction () {
+  if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
+    >&2 echo "# ACTION:" "$@"
+  fi
 }
 
 if [ -n "$(type -t esyCommandHelp)" ] && [ "$(type -t esyCommandHelp)" = function ]; then

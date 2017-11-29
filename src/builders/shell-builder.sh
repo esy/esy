@@ -78,6 +78,8 @@ esyExecCommandInSandbox () {
 
 esyPrepare () {
 
+  esyLogAction "esyPrepare"
+
   # this invalidates installation
   rm -rf "$cur__install"
   rm -rf "$esy_build__install_root"
@@ -115,6 +117,7 @@ esyPrepare () {
 }
 
 esyComplete () {
+  esyLogAction "esyComplete"
   if [ "$esy_build__build_type" == "in-source" ]; then
     true
   elif [ "$esy_build__build_type" == "_build" ]; then
@@ -135,6 +138,7 @@ esyComplete () {
 #
 
 esyRelocateSource () {
+  esyLogAction "esyRelocateSource"
   rm -rf "$cur__root";
   rsync --quiet --archive     \
     --exclude "$cur__root"    \
@@ -147,6 +151,8 @@ esyRelocateSource () {
 }
 
 esyRelocateBuildDir () {
+  esyLogAction "esyRelocateBuildDir"
+
   # save original _build
   if [ -d "$esy_build__source_root/_build" ]; then
     mv "$esy_build__source_root/_build" "$cur__target_dir/_build.prev"
@@ -157,6 +163,8 @@ esyRelocateBuildDir () {
 }
 
 esyRelocateBuildDirComplete () {
+  esyLogAction "esyRelocateBuildDirComplete"
+
   # save _build
   if [ -d "$esy_build__source_root/_build" ]; then
     mv "$esy_build__source_root/_build" "$cur__target_dir/_build"
@@ -328,6 +336,6 @@ esyClean () {
 
 esyLogAction () {
   if [ ! -z "${ESY__LOG_ACTION+x}" ] && [ "$ESY__LOG_ACTION" == "yes" ]; then
-    echo "# ACTION:" "$@"
+    >&2 echo "# ACTION:" "$@"
   fi
 }
