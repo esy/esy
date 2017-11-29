@@ -149,7 +149,7 @@ esyLogEnabled () {
 esyLog () {
   local level="$1"
   shift
-  if esyLogEnabled $level; then
+  if esyLogEnabled "$level"; then
     >&2 echo "  $level" "$@"
   fi
 }
