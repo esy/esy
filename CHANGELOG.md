@@ -5,6 +5,8 @@
 * Fixes to `esy install` command to allow overrides for patches and install
   commands for OPAM packages.
 
+* Fixes to staleness for linked packages which prevent false positives.
+
 ## 0.0.46
 
 * Fix `esy import-opam` not to print command header so the output can be piped
