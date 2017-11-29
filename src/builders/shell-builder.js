@@ -21,8 +21,6 @@ import * as S from '../sandbox';
 import * as T from '../build-task';
 import {renderBuildTaskCommand} from './makefile-builder';
 
-const log = createLogger('esy:shell-builder');
-
 const RUNTIME = fs.readFileSync(require.resolve('./shell-builder.sh'));
 
 function collectDependencies(root, immutableDeps, transientDeps) {
@@ -353,7 +351,6 @@ type File = {
 
 async function emitFileInto(outputPath: string, file: File) {
   const filename = path.join(outputPath, ...file.filename);
-  log(`emit <ejectRootDir>/${file.filename.join('/')}`);
   await fs.mkdirp(path.dirname(filename));
   await fs.writeFile(filename, file.contents);
   if (file.executable) {

@@ -7,6 +7,7 @@ import type {Config, Reporter, BuildTask} from '../types';
 
 import chalk from 'chalk';
 import outdent from 'outdent';
+import createLogger from 'debug';
 
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
@@ -15,6 +16,8 @@ import * as Task from '../build-task';
 import * as M from '../package-manifest';
 import * as Builder from '../builders/simple-builder';
 import * as ShellBuilder from '../builders/shell-builder';
+
+const log = createLogger('esy:bin:esyBuild');
 
 export function reportBuildError(ctx: CommandContext, error: Builder.BuildError) {
   const {spec} = error.task;
@@ -93,6 +96,8 @@ export default async function esyBuild(
       config,
     );
   }
+
+  log('execute');
 
   const build = invocation.options.flags.dependenciesOnly
     ? Builder.buildDependencies

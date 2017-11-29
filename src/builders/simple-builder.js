@@ -358,29 +358,28 @@ export async function withBuildDriver(
   const finalInstallPath = config.getFinalInstallPath(task.spec);
   const buildPath = config.getBuildPath(task.spec);
   const isRoot = task.spec.buildType === 'root';
+  const {buildType, sourceType} = task.spec;
 
   const log = createLogger(`esy:simple-builder:${task.spec.name}`);
 
-  log('buildType', task.spec.buildType);
-  log('sourceType', task.spec.sourceType);
+  log('build: %O', {buildType, sourceType});
 
-  log('removing prev destination directories (if exist)');
   await Promise.all([fs.rmdir(finalInstallPath), fs.rmdir(installPath)]);
 
-  log('creating destination directories');
   await Promise.all([
     ...BUILD_DIR_STRUCTURE.map(p => fs.mkdirp(config.getBuildPath(task.spec, p))),
     ...INSTALL_DIR_STRUCTURE.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
   ]);
 
   const relocateSource = async () => {
-    log('relocating sources to root path');
+    log('relocateSource');
     await fs.copydir(sourcePath, rootPath, {
       exclude: IGNORE_FOR_BUILD.map(p => config.getSourcePath(task.spec, p)),
     });
   };
 
   const relocateBuildDir = async () => {
+    log('relocateBuildDir');
     const buildDir = config.getRootPath(task.spec, '_build');
     const buildTargetDir = config.getBuildPath(task.spec, '_build');
     const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
@@ -389,6 +388,7 @@ export async function withBuildDriver(
   };
 
   const relocateBuildDirComplete = async () => {
+    log('relocateBuildDirComplete');
     const buildDir = config.getRootPath(task.spec, '_build');
     const buildTargetDir = config.getBuildPath(task.spec, '_build');
     const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
@@ -415,15 +415,12 @@ export async function withBuildDriver(
     envForExec[item.name] = item.value;
   }
 
-  log('placing _esy/idInfo');
   const idInfoPath = path.join(buildPath, '_esy', 'idInfo');
   await fs.writeFile(idInfoPath, jsonStableStringify(task.spec.idInfo, {space: '  '}));
 
-  log('placing _esy/env');
   const envPath = path.join(buildPath, '_esy', 'env');
   await fs.writeFile(envPath, renderEnv(task.env), 'utf8');
 
-  log('placing _esy/sandbox.conf');
   const darwinSandboxConfig = path.join(buildPath, '_esy', 'sandbox.sb');
   const tempDirs: Array<Promise<?string>> = ['/tmp', process.env.TMPDIR]
     .filter(Boolean)
@@ -556,15 +553,13 @@ async function performBuild(
         await driver.executeCommand(command, renderedCommand);
       }
 
-      driver.log('rewriting paths in build artefacts');
       spinner.tick('finishing...');
+      driver.log('rewritePaths');
       await rewritePaths(
         config.getInstallPath(task.spec),
         driver.installPath,
         driver.finalInstallPath,
       );
-
-      driver.log('finalizing build');
 
       // saving esy metadata
       await fs.mkdirp(path.join(driver.installPath, '_esy'));
