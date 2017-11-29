@@ -19,9 +19,6 @@
 
 BINDIR=$(dirname "$0")
 
-# shellcheck source=./esyConfig.sh
-source "$BINDIR/esyConfig.sh"
-
 if [ -z "${ESY__SANDBOX+x}" ]; then
   export ESY__SANDBOX="$PWD"
 fi

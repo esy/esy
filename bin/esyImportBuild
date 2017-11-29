@@ -16,6 +16,8 @@ EOF
 
 BINDIR=$(dirname "$0")
 
+# shellcheck source=./esyConfig.sh
+source "$BINDIR/esyConfig.sh"
 # shellcheck source=./esyRuntime.sh
 source "$BINDIR/esyRuntime.sh"
 

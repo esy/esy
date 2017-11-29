@@ -11,6 +11,8 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+# shellcheck source=./esyConfig.sh
+source "$SCRIPTDIR/esyConfig.sh"
 # shellcheck source=./esyRuntime.sh
 source "$SCRIPTDIR/esyRuntime.sh"
 
