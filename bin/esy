@@ -22,7 +22,7 @@ if [ -z "${ESY__LOCAL_STORE+x}" ]; then
 fi
 
 mkdir -p "$ESY__PREFIX"
-LOCKFILENAME="$ESY__PREFIX/lock"
+ESY__LOCK="$ESY__PREFIX/lock"
 
 MAKEFILE_BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build-eject"
 BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build"
@@ -60,7 +60,7 @@ needRebuildTarget () {
   echo "$NEED_REBUILD"
 }
 
-runCommand () {
+run () {
   local suppressOutput
   local output
   local ret
@@ -92,33 +92,38 @@ runCommand () {
   fi
 }
 
-runLocked () {
-  local command="$@"
-  set +e
-  "$SCRIPTDIR/flock" -n "$LOCKFILENAME" bash -c "$command || exit 2"
-  retCode="$?"
-  set -e
-  if [ $retCode -eq 1 ]; then
-    echo >&2 "error: another esy process is running, exiting...";
-    echo >&2 "       you can remove $LOCKFILENAME if you are sure that's not the case";
-    exit 1
-  elif [ $retCode -ne 0 ]; then
-    exit 1
+withLock () {
+  if [ -z "${ESY__LOCKED+x}" ]; then
+    local command="$@"
+    set +e
+    # we do || exit 2 to distinguish between $command failure and flock failure
+    ESY__LOCKED="$ESY__LOCK" "$SCRIPTDIR/flock" -n "$ESY__LOCK" bash -c "$command || exit 2"
+    retCode="$?"
+    set -e
+    if [ $retCode -eq 1 ]; then
+      echo >&2 "error: another esy process is running, exiting...";
+      echo >&2 "       you can remove $ESY__LOCK if you are sure that's not the case";
+      exit 1
+    elif [ $retCode -ne 0 ]; then
+      exit 1
+    fi
+  else
+    "$@"
   fi
 }
 
 callBuiltInCommand__build () {
   ensureBuildEjected
   if [ $# -eq 0 ]; then
-    runLocked "$BUILD_EJECT_PATH/bin/build"
+    withLock "$BUILD_EJECT_PATH/bin/build"
   else
-    runLocked "$BUILD_EJECT_PATH/bin/build-exec" "$@"
+    withLock "$BUILD_EJECT_PATH/bin/build-exec" "$@"
   fi
 }
 
 callBuiltInCommand__x () {
   ensureBuildEjected --silent
-  runCommand --suppressOutput runLocked "$BUILD_EJECT_PATH/bin/install"
+  run --suppressOutput withLock "$BUILD_EJECT_PATH/bin/install"
   source "$BUILD_EJECT_PATH/bin/sandbox-env"
   shift
   # Checks if command ($1) is present available
@@ -139,7 +144,7 @@ ensureBuildEjected () {
       esyArgs="$esyArgs --silent"
       shift
     fi
-    runCommand runLocked node "$SCRIPTDIR/esy.js" "$esyArgs" build \
+    run withLock node "$SCRIPTDIR/esy.js" "$esyArgs" build \
       --dependencies-only \
       --eject "$BUILD_EJECT_PATH" "$@"
   fi
@@ -152,12 +157,12 @@ callBuiltInCommand__buildEject () {
     # Capture the error output
     # Capturing stderr is very important to prevent nodejs from setting
     # stderr to nonblocking mode
-    runCommand runLocked node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@"
+    run withLock node "$SCRIPTDIR/esy.js" build-eject "$MAKEFILE_BUILD_EJECT_PATH" "$@"
   fi
 }
 
 callBuiltInCommand() {
-	runLocked node "$SCRIPTDIR/esy.js" "$@"
+	withLock node "$SCRIPTDIR/esy.js" "$@"
 }
 
 printHelp() {
