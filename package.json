@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "description": "Esy sandboxes for compiled languages",
   "main": "lib/index.js",
   "scripts": {
