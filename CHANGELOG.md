@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 0.0.48
+
+* Fixes to `esy install` command:
+
+  * Now it correctly handles OPAM version constraints with `v` prefix (example:
+    `v0.9.0`).
+
+    This will invalidate lockfiles which are happen to have records for packages
+    with those versions.
+
+  * Handle include files even for packages which doesn't have `url` OPAM meta
+    (example: `conf-gmp`).
+
 ## 0.0.47
 
 * Fixes to `esy install` command to allow overrides for patches and install
