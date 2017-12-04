@@ -6,9 +6,9 @@
   version "0.0.0"
   uid ""
 
-"@esy-ocaml/esy-opam@0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.9.tgz#e12f833cf26bde327de5adace81fd927b52fd06e"
+"@esy-ocaml/esy-opam@0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.10.tgz#d7d66e9774205fd28dbe83c1f846765a4b3a2ddb"
 
 "@esy-ocaml/flock@esy-ocaml/flock#v0.2.3":
   version "0.2.3"
@@ -2122,9 +2122,9 @@ find-up@^2.0.0, find-up@^2.1.0:
   dependencies:
     locate-path "^2.0.0"
 
-flow-bin@^0.59.0:
-  version "0.59.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.59.0.tgz#8c151ee7f09f1deed9bf0b9d1f2e8ab9d470f1bb"
+flow-bin@^0.60.0:
+  version "0.60.1"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.60.1.tgz#0f4fa7b49be2a916f18cd946fc4a51e32ffe4b48"
 
 for-in@^1.0.1:
   version "1.0.2"
