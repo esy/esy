@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.49
+
+* Fixes to `esy install` error reporting.
+
 ## 0.0.48
 
 * Fixes to `esy install` command:
