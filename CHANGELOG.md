@@ -2,7 +2,23 @@
 
 ## 0.0.49
 
-* Fixes to `esy install` error reporting.
+* Fixes to `esy install` command:
+
+  * OPAM package conversion now convert `depopts` as `optDependencies` which are
+    not handled by `esy install` (on purpose) but handled by `esy build`. That
+    makes `optDependencies` a direct analogue of OPAM's `depopts`.
+
+  * Fix OPAM package conversion to preevaluate package dependency formulas with
+    `mirage-no-xen == true` and `mirage-no-solo5 == true`. This is a temporary
+    measure to make a lot of popular packages build. A proper fix pending.
+
+  * Better error reporting in case version constraint wasn't satisfied because of
+    OCaml version constraint.
+
+  * Better warning message in case custom resolution doesn't satisfy constraints
+    imposed by other packages.
+
+* `esy build` command is now aware of `optDependencies`.
 
 ## 0.0.48
 
