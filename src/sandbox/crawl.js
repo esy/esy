@@ -37,8 +37,10 @@ export type Context = {
   reporter: Reporter,
 };
 
+export type DependencyType = 'regular' | 'dev' | 'peer' | 'opt';
+
 export type Dependency = {
-  type: 'regular' | 'dev' | 'peer',
+  type: DependencyType,
   pattern: string,
   name: string,
   spec: string,
@@ -56,6 +58,7 @@ export type Options = {
 export async function crawlDependencies<R>(
   dependencySpecs: Dependency[],
   context: Context,
+  options?: {ignoreIfNotInstalled?: boolean} = {},
 ): Promise<{dependencies: Map<string, BuildSpec>, errors: Array<{message: string}>}> {
   const dependencies = new Map();
   const errors = [];
@@ -74,7 +77,9 @@ export async function crawlDependencies<R>(
 
     const resolution = await context.resolveManifest(spec, context);
     if (resolution == null) {
-      missingPackages.push(spec.name);
+      if (!options.ignoreIfNotInstalled) {
+        missingPackages.push(spec.name);
+      }
       continue;
     }
 
@@ -99,8 +104,11 @@ export async function crawlDependencies<R>(
 
 export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
   context.reporter.verbose(`crawl-build: ${context.packagePath}`);
+
   const dependenciesReqs: Dependency[] = [];
+  const optDependenciesReqs: Dependency[] = [];
   const dependenciesSeen = new Set();
+
   for (const dep of dependenciesFromObj('regular', context.manifest.dependencies)) {
     if (dependenciesSeen.has(dep.pattern)) {
       continue;
@@ -115,13 +123,33 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     dependenciesSeen.add(dep.pattern);
     dependenciesReqs.push(dep);
   }
+  for (const dep of dependenciesFromObj('opt', context.manifest.optDependencies)) {
+    if (dependenciesSeen.has(dep.pattern)) {
+      continue;
+    }
+    dependenciesSeen.add(dep.pattern);
+    optDependenciesReqs.push(dep);
+  }
 
-  const {dependencies, errors} = await crawlDependencies(dependenciesReqs, {
+  const depContext = {
     ...context,
     dependencyTrace: context.dependencyTrace.concat(context.manifest.name),
+  };
+
+  const {dependencies, errors} = await crawlDependencies(dependenciesReqs, depContext);
+
+  const {
+    dependencies: optDependencies,
+    errors: optErrors,
+  } = await crawlDependencies(optDependenciesReqs, depContext, {
+    ignoreIfNotInstalled: true,
   });
 
-  const nextErrors = [...errors];
+  for (const [k, v] of optDependencies.entries()) {
+    dependencies.set(k, v);
+  }
+
+  const nextErrors = [...errors, ...optErrors];
 
   const isInstalled = context.manifest._resolved != null;
 
@@ -266,7 +294,7 @@ function formatMissingPackagesError(missingPackages, context) {
 }
 
 export function dependenciesFromObj(
-  type: 'regular' | 'peer' | 'dev',
+  type: DependencyType,
   obj: {[name: string]: string},
 ): Dependency[] {
   const reqs = [];

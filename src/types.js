@@ -227,6 +227,7 @@ export type PackageManifest = {
   dependencies: PackageManifestDependenciesCollection,
   peerDependencies: PackageManifestDependenciesCollection,
   devDependencies: PackageManifestDependenciesCollection,
+  optDependencies: PackageManifestDependenciesCollection,
   optionalDependencies: PackageManifestDependenciesCollection,
 
   // This is specific to npm, make sure we get rid of that if we want to port to
