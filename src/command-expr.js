@@ -4,13 +4,15 @@
  * Commands expressions are meant to be embedded inside JSON syntax thereforce
  * their syntax is designed not to requied escaping from JSON syntax.
  *
- * export MERLIN_VIM_PLUGIN="#{@opam/merlin.share / 'vim'}"
- * export PATH="#{cur.bin : $PATH}"
+ * Examples:
+ *
+ *   export MERLIN_VIM_PLUGIN="#{@opam/merlin.share / 'vim'}"
+ *   export PATH="#{cur.bin : $PATH}"
  *
  * @flow
  */
 
-type Evaluator = {
+export type Evaluator = {
   /**
    * Eval identifier to string
    */
@@ -35,8 +37,8 @@ type Evaluator = {
 const dummyEvaluator: Evaluator = {
   id: id => `ID(${id.join('.')})`,
   var: name => `VAR(${name})`,
-  pathSep: () => '/',
-  colon: () => ':',
+  pathSep: () => ' PATH_SEP ',
+  colon: () => ' COLON ',
 };
 
 export function evaluate(expr: string, evaluator?: Evaluator = dummyEvaluator): string {
@@ -242,11 +244,11 @@ function tokenize(input: string): Array<Tok> {
       if ((m = match(space))) {
         index = index + m[0].length;
       } else if ((m = match(scopedId))) {
-        tokens.push({type: 'ID', id: m[0]});
+        tokens.push({type: 'ID', id: unescapeId(m[0])});
         index = index + m[0].length;
         continue;
       } else if ((m = match(id))) {
-        tokens.push({type: 'ID', id: m[0]});
+        tokens.push({type: 'ID', id: unescapeId(m[0])});
         index = index + m[0].length;
         continue;
       }
@@ -254,4 +256,8 @@ function tokenize(input: string): Array<Tok> {
   }
 
   return tokens;
+}
+
+function unescapeId(id) {
+  return id.replace(/__dot__/g, '.');
 }
