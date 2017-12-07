@@ -10,9 +10,16 @@ const makeTest = (expr, result) => {
   });
 };
 
-const makeTestExpectToFail = expr => {
+const makeTestExpectToFail = (expr, index) => {
   test(`evaluate: ${expr}`, function() {
-    expect(() => CE.evaluate(expr)).toThrow();
+    try {
+      CE.evaluate(expr);
+    } catch (err) {
+      expect(err).toBeInstanceOf(CE.ExpressionSyntaxError);
+      expect(err.index).toBe(index);
+      return;
+    }
+    expect(false).toBe(true);
   });
 };
 
@@ -30,8 +37,8 @@ makeTest('#{@opam/pkg__dot__js.bin}', 'ID(@opam/pkg.js.bin)');
 makeTest('#{cur.bin : $PATH}', 'ID(cur.bin) COLON VAR(PATH)');
 makeTest("#{platform '-${VAR}'}", 'ID(platform)-${VAR}');
 
-makeTestExpectToFail('Hello #{');
-makeTestExpectToFail('Hello ${');
-makeTestExpectToFail("Hello #{'}");
-makeTestExpectToFail('Hello #{$}');
-makeTestExpectToFail('Hello #{sd.asda.^}');
+makeTestExpectToFail('Hello #{', 7);
+makeTestExpectToFail('Hello ${', 7);
+makeTestExpectToFail("Hello #{'}", 8);
+makeTestExpectToFail('Hello #{$}', 8);
+makeTestExpectToFail('Hello #{sd.asda.^}', 16);
