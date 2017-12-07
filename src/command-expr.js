@@ -12,6 +12,8 @@
  * @flow
  */
 
+import * as lang from './lib/lang.js';
+
 export type Evaluator = {
   /**
    * Eval identifier to string
@@ -41,8 +43,8 @@ const dummyEvaluator: Evaluator = {
   colon: () => ' COLON ',
 };
 
-export function evaluate(expr: string, evaluator?: Evaluator = dummyEvaluator): string {
-  const tokens = tokenizeCover(expr);
+export function evaluate(input: string, evaluator?: Evaluator = dummyEvaluator): string {
+  const tokens = tokenizeCover(input);
   const stack = [{type: 'value', children: []}];
 
   function cur() {
@@ -50,10 +52,15 @@ export function evaluate(expr: string, evaluator?: Evaluator = dummyEvaluator): 
     return last;
   }
 
+  function peekTok() {
+    const tok = tokens[0];
+    return tok || {type: 'EOF', index: Infinity};
+  }
+
   while (tokens.length > 0) {
     const tok = tokens.shift();
     if (tok.type === 'SHARP_LPAREN') {
-      stack.push({type: 'expression', children: []});
+      stack.push({type: 'expression', children: [], index: peekTok().index});
       continue;
     } else if (tok.type === 'DOLLAR_LPAREN') {
       cur().children.push('${');
@@ -62,7 +69,8 @@ export function evaluate(expr: string, evaluator?: Evaluator = dummyEvaluator): 
     } else if (tok.type === 'RPAREN') {
       const c = cur();
       if (c.type === 'expression') {
-        const result = evaluateExpr(stack.pop().children.join(''), evaluator);
+        stack.pop();
+        const result = evaluateExpr(c.children.join(''), c.index, evaluator);
         cur().children.push(result);
       } else if (c.type === 'var') {
         c.children.push('}');
@@ -77,14 +85,14 @@ export function evaluate(expr: string, evaluator?: Evaluator = dummyEvaluator): 
   }
 
   if (stack.length !== 1) {
-    throw new Error(`invalid command expression: ${expr}`);
+    throw new ExpressionSyntaxError(input, input.length - 1, 'Expected (})');
   }
 
   return stack[0].children.join('');
 }
 
-function evaluateExpr(expr, evaluator) {
-  const tokens = tokenize(expr);
+function evaluateExpr(input, startIndex, evaluator) {
+  const tokens = tokenizeExpr(input, startIndex);
   const result = [null];
 
   const nextTok = () => {
@@ -113,27 +121,27 @@ function evaluateExpr(expr, evaluator) {
         nextTok();
         const tok = nextTok();
         if (typeof tok !== 'string' && tok.type !== 'ID') {
-          throw new Error('invalid identifier');
+          throw new ExpressionSyntaxError(input, tok.index, 'Invalid identifier');
         }
         id.push(tok.id);
       }
       result.push(evaluator.id(id));
     } else {
-      throw new Error('invalid expression');
+      throw new ExpressionSyntaxError(input, tok.index, 'Invalid expression');
     }
   }
 
   if (peekTok().type !== 'EOF') {
-    throw new Error('invalid expression');
+    throw new ExpressionSyntaxError(input, input.length - 1, 'Invalid expression');
   }
 
   return result.join('');
 }
 
-type CoverTokValue = {type: 'VALUE', value: string};
-type CoverTokSharpLParen = {type: 'SHARP_LPAREN'};
-type CoverTokDollarLParen = {type: 'DOLLAR_LPAREN'};
-type CoverTokRParen = {type: 'RPAREN'};
+type CoverTokValue = {type: 'VALUE', value: string, index: number};
+type CoverTokSharpLParen = {type: 'SHARP_LPAREN', index: number};
+type CoverTokDollarLParen = {type: 'DOLLAR_LPAREN', index: number};
+type CoverTokRParen = {type: 'RPAREN', index: number};
 type CoverTok =
   | CoverTokValue
   | CoverTokSharpLParen
@@ -141,29 +149,29 @@ type CoverTok =
   | CoverTokRParen;
 
 function tokenizeCover(input: string): Array<CoverTok> {
-  const tokens = [];
+  const tokens: Array<CoverTok> = [];
   let index = 0;
 
   while (index < input.length) {
     if (input[index] === '#' && input[index + 1] === '{') {
-      tokens.push({type: 'SHARP_LPAREN'});
+      tokens.push({type: 'SHARP_LPAREN', index});
       index = index + 2;
     } else if (input[index] === '$' && input[index + 1] === '{') {
-      tokens.push({type: 'DOLLAR_LPAREN'});
+      tokens.push({type: 'DOLLAR_LPAREN', index});
       index = index + 2;
     } else if (input[index] === '}') {
-      tokens.push({type: 'RPAREN'});
+      tokens.push({type: 'RPAREN', index});
       index = index + 1;
     } else {
       const findOtherTok = /#{|\${|}/g;
       findOtherTok.lastIndex = index;
       const match = findOtherTok.exec(input);
       if (match != null) {
-        tokens.push({type: 'VALUE', value: input.slice(index, match.index)});
+        tokens.push({type: 'VALUE', value: input.slice(index, match.index), index});
         index = match.index;
         continue;
       } else {
-        tokens.push({type: 'VALUE', value: input.slice(index)});
+        tokens.push({type: 'VALUE', value: input.slice(index), index});
         break;
       }
     }
@@ -172,12 +180,12 @@ function tokenizeCover(input: string): Array<CoverTok> {
   return tokens;
 }
 
-type TokColon = {type: 'COLON'};
-type TokSlash = {type: 'SLASH'};
-type TokDot = {type: 'DOT'};
-type TokValue = {type: 'VALUE', value: string};
-type TokId = {type: 'ID', id: string};
-type TokVar = {type: 'VAR', name: string};
+type TokColon = {type: 'COLON', index: number};
+type TokSlash = {type: 'SLASH', index: number};
+type TokDot = {type: 'DOT', index: number};
+type TokValue = {type: 'VALUE', value: string, index: number};
+type TokId = {type: 'ID', id: string, index: number};
+type TokVar = {type: 'VAR', name: string, index: number};
 type Tok = TokColon | TokSlash | TokDot | TokValue | TokId | TokVar;
 
 const TOK_COLON = {type: 'COLON'};
@@ -185,8 +193,8 @@ const TOK_SLASH = {type: 'SLASH'};
 const TOK_DOT = {type: 'DOT'};
 const TOK_EOF = {type: 'EOF'};
 
-function tokenize(input: string): Array<Tok> {
-  const tokens = [];
+function tokenizeExpr(input: string, startIndex: number): Array<Tok> {
+  const tokens: Array<Tok> = [];
   let index = 0;
 
   function match(re) {
@@ -211,9 +219,13 @@ function tokenize(input: string): Array<Tok> {
       index = index + 1;
       const m = findMatch(/'/g);
       if (m == null) {
-        throw new Error("Expected '");
+        throw new ExpressionSyntaxError(input, startIndex + index - 1, "Expected (')");
       }
-      tokens.push({type: 'VALUE', value: input.slice(index, m.index)});
+      tokens.push({
+        type: 'VALUE',
+        value: input.slice(index, m.index),
+        index: startIndex + index,
+      });
       index = m.index + m[0].length;
     } else if (input[index] === '$') {
       index = index + 1;
@@ -221,24 +233,28 @@ function tokenize(input: string): Array<Tok> {
       if (m == null) {
         const name = input.slice(index);
         if (name === '') {
-          throw new Error('invalid variable reference');
+          throw new ExpressionSyntaxError(
+            input,
+            startIndex + index - 1,
+            'Invalid variable reference',
+          );
         }
-        tokens.push({type: 'VAR', name});
+        tokens.push({type: 'VAR', name, index: startIndex + index});
         break;
       } else {
         const name = input.slice(index, m.index);
-        tokens.push({type: 'VAR', name});
+        tokens.push({type: 'VAR', name, index: startIndex + index});
         index = m.index;
         continue;
       }
     } else if (input[index] === '/') {
-      tokens.push(TOK_SLASH);
+      tokens.push({type: 'SLASH', index: startIndex + index});
       index = index + 1;
     } else if (input[index] === '.') {
-      tokens.push(TOK_DOT);
+      tokens.push({type: 'DOT', index: startIndex + index});
       index = index + 1;
     } else if (input[index] === ':') {
-      tokens.push(TOK_COLON);
+      tokens.push({type: 'COLON', index: startIndex + index});
       index = index + 1;
     } else {
       let m;
@@ -249,15 +265,15 @@ function tokenize(input: string): Array<Tok> {
       if ((m = match(space))) {
         index = index + m[0].length;
       } else if ((m = match(scopedId))) {
-        tokens.push({type: 'ID', id: unescapeId(m[0])});
+        tokens.push({type: 'ID', id: unescapeId(m[0]), index: startIndex + index});
         index = index + m[0].length;
         continue;
       } else if ((m = match(id))) {
-        tokens.push({type: 'ID', id: unescapeId(m[0])});
+        tokens.push({type: 'ID', id: unescapeId(m[0]), index: startIndex + index});
         index = index + m[0].length;
         continue;
       } else {
-        throw new Error('invalid expression');
+        throw new ExpressionSyntaxError(input, startIndex + index, 'Unknown syntax');
       }
     }
   }
@@ -267,4 +283,18 @@ function tokenize(input: string): Array<Tok> {
 
 function unescapeId(id) {
   return id.replace(/__dot__/g, '.');
+}
+
+export class ExpressionSyntaxError extends Error {
+  input: string;
+  index: ?number;
+  reason: string;
+
+  constructor(input: string, index: number, reason: string) {
+    super(`Invalid expression syntax: ${reason} (at ${index} characeter)`);
+    this.input = input;
+    this.index = index;
+    this.reason = reason;
+    lang.fixupErrorSubclassing(this, ExpressionSyntaxError);
+  }
 }
