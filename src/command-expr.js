@@ -217,12 +217,17 @@ function tokenize(input: string): Array<Tok> {
       index = m.index + m[0].length;
     } else if (input[index] === '$') {
       index = index + 1;
-      const m = findMatch(/[^a-zA-Z0-9_]/g);
+      const m = findMatch(/[^a-zA-Z0-9_]+/g);
       if (m == null) {
-        tokens.push({type: 'VAR', name: input.slice(index)});
+        const name = input.slice(index);
+        if (name === '') {
+          throw new Error('invalid variable reference');
+        }
+        tokens.push({type: 'VAR', name});
         break;
       } else {
-        tokens.push({type: 'VAR', name: input.slice(index, m.index)});
+        const name = input.slice(index, m.index);
+        tokens.push({type: 'VAR', name});
         index = m.index;
         continue;
       }
@@ -251,6 +256,8 @@ function tokenize(input: string): Array<Tok> {
         tokens.push({type: 'ID', id: unescapeId(m[0])});
         index = index + m[0].length;
         continue;
+      } else {
+        throw new Error('invalid expression');
       }
     }
   }
