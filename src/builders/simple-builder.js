@@ -17,8 +17,9 @@ import * as child from '../lib/child_process';
 import {fixupErrorSubclassing} from '../lib/lang';
 
 import * as Graph from '../graph';
+import * as Env from '../environment.js';
 import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
-import {renderEnv, renderSandboxSbConfig, rewritePathInFile, exec} from './util';
+import {renderSandboxSbConfig, rewritePathInFile, exec} from './util';
 import {
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
@@ -411,15 +412,15 @@ export async function withBuildDriver(
   }
 
   const envForExec = {};
-  for (const item of task.env.values()) {
-    envForExec[item.name] = item.value;
+  for (const [k, v] of Env.evalEnvironment(task.env).entries()) {
+    envForExec[k] = v;
   }
 
   const idInfoPath = path.join(buildPath, '_esy', 'idInfo');
   await fs.writeFile(idInfoPath, jsonStableStringify(task.spec.idInfo, {space: '  '}));
 
   const envPath = path.join(buildPath, '_esy', 'env');
-  await fs.writeFile(envPath, renderEnv(task.env), 'utf8');
+  await fs.writeFile(envPath, Env.printEnvironment(task.env), 'utf8');
 
   const darwinSandboxConfig = path.join(buildPath, '_esy', 'sandbox.sb');
   const tempDirs: Array<Promise<?string>> = ['/tmp', process.env.TMPDIR]

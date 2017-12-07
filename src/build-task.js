@@ -7,20 +7,22 @@ import type {
   BuildSpec,
   Config,
   BuildTask,
-  BuildEnvironment,
+  Environment,
+  BuildScope,
   BuildPlatform,
 } from './types';
 
 import {substituteVariables} from 'var-expansion';
 
-import {doubleQuote} from './lib/shell';
+import {quoteArgIfNeeded} from './lib/shell';
 import * as path from './lib/path';
 import {normalizePackageName, mergeIntoMap, mapValuesMap} from './util';
 import * as Graph from './graph';
 import * as Env from './environment';
+import * as CommandExpr from './command-expr.js';
 
 type FromSandboxParams = {
-  env?: BuildEnvironment,
+  env?: Environment,
   includeDevDependencies?: true,
 };
 
@@ -29,12 +31,12 @@ export function fromSandbox<Path: path.Path>(
   config: Config<Path>,
   params?: FromSandboxParams = {},
 ): BuildTask {
-  const env = new Map();
+  const env = [];
   if (sandbox.env) {
-    mergeIntoMap(env, sandbox.env);
+    env.push(...sandbox.env);
   }
   if (params.env != null) {
-    mergeIntoMap(env, params.env);
+    env.push(...params.env);
   }
   let spec = sandbox.root;
   if (params.includeDevDependencies) {
@@ -47,12 +49,12 @@ export function fromSandbox<Path: path.Path>(
 }
 
 type FromBuildSpecParams = {
-  env?: BuildEnvironment,
+  env?: Environment,
 };
 
-type BuildScopes = {
-  localScope: BuildEnvironment,
-  globalScope: BuildEnvironment,
+type ExportedEnv = {
+  env: Environment,
+  globalEnv: Environment,
 };
 
 type FoldState = {
@@ -60,7 +62,7 @@ type FoldState = {
   task: BuildTask,
   dependencies: Array<FoldState>,
   allDependencies: Array<FoldState>,
-} & BuildScopes;
+} & ExportedEnv;
 
 /**
  * Produce a task graph from a build spec graph.
@@ -75,17 +77,17 @@ export function fromBuildSpec(
     (dependenciesMap, allDependenciesMap, spec) => {
       const dependencies = Array.from(dependenciesMap.values());
       const allDependencies = Array.from(allDependenciesMap.values());
-      const {localScope, globalScope} = computeScopes(
+      const {env, globalEnv} = getExportedEnv(
         config,
         dependencies,
         allDependencies,
         spec,
       );
       const task = createTask(spec, dependencies, allDependencies, {
-        localScope,
-        globalScope,
+        env,
+        globalEnv,
       });
-      return {spec, task, dependencies, allDependencies, localScope, globalScope};
+      return {spec, task, dependencies, allDependencies, env, globalEnv};
     },
   );
 
@@ -93,9 +95,8 @@ export function fromBuildSpec(
     spec: BuildSpec,
     dependencies: Array<FoldState>,
     allDependencies: Array<FoldState>,
-    scopes: BuildScopes,
+    scopes: ExportedEnv,
   ): BuildTask {
-    const env = new Map();
     const ocamlfindDest = config.getInstallPath(spec, 'lib');
 
     const OCAMLPATH = [];
@@ -115,75 +116,180 @@ export function fromBuildSpec(
     PATH.push('$PATH');
     MAN_PATH.push('$MAN_PATH');
 
-    evalIntoEnv(env, [
-      {
-        name: 'OCAMLPATH',
-        value: OCAMLPATH.join(getPathsDelimiter('OCAMLPATH', config.buildPlatform)),
-        exported: true,
-        exclusive: true,
-      },
-      {
-        name: 'OCAMLFIND_DESTDIR',
-        value: ocamlfindDest,
-        exported: true,
-        exclusive: true,
-      },
-      {
-        name: 'OCAMLFIND_LDCONF',
-        value: 'ignore',
-        exported: true,
-        exclusive: true,
-      },
-      {
-        name: 'OCAMLFIND_COMMANDS',
-        // eslint-disable-next-line max-len
-        value:
-          'ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt',
-        exported: true,
-        exclusive: true,
-      },
-      {
-        name: 'PATH',
-        value: PATH.join(getPathsDelimiter('PATH', config.buildPlatform)),
-        exported: true,
-      },
-      {
-        name: 'MAN_PATH',
-        value: MAN_PATH.join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
-        exported: true,
-      },
-    ]);
+    const env: Environment = [];
 
-    const errors = [];
+    env.push(
+      ...[
+        {
+          name: 'OCAMLPATH',
+          value: OCAMLPATH.join(getPathsDelimiter('OCAMLPATH', config.buildPlatform)),
+          builtIn: false,
+          exclusive: true,
+          origin: null,
+        },
+        {
+          name: 'OCAMLFIND_DESTDIR',
+          value: ocamlfindDest,
+          builtIn: false,
+          exclusive: true,
+          origin: null,
+        },
+        {
+          name: 'OCAMLFIND_LDCONF',
+          value: 'ignore',
+          builtIn: false,
+          exclusive: true,
+          origin: null,
+        },
+        {
+          name: 'OCAMLFIND_COMMANDS',
+          // eslint-disable-next-line max-len
+          value:
+            'ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt',
+          builtIn: false,
+          exclusive: true,
+          origin: null,
+        },
+        {
+          name: 'PATH',
+          value: PATH.join(getPathsDelimiter('PATH', config.buildPlatform)),
+          builtIn: false,
+          exclusive: false,
+          origin: null,
+        },
+        {
+          name: 'MAN_PATH',
+          value: MAN_PATH.join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
+          builtIn: false,
+          exclusive: false,
+          origin: null,
+        },
 
-    // $cur__name, $cur__version and so on...
-    mergeIntoMap(env, getBuiltInScope(spec, config, true));
+        {
+          name: `cur__name`,
+          value: spec.name,
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+          origin: spec,
+        },
+        {
+          name: `cur__version`,
+          value: spec.version,
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__root`,
+          value: config.getRootPath(spec),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__depends`,
+          value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__target_dir`,
+          value: config.getBuildPath(spec),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__install`,
+          value: config.getInstallPath(spec),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__bin`,
+          value: config.getInstallPath(spec, 'bin'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__sbin`,
+          value: config.getInstallPath(spec, 'sbin'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__lib`,
+          value: config.getInstallPath(spec, 'lib'),
+          builtIn: true,
+          exclusive: true,
+          origin: spec,
+        },
+        {
+          name: `cur__man`,
+          value: config.getInstallPath(spec, 'man'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__doc`,
+          value: config.getInstallPath(spec, 'doc'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__stublibs`,
+          value: config.getInstallPath(spec, 'stublibs'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__toplevel`,
+          value: config.getInstallPath(spec, 'toplevel'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__share`,
+          value: config.getInstallPath(spec, 'share'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+        {
+          name: `cur__etc`,
+          value: config.getInstallPath(spec, 'etc'),
+          origin: spec,
+          builtIn: true,
+          exclusive: true,
+        },
+      ],
+    );
 
     // direct deps' local scopes
     for (const dep of dependencies) {
-      mergeIntoMap(env, dep.localScope);
+      env.push(...dep.env);
     }
-    // build's own local scope
-    mergeIntoMap(env, scopes.localScope);
-    // all deps' global scopes merged
-    mergeIntoMap(
-      env,
-      Env.merge(
-        Array.from(allDependencies)
-          .map(dep => dep.globalScope)
-          .concat(scopes.globalScope),
-        evalIntoEnv,
-      ),
-    );
 
+    // all deps' global env
+    for (const dep of allDependencies) {
+      env.push(...dep.globalEnv);
+    }
+
+    // extra env
     if (params != null && params.env != null) {
-      evalIntoEnv(env, Array.from(params.env.values()));
+      env.push(...params.env);
     }
 
-    const scope = new Map();
-    mergeIntoMap(scope, getEvalScope(spec, dependencies, config));
-    mergeIntoMap(scope, env);
-
+    const scope = getScope(spec, dependencies, config);
     const buildCommand = spec.buildCommand.map(command => renderCommand(command, scope));
     const installCommand = spec.installCommand.map(command =>
       renderCommand(command, scope),
@@ -200,238 +306,184 @@ export function fromBuildSpec(
         dependencies.set(task.id, task);
         return dependencies;
       }, new Map()),
-      errors,
+      errors: [],
     };
   }
 
-  function computeScopes(
+  function getExportedEnv(
     config: Config<*>,
     dependencies: Array<FoldState>,
     allDependencies: Array<FoldState>,
     spec,
-  ): BuildScopes {
+  ): ExportedEnv {
     // scope which is used to eval exported variables
-    const evalScope = getEvalScope(spec, dependencies, config);
+    const scope = getScope(spec, dependencies, config);
     // global env vars exported from a spec
-    const globalScope = new Map();
+    const globalEnv = [];
     // local env vars exported from a spec
-    const localScope = new Map();
+    const env = [];
     for (const name in spec.exportedEnv) {
       const envConfig = spec.exportedEnv[name];
-      const value = renderWithScope(envConfig.val, evalScope).rendered;
+      const value = renderWithScope(envConfig.val, scope).rendered;
       const item = {
         name,
         value,
-        spec,
+        origin: spec,
         builtIn: false,
-        exported: true,
         exclusive: Boolean(envConfig.exclusive),
       };
       if (envConfig.scope === 'global') {
-        globalScope.set(name, item);
+        globalEnv.push(item);
       } else {
-        localScope.set(name, item);
+        env.push(item);
       }
     }
-    return {localScope, globalScope};
-  }
-
-  function renderCommand(command: Array<string> | string, scope) {
-    if (Array.isArray(command)) {
-      return {
-        command: command.join(' '),
-        renderedCommand: command
-          .map(command => quoteArgIfNeeded(expandWithScope(command, scope).rendered))
-          .join(' '),
-      };
-    } else {
-      return {
-        command,
-        renderedCommand: expandWithScope(command, scope).rendered,
-      };
-    }
+    return {env, globalEnv};
   }
 
   return task;
 }
 
-function builtInEntry({
-  name,
-  value,
-  spec,
-  exclusive = true,
-  exported = false,
-}: {
-  name: string,
-  value: string,
-  spec?: BuildSpec,
-  exclusive?: boolean,
-  exported?: boolean,
-}) {
-  return [name, {name, value, spec, builtIn: true, exclusive, exported}];
+function renderCommand(command: Array<string> | string, scope) {
+  if (Array.isArray(command)) {
+    return {
+      command: command.join(' '),
+      renderedCommand: command
+        .map(command => quoteArgIfNeeded(renderWithScope(command, scope).rendered))
+        .join(' '),
+    };
+  } else {
+    return {
+      command,
+      renderedCommand: renderWithScope(command, scope).rendered,
+    };
+  }
 }
 
-function builtInEntries(...values) {
-  return new Map(values.map(builtInEntry));
-}
-
-function getBuiltInScope(
+function getPackageScopeBindings(
   spec: BuildSpec,
   config: Config<path.Path>,
   currentlyBuilding?: boolean,
-): BuildEnvironment {
-  const prefix = currentlyBuilding ? 'cur' : normalizePackageName(spec.name);
-  const getInstallPath = currentlyBuilding
-    ? config.getInstallPath
-    : config.getFinalInstallPath;
-  return builtInEntries(
-    {
-      name: `${prefix}__name`,
-      value: spec.name,
-      spec,
-    },
-    {
-      name: `${prefix}__version`,
-      value: spec.version,
-      spec,
-    },
-    {
-      name: `${prefix}__root`,
-      value: config.getRootPath(spec),
-      spec,
-    },
-    {
-      name: `${prefix}__depends`,
-      value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
-      spec,
-    },
-    {
-      name: `${prefix}__target_dir`,
-      value: config.getBuildPath(spec),
-      spec,
-    },
-    {
-      name: `${prefix}__install`,
-      value: getInstallPath(spec),
-      spec,
-    },
-    {
-      name: `${prefix}__bin`,
-      value: getInstallPath(spec, 'bin'),
-      spec,
-    },
-    {
-      name: `${prefix}__sbin`,
-      value: getInstallPath(spec, 'sbin'),
-      spec,
-    },
-    {
-      name: `${prefix}__lib`,
-      value: getInstallPath(spec, 'lib'),
-      spec,
-    },
-    {
-      name: `${prefix}__man`,
-      value: getInstallPath(spec, 'man'),
-      spec,
-    },
-    {
-      name: `${prefix}__doc`,
-      value: getInstallPath(spec, 'doc'),
-      spec,
-    },
-    {
-      name: `${prefix}__stublibs`,
-      value: getInstallPath(spec, 'stublibs'),
-      spec,
-    },
-    {
-      name: `${prefix}__toplevel`,
-      value: getInstallPath(spec, 'toplevel'),
-      spec,
-    },
-    {
-      name: `${prefix}__share`,
-      value: getInstallPath(spec, 'share'),
-      spec,
-    },
-    {
-      name: `${prefix}__etc`,
-      value: getInstallPath(spec, 'etc'),
-      spec,
-    },
+): BuildScope {
+  const scope: BuildScope = new Map(
+    [
+      {
+        name: 'name',
+        value: spec.name,
+        origin: spec,
+      },
+      {
+        name: 'version',
+        value: spec.version,
+        origin: spec,
+      },
+      {
+        name: 'root',
+        value: config.getRootPath(spec),
+        origin: spec,
+      },
+      {
+        name: 'depends',
+        value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
+        origin: spec,
+      },
+      {
+        name: 'target_dir',
+        value: config.getBuildPath(spec),
+        origin: spec,
+      },
+      {
+        name: 'install',
+        value: config.getFinalInstallPath(spec),
+        origin: spec,
+      },
+      {
+        name: 'bin',
+        value: config.getFinalInstallPath(spec, 'bin'),
+        origin: spec,
+      },
+      {
+        name: 'sbin',
+        value: config.getFinalInstallPath(spec, 'sbin'),
+        origin: spec,
+      },
+      {
+        name: 'lib',
+        value: config.getFinalInstallPath(spec, 'lib'),
+        origin: spec,
+      },
+      {
+        name: 'man',
+        value: config.getFinalInstallPath(spec, 'man'),
+        origin: spec,
+      },
+      {
+        name: 'doc',
+        value: config.getFinalInstallPath(spec, 'doc'),
+        origin: spec,
+      },
+      {
+        name: 'stublibs',
+        value: config.getFinalInstallPath(spec, 'stublibs'),
+        origin: spec,
+      },
+      {
+        name: 'toplevel',
+        value: config.getFinalInstallPath(spec, 'toplevel'),
+        origin: spec,
+      },
+      {
+        name: 'share',
+        value: config.getFinalInstallPath(spec, 'share'),
+        origin: spec,
+      },
+      {
+        name: 'etc',
+        value: config.getFinalInstallPath(spec, 'etc'),
+        origin: spec,
+      },
+    ].map(item => [item.name, item]),
   );
-}
-
-function evalIntoEnv<V: {name: string, value: string}>(
-  scope: BuildEnvironment,
-  items: Array<V>,
-) {
-  const update = new Map();
-  for (const item of items) {
-    const nextItem = {
-      exported: true,
-      exclusive: false,
-      builtIn: false,
-      ...item,
-      value: renderWithScope(item.value, scope).rendered,
-    };
-    update.set(item.name, nextItem);
-  }
-  mergeIntoMap(scope, update);
   return scope;
 }
 
-function getEvalScope(
-  spec: BuildSpec,
-  dependencies: Array<FoldState>,
-  config,
-): BuildEnvironment {
+function getScope(spec: BuildSpec, dependencies: Array<FoldState>, config): BuildScope {
+  const scope: BuildScope = new Map();
   const evalScope = new Map();
   for (const dep of dependencies) {
-    mergeIntoMap(evalScope, getBuiltInScope(dep.spec, config));
-    mergeIntoMap(evalScope, dep.localScope);
+    const depScope = getPackageScopeBindings(dep.spec, config);
+    scope.set(dep.spec.name, depScope);
   }
-  mergeIntoMap(evalScope, getBuiltInScope(spec, config));
-  return evalScope;
+  scope.set(spec.name, getPackageScopeBindings(spec, config));
+  return scope;
 }
 
-const FIND_VAR_RE = /\$([a-zA-Z0-9_]+)/g;
-
-export function renderWithScope<T: {value: string}>(
-  value: string,
-  scope: Map<string, T>,
-): {rendered: string} {
-  const rendered = value.replace(FIND_VAR_RE, (_, name) => {
-    const value = scope.get(name);
-    if (value == null) {
-      return `\$${name}`;
-    } else {
-      return value.value;
+function resolveWithScope(id, scope) {
+  let v = scope;
+  for (let i = 0; i < id.length; i++) {
+    if (!(v instanceof Map)) {
+      throw new Error(`Invalid reference: ${id.join('.')}`);
     }
-  });
-  return {rendered};
-}
-
-export function quoteArgIfNeeded(arg: string): string {
-  if (arg.indexOf(' ') === -1 && arg.indexOf("'") === -1 && arg.indexOf('"') === -1) {
-    return arg;
-  } else {
-    return doubleQuote(arg);
+    v = v.get(id[i]);
   }
+  if (v instanceof Map) {
+    throw new Error(`Invalid reference: ${id.join('.')}`);
+  }
+  if (v == null) {
+    throw new Error(`Invalid reference: ${id.join('.')}`);
+  }
+  return v.value;
 }
 
-export function expandWithScope<T: {value: string}>(
-  value: string,
-  scope: Map<string, T>,
-): {rendered: string} {
-  const {value: rendered} = substituteVariables(value, {
-    env: name => {
-      const item = scope.get(name);
-      return item != null ? item.value : undefined;
-    },
-  });
-  return {rendered: rendered != null ? rendered : value};
+export function renderWithScope(value: string, scope: BuildScope): {rendered: string} {
+  const evaluator = {
+    id: id => resolveWithScope(id, scope),
+    var: name => '$' + name,
+    pathSep: () => '/',
+    colon: () => ':',
+  };
+  const rendered = CommandExpr.evaluate(value, evaluator);
+  return {rendered};
 }
 
 /**

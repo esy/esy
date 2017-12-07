@@ -3,9 +3,10 @@
  */
 
 import type {BuildSpec} from '../types';
-import {expandWithScope, renderWithScope, fromBuildSpec} from '../build-task';
+import {fromBuildSpec} from '../build-task';
 import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import * as Config from '../config';
+import * as Env from '../environment.js';
 
 function calculate(config, spec, params) {
   const {env, scope} = fromBuildSpec(spec, config, params);
@@ -38,7 +39,7 @@ const ocaml = build({
   name: 'ocaml',
   exportedEnv: {
     CAML_LD_LIBRARY_PATH: {
-      val: '$ocaml__lib/ocaml',
+      val: "${ocaml.lib / 'ocaml'}",
       scope: 'global',
     },
   },
@@ -49,7 +50,7 @@ const ocamlfind = build({
   name: 'ocamlfind',
   exportedEnv: {
     CAML_LD_LIBRARY_PATH: {
-      val: '$ocamlfind__lib/ocaml:$CAML_LD_LIBRARY_PATH',
+      val: "#{ocamlfind.lib / 'ocaml' : $CAML_LD_LIBRARY_PATH}",
       scope: 'global',
     },
   },
@@ -60,7 +61,7 @@ const lwt = build({
   name: 'lwt',
   exportedEnv: {
     CAML_LD_LIBRARY_PATH: {
-      val: '$lwt__lib/ocaml:$CAML_LD_LIBRARY_PATH',
+      val: "#{lwt.lib / 'ocaml' : $CAML_LD_LIBRARY_PATH}",
       scope: 'global',
     },
   },
@@ -72,66 +73,6 @@ const config = Config.create({
   sandboxPath: '<sandboxPath>',
   storePath: '<storePath>',
   buildPlatform: 'linux',
-});
-
-describe('renderWithScope()', function() {
-  test('simple replacement: $var syntax', function() {
-    const scope = new Map([['name', {value: 'World'}]]);
-    expect(renderWithScope('Hello, $name!', scope)).toEqual({
-      rendered: 'Hello, World!',
-    });
-  });
-
-  test('multiple replacements', function() {
-    const scope = new Map([['name', {value: 'World'}]]);
-    expect(renderWithScope('Hello, $name + $name!', scope)).toEqual({
-      rendered: 'Hello, World + World!',
-    });
-  });
-
-  test('missing in scope', function() {
-    const scope = new Map([]);
-    expect(renderWithScope('Hello, $unknown!', scope)).toEqual({
-      rendered: 'Hello, $unknown!',
-    });
-  });
-});
-
-describe('expandWithScope()', function() {
-  test('simple replacement: $var syntax', function() {
-    const scope = new Map([['name', {value: 'World'}]]);
-    expect(expandWithScope('Hello, $name!', scope)).toEqual({
-      rendered: 'Hello, World!',
-    });
-  });
-
-  test('simple replacement: ${var} syntax', function() {
-    const scope = new Map([['name', {value: 'World'}]]);
-    expect(expandWithScope('Hello, ${name}!', scope)).toEqual({
-      rendered: 'Hello, World!',
-    });
-  });
-
-  test('multiple replacements', function() {
-    const scope = new Map([['name', {value: 'World'}]]);
-    expect(expandWithScope('Hello, $name + $name!', scope)).toEqual({
-      rendered: 'Hello, World + World!',
-    });
-  });
-
-  test('missing in scope', function() {
-    const scope = new Map([]);
-    expect(expandWithScope('Hello, $unknown!', scope)).toEqual({
-      rendered: 'Hello, !',
-    });
-  });
-
-  test('expansion with fallback to default value', function() {
-    const scope = new Map([]);
-    expect(expandWithScope('Hello, ${unknown:-Me}!', scope)).toEqual({
-      rendered: 'Hello, Me!',
-    });
-  });
 });
 
 describe('calculating env', function() {
@@ -331,18 +272,19 @@ describe('calculating env', function() {
     expect(calculate(config, app)).toMatchSnapshot();
   });
 
-  test('concatenating global exports (same level exports + package itself)', function() {
+  test.only('concatenating global exports (same level exports + package itself)', function() {
     const app = build({
       name: 'app',
       exportedEnv: {
         CAML_LD_LIBRARY_PATH: {
-          val: '$app__lib:$CAML_LD_LIBRARY_PATH',
+          val: '#{app.lib : $CAML_LD_LIBRARY_PATH}',
           scope: 'global',
         },
       },
       dependencies: [ocamlfind, lwt],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const bag = calculate(config, app);
+    expect(bag).toMatchSnapshot();
   });
 
   test('exposing own $cur__bin in $PATH', function() {
@@ -358,9 +300,14 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    const PATH = calculate(config, app, {exposeOwnPath: true}).env.get('PATH');
+
+    const {env} = calculate(config, app, {exposeOwnPath: true});
+    const envMap = Env.evalEnvironment(env);
+
+    const PATH = envMap.get('PATH');
     expect(PATH).toMatchSnapshot();
-    const OCAMLPATH = calculate(config, app, {exposeOwnPath: true}).env.get('OCAMLPATH');
+
+    const OCAMLPATH = envMap.get('OCAMLPATH');
     expect(OCAMLPATH).toMatchSnapshot();
   });
 });

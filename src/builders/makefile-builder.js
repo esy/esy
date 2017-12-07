@@ -14,7 +14,7 @@ import * as S from '../sandbox';
 import * as Env from '../environment';
 import * as Makefile from '../Makefile';
 import {normalizePackageName} from '../util';
-import {renderEnv, renderSandboxSbConfig} from './util';
+import {renderSandboxSbConfig} from './util';
 import {singleQuote} from '../lib/shell';
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
@@ -266,7 +266,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
     // Emit env
     buildFiles.push({
       filename: packagePath.concat('eject-env'),
-      contents: renderEnv(task.env),
+      contents: Env.printEnvironment(task.env),
     });
 
     // Generate macOS sandbox configuration (sandbox-exec command)
@@ -421,7 +421,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
         export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$ESY_EJECT__PREFIX")
       fi
 
-      ${Env.printEnvironment(S.getSandboxEnv(sandbox, config))}
+      ${Env.printEnvironmentMap(S.getSandboxEnv(sandbox, config))}
     `,
   };
 

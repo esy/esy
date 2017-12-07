@@ -14,28 +14,29 @@ Object {
       "id": "dep-0.1.0",
       "idInfo": Object {
         "dependencies": Array [],
-        "env": Map {
-          "PATH" => Object {
+        "env": Array [
+          Object {
             "builtIn": true,
             "exclusive": false,
             "exported": true,
             "name": "PATH",
             "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
           },
-          "SHELL" => Object {
+          Object {
             "builtIn": true,
             "exclusive": false,
             "exported": true,
             "name": "SHELL",
             "value": "env -i /bin/bash --norc --noprofile",
           },
-        },
+        ],
         "manifest": Object {
           "esy": Object {
             "build": Array [],
             "buildsInSource": false,
             "exportedEnv": Object {},
             "install": Array [],
+            "release": Object {},
             "sandboxType": "project",
           },
           "name": "dep",
@@ -58,28 +59,29 @@ Object {
     "dependencies": Array [
       "dep-0.1.0",
     ],
-    "env": Map {
-      "PATH" => Object {
+    "env": Array [
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "PATH",
         "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
       },
-      "SHELL" => Object {
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "SHELL",
         "value": "env -i /bin/bash --norc --noprofile",
       },
-    },
+    ],
     "manifest": Object {
       "esy": Object {
         "build": Array [],
         "buildsInSource": false,
         "exportedEnv": Object {},
         "install": Array [],
+        "release": Object {},
         "sandboxType": "project",
       },
       "name": "app",
@@ -106,28 +108,29 @@ Object {
   "id": "app-0.1.0",
   "idInfo": Object {
     "dependencies": Array [],
-    "env": Map {
-      "PATH" => Object {
+    "env": Array [
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "PATH",
         "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
       },
-      "SHELL" => Object {
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "SHELL",
         "value": "env -i /bin/bash --norc --noprofile",
       },
-    },
+    ],
     "manifest": Object {
       "esy": Object {
         "build": Array [],
         "buildsInSource": false,
         "exportedEnv": Object {},
         "install": Array [],
+        "release": Object {},
         "sandboxType": "project",
       },
       "name": "app",
@@ -163,28 +166,29 @@ Object {
       "id": "dep-0.1.0",
       "idInfo": Object {
         "dependencies": Array [],
-        "env": Map {
-          "PATH" => Object {
+        "env": Array [
+          Object {
             "builtIn": true,
             "exclusive": false,
             "exported": true,
             "name": "PATH",
             "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
           },
-          "SHELL" => Object {
+          Object {
             "builtIn": true,
             "exclusive": false,
             "exported": true,
             "name": "SHELL",
             "value": "env -i /bin/bash --norc --noprofile",
           },
-        },
+        ],
         "manifest": Object {
           "esy": Object {
             "build": Array [],
             "buildsInSource": false,
             "exportedEnv": Object {},
             "install": Array [],
+            "release": Object {},
             "sandboxType": "project",
           },
           "name": "dep",
@@ -212,28 +216,29 @@ Object {
     "dependencies": Array [
       "dep-0.1.0",
     ],
-    "env": Map {
-      "PATH" => Object {
+    "env": Array [
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "PATH",
         "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
       },
-      "SHELL" => Object {
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "SHELL",
         "value": "env -i /bin/bash --norc --noprofile",
       },
-    },
+    ],
     "manifest": Object {
       "esy": Object {
         "build": Array [],
         "buildsInSource": false,
         "exportedEnv": Object {},
         "install": Array [],
+        "release": Object {},
         "sandboxType": "project",
       },
       "name": "app",
@@ -266,28 +271,29 @@ Object {
   "id": "app-0.1.0",
   "idInfo": Object {
     "dependencies": Array [],
-    "env": Map {
-      "PATH" => Object {
+    "env": Array [
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "PATH",
         "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
       },
-      "SHELL" => Object {
+      Object {
         "builtIn": true,
         "exclusive": false,
         "exported": true,
         "name": "SHELL",
         "value": "env -i /bin/bash --norc --noprofile",
       },
-    },
+    ],
     "manifest": Object {
       "esy": Object {
         "build": Array [],
         "buildsInSource": false,
         "exportedEnv": Object {},
         "install": Array [],
+        "release": Object {},
         "sandboxType": "project",
       },
       "name": "app",
