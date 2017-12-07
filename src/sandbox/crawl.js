@@ -5,7 +5,7 @@
 import type {
   BuildSpec,
   Sandbox,
-  BuildEnvironment,
+  Environment,
   EnvironmentVarExport,
   PackageManifest,
   Reporter,
@@ -28,7 +28,7 @@ export type Context = {
   manifest: PackageManifest,
   packagePath: string,
 
-  env: BuildEnvironment,
+  env: Environment,
   sandboxPath: string,
   dependencyTrace: Array<string>,
   crawlBuild: (context: Context) => Promise<BuildSpec>,
@@ -217,27 +217,27 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
   return spec;
 }
 
-export function getDefaultEnvironment(): BuildEnvironment {
+export function getDefaultEnvironment(): Environment {
   return Env.fromEntries([
     {
       name: 'PATH',
       value: '$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin',
       exclusive: false,
       builtIn: true,
-      exported: true,
+      origin: null,
     },
     {
       name: 'SHELL',
       value: 'env -i /bin/bash --norc --noprofile',
       exclusive: false,
       builtIn: true,
-      exported: true,
+      origin: null,
     },
   ]);
 }
 
 function calculateBuildIdentity(
-  env: BuildEnvironment,
+  env: Environment,
   manifest: PackageManifest,
   sourcePath: string,
   dependencies: Map<string, BuildSpec>,

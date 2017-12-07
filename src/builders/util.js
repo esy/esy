@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec, Config, BuildEnvironment} from '../types';
+import type {BuildSpec, Config} from '../types';
 
 import * as child from 'child_process';
 import * as fs from '../lib/fs';
@@ -73,12 +73,6 @@ export function renderSandboxSbConfig(
     )
 
   `;
-}
-
-export function renderEnv(env: BuildEnvironment): string {
-  return Array.from(env.values())
-    .map(env => `export ${env.name}="${env.value}";`)
-    .join('\n');
 }
 
 export async function rewritePathInFile(

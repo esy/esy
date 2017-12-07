@@ -2,48 +2,38 @@
  * @flow
  */
 
-import type {BuildEnvironment, EnvironmentVar} from './types';
+import type {Environment, EnvironmentBinding} from './types';
+
+import * as shell from './lib/shell.js';
 import * as os from 'os';
 
 // X platform newline
 const EOL = os.EOL;
 
-export function fromEntries(entries: EnvironmentVar[]): BuildEnvironment {
-  const env = new Map();
-  for (const entry of entries) {
-    env.set(entry.name, entry);
-  }
-  return env;
+export function fromEntries(entries: EnvironmentBinding[]): Environment {
+  return entries;
 }
 
-export function merge(
-  items: BuildEnvironment[],
-  merger: (BuildEnvironment, Array<EnvironmentVar>) => BuildEnvironment,
-): BuildEnvironment {
-  return items.reduce(
-    (env, currentEnv) => merger(env, Array.from(currentEnv.values())),
-    new Map(),
-  );
-}
-
-export function printEnvironment(env: BuildEnvironment) {
+export function printEnvironment(env: Environment) {
   const groupsByBuild = new Map();
 
-  for (const item of env.values()) {
-    const key = item.spec != null ? item.spec.id : 'Esy Sandbox';
+  const groups = [];
+
+  for (const item of env) {
     const header =
-      item.spec != null
-        ? `${item.spec.name}@${item.spec.version} ${item.spec.packagePath}`
+      item.origin != null
+        ? `${item.origin.name}@${item.origin.version} ${item.origin.packagePath}`
         : 'Esy Sandbox';
-    let group = groupsByBuild.get(key);
-    if (group == null) {
-      group = {header, env: []};
-      groupsByBuild.set(key, group);
+    const curGroup = groups[groups.length - 1];
+    if (groups.length === 0 || curGroup.header !== header) {
+      const curGroup = {header, env: [item]};
+      groups.push(curGroup);
+    } else {
+      curGroup.env.push(item);
     }
-    group.env.push(item);
   }
 
-  return Array.from(groupsByBuild.values())
+  return Array.from(groups)
     .map(group => {
       const headerLines = [`# ${group.header}`];
       // TODO: add error rendering here
@@ -52,10 +42,33 @@ export function printEnvironment(env: BuildEnvironment) {
       // });
       const envVarLines = group.env.map(item => {
         // TODO: escape " in values
-        const exportLine = `export ${item.name}="${item.value}"`;
+        const exportLine = `export ${item.name}=${shell.doubleQuote(item.value)}`;
         return exportLine;
       });
       return headerLines.concat(envVarLines).join(EOL);
     })
     .join(EOL);
+}
+
+export function printEnvironmentMap(env: Map<string, string>): string {
+  const lines = [];
+  for (const [k, v] of env.entries()) {
+    const exportLine = `export ${k}=${shell.doubleQuote(v)}`;
+    lines.push(exportLine);
+  }
+  return lines.join(EOL);
+}
+
+export function evalEnvironment(env: Environment): Map<string, string> {
+  const envMap = new Map();
+  env.forEach(item => {
+    const {value} = shell.expand(item.value, name => {
+      const item = envMap.get(name);
+      return item != null ? item : undefined;
+    });
+    if (value != null) {
+      envMap.set(item.name, value);
+    }
+  });
+  return envMap;
 }

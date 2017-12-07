@@ -41,7 +41,7 @@ const ocaml = build({
   name: 'ocaml',
   exportedEnv: {
     CAML_LD_LIBRARY_PATH: {
-      val: '$ocaml__lib/ocaml',
+      val: "#{ocaml.lib / 'ocaml'}",
       scope: 'global',
     },
   },
@@ -52,7 +52,7 @@ const ocamlfind = build({
   name: 'ocamlfind',
   exportedEnv: {
     CAML_LD_LIBRARY_PATH: {
-      val: '$ocamlfind__lib/ocaml:$CAML_LD_LIBRARY_PATH',
+      val: "#{ocamlfind.lib / 'ocaml' : $CAML_LD_LIBRARY_PATH}",
       scope: 'global',
     },
   },
@@ -63,7 +63,7 @@ const lwt = build({
   name: 'lwt',
   exportedEnv: {
     CAML_LD_LIBRARY_PATH: {
-      val: '$lwt__lib/ocaml:$CAML_LD_LIBRARY_PATH',
+      val: "#{lwt.lib / 'ocaml' : $CAML_LD_LIBRARY_PATH}",
       scope: 'global',
     },
   },
@@ -76,7 +76,7 @@ describe('printEnvironment()', function() {
       name: 'app',
       exportedEnv: {
         CAML_LD_LIBRARY_PATH: {
-          val: '$app__lib:$CAML_LD_LIBRARY_PATH',
+          val: '#{app.lib : $CAML_LD_LIBRARY_PATH}',
           scope: 'global',
         },
       },

@@ -18,16 +18,23 @@ export type Store<+Path: path.Path> = {
   getPath(StoreTree, BuildSpec, ...path: Array<string>): Path,
 };
 
-export type EnvironmentVar = {
+export type EnvironmentBinding = {|
   name: string,
   value: string,
-  exported: boolean,
   builtIn: boolean,
   exclusive: boolean,
-  spec?: BuildSpec,
-};
+  origin: ?BuildSpec,
+|};
 
-export type BuildEnvironment = Map<string, EnvironmentVar>;
+export type Environment = Array<EnvironmentBinding>;
+
+export type BuildScope = Map<string, BuildScope | BuildScopeBinding>;
+
+export type BuildScopeBinding = {|
+  name: string,
+  value: string,
+  origin: ?BuildSpec,
+|};
 
 export type EnvironmentVarExport = {
   val: string,
@@ -122,8 +129,8 @@ export type BuildTask = {
   +id: string,
   +buildCommand: Array<BuildTaskCommand>,
   +installCommand: Array<BuildTaskCommand>,
-  +env: Map<string, EnvironmentVar>,
-  +scope: Map<string, EnvironmentVar>,
+  +env: Environment,
+  +scope: BuildScope,
   +dependencies: Map<string, BuildTask>,
   +spec: BuildSpec,
 };
@@ -209,7 +216,7 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {|
  * identities a made dependent on a global env of the sandbox.
  */
 export type Sandbox = {
-  env: BuildEnvironment,
+  env: Environment,
   root: BuildSpec,
   devDependencies: Map<string, BuildSpec>,
 };

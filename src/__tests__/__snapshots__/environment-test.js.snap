@@ -24,5 +24,10 @@ export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
 export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
 export cur__share=\\"<storePath>/s/app/share\\"
 export cur__etc=\\"<storePath>/s/app/etc\\"
-export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/app/lib:<storePath>/i/lwt/lib/ocaml:<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml\\""
+# ocaml@0.1.0 ocaml
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/ocaml/lib/ocaml\\"
+# ocamlfind@0.1.0 ocamlfind
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/ocamlfind/lib/ocaml:$CAML_LD_LIBRARY_PATH\\"
+# lwt@0.1.0 lwt
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/lwt/lib/ocaml:$CAML_LD_LIBRARY_PATH\\""
 `;
