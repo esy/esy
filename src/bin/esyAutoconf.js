@@ -10,8 +10,14 @@ import * as constants from '../constants.js';
 
 export default async function esyAutoconf(ctx: CommandContext) {
   console.log(outdent`
-    export ESY__STORE_PADDING_LENGTH="${constants.ESY_STORE_PADDING_LENGTH}"
+    # Esy version
     export ESY__VERSION="${version}"
+    # Esy store format version
+    export ESY__STORE_VERSION="${constants.ESY_STORE_VERSION}"
+    # Esy metadata format version
+    export ESY__METADATA_VERSION="${constants.ESY_METADATA_VERSION}"
+    # Store path padding required for relocatable artifacts
+    export ESY__STORE_PADDING_LENGTH="${constants.ESY_STORE_PADDING_LENGTH}"
   `);
 }
 
