@@ -1,6 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`printEnvironment() printing environment 1`] = `
+exports[`eval environment 1`] = `
+Map {
+  "OCAMLPATH" => "<storePath>/i/lwt/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/ocaml/lib",
+  "OCAMLFIND_DESTDIR" => "<storePath>/s/app/lib",
+  "OCAMLFIND_LDCONF" => "ignore",
+  "OCAMLFIND_COMMANDS" => "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt",
+  "PATH" => "<storePath>/i/lwt/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/ocaml/bin:",
+  "MAN_PATH" => "<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>/i/ocaml/man:",
+  "cur__name" => "app",
+  "cur__version" => "0.1.0",
+  "cur__root" => "<sandboxPath>/app",
+  "cur__depends" => "ocamlfind lwt",
+  "cur__target_dir" => "<storePath>/b/app",
+  "cur__install" => "<storePath>/s/app",
+  "cur__bin" => "<storePath>/s/app/bin",
+  "cur__sbin" => "<storePath>/s/app/sbin",
+  "cur__lib" => "<storePath>/s/app/lib",
+  "cur__man" => "<storePath>/s/app/man",
+  "cur__doc" => "<storePath>/s/app/doc",
+  "cur__stublibs" => "<storePath>/s/app/stublibs",
+  "cur__toplevel" => "<storePath>/s/app/toplevel",
+  "cur__share" => "<storePath>/s/app/share",
+  "cur__etc" => "<storePath>/s/app/etc",
+  "CAML_LD_LIBRARY_PATH" => "<storePath>/i/lwt/lib/ocaml:<storePath>/i/ocamlfind/lib/ocaml:<storePath>/i/ocaml/lib/ocaml",
+}
+`;
+
+exports[`printing environment 1`] = `
 "
 #
 # Esy Sandbox

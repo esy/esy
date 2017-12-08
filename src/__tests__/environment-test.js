@@ -6,7 +6,7 @@ import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import type {BuildSpec} from '../types';
 import {create as createConfig} from '../config';
 import {fromBuildSpec} from '../build-task';
-import {printEnvironment} from '../environment';
+import * as Env from '../environment.js';
 
 function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec {
   const dependencies = new Map();
@@ -70,19 +70,32 @@ const lwt = build({
   dependencies: [ocaml],
 });
 
-describe('printEnvironment()', function() {
-  test('printing environment', function() {
-    const app = build({
-      name: 'app',
-      exportedEnv: {
-        CAML_LD_LIBRARY_PATH: {
-          val: '#{app.lib : $CAML_LD_LIBRARY_PATH}',
-          scope: 'global',
-        },
+test('printing environment', function() {
+  const app = build({
+    name: 'app',
+    exportedEnv: {
+      CAML_LD_LIBRARY_PATH: {
+        val: '#{app.lib : $CAML_LD_LIBRARY_PATH}',
+        scope: 'global',
       },
-      dependencies: [ocamlfind, lwt],
-    });
-    const {env} = fromBuildSpec(app, config);
-    expect(printEnvironment(env)).toMatchSnapshot();
+    },
+    dependencies: [ocamlfind, lwt],
   });
+  const {env} = fromBuildSpec(app, config);
+  expect(Env.printEnvironment(env)).toMatchSnapshot();
+});
+
+test('eval environment', function() {
+  const app = build({
+    name: 'app',
+    exportedEnv: {
+      CAML_LD_LIBRARY_PATH: {
+        val: '#{app.lib : $CAML_LD_LIBRARY_PATH}',
+        scope: 'global',
+      },
+    },
+    dependencies: [ocamlfind, lwt],
+  });
+  const {env} = fromBuildSpec(app, config);
+  expect(Env.evalEnvironment(env)).toMatchSnapshot();
 });
