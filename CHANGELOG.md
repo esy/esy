@@ -3,7 +3,7 @@
 ## 0.0.50
 
 * New variable substitution syntax is available for `esy.build`, `esy.install` and
-  `esy.exportedEnv` configuration values.
+  `esy.exportedEnv`.
 
   Example:
 
@@ -17,12 +17,15 @@
   }
   ```
 
-  Such variable substitution is performed before the build.
+  Such variable substitution is performed before the build occurs.
 
 * Automatically export `$CAML_LD_LIBRARY_PATH` variable with the
   `${pkg.stublibs : pkg.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`
   value but only case package doesn't have `$CAML_LD_LIBRARY_PATH` in its
   `esy.exportedEnv` config.
+
+* Environment ejected as shell scripts now has nicer format with comments
+  indicating from which package the variables are originating from.
 
 ## 0.0.49
 
