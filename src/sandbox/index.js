@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {Config, Sandbox, BuildTask, BuildSpec, EnvironmentBinding} from '../types';
+import type {Config, Sandbox, BuildTask, BuildSpec, Environment} from '../types';
 import * as Task from '../build-task';
 import * as M from '../package-manifest';
 import * as Env from '../environment.js';
@@ -14,13 +14,12 @@ import * as Env from '../environment.js';
  * Mainly used for dev, for example you'd want Merlin to be run
  * within this environment.
  */
-export function getCommandEnv(sandbox: Sandbox, config: Config<*>): Map<string, string> {
+export function getCommandEnv(sandbox: Sandbox, config: Config<*>): Environment {
   const task = Task.fromSandbox(sandbox, config, {
     includeDevDependencies: true,
   });
-  const envMap = Env.evalEnvironment(task.env);
-  envMap.delete('SHELL');
-  return envMap;
+  const commandEnv = task.env.filter(item => item.name !== 'SHELL');
+  return commandEnv;
 }
 
 /**
@@ -28,7 +27,7 @@ export function getCommandEnv(sandbox: Sandbox, config: Config<*>): Map<string, 
  *
  * Mainly used to test the package as it's like it being installed.
  */
-export function getSandboxEnv(sandbox: Sandbox, config: Config<*>): Map<string, string> {
+export function getSandboxEnv(sandbox: Sandbox, config: Config<*>): Environment {
   const spec: BuildSpec = {
     id: '__sandbox__',
     idInfo: null,
@@ -44,8 +43,7 @@ export function getSandboxEnv(sandbox: Sandbox, config: Config<*>): Map<string, 
     dependencies: new Map([[sandbox.root.name, sandbox.root]]),
     errors: sandbox.root.errors,
   };
-  const {env} = Task.fromBuildSpec(spec, config);
-  const envMap = Env.evalEnvironment(env);
-  envMap.delete('SHELL');
-  return envMap;
+  const task = Task.fromBuildSpec(spec, config);
+  const sandboxEnv = task.env.filter(item => item.name !== 'SHELL');
+  return sandboxEnv;
 }
