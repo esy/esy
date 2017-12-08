@@ -126,12 +126,39 @@ export type BuildTaskCommand = {
  * A concrete build task with command list and env ready for execution.
  */
 export type BuildTask = {
+  /**
+   * Global unique id of the build.
+   */
   +id: string,
+
+  /**
+   * List of commands needed to build the package.
+   */
   +buildCommand: Array<BuildTaskCommand>,
+
+  /**
+   * List of commands needed to install the package.
+   */
   +installCommand: Array<BuildTaskCommand>,
+
+  /**
+   * Environment for the build.
+   */
   +env: Environment,
+
+  /**
+   * Scope which was used to eval environment and command strings.
+   */
   +scope: BuildScope,
+
+  /**
+   * Build dependencies.
+   */
   +dependencies: Map<string, BuildTask>,
+
+  /**
+   * Spec the build was generated from.
+   */
   +spec: BuildSpec,
 };
 

@@ -116,159 +116,159 @@ export function fromBuildSpec(
     const env: Environment = [];
 
     env.push(
-      ...[
-        {
-          name: 'OCAMLPATH',
-          value: OCAMLPATH.join(getPathsDelimiter('OCAMLPATH', config.buildPlatform)),
-          builtIn: false,
-          exclusive: true,
-          origin: null,
-        },
-        {
-          name: 'OCAMLFIND_DESTDIR',
-          value: ocamlfindDest,
-          builtIn: false,
-          exclusive: true,
-          origin: null,
-        },
-        {
-          name: 'OCAMLFIND_LDCONF',
-          value: 'ignore',
-          builtIn: false,
-          exclusive: true,
-          origin: null,
-        },
-        {
-          name: 'OCAMLFIND_COMMANDS',
-          // eslint-disable-next-line max-len
-          value:
-            'ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt',
-          builtIn: false,
-          exclusive: true,
-          origin: null,
-        },
-        {
-          name: 'PATH',
-          value: PATH.join(getPathsDelimiter('PATH', config.buildPlatform)),
-          builtIn: false,
-          exclusive: false,
-          origin: null,
-        },
-        {
-          name: 'MAN_PATH',
-          value: MAN_PATH.join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
-          builtIn: false,
-          exclusive: false,
-          origin: null,
-        },
+      {
+        name: 'OCAMLPATH',
+        value: OCAMLPATH.join(getPathsDelimiter('OCAMLPATH', config.buildPlatform)),
+        builtIn: false,
+        exclusive: true,
+        origin: null,
+      },
+      {
+        name: 'OCAMLFIND_DESTDIR',
+        value: ocamlfindDest,
+        builtIn: false,
+        exclusive: true,
+        origin: null,
+      },
+      {
+        name: 'OCAMLFIND_LDCONF',
+        value: 'ignore',
+        builtIn: false,
+        exclusive: true,
+        origin: null,
+      },
+      {
+        name: 'OCAMLFIND_COMMANDS',
+        // eslint-disable-next-line max-len
+        value:
+          'ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt',
+        builtIn: false,
+        exclusive: true,
+        origin: null,
+      },
+      {
+        name: 'PATH',
+        value: PATH.join(getPathsDelimiter('PATH', config.buildPlatform)),
+        builtIn: false,
+        exclusive: false,
+        origin: null,
+      },
+      {
+        name: 'MAN_PATH',
+        value: MAN_PATH.join(getPathsDelimiter('MAN_PATH', config.buildPlatform)),
+        builtIn: false,
+        exclusive: false,
+        origin: null,
+      },
 
-        {
-          name: `cur__name`,
-          value: spec.name,
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-          origin: spec,
-        },
-        {
-          name: `cur__version`,
-          value: spec.version,
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__root`,
-          value: config.getRootPath(spec),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__depends`,
-          value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__target_dir`,
-          value: config.getBuildPath(spec),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__install`,
-          value: config.getInstallPath(spec),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__bin`,
-          value: config.getInstallPath(spec, 'bin'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__sbin`,
-          value: config.getInstallPath(spec, 'sbin'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__lib`,
-          value: config.getInstallPath(spec, 'lib'),
-          builtIn: true,
-          exclusive: true,
-          origin: spec,
-        },
-        {
-          name: `cur__man`,
-          value: config.getInstallPath(spec, 'man'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__doc`,
-          value: config.getInstallPath(spec, 'doc'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__stublibs`,
-          value: config.getInstallPath(spec, 'stublibs'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__toplevel`,
-          value: config.getInstallPath(spec, 'toplevel'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__share`,
-          value: config.getInstallPath(spec, 'share'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-        {
-          name: `cur__etc`,
-          value: config.getInstallPath(spec, 'etc'),
-          origin: spec,
-          builtIn: true,
-          exclusive: true,
-        },
-      ],
+      // Esy builtins
+
+      {
+        name: `cur__name`,
+        value: spec.name,
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+        origin: spec,
+      },
+      {
+        name: `cur__version`,
+        value: spec.version,
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__root`,
+        value: config.getRootPath(spec),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__depends`,
+        value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__target_dir`,
+        value: config.getBuildPath(spec),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__install`,
+        value: config.getInstallPath(spec),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__bin`,
+        value: config.getInstallPath(spec, 'bin'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__sbin`,
+        value: config.getInstallPath(spec, 'sbin'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__lib`,
+        value: config.getInstallPath(spec, 'lib'),
+        builtIn: true,
+        exclusive: true,
+        origin: spec,
+      },
+      {
+        name: `cur__man`,
+        value: config.getInstallPath(spec, 'man'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__doc`,
+        value: config.getInstallPath(spec, 'doc'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__stublibs`,
+        value: config.getInstallPath(spec, 'stublibs'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__toplevel`,
+        value: config.getInstallPath(spec, 'toplevel'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__share`,
+        value: config.getInstallPath(spec, 'share'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
+      {
+        name: `cur__etc`,
+        value: config.getInstallPath(spec, 'etc'),
+        origin: spec,
+        builtIn: true,
+        exclusive: true,
+      },
     );
 
     // direct deps' local scopes
@@ -307,38 +307,57 @@ export function fromBuildSpec(
     };
   }
 
-  function getExportedEnv(
-    config: Config<*>,
-    dependencies: Array<FoldState>,
-    allDependencies: Array<FoldState>,
-    spec,
-  ): ExportedEnv {
-    // scope which is used to eval exported variables
-    const scope = getScope(spec, dependencies, config);
-    // global env vars exported from a spec
-    const globalEnv = [];
-    // local env vars exported from a spec
-    const env = [];
-    for (const name in spec.exportedEnv) {
-      const envConfig = spec.exportedEnv[name];
-      const value = renderWithScope(envConfig.val, scope).rendered;
-      const item = {
-        name,
-        value,
-        origin: spec,
-        builtIn: false,
-        exclusive: Boolean(envConfig.exclusive),
-      };
-      if (envConfig.scope === 'global') {
-        globalEnv.push(item);
-      } else {
-        env.push(item);
+  return task;
+}
+
+function getExportedEnv(
+  config: Config<*>,
+  dependencies: Array<FoldState>,
+  allDependencies: Array<FoldState>,
+  spec: BuildSpec,
+): ExportedEnv {
+  // scope which is used to eval exported variables
+  const scope = getScope(spec, dependencies, config);
+
+  // global env vars exported from a spec
+  const globalEnv = [];
+
+  // local env vars exported from a spec
+  const env = [];
+
+  let needCamlLdLibraryPathExport = true;
+
+  for (const name in spec.exportedEnv) {
+    const envConfig = spec.exportedEnv[name];
+    const value = renderWithScope(envConfig.val, scope).rendered;
+    const item = {
+      name,
+      value,
+      origin: spec,
+      builtIn: false,
+      exclusive: Boolean(envConfig.exclusive),
+    };
+    if (envConfig.scope === 'global') {
+      if (name === 'CAML_LD_LIBRARY_PATH') {
+        needCamlLdLibraryPathExport = false;
       }
+      globalEnv.push(item);
+    } else {
+      env.push(item);
     }
-    return {env, globalEnv};
   }
 
-  return task;
+  if (needCamlLdLibraryPathExport) {
+    globalEnv.push({
+      name: 'CAML_LD_LIBRARY_PATH',
+      value: `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
+      origin: spec,
+      builtIn: false,
+      exclusive: false,
+    });
+  }
+
+  return {env, globalEnv};
 }
 
 function renderCommand(command: Array<string> | string, scope) {
