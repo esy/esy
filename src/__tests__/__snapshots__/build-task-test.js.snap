@@ -1,0 +1,536 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`calculating env build with (dep with (dep with local export) with local export) 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/dep/lib:<storePath>/i/dep-of-dep/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/dep/bin:<storePath>/i/dep-of-dep/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/dep/man:<storePath>/i/dep-of-dep/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"dep\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export dep__var=\\"hello\\"
+
+#
+# dep-of-dep@0.1.0 (at dep-of-dep)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep-of-dep/stublibs:<storePath>/i/dep-of-dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep/stublibs:<storePath>/i/dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env build with (dep with local export) 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/dep/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/dep/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"dep\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export dep__var=\\"hello\\"
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep/stublibs:<storePath>/i/dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env build with (dep with local export) with global export referencing dep built-in 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/dep/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/dep/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"dep\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep/stublibs:<storePath>/i/dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env build with (dep with local export) with global export referencing dep local export 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/dep/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/dep/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"dep\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export dep__var=\\"hello\\"
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep/stublibs:<storePath>/i/dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env build with (dep with local export) with local export referencing dep built-in 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/dep/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/dep/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"dep\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep/stublibs:<storePath>/i/dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env build with (dep with local export) with local export referencing dep local export 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/dep/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/dep/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"dep\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# dep@0.1.0 (at dep)
+#
+export dep__var=\\"hello\\"
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/dep/stublibs:<storePath>/i/dep/lib/stublibs:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env build with global export referencing built-in (cur-version) 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
+exports[`calculating env build with global export referencing built-in 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
+exports[`calculating env build with global exports 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
+exports[`calculating env build with local exports 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
+exports[`calculating env build with no exports 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
+exports[`calculating env concatenating global exports (same level exports + package itself) 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/lwt/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/ocaml/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/lwt/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/ocaml/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>/i/ocaml/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"ocamlfind lwt\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# ocaml@0.1.0 (at ocaml)
+#
+export CAML_LD_LIBRARY_PATH=\\"\${ocaml.lib / 'ocaml'}\\"
+
+#
+# ocamlfind@0.1.0 (at ocamlfind)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/ocamlfind/lib/ocaml:$CAML_LD_LIBRARY_PATH\\"
+
+#
+# lwt@0.1.0 (at lwt)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/lwt/lib/ocaml:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env concatenating global exports (same level exports) 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/lwt/lib:<storePath>/i/ocamlfind/lib:<storePath>/i/ocaml/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/lwt/bin:<storePath>/i/ocamlfind/bin:<storePath>/i/ocaml/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>/i/ocaml/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"ocamlfind lwt\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# ocaml@0.1.0 (at ocaml)
+#
+export CAML_LD_LIBRARY_PATH=\\"\${ocaml.lib / 'ocaml'}\\"
+
+#
+# ocamlfind@0.1.0 (at ocamlfind)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/ocamlfind/lib/ocaml:$CAML_LD_LIBRARY_PATH\\"
+
+#
+# lwt@0.1.0 (at lwt)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/lwt/lib/ocaml:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env concatenating global exports 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"<storePath>/i/ocamlfind/lib:<storePath>/i/ocaml/lib\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"<storePath>/i/ocamlfind/bin:<storePath>/i/ocaml/bin:$PATH\\"
+export MAN_PATH=\\"<storePath>/i/ocamlfind/man:<storePath>/i/ocaml/man:$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"ocamlfind ocaml\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\"
+
+#
+# ocaml@0.1.0 (at ocaml)
+#
+export CAML_LD_LIBRARY_PATH=\\"\${ocaml.lib / 'ocaml'}\\"
+
+#
+# ocamlfind@0.1.0 (at ocamlfind)
+#
+export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/ocamlfind/lib/ocaml:$CAML_LD_LIBRARY_PATH\\""
+`;
+
+exports[`calculating env exposing own $cur__bin in $PATH 1`] = `"<storePath>/i/dep/bin:"`;
+
+exports[`calculating env exposing own $cur__bin in $PATH 2`] = `"<storePath>/i/dep/lib"`;
