@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 0.0.50
+
+* New variable substitution syntax is available for `esy.build`, `esy.install` and
+  `esy.exportedEnv` configuration values.
+
+  Example:
+
+  ```
+  "esy": {
+    "exportedEnv": {
+      "CAML_LD_LIBRARY_PATH": {
+        "val": "#{pkg.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
+      }
+    }
+  }
+  ```
+
+  Such variable substitution is performed before the build.
+
+* Automatically export `$CAML_LD_LIBRARY_PATH` variable with the
+  `${pkg.stublibs : pkg.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`
+  value but only case package doesn't have `$CAML_LD_LIBRARY_PATH` in its
+  `esy.exportedEnv` config.
+
 ## 0.0.49
 
 * Fixes to `esy install` command:
