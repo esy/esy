@@ -79,7 +79,7 @@ describe('calculating env', function() {
   // $FlowFixMe: fix jest flow-typed defs
   expect.addSnapshotSerializer({
     test(val) {
-      return val.id && val.name && val.dependencies && val.exportedEnv;
+      return val && val.id && val.name && val.dependencies && val.exportedEnv;
     },
     print(val) {
       return `BuildSpec { id: "${val.id}" }`;
@@ -92,7 +92,8 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with local exports', function() {
@@ -103,7 +104,8 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with global exports', function() {
@@ -114,7 +116,8 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with global export referencing built-in', function() {
@@ -125,7 +128,8 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with global export referencing built-in (cur-version)', function() {
@@ -136,7 +140,8 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with (dep with local export)', function() {
@@ -152,7 +157,8 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with (dep with local export) with global export referencing dep built-in', function() {
@@ -168,7 +174,8 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with (dep with local export) with global export referencing dep local export', function() {
@@ -186,7 +193,8 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with (dep with local export) with local export referencing dep built-in', function() {
@@ -202,7 +210,8 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with (dep with local export) with local export referencing dep local export', function() {
@@ -220,7 +229,8 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('build with (dep with (dep with local export) with local export)', function() {
@@ -243,7 +253,8 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('concatenating global exports', function() {
@@ -252,15 +263,8 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [ocamlfind, ocaml],
     });
-    expect(calculate(config, app1)).toMatchSnapshot();
-    // check that order is deterministic (b/c of topo sort order of deps)
-    const app2 = build({
-      name: 'app',
-      exportedEnv: {},
-      dependencies: [ocaml, ocamlfind],
-    });
-    // TODO: uncomment this and make it pass
-    //expect(calculate(config, app1)).toEqual(calculate(config, app2));
+    const {env, scope} = calculate(config, app1);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('concatenating global exports (same level exports)', function() {
@@ -269,10 +273,11 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [ocamlfind, lwt],
     });
-    expect(calculate(config, app)).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
-  test.only('concatenating global exports (same level exports + package itself)', function() {
+  test('concatenating global exports (same level exports + package itself)', function() {
     const app = build({
       name: 'app',
       exportedEnv: {
@@ -283,8 +288,8 @@ describe('calculating env', function() {
       },
       dependencies: [ocamlfind, lwt],
     });
-    const bag = calculate(config, app);
-    expect(bag).toMatchSnapshot();
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
   test('exposing own $cur__bin in $PATH', function() {
