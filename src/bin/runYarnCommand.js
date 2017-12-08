@@ -20,6 +20,7 @@ import * as constants from '@esy-ocaml/esy-install/src/constants.js';
 import Config from '@esy-ocaml/esy-install/src/config.js';
 import {getRcConfigForCwd, getRcArgs} from '@esy-ocaml/esy-install/src/rc.js';
 import type {CommandContext, CommandInvocation} from './esy';
+import * as esyConstants from '../constants.js';
 
 export default function runYarnCommand(
   ctx: CommandContext,
@@ -328,6 +329,9 @@ async function main(
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+
+      esyStoreVersion: esyConstants.ESY_STORE_VERSION,
+      esyMetadataVersion: esyConstants.ESY_METADATA_VERSION,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
