@@ -12,11 +12,8 @@ import type {
   BuildPlatform,
 } from './types';
 
-import {substituteVariables} from 'var-expansion';
-
 import {quoteArgIfNeeded} from './lib/shell';
 import * as path from './lib/path';
-import {normalizePackageName, mergeIntoMap, mapValuesMap} from './util';
 import * as Graph from './graph';
 import * as Env from './environment';
 import * as CommandExpr from './command-expr.js';

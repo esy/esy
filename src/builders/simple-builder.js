@@ -10,6 +10,7 @@ import * as os from 'os';
 import * as nodefs from 'fs';
 import jsonStableStringify from 'json-stable-stringify';
 
+import * as Stream from '../lib/Stream.js';
 import {PromiseQueue} from '../lib/Promise';
 import * as path from '../lib/path';
 import * as fs from '../lib/fs';
@@ -18,7 +19,6 @@ import {fixupErrorSubclassing} from '../lib/lang';
 
 import * as Graph from '../graph';
 import * as Env from '../environment.js';
-import {endWritableStream, interleaveStreams, writeIntoStream} from '../util';
 import {renderSandboxSbConfig, rewritePathInFile, exec} from './util';
 import {
   BUILD_TREE_SYMLINK,
@@ -444,9 +444,9 @@ export async function withBuildDriver(
       sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
     }
 
-    await writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
-    await writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
-    await writeIntoStream(logStream, `### CWD: ${rootPath}\n`);
+    await Stream.writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
+    await Stream.writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
+    await Stream.writeIntoStream(logStream, `### CWD: ${rootPath}\n`);
 
     const execution = await exec(sandboxedCommand, {
       cwd: rootPath,
@@ -454,10 +454,10 @@ export async function withBuildDriver(
       maxBuffer: Infinity,
     });
     // TODO: we need line-buffering here possibly?
-    interleaveStreams(execution.process.stdout, execution.process.stderr).pipe(
-      logStream,
-      {end: false},
-    );
+    Stream.interleaveStreams(
+      execution.process.stdout,
+      execution.process.stderr,
+    ).pipe(logStream, {end: false});
     const {code} = await execution.exit;
     if (code !== 0) {
       throw new BuildCommandError(task, command, config.prettifyPath(logFilename));
@@ -512,7 +512,7 @@ export async function withBuildDriver(
       // nothing
     }
 
-    await endWritableStream(logStream);
+    await Stream.endWritableStream(logStream);
   }
 }
 
