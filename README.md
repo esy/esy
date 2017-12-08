@@ -26,6 +26,7 @@
   - [Esy Environment Reference](#esy-environment-reference)
     - [Build Environment](#build-environment)
     - [Command Environment](#command-environment)
+  - [Variable substitution syntax](#variable-substitution-syntax)
   - [Esy Command Reference](#esy-command-reference)
 - [How Esy Works](#how-esy-works)
   - [Build Steps](#build-steps)
@@ -37,6 +38,7 @@
       - [Converting OPAM packages manually](#converting-opam-packages-manually)
       - [Implementation notes](#implementation-notes)
 - [Developing](#developing)
+  - [Testing Locally](#testing-locally)
   - [Running Tests](#running-tests)
   - [Issues](#issues)
   - [Publishing Releases](#publishing-releases)
@@ -244,6 +246,9 @@ command.
 Commands specified in `esy.build` are always executed for the root's project
 when user calls `esy build` command.
 
+[Esy variable substitution syntax](#variable-substitution-syntax) can be used to
+declare build commands.
+
 ##### `esy.install`
 
 Describe how you project's built artifacts should be installed by specifying a
@@ -264,6 +269,9 @@ For `jbuilder` based projects (and other projects which maintain `.install` file
 in opam format) that could be just a single `esy-installer` invokation. The
 command is a thin wrapper over `opam-installer` which configures it with Esy
 defaults.
+
+[Esy variable substitution syntax](#variable-substitution-syntax) can be used to
+declare install commands.
 
 #### Enforcing Out Of Source Builds
 
@@ -324,7 +332,7 @@ key:
   "esy": {
     ...,
     "exportedEnv": {
-      "CAML_LD_LIBRARY_PATH": "$mylib__lib:$CAML_LD_LIBRARY_PATH",
+      "CAML_LD_LIBRARY_PATH": "#{mylib.lib : $CAML_LD_LIBRARY_PATH}",
       "scope": "global"
     }
   }
@@ -334,6 +342,10 @@ key:
 In the example above, the configuration *exports* (in this specific case it
 *re-exports* it) an environment variable called `$CAML_LD_LIBRARY_PATH` by
 appending `$mylib__lib` to its previous value.
+
+Also note the usage of [Esy variable substitution
+syntax](#variable-substitution-syntax) to define the value of the
+`$CAML_LD_LIBRARY_PATH` variable.
 
 ### Esy Environment Reference
 
@@ -356,26 +368,6 @@ The following environment variables are provided by Esy:
 - `$OCAMLFIND_LDCONF`
 - `$OCAMLFIND_COMMANDS`
 
-The following environment variables are defined for each packages in the
-project's dependency graph (where `NAME` is the normalized name of the package
-as specified in `package.json`):
-
-- `$NAME__install`
-- `$NAME__target_dir`
-- `$NAME__root`
-- `$NAME__name`
-- `$NAME__version`
-- `$NAME__depends`
-- `$NAME__bin`
-- `$NAME__sbin`
-- `$NAME__lib`
-- `$NAME__man`
-- `$NAME__doc`
-- `$NAME__stublibs`
-- `$NAME__toplevel`
-- `$NAME__share`
-- `$NAME__etc`
-
 The following environment variables are related to the package which is
 currently being built:
 
@@ -395,6 +387,26 @@ currently being built:
 - `$cur__share`
 - `$cur__etc`
 
+The following variables are defined for each packages in the project's
+dependency graph (where `NAME` is the normalized name of the package as
+specified in `package.json`):
+
+- `NAME.install`
+- `NAME.target_dir`
+- `NAME.root`
+- `NAME.name`
+- `NAME.version`
+- `NAME.depends`
+- `NAME.bin`
+- `NAME.sbin`
+- `NAME.lib`
+- `NAME.man`
+- `NAME.doc`
+- `NAME.stublibs`
+- `NAME.toplevel`
+- `NAME.share`
+- `NAME.etc`
+
 This is based on [PJC][] spec.
 
 #### Command Environment
@@ -402,6 +414,37 @@ This is based on [PJC][] spec.
 Currently the command environment is identical to build environment sans the
 `$SHELL` variable which is non-overriden and equals to the `$SHELL` value of a
 user's environment.
+
+### Variable substitution syntax
+
+For configuration within `package.json` Esy uses a special syntax for variable
+interpolation. To use it you need to quote the syntax using `#{...}` constrcut:
+
+```
+"echo #{'hello'}"
+```
+
+The only available constructs are:
+
+- Variable references: `pkg`, `pkg.lib`, `@opam/merlin.lib`.
+- Environment variable references: `$PATH`, `$cur__bin`.
+- String literals: `'hello'`, `'lib'`.
+- Path separator: `/`
+- Env var value separator: `:`
+
+The sequence of such constructs would result in a concatentation of the strings
+they evaluate to. Whitespace characters are not taken into account. If you need
+to insert a whitespace, use `' '` string literal.
+
+Examples:
+
+- ```
+  "#{pkg.bin : $PATH}"
+  ```
+
+- ```
+  "#{pkg.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
+  ```
 
 ### Esy Command Reference
 
