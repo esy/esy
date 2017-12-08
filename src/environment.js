@@ -6,6 +6,7 @@ import type {Environment, EnvironmentBinding} from './types';
 
 import * as shell from './lib/shell.js';
 import * as os from 'os';
+import outdent from 'outdent';
 
 // X platform newline
 const EOL = os.EOL;
@@ -21,7 +22,7 @@ export function printEnvironment(env: Environment) {
   for (const item of env) {
     const header =
       item.origin != null
-        ? `${item.origin.name}@${item.origin.version} ${item.origin.packagePath}`
+        ? `${item.origin.name}@${item.origin.version} (at ${item.origin.packagePath})`
         : 'Esy Sandbox';
     const curGroup = groups[groups.length - 1];
     if (groups.length === 0 || curGroup.header !== header) {
@@ -34,7 +35,14 @@ export function printEnvironment(env: Environment) {
 
   return Array.from(groups)
     .map(group => {
-      const headerLines = [`# ${group.header}`];
+      const headerLines = [
+        outdent`
+
+          #
+          # ${group.header}
+          #
+        `,
+      ];
       // TODO: add error rendering here
       // const errorLines = group.errors.map(err => {
       //   return '# [ERROR] ' + err;
