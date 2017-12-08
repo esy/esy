@@ -12,7 +12,7 @@ export type StoreTree = 'i' | 'b' | 's';
 export type Store<+Path: path.Path> = {
   +path: Path,
   +prettyPath: Path,
-  +version: string,
+  +version: number,
 
   has(BuildSpec): Promise<boolean>,
   getPath(StoreTree, BuildSpec, ...path: Array<string>): Path,

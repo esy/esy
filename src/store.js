@@ -51,17 +51,19 @@ export function forAbsolutePath(storePath: string): Store<path.AbsolutePath> {
 export function forPrefixPath(prefixPath: string): Store<path.AbsolutePath> {
   const conceretePrefixPath = path.absolute(prefixPath);
   const storePath = getStorePathForPrefix(conceretePrefixPath);
-  const prettyStorePath = path.join(conceretePrefixPath, ESY_STORE_VERSION);
+  const prettyStorePath = path.join(conceretePrefixPath, String(ESY_STORE_VERSION));
   return forPath(storePath, prettyStorePath);
 }
 
 export function getStorePathForPrefix(prefix: path.AbsolutePath): path.AbsolutePath {
-  const prefixLength = path.length(path.join(prefix, ESY_STORE_VERSION));
+  const prefixLength = path.length(path.join(prefix, String(ESY_STORE_VERSION)));
   const paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
   invariant(
     paddingLength >= 0,
     `Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts`,
   );
-  const p = path.join(prefix, ESY_STORE_VERSION).padEnd(ESY_STORE_PADDING_LENGTH, '_');
+  const p = path
+    .join(prefix, String(ESY_STORE_VERSION))
+    .padEnd(ESY_STORE_PADDING_LENGTH, '_');
   return (p: any);
 }
