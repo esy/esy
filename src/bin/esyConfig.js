@@ -5,6 +5,7 @@
 import type {CommandContext, CommandInvocation} from './esy';
 
 import {getBuildConfig} from './esy';
+import * as constants from '../constants.js';
 
 import outdent from 'outdent';
 
@@ -21,14 +22,20 @@ export default async function configCommand(
   const config = await getBuildConfig(ctx);
 
   const configSpecs = {
-    'store-path': {
+    storePath: {
       get: () => config.store.path,
     },
-    'sandbox-path': {
+    sandboxPath: {
       get: () => config.sandboxPath,
     },
-    'import-paths': {
+    importPaths: {
       get: () => config.importPaths.join(':'),
+    },
+    storeVersion: {
+      get: () => constants.ESY_STORE_VERSION,
+    },
+    metadataVersion: {
+      get: () => constants.ESY_METADATA_VERSION,
     },
   };
 
