@@ -16,5 +16,5 @@ export default async function esyPrintEnv(ctx: CommandContext) {
   const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
   const env = Sandbox.getCommandEnv(sandbox, config);
-  console.log(Env.printEnvironmentMap(env));
+  console.log(Env.printEnvironment(env));
 }

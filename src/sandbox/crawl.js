@@ -218,7 +218,7 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
 }
 
 export function getDefaultEnvironment(): Environment {
-  return Env.fromEntries([
+  return [
     {
       name: 'PATH',
       value: '$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin',
@@ -233,7 +233,7 @@ export function getDefaultEnvironment(): Environment {
       builtIn: true,
       origin: null,
     },
-  ]);
+  ];
 }
 
 function calculateBuildIdentity(

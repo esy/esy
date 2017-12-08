@@ -10,10 +10,9 @@ import * as os from 'os';
 // X platform newline
 const EOL = os.EOL;
 
-export function fromEntries(entries: EnvironmentBinding[]): Environment {
-  return entries;
-}
-
+/**
+ * Print environment as a bash script.
+ */
 export function printEnvironment(env: Environment) {
   const groupsByBuild = new Map();
 
@@ -50,15 +49,9 @@ export function printEnvironment(env: Environment) {
     .join(EOL);
 }
 
-export function printEnvironmentMap(env: Map<string, string>): string {
-  const lines = [];
-  for (const [k, v] of env.entries()) {
-    const exportLine = `export ${k}=${shell.doubleQuote(v)}`;
-    lines.push(exportLine);
-  }
-  return lines.join(EOL);
-}
-
+/**
+ * Eval environment into a mapping of key-values.
+ */
 export function evalEnvironment(env: Environment): Map<string, string> {
   const envMap = new Map();
   env.forEach(item => {

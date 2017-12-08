@@ -421,7 +421,7 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
         export ESY_EJECT__STORE=$(esyGetStorePathFromPrefix "$ESY_EJECT__PREFIX")
       fi
 
-      ${Env.printEnvironmentMap(S.getSandboxEnv(sandbox, config))}
+      ${Env.printEnvironment(S.getSandboxEnv(sandbox, config))}
     `,
   };
 
