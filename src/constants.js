@@ -37,7 +37,12 @@ export const STORE_STAGE_TREE: StoreTree = 's';
 /**
  * The current version of esy store, bump it whenever the store layout changes.
  */
-export const ESY_STORE_VERSION = '3';
+export const ESY_STORE_VERSION = 3;
+
+/**
+ * The current version of esy metadata format.
+ */
+export const ESY_METADATA_VERSION = 4;
 
 /**
  * This is a limit imposed by POSIX.
