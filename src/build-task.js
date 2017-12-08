@@ -350,7 +350,10 @@ function getExportedEnv(
   if (needCamlLdLibraryPathExport) {
     globalEnv.push({
       name: 'CAML_LD_LIBRARY_PATH',
-      value: `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
+      value: renderWithScope(
+        `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
+        scope,
+      ).rendered,
       origin: spec,
       builtIn: false,
       exclusive: false,
