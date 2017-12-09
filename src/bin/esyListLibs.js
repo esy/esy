@@ -73,10 +73,12 @@ async function formatBuildSpecTree(
 
       if (showAll || indent < 1) {
         dependenciesLines.push(
-          formatBuildSpecTree(config, dep, {...ctx, indent: indent + 1}),
+          formatBuildSpecTree(config, dep, {...ctx, seen, indent: indent + 1}),
         );
       }
     }
+  } else {
+    return ''
   }
 
   const version = chalk.grey(`@${spec.version}`);
@@ -87,9 +89,10 @@ async function formatBuildSpecTree(
 
   const packages = await formatBuildPackagesList(config, spec, ctx)
 
-  return [line, packages].concat(
-    await Promise.all(dependenciesLines),
-  ).filter(line => line.length > 0).join('\n');
+  return [line, packages]
+    .concat(await Promise.all(dependenciesLines))
+    .filter(line => line.length > 0)
+    .join('\n');
 }
 
 async function formatBuildPackagesList(
