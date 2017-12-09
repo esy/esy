@@ -298,6 +298,10 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand build-ls
       ;;
+    list-libs)
+      shift
+      callBuiltInCommand list-libs
+      ;;
     build-shell)
       shift
       callBuiltInCommand build-shell
@@ -385,6 +389,10 @@ else
     build-ls)
       shift
       callBuiltInCommand build-ls "$@"
+      ;;
+    list-libs)
+      shift
+      callBuiltInCommand list-libs "$@"
       ;;
     build-shell)
       shift
