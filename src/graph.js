@@ -16,6 +16,19 @@ export function size(node: Node<*>): number {
 }
 
 /**
+ * Find a dependency in the dependencies graph.
+ */
+export function find<N: Node<*>> (node: N, f: N => boolean): ?N {
+  let result = null
+  traverse(node, (cur) => {
+    if (f(cur)) {
+      result = cur
+    }
+  })
+  return result
+}
+
+/**
  * BF traverse for a dep graph.
  */
 export function traverse<N: Node<*>>(node: N, f: N => void) {
