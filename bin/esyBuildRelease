@@ -113,6 +113,7 @@ esyRelease__build () {
 
 esyRelease__compressBuilds () {
   echo '*** Compressing artefacts...'
+
   local installPaths
   installPaths=$(makeR list-install-paths)
 
@@ -121,10 +122,12 @@ esyRelease__compressBuilds () {
 
   cd "$releasePackagePath"
 
+  mv "$releaseSandboxPath/_export" "$releasePackagePath/_export"
+
   if [ -f "$releasePackagePath/deleteFromBinaryRelease" ]; then
     cat "$releasePackagePath/deleteFromBinaryRelease" | while read pattern; do
       echo "excluding from binary release: $pattern"
-      rm -f $releaseSandboxPath/_export/$pattern
+      rm -f $releasePackagePath/_export/$pattern
     done
   fi
 
@@ -160,7 +163,7 @@ esyRelease__decompressBuilds () {
   makeR esy-root
 
   ESY__PREFIX="$releaseSandboxPath" \
-    find "$releaseSandboxPath/_export" -name '*.tar.gz' -print0 |\
+    find "$releasePackagePath/_export" -name '*.tar.gz' -print0 |\
       xargs -0 -I {} -P 30 bash -c "esyRelease__importIntoInstallationStore {}"
 }
 
