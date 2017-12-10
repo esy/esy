@@ -10,6 +10,7 @@ import * as fs from '../lib/fs';
 import * as path from '../lib/path';
 import {find} from '../graph';
 import {spawn} from '../lib/child_process';
+import {formatBuildInfo} from '../cli-utils';
 
 import {getSandbox, getBuildConfig} from './esy';
 import {Promise} from '../lib/Promise';
@@ -148,15 +149,4 @@ async function getPackageLibraries(
     const [lib, ...version] = line.split(' ');
     return lib;
   });
-}
-
-async function formatBuildInfo(config, spec) {
-  const buildStatus = (await fs.exists(config.getFinalInstallPath(spec)))
-    ? chalk.green('[built]')
-    : chalk.blue('[build pending]');
-  let info = [buildStatus];
-  if (spec.sourceType === 'transient' || spec.sourceType === 'root') {
-    info.push(chalk.blue('[local source]'));
-  }
-  return info.join(' ');
 }
