@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.0.51
+
+* Fix binary releases not to produce single monolithic tarballs.
+
+  So we don't hit GitHub releases limits.
+
 ## 0.0.50
 
 * New variable substitution syntax is available for `esy.build`, `esy.install` and
