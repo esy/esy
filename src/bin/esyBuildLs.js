@@ -8,6 +8,7 @@ import type {BuildSpec, Config} from '../types';
 import chalk from 'chalk';
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
+import {formatBuildInfo} from '../cli-utils';
 
 import {getSandbox, getBuildConfig} from './esy';
 
@@ -60,15 +61,4 @@ async function formatBuildSpecTree(
   line = line.padStart(line.length + (indent - 1) * 4, '│   ');
 
   return [line].concat(await Promise.all(dependenciesLines)).join('\n');
-}
-
-async function formatBuildInfo(config, spec) {
-  const buildStatus = (await fs.exists(config.getFinalInstallPath(spec)))
-    ? chalk.green('[built]')
-    : chalk.blue('[build pending]');
-  let info = [buildStatus];
-  if (spec.sourceType === 'transient' || spec.sourceType === 'root') {
-    info.push(chalk.blue('[local source]'));
-  }
-  return info.join(' ');
 }
