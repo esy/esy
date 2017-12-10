@@ -1,6 +1,7 @@
 /*
  * @flow
  */
+
 import type {BuildSpec, Config} from './types';
 import chalk from 'chalk';
 import * as fs from './lib/fs';
