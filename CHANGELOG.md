@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.0.52
+
+* Remove `$cur__target_dir` for builds which are either:
+
+  - Immutable (persisted in the global store). We don't need incremental builds
+    there and it's more safer to build from scratch.
+
+  - In-source. We can't enable incremental builds for such builds even if they
+    are not being put into global store.
+
 ## 0.0.51
 
 * Fix binary releases not to produce single monolithic tarballs.
