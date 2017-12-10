@@ -84,6 +84,14 @@ esyPrepare () {
   rm -rf "$cur__install"
   rm -rf "$esy_build__install_root"
 
+  # Only remove build dir for:
+  # - immutable sources as for transient/root we want to enable incremental builds
+  # - in-source builds as we won't be able to enable incremental builds for
+  #   them anyway (they require source relocation)
+  if [ "$esy_build__source_type" == "immutable" ] || [ "$esy_build__build_type" == "in-source" ]; then
+    rm -rf "$cur__target_dir"
+  fi
+
   # prepare build and installation directory
   mkdir -p                  \
     "$cur__target_dir"      \

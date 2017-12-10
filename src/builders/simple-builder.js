@@ -365,7 +365,15 @@ export async function withBuildDriver(
 
   log('build: %O', {buildType, sourceType});
 
-  await Promise.all([fs.rmdir(finalInstallPath), fs.rmdir(installPath)]);
+  await Promise.all([
+    fs.rmdir(finalInstallPath),
+    fs.rmdir(installPath),
+    // Only remove build dir for:
+    // - immutable sources as for transient/root we want to enable incremental builds
+    // - in-source builds as we won't be able to enable incremental builds for
+    //   them anyway (they require source relocation)
+    sourceType === 'immutable' || buildType === 'in-source' ? fs.rmdir(buildPath) : null,
+  ]);
 
   await Promise.all([
     ...BUILD_DIR_STRUCTURE.map(p => fs.mkdirp(config.getBuildPath(task.spec, p))),
