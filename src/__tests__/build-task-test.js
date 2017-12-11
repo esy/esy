@@ -5,8 +5,10 @@
 import type {BuildSpec} from '../types';
 import {fromBuildSpec} from '../build-task';
 import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
+import outdent from 'outdent';
 import * as Config from '../config';
 import * as Env from '../environment.js';
+import * as errors from '../errors.js';
 
 function calculate(config, spec, params) {
   const {env, scope} = fromBuildSpec(spec, config, params);
@@ -341,5 +343,105 @@ describe('calculating env', function() {
 
     const OCAMLPATH = envMap.get('OCAMLPATH');
     expect(OCAMLPATH).toMatchSnapshot();
+  });
+
+  test('override a built-in variable', function() {
+    const dep = build({
+      name: 'dep',
+      exportedEnv: {
+        cur__target_dir: {val: '/'},
+      },
+      dependencies: [],
+    });
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [dep],
+    });
+
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(errors.UsageError);
+      expect(err.message).toBe(outdent`
+        Package dep (at dep):
+        While exporting $cur__target_dir:
+        Attempts to override a built-in variable of the same name
+      `);
+      return;
+    }
+    expect(false).toBe(true);
+  });
+
+  test('override an exclusive variable', function() {
+    const depOfDep = build({
+      name: 'depOfDep',
+      exportedEnv: {
+        X: {val: 'depOfDepX', scope: 'global', exclusive: true},
+      },
+      dependencies: [],
+    });
+    const dep = build({
+      name: 'dep',
+      exportedEnv: {
+        X: {val: 'depX', scope: 'global'},
+      },
+      dependencies: [depOfDep],
+    });
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [dep],
+    });
+
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(errors.UsageError);
+      expect(err.message).toBe(outdent`
+        Package dep (at dep):
+        While exporting $X:
+        Variable conflicts with $X defined by depOfDep (at depOfDep):
+        Attempts to override an environment variable which was marked as exclusive
+      `);
+      return;
+    }
+    expect(false).toBe(true);
+  });
+
+  test('set an exclusive variable which was previously defined', function() {
+    const depOfDep = build({
+      name: 'depOfDep',
+      exportedEnv: {
+        X: {val: 'depOfDepX', scope: 'global'},
+      },
+      dependencies: [],
+    });
+    const dep = build({
+      name: 'dep',
+      exportedEnv: {
+        X: {val: 'depX', scope: 'global', exclusive: true},
+      },
+      dependencies: [depOfDep],
+    });
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [dep],
+    });
+
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(errors.UsageError);
+      expect(err.message).toBe(outdent`
+        Package dep (at dep):
+        While exporting $X:
+        Variable conflicts with $X defined by depOfDep (at depOfDep):
+        Attempts to set an exclusive environment variable but it was defined before.
+      `);
+      return;
+    }
+    expect(false).toBe(true);
   });
 });

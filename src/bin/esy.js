@@ -14,6 +14,7 @@ import * as path from '../lib/path';
 import chalk from 'chalk';
 import parse from 'cli-argparse';
 import * as rc from '../rc.js';
+import * as errors from '../errors.js';
 
 const pkg = require('../../package.json');
 // for deterministic test output
@@ -270,7 +271,15 @@ async function main() {
       reporter,
     };
 
-    await executeCommand(commandName, args);
+    try {
+      await executeCommand(commandName, args);
+    } catch (err) {
+      if (err instanceof errors.UsageError) {
+        error(err.message);
+      } else {
+        throw err;
+      }
+    }
   } else if (commandName != null) {
     error(`unknown command: ${commandName}`);
   }

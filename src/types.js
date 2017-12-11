@@ -19,11 +19,11 @@ export type Store<+Path: path.Path> = {
 };
 
 export type EnvironmentBinding = {|
-  name: string,
-  value: string,
-  builtIn: boolean,
-  exclusive: boolean,
-  origin: ?BuildSpec,
+  +name: string,
+  +value: string,
+  +builtIn: boolean,
+  +exclusive: boolean,
+  +origin: ?BuildSpec,
 |};
 
 export type Environment = Array<EnvironmentBinding>;
@@ -114,7 +114,7 @@ export type BuildSpec = {|
   /**
    * A list of errors found in build definitions.
    */
-  +errors: {message: string}[],
+  +errors: Array<{message: string}>,
 |};
 
 export type BuildTaskCommand = {
@@ -160,6 +160,11 @@ export type BuildTask = {
    * Spec the build was generated from.
    */
   +spec: BuildSpec,
+
+  /**
+   * A list of errors found in build.
+   */
+  +errors: Array<{message: string}>,
 };
 
 export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
