@@ -14,6 +14,7 @@ import type {
 
 import {quoteArgIfNeeded} from './lib/shell';
 import * as path from './lib/path';
+import * as Map from './lib/Map.js';
 import * as Graph from './graph';
 import * as Env from './environment';
 import * as CommandExpr from './command-expr.js';
@@ -37,7 +38,7 @@ export function fromSandbox<Path: path.Path>(
   }
   let spec = sandbox.root;
   if (params.includeDevDependencies) {
-    spec = ({...spec, dependencies: new Map(spec.dependencies)}: any);
+    spec = ({...spec, dependencies: new Map.Map(spec.dependencies)}: any);
     for (const devDep of sandbox.devDependencies.values()) {
       spec.dependencies.set(devDep.id, devDep);
     }
@@ -55,10 +56,7 @@ type ExportedEnv = {
 };
 
 type FoldState = {
-  spec: BuildSpec,
   task: BuildTask,
-  dependencies: Array<FoldState>,
-  allDependencies: Array<FoldState>,
 } & ExportedEnv;
 
 /**
@@ -69,43 +67,25 @@ export function fromBuildSpec(
   config: Config<path.Path>,
   params?: FromBuildSpecParams = {},
 ): BuildTask {
-  const {task} = Graph.topologicalFold(
-    rootSpec,
-    (dependenciesMap, allDependenciesMap, spec) => {
-      const dependencies = Array.from(dependenciesMap.values());
-      const allDependencies = Array.from(allDependenciesMap.values());
-      const {env, globalEnv} = getExportedEnv(
-        config,
-        dependencies,
-        allDependencies,
-        spec,
-      );
-      const task = createTask(spec, dependencies, allDependencies, {
-        env,
-        globalEnv,
-      });
-      return {spec, task, dependencies, allDependencies, env, globalEnv};
-    },
-  );
+  const {task} = Graph.topologicalFold(rootSpec, createTask);
 
   function createTask(
+    dependencies: Map.Map<string, FoldState>,
+    allDependencies: Map.Map<string, FoldState>,
     spec: BuildSpec,
-    dependencies: Array<FoldState>,
-    allDependencies: Array<FoldState>,
-    scopes: ExportedEnv,
-  ): BuildTask {
-    const ocamlfindDest = config.getInstallPath(spec, 'lib');
+  ): {task: BuildTask, env: Environment, globalEnv: Environment} {
+    const scopes = getExportedEnv(config, dependencies, allDependencies, spec);
 
     const OCAMLPATH = [];
     const PATH = [];
     const MAN_PATH = [];
 
-    const reversedAllDependencies = Array.from(allDependencies);
+    const reversedAllDependencies = Array.from(allDependencies.values());
     reversedAllDependencies.reverse();
     for (const dep of reversedAllDependencies) {
-      OCAMLPATH.push(config.getFinalInstallPath(dep.spec, 'lib'));
-      PATH.push(config.getFinalInstallPath(dep.spec, 'bin'));
-      MAN_PATH.push(config.getFinalInstallPath(dep.spec, 'man'));
+      OCAMLPATH.push(config.getFinalInstallPath(dep.task.spec, 'lib'));
+      PATH.push(config.getFinalInstallPath(dep.task.spec, 'bin'));
+      MAN_PATH.push(config.getFinalInstallPath(dep.task.spec, 'man'));
     }
 
     // In ideal world we wouldn't need it as the whole toolchain should be
@@ -125,7 +105,7 @@ export function fromBuildSpec(
       },
       {
         name: 'OCAMLFIND_DESTDIR',
-        value: ocamlfindDest,
+        value: config.getInstallPath(spec, 'lib'),
         builtIn: false,
         exclusive: true,
         origin: null,
@@ -272,12 +252,12 @@ export function fromBuildSpec(
     );
 
     // direct deps' local scopes
-    for (const dep of dependencies) {
+    for (const dep of dependencies.values()) {
       env.push(...dep.env);
     }
 
     // all deps' global env
-    for (const dep of allDependencies) {
+    for (const dep of allDependencies.values()) {
       env.push(...dep.globalEnv);
     }
 
@@ -292,19 +272,18 @@ export function fromBuildSpec(
       renderCommand(command, scope),
     );
 
-    return {
+    const task = {
       id: spec.id,
       spec,
       buildCommand,
       installCommand,
       env,
       scope,
-      dependencies: dependencies.reduce((dependencies, {task}) => {
-        dependencies.set(task.id, task);
-        return dependencies;
-      }, new Map()),
+      dependencies: Map.mapValues(v => v.task, dependencies),
       errors: [],
     };
+
+    return {task, env: scopes.env, globalEnv: scopes.globalEnv};
   }
 
   return task;
@@ -312,8 +291,8 @@ export function fromBuildSpec(
 
 function getExportedEnv(
   config: Config<*>,
-  dependencies: Array<FoldState>,
-  allDependencies: Array<FoldState>,
+  dependencies: Map.Map<string, FoldState>,
+  allDependencies: Map.Map<string, FoldState>,
   spec: BuildSpec,
 ): ExportedEnv {
   // scope which is used to eval exported variables
@@ -384,7 +363,7 @@ function getPackageScopeBindings(
   config: Config<path.Path>,
   currentlyBuilding?: boolean,
 ): BuildScope {
-  const scope: BuildScope = new Map(
+  const scope: BuildScope = Map.create(
     [
       {
         name: 'name',
@@ -466,12 +445,16 @@ function getPackageScopeBindings(
   return scope;
 }
 
-function getScope(spec: BuildSpec, dependencies: Array<FoldState>, config): BuildScope {
-  const scope: BuildScope = new Map();
+function getScope(
+  spec: BuildSpec,
+  dependencies: Map.Map<string, FoldState>,
+  config,
+): BuildScope {
+  const scope: BuildScope = Map.create();
 
-  for (const dep of dependencies) {
-    const depScope = getPackageScopeBindings(dep.spec, config);
-    scope.set(dep.spec.name, depScope);
+  for (const dep of dependencies.values()) {
+    const depScope = getPackageScopeBindings(dep.task.spec, config);
+    scope.set(dep.task.spec.name, depScope);
   }
 
   // Set own scope both under package name and `self` name for convenience.
@@ -485,12 +468,12 @@ function getScope(spec: BuildSpec, dependencies: Array<FoldState>, config): Buil
 function resolveWithScope(id, scope) {
   let v = scope;
   for (let i = 0; i < id.length; i++) {
-    if (!(v instanceof Map)) {
+    if (!(v instanceof Map.Map)) {
       throw new Error(`Invalid reference: ${id.join('.')}`);
     }
     v = v.get(id[i]);
   }
-  if (v instanceof Map) {
+  if (v instanceof Map.Map) {
     throw new Error(`Invalid reference: ${id.join('.')}`);
   }
   if (v == null) {
