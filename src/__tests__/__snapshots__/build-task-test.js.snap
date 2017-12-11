@@ -535,6 +535,38 @@ exports[`calculating env exposing own $cur__bin in $PATH 1`] = `"<storePath>/i/d
 
 exports[`calculating env exposing own $cur__bin in $PATH 2`] = `"<storePath>/i/dep/lib"`;
 
+exports[`calculating env override a built-in variable 1`] = `
+Array [
+  Object {
+    "message": "Package dep exports environment variable cur__target_dir
+which conflicts with the built-in environment variable of the same name.",
+    "origin": BuildSpec { id: "dep" },
+  },
+]
+`;
+
+exports[`calculating env override an exclusive variable 1`] = `
+Array [
+  Object {
+    "message": "Package dep exports environment variable X
+which conflicts with the environment variable of the same name
+exported from package depOfDep marked as exclusive.",
+    "origin": BuildSpec { id: "dep" },
+  },
+]
+`;
+
+exports[`calculating env set an exclusive variable which was previously defined 1`] = `
+Array [
+  Object {
+    "message": "Package dep exports environment variable X
+marked with exclusive which conflicts with the environment variable
+of the same name exported from package depOfDep.",
+    "origin": BuildSpec { id: "dep" },
+  },
+]
+`;
+
 exports[`calculating scope has deps 1`] = `
 Map {
   "dep" => Map {

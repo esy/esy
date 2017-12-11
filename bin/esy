@@ -186,7 +186,7 @@ Avaialble subcommands:
                         immediate package dependencies.  Pass `--all` to include
                         transitive dependencies.
 
-  print-env             Prints esy environment on stdout.
+  command-env           Prints esy command environment on stdout.
 
   build-shell [path]    Drops into a shell with environment matching your
                         package's build environment. If argument is provided
@@ -322,9 +322,17 @@ elif [ $# -eq 1 ]; then
       ensureBuildEjected
       ENV="$BUILD_EJECT_PATH/bin/command-env" PS1="esy % " sh
       ;;
-    print-env)
+    command-env)
       ensureBuildEjected --silent
       cat "$BUILD_EJECT_PATH/bin/command-env"
+      ;;
+    sandbox-env)
+      ensureBuildEjected --silent
+      cat "$BUILD_EJECT_PATH/bin/sandbox-env"
+      ;;
+    build-env)
+      ensureBuildEjected --silent
+      cat "$BUILD_EJECT_PATH/bin/build-env"
       ;;
     config)
       shift
