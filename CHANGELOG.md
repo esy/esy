@@ -6,6 +6,19 @@
   each of the dependencies. Pass `--all` to see the entire dep tree along with
   OCaml libs. Implemented by @rauanmayemir.
 
+* Command `esy import-build` now supports import builds using `--from/-f <list>`
+  option:
+
+  ```
+  % esy import-build --from <(find _export -type f)
+  ```
+
+  The invocation above will import all builds which reside inside `_export`
+  directory.
+
+  That was added to circumvent script startup overhead when importing a large
+  number of builds.
+
 * Rename `esy build-ls` command to `esy ls-builds` command so that it is
   consistent with `esy ls-libs`.
 
