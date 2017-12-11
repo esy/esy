@@ -368,73 +368,67 @@ The following environment variables are provided by Esy:
 - `$OCAMLFIND_LDCONF`
 - `$OCAMLFIND_COMMANDS`
 
-The following environment variables are related to the package which is
-currently being built:
-
-- `$cur__install`
-- `$cur__target_dir`
-- `$cur__root`
-- `$cur__name`
-- `$cur__version`
-- `$cur__depends`
-- `$cur__bin`
-- `$cur__sbin`
-- `$cur__lib`
-- `$cur__man`
-- `$cur__doc`
-- `$cur__stublibs`
-- `$cur__toplevel`
-- `$cur__share`
-- `$cur__etc`
-
-The following variables are defined for each packages in the project's
-dependency graph (where `NAME` is the normalized name of the package as
-specified in `package.json`):
-
-- `NAME.install`
-- `NAME.target_dir`
-- `NAME.root`
-- `NAME.name`
-- `NAME.version`
-- `NAME.depends`
-- `NAME.bin`
-- `NAME.sbin`
-- `NAME.lib`
-- `NAME.man`
-- `NAME.doc`
-- `NAME.stublibs`
-- `NAME.toplevel`
-- `NAME.share`
-- `NAME.etc`
-
-This is based on [PJC][] spec.
-
 #### Command Environment
 
 Currently the command environment is identical to build environment sans the
 `$SHELL` variable which is non-overriden and equals to the `$SHELL` value of a
 user's environment.
 
+
 ### Variable substitution syntax
 
-For configuration within `package.json` Esy uses a special syntax for variable
-interpolation. To use it you need to quote the syntax using `#{...}` construct:
+Your `package.json`'s `esy` configuration can include "interpolation" regions written
+as `#{ }`, where `esy` "variables" which will automatically be substituted
+with their corresponding values.
 
+For example, if you have a package named `@company/widget-factory` at version
+`1.2.0`, then its `esy.build` field in `package.json` could be specified as:
+
+```json
+   "build": "make #{@company/widget-factory.version}",
 ```
-"echo #{'hello'}"
-```
 
-The only available constructs are:
+and `esy` will ensure that the build command is interpreted as `"make 1.2.0"`.
+In this example the interpolation region includes just one `esy` variable
+`@company/widget-factory.version` - which is substituted with the version number
+for the `@company/widget-factory` package.
 
-- Variable references: `pkg`, `pkg.lib`, `@opam/merlin.lib`.
-- Environment variable references: `$PATH`, `$cur__bin`.
-- String literals: `'hello'`, `'lib'`.
-- Path separator: `/`
-- Env var value separator: `:`
+Package specific variables are prefixed with their package name, followed
+by an `esy` "property" of that package such as `.version` or `.lib`.
 
-The sequence of such constructs would result in a concatentation of the strings
-they evaluate to. Whitespace characters are not taken into account. If you need
-to insert a whitespace, use `' '` string literal.
+`esy` also provides some other built in variables which help with path and environment
+manipulation in a cross platform manner.
+
+**Supported Variable Substitutions:**
+
+- `package-name.bin`
+- `package-name.sbin`
+- `package-name.lib`
+- `package-name.man`
+- `package-name.doc`
+- `package-name.stublibs`
+- `package-name.toplevel`
+- `package-name.share`
+- `package-name.etc`
+- `package-name.install`
+- `package-name.target_dir`
+- `package-name.root`
+- `package-name.name`
+- `package-name.version`
+- `package-name.depends`
+- `$PATH`, `$cur__bin` : environment variable references
+- `'hello'`, `'lib'` : string literals
+- `/` : path separator (substituted with the platform's path separator)
+- `:` : env var value separator (substituted with platform's env var separator `:`/`;`).
+
+You may join many of these `esy` variables together inside of an interpolation region
+by separating the variables with spaces. The entire interpolation region will be substituted
+with the concatenation of the space separated `esy` variables.
+
+White space separating the variables are not included in the concatenation, If
+you need to insert a literal white space, use `' '` string literal.
+
+
 
 Examples:
 
@@ -593,6 +587,34 @@ Support for "ejecting" a build is computed and stored in
               ├── b
               ├── i
               └── s
+
+#### Advanced Build Environment
+
+The following environment variables are related to the package that is
+currently being built, which might be *different* than the package that
+owns the package.json where these variables occur. This is because
+when building a package, the build environment is computed by traversing
+its dependencies and aggregating exported environment variables transitively,
+which may refer to the "cur" package - the package *cur*ently being built.
+
+- `$cur__install`
+- `$cur__target_dir`
+- `$cur__root`
+- `$cur__name`
+- `$cur__version`
+- `$cur__depends`
+- `$cur__bin`
+- `$cur__sbin`
+- `$cur__lib`
+- `$cur__man`
+- `$cur__doc`
+- `$cur__stublibs`
+- `$cur__toplevel`
+- `$cur__share`
+- `$cur__etc`
+
+
+This is based on [PJC][] spec.
 
 #### Integration with OPAM packages repository
 
