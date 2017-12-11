@@ -15,7 +15,6 @@ import type {
 
 import outdent from 'outdent';
 import {quoteArgIfNeeded} from './lib/shell';
-import * as errors from './errors.js';
 import * as path from './lib/path';
 import * as Map from './lib/Map.js';
 import * as lang from './lib/lang.js';
@@ -55,13 +54,14 @@ type FromBuildSpecParams = {
 };
 
 type ExportedEnv = {
-  env: Environment,
-  globalEnv: Environment,
+  local: Environment,
+  global: Environment,
 };
 
 type FoldState = {
   task: BuildTask,
-} & ExportedEnv;
+  exportedEnv: ExportedEnv,
+};
 
 type EnvironmentInProgress = {
   env: Environment,
@@ -82,9 +82,7 @@ export function fromBuildSpec(
     dependencies: Map.Map<string, FoldState>,
     allDependencies: Map.Map<string, FoldState>,
     spec: BuildSpec,
-  ): {task: BuildTask, env: Environment, globalEnv: Environment} {
-    const scopes = getExportedEnv(config, dependencies, allDependencies, spec);
-
+  ): FoldState {
     const OCAMLPATH = [];
     const PATH = [];
     const MAN_PATH = [];
@@ -102,56 +100,80 @@ export function fromBuildSpec(
     PATH.push('$PATH');
     MAN_PATH.push('$MAN_PATH');
 
-    const env: EnvironmentInProgress = {env: [], index: Map.create()};
+    const env = [];
+    const envIndex = Map.create();
+    const errors = [];
 
-    function addToEnv(env, bindings) {
+    function addToEnv(bindings: EnvironmentBinding[]) {
       for (const binding of bindings) {
-        const prevBinding = env.index.get(binding.name);
-        if (prevBinding != null) {
-          if (prevBinding.builtIn) {
-            const reason = 'Attempts to override a built-in variable of the same name';
-            if (binding.origin != null) {
-              throw new BuildEnvExportError(binding.origin, binding, reason);
-            } else {
-              throw new EnvError(binding, reason);
-            }
-          }
-          if (prevBinding.exclusive) {
-            const reason =
-              'Attempts to override an environment variable which was marked as exclusive';
-            if (binding.origin != null) {
-              throw new BuildEnvConflictError(
-                binding.origin,
-                binding,
-                prevBinding,
-                reason,
-              );
-            } else {
-              throw new EnvError(binding, reason);
-            }
-          }
-          if (binding.exclusive) {
-            if (binding.origin != null) {
-              const reason = `Attempts to set an exclusive environment variable but it was defined before.`;
-              throw new BuildEnvConflictError(
-                binding.origin,
-                binding,
-                prevBinding,
-                reason,
-              );
-            } else {
-              const reason =
-                'Attempts to override a variable which is marked as exclusive';
-              throw new EnvError(binding, reason);
-            }
-          }
-        }
-        env.index.set(binding.name, binding);
-        env.env.push(binding);
+        envIndex.set(binding.name, binding);
+        env.push(binding);
       }
     }
 
-    addToEnv(env, [
+    function addToEnvValidated(bindings: EnvironmentBinding[], origin: BuildSpec) {
+      for (const binding of bindings) {
+        const prevBinding = envIndex.get(binding.name);
+
+        if (prevBinding != null) {
+          if (prevBinding.builtIn) {
+            errors.push({
+              origin,
+              message: outdent`
+                Package ${origin.packagePath} exports environment variable ${binding.name}
+                which conflicts with the built-in environment variable of the same name.
+              `,
+            });
+          } else if (prevBinding.exclusive) {
+            if (prevBinding.origin != null) {
+              errors.push({
+                origin,
+                message: outdent`
+                Package ${origin.packagePath} exports environment variable ${binding.name}
+                which conflicts with the environment variable of the same name
+                exported from package ${prevBinding.origin
+                  .packagePath} marked as exclusive.
+              `,
+              });
+            } else {
+              errors.push({
+                origin,
+                message: outdent`
+                Package ${origin.packagePath} exports environment variable ${binding.name}
+                which conflicts with the environment variable of the same name
+                marked with exclusive.
+              `,
+              });
+            }
+          } else if (binding.exclusive) {
+            if (prevBinding.origin != null) {
+              errors.push({
+                origin,
+                message: outdent`
+                Package ${origin.packagePath} exports environment variable ${binding.name}
+                marked with exclusive which conflicts with the environment variable
+                of the same name exported from package ${prevBinding.origin.packagePath}.
+              `,
+              });
+            } else {
+              errors.push({
+                origin,
+                message: outdent`
+                Package ${origin.packagePath} exports environment variable ${binding.name}
+                marked with exclusive which conflicts with the environment variable
+                of the same name.
+              `,
+              });
+            }
+          }
+        }
+
+        envIndex.set(binding.name, binding);
+        env.push(binding);
+      }
+    }
+
+    addToEnv([
       {
         name: 'OCAMLPATH',
         value: OCAMLPATH.join(getPathsDelimiter('OCAMLPATH', config.buildPlatform)),
@@ -309,17 +331,17 @@ export function fromBuildSpec(
 
     // direct deps' local scopes
     for (const dep of dependencies.values()) {
-      addToEnv(env, dep.env);
+      addToEnvValidated(dep.exportedEnv.local, dep.task.spec);
     }
 
     // all deps' global env
     for (const dep of allDependencies.values()) {
-      addToEnv(env, dep.globalEnv);
+      addToEnvValidated(dep.exportedEnv.global, dep.task.spec);
     }
 
     // extra env
     if (params != null && params.env != null) {
-      addToEnv(env, params.env);
+      addToEnv(params.env);
     }
 
     const scope = getScope(spec, dependencies, config);
@@ -333,13 +355,16 @@ export function fromBuildSpec(
       spec,
       buildCommand,
       installCommand,
-      env: env.env,
+      env,
       scope,
       dependencies: Map.mapValues(v => v.task, dependencies),
-      errors: [],
+      errors,
     };
 
-    return {task, env: scopes.env, globalEnv: scopes.globalEnv};
+    return {
+      task,
+      exportedEnv: getExportedEnv(config, dependencies, allDependencies, spec),
+    };
   }
 
   return task;
@@ -355,10 +380,10 @@ function getExportedEnv(
   const scope = getScope(spec, dependencies, config);
 
   // global env vars exported from a spec
-  const globalEnv = [];
+  const global = [];
 
   // local env vars exported from a spec
-  const env = [];
+  const local = [];
 
   let needCamlLdLibraryPathExport = true;
 
@@ -376,14 +401,14 @@ function getExportedEnv(
       if (name === 'CAML_LD_LIBRARY_PATH') {
         needCamlLdLibraryPathExport = false;
       }
-      globalEnv.push(item);
+      global.push(item);
     } else {
-      env.push(item);
+      local.push(item);
     }
   }
 
   if (needCamlLdLibraryPathExport) {
-    globalEnv.push({
+    global.push({
       name: 'CAML_LD_LIBRARY_PATH',
       value: renderWithScope(
         `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
@@ -395,7 +420,7 @@ function getExportedEnv(
     });
   }
 
-  return {env, globalEnv};
+  return {local, global};
 }
 
 function renderCommand(command: Array<string> | string, scope) {
@@ -576,48 +601,12 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
       : ';';
 }
 
-export class EnvError extends errors.UsageError {
-  constructor(binding: EnvironmentBinding, reason: string) {
-    const envMessage = `${binding.name}=${binding.value}: ${reason}`;
-    super(envMessage);
-    lang.fixupErrorSubclassing(this, EnvError);
-  }
-}
-
-export class BuildEnvExportError extends errors.BuildConfigError {
-  constructor(spec: BuildSpec, binding: EnvironmentBinding, reason: string) {
-    const message = outdent`
-      While exporting \$${binding.name}:
-      ${reason}
-    `;
-    super(spec, message);
-    lang.fixupErrorSubclassing(this, BuildEnvExportError);
-  }
-}
-
-export class BuildEnvConflictError extends errors.BuildConfigError {
-  constructor(
-    spec: BuildSpec,
-    binding: EnvironmentBinding,
-    conflictingBinding: EnvironmentBinding,
-    reason: string,
-  ) {
-    let message;
-    if (conflictingBinding.origin != null) {
-      const conflSpec = conflictingBinding.origin;
-      message = outdent`
-      While exporting \$${binding.name}:
-      Variable conflicts with \$${conflictingBinding.name} defined by ${conflSpec.name} (at ${conflSpec.packagePath}):
-      ${reason}
-    `;
-    } else {
-      message = outdent`
-      While exporting \$${binding.name}:
-      Variable conflicts with \$${conflictingBinding.name}:
-      ${reason}
-    `;
+export function collectErrors(task: BuildTask): Array<{message: string}> {
+  const errors = [];
+  Graph.traverse(task, task => {
+    if (task.errors.length > 0) {
+      errors.push(...task.errors);
     }
-    super(spec, message);
-    lang.fixupErrorSubclassing(this, BuildEnvConflictError);
-  }
+  });
+  return errors;
 }

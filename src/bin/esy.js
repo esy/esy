@@ -14,7 +14,6 @@ import * as path from '../lib/path';
 import chalk from 'chalk';
 import parse from 'cli-argparse';
 import * as rc from '../rc.js';
-import * as errors from '../errors.js';
 
 const pkg = require('../../package.json');
 // for deterministic test output
@@ -97,6 +96,12 @@ export async function getSandbox(
   return sandbox;
 }
 
+export async function getTask(ctx: CommandContext, sandbox: Sandbox, config: Config<*>) {
+  const Task = require('../build-task.js');
+  const task = Task.fromSandbox(sandbox, config);
+  return task;
+}
+
 export async function getBuildConfig(
   ctx: CommandContext,
 ): Promise<Config<path.AbsolutePath>> {
@@ -173,7 +178,9 @@ const commandsByName: {[name: string]: () => Command} = {
   'build-eject': () => require('./esyBuildEject'),
   'build-shell': () => require('./esyBuildShell'),
   'import-opam': () => require('./esyImportOpam'),
-  'print-env': () => require('./esyPrintEnv'),
+  'command-env': () => require('./esyCommandEnv'),
+  'sandbox-env': () => require('./esySandboxEnv'),
+  'build-env': () => require('./esyBuildEnv'),
   'install-cache': () => require('./esyInstallCache'),
   'export-dependencies': () => require('./esyExportDependencies'),
   'import-dependencies': () => require('./esyImportDependencies'),
@@ -271,15 +278,7 @@ async function main() {
       reporter,
     };
 
-    try {
-      await executeCommand(commandName, args);
-    } catch (err) {
-      if (err instanceof errors.UsageError) {
-        error(err.message);
-      } else {
-        throw err;
-      }
-    }
+    await executeCommand(commandName, args);
   } else if (commandName != null) {
     error(`unknown command: ${commandName}`);
   }
