@@ -7,9 +7,13 @@ set -o pipefail
 esyCommandHelp() {
   cat <<EOF
 usage: esy import-build <path-to-build>
+       esy import-build -f/--from <file-with-path-list>
 
 This command imports the build from <path-to-build> into the global store.
 The build can be either a directory or a tar.gz archive.
+
+Alternatively -f/--from option could be supplied with the file with a list
+builds to import, one path per line.
 
 EOF
 }
@@ -21,21 +25,24 @@ source "$BINDIR/esyConfig.sh"
 # shellcheck source=./esyRuntime.sh
 source "$BINDIR/esyRuntime.sh"
 
-buildPath="$1"
-buildId=$(basename "${buildPath%.tar.gz}")
-
 stageDir=$(mktemp -d)
-stageBuildPath="$stageDir/$buildId"
-
 destStorePath=$(esyGetStorePathFromPrefix "$ESY__PREFIX")
 destStorePathLen=$(esyStrLen "$destStorePath")
 
-function _do () {
+function esyimportBuild () {
   set -e
   set -u
   set -o pipefail
 
+  local buildPath
+  local buildId
+  local stageBuildPath
   local origStorePath
+
+  buildPath="$1"
+  buildId=$(basename "${buildPath%.tar.gz}")
+
+  stageBuildPath="$stageDir/$buildId"
 
   echo "$buildId: importing..."
 
@@ -67,10 +74,33 @@ function _do () {
   echo "$buildId: done"
 }
 
-set +e
-(_do)
-ret="$?"
-set -e
+if [ "$1" == "--from" ] || [ "$1" == "-f" ]; then
+  shift
+
+  if [ -z "${1+present}" ]; then
+    echo "error: provide value for --from/-f option"
+    exit 1
+  fi
+
+  buildPathList="$1"
+
+  # Export b/c we spawn bash in xargs
+  export stageDir
+  export destStorePath
+  export destStorePathLen
+  export -f esyimportBuild
+
+  set +e
+  cat "$buildPathList" | xargs -n1 -P12 -I {} bash -c 'esyimportBuild "{}"'
+  ret="$?"
+  set -e
+else
+  buildPath="$1"
+  set +e
+  (esyimportBuild "$buildPath")
+  ret="$?"
+  set -e
+fi
 
 rm -rf "$stageDir"
 
