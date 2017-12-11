@@ -294,17 +294,17 @@ elif [ $# -eq 1 ]; then
       shift
       callBuiltInCommand build
       ;;
-    build-ls)
-      shift
-      callBuiltInCommand build-ls
-      ;;
-    list-libs)
-      shift
-      callBuiltInCommand list-libs
-      ;;
     build-shell)
       shift
       callBuiltInCommand build-shell
+      ;;
+    ls-builds)
+      shift
+      callBuiltInCommand ls-builds
+      ;;
+    ls-libs)
+      shift
+      callBuiltInCommand ls-libs
       ;;
     import-opam)
       shift
@@ -386,14 +386,6 @@ else
       callBuiltInCommand add "$@"
       callBuiltInCommand__build
       ;;
-    build-ls)
-      shift
-      callBuiltInCommand build-ls "$@"
-      ;;
-    list-libs)
-      shift
-      callBuiltInCommand list-libs "$@"
-      ;;
     build-shell)
       shift
       callBuiltInCommand build-shell "$@"
@@ -424,6 +416,14 @@ else
     release)
       shift
       callBuiltInCommand release "$@"
+      ;;
+    ls-builds)
+      shift
+      callBuiltInCommand ls-builds "$@"
+      ;;
+    ls-libs)
+      shift
+      callBuiltInCommand ls-libs "$@"
       ;;
     on-demand|export-dependencies)
       shift
