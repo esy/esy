@@ -42,29 +42,37 @@ export default async function esyImportDependencies(
     }
   });
 
-  const importQueue = new PromiseQueue({concurrency: config.buildConcurrency});
-
-  async function importBuild(buildPath) {
-    await Child.spawn(constants.CURRENT_ESY_EXECUTABLE, ['import-build', buildPath], {
-      stdio: 'inherit',
-    });
-  }
+  const importQueue = new PromiseQueue({concurrency: 20});
 
   function importBuildPaths(build) {
     return [path.join(importPath, build.id), path.join(importPath, `${build.id}.tar.gz`)];
   }
 
-  await Promise.all(
+  const toImportPaths = await Promise.all(
     toImport.map(build =>
       importQueue.add(async () => {
         for (const p of importBuildPaths(build)) {
           if (await fs.exists(p)) {
-            await importBuild(p);
-            return;
+            return p;
           }
         }
         ctx.reporter.info(`no prebuild artefact found for ${build.id}, skipping...`);
       }),
     ),
   );
+
+  const tmpdir = await fs.mkdtemp('esy');
+  try {
+    const filename = path.join(tmpdir, 'LIST_TO_IMPORT');
+    await fs.writeFile(filename, toImportPaths.filter(Boolean).join('\n'));
+    await Child.spawn(
+      constants.CURRENT_ESY_EXECUTABLE,
+      ['import-build', '--from', filename],
+      {
+        stdio: 'inherit',
+      },
+    );
+  } finally {
+    await fs.rmdir(tmpdir);
+  }
 }
