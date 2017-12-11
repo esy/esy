@@ -4,13 +4,13 @@
 
 import type {CommandContext, CommandInvocation} from './esy';
 import type {BuildSpec, Config} from '../types';
+import type {FormatBuildSpecTreeCtx, FormatBuildSpecQueueItem} from '../cli-utils';
 
 import chalk from 'chalk';
 import * as fs from '../lib/fs';
-import * as path from '../lib/path';
 import {find} from '../graph';
 import {spawn} from '../lib/child_process';
-import {formatBuildInfo} from '../cli-utils';
+import {formatPackageInfo, getBuildSpecPackages} from '../cli-utils';
 
 import {getSandbox, getBuildConfig} from './esy';
 import {Promise} from '../lib/Promise';
@@ -32,12 +32,10 @@ export default async function esyLsLibs(
     const ocamlfindCmd = config.getFinalInstallPath(ocamlfind, 'bin', 'ocamlfind');
     const builtIns = await getPackageLibraries(config, ocamlfindCmd);
 
+    const queue = getBuildSpecPackages(config, sandbox.root, !!flags.all, false);
+
     console.log(
-      await formatBuildSpecTree(config, sandbox.root, {
-        indent: 0,
-        seen: new Set(),
-        isLast: true,
-        showAll: !!flags.all,
+      await formatBuildSpecTree(config, queue, {
         ocamlfind: ocamlfindCmd,
         builtIns,
       }),
@@ -53,68 +51,45 @@ export const options = {
   flags: ['--all'],
 };
 
-type FormatBuildSpecTreeCtx = {
-  indent: number,
-  seen: Set<string>,
-  isLast: boolean,
-  showAll: boolean,
+type FormatBuildSpecOptions = {
   ocamlfind: string,
   builtIns: Array<string>,
 };
 
 async function formatBuildSpecTree(
   config: Config<*>,
-  spec: BuildSpec,
-  ctx: FormatBuildSpecTreeCtx,
+  queue: Array<FormatBuildSpecQueueItem>,
+  options: FormatBuildSpecOptions,
 ) {
-  const {indent, seen, isLast, showAll} = ctx;
-  const dependenciesLines = [];
+  const lines = [];
 
-  const hasSeenIt = seen.has(spec.id);
-  if (!hasSeenIt) {
-    seen.add(spec.id);
-    const dependencies = Array.from(spec.dependencies.values());
+  for (const cur of queue) {
+    const {spec, ctx} = cur;
 
-    for (const dep of dependencies) {
-      const isLast = dep === dependencies[dependencies.length - 1];
+    const pkg = formatPackageInfo(config, spec, {...ctx, isSeen: ctx.level > 1});
+    const libs = (await fs.exists(config.getFinalInstallPath(spec)))
+      ? formatBuildLibrariesList(config, spec, options, {
+          ...ctx,
+          level: ctx.level + 1,
+        })
+      : Promise.resolve('');
 
-      if (showAll || indent < 1) {
-        dependenciesLines.push(
-          formatBuildSpecTree(config, dep, {...ctx, seen, isLast, indent: indent + 1}),
-        );
-      }
-    }
-  } else {
-    return '';
+    lines.push(pkg, libs);
   }
 
-  const version = chalk.grey(`@${spec.version}`);
-  let name = `${spec.name}${version}`;
-  if (indent > 1) {
-    name = chalk.grey(name);
-  }
+  const tree = await Promise.all(lines);
 
-  const prefix = indent === 0 ? '' : isLast ? '└── ' : '├── ';
-  const info = await formatBuildInfo(config, spec);
-  let pkg = `${prefix}${name} ${info}`;
-  pkg = pkg.padStart(pkg.length + (indent - 1) * 4, '│   ');
-
-  const libs = (await fs.exists(config.getFinalInstallPath(spec)))
-    ? await formatBuildLibrariesList(config, spec, {...ctx, indent: indent + 1})
-    : '';
-
-  return [pkg, libs]
-    .concat(await Promise.all(dependenciesLines))
-    .filter(line => line.length > 0)
-    .join('\n');
+  return tree.filter(line => line.length > 0).join('\n');
 }
 
 async function formatBuildLibrariesList(
   config: Config<*>,
   spec: BuildSpec,
+  options: FormatBuildSpecOptions,
   ctx: FormatBuildSpecTreeCtx,
 ) {
-  const {indent, ocamlfind, builtIns} = ctx;
+  const {level} = ctx;
+  const {ocamlfind, builtIns} = options;
   const libraryLines = [];
 
   const libs = (await getPackageLibraries(config, ocamlfind, spec)).filter(
@@ -123,12 +98,12 @@ async function formatBuildLibrariesList(
 
   for (const lib of libs) {
     const isLast = lib === libs[libs.length - 1];
-    const name = indent > 2 ? chalk.yellow(`${lib}`) : chalk.yellow.bold(`${lib}`);
+    const name = level > 2 ? chalk.yellow(`${lib}`) : chalk.yellow.bold(`${lib}`);
 
-    const prefix = indent === 0 ? '' : isLast ? '└── ' : '├── ';
+    const prefix = level === 0 ? '' : isLast ? '└── ' : '├── ';
     const line = `${prefix}${name}`;
 
-    libraryLines.push(line.padStart(line.length + (indent - 1) * 4, '│   '));
+    libraryLines.push(line.padStart(line.length + (level - 1) * 4, '│   '));
   }
 
   return libraryLines.join('\n');
