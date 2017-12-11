@@ -468,12 +468,17 @@ function getPackageScopeBindings(
 
 function getScope(spec: BuildSpec, dependencies: Array<FoldState>, config): BuildScope {
   const scope: BuildScope = new Map();
-  const evalScope = new Map();
+
   for (const dep of dependencies) {
     const depScope = getPackageScopeBindings(dep.spec, config);
     scope.set(dep.spec.name, depScope);
   }
-  scope.set(spec.name, getPackageScopeBindings(spec, config));
+
+  // Set own scope both under package name and `self` name for convenience.
+  const selfScope = getPackageScopeBindings(spec, config);
+  scope.set(spec.name, selfScope);
+  scope.set('self', selfScope);
+
   return scope;
 }
 

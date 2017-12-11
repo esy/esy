@@ -534,3 +534,398 @@ export CAML_LD_LIBRARY_PATH=\\"<storePath>/i/ocamlfind/lib/ocaml:$CAML_LD_LIBRAR
 exports[`calculating env exposing own $cur__bin in $PATH 1`] = `"<storePath>/i/dep/bin:"`;
 
 exports[`calculating env exposing own $cur__bin in $PATH 2`] = `"<storePath>/i/dep/lib"`;
+
+exports[`calculating scope has deps 1`] = `
+Map {
+  "dep" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "dep" },
+      "value": "dep",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "dep" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<sandboxPath>/dep",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "dep" },
+      "value": "",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/b/dep",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<storePath>/i/dep/etc",
+    },
+  },
+  "app" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "dep",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/etc",
+    },
+  },
+  "self" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "dep",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/etc",
+    },
+  },
+}
+`;
+
+exports[`calculating scope no deps 1`] = `
+Map {
+  "app" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/etc",
+    },
+  },
+  "self" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/i/app/etc",
+    },
+  },
+}
+`;

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.53
+
+* Make variables forthe current package also available under `self` scope.
+
+  Instead of using verbose and repetitive `#{package-name.lib}` we can now use
+  `#{self.lib}`.
+
 ## 0.0.52
 
 * Remove `$cur__target_dir` for builds which are either:

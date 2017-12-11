@@ -75,6 +75,33 @@ const config = Config.create({
   buildPlatform: 'linux',
 });
 
+describe('calculating scope', function() {
+  test('no deps', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [],
+    });
+    const {scope} = calculate(config, app);
+    expect(scope).toMatchSnapshot();
+  });
+
+  test('has deps', function() {
+    const dep = build({
+      name: 'dep',
+      exportedEnv: {},
+      dependencies: [],
+    });
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [dep],
+    });
+    const {scope} = calculate(config, app);
+    expect(scope).toMatchSnapshot();
+  });
+});
+
 describe('calculating env', function() {
   // $FlowFixMe: fix jest flow-typed defs
   expect.addSnapshotSerializer({

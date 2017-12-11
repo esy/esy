@@ -401,6 +401,27 @@ manipulation in a cross platform manner.
 
 **Supported Variable Substitutions:**
 
+Those variables refer to the values defined for the current package:
+
+- `self.bin`
+- `self.sbin`
+- `self.lib`
+- `self.man`
+- `self.doc`
+- `self.stublibs`
+- `self.toplevel`
+- `self.share`
+- `self.etc`
+- `self.install`
+- `self.target_dir`
+- `self.root`
+- `self.name`
+- `self.version`
+- `self.depends`
+
+You can refer to the values defined for other packages by using the respective
+`package-name` prefix:
+
 - `package-name.bin`
 - `package-name.sbin`
 - `package-name.lib`
@@ -416,6 +437,9 @@ manipulation in a cross platform manner.
 - `package-name.name`
 - `package-name.version`
 - `package-name.depends`
+
+The following constructs are also allowed inside "interpolation" regions:
+
 - `$PATH`, `$cur__bin` : environment variable references
 - `'hello'`, `'lib'` : string literals
 - `/` : path separator (substituted with the platform's path separator)
