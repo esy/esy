@@ -40,7 +40,7 @@ export function getSandboxEnv(sandbox: Sandbox, config: Config<*>): Environment 
     packagePath: '',
     sourceType: 'root',
     buildType: 'out-of-source',
-    dependencies: new Map([[sandbox.root.name, sandbox.root]]),
+    dependencies: new Map([[sandbox.root.id, sandbox.root]]),
     errors: sandbox.root.errors,
   };
   const task = Task.fromBuildSpec(spec, config);
