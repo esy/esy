@@ -2,7 +2,7 @@
 
 ## 0.0.53
 
-* Make variables forthe current package also available under `self` scope.
+* Make variables for the current package also available under `self` scope.
 
   Instead of using verbose and repetitive `#{package-name.lib}` we can now use
   `#{self.lib}`.
