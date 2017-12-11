@@ -418,7 +418,7 @@ user's environment.
 ### Variable substitution syntax
 
 For configuration within `package.json` Esy uses a special syntax for variable
-interpolation. To use it you need to quote the syntax using `#{...}` constrcut:
+interpolation. To use it you need to quote the syntax using `#{...}` construct:
 
 ```
 "echo #{'hello'}"
