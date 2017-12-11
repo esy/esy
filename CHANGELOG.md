@@ -2,6 +2,13 @@
 
 ## 0.0.53
 
+* Add `esy ls-libs` command which shows a list of available OCaml libraries for
+  each of the dependencies. Pass `--all` to see the entire dep tree along with
+  OCaml libs. Implemented by @rauanmayemir.
+
+* Rename `esy build-ls` command to `esy ls-builds` command so that it is
+  consistent with `esy ls-libs`.
+
 * Make variables for the current package also available under `self` scope.
 
   Instead of using verbose and repetitive `#{package-name.lib}` we can now use
