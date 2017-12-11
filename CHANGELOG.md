@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.54
+
+* Fix sandbox environment to include root package's exported environment.
+
 ## 0.0.53
 
 * Add `esy ls-libs` command which shows a list of available OCaml libraries for
