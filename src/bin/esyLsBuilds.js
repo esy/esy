@@ -12,7 +12,7 @@ import {formatBuildInfo} from '../cli-utils';
 
 import {getSandbox, getBuildConfig} from './esy';
 
-export default async function esyBuildLs(ctx: CommandContext) {
+export default async function esyLsBuilds(ctx: CommandContext) {
   const sandbox = await getSandbox(ctx);
   const config = await getBuildConfig(ctx);
   console.log(await formatBuildSpecTree(config, sandbox.root));
