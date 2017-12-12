@@ -4,6 +4,7 @@
 
 import type {
   BuildSpec,
+  BuildConfigError,
   Sandbox,
   Environment,
   EnvironmentVarExport,
@@ -59,7 +60,7 @@ export async function crawlDependencies<R>(
   dependencySpecs: Dependency[],
   context: Context,
   options?: {ignoreIfNotInstalled?: boolean} = {},
-): Promise<{dependencies: Map<string, BuildSpec>, errors: Array<{message: string}>}> {
+): Promise<{dependencies: Map<string, BuildSpec>, errors: Array<BuildConfigError>}> {
   const dependencies = new Map();
   const errors = [];
   const missingPackages = [];
@@ -71,6 +72,7 @@ export async function crawlDependencies<R>(
     if (context.dependencyTrace.indexOf(spec.name) > -1) {
       errors.push({
         message: formatCircularDependenciesError(spec.name, context),
+        origin: null,
       });
       continue;
     }
@@ -96,6 +98,7 @@ export async function crawlDependencies<R>(
   if (missingPackages.length > 0) {
     errors.push({
       message: formatMissingPackagesError(missingPackages, context),
+      origin: null,
     });
   }
 

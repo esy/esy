@@ -5,6 +5,7 @@
 import type {
   Sandbox,
   BuildSpec,
+  BuildConfigError,
   Config,
   BuildTask,
   Environment,
@@ -20,11 +21,32 @@ import * as Map from './lib/Map.js';
 import * as lang from './lib/lang.js';
 import * as Graph from './graph';
 import * as Env from './environment';
+import {SandboxError} from './errors.js';
 import * as CommandExpr from './command-expr.js';
 
 type FromSandboxParams = {
   env?: Environment,
   includeDevDependencies?: true,
+};
+
+type FromBuildSpecParams = {
+  env?: Environment,
+};
+
+type ExportedEnv = {
+  local: Environment,
+  global: Environment,
+};
+
+type FoldState = {
+  task: BuildTask,
+  exportedEnv: ExportedEnv,
+  allDependencies: Map.Map<string, FoldState>,
+};
+
+type EnvironmentInProgress = {
+  env: Environment,
+  index: Map.Map<string, EnvironmentBinding>,
 };
 
 export function fromSandbox<Path: path.Path>(
@@ -49,25 +71,6 @@ export function fromSandbox<Path: path.Path>(
   return fromBuildSpec(spec, config, {env});
 }
 
-type FromBuildSpecParams = {
-  env?: Environment,
-};
-
-type ExportedEnv = {
-  local: Environment,
-  global: Environment,
-};
-
-type FoldState = {
-  task: BuildTask,
-  exportedEnv: ExportedEnv,
-};
-
-type EnvironmentInProgress = {
-  env: Environment,
-  index: Map.Map<string, EnvironmentBinding>,
-};
-
 /**
  * Produce a task graph from a build spec graph.
  */
@@ -76,8 +79,6 @@ export function fromBuildSpec(
   config: Config<path.Path>,
   params?: FromBuildSpecParams = {},
 ): BuildTask {
-  const {task} = Graph.topologicalFold(rootSpec, createTask);
-
   function createTask(
     dependencies: Map.Map<string, FoldState>,
     allDependencies: Map.Map<string, FoldState>,
@@ -102,7 +103,7 @@ export function fromBuildSpec(
 
     const env = [];
     const envIndex = Map.create();
-    const errors = [];
+    const errors: Array<BuildConfigError> = [];
 
     function addToEnv(bindings: EnvironmentBinding[]) {
       for (const binding of bindings) {
@@ -364,7 +365,19 @@ export function fromBuildSpec(
     return {
       task,
       exportedEnv: getExportedEnv(config, dependencies, allDependencies, spec),
+      allDependencies,
     };
+  }
+
+  const {task, allDependencies} = Graph.topologicalFold(rootSpec, createTask);
+
+  const errors = [...task.errors];
+  for (const t of allDependencies.values()) {
+    errors.push(...t.task.errors);
+  }
+
+  if (errors.length > 0) {
+    throw new SandboxError(errors);
   }
 
   return task;
@@ -599,14 +612,4 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
       buildPlatform === 'darwin'
       ? ':'
       : ';';
-}
-
-export function collectErrors(task: BuildTask): Array<{message: string}> {
-  const errors = [];
-  Graph.traverse(task, task => {
-    if (task.errors.length > 0) {
-      errors.push(...task.errors);
-    }
-  });
-  return errors;
 }

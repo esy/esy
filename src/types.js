@@ -114,7 +114,7 @@ export type BuildSpec = {|
   /**
    * A list of errors found in build definitions.
    */
-  +errors: Array<{message: string}>,
+  +errors: Array<BuildConfigError>,
 |};
 
 export type BuildTaskCommand = {
@@ -164,7 +164,7 @@ export type BuildTask = {
   /**
    * A list of errors found in build.
    */
-  +errors: Array<{message: string}>,
+  +errors: Array<BuildConfigError>,
 };
 
 export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
@@ -332,3 +332,8 @@ export type EsyPackageManifest = {
 export type CommandSpec = Array<string | Array<string>>;
 
 export type ExportEnvironmentSpec = {[name: string]: EnvironmentVarExport};
+
+export type BuildConfigError = {
+  message: string,
+  origin: ?BuildSpec,
+};

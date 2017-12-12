@@ -10,6 +10,7 @@ import * as fs from '../lib/fs';
 import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import * as M from '../package-manifest';
 import * as Crawl from './crawl';
+import {SandboxError} from '../errors.js';
 
 export type Options = {
   forRelease?: boolean,
@@ -78,13 +79,17 @@ export async function create(
     options,
   };
 
-  const root = await crawlBuildCached(crawlContext);
+  const root: BuildSpec = await crawlBuildCached(crawlContext);
 
   const devDependenciesReqs = Crawl.dependenciesFromObj('dev', manifest.devDependencies);
   const {dependencies: devDependencies} = await Crawl.crawlDependencies(
     devDependenciesReqs,
     crawlContext,
   );
+
+  if (root.errors.length > 0) {
+    throw new SandboxError(root.errors);
+  }
 
   return {env, devDependencies, root};
 }

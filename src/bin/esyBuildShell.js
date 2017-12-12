@@ -11,8 +11,8 @@ import outdent from 'outdent';
 import * as path from 'path';
 
 import * as fs from '../lib/fs';
+import * as Task from '../build-task.js';
 import {indent, getSandbox, getBuildConfig} from './esy';
-import * as Task from '../build-task';
 import * as Builder from '../builders/simple-builder';
 import {reportBuildError} from './esyBuild';
 
