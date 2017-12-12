@@ -178,6 +178,14 @@ Avaialble subcommands:
 
   add <package>         Add a specified package to dependencies and installs it.
 
+  ls-builds             Lists package dependencies along with each package's build status.
+                        This will include transitive package dependencies.
+
+  ls-libs [--all]       Lists package dependencies along with the set of libraries made
+                        available by each package dependency. By default, only includes
+                        immediate package dependencies.  Pass `--all` to include
+                        transitive dependencies.
+
   print-env             Prints esy environment on stdout.
 
   build-shell [path]    Drops into a shell with environment matching your
