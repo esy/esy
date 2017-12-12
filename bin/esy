@@ -166,9 +166,7 @@ printHelp() {
   cat <<EOF
 Usage: $0 <command> [--help] [--version]
 
-Install all dependencies and build the current project.
-
-Avaialble subcommands:
+Install all dependencies and build the current project:
 
   install               Installs packages declared in package.json.
   i
@@ -178,15 +176,20 @@ Avaialble subcommands:
 
   add <package>         Add a specified package to dependencies and installs it.
 
-  ls-builds             Lists package dependencies along with each package's build status.
-                        This will include transitive package dependencies.
+  version               Print esy version and exit
 
-  ls-libs [--all]       Lists package dependencies along with the set of libraries made
-                        available by each package dependency. By default, only includes
-                        immediate package dependencies.  Pass `--all` to include
-                        transitive dependencies.
+  help                  Show detailed help.
 
-  command-env           Prints esy command environment on stdout.
+Running commands in a sandbox:
+
+  build <command>       Run command inside the build environment.
+  b <command>
+
+  x <command>           Run command as if the package is already installed.
+                        Useful for testing.
+
+  <command>             Executes <command> as if you had executed it inside of
+                        esy shell.
 
   build-shell [path]    Drops into a shell with environment matching your
                         package's build environment. If argument is provided
@@ -198,18 +201,21 @@ Avaialble subcommands:
                         Less strict than build-shell and allows access to
                         devDependencies.
 
-  version               Print esy version and exit
+Sandbox introspection:
 
-  build <command>       Run command inside the build environment.
-  b <command>
+  ls-builds             Lists package dependencies along with each package's build status.
+                        This will include transitive package dependencies.
 
-  x <command>           Run command as if the package is already installed.
-                        Useful for testing.
+  ls-libs [--all]       Lists package dependencies along with the set of libraries made
+                        available by each package dependency. By default, only includes
+                        immediate package dependencies.  Pass `--all` to include
+                        transitive dependencies.
 
-  <command>             Executes <command> as if you had executed it inside of
-                        esy shell.
+  command-env           Prints esy command environment on stdout.
 
-  help                  Show detailed help.
+  sandbox-env           Prints esy sandbox environment on stdout.
+
+  build-env             Prints esy build environment on stdout.
 
 EOF
 }
