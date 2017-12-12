@@ -10,6 +10,7 @@ import invariant from 'invariant';
 import outdent from 'outdent';
 
 import {getSandbox} from './esy';
+import {fromSandbox} from '../build-task.js';
 import * as Config from '../config';
 import * as MakefileBuilder from '../builders/makefile-builder';
 
@@ -24,11 +25,13 @@ export default async function buildEjectCommand(
     ctx.buildPlatform,
   );
   const sandbox = await getSandbox(ctx, {forRelease: true});
-  const buildConfig = createConfig(ctx, buildPlatform);
+  const config = createConfig(ctx, buildPlatform);
+  const task = fromSandbox(sandbox, config);
   MakefileBuilder.eject(
+    task,
     sandbox,
+    config,
     path.join(ctx.sandboxPath, 'node_modules', '.cache', '_esy', 'build-eject'),
-    buildConfig,
   );
 }
 

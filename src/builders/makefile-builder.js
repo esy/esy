@@ -9,7 +9,6 @@ import createLogger from 'debug';
 import outdent from 'outdent';
 
 import * as Graph from '../graph';
-import * as Task from '../build-task';
 import * as S from '../sandbox';
 import * as Env from '../environment';
 import * as Makefile from '../Makefile';
@@ -210,7 +209,12 @@ const defineSandboxEnvRule = Makefile.createDefine({
 /**
  * Render `build` as Makefile (+ related files) into the supplied `outputPath`.
  */
-export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.Path>) {
+export function eject(
+  rootTask: BuildTask,
+  sandbox: Sandbox,
+  config: Config<path.Path>,
+  outputPath: string,
+) {
   const buildFiles = [];
 
   function generateMetaRule({filename}) {
@@ -343,10 +347,6 @@ export function eject(sandbox: Sandbox, outputPath: string, config: Config<path.
   }
 
   log(`eject build environment into <ejectRootDir>=./${path.relative(CWD, outputPath)}`);
-
-  // Emit build artefacts for packages
-  log('process dependency graph');
-  const rootTask = Task.fromSandbox(sandbox, config);
 
   const bootstrapRule = Makefile.createRule({
     target: 'bootstrap',

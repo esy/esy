@@ -3,16 +3,16 @@
  */
 
 import type {BuildSpec} from '../types';
-import {fromBuildSpec, collectErrors} from '../build-task';
+import {fromBuildSpec} from '../build-task';
 import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import outdent from 'outdent';
 import * as Config from '../config';
 import * as Env from '../environment.js';
+import {SandboxError} from '../errors.js';
 
 function calculate(config, spec, params) {
   const task = fromBuildSpec(spec, config, params);
-  const errors = collectErrors(task);
-  return {env: task.env, scope: task.scope, errors};
+  return {env: task.env, scope: task.scope};
 }
 
 function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec {
@@ -84,8 +84,7 @@ describe('calculating scope', function() {
       exportedEnv: {},
       dependencies: [],
     });
-    const {scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {scope} = calculate(config, app);
     expect(scope).toMatchSnapshot();
   });
 
@@ -100,8 +99,7 @@ describe('calculating scope', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    const {scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {scope} = calculate(config, app);
     expect(scope).toMatchSnapshot();
   });
 });
@@ -123,8 +121,7 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -136,8 +133,7 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -149,8 +145,7 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -162,8 +157,7 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -175,8 +169,7 @@ describe('calculating env', function() {
       },
       dependencies: [],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -193,8 +186,7 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -211,8 +203,7 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -231,8 +222,7 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -249,8 +239,7 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -269,8 +258,7 @@ describe('calculating env', function() {
       },
       dependencies: [dep],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -294,8 +282,7 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -305,8 +292,7 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [ocamlfind, ocaml],
     });
-    const {env, scope, errors} = calculate(config, app1);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app1);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -316,8 +302,7 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [ocamlfind, lwt],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -332,8 +317,7 @@ describe('calculating env', function() {
       },
       dependencies: [ocamlfind, lwt],
     });
-    const {env, scope, errors} = calculate(config, app);
-    expect(errors.length).toBe(0);
+    const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
@@ -351,8 +335,7 @@ describe('calculating env', function() {
       dependencies: [dep],
     });
 
-    const {env, errors} = calculate(config, app, {exposeOwnPath: true});
-    expect(errors.length).toBe(0);
+    const {env} = calculate(config, app, {exposeOwnPath: true});
     const envMap = Env.evalEnvironment(env);
 
     const PATH = envMap.get('PATH');
@@ -375,8 +358,14 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    const {errors} = calculate(config, app);
-    expect(errors).toMatchSnapshot();
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
   });
 
   test('override an exclusive variable', function() {
@@ -400,8 +389,14 @@ describe('calculating env', function() {
       dependencies: [dep],
     });
 
-    const {errors} = calculate(config, app);
-    expect(errors).toMatchSnapshot();
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
   });
 
   test('set an exclusive variable which was previously defined', function() {
@@ -424,7 +419,13 @@ describe('calculating env', function() {
       exportedEnv: {},
       dependencies: [dep],
     });
-    const {errors} = calculate(config, app);
-    expect(errors).toMatchSnapshot();
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
   });
 });

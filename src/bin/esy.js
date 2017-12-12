@@ -14,6 +14,7 @@ import * as path from '../lib/path';
 import chalk from 'chalk';
 import parse from 'cli-argparse';
 import * as rc from '../rc.js';
+import {SandboxError} from '../errors.js';
 
 const pkg = require('../../package.json');
 // for deterministic test output
@@ -87,19 +88,7 @@ export async function getSandbox(
     reporter: ctx.reporter,
     forRelease,
   });
-  if (sandbox.root.errors.length > 0) {
-    sandbox.root.errors.forEach(error => {
-      console.log(formatError(error.message));
-    });
-    process.exit(1);
-  }
   return sandbox;
-}
-
-export async function getTask(ctx: CommandContext, sandbox: Sandbox, config: Config<*>) {
-  const Task = require('../build-task.js');
-  const task = Task.fromSandbox(sandbox, config);
-  return task;
 }
 
 export async function getBuildConfig(
@@ -264,10 +253,10 @@ async function main() {
         }
         args.push(opt);
       }
-      await commandImpl.default(commandCtx, {commandName, args, options});
+      await commandImpl.default(ctx, {commandName, args, options});
     };
 
-    const commandCtx: CommandContext = {
+    const ctx: CommandContext = {
       version: pkg.version,
       prefixPath: getPrefixPath(),
       importPaths: getImportPaths(),
@@ -278,7 +267,18 @@ async function main() {
       reporter,
     };
 
-    await executeCommand(commandName, args);
+    try {
+      await executeCommand(commandName, args);
+    } catch (error) {
+      if (error instanceof SandboxError) {
+        for (const err of error.errors) {
+          ctx.reporter.error(err.message);
+        }
+        process.exit(1);
+      } else {
+        throw error;
+      }
+    }
   } else if (commandName != null) {
     error(`unknown command: ${commandName}`);
   }
