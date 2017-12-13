@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildSpec} from '../types';
+import type {BuildSpec, EnvironmentVarExport} from '../types';
 import {fromBuildSpec} from '../build-task';
 import {NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 import outdent from 'outdent';
@@ -15,7 +15,21 @@ function calculate(config, spec, params) {
   return {env: task.env, scope: task.scope};
 }
 
-function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec {
+type BuildParams = {
+  name: string,
+  exportedEnv?: {[name: string]: EnvironmentVarExport},
+  buildCommand?: Array<string | Array<string>>,
+  installCommand?: Array<string | Array<string>>,
+  dependencies?: Array<BuildSpec>,
+};
+
+function build({
+  name,
+  exportedEnv = {},
+  dependencies: dependenciesArray = [],
+  buildCommand = [],
+  installCommand = [],
+}: BuildParams): BuildSpec {
   const dependencies = new Map();
   for (const item of dependenciesArray) {
     dependencies.set(item.id, item);
@@ -31,8 +45,8 @@ function build({name, exportedEnv, dependencies: dependenciesArray}): BuildSpec 
     buildType: 'out-of-source',
     dependencies,
     exportedEnv,
-    buildCommand: [],
-    installCommand: [],
+    buildCommand,
+    installCommand,
     errors: [],
   };
 }
@@ -108,7 +122,7 @@ describe('calculating env', function() {
   // $FlowFixMe: fix jest flow-typed defs
   expect.addSnapshotSerializer({
     test(val) {
-      return val && val.id && val.name && val.dependencies && val.exportedEnv;
+      return val && val.id && val.name;
     },
     print(val) {
       return `BuildSpec { id: "${val.id}" }`;
@@ -418,6 +432,100 @@ describe('calculating env', function() {
       name: 'app',
       exportedEnv: {},
       dependencies: [dep],
+    });
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
+  });
+
+  test('unknown reference in exportedEnv', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {
+        X: {val: '#{unknown}'},
+      },
+    });
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
+  });
+
+  test('invalid syntax in exportedEnv', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {
+        X: {val: '#{oops'},
+      },
+    });
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
+  });
+
+  test('unknown reference in a build command', function() {
+    const app = build({
+      name: 'app',
+      buildCommand: ['exec #{unknown}'],
+    });
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
+  });
+
+  test('invalid syntax in a build command', function() {
+    const app = build({
+      name: 'app',
+      buildCommand: ['exec #{oops'],
+    });
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
+  });
+
+  test('unknown reference in an install command', function() {
+    const app = build({
+      name: 'app',
+      installCommand: ['exec #{unknown}'],
+    });
+    try {
+      calculate(config, app);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
+  });
+
+  test('invalid syntax in an install command', function() {
+    const app = build({
+      name: 'app',
+      installCommand: ['exec #{oops'],
     });
     try {
       calculate(config, app);

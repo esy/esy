@@ -71,7 +71,7 @@ export async function crawlDependencies<R>(
     );
     if (context.dependencyTrace.indexOf(spec.name) > -1) {
       errors.push({
-        message: formatCircularDependenciesError(spec.name, context),
+        reason: formatCircularDependenciesError(spec.name, context),
         origin: null,
       });
       continue;
@@ -97,7 +97,7 @@ export async function crawlDependencies<R>(
 
   if (missingPackages.length > 0) {
     errors.push({
-      message: formatMissingPackagesError(missingPackages, context),
+      reason: formatMissingPackagesError(missingPackages, context),
       origin: null,
     });
   }

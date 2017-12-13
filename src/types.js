@@ -334,6 +334,6 @@ export type CommandSpec = Array<string | Array<string>>;
 export type ExportEnvironmentSpec = {[name: string]: EnvironmentVarExport};
 
 export type BuildConfigError = {
-  message: string,
+  reason: string,
   origin: ?BuildSpec,
 };

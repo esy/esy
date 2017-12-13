@@ -291,7 +291,7 @@ export class ExpressionSyntaxError extends Error {
   reason: string;
 
   constructor(input: string, index: number, reason: string) {
-    super(`Invalid expression syntax: ${reason} (at ${index} characeter)`);
+    super(`Invalid expression syntax: ${reason} (at ${index} character)`);
     this.input = input;
     this.index = index;
     this.reason = reason;

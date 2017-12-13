@@ -38,10 +38,10 @@ type ExportedEnv = {
   global: Environment,
 };
 
-type FoldState = {
+type BuildTaskConfig = {
   task: BuildTask,
   exportedEnv: ExportedEnv,
-  allDependencies: Map.Map<string, FoldState>,
+  allDependencies: Map.Map<string, BuildTaskConfig>,
 };
 
 type EnvironmentInProgress = {
@@ -80,27 +80,10 @@ export function fromBuildSpec(
   params?: FromBuildSpecParams = {},
 ): BuildTask {
   function createTask(
-    dependencies: Map.Map<string, FoldState>,
-    allDependencies: Map.Map<string, FoldState>,
+    dependencies: Map.Map<string, BuildTaskConfig>,
+    allDependencies: Map.Map<string, BuildTaskConfig>,
     spec: BuildSpec,
-  ): FoldState {
-    const OCAMLPATH = [];
-    const PATH = [];
-    const MAN_PATH = [];
-
-    const reversedAllDependencies = Array.from(allDependencies.values());
-    reversedAllDependencies.reverse();
-    for (const dep of reversedAllDependencies) {
-      OCAMLPATH.push(config.getFinalInstallPath(dep.task.spec, 'lib'));
-      PATH.push(config.getFinalInstallPath(dep.task.spec, 'bin'));
-      MAN_PATH.push(config.getFinalInstallPath(dep.task.spec, 'man'));
-    }
-
-    // In ideal world we wouldn't need it as the whole toolchain should be
-    // sandboxed. This isn't the case unfortunately.
-    PATH.push('$PATH');
-    MAN_PATH.push('$MAN_PATH');
-
+  ): BuildTaskConfig {
     const env = [];
     const envIndex = Map.create();
     const errors: Array<BuildConfigError> = [];
@@ -120,7 +103,7 @@ export function fromBuildSpec(
           if (prevBinding.builtIn) {
             errors.push({
               origin,
-              message: outdent`
+              reason: outdent`
                 Package ${origin.packagePath} exports environment variable ${binding.name}
                 which conflicts with the built-in environment variable of the same name.
               `,
@@ -129,7 +112,7 @@ export function fromBuildSpec(
             if (prevBinding.origin != null) {
               errors.push({
                 origin,
-                message: outdent`
+                reason: outdent`
                 Package ${origin.packagePath} exports environment variable ${binding.name}
                 which conflicts with the environment variable of the same name
                 exported from package ${prevBinding.origin
@@ -139,7 +122,7 @@ export function fromBuildSpec(
             } else {
               errors.push({
                 origin,
-                message: outdent`
+                reason: outdent`
                 Package ${origin.packagePath} exports environment variable ${binding.name}
                 which conflicts with the environment variable of the same name
                 marked with exclusive.
@@ -150,7 +133,7 @@ export function fromBuildSpec(
             if (prevBinding.origin != null) {
               errors.push({
                 origin,
-                message: outdent`
+                reason: outdent`
                 Package ${origin.packagePath} exports environment variable ${binding.name}
                 marked with exclusive which conflicts with the environment variable
                 of the same name exported from package ${prevBinding.origin.packagePath}.
@@ -159,7 +142,7 @@ export function fromBuildSpec(
             } else {
               errors.push({
                 origin,
-                message: outdent`
+                reason: outdent`
                 Package ${origin.packagePath} exports environment variable ${binding.name}
                 marked with exclusive which conflicts with the environment variable
                 of the same name.
@@ -173,6 +156,140 @@ export function fromBuildSpec(
         env.push(binding);
       }
     }
+
+    function renderWithScope(spec: BuildSpec, value: string, scope: BuildScope): string {
+      function resolveWithScope(spec, id, scope) {
+        let v = scope;
+        for (let i = 0; i < id.length; i++) {
+          if (!(v instanceof Map.Map)) {
+            errors.push({
+              reason: `Unknown reference found: ${id.join('.')}`,
+              origin: spec,
+            });
+            return 'UNKNOWN';
+          }
+          v = v.get(id[i]);
+        }
+        if (v instanceof Map.Map) {
+          errors.push({reason: `Unknown reference found: ${id.join('.')}`, origin: spec});
+          return 'UNKNOWN';
+        }
+        if (v == null) {
+          errors.push({reason: `Unknown reference found: ${id.join('.')}`, origin: spec});
+          return 'UNKNOWN';
+        }
+        return v.value;
+      }
+
+      const evaluator = {
+        id: id => resolveWithScope(spec, id, scope),
+        var: name => '$' + name,
+        pathSep: () => '/',
+        colon: () => ':',
+      };
+
+      try {
+        return CommandExpr.evaluate(value, evaluator);
+      } catch (err) {
+        if (err instanceof CommandExpr.ExpressionSyntaxError) {
+          errors.push({reason: err.message, origin: spec});
+          return value;
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    function renderCommand(command: Array<string> | string, scope) {
+      if (Array.isArray(command)) {
+        return {
+          command: command.join(' '),
+          renderedCommand: command
+            .map(command => quoteArgIfNeeded(renderWithScope(spec, command, scope)))
+            .join(' '),
+        };
+      } else {
+        return {
+          command,
+          renderedCommand: renderWithScope(spec, command, scope),
+        };
+      }
+    }
+
+    function getExportedEnv(
+      config: Config<*>,
+      dependencies: Map.Map<string, BuildTaskConfig>,
+      allDependencies: Map.Map<string, BuildTaskConfig>,
+      spec: BuildSpec,
+    ): ExportedEnv {
+      // scope which is used to eval exported variables
+      const scope = getScope(spec, dependencies, config);
+
+      // global env vars exported from a spec
+      const global = [];
+
+      // local env vars exported from a spec
+      const local = [];
+
+      let needCamlLdLibraryPathExport = true;
+
+      for (const name in spec.exportedEnv) {
+        const envConfig = spec.exportedEnv[name];
+        const value = renderWithScope(spec, envConfig.val, scope);
+        const item = {
+          name,
+          value,
+          origin: spec,
+          builtIn: false,
+          exclusive: Boolean(envConfig.exclusive),
+        };
+        if (envConfig.scope === 'global') {
+          if (name === 'CAML_LD_LIBRARY_PATH') {
+            needCamlLdLibraryPathExport = false;
+          }
+          global.push(item);
+        } else {
+          local.push(item);
+        }
+      }
+
+      if (needCamlLdLibraryPathExport) {
+        global.push({
+          name: 'CAML_LD_LIBRARY_PATH',
+          value: renderWithScope(
+            spec,
+            `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
+            scope,
+          ),
+          origin: spec,
+          builtIn: false,
+          exclusive: false,
+        });
+      }
+
+      return {local, global};
+    }
+
+    /**
+     * Compute essential environment like $PATH, $MAN_PATH and so on.
+     */
+
+    const OCAMLPATH = [];
+    const PATH = [];
+    const MAN_PATH = [];
+
+    const reversedAllDependencies = Array.from(allDependencies.values());
+    reversedAllDependencies.reverse();
+    for (const dep of reversedAllDependencies) {
+      OCAMLPATH.push(config.getFinalInstallPath(dep.task.spec, 'lib'));
+      PATH.push(config.getFinalInstallPath(dep.task.spec, 'bin'));
+      MAN_PATH.push(config.getFinalInstallPath(dep.task.spec, 'man'));
+    }
+
+    // In ideal world we wouldn't need it as the whole toolchain should be
+    // sandboxed. This isn't the case unfortunately.
+    PATH.push('$PATH');
+    MAN_PATH.push('$MAN_PATH');
 
     addToEnv([
       {
@@ -219,116 +336,11 @@ export function fromBuildSpec(
         exclusive: false,
         origin: null,
       },
-
-      // Esy builtins
-
-      {
-        name: `cur__name`,
-        value: spec.name,
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-        origin: spec,
-      },
-      {
-        name: `cur__version`,
-        value: spec.version,
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__root`,
-        value: config.getRootPath(spec),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__depends`,
-        value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__target_dir`,
-        value: config.getBuildPath(spec),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__install`,
-        value: config.getInstallPath(spec),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__bin`,
-        value: config.getInstallPath(spec, 'bin'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__sbin`,
-        value: config.getInstallPath(spec, 'sbin'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__lib`,
-        value: config.getInstallPath(spec, 'lib'),
-        builtIn: true,
-        exclusive: true,
-        origin: spec,
-      },
-      {
-        name: `cur__man`,
-        value: config.getInstallPath(spec, 'man'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__doc`,
-        value: config.getInstallPath(spec, 'doc'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__stublibs`,
-        value: config.getInstallPath(spec, 'stublibs'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__toplevel`,
-        value: config.getInstallPath(spec, 'toplevel'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__share`,
-        value: config.getInstallPath(spec, 'share'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
-      {
-        name: `cur__etc`,
-        value: config.getInstallPath(spec, 'etc'),
-        origin: spec,
-        builtIn: true,
-        exclusive: true,
-      },
     ]);
+
+    // Add $cur__name, $cur__version and other env which points to the package
+    // which is currently being built.
+    addToEnv(getBuildCurrentEnv(config, spec));
 
     // direct deps' local scopes
     for (const dep of dependencies.values()) {
@@ -383,76 +395,118 @@ export function fromBuildSpec(
   return task;
 }
 
-function getExportedEnv(
-  config: Config<*>,
-  dependencies: Map.Map<string, FoldState>,
-  allDependencies: Map.Map<string, FoldState>,
-  spec: BuildSpec,
-): ExportedEnv {
-  // scope which is used to eval exported variables
-  const scope = getScope(spec, dependencies, config);
-
-  // global env vars exported from a spec
-  const global = [];
-
-  // local env vars exported from a spec
-  const local = [];
-
-  let needCamlLdLibraryPathExport = true;
-
-  for (const name in spec.exportedEnv) {
-    const envConfig = spec.exportedEnv[name];
-    const value = renderWithScope(envConfig.val, scope).rendered;
-    const item = {
-      name,
-      value,
+function getBuildCurrentEnv(config: Config<*>, spec: BuildSpec) {
+  return [
+    {
+      name: `cur__name`,
+      value: spec.name,
       origin: spec,
-      builtIn: false,
-      exclusive: Boolean(envConfig.exclusive),
-    };
-    if (envConfig.scope === 'global') {
-      if (name === 'CAML_LD_LIBRARY_PATH') {
-        needCamlLdLibraryPathExport = false;
-      }
-      global.push(item);
-    } else {
-      local.push(item);
-    }
-  }
-
-  if (needCamlLdLibraryPathExport) {
-    global.push({
-      name: 'CAML_LD_LIBRARY_PATH',
-      value: renderWithScope(
-        `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
-        scope,
-      ).rendered,
+      builtIn: true,
+      exclusive: true,
       origin: spec,
-      builtIn: false,
-      exclusive: false,
-    });
-  }
-
-  return {local, global};
+    },
+    {
+      name: `cur__version`,
+      value: spec.version,
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__root`,
+      value: config.getRootPath(spec),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__depends`,
+      value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__target_dir`,
+      value: config.getBuildPath(spec),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__install`,
+      value: config.getInstallPath(spec),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__bin`,
+      value: config.getInstallPath(spec, 'bin'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__sbin`,
+      value: config.getInstallPath(spec, 'sbin'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__lib`,
+      value: config.getInstallPath(spec, 'lib'),
+      builtIn: true,
+      exclusive: true,
+      origin: spec,
+    },
+    {
+      name: `cur__man`,
+      value: config.getInstallPath(spec, 'man'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__doc`,
+      value: config.getInstallPath(spec, 'doc'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__stublibs`,
+      value: config.getInstallPath(spec, 'stublibs'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__toplevel`,
+      value: config.getInstallPath(spec, 'toplevel'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__share`,
+      value: config.getInstallPath(spec, 'share'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
+      name: `cur__etc`,
+      value: config.getInstallPath(spec, 'etc'),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+  ];
 }
 
-function renderCommand(command: Array<string> | string, scope) {
-  if (Array.isArray(command)) {
-    return {
-      command: command.join(' '),
-      renderedCommand: command
-        .map(command => quoteArgIfNeeded(renderWithScope(command, scope).rendered))
-        .join(' '),
-    };
-  } else {
-    return {
-      command,
-      renderedCommand: renderWithScope(command, scope).rendered,
-    };
-  }
-}
-
-function getPackageScopeBindings(
+function getBuildScopeBindings(
   spec: BuildSpec,
   config: Config<path.Path>,
   currentlyBuilding?: boolean,
@@ -541,50 +595,22 @@ function getPackageScopeBindings(
 
 function getScope(
   spec: BuildSpec,
-  dependencies: Map.Map<string, FoldState>,
+  dependencies: Map.Map<string, BuildTaskConfig>,
   config,
 ): BuildScope {
   const scope: BuildScope = Map.create();
 
   for (const dep of dependencies.values()) {
-    const depScope = getPackageScopeBindings(dep.task.spec, config);
+    const depScope = getBuildScopeBindings(dep.task.spec, config);
     scope.set(dep.task.spec.name, depScope);
   }
 
   // Set own scope both under package name and `self` name for convenience.
-  const selfScope = getPackageScopeBindings(spec, config);
+  const selfScope = getBuildScopeBindings(spec, config);
   scope.set(spec.name, selfScope);
   scope.set('self', selfScope);
 
   return scope;
-}
-
-function resolveWithScope(id, scope) {
-  let v = scope;
-  for (let i = 0; i < id.length; i++) {
-    if (!(v instanceof Map.Map)) {
-      throw new Error(`Invalid reference: ${id.join('.')}`);
-    }
-    v = v.get(id[i]);
-  }
-  if (v instanceof Map.Map) {
-    throw new Error(`Invalid reference: ${id.join('.')}`);
-  }
-  if (v == null) {
-    throw new Error(`Invalid reference: ${id.join('.')}`);
-  }
-  return v.value;
-}
-
-export function renderWithScope(value: string, scope: BuildScope): {rendered: string} {
-  const evaluator = {
-    id: id => resolveWithScope(id, scope),
-    var: name => '$' + name,
-    pathSep: () => '/',
-    colon: () => ':',
-  };
-  const rendered = CommandExpr.evaluate(value, evaluator);
-  return {rendered};
 }
 
 /**

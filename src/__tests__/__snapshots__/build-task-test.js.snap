@@ -535,12 +535,39 @@ exports[`calculating env exposing own $cur__bin in $PATH 1`] = `"<storePath>/i/d
 
 exports[`calculating env exposing own $cur__bin in $PATH 2`] = `"<storePath>/i/dep/lib"`;
 
+exports[`calculating env invalid syntax in a build command 1`] = `
+Array [
+  Object {
+    "origin": BuildSpec { id: "app" },
+    "reason": "Invalid expression syntax: Expected (}) (at 10 character)",
+  },
+]
+`;
+
+exports[`calculating env invalid syntax in an install command 1`] = `
+Array [
+  Object {
+    "origin": BuildSpec { id: "app" },
+    "reason": "Invalid expression syntax: Expected (}) (at 10 character)",
+  },
+]
+`;
+
+exports[`calculating env invalid syntax in exportedEnv 1`] = `
+Array [
+  Object {
+    "origin": BuildSpec { id: "app" },
+    "reason": "Invalid expression syntax: Expected (}) (at 5 character)",
+  },
+]
+`;
+
 exports[`calculating env override a built-in variable 1`] = `
 Array [
   Object {
-    "message": "Package dep exports environment variable cur__target_dir
-which conflicts with the built-in environment variable of the same name.",
     "origin": BuildSpec { id: "dep" },
+    "reason": "Package dep exports environment variable cur__target_dir
+which conflicts with the built-in environment variable of the same name.",
   },
 ]
 `;
@@ -548,10 +575,10 @@ which conflicts with the built-in environment variable of the same name.",
 exports[`calculating env override an exclusive variable 1`] = `
 Array [
   Object {
-    "message": "Package dep exports environment variable X
+    "origin": BuildSpec { id: "dep" },
+    "reason": "Package dep exports environment variable X
 which conflicts with the environment variable of the same name
 exported from package depOfDep marked as exclusive.",
-    "origin": BuildSpec { id: "dep" },
   },
 ]
 `;
@@ -559,10 +586,37 @@ exported from package depOfDep marked as exclusive.",
 exports[`calculating env set an exclusive variable which was previously defined 1`] = `
 Array [
   Object {
-    "message": "Package dep exports environment variable X
+    "origin": BuildSpec { id: "dep" },
+    "reason": "Package dep exports environment variable X
 marked with exclusive which conflicts with the environment variable
 of the same name exported from package depOfDep.",
-    "origin": BuildSpec { id: "dep" },
+  },
+]
+`;
+
+exports[`calculating env unknown reference in a build command 1`] = `
+Array [
+  Object {
+    "origin": BuildSpec { id: "app" },
+    "reason": "Unknown reference found: unknown",
+  },
+]
+`;
+
+exports[`calculating env unknown reference in an install command 1`] = `
+Array [
+  Object {
+    "origin": BuildSpec { id: "app" },
+    "reason": "Unknown reference found: unknown",
+  },
+]
+`;
+
+exports[`calculating env unknown reference in exportedEnv 1`] = `
+Array [
+  Object {
+    "origin": BuildSpec { id: "app" },
+    "reason": "Unknown reference found: unknown",
   },
 ]
 `;
