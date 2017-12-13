@@ -325,6 +325,14 @@ describe('calculating env', function() {
     expect(Env.printEnvironment(env)).toMatchSnapshot();
   });
 
+  test('package with dot in its name', function() {
+    const app = build({
+      name: 'app.js',
+    });
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
+  });
+
   test('concatenating global exports (same level exports + package itself)', function() {
     const app = build({
       name: 'app',

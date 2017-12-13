@@ -161,6 +161,7 @@ export function fromBuildSpec(
       function resolveWithScope(spec, id, scope) {
         let v = scope;
         for (let i = 0; i < id.length; i++) {
+          const k = CommandExpr.unescapeId(id[i]);
           if (!(v instanceof Map.Map)) {
             errors.push({
               reason: `Unknown reference found: ${id.join('.')}`,
@@ -168,7 +169,7 @@ export function fromBuildSpec(
             });
             return 'UNKNOWN';
           }
-          v = v.get(id[i]);
+          v = v.get(k);
         }
         if (v instanceof Map.Map) {
           errors.push({reason: `Unknown reference found: ${id.join('.')}`, origin: spec});
@@ -258,7 +259,7 @@ export function fromBuildSpec(
           name: 'CAML_LD_LIBRARY_PATH',
           value: renderWithScope(
             spec,
-            `#{${spec.name}.stublibs : ${spec.name}.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
+            `#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`,
             scope,
           ),
           origin: spec,
@@ -602,12 +603,12 @@ function getScope(
 
   for (const dep of dependencies.values()) {
     const depScope = getBuildScopeBindings(dep.task.spec, config);
-    scope.set(dep.task.spec.name, depScope);
+    scope.set(CommandExpr.escapeId(dep.task.spec.name), depScope);
   }
 
   // Set own scope both under package name and `self` name for convenience.
   const selfScope = getBuildScopeBindings(spec, config);
-  scope.set(spec.name, selfScope);
+  scope.set(CommandExpr.escapeId(spec.name), selfScope);
   scope.set('self', selfScope);
 
   return scope;

@@ -9,7 +9,8 @@ export class SandboxError extends Error {
   errors: Array<BuildConfigError>;
 
   constructor(errors: Array<BuildConfigError>) {
-    super('sandbox error');
+    const message = 'SandboxError: Unable to configure snadbox';
+    super(message);
     this.errors = errors;
     lang.fixupErrorSubclassing(this, SandboxError);
   }

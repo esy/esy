@@ -281,8 +281,12 @@ function tokenizeExpr(input: string, startIndex: number): Array<Tok> {
   return tokens;
 }
 
-function unescapeId(id) {
+export function unescapeId(id: string) {
   return id.replace(/__dot__/g, '.');
+}
+
+export function escapeId(id: string) {
+  return id.replace(/\./g, '__dot__');
 }
 
 export class ExpressionSyntaxError extends Error {
