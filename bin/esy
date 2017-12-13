@@ -32,7 +32,7 @@ needRebuildTarget () {
   TARGET="$1"
   NEED_REBUILD="false"
 
-  esyLog "esy:bin" "needRebuildTarget $TARGET"
+  esyLog "esy:bin" "needRebuildTarget <sandbox>${TARGET#$ESY__SANDBOX}"
 
   # check if target exist
   if [ ! -f "$TARGET" ]; then
