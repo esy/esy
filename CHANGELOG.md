@@ -4,6 +4,8 @@
 
 * Fix sandbox environment to include root package's exported environment.
 
+* Fix for packages which have dot (`.`) symbol in their package names.
+
 ## 0.0.53
 
 * Add `esy ls-libs` command which shows a list of available OCaml libraries for
