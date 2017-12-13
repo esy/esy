@@ -103,10 +103,15 @@ describe('calculating scope', function() {
   });
 
   test('has deps', function() {
+    const depOfDep = build({
+      name: 'depOfDep',
+      exportedEnv: {},
+      dependencies: [],
+    });
     const dep = build({
       name: 'dep',
       exportedEnv: {},
-      dependencies: [],
+      dependencies: [depOfDep],
     });
     const app = build({
       name: 'app',

@@ -642,7 +642,7 @@ Map {
     "depends" => Object {
       "name": "depends",
       "origin": BuildSpec { id: "dep" },
-      "value": "",
+      "value": "depOfDep",
     },
     "target_dir" => Object {
       "name": "target_dir",
