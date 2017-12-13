@@ -12,6 +12,7 @@ import loudRejection from 'loud-rejection';
 import userHome from 'user-home';
 import * as path from '../lib/path';
 import chalk from 'chalk';
+import outdent from 'outdent';
 import parse from 'cli-argparse';
 import * as rc from '../rc.js';
 import {SandboxError} from '../errors.js';
@@ -272,7 +273,13 @@ async function main() {
     } catch (error) {
       if (error instanceof SandboxError) {
         for (const err of error.errors) {
-          ctx.reporter.error(err.message);
+          if (err.origin != null) {
+            ctx.reporter.error(outdent`
+              ${err.origin.packagePath}: ${err.reason}
+            `);
+          } else {
+            ctx.reporter.error(err.reason);
+          }
         }
         process.exit(1);
       } else {
