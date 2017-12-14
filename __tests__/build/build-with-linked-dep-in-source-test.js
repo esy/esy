@@ -17,4 +17,5 @@ defineTestCaseWithShell(
 
     assertStdout "esy x with-linked-dep-in-source" "with-linked-dep-in-source"
   `,
+  {snapshotExecutionTrace: true},
 );

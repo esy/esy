@@ -71,6 +71,7 @@ export function spawn(
 
     proc.on('close', (code: number) => {
       if (code >= 1) {
+        stdout = stdout.trim();
         // TODO make this output nicer
         err = new Error(
           [
@@ -79,11 +80,13 @@ export function spawn(
             `Command: ${program}`,
             `Arguments: ${args.join(' ')}`,
             `Directory: ${opts.cwd || process.cwd()}`,
-            `Output:\n${stdout.trim()}`,
+            `Output:\n${stdout}`,
           ].join('\n'),
         );
         // $FlowFixMe: ...
         err.EXIT_CODE = code;
+        // $FlowFixMe: ...
+        err.stdout = stdout;
       }
 
       if (processingDone || err) {

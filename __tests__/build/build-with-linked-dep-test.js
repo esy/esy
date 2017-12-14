@@ -16,5 +16,13 @@ defineTestCaseWithShell(
     assertStdout "esy x dep" "dep"
 
     assertStdout "esy x with-linked-dep" "with-linked-dep"
+
+    info "this SHOULD NOT rebuild dep"
+    run esy build
+
+    touch dep/dummy
+    info "this SHOULD rebuild dep"
+    run esy build
   `,
+  {snapshotExecutionTrace: true},
 );

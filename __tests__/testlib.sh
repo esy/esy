@@ -38,12 +38,12 @@ info () {
 }
 
 run () {
-  echo "RUNNING: " "$@"
+  echo "RUNNING:" "$@"
   "$@"
 }
 
 runAndExpectFailure () {
-  echo "RUNNING (expecting failure): " "$@"
+  echo "RUNNING (expecting failure):" "$@"
   set +e
   "$@"
   local ret="$?"
@@ -74,4 +74,8 @@ assertStdout () {
   else
     echo "$actual"
   fi
+}
+
+info () {
+  echo "INFO:" "$@"
 }

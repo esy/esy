@@ -17,4 +17,5 @@ defineTestCaseWithShell(
 
     assertStdout "esy x with-dep" "with-dep"
   `,
+  {snapshotExecutionTrace: true},
 );

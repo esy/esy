@@ -12,9 +12,9 @@ defineTestCaseWithShell(
     run esy export-dependencies
     run ls _export
 
-    # drop global store
-    rm -rf ../esy
+    run rm -rf ../esy
 
-    DEBUG='esy:*' run esy build
+    run esy build
   `,
+  {snapshotExecutionTrace: true},
 );

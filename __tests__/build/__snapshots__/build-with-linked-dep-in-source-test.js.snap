@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build with-linked-dep-in-source 1`] = `
+"RUNNING: esy config ls
+RUNNING: esy build
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin:esyBuild execute
+esy:simple-builder:dep build: { buildType: 'out-of-source', sourceType: 'transient' }
+esy:simple-builder:dep executing: echo \\"#!/bin/bash
+esy:simple-builder:dep executing: chmod +x $cur__target_dir/$cur__name
+esy:simple-builder:dep executing: cp $cur__target_dir/$cur__name $cur__bin/$cur__name
+esy:simple-builder:dep rewritePaths
+esy:simple-builder:dep saving build mtime
+esy:build-dependencies checking if dependencies are built
+esy:build-dependencies staleness check node_modules/dep
+esy:shell-builder esyPrepare
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyComplete
+RUNNING: esy dep
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+RUNNING: esy b dep
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:build-dependencies checking if dependencies are built
+esy:build-dependencies staleness check node_modules/dep
+esy:shell-builder esyPrepare
+esy:shell-builder esyComplete
+RUNNING: esy x dep
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:build-dependencies checking if dependencies are built
+esy:shell-builder esyPrepare
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyRunInstallCommands
+esy:shell-builder esyComplete
+RUNNING: esy x with-linked-dep-in-source
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:build-dependencies checking if dependencies are built"
+`;

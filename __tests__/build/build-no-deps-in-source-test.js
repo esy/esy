@@ -11,4 +11,5 @@ defineTestCaseWithShell(
     run esy build
     assertStdout "esy x no-deps-in-source" "no-deps-in-source"
   `,
+  {snapshotExecutionTrace: true},
 );

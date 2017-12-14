@@ -219,9 +219,10 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     for (const importPath of config.importPaths) {
       for (const basename of [task.spec.id, `${task.spec.id}.tar.gz`]) {
         const buildPath = path.join(importPath, basename);
-        log(`testing for import: ${buildPath}`);
+        const relativeBuildPath = path.relative(config.sandboxPath, buildPath);
+        log(`testing for import: ${relativeBuildPath}`);
         if (await fs.exists(buildPath)) {
-          log(`importing build: ${buildPath}`);
+          log(`importing build: ${relativeBuildPath}`);
           await importBuild(config, buildPath);
           return;
         }
@@ -297,7 +298,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
             true,
           ).then(async result => {
             const maxMtime = await findBuildMtime(spec);
-            log('saving build mtime:', maxMtime);
+            log('saving build mtime');
             await writeBuildMtime(spec, maxMtime);
             return result;
           });
@@ -310,7 +311,6 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
         } else if (spec.sourceType !== 'immutable') {
           const buildMtime = await readBuildMtime(spec);
           const maxMtime = await findBuildMtime(spec);
-          log('build mtime, current mtime:', buildMtime, maxMtime);
           if (isInStore && maxMtime <= buildMtime) {
             //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
             inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
@@ -320,7 +320,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
               log,
               true,
             ).then(async result => {
-              log('saving build mtime:', maxMtime);
+              log('saving build mtime');
               await writeBuildMtime(spec, maxMtime);
               return result;
             });

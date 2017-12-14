@@ -7,6 +7,7 @@ jest.setTimeout(200000);
 import * as path from 'path';
 import * as fs from '../src/lib/fs';
 import * as child from '../src/lib/child_process.js';
+import isCI from 'is-ci';
 import outdent from 'outdent';
 
 const DEBUG_TEST_LOC = '/tmp/esydbg';
@@ -120,6 +121,9 @@ export function initFixtureSync(fixturePath: string) {
         npm --prefix "${npmPrefix}" "$@"
       }
 
+      export DEBUG="esy:*"
+      export DEBUG_HIDE_DATE="yes"
+
       export ESY__COMMAND="${require.resolve('../bin/esy')}"
       export PATH="${npmPrefix}/bin:$PATH"
 
@@ -131,7 +135,7 @@ export function initFixtureSync(fixturePath: string) {
       ${script}
     `;
     const options = {env: {...env}, cwd: project};
-    console.log(await spawn('/bin/bash', ['-c', script], options));
+    return await spawn('/bin/bash', ['-c', script], options);
   };
 
   return {
@@ -145,14 +149,53 @@ export function initFixtureSync(fixturePath: string) {
   };
 }
 
-export function defineTestCaseWithShell(fixturePath: string, shellScript: string) {
+export function defineTestCaseWithShell(
+  fixturePath: string,
+  shellScript: string,
+  options: {snapshotExecutionTrace?: boolean} = {},
+) {
   jest.setTimeout(500000);
 
   const fixture = initFixtureSync(fixturePath);
 
+  function maybeMakeExecutionTraceSnapshot(stdout) {
+    if (options.snapshotExecutionTrace) {
+      const trace = parseExecutionTrace(stdout);
+      expect(trace).toMatchSnapshot();
+    }
+  }
+
   test(`build ${fixture.description}`, async function() {
-    await fixture.shellInProject(shellScript);
+    let stdout = '';
+    try {
+      stdout = await fixture.shellInProject(shellScript);
+    } catch (err) {
+      if (err.stdout != null) {
+        maybeMakeExecutionTraceSnapshot(err.stdout);
+      }
+      throw err;
+    }
+    maybeMakeExecutionTraceSnapshot(stdout);
+    // Log stdout on CI servers so we can inspect failures.
+    if (isCI) {
+      console.log(stdout);
+    }
   });
 
   afterAll(cleanUp);
+}
+
+/**
+ * Parse execution trace from stdout.
+ */
+function parseExecutionTrace(stdout) {
+  const trace = [];
+  const lines = stdout.split('\n');
+  for (let line of lines) {
+    line = line.trimLeft();
+    if (/^RUNNING:/.test(line) || /^INFO:/.test(line) || /^esy:/.test(line)) {
+      trace.push(line);
+    }
+  }
+  return trace.join('\n');
 }
