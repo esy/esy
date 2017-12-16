@@ -224,7 +224,7 @@ export function fromBuildSpec(
       spec: BuildSpec,
     ): ExportedEnv {
       // scope which is used to eval exported variables
-      const scope = getScope(spec, dependencies, config);
+      const scope = getScope(spec, dependencies, config, false);
 
       // global env vars exported from a spec
       const global = [];
@@ -358,7 +358,7 @@ export function fromBuildSpec(
       addToEnv(params.env);
     }
 
-    const scope = getScope(spec, dependencies, config);
+    const scope = getScope(spec, dependencies, config, true);
     const buildCommand = spec.buildCommand.map(command => renderCommand(command, scope));
     const installCommand = spec.installCommand.map(command =>
       renderCommand(command, scope),
@@ -510,8 +510,11 @@ function getBuildCurrentEnv(config: Config<*>, spec: BuildSpec) {
 function getBuildScopeBindings(
   spec: BuildSpec,
   config: Config<path.Path>,
-  currentlyBuilding?: boolean,
+  isCurrentlyBuilding?: boolean,
 ): BuildScope {
+  const getInstallPath = isCurrentlyBuilding
+    ? config.getInstallPath
+    : config.getFinalInstallPath;
   const scope: BuildScope = Map.create(
     [
       {
@@ -541,52 +544,52 @@ function getBuildScopeBindings(
       },
       {
         name: 'install',
-        value: config.getFinalInstallPath(spec),
+        value: getInstallPath(spec),
         origin: spec,
       },
       {
         name: 'bin',
-        value: config.getFinalInstallPath(spec, 'bin'),
+        value: getInstallPath(spec, 'bin'),
         origin: spec,
       },
       {
         name: 'sbin',
-        value: config.getFinalInstallPath(spec, 'sbin'),
+        value: getInstallPath(spec, 'sbin'),
         origin: spec,
       },
       {
         name: 'lib',
-        value: config.getFinalInstallPath(spec, 'lib'),
+        value: getInstallPath(spec, 'lib'),
         origin: spec,
       },
       {
         name: 'man',
-        value: config.getFinalInstallPath(spec, 'man'),
+        value: getInstallPath(spec, 'man'),
         origin: spec,
       },
       {
         name: 'doc',
-        value: config.getFinalInstallPath(spec, 'doc'),
+        value: getInstallPath(spec, 'doc'),
         origin: spec,
       },
       {
         name: 'stublibs',
-        value: config.getFinalInstallPath(spec, 'stublibs'),
+        value: getInstallPath(spec, 'stublibs'),
         origin: spec,
       },
       {
         name: 'toplevel',
-        value: config.getFinalInstallPath(spec, 'toplevel'),
+        value: getInstallPath(spec, 'toplevel'),
         origin: spec,
       },
       {
         name: 'share',
-        value: config.getFinalInstallPath(spec, 'share'),
+        value: getInstallPath(spec, 'share'),
         origin: spec,
       },
       {
         name: 'etc',
-        value: config.getFinalInstallPath(spec, 'etc'),
+        value: getInstallPath(spec, 'etc'),
         origin: spec,
       },
     ].map(item => [item.name, item]),
@@ -598,16 +601,17 @@ function getScope(
   spec: BuildSpec,
   dependencies: Map.Map<string, BuildTaskConfig>,
   config,
+  isCurrentlyBuilding: boolean,
 ): BuildScope {
   const scope: BuildScope = Map.create();
 
   for (const dep of dependencies.values()) {
-    const depScope = getBuildScopeBindings(dep.task.spec, config);
+    const depScope = getBuildScopeBindings(dep.task.spec, config, isCurrentlyBuilding);
     scope.set(CommandExpr.escapeId(dep.task.spec.name), depScope);
   }
 
   // Set own scope both under package name and `self` name for convenience.
-  const selfScope = getBuildScopeBindings(spec, config);
+  const selfScope = getBuildScopeBindings(spec, config, isCurrentlyBuilding);
   scope.set(CommandExpr.escapeId(spec.name), selfScope);
   scope.set('self', selfScope);
 
