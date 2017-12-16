@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.55
+
+* Fix bug with scope for `#{...}` inside `esy.build` and `esy.install` commands.
+
+  It was using a `<storePath>/i` instead of `<storePath>/s` for bindings
+  pointing to install location. See #89 for details.
+
 ## 0.0.54
 
 * Fix sandbox environment to include root package's exported environment.
