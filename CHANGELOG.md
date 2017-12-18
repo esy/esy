@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.56
+
+* Another bug fix for `#{...}` inside `esy.build` and `esy.install` commands.
+
 ## 0.0.55
 
 * Fix bug with scope for `#{...}` inside `esy.build` and `esy.install` commands.
