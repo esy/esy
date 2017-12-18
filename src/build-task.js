@@ -606,7 +606,7 @@ function getScope(
   const scope: BuildScope = Map.create();
 
   for (const dep of dependencies.values()) {
-    const depScope = getBuildScopeBindings(dep.task.spec, config, isCurrentlyBuilding);
+    const depScope = getBuildScopeBindings(dep.task.spec, config, false);
     scope.set(CommandExpr.escapeId(dep.task.spec.name), depScope);
   }
 
