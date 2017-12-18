@@ -684,52 +684,52 @@ Map {
     "install" => Object {
       "name": "install",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep",
+      "value": "<storePath>/i/dep",
     },
     "bin" => Object {
       "name": "bin",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/bin",
+      "value": "<storePath>/i/dep/bin",
     },
     "sbin" => Object {
       "name": "sbin",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/sbin",
+      "value": "<storePath>/i/dep/sbin",
     },
     "lib" => Object {
       "name": "lib",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/lib",
+      "value": "<storePath>/i/dep/lib",
     },
     "man" => Object {
       "name": "man",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/man",
+      "value": "<storePath>/i/dep/man",
     },
     "doc" => Object {
       "name": "doc",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/doc",
+      "value": "<storePath>/i/dep/doc",
     },
     "stublibs" => Object {
       "name": "stublibs",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/stublibs",
+      "value": "<storePath>/i/dep/stublibs",
     },
     "toplevel" => Object {
       "name": "toplevel",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/toplevel",
+      "value": "<storePath>/i/dep/toplevel",
     },
     "share" => Object {
       "name": "share",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/share",
+      "value": "<storePath>/i/dep/share",
     },
     "etc" => Object {
       "name": "etc",
       "origin": BuildSpec { id: "dep" },
-      "value": "<storePath>/s/dep/etc",
+      "value": "<storePath>/i/dep/etc",
     },
   },
   "app" => Map {
