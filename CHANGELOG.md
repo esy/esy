@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.0.57
+## 0.0.58
 
 * Esy prefix now can be configured via `.esyrc` by setting `esy-prefix-path`
   property. Example:
@@ -19,6 +19,10 @@
 * Fix cloning OPAM and OPAM overrides repositories to respect `--offline` and
   `--prefer-offline` flags. Also make them check if the host is offline and fail
   with a descriptive error instead of hanging.
+
+## 0.0.57
+
+Broken release.
 
 ## 0.0.56
 
