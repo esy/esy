@@ -19,9 +19,6 @@
 
 BINDIR=$(dirname "$0")
 
-# shellcheck source=./realpath.sh
-source "$BINDIR/realpath.sh"
-
 #
 # Check if log enabled for the provided level by consulting $DEBUG variable.
 #

@@ -186,6 +186,7 @@ export const eject = async (
 
       BINDIR=$(dirname "$0")
 
+      source "$BINDIR/realpath.sh"
       source "$BINDIR/esyConfig.sh"
       source "$BINDIR/esyRuntime.sh"
 
