@@ -2,6 +2,18 @@
 
 ## 0.0.57
 
+* Esy prefix now can be configured via `.esyrc` by setting `esy-prefix-path`
+  property. Example:
+
+  ```
+  esy-prefix-path: ./esytstore
+  ```
+
+  Esy looks for `.esyrc` in two locations:
+
+  - Sandbox directory: `$ESY__SANDBOX/.esyrc`.
+  - User home directory: `$HOME/.esyrc`.
+
 * Fix passing command line arguments to `esy install` and `esy add` commands.
 
 * Fix cloning OPAM and OPAM overrides repositories to respect `--offline` and
