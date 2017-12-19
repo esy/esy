@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.0.57
+
+* Fix passing command line arguments to `esy install` and `esy add` commands.
+
+* Fix cloning OPAM and OPAM overrides repositories to respect `--offline` and
+  `--prefer-offline` flags. Also make them check if the host is offline and fail
+  with a descriptive error instead of hanging.
+
 ## 0.0.56
 
 * Another bug fix for `#{...}` inside `esy.build` and `esy.install` commands.
