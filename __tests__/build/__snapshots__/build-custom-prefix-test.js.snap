@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build custom-prefix 1`] = `
+"RUNNING: esy config ls
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
+esy:bin trying to acquire lock
+RUNNING: esy build
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/project/store
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
+esy:bin:esyBuild execute
+esy:bin trying to acquire lock
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/project/store
+esy:build-dependencies checking if dependencies are built
+esy:shell-builder esyPrepare
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyComplete
+RUNNING: esy x custom-prefix
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/project/store
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/project/store
+esy:build-dependencies checking if dependencies are built
+esy:shell-builder esyPrepare
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyRunInstallCommands
+esy:shell-builder esyComplete"
+`;

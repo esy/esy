@@ -58,7 +58,7 @@ export function mkdtempSync() {
   // We should be using `os.tmpdir()` instead but it's too long so we cannot
   // relocate binaries there.
   const root = '/tmp/';
-  const dir = fs._mkdtempSync(root);
+  const dir = fs.realpathSync(fs._mkdtempSync(root));
   tempDirectoriesCreatedDuringTestRun.push(dir);
   return dir;
 }

@@ -23,6 +23,7 @@ export const rename: (oldPath: string, newPath: string) => Promise<void> = promi
 );
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const realpath: (p: string) => Promise<string> = promisify(fs.realpath);
+export const realpathSync: (p: string) => string = fs.realpathSync;
 export const unlink: (prefix: string) => Promise<string> = promisify(fs.unlink);
 export const readFileBuffer: (p: string) => Promise<Buffer> = promisify(fs.readFile);
 export const writeFile: (

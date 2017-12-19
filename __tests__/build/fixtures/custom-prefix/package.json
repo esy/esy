@@ -1,0 +1,14 @@
+{
+  "name": "custom-prefix",
+  "version": "1.0.0",
+  "license": "MIT",
+  "esy": {
+    "build": [
+      "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}",
+      "chmod +x #{self.target_dir / self.name}"
+    ],
+    "install": [
+      "cp #{self.target_dir / self.name} #{self.bin / self.name}"
+    ]
+  }
+}
