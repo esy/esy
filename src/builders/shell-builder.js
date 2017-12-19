@@ -119,6 +119,11 @@ export const eject = async (
   });
 
   await emitFile({
+    filename: ['bin/realpath.sh'],
+    contents: fs.readFileSync(require.resolve('../../bin/realpath.sh')),
+  });
+
+  await emitFile({
     filename: ['bin/esyConfig.sh'],
     contents: fs.readFileSync(require.resolve('../../bin/esyConfig.sh')),
   });

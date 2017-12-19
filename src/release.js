@@ -404,7 +404,7 @@ export async function buildRelease(config: BuildReleaseConfig) {
     );
   }
 
-  const BIN = ['esyConfig.sh', 'esyRuntime.sh', 'esyBuildRelease'];
+  const BIN = ['realpath.sh', 'esyConfig.sh', 'esyRuntime.sh', 'esyBuildRelease'];
 
   await fs.mkdirp(path.join(releasePackagePath, 'bin'));
   const binDir = path.dirname(CURRENT_ESY_EXECUTABLE);

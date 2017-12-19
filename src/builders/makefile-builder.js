@@ -114,6 +114,11 @@ const files = {
     contents: fs.readFileSync(require.resolve('./shell-builder.sh')),
   },
 
+  realpathSh: {
+    filename: ['bin', 'realpath.sh'],
+    contents: fs.readFileSync(require.resolve('../../bin/realpath.sh')),
+  },
+
   esyRuntimeSh: {
     filename: ['bin', 'esyRuntime.sh'],
     contents: fs.readFileSync(require.resolve('../../bin/esyRuntime.sh')),
@@ -433,6 +438,7 @@ export function eject(
     emitFile(outputPath, files.fastreplacestringSource),
     emitFile(outputPath, files.realpathSource),
     emitFile(outputPath, files.runtimeSource),
+    emitFile(outputPath, files.realpathSh),
     emitFile(outputPath, files.esyRuntimeSh),
     emitFile(outputPath, files.esyConfigSh),
     emitFile(outputPath, files.esyImportBuild),

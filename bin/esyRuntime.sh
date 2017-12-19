@@ -19,15 +19,74 @@
 
 BINDIR=$(dirname "$0")
 
-if [ -z "${ESY__SANDBOX+x}" ]; then
-  export ESY__SANDBOX="$PWD"
-fi
-if [ -z "${ESY__PREFIX+x}" ]; then
-  export ESY__PREFIX="$HOME/.esy"
-fi
-if [ -z "${ESY__LOCAL_STORE+x}" ]; then
-  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
-fi
+# shellcheck source=./realpath.sh
+source "$BINDIR/realpath.sh"
+
+#
+# Check if log enabled for the provided level by consulting $DEBUG variable.
+#
+# Logic is the same as with 'debug' npm package:
+# - $DEBUG contains a glob pattern matching over hierarchical level, ex: 'a:b:*'
+# - 'a:b:*' matches 'a:b:c' and 'a:b:c:d' and others.
+#
+
+esyLogEnabled () {
+  if [ ! -z "${DEBUG+x}" ] && [[ "$1" = $DEBUG ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+#
+# Debug log.
+#
+# Example:
+#
+#   esyLog "esy:bin" "executing some magic"
+#
+
+esyLog () {
+  local level="$1"
+  shift
+  if esyLogEnabled "$level"; then
+    >&2 echo "  $level" "$@"
+  fi
+}
+
+#
+# Read path from RC file.
+#
+# The returned path value is always resolved relatively to directory where the
+# rc file resides.
+#
+# Example:
+#   esyReadPathFromRC "esy-prefix-path"
+#
+
+esyReadPathFromRC () {
+  local key="$1"
+  local value
+
+  if [ "$ESY__RC" == "-" ]; then
+    echo ""
+  else
+    value=$(cat "$ESY__RC"              \
+      | grep "^\\s*${key}\\s*:"         \
+      | sed -E "s/^\\s*${key}\\s*://g"  \
+      | sed -E 's/^[[:space:]]*"?//'   \
+      | sed -E 's/"?[[:space:]]*$//')
+    if [ "$value" = "" ];then
+      echo ""
+    elif [[ "$value" = /* ]]; then
+      echo "$value"
+    else
+      local rcDirname
+      rcDirname=$(dirname "$ESY__RC")
+      realpath "${rcDirname}/${value}"
+    fi
+  fi
+}
 
 #
 # Get length of the string in C locale
@@ -135,22 +194,33 @@ esyGetStorePathFromPrefix() {
   echo "$esyPrefix/$storeVersion$padding"
 }
 
-esyLogEnabled () {
-  if [ ! -z "${DEBUG+x}" ] && [[ "$1" = $DEBUG ]]; then
-    return 0
-  else
-    return 1
-  fi
-}
+if [ -z "${ESY__SANDBOX+x}" ]; then
+  export ESY__SANDBOX="$PWD"
+fi
 
-esyLog () {
-  local level="$1"
-  shift
-  if esyLogEnabled "$level"; then
-    >&2 echo "  $level" "$@"
-  fi
-}
+if [ -f "${ESY__SANDBOX}/.esyrc" ]; then
+  esyLog "esy:bin" 'using <sandbox>/.esyrc'
+  ESY__RC="${ESY__SANDBOX}/.esyrc"
+elif [ -f "${HOME}/.esyrc" ]; then
+  esyLog "esy:bin" 'using <home>/.esyrc'
+  ESY__RC="${HOME}/.esyrc"
+else
+  esyLog "esy:bin" 'no .esyrc found'
+  ESY__RC="-"
+fi
 
+if [ -z "${ESY__PREFIX+x}" ]; then
+  ESY__PREFIX=$(esyReadPathFromRC "esy-prefix-path")
+  if [ "$ESY__PREFIX" == "" ]; then
+    ESY__PREFIX="$HOME/.esy"
+  fi
+  export ESY__PREFIX
+fi
+esyLog "esy:bin" "prefix: $ESY__PREFIX"
+
+if [ -z "${ESY__LOCAL_STORE+x}" ]; then
+  export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
+fi
 
 if [ -n "$(type -t esyCommandHelp)" ] && [ "$(type -t esyCommandHelp)" = function ]; then
   if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
