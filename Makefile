@@ -101,6 +101,7 @@ build-release:
 	@cp $(PWD)/bin/esyExportBuild $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/esyImportBuild $(RELEASE_ROOT)/bin/
 	@cp $(PWD)/bin/esyRuntime.sh $(RELEASE_ROOT)/bin/
+	@cp $(PWD)/bin/realpath.sh $(RELEASE_ROOT)/bin/
 	@mkdir -p $(RELEASE_ROOT)/scripts
 	@cp $(PWD)/scripts/postinstall.sh $(RELEASE_ROOT)/scripts
 	@node ./scripts/build-webpack.js ./dist/bin
