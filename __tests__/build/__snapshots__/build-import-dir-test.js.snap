@@ -2,8 +2,14 @@
 
 exports[`build import-archive 1`] = `
 "RUNNING: esy config ls
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
+esy:bin trying to acquire lock
 RUNNING: esy build
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
 esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
 esy:bin:esyBuild execute
 esy:simple-builder:dep testing for import: _export/dep-1.0.0
 esy:simple-builder:dep testing for import: _export/dep-1.0.0.tar.gz
@@ -12,15 +18,30 @@ esy:simple-builder:dep executing: echo '#!/bin/bash
 esy:simple-builder:dep executing: chmod +x $cur__target_dir/$cur__name
 esy:simple-builder:dep executing: cp $cur__target_dir/$cur__name $cur__bin/$cur__name
 esy:simple-builder:dep rewritePaths
+esy:bin trying to acquire lock
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built
 esy:shell-builder esyPrepare
 esy:shell-builder esyRunBuildCommands
 esy:shell-builder esyComplete
 RUNNING: esy export-dependencies
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
+esy:bin trying to acquire lock
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
 RUNNING: ls _export
 RUNNING: rm -rf ../esy
 RUNNING: esy build
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
 esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
+esy:bin using <sandbox>/.esyrc
+esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built
 esy:bin:esyBuild execute
 esy:simple-builder:dep testing for import: _export/dep-1.0.0

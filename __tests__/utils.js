@@ -160,7 +160,7 @@ export function defineTestCaseWithShell(
 
   function maybeMakeExecutionTraceSnapshot(stdout) {
     if (options.snapshotExecutionTrace) {
-      const trace = parseExecutionTrace(stdout);
+      const trace = parseExecutionTrace(stdout, fixture.root);
       expect(trace).toMatchSnapshot();
     }
   }
@@ -188,12 +188,14 @@ export function defineTestCaseWithShell(
 /**
  * Parse execution trace from stdout.
  */
-function parseExecutionTrace(stdout) {
+function parseExecutionTrace(stdout, root) {
+  const removeRootRe = new RegExp(root, 'g');
   const trace = [];
   const lines = stdout.split('\n');
   for (let line of lines) {
     line = line.trimLeft();
     if (/^RUNNING:/.test(line) || /^INFO:/.test(line) || /^esy:/.test(line)) {
+      line = line.replace(removeRootRe, '<testRoot>');
       trace.push(line);
     }
   }

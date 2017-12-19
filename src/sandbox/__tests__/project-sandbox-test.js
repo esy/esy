@@ -4,6 +4,7 @@
 
 import * as fs from '../../lib/fs';
 import * as FSRepr from '../../lib/fs-repr';
+import {SandboxError} from '../../errors.js';
 import {create} from '../project-sandbox';
 
 function pkg(packageJson, ...dependencies) {
@@ -81,8 +82,14 @@ describe('build-sandbox', function() {
         _resolved: 'app',
       }).nodes,
     );
-    const sandbox = await create(sandboxDir);
-    expect(sandbox.root).toMatchSnapshot();
+    try {
+      const sandbox = await create(sandboxDir);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
   });
 
   test('error: circular deps', async function() {
@@ -106,7 +113,13 @@ describe('build-sandbox', function() {
         }),
       ).nodes,
     );
-    const sandbox = await create(sandboxDir);
-    expect(sandbox.root).toMatchSnapshot();
+    try {
+      const sandbox = await create(sandboxDir);
+    } catch (err) {
+      expect(err).toBeInstanceOf(SandboxError);
+      expect(err.errors).toMatchSnapshot();
+      return;
+    }
+    expect(true).toBe(false);
   });
 });

@@ -18,15 +18,15 @@ Object {
           Object {
             "builtIn": true,
             "exclusive": false,
-            "exported": true,
             "name": "PATH",
+            "origin": null,
             "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
           },
           Object {
             "builtIn": true,
             "exclusive": false,
-            "exported": true,
             "name": "SHELL",
+            "origin": null,
             "value": "env -i /bin/bash --norc --noprofile",
           },
         ],
@@ -63,15 +63,15 @@ Object {
       Object {
         "builtIn": true,
         "exclusive": false,
-        "exported": true,
         "name": "PATH",
+        "origin": null,
         "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
       },
       Object {
         "builtIn": true,
         "exclusive": false,
-        "exported": true,
         "name": "SHELL",
+        "origin": null,
         "value": "env -i /bin/bash --norc --noprofile",
       },
     ],
@@ -112,15 +112,15 @@ Object {
       Object {
         "builtIn": true,
         "exclusive": false,
-        "exported": true,
         "name": "PATH",
+        "origin": null,
         "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
       },
       Object {
         "builtIn": true,
         "exclusive": false,
-        "exported": true,
         "name": "SHELL",
+        "origin": null,
         "value": "env -i /bin/bash --norc --noprofile",
       },
     ],
@@ -148,164 +148,22 @@ Object {
 `;
 
 exports[`build-sandbox error: circular deps 1`] = `
-Object {
-  "buildCommand": Array [],
-  "buildType": "out-of-source",
-  "dependencies": Map {
-    "dep-0.1.0" => Object {
-      "buildCommand": Array [],
-      "buildType": "out-of-source",
-      "dependencies": Map {},
-      "errors": Array [
-        Object {
-          "message": "Circular dependency \\"app\\" found
+Array [
+  Object {
+    "origin": null,
+    "reason": "Circular dependency \\"app\\" found
   At app -> dep",
-        },
-      ],
-      "exportedEnv": Object {},
-      "id": "dep-0.1.0",
-      "idInfo": Object {
-        "dependencies": Array [],
-        "env": Array [
-          Object {
-            "builtIn": true,
-            "exclusive": false,
-            "exported": true,
-            "name": "PATH",
-            "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
-          },
-          Object {
-            "builtIn": true,
-            "exclusive": false,
-            "exported": true,
-            "name": "SHELL",
-            "value": "env -i /bin/bash --norc --noprofile",
-          },
-        ],
-        "manifest": Object {
-          "esy": Object {
-            "build": Array [],
-            "buildsInSource": false,
-            "exportedEnv": Object {},
-            "install": Array [],
-            "release": Object {},
-            "sandboxType": "project",
-          },
-          "name": "dep",
-          "version": "0.1.0",
-        },
-        "source": "dep",
-      },
-      "installCommand": Array [],
-      "name": "dep",
-      "packagePath": "node_modules/dep",
-      "sourcePath": "node_modules/dep",
-      "sourceType": "immutable",
-      "version": "0.1.0",
-    },
   },
-  "errors": Array [
-    Object {
-      "message": "Circular dependency \\"app\\" found
-  At app -> dep",
-    },
-  ],
-  "exportedEnv": Object {},
-  "id": "app-0.1.0",
-  "idInfo": Object {
-    "dependencies": Array [
-      "dep-0.1.0",
-    ],
-    "env": Array [
-      Object {
-        "builtIn": true,
-        "exclusive": false,
-        "exported": true,
-        "name": "PATH",
-        "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
-      },
-      Object {
-        "builtIn": true,
-        "exclusive": false,
-        "exported": true,
-        "name": "SHELL",
-        "value": "env -i /bin/bash --norc --noprofile",
-      },
-    ],
-    "manifest": Object {
-      "esy": Object {
-        "build": Array [],
-        "buildsInSource": false,
-        "exportedEnv": Object {},
-        "install": Array [],
-        "release": Object {},
-        "sandboxType": "project",
-      },
-      "name": "app",
-      "version": "0.1.0",
-    },
-    "source": "app",
-  },
-  "installCommand": Array [],
-  "name": "app",
-  "packagePath": "",
-  "sourcePath": "",
-  "sourceType": "root",
-  "version": "0.1.0",
-}
+]
 `;
 
 exports[`build-sandbox error: missing a dep 1`] = `
-Object {
-  "buildCommand": Array [],
-  "buildType": "out-of-source",
-  "dependencies": Map {},
-  "errors": Array [
-    Object {
-      "message": "Cannot resolve \\"dep\\" packages
+Array [
+  Object {
+    "origin": null,
+    "reason": "Cannot resolve \\"dep\\" packages
   At app
   Did you forget to run \\"esy install\\" command?",
-    },
-  ],
-  "exportedEnv": Object {},
-  "id": "app-0.1.0",
-  "idInfo": Object {
-    "dependencies": Array [],
-    "env": Array [
-      Object {
-        "builtIn": true,
-        "exclusive": false,
-        "exported": true,
-        "name": "PATH",
-        "value": "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
-      },
-      Object {
-        "builtIn": true,
-        "exclusive": false,
-        "exported": true,
-        "name": "SHELL",
-        "value": "env -i /bin/bash --norc --noprofile",
-      },
-    ],
-    "manifest": Object {
-      "esy": Object {
-        "build": Array [],
-        "buildsInSource": false,
-        "exportedEnv": Object {},
-        "install": Array [],
-        "release": Object {},
-        "sandboxType": "project",
-      },
-      "name": "app",
-      "version": "0.1.0",
-    },
-    "source": "app",
   },
-  "installCommand": Array [],
-  "name": "app",
-  "packagePath": "",
-  "sourcePath": "",
-  "sourceType": "root",
-  "version": "0.1.0",
-}
+]
 `;
