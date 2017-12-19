@@ -91,6 +91,7 @@ run () {
 
 withLock () {
   if [ -z "${ESY__LOCKED+x}" ]; then
+    esyLog "esy:bin" "trying to acquire lock"
     local command="$@"
     set +e
     # we do || exit 2 to distinguish between $command failure and flock failure
