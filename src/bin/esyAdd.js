@@ -11,3 +11,5 @@ import esyBuild from './esyBuild.js';
 export default async function esyAdd(ctx: CommandContext, invocation: CommandInvocation) {
   await runYarnCommand(ctx, invocation, 'add');
 }
+
+export const noParse = true;

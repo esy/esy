@@ -11,3 +11,5 @@ export default async function esyInstall(
 ) {
   await runYarnCommand(ctx, invocation, 'install');
 }
+
+export const noParse = true;

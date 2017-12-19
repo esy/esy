@@ -154,6 +154,7 @@ type Command = {
   default: (CommandContext, CommandInvocation) => any,
   options?: Object,
   noHeader?: boolean,
+  noParse?: boolean,
 };
 
 const commandsByName: {[name: string]: () => Command} = {
@@ -243,16 +244,21 @@ async function main() {
       if (!commandImpl.noHeader) {
         reporter.header(commandName, pkg);
       }
-      const options = parse(initialArgs, {
-        ...commandImpl.options,
-        strict: true,
-      });
-      const args = [];
-      for (const opt of options.unparsed) {
-        if (opt.startsWith('-')) {
-          error(`unknown option ${opt}`);
+      let args = [];
+      let options = {options: {}, flags: {}};
+      if (commandImpl.noParse) {
+        args = initialArgs;
+      } else {
+        options = parse(initialArgs, {
+          ...commandImpl.options,
+          strict: true,
+        });
+        for (const opt of options.unparsed) {
+          if (opt.startsWith('-')) {
+            error(`unknown option ${opt}`);
+          }
+          args.push(opt);
         }
-        args.push(opt);
       }
       await commandImpl.default(ctx, {commandName, args, options});
     };
