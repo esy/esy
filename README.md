@@ -347,6 +347,27 @@ Also note the usage of [Esy variable substitution
 syntax](#variable-substitution-syntax) to define the value of the
 `$CAML_LD_LIBRARY_PATH` variable.
 
+#### Esy configuration
+
+Esy can be configured via environment variables or via `.esyrc`.
+
+Esy looks for `.esyrc` configuration in two locations (sorted by priority):
+
+1. Sandbox directory (usually the current working dir, where `package.json`
+   resides): `$ESY__PREFIX/.esyrc`
+
+2. Home directory: `$HOME/.esyrc`
+
+##### Prefix path
+
+Prefix path determines where Esy puts its global store and other caches. By
+default it is set to `$HOME/.esy`.
+
+To change the default you can either:
+
+- Set `$ESY__PREFIX` environment variable.
+- Add `esy-prefix-path: /path/to/esy/prefix` to `.esyrc`
+
 ### Esy Environment Reference
 
 For each project Esy manages:
