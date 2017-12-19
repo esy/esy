@@ -51,6 +51,8 @@ function getSandboxPath() {
 function getPrefixPath() {
   if (process.env.ESY__PREFIX != null) {
     return process.env.ESY__PREFIX;
+  } else if (rcConfig['esy-prefix-path'] != null) {
+    return rcConfig['esy-prefix-path'];
   } else {
     return path.join(userHome, '.esy');
   }
