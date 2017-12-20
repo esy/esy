@@ -233,8 +233,27 @@ esyRunInstallCommands () {
   done
 
   # Relocate installation
-  for filename in $(find $cur__install -type f); do
+
+  local files
+
+  files=$(find "$cur__install" -type f)
+
+  for filename in $files; do
     "$ESY_EJECT__ROOT/bin/fastreplacestring.exe" "$filename" "$cur__install" "$esy_build__install_root"
+  done
+
+  local symlinks
+  local symlinkTarget
+
+  symlinks=$(find "$cur__install" -type l)
+
+  for filename in $symlinks; do
+    symlinkTarget=$(readlink "$filename")
+    if [[ "$symlinkTarget" == $cur__install* ]]; then
+      symlinkTarget="$esy_build__install_root/${symlinkTarget#$cur__install}"
+      rm "$filename"
+      ln -s "$symlinkTarget" "$filename"
+    fi
   done
 
   mkdir -p "$cur__install/_esy"
