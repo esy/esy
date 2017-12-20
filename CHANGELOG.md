@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.59
+
+* Make `esy build-shell` command work for `devDependencies`.
+
 ## 0.0.58
 
 * Esy prefix now can be configured via `.esyrc` by setting `esy-prefix-path`
