@@ -162,6 +162,10 @@ callBuiltInCommand__buildEject () {
 }
 
 callBuiltInCommand() {
+	node "$SCRIPTDIR/esy.js" "$@"
+}
+
+callBuiltInCommandWithLock() {
 	withLock node "$SCRIPTDIR/esy.js" "$@"
 }
 
@@ -301,7 +305,7 @@ elif [ $# -eq 1 ]; then
       ;;
     release)
       shift
-      callBuiltInCommand release
+      callBuiltInCommandWithLock release
       ;;
     build|b)
       shift
@@ -309,11 +313,11 @@ elif [ $# -eq 1 ]; then
       ;;
     _build)
       shift
-      callBuiltInCommand build
+      callBuiltInCommandWithLock build
       ;;
     build-shell)
       shift
-      callBuiltInCommand build-shell
+      callBuiltInCommandWithLock build-shell
       ;;
     ls-builds)
       shift
@@ -413,7 +417,7 @@ else
       ;;
     build-shell)
       shift
-      callBuiltInCommand build-shell "$@"
+      callBuiltInCommandWithLock build-shell "$@"
       ;;
     install|i)
       shift
@@ -423,7 +427,7 @@ else
       shift
       case "$1" in
         -*)
-          callBuiltInCommand build "$@"
+          callBuiltInCommandWithLock build "$@"
           ;;
         *)
           callBuiltInCommand__build "$@"
@@ -432,7 +436,7 @@ else
       ;;
     _build)
       shift
-      callBuiltInCommand build "$@"
+      callBuiltInCommandWithLock build "$@"
       ;;
     install-cache)
       shift
@@ -440,7 +444,7 @@ else
       ;;
     release)
       shift
-      callBuiltInCommand release "$@"
+      callBuiltInCommandWithLock release "$@"
       ;;
     ls-builds)
       shift
