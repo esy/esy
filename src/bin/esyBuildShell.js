@@ -20,10 +20,10 @@ export default async function esyBuildShell(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  function findTaskBySourcePath(task: BuildTask, packagePath) {
+  function findTaskBySourcePath(tasks: Array<BuildTask>, packagePath) {
     const predicate = task =>
       path.join(config.sandboxPath, task.spec.packagePath) === packagePath;
-    const queue: BuildTask[] = [task];
+    const queue: BuildTask[] = [...tasks];
     while (queue.length > 0) {
       const t = queue.shift();
       if (predicate(t)) {
@@ -43,10 +43,17 @@ export default async function esyBuildShell(
   const config = await getBuildConfig(ctx);
 
   const rootTask: BuildTask = Task.fromSandbox(sandbox, config);
+  const devDependencies: Array<BuildTask> = Array.from(
+    sandbox.devDependencies.values(),
+    spec => Task.fromBuildSpec(spec, config, {env: sandbox.env}),
+  );
 
   const task =
     packagePath != null
-      ? findTaskBySourcePath(rootTask, path.resolve(process.cwd(), packagePath))
+      ? findTaskBySourcePath(
+          [rootTask, ...devDependencies],
+          path.resolve(process.cwd(), packagePath),
+        )
       : rootTask;
 
   const state = await Builder.buildDependencies(task, config);
