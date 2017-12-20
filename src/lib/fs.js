@@ -23,6 +23,7 @@ export const rename: (oldPath: string, newPath: string) => Promise<void> = promi
 );
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const realpath: (p: string) => Promise<string> = promisify(fs.realpath);
+export const readlink: (p: string) => Promise<string> = promisify(fs.readlink);
 export const realpathSync: (p: string) => string = fs.realpathSync;
 export const unlink: (prefix: string) => Promise<string> = promisify(fs.unlink);
 export const readFileBuffer: (p: string) => Promise<Buffer> = promisify(fs.readFile);
@@ -102,7 +103,7 @@ export function readJsonSync(p: string, parse: string => Function = JSON.parse) 
   return parse(data);
 }
 
-const fsSymlink: (
+export const fsSymlink: (
   target: string,
   path: string,
   type?: 'dir' | 'file' | 'junction',
@@ -153,6 +154,7 @@ export type WalkFiles = Array<{
   absolute: string,
   basename: string,
   mtime: number,
+  stats: fs.Stats,
 }>;
 
 export async function walk(
@@ -170,16 +172,17 @@ export async function walk(
   for (const name of filenames) {
     const relative = relativeDir ? path.join(relativeDir, name) : name;
     const loc = path.join(dir, name);
-    const stat = await lstat(loc);
+    const stats = await lstat(loc);
 
     files.push({
       relative,
       basename: name,
       absolute: loc,
-      mtime: +stat.mtime,
+      mtime: +stats.mtime,
+      stats,
     });
 
-    if (stat.isDirectory()) {
+    if (stats.isDirectory()) {
       files = files.concat(await walk(loc, relative, ignoreBasenames));
     }
   }

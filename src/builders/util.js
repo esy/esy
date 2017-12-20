@@ -96,6 +96,24 @@ export async function rewritePathInFile(
   }
 }
 
+export async function rewritePathInSymlink(
+  filename: string,
+  origPath: string,
+  destPath: string,
+) {
+  const stat = await fs.lstat(filename);
+  if (!stat.isSymbolicLink()) {
+    return;
+  }
+  const linkPath = path.resolve(path.dirname(filename), await fs.readlink(filename));
+  if (linkPath.indexOf(origPath) !== 0) {
+    return;
+  }
+  const nextTargetPath = path.join(destPath, path.relative(origPath, linkPath));
+  await fs.unlink(filename);
+  await fs.fsSymlink(nextTargetPath, filename);
+}
+
 export function exec(
   ...args: *
 ): {process: child.ChildProcess, exit: Promise<{code: number, signal: string}>} {

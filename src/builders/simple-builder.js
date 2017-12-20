@@ -19,7 +19,12 @@ import {fixupErrorSubclassing} from '../lib/lang';
 
 import * as Graph from '../graph';
 import * as Env from '../environment.js';
-import {renderSandboxSbConfig, rewritePathInFile, exec} from './util';
+import {
+  renderSandboxSbConfig,
+  rewritePathInFile,
+  rewritePathInSymlink,
+  exec,
+} from './util';
 import {
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
@@ -654,7 +659,15 @@ async function rewritePaths(path, from, to) {
   const rewriteQueue = new PromiseQueue({concurrency: 20});
   const files = await fs.walk(path);
   await Promise.all(
-    files.map(file => rewriteQueue.add(() => rewritePathInFile(file.absolute, from, to))),
+    files.map(file =>
+      rewriteQueue.add(async () => {
+        if (file.stats.isSymbolicLink()) {
+          await rewritePathInSymlink(file.absolute, from, to);
+        } else {
+          await rewritePathInFile(file.absolute, from, to);
+        }
+      }),
+    ),
   );
 }
 
