@@ -4,7 +4,6 @@ exports[`build custom-prefix 1`] = `
 "RUNNING: esy config ls
 esy:bin using <sandbox>/.esyrc
 esy:bin prefix: <testRoot>/esy
-esy:bin trying to acquire lock
 RUNNING: esy build
 esy:bin using <sandbox>/.esyrc
 esy:bin prefix: <testRoot>/project/store

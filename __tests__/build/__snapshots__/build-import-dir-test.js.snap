@@ -4,7 +4,6 @@ exports[`build import-archive 1`] = `
 "RUNNING: esy config ls
 esy:bin using <sandbox>/.esyrc
 esy:bin prefix: <testRoot>/esy
-esy:bin trying to acquire lock
 RUNNING: esy build
 esy:bin using <sandbox>/.esyrc
 esy:bin prefix: <testRoot>/esy
@@ -28,7 +27,6 @@ esy:shell-builder esyComplete
 RUNNING: esy export-dependencies
 esy:bin using <sandbox>/.esyrc
 esy:bin prefix: <testRoot>/esy
-esy:bin trying to acquire lock
 esy:bin using <sandbox>/.esyrc
 esy:bin prefix: <testRoot>/esy
 esy:bin using <sandbox>/.esyrc
