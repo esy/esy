@@ -57,7 +57,8 @@ function esyImportBuild () {
     cp "$buildPath" "$stageBuildPath.tar.gz"
     (cd "$stageDir" && tar xzf "$stageBuildPath.tar.gz")
   else
-    cp -rf "$buildPath" "$stageBuildPath"
+    # copy into stage recursively (-R) and do not follow symlinks (-P)
+    cp -RP "$buildPath" "$stageBuildPath"
   fi
 
   origStorePath=$(cat "$stageBuildPath/_esy/storePrefix")
