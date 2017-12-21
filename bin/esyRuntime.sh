@@ -121,7 +121,7 @@ esyRewriteStorePrefix () {
     | xargs -0 -I {} -P 30 "$BINDIR/fastreplacestring.exe" "{}" "$origPrefix" "$destPrefix"
   # rewrite paths in symlinks
   find "$path" -type l -print0 \
-    | xargs -0 -I {} -P 30 "$BINDIR/fastreplacestring.exe" "{}" "$origPrefix" "$destPrefix"
+    | xargs -0 -I {} -P 30 bash -c "esyRewriteSymlinks '{}' '$origPrefix' '$destPrefix'"
 }
 
 esyRewriteSymlinks () {
@@ -130,12 +130,13 @@ esyRewriteSymlinks () {
   local destPrefix="$3"
 
   symlinkTarget=$(readlink "$path")
-  if [[ "$symlinkTarget" == $cur__install* ]]; then
-    symlinkTarget="$esy_build__install_root/${symlinkTarget#$cur__install}"
-    rm "$filename"
-    ln -s "$symlinkTarget" "$filename"
+  if [[ "$symlinkTarget" == $origPrefix* ]]; then
+    symlinkTarget="$destPrefix/${symlinkTarget#$origPrefix}"
+    rm "$path"
+    ln -s "$symlinkTarget" "$path"
   fi
 }
+export -f esyRewriteSymlinks
 
 #
 # Find source modification time
