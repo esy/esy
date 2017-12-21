@@ -31,7 +31,7 @@ stageDir=$(mktemp -d)
 destStorePath=$(esyGetStorePathFromPrefix "$ESY__PREFIX")
 destStorePathLen=$(esyStrLen "$destStorePath")
 
-function esyimportBuild () {
+function esyImportBuild () {
   set -e
   set -u
   set -o pipefail
@@ -90,16 +90,16 @@ if [ "$1" == "--from" ] || [ "$1" == "-f" ]; then
   export stageDir
   export destStorePath
   export destStorePathLen
-  export -f esyimportBuild
+  export -f esyImportBuild
 
   set +e
-  cat "$buildPathList" | xargs -n1 -P12 -I {} bash -c 'esyimportBuild "{}"'
+  cat "$buildPathList" | xargs -n1 -P12 -I {} bash -c 'esyImportBuild "{}"'
   ret="$?"
   set -e
 else
   buildPath="$1"
   set +e
-  (esyimportBuild "$buildPath")
+  (esyImportBuild "$buildPath")
   ret="$?"
   set -e
 fi
