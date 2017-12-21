@@ -126,6 +126,7 @@ export function initFixtureSync(fixturePath: string) {
 
       export ESY__COMMAND="${require.resolve('../bin/esy')}"
       export ESY_TEST__ROOT="${root}"
+      export ESY_TEST__PREFIX="${esyPrefix}"
       export ESY_TEST__PROJECT="${project}"
       export PATH="${npmPrefix}/bin:$PATH"
 
