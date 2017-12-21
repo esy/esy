@@ -131,7 +131,7 @@ esyRewriteSymlink () {
 
   symlinkTarget=$(readlink "$path")
   if [[ "$symlinkTarget" == $origPrefix* ]]; then
-    symlinkTarget="$destPrefix/${symlinkTarget#$origPrefix}"
+    symlinkTarget="$destPrefix${symlinkTarget#$origPrefix}"
     rm "$path"
     ln -s "$symlinkTarget" "$path"
   fi
