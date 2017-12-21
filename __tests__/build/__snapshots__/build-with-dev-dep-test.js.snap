@@ -4,7 +4,6 @@ exports[`build with-dev-dep 1`] = `
 "RUNNING: esy config ls
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
-esy:bin trying to acquire lock
 RUNNING: esy build
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
