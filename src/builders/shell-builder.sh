@@ -250,7 +250,7 @@ esyRunInstallCommands () {
   for filename in $symlinks; do
     symlinkTarget=$(readlink "$filename")
     if [[ "$symlinkTarget" == $cur__install* ]]; then
-      symlinkTarget="$esy_build__install_root/${symlinkTarget#$cur__install}"
+      symlinkTarget="$esy_build__install_root${symlinkTarget#$cur__install}"
       rm "$filename"
       ln -s "$symlinkTarget" "$filename"
     fi
