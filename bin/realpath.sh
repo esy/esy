@@ -24,10 +24,12 @@
 realpath() {
     canonicalize_path "$(resolve_symlinks "$1")"
 }
+export -f realpath
 
 resolve_symlinks() {
     _resolve_symlinks "$1"
 }
+export -f resolve_symlinks
 
 _resolve_symlinks() {
     _assert_no_path_cycles "$@" || return
@@ -41,6 +43,7 @@ _resolve_symlinks() {
         printf '%s\n' "$1"
     fi
 }
+export -f _resolve_symlinks
 
 _prepend_dir_context_if_necessary() {
     if [ "$1" = . ]; then
@@ -49,6 +52,7 @@ _prepend_dir_context_if_necessary() {
         _prepend_path_if_relative "$1" "$2"
     fi
 }
+export -f _prepend_dir_context_if_necessary
 
 _prepend_path_if_relative() {
     case "$2" in
@@ -56,6 +60,7 @@ _prepend_path_if_relative() {
          * ) printf '%s\n' "$1/$2" ;;
     esac
 }
+export -f _prepend_path_if_relative
 
 _assert_no_path_cycles() {
     local target path
@@ -69,6 +74,7 @@ _assert_no_path_cycles() {
         fi
     done
 }
+export -f _assert_no_path_cycles
 
 canonicalize_path() {
     if [ -d "$1" ]; then
@@ -77,10 +83,12 @@ canonicalize_path() {
         _canonicalize_file_path "$1"
     fi
 }
+export -f canonicalize_path
 
 _canonicalize_dir_path() {
     (cd "$1" 2>/dev/null && pwd -P)
 }
+export -f _canonicalize_dir_path
 
 _canonicalize_file_path() {
     local dir file
@@ -88,6 +96,7 @@ _canonicalize_file_path() {
     file=$(basename -- "$1")
     (cd "$dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$file")
 }
+export -f _canonicalize_file_path
 
 # Optionally, you may also want to include:
 
@@ -100,14 +109,17 @@ readlink() {
         _emulated_readlink "$@"
     fi
 }
+export -f readlink
 
 _has_command() {
     hash -- "$1" 2>/dev/null
 }
+export -f _has_command
 
 _system_readlink() {
     command readlink "$@"
 }
+export -f _system_readlink
 
 _emulated_readlink() {
     if [ "$1" = -- ]; then
@@ -116,6 +128,7 @@ _emulated_readlink() {
 
     _gnu_stat_readlink "$@" || _bsd_stat_readlink "$@"
 }
+export -f _emulated_readlink
 
 _gnu_stat_readlink() {
     local output
@@ -126,7 +139,9 @@ _gnu_stat_readlink() {
              s/^'[^']*' -> '\(.*\)'/\1/"
     # FIXME: handle newlines
 }
+export -f _gnu_stat_readlink
 
 _bsd_stat_readlink() {
     stat -f %Y -- "$1" 2>/dev/null
 }
+export -f _bsd_stat_readlink
