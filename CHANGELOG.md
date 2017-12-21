@@ -4,6 +4,12 @@
 
 * Make `esy build-shell` command work for `devDependencies`.
 
+* Acquire locks only when invocation is going to perform a build.
+
+* Fixes to how symlink are handled when relocating installation directory
+  between between staging and final directory and between stoes (export/import
+  and releases).
+
 ## 0.0.58
 
 * Esy prefix now can be configured via `.esyrc` by setting `esy-prefix-path`
