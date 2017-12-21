@@ -2,7 +2,7 @@
 
 ## 0.0.59
 
-* Make `esy build-shell` command work for `devDependencies`.
+* Fix `esy build-shell` command to work with `devDependencies`.
 
 * Acquire locks only when invocation is going to perform a build.
 
