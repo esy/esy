@@ -19,6 +19,25 @@
 
 BINDIR=$(dirname "$0")
 
+fgBold=""
+fgRed=""
+fgGreen=""
+fgYellow=""
+fgBlue=""
+fgReset=""
+
+if test -t 1; then
+  ncolors=$(tput colors)
+  if test -n "$ncolors" && test "$ncolors" -ge 8; then
+    fgBold="$(tput bold)"
+    fgRed="$(tput setaf 1)"
+    fgGreen="$(tput setaf 2)"
+    fgYellow="$(tput setaf 3)"
+    fgBlue="$(tput setaf 4)"
+    fgReset="$(tput sgr0)"
+  fi
+fi
+
 #
 # Check if log enabled for the provided level by consulting $DEBUG variable.
 #
@@ -47,8 +66,17 @@ esyLog () {
   local level="$1"
   shift
   if esyLogEnabled "$level"; then
-    >&2 echo "  $level" "$@"
+    >&2 echo -e "  $level" "$@"
   fi
+}
+
+esyInfo () {
+  echo >&2 "${fgBlue}info:${fgReset}" "$@"
+}
+
+esyError () {
+  echo >&2 "${fgRed}error:${fgReset}" "$@";
+  exit 1
 }
 
 #

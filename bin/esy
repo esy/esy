@@ -18,6 +18,10 @@ source "$SCRIPTDIR/esyConfig.sh"
 # shellcheck source=./esyRuntime.sh
 source "$SCRIPTDIR/esyRuntime.sh"
 
+if [ ! -f "$ESY__SANDBOX/package.json" ] && [ ! -f "$ESY__SANDBOX/esy.json" ]; then
+  esyError "no package.json found in the current directory"
+fi
+
 mkdir -p "$ESY__PREFIX"
 ESY__LOCK="$ESY__PREFIX/lock"
 
@@ -101,9 +105,7 @@ withLock () {
     retCode="$?"
     set -e
     if [ $retCode -eq 1 ]; then
-      echo >&2 "error: another esy process is running, exiting...";
-      echo >&2 "       you can remove $ESY__LOCK if you are sure that's not the case";
-      exit 1
+      esyError "another esy process is running ($ESY__LOCK exists), exiting..."
     elif [ $retCode -ne 0 ]; then
       exit 1
     fi
@@ -140,7 +142,7 @@ ensureBuildEjected () {
   needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/bin/build")
   if [ "$needRebuild" == "true" ]; then
     if [ "$1" == "--silent" ]; then
-      (>&2 echo "info: rebuilding project, this will take some time...")
+      esyInfo "rebuilding the project, this will take some time..."
       esyArgs="$esyArgs --silent"
       shift
     fi
@@ -393,7 +395,7 @@ elif [ $# -eq 1 ]; then
       printHelp
       ;;
     -*)
-      echo error: unknown option "$1" >&2
+      esyError "unknown option '$1'"
       exit 1
       ;;
     *)
