@@ -42,7 +42,8 @@ function _do () {
   local origStorePath
   local destStorePath
 
-  cp -r "$buildPath" "$stageBuildPath"
+  # copy into stage recursively (-R) and do not follow symlinks (-P)
+  cp -RP "$buildPath" "$stageBuildPath"
 
   origStorePath=$(cat "$stageBuildPath/_esy/storePrefix")
   destStorePath=${origStorePath//?/_}
