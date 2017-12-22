@@ -18,10 +18,6 @@ source "$SCRIPTDIR/esyConfig.sh"
 # shellcheck source=./esyRuntime.sh
 source "$SCRIPTDIR/esyRuntime.sh"
 
-if [ ! -f "$ESY__SANDBOX/package.json" ] && [ ! -f "$ESY__SANDBOX/esy.json" ]; then
-  esyError "no package.json found in the current directory"
-fi
-
 mkdir -p "$ESY__PREFIX"
 ESY__LOCK="$ESY__PREFIX/lock"
 
@@ -33,6 +29,12 @@ if [ -d "$ESY__SANDBOX/node_modules" ]; then
 else
   DEPENDENCIES_PACKAGE_JSON=""
 fi
+
+ensureSandbox () {
+  if [ ! -f "$ESY__SANDBOX/package.json" ] && [ ! -f "$ESY__SANDBOX/esy.json" ]; then
+    esyError "no package.json found in the current directory"
+  fi
+}
 
 needRebuildTarget () {
   TARGET="$1"
@@ -173,7 +175,7 @@ callBuiltInCommandWithLock() {
 
 printHelp() {
   cat <<EOF
-Usage: $0 <command> [--help] [--version]
+Usage: $(basename "$0") <command> [--help] [--version]
 
 Install all dependencies and build the current project:
 
@@ -217,7 +219,7 @@ Sandbox introspection:
 
   ls-libs [--all]       Lists package dependencies along with the set of libraries made
                         available by each package dependency. By default, only includes
-                        immediate package dependencies.  Pass `--all` to include
+                        immediate package dependencies.  Pass --all to include
                         transitive dependencies.
 
   command-env           Prints esy command environment on stdout.
@@ -299,90 +301,112 @@ then
 elif [ $# -eq 1 ]; then
   case $1 in
     clean)
+      ensureSandbox
       callBuiltInCommand__buildEject
       make -j -s -f "$MAKEFILE_BUILD_EJECT_PATH/Makefile" "$1"
       ;;
     build-eject)
+      ensureSandbox
       callBuiltInCommand__buildEject
       ;;
     release)
       shift
+      ensureSandbox
       callBuiltInCommandWithLock release
       ;;
     build|b)
       shift
+      ensureSandbox
       callBuiltInCommand__build
       ;;
     _build)
       shift
+      ensureSandbox
       callBuiltInCommandWithLock build
       ;;
     build-shell)
       shift
+      ensureSandbox
       callBuiltInCommandWithLock build-shell
       ;;
     ls-builds)
       shift
+      ensureSandbox
       callBuiltInCommand ls-builds
       ;;
     ls-libs)
       shift
+      ensureSandbox
       callBuiltInCommand ls-libs
       ;;
     import-opam)
       shift
+      ensureSandbox
       callBuiltInCommand import-opam
       ;;
     shell)
+      ensureSandbox
       ensureBuildEjected
       ENV="$BUILD_EJECT_PATH/bin/command-env" PS1="esy % " sh
       ;;
     command-env)
+      ensureSandbox
       ensureBuildEjected --silent
       cat "$BUILD_EJECT_PATH/bin/command-env"
       ;;
     sandbox-env)
+      ensureSandbox
       ensureBuildEjected --silent
       cat "$BUILD_EJECT_PATH/bin/sandbox-env"
       ;;
     build-env)
+      ensureSandbox
       ensureBuildEjected --silent
       cat "$BUILD_EJECT_PATH/bin/build-env"
       ;;
     config)
       shift
+      ensureSandbox
       callBuiltInCommand config
       ;;
     install|i)
       shift
+      ensureSandbox
       callBuiltInCommand install
       ;;
     add)
       shift
+      ensureSandbox
       callBuiltInCommand add "$@"
       callBuiltInCommand__build
       ;;
     install-cache)
       shift
+      ensureSandbox
       callBuiltInCommand install-cache
       ;;
     export-dependencies)
       shift
+      ensureSandbox
       callBuiltInCommand export-dependencies
       ;;
     import-dependencies)
       shift
+      ensureSandbox
       callBuiltInCommand import-dependencies
       ;;
     export-build)
       shift
+      ensureSandbox
       exec "$SCRIPTDIR/esyExportBuild"
       ;;
     import-build)
       shift
+      ensureSandbox
       exec "$SCRIPTDIR/esyImportBuild"
       ;;
     x)
+      ensureSandbox
       callBuiltInCommand__x
       ;;
     version|--version|-v)
@@ -399,6 +423,7 @@ elif [ $# -eq 1 ]; then
       exit 1
       ;;
     *)
+      ensureSandbox
       callAnyCommand "$@"
       ;;
   esac
@@ -410,23 +435,28 @@ else
       ;;
     build-eject)
       shift
+      ensureSandbox
       callBuiltInCommand__buildEject "$@"
       ;;
     add)
       shift
+      ensureSandbox
       callBuiltInCommand add "$@"
       callBuiltInCommand__build
       ;;
     build-shell)
       shift
+      ensureSandbox
       callBuiltInCommandWithLock build-shell "$@"
       ;;
     install|i)
       shift
+      ensureSandbox
       callBuiltInCommand install "$@"
       ;;
     build|b)
       shift
+      ensureSandbox
       case "$1" in
         -*)
           callBuiltInCommandWithLock build "$@"
@@ -438,45 +468,56 @@ else
       ;;
     _build)
       shift
+      ensureSandbox
       callBuiltInCommandWithLock build "$@"
       ;;
     install-cache)
       shift
+      ensureSandbox
       callBuiltInCommand install-cache "$@"
       ;;
     release)
       shift
+      ensureSandbox
       callBuiltInCommandWithLock release "$@"
       ;;
     ls-builds)
       shift
+      ensureSandbox
       callBuiltInCommand ls-builds "$@"
       ;;
     ls-libs)
       shift
+      ensureSandbox
       callBuiltInCommand ls-libs "$@"
       ;;
     on-demand|export-dependencies)
       shift
+      ensureSandbox
       callBuiltInCommand export-dependencies "$@"
       ;;
     import-dependencies)
       shift
+      ensureSandbox
       callBuiltInCommand import-dependencies "$@"
       ;;
     export-build)
       shift
+      ensureSandbox
       exec "$SCRIPTDIR/esyExportBuild" "$@"
       ;;
     import-build)
       shift
+      ensureSandbox
       exec "$SCRIPTDIR/esyImportBuild" "$@"
       ;;
     config)
       shift
+      ensureSandbox
       callBuiltInCommand config "$@"
       ;;
     x)
+      ensureSandbox
       callBuiltInCommand__x "$@"
       ;;
     -*)
@@ -484,6 +525,7 @@ else
       exit 1
       ;;
     *)
+      ensureSandbox
       callAnyCommand "$@"
       ;;
   esac
