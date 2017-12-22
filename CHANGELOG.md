@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.60
+
+* Fix `esy import-build --from <filename>`. See #97 for details.
+
+* Check if `package.json` or `esy.json` is not available in the current
+  directory and print nice error message instead of failing with a stacktrace.
+
 ## 0.0.59
 
 * Fix `esy build-shell` command to work with `devDependencies`.
