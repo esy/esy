@@ -4,6 +4,7 @@
 
 import type {BuildSpec, Config} from './types';
 import chalk from 'chalk';
+import {spawn} from './lib/child_process';
 import * as fs from './lib/fs';
 import * as path from './lib/path';
 
@@ -67,8 +68,25 @@ export function getBuildSpecPackages(
     }
   }
 
-  return specsQueue.sort((a: FormatBuildSpecQueueItem, b: FormatBuildSpecQueueItem) => {
+  return specsQueue.sort((a, b) => {
     return a.path.localeCompare(b.path);
+  });
+}
+
+export async function getPackageLibraries(
+  config: Config<*>,
+  ocamlfind: string,
+  spec: ?BuildSpec,
+): Promise<Array<string>> {
+  const result = await spawn(ocamlfind, ['list'], {
+    env: {
+      OCAMLPATH: spec != null ? config.getFinalInstallPath(spec, 'lib') : '',
+    },
+  });
+
+  return result.split('\n').map(line => {
+    const [lib, ...version] = line.split(' ');
+    return lib;
   });
 }
 
@@ -93,12 +111,8 @@ export async function formatPackageInfo(
   if (isSeen) {
     name = chalk.grey(name);
   }
-  const prefix = level === 0 ? '' : isLast ? '└── ' : '├── ';
-  let pkg = `${prefix}${name}`;
 
-  pkg = pkg.padStart(pkg.length + (level - 1) * 4, '│   ');
-
-  return pkg;
+  return formatTreeLine(name, level, isLast);
 }
 
 export async function formatBuildInfo(config: Config<*>, spec: BuildSpec) {
@@ -110,4 +124,15 @@ export async function formatBuildInfo(config: Config<*>, spec: BuildSpec) {
     info.push(chalk.blue('[local source]'));
   }
   return info.join(' ');
+}
+
+export function formatTreeLine(
+  name: string,
+  level: number,
+  isLast: boolean,
+  addPrefix?: boolean = true,
+) {
+  const prefix = addPrefix ? (level === 0 ? '' : isLast ? '└── ' : '├── ') : '';
+  const line = `${prefix}${name}`;
+  return line.padStart(line.length + (level - 1) * 4, '│   ');
 }
