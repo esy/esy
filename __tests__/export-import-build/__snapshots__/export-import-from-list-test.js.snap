@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build symlinks-into-dep 1`] = `
+"RUNNING: esy config ls
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+RUNNING: esy build
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
+esy:bin:esyBuild execute
+esy:simple-builder:subdep build: { buildType: 'out-of-source', sourceType: 'immutable' }
+esy:simple-builder:subdep executing: echo \\"#!/bin/bash
+esy:simple-builder:subdep executing: chmod +x $cur__target_dir/$cur__name
+esy:simple-builder:subdep executing: cp $cur__target_dir/$cur__name $cur__bin/$cur__name
+esy:simple-builder:subdep rewritePaths
+esy:simple-builder:dep build: { buildType: 'out-of-source', sourceType: 'immutable' }
+esy:simple-builder:dep executing: ln -s #{subdep.bin / subdep.name} #{self.bin / self.name}
+esy:simple-builder:dep rewritePaths
+esy:bin trying to acquire lock
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:build-dependencies checking if dependencies are built
+esy:shell-builder esyPrepare
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyComplete
+RUNNING: esy export-dependencies
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+RUNNING: cat list.txt
+RUNNING: rm -rf ../esy/3/i/dep-1.0.0 ../esy/3/i/subdep-1.0.0
+RUNNING: ls -1 ../esy/3/i/
+RUNNING: esy import-build --from ./list.txt
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+RUNNING: ls -1 ../esy/3/i/"
+`;

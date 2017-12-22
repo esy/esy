@@ -88,10 +88,14 @@ if [ "$1" == "--from" ] || [ "$1" == "-f" ]; then
   buildPathList="$1"
 
   # Export b/c we spawn bash in xargs
+  export BINDIR
   export stageDir
   export destStorePath
   export destStorePathLen
   export -f esyImportBuild
+  export -f esyStrLen
+  export -f esyRewriteStorePrefix
+  export -f esyRewriteSymlink
 
   set +e
   cat "$buildPathList" | xargs -n1 -P12 -I {} bash -c 'esyImportBuild "{}"'
