@@ -222,6 +222,10 @@ Sandbox introspection:
                         immediate package dependencies.  Pass --all to include
                         transitive dependencies.
 
+  ls-modules [lib ...]  Lists package dependencies along with the set of libraries
+                        and modules available by each package dependency. By default, shows
+                        all modules. To show only specific libraries, pass library name(s).
+
   command-env           Prints esy command environment on stdout.
 
   sandbox-env           Prints esy sandbox environment on stdout.
@@ -338,6 +342,10 @@ elif [ $# -eq 1 ]; then
       shift
       ensureSandbox
       callBuiltInCommand ls-libs
+      ;;
+    ls-modules)
+      shift
+      callBuiltInCommand ls-modules
       ;;
     import-opam)
       shift
@@ -490,6 +498,10 @@ else
       shift
       ensureSandbox
       callBuiltInCommand ls-libs "$@"
+      ;;
+    ls-modules)
+      shift
+      callBuiltInCommand ls-modules "$@"
       ;;
     on-demand|export-dependencies)
       shift

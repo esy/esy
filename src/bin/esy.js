@@ -167,6 +167,7 @@ const commandsByName: {[name: string]: () => Command} = {
   add: () => require('./esyAdd'),
   'ls-builds': () => require('./esyLsBuilds'),
   'ls-libs': () => require('./esyLsLibs'),
+  'ls-modules': () => require('./esyLsModules'),
   'init-global-sandbox': () => require('./esyInitGlobalSandbox'),
   'build-eject': () => require('./esyBuildEject'),
   'build-shell': () => require('./esyBuildShell'),
