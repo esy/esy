@@ -1,5 +1,71 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`calculating env build _build-type 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<storePath>/b/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
+exports[`calculating env build in-source 1`] = `
+"
+#
+# Esy Sandbox
+#
+export OCAMLPATH=\\"\\"
+export OCAMLFIND_DESTDIR=\\"<storePath>/s/app/lib\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_COMMANDS=\\"ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt\\"
+export PATH=\\"$PATH\\"
+export MAN_PATH=\\"$MAN_PATH\\"
+
+#
+# app@0.1.0 (at app)
+#
+export cur__name=\\"app\\"
+export cur__version=\\"0.1.0\\"
+export cur__root=\\"<storePath>/b/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
+export cur__depends=\\"\\"
+export cur__target_dir=\\"<storePath>/b/app\\"
+export cur__install=\\"<storePath>/s/app\\"
+export cur__bin=\\"<storePath>/s/app/bin\\"
+export cur__sbin=\\"<storePath>/s/app/sbin\\"
+export cur__lib=\\"<storePath>/s/app/lib\\"
+export cur__man=\\"<storePath>/s/app/man\\"
+export cur__doc=\\"<storePath>/s/app/doc\\"
+export cur__stublibs=\\"<storePath>/s/app/stublibs\\"
+export cur__toplevel=\\"<storePath>/s/app/toplevel\\"
+export cur__share=\\"<storePath>/s/app/share\\"
+export cur__etc=\\"<storePath>/s/app/etc\\""
+`;
+
 exports[`calculating env build with (dep with (dep with local export) with local export) 1`] = `
 "
 #
@@ -18,6 +84,7 @@ export MAN_PATH=\\"<storePath>/i/dep/man:<storePath>/i/dep-of-dep/man:$MAN_PATH\
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"dep\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -65,6 +132,7 @@ export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"dep\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -103,6 +171,7 @@ export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"dep\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -140,6 +209,7 @@ export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"dep\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -178,6 +248,7 @@ export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"dep\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -215,6 +286,7 @@ export MAN_PATH=\\"<storePath>/i/dep/man:$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"dep\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -253,6 +325,7 @@ export MAN_PATH=\\"$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -285,6 +358,7 @@ export MAN_PATH=\\"$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -317,6 +391,7 @@ export MAN_PATH=\\"$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -349,6 +424,7 @@ export MAN_PATH=\\"$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -381,6 +457,7 @@ export MAN_PATH=\\"$MAN_PATH\\"
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -413,6 +490,7 @@ export MAN_PATH=\\"<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"ocamlfind lwt\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -460,6 +538,7 @@ export MAN_PATH=\\"<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"ocamlfind lwt\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -507,6 +586,7 @@ export MAN_PATH=\\"<storePath>/i/ocamlfind/man:<storePath>/i/ocaml/man:$MAN_PATH
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"ocamlfind ocaml\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
@@ -601,6 +681,7 @@ export MAN_PATH=\\"$MAN_PATH\\"
 export cur__name=\\"app.js\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app.js\\"
+export cur__original_root=\\"<sandboxPath>/app.js\\"
 export cur__depends=\\"\\"
 export cur__target_dir=\\"<storePath>/b/app.js\\"
 export cur__install=\\"<storePath>/s/app.js\\"
@@ -653,6 +734,175 @@ Array [
 ]
 `;
 
+exports[`calculating scope _build build-type 1`] = `
+Map {
+  "app" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/etc",
+    },
+  },
+  "self" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/etc",
+    },
+  },
+}
+`;
+
 exports[`calculating scope has deps 1`] = `
 Map {
   "dep" => Map {
@@ -668,6 +918,11 @@ Map {
     },
     "root" => Object {
       "name": "root",
+      "origin": BuildSpec { id: "dep" },
+      "value": "<sandboxPath>/dep",
+    },
+    "original_root" => Object {
+      "name": "original_root",
       "origin": BuildSpec { id: "dep" },
       "value": "<sandboxPath>/dep",
     },
@@ -748,6 +1003,11 @@ Map {
       "origin": BuildSpec { id: "app" },
       "value": "<sandboxPath>/app",
     },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
     "depends" => Object {
       "name": "depends",
       "origin": BuildSpec { id: "app" },
@@ -825,10 +1085,184 @@ Map {
       "origin": BuildSpec { id: "app" },
       "value": "<sandboxPath>/app",
     },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
     "depends" => Object {
       "name": "depends",
       "origin": BuildSpec { id: "app" },
       "value": "dep",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/etc",
+    },
+  },
+}
+`;
+
+exports[`calculating scope in-source build-type 1`] = `
+Map {
+  "app" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "",
+    },
+    "target_dir" => Object {
+      "name": "target_dir",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/b/app",
+    },
+    "install" => Object {
+      "name": "install",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app",
+    },
+    "bin" => Object {
+      "name": "bin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/bin",
+    },
+    "sbin" => Object {
+      "name": "sbin",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/sbin",
+    },
+    "lib" => Object {
+      "name": "lib",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/lib",
+    },
+    "man" => Object {
+      "name": "man",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/man",
+    },
+    "doc" => Object {
+      "name": "doc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/doc",
+    },
+    "stublibs" => Object {
+      "name": "stublibs",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/stublibs",
+    },
+    "toplevel" => Object {
+      "name": "toplevel",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/toplevel",
+    },
+    "share" => Object {
+      "name": "share",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/share",
+    },
+    "etc" => Object {
+      "name": "etc",
+      "origin": BuildSpec { id: "app" },
+      "value": "<storePath>/s/app/etc",
+    },
+  },
+  "self" => Map {
+    "name" => Object {
+      "name": "name",
+      "origin": BuildSpec { id: "app" },
+      "value": "app",
+    },
+    "version" => Object {
+      "name": "version",
+      "origin": BuildSpec { id: "app" },
+      "value": "0.1.0",
+    },
+    "root" => Object {
+      "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "depends" => Object {
+      "name": "depends",
+      "origin": BuildSpec { id: "app" },
+      "value": "",
     },
     "target_dir" => Object {
       "name": "target_dir",
@@ -907,6 +1341,11 @@ Map {
       "origin": BuildSpec { id: "app" },
       "value": "<sandboxPath>/app",
     },
+    "original_root" => Object {
+      "name": "original_root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
     "depends" => Object {
       "name": "depends",
       "origin": BuildSpec { id: "app" },
@@ -981,6 +1420,11 @@ Map {
     },
     "root" => Object {
       "name": "root",
+      "origin": BuildSpec { id: "app" },
+      "value": "<sandboxPath>/app",
+    },
+    "original_root" => Object {
+      "name": "original_root",
       "origin": BuildSpec { id: "app" },
       "value": "<sandboxPath>/app",
     },

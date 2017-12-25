@@ -421,6 +421,13 @@ function getBuildCurrentEnv(config: Config<*>, spec: BuildSpec) {
       exclusive: true,
     },
     {
+      name: `cur__original_root`,
+      value: config.getSourcePath(spec),
+      origin: spec,
+      builtIn: true,
+      exclusive: true,
+    },
+    {
       name: `cur__depends`,
       value: Array.from(spec.dependencies.values(), dep => dep.name).join(' '),
       origin: spec,
@@ -530,6 +537,11 @@ function getBuildScopeBindings(
       {
         name: 'root',
         value: config.getRootPath(spec),
+        origin: spec,
+      },
+      {
+        name: 'original_root',
+        value: config.getSourcePath(spec),
         origin: spec,
       },
       {

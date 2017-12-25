@@ -21,6 +21,7 @@ type BuildParams = {
   buildCommand?: Array<string | Array<string>>,
   installCommand?: Array<string | Array<string>>,
   dependencies?: Array<BuildSpec>,
+  buildType?: 'out-of-source' | 'in-source' | '_build',
 };
 
 function build({
@@ -29,6 +30,7 @@ function build({
   dependencies: dependenciesArray = [],
   buildCommand = [],
   installCommand = [],
+  buildType = 'out-of-source',
 }: BuildParams): BuildSpec {
   const dependencies = new Map();
   for (const item of dependenciesArray) {
@@ -42,7 +44,7 @@ function build({
     sourcePath: name,
     packagePath: name,
     sourceType: 'immutable',
-    buildType: 'out-of-source',
+    buildType,
     dependencies,
     exportedEnv,
     buildCommand,
@@ -121,6 +123,28 @@ describe('calculating scope', function() {
     const {scope} = calculate(config, app);
     expect(scope).toMatchSnapshot();
   });
+
+  test('_build build-type', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [],
+      buildType: '_build',
+    });
+    const {scope} = calculate(config, app);
+    expect(scope).toMatchSnapshot();
+  });
+
+  test('in-source build-type', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [],
+      buildType: 'in-source',
+    });
+    const {scope} = calculate(config, app);
+    expect(scope).toMatchSnapshot();
+  });
 });
 
 describe('calculating env', function() {
@@ -139,6 +163,28 @@ describe('calculating env', function() {
       name: 'app',
       exportedEnv: {},
       dependencies: [],
+    });
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
+  });
+
+  test('build _build-type', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [],
+      buildType: '_build',
+    });
+    const {env, scope} = calculate(config, app);
+    expect(Env.printEnvironment(env)).toMatchSnapshot();
+  });
+
+  test('build in-source', function() {
+    const app = build({
+      name: 'app',
+      exportedEnv: {},
+      dependencies: [],
+      buildType: '_build',
     });
     const {env, scope} = calculate(config, app);
     expect(Env.printEnvironment(env)).toMatchSnapshot();

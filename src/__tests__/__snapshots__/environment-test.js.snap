@@ -11,6 +11,7 @@ Map {
   "cur__name" => "app",
   "cur__version" => "0.1.0",
   "cur__root" => "<sandboxPath>/app",
+  "cur__original_root" => "<sandboxPath>/app",
   "cur__depends" => "ocamlfind lwt",
   "cur__target_dir" => "<storePath>/b/app",
   "cur__install" => "<storePath>/s/app",
@@ -45,6 +46,7 @@ export MAN_PATH=\\"<storePath>/i/lwt/man:<storePath>/i/ocamlfind/man:<storePath>
 export cur__name=\\"app\\"
 export cur__version=\\"0.1.0\\"
 export cur__root=\\"<sandboxPath>/app\\"
+export cur__original_root=\\"<sandboxPath>/app\\"
 export cur__depends=\\"ocamlfind lwt\\"
 export cur__target_dir=\\"<storePath>/b/app\\"
 export cur__install=\\"<storePath>/s/app\\"
