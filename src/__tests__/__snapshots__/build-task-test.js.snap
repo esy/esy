@@ -750,7 +750,7 @@ Map {
     "root" => Object {
       "name": "root",
       "origin": BuildSpec { id: "app" },
-      "value": "<sandboxPath>/app",
+      "value": "<storePath>/b/app",
     },
     "original_root" => Object {
       "name": "original_root",
@@ -832,7 +832,7 @@ Map {
     "root" => Object {
       "name": "root",
       "origin": BuildSpec { id: "app" },
-      "value": "<sandboxPath>/app",
+      "value": "<storePath>/b/app",
     },
     "original_root" => Object {
       "name": "original_root",
@@ -1170,7 +1170,7 @@ Map {
     "root" => Object {
       "name": "root",
       "origin": BuildSpec { id: "app" },
-      "value": "<sandboxPath>/app",
+      "value": "<storePath>/b/app",
     },
     "original_root" => Object {
       "name": "original_root",
@@ -1252,7 +1252,7 @@ Map {
     "root" => Object {
       "name": "root",
       "origin": BuildSpec { id: "app" },
-      "value": "<sandboxPath>/app",
+      "value": "<storePath>/b/app",
     },
     "original_root" => Object {
       "name": "original_root",
