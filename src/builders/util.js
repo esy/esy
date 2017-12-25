@@ -50,10 +50,6 @@ export function renderSandboxSbConfig(
         ; $cur__root/_build
          (subpath "${config.getRootPath(spec, '_build')}")
 
-        ; $cur__root/*/.merlin
-         (regex "^${config.getRootPath(spec, '.*', '\\.merlin')}$")
-        ; $cur__root/.merlin
-         (regex "^${config.getRootPath(spec, '\\.merlin')}$")
 
         ; $cur__root/*/NAME.install
          (regex "^${config.getRootPath(spec, '.*', '[^/]*\\.install')}$")
@@ -66,16 +62,12 @@ export function renderSandboxSbConfig(
         ; $cur__root/jbuild-ignore
          (regex "^${config.getRootPath(spec, 'jbuild-ignore')}$")
         `
-        :
-        // cur__original_root is where the original source files lived,
-        // and cur__root is where they might have been copied to.
-        `
-        ; $cur__original_root/*/.merlin
-         (regex "^${config.getRootPath(spec, '.*', '\\.merlin')}$")
-        ; $cur__original_root/.merlin
-         (regex "^${config.getRootPath(spec, '\\.merlin')}$")
-        `
-      };
+        : ``};
+
+      ; $cur__original_root/*/.merlin
+      (regex "^${config.getSourcePath(spec, '.*', '\\.merlin')}$")
+      ; $cur__original_root/.merlin
+      (regex "^${config.getSourcePath(spec, '\\.merlin')}$")
 
       ; $cur__target_dir
       (subpath "${config.getBuildPath(spec)}")
