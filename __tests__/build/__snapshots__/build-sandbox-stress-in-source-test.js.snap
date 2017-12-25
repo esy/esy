@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build sandbox-stress 1`] = `
+"RUNNING: esy config ls
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+RUNNING: esy build
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
+esy:bin:esyBuild execute
+esy:bin trying to acquire lock
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:build-dependencies checking if dependencies are built
+esy:shell-builder esyPrepare
+esy:shell-builder esyRelocateSource
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyComplete
+RUNNING: esy x echo ok
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
+esy:bin trying to acquire lock
+esy:bin no .esyrc found
+esy:bin prefix: <testRoot>/esy
+esy:build-dependencies checking if dependencies are built
+esy:shell-builder esyPrepare
+esy:shell-builder esyRelocateSource
+esy:shell-builder esyRunBuildCommands
+esy:shell-builder esyRunInstallCommands
+esy:shell-builder esyComplete"
+`;
