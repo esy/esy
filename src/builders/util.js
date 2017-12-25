@@ -59,6 +59,12 @@ export function renderSandboxSbConfig(
          (regex "^${config.getRootPath(spec, '.*', '[^/]*\\.install')}$")
         ; $cur__root/NAME.install
          (regex "^${config.getRootPath(spec, '[^/]*\\.install')}$")
+
+        ; $cur__root/NAME.opam
+         (regex "^${config.getRootPath(spec, '[^/]*\\.opam')}$")
+
+        ; $cur__root/jbuild-ignore
+         (regex "^${config.getRootPath(spec, 'jbuild-ignore')}$")
         `
         : ''};
 
