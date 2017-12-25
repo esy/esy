@@ -5,6 +5,12 @@
 * Add `esy ls-modules` command which shows a list of available OCaml modules for
   each of dependency. Implemented by @rauanmayemir.
 
+* Add `$cur__original_root` to build environment which points to the original source
+  location of the current package being built.
+
+  Also add `#{self.original_root}` and `#{package_name.original_root}` bindings
+  to `#{...}` interpolation expressions.
+
 ## 0.0.60
 
 * Fix `esy import-build --from <filename>`. See #97 for details.
