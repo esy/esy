@@ -66,7 +66,16 @@ export function renderSandboxSbConfig(
         ; $cur__root/jbuild-ignore
          (regex "^${config.getRootPath(spec, 'jbuild-ignore')}$")
         `
-        : ''};
+        :
+        // cur__original_root is where the original source files lived,
+        // and cur__root is where they might have been copied to.
+        `
+        ; $cur__original_root/*/.merlin
+         (regex "^${config.getRootPath(spec, '.*', '\\.merlin')}$")
+        ; $cur__original_root/.merlin
+         (regex "^${config.getRootPath(spec, '\\.merlin')}$")
+        `
+      };
 
       ; $cur__target_dir
       (subpath "${config.getBuildPath(spec)}")
