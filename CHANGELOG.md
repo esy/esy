@@ -11,6 +11,9 @@
   Also add `#{self.original_root}` and `#{package_name.original_root}` bindings
   to `#{...}` interpolation expressions.
 
+* Relax sandbox restrictions to allow write `.merlin` files into
+  `$cur__original_root` location.
+
 ## 0.0.60
 
 * Fix `esy import-build --from <filename>`. See #97 for details.
