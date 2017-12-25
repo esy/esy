@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.61
+
+* Add `esy ls-modules` command which shows a list of available OCaml modules for
+  each of dependency. Implemented by @rauanmayemir.
+
 ## 0.0.60
 
 * Fix `esy import-build --from <filename>`. See #97 for details.
