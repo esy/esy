@@ -18,8 +18,8 @@ function calculate(config, spec, params) {
 type BuildParams = {
   name: string,
   exportedEnv?: {[name: string]: EnvironmentVarExport},
-  buildCommand?: Array<Array<string>>,
-  installCommand?: Array<Array<string>>,
+  buildCommand?: Array<Array<string> | string>,
+  installCommand?: Array<Array<string> | string>,
   dependencies?: Array<BuildSpec>,
   buildType?: 'out-of-source' | 'in-source' | '_build',
 };
