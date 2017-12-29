@@ -125,6 +125,13 @@ callBuiltInCommand__build () {
   fi
 }
 
+callBuiltInCommand__buildShell () {
+  local buildJson
+  buildJson=$(mktemp)
+  node "$SCRIPTDIR/esy.js" plan "$@" > "$buildJson"
+  run withLock "$SCRIPTDIR/ocamlrun" "$SCRIPTDIR/esyb" shell -B "$buildJson"
+}
+
 callBuiltInCommand__x () {
   ensureBuildEjected --silent
   run --suppressOutput withLock "$BUILD_EJECT_PATH/bin/install"
@@ -335,7 +342,7 @@ elif [ $# -eq 1 ]; then
     build-shell)
       shift
       ensureSandbox
-      callBuiltInCommandWithLock build-shell
+      callBuiltInCommand__buildShell
       ;;
     plan)
       shift
@@ -464,7 +471,7 @@ else
     build-shell)
       shift
       ensureSandbox
-      callBuiltInCommandWithLock build-shell "$@"
+      callBuiltInCommand__buildShell "$@"
       ;;
     init|create)
       shift
