@@ -63,10 +63,10 @@ export type BuildSpec = {|
   +version: string,
 
   /** Command which is needed to execute build */
-  +buildCommand: Array<Array<string>>,
+  +buildCommand: Array<Array<string> | string>,
 
   /** Command which is needed to execute install */
-  +installCommand: Array<Array<string>>,
+  +installCommand: Array<Array<string> | string>,
 
   /** Environment exported by built. */
   +exportedEnv: {[name: string]: EnvironmentVarExport},

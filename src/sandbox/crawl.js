@@ -201,14 +201,8 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     dependencies,
   );
 
-  function parseCommands(commands) {
-    return commands.map(
-      command => (Array.isArray(command) ? command : shell.split(command)),
-    );
-  }
-
-  const buildCommand = parseCommands(context.manifest.esy.build);
-  const installCommand = parseCommands(context.manifest.esy.install);
+  const buildCommand = context.manifest.esy.build;
+  const installCommand = context.manifest.esy.install;
 
   const spec: BuildSpec = {
     id,
