@@ -202,13 +202,17 @@ export function fromBuildSpec(
       }
     }
 
-    function renderCommand(command: Array<string>, scope, envMap) {
+    function renderCommand(command: string | Array<string>, scope, envMap) {
       const lookupEnv = name => envMap.get(name);
+      if (Array.isArray(command)) {
+        command = command.map(arg => renderWithScope(spec, arg, scope));
+      } else {
+        command = shell.split(renderWithScope(spec, command, scope));
+      }
       return {
         command: command,
         renderedCommand: command.map(arg => {
           let res = arg;
-          res = renderWithScope(spec, arg, scope);
           res = shell.expand(arg, lookupEnv).value;
           if (res != null) {
             return res;
