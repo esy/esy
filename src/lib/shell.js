@@ -4,6 +4,7 @@
 
 import shellEscape from 'shell-escape';
 import {substituteVariables} from 'var-expansion';
+import * as shellwords from 'shellwords';
 
 export function expand(input: string, resolve: string => ?string) {
   return substituteVariables(input, {
@@ -25,4 +26,8 @@ export function quoteArgIfNeeded(arg: string): string {
   } else {
     return doubleQuote(arg);
   }
+}
+
+export function split(str: string): Array<string> {
+  return shellwords.split(str);
 }
