@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildTask, BuildSpec, Store, Config, Sandbox} from '../types';
+import type {BuildTask, Store, Config} from '../types';
 
 import invariant from 'invariant';
 import createLogger from 'debug';
@@ -11,20 +11,15 @@ import * as nodefs from 'fs';
 import jsonStableStringify from 'json-stable-stringify';
 
 import * as Stream from '../lib/Stream.js';
+import * as C from '../config.js';
 import {PromiseQueue} from '../lib/Promise';
 import * as path from '../lib/path';
 import * as fs from '../lib/fs';
 import * as child from '../lib/child_process';
 import {fixupErrorSubclassing} from '../lib/lang';
 
+import * as T from '../build-task.js';
 import * as Graph from '../graph';
-import * as Env from '../environment.js';
-import {
-  renderSandboxSbConfig,
-  rewritePathInFile,
-  rewritePathInSymlink,
-  exec,
-} from './util';
 import {
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
@@ -198,28 +193,6 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     return fs.exists(config.getFinalInstallPath(spec));
   }
 
-  async function findBuildMtime(spec) {
-    const ignoreForMtime = new Set(
-      IGNORE_FOR_MTIME.map(s => config.getSourcePath(spec, s)),
-    );
-    const sourcePath = config.getSourcePath(spec);
-    return await fs.findMaxMtime(sourcePath, {
-      ignore: name => ignoreForMtime.has(name),
-    });
-  }
-
-  async function readBuildMtime(spec): Promise<number> {
-    const checksumFilename = config.getBuildPath(spec, '_esy', 'mtime');
-    return (await fs.exists(checksumFilename))
-      ? parseInt(await fs.readFile(checksumFilename), 10)
-      : -Infinity;
-  }
-
-  async function writeBuildMtime(spec, mtime: number) {
-    const checksumFilename = config.getBuildPath(spec, '_esy', 'mtime');
-    await fs.writeFile(checksumFilename, String(mtime));
-  }
-
   async function performBuildOrImport(task, log, spinner): Promise<void> {
     for (const importPath of config.importPaths) {
       for (const basename of [task.spec.id, `${task.spec.id}.tar.gz`]) {
@@ -297,39 +270,14 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
         if (task.spec.sourceType === 'immutable') {
           inProgress = performBuildWithStatusReport(task, log, true);
         } else {
-          inProgress = performBuildWithStatusReport(
-            task,
-            log,
-            true,
-          ).then(async result => {
-            const maxMtime = await findBuildMtime(spec);
-            log('saving build mtime');
-            await writeBuildMtime(spec, maxMtime);
-            return result;
-          });
+          inProgress = performBuildWithStatusReport(task, log, true);
         }
       } else {
         const isInStore = await checkIfIsInStore(spec);
         if (spec.sourceType === 'immutable' && isInStore) {
-          //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
           inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
         } else if (spec.sourceType !== 'immutable') {
-          const buildMtime = await readBuildMtime(spec);
-          const maxMtime = await findBuildMtime(spec);
-          if (isInStore && maxMtime <= buildMtime) {
-            //onBuildStateChange(task, BUILD_STATE_CACHED_SUCCESS);
-            inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
-          } else {
-            inProgress = performBuildWithStatusReport(
-              task,
-              log,
-              true,
-            ).then(async result => {
-              log('saving build mtime');
-              await writeBuildMtime(spec, maxMtime);
-              return result;
-            });
-          }
+          inProgress = performBuildWithStatusReport(task, log, true);
         } else {
           inProgress = performBuildWithStatusReport(task, log);
         }
@@ -342,198 +290,14 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
   return performBuildMemoized;
 };
 
-type BuildDriver = {
-  rootPath: string,
-  installPath: string,
-  finalInstallPath: string,
-  buildPath: string,
-  log: string => void,
-
-  executeCommand(command: string, renderedCommand?: string): Promise<void>,
-  spawnInteractiveProcess(command: string, args: string[]): Promise<void>,
-};
-
-export async function withBuildDriver(
-  task: BuildTask,
-  config: Config<path.AbsolutePath>,
-  f: BuildDriver => Promise<void>,
-): Promise<void> {
-  const rootPath = config.getRootPath(task.spec);
-  const sourcePath = config.getSourcePath(task.spec);
-  const installPath = config.getInstallPath(task.spec);
-  const finalInstallPath = config.getFinalInstallPath(task.spec);
-  const buildPath = config.getBuildPath(task.spec);
-  const isRoot = task.spec.buildType === 'root';
-  const {buildType, sourceType} = task.spec;
-
-  const log = createLogger(`esy:simple-builder:${task.spec.name}`);
-
-  log('build: %O', {buildType, sourceType});
-
-  await Promise.all([
-    fs.rmdir(finalInstallPath),
-    fs.rmdir(installPath),
-    // Only remove build dir for:
-    // - immutable sources as for transient/root we want to enable incremental builds
-    // - in-source builds as we won't be able to enable incremental builds for
-    //   them anyway (they require source relocation)
-    sourceType === 'immutable' || buildType === 'in-source' ? fs.rmdir(buildPath) : null,
-  ]);
-
-  await Promise.all([
-    ...BUILD_DIR_STRUCTURE.map(p => fs.mkdirp(config.getBuildPath(task.spec, p))),
-    ...INSTALL_DIR_STRUCTURE.map(p => fs.mkdirp(config.getInstallPath(task.spec, p))),
-  ]);
-
-  const relocateSource = async () => {
-    log('relocateSource');
-    await fs.copydir(sourcePath, rootPath, {
-      exclude: IGNORE_FOR_BUILD.map(p => config.getSourcePath(task.spec, p)),
-    });
-  };
-
-  const relocateBuildDir = async () => {
-    log('relocateBuildDir');
-    const buildDir = config.getRootPath(task.spec, '_build');
-    const buildTargetDir = config.getBuildPath(task.spec, '_build');
-    const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
-    await renameIfExists(buildDir, buildBackupDir);
-    await renameIfExists(buildTargetDir, buildDir);
-  };
-
-  const relocateBuildDirComplete = async () => {
-    log('relocateBuildDirComplete');
-    const buildDir = config.getRootPath(task.spec, '_build');
-    const buildTargetDir = config.getBuildPath(task.spec, '_build');
-    const buildBackupDir = config.getBuildPath(task.spec, '_build.prev');
-    await renameIfExists(buildDir, buildTargetDir);
-    await renameIfExists(buildBackupDir, buildDir);
-  };
-
-  if (task.spec.buildType === 'in-source') {
-    await relocateSource();
-  } else if (task.spec.buildType === '_build') {
-    if (task.spec.sourceType === 'immutable') {
-      await relocateSource();
-    } else if (task.spec.sourceType === 'transient') {
-      await relocateBuildDir();
-    } else if (task.spec.sourceType === 'root') {
-      // nothing
-    }
-  } else if (task.spec.buildType === 'out-of-source') {
-    // nothing
-  }
-
-  const envForExec = {};
-  for (const [k, v] of Env.evalEnvironment(task.env).entries()) {
-    envForExec[k] = v;
-  }
-
-  const idInfoPath = path.join(buildPath, '_esy', 'idInfo');
-  await fs.writeFile(idInfoPath, jsonStableStringify(task.spec.idInfo, {space: '  '}));
-
-  const envPath = path.join(buildPath, '_esy', 'env');
-  await fs.writeFile(envPath, Env.printEnvironment(task.env), 'utf8');
-
-  const darwinSandboxConfig = path.join(buildPath, '_esy', 'sandbox.sb');
-  const tempDirs: Array<Promise<?string>> = ['/tmp', process.env.TMPDIR]
-    .filter(Boolean)
-    .map(p => fs.realpath(p));
-  await fs.writeFile(
-    darwinSandboxConfig,
-    renderSandboxSbConfig(task.spec, config, {
-      allowFileWrite: await Promise.all(tempDirs),
-    }),
-    'utf8',
-  );
-
-  const logFilename = config.getBuildPath(task.spec, '_esy', 'log');
-  const logStream = nodefs.createWriteStream(logFilename);
-
-  const executeCommand = async (command: string, renderedCommand?: string = command) => {
-    log(`executing: ${command}`);
-    let sandboxedCommand = renderedCommand;
-    if (process.platform === 'darwin') {
-      sandboxedCommand = `sandbox-exec -f ${darwinSandboxConfig} -- ${renderedCommand}`;
-    }
-
-    await Stream.writeIntoStream(logStream, `### ORIGINAL COMMAND: ${command}\n`);
-    await Stream.writeIntoStream(logStream, `### RENDERED COMMAND: ${renderedCommand}\n`);
-    await Stream.writeIntoStream(logStream, `### CWD: ${rootPath}\n`);
-
-    const execution = await exec(sandboxedCommand, {
-      cwd: rootPath,
-      env: envForExec,
-      maxBuffer: Infinity,
-    });
-    // TODO: we need line-buffering here possibly?
-    Stream.interleaveStreams(
-      execution.process.stdout,
-      execution.process.stderr,
-    ).pipe(logStream, {end: false});
-    const {code} = await execution.exit;
-    if (code !== 0) {
-      throw new BuildCommandError(task, command, config.prettifyPath(logFilename));
-    }
-  };
-
-  const spawnInteractiveProcess = async (command: string, args: Array<string>) => {
-    log(`executing interactively: ${command}`);
-
-    if (process.platform === 'darwin') {
-      args = ['-f', darwinSandboxConfig, '--', command].concat(args);
-      command = 'sandbox-exec';
-    }
-
-    try {
-      await child.spawn(command, args, {
-        cwd: rootPath,
-        env: envForExec,
-        stdio: 'inherit',
-      });
-    } catch (err) {
-      throw new InteractiveCommandError(task);
-    }
-  };
-
-  const buildDriver: BuildDriver = {
-    rootPath,
-    installPath,
-    finalInstallPath,
-    buildPath,
-
-    executeCommand,
-    spawnInteractiveProcess,
-
-    log,
-  };
-
-  try {
-    await f(buildDriver);
-  } finally {
-    if (task.spec.buildType === 'in-source') {
-      // nothing
-    } else if (task.spec.buildType === '_build') {
-      if (task.spec.sourceType === 'immutable') {
-        // nothing
-      } else if (task.spec.sourceType === 'transient') {
-        await relocateBuildDirComplete();
-      } else if (task.spec.sourceType === 'root') {
-        // nothing
-      }
-    } else if (task.spec.buildType === 'out-of-source') {
-      // nothing
-    }
-
-    await Stream.endWritableStream(logStream);
-  }
-}
-
 async function performBuild(
   task: BuildTask,
   config: Config<path.AbsolutePath>,
   spinner,
 ): Promise<void> {
+  const logFilename = `${config.getBuildPath(task.spec)}.log`;
+  const logStream = nodefs.createWriteStream(logFilename);
+
   const isRoot = task.spec.packagePath === '';
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
   const sandboxRootInstallTreeSymlink = path.join(
@@ -542,68 +306,51 @@ async function performBuild(
   );
   const symlinksAreNeeded = isRoot && task.spec.buildType !== '_build';
 
-  async function executeBuildCommands(driver: BuildDriver) {
-    // For top level build we need to remove build tree symlink and install tree
-    // symlink as in case of non mutating build it can interfere with the build
-    // itself. In case of mutating build they still be ignore then copying sources
-    // of to `$cur__target_dir`.
+  if (symlinksAreNeeded) {
+    await Promise.all([
+      unlinkOrRemove(sandboxRootBuildTreeSymlink),
+      unlinkOrRemove(sandboxRootInstallTreeSymlink),
+    ]);
+  }
+
+  let buildSucceeded = false;
+
+  const stdio = ['pipe', 'pipe', 'pipe'];
+  const onData = data => {
+    config.reporter.info(data);
+    logStream.write(data);
+  };
+  const onProcess = (p, updateStdout, reject, done) => {
+    const taskExport = T.exportBuildTask(config, task);
+    p.stdin.end(jsonStableStringify(taskExport, {space: '  '}));
+    if (p.stderr) {
+      p.stderr.on('data', updateStdout);
+    }
+    if (p.stdout) {
+      p.stdout.on('data', updateStdout);
+    }
+    done();
+  };
+  try {
+    await child.spawn(C.OCAMLRUN, [C.ESYB, '-B', '-'], {stdio, process: onProcess});
+    buildSucceeded = true;
+  } finally {
+    const buildPath = config.getBuildPath(task.spec);
+    const installPath = config.getFinalInstallPath(task.spec);
     if (symlinksAreNeeded) {
+      // Those can be either created by esy or by previous build process so we
+      // forcefully remove them.
       await Promise.all([
         unlinkOrRemove(sandboxRootBuildTreeSymlink),
         unlinkOrRemove(sandboxRootInstallTreeSymlink),
       ]);
-    }
-
-    let buildSucceeded = false;
-
-    try {
-      for (const {command, renderedCommand} of task.buildCommand) {
-        spinner.tick(command);
-        await driver.executeCommand(command, renderedCommand);
-      }
-
-      for (const {command, renderedCommand} of task.installCommand) {
-        spinner.tick(command);
-        await driver.executeCommand(command, renderedCommand);
-      }
-
-      spinner.tick('finishing...');
-      driver.log('rewritePaths');
-      await rewritePaths(
-        config.getInstallPath(task.spec),
-        driver.installPath,
-        driver.finalInstallPath,
-      );
-
-      // saving esy metadata
-      await fs.mkdirp(path.join(driver.installPath, '_esy'));
-      await fs.writeFile(
-        path.join(driver.installPath, '_esy', 'storePrefix'),
-        config.store.path,
-      );
-
-      // mv is an atomic op so this is how we implement transactional builds
-      await fs.rename(driver.installPath, driver.finalInstallPath);
-
-      buildSucceeded = true;
-    } finally {
-      if (symlinksAreNeeded) {
-        // Those can be either created by esy or by previous build process so we
-        // forcefully remove them.
-        await Promise.all([
-          unlinkOrRemove(sandboxRootBuildTreeSymlink),
-          unlinkOrRemove(sandboxRootInstallTreeSymlink),
-        ]);
-        await Promise.all([
-          fs.symlink(driver.buildPath, sandboxRootBuildTreeSymlink),
-          buildSucceeded &&
-            fs.symlink(driver.finalInstallPath, sandboxRootInstallTreeSymlink),
-        ]);
-      }
+      await Promise.all([
+        fs.symlink(buildPath, sandboxRootBuildTreeSymlink),
+        buildSucceeded && fs.symlink(installPath, sandboxRootInstallTreeSymlink),
+      ]);
     }
   }
-
-  await withBuildDriver(task, config, executeBuildCommands);
+  await Stream.endWritableStream(logStream);
 }
 
 async function initStores(
@@ -620,19 +367,6 @@ async function initStores(
   ]);
   if (store.path !== store.prettyPath) {
     fs.symlink(store.path, store.prettyPath);
-  }
-}
-
-async function renameIfExists(src, dst) {
-  try {
-    await fs.rmdir(dst);
-    await fs.rename(src, dst);
-  } catch (err) {
-    if (!await fs.exists(src)) {
-      return;
-    } else {
-      throw err;
-    }
   }
 }
 
@@ -653,22 +387,6 @@ async function unlinkOrRemove(p) {
       await fs.rmdir(p);
     }
   }
-}
-
-async function rewritePaths(path, from, to) {
-  const rewriteQueue = new PromiseQueue({concurrency: 20});
-  const files = await fs.walk(path);
-  await Promise.all(
-    files.map(file =>
-      rewriteQueue.add(async () => {
-        if (file.stats.isSymbolicLink()) {
-          await rewritePathInSymlink(file.absolute, from, to);
-        } else {
-          await rewritePathInFile(file.absolute, from, to);
-        }
-      }),
-    ),
-  );
 }
 
 async function importBuild(
