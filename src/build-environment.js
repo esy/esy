@@ -181,7 +181,7 @@ export const eject = async (
 
       $ESY_EJECT__ROOT/bin/build-dependencies
       ${C.OCAMLRUN} ${C.ESYB} build -B $ESY_EJECT__ROOT/build/${task.spec
-        .id}.json --build-only
+        .id}.json --build-only --force
     `,
     }),
 
