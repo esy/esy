@@ -8,6 +8,7 @@ import type {
   BuildConfigError,
   Config,
   BuildTask,
+  BuildTaskExport,
   Environment,
   EnvironmentBinding,
   BuildScope,
@@ -15,7 +16,7 @@ import type {
 } from './types';
 
 import outdent from 'outdent';
-import {quoteArgIfNeeded} from './lib/shell';
+import * as shell from './lib/shell.js';
 import * as path from './lib/path';
 import * as Map from './lib/Map.js';
 import * as lang from './lib/lang.js';
@@ -201,20 +202,22 @@ export function fromBuildSpec(
       }
     }
 
-    function renderCommand(command: Array<string> | string, scope) {
-      if (Array.isArray(command)) {
-        return {
-          command: command.join(' '),
-          renderedCommand: command
-            .map(command => quoteArgIfNeeded(renderWithScope(spec, command, scope)))
-            .join(' '),
-        };
-      } else {
-        return {
-          command,
-          renderedCommand: renderWithScope(spec, command, scope),
-        };
-      }
+    function renderCommand(command: Array<string>, scope, envMap) {
+      const lookupEnv = name => envMap.get(name);
+      return {
+        command: command,
+        renderedCommand: command.map(arg => {
+          let res = arg;
+          res = renderWithScope(spec, arg, scope);
+          res = shell.expand(arg, lookupEnv).value;
+          if (res != null) {
+            return res;
+          } else {
+            errors.push({reason: 'unable to process command', origin: spec});
+            return arg;
+          }
+        }),
+      };
     }
 
     function getExportedEnv(
@@ -359,9 +362,12 @@ export function fromBuildSpec(
     }
 
     const scope = getScope(spec, dependencies, config, true);
-    const buildCommand = spec.buildCommand.map(command => renderCommand(command, scope));
+    const envMap = Env.evalEnvironment(env);
+    const buildCommand = spec.buildCommand.map(command =>
+      renderCommand(command, scope, envMap),
+    );
     const installCommand = spec.installCommand.map(command =>
-      renderCommand(command, scope),
+      renderCommand(command, scope, envMap),
     );
 
     const task = {
@@ -655,4 +661,26 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
       buildPlatform === 'darwin'
       ? ':'
       : ';';
+}
+
+export function exportBuildTask(config: Config<*>, task: BuildTask): BuildTaskExport {
+  const env = {};
+  for (const [k, v] of Env.evalEnvironment(task.env)) {
+    env[k] = v;
+  }
+  return {
+    id: task.id,
+    name: task.spec.name,
+    version: task.spec.version,
+    sourceType: task.spec.sourceType,
+    buildType: task.spec.buildType,
+    build: task.buildCommand.map(c => c.renderedCommand),
+    install: task.installCommand.map(c => c.renderedCommand),
+
+    sourcePath: config.getSourcePath(task.spec),
+    stagePath: config.getInstallPath(task.spec),
+    installPath: config.getFinalInstallPath(task.spec),
+    buildPath: config.getBuildPath(task.spec),
+    env,
+  };
 }
