@@ -337,6 +337,11 @@ elif [ $# -eq 1 ]; then
       ensureSandbox
       callBuiltInCommandWithLock build-shell
       ;;
+    plan)
+      shift
+      ensureSandbox
+      callBuiltInCommand plan
+      ;;
     ls-builds)
       shift
       ensureSandbox
@@ -464,6 +469,11 @@ else
     init|create)
       shift
       callBuiltInCommand create "$@"
+      ;;
+    plan)
+      shift
+      ensureSandbox
+      callBuiltInCommand plan "$@"
       ;;
     install|i)
       shift
