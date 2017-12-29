@@ -12,13 +12,13 @@ import type {
   Reporter,
 } from '../types';
 
-import * as JSON5 from 'json5';
-import jsonStableStringify from 'json-stable-stringify';
 import * as path from 'path';
 import invariant from 'invariant';
 import outdent from 'outdent';
 
+import * as shell from '../lib/shell.js';
 import * as fs from '../lib/fs';
+import * as json from '../lib/json';
 import * as crypto from '../lib/crypto';
 import {resolve as resolveNodeModule, normalizePackageName} from '../util';
 import * as Env from '../environment';
@@ -201,14 +201,23 @@ export async function crawlBuild<R>(context: Context): Promise<BuildSpec> {
     dependencies,
   );
 
+  function parseCommands(commands) {
+    return commands.map(
+      command => (Array.isArray(command) ? command : shell.split(command)),
+    );
+  }
+
+  const buildCommand = parseCommands(context.manifest.esy.build);
+  const installCommand = parseCommands(context.manifest.esy.install);
+
   const spec: BuildSpec = {
     id,
     idInfo,
     name: context.manifest.name,
     version: context.manifest.version,
     exportedEnv: context.manifest.esy.exportedEnv,
-    buildCommand: context.manifest.esy.build,
-    installCommand: context.manifest.esy.install,
+    buildCommand,
+    installCommand,
     sourceType,
     packagePath: path.relative(context.sandboxPath, context.packagePath),
     buildType,
@@ -257,7 +266,7 @@ function calculateBuildIdentity(
     },
     dependencies: Array.from(dependencies.values(), dep => dep.id),
   };
-  const h = crypto.hash(jsonStableStringify(info, {space: '  '}), 'sha1');
+  const h = crypto.hash(json.stableStringifyPretty(info), 'sha1');
   const id =
     process.env.NODE_ENV === 'test'
       ? `${normalizePackageName(name)}-${version || '0.0.0'}`

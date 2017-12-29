@@ -43,6 +43,9 @@ export type EnvironmentVarExport = {
   __BUILT_IN_DO_NOT_USE_OR_YOU_WILL_BE_PIPd?: boolean,
 };
 
+export type SourceType = 'immutable' | 'transient' | 'root';
+export type BuildType = 'out-of-source' | '_build' | 'in-source';
+
 /**
  * Describes build.
  */
@@ -60,10 +63,10 @@ export type BuildSpec = {|
   +version: string,
 
   /** Command which is needed to execute build */
-  +buildCommand: Array<string | Array<string>>,
+  +buildCommand: Array<Array<string>>,
 
   /** Command which is needed to execute install */
-  +installCommand: Array<string | Array<string>>,
+  +installCommand: Array<Array<string>>,
 
   /** Environment exported by built. */
   +exportedEnv: {[name: string]: EnvironmentVarExport},
@@ -94,7 +97,7 @@ export type BuildSpec = {|
    *             cannot simply cache artefacts.
    * 'root'      means this is the root project source
    */
-  +sourceType: 'immutable' | 'transient' | 'root',
+  +sourceType: SourceType,
 
   /**
    * Build type.
@@ -103,7 +106,7 @@ export type BuildSpec = {|
    * '_build'        means it pollutes only $cur__root/_build inside the $cur__root
    * 'in-source'     means it pollutes in $cur__root
    */
-  +buildType: 'out-of-source' | '_build' | 'in-source',
+  +buildType: BuildType,
 
   /**
    * Set of dependencies which must be build/installed before this build can
@@ -118,8 +121,8 @@ export type BuildSpec = {|
 |};
 
 export type BuildTaskCommand = {
-  command: string,
-  renderedCommand: string,
+  command: Array<string>,
+  renderedCommand: Array<string>,
 };
 
 /**
@@ -165,6 +168,21 @@ export type BuildTask = {
    * A list of errors found in build.
    */
   +errors: Array<BuildConfigError>,
+};
+
+export type BuildTaskExport = {
+  id: string,
+  name: string,
+  version: string,
+  sourceType: SourceType,
+  buildType: BuildType,
+  build: Array<Array<string>>,
+  install: Array<Array<string>>,
+  sourcePath: string,
+  stagePath: string,
+  installPath: string,
+  buildPath: string,
+  env: {[name: string]: string},
 };
 
 export type BuildPlatform = 'darwin' | 'linux' | 'cygwin';
