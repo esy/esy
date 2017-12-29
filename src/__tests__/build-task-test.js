@@ -18,8 +18,8 @@ function calculate(config, spec, params) {
 type BuildParams = {
   name: string,
   exportedEnv?: {[name: string]: EnvironmentVarExport},
-  buildCommand?: Array<string | Array<string>>,
-  installCommand?: Array<string | Array<string>>,
+  buildCommand?: Array<Array<string>>,
+  installCommand?: Array<Array<string>>,
   dependencies?: Array<BuildSpec>,
   buildType?: 'out-of-source' | 'in-source' | '_build',
 };
@@ -539,7 +539,7 @@ describe('calculating env', function() {
   test('unknown reference in a build command', function() {
     const app = build({
       name: 'app',
-      buildCommand: ['exec #{unknown}'],
+      buildCommand: [['exec', '#{unknown}']],
     });
     try {
       calculate(config, app);
@@ -554,7 +554,7 @@ describe('calculating env', function() {
   test('invalid syntax in a build command', function() {
     const app = build({
       name: 'app',
-      buildCommand: ['exec #{oops'],
+      buildCommand: [['exec', '#{oops']],
     });
     try {
       calculate(config, app);
@@ -569,7 +569,7 @@ describe('calculating env', function() {
   test('unknown reference in an install command', function() {
     const app = build({
       name: 'app',
-      installCommand: ['exec #{unknown}'],
+      installCommand: [['exec', '#{unknown}']],
     });
     try {
       calculate(config, app);
@@ -584,7 +584,7 @@ describe('calculating env', function() {
   test('invalid syntax in an install command', function() {
     const app = build({
       name: 'app',
-      installCommand: ['exec #{oops'],
+      installCommand: [['exec', '#{oops']],
     });
     try {
       calculate(config, app);
