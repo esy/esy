@@ -67,6 +67,7 @@
   "dependencies": {
     "@esy-ocaml/esy-install": "link:./esy-install",
     "@esy-ocaml/esy-opam": "0.0.12",
+    "@esy-ocaml/esyb": "0.0.1",
     "@esy-ocaml/flock": "esy-ocaml/flock#v0.2.3",
     "babel-polyfill": "^6.23.0",
     "cli-argparse": "^1.1.2",
@@ -82,6 +83,7 @@
     "p-queue": "^1.0.0",
     "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
+    "shellwords": "^0.1.1",
     "var-expansion": "^0.1.0",
     "walkdir": "^0.0.11"
   }

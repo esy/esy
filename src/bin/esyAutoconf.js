@@ -7,6 +7,7 @@ import outdent from 'outdent';
 import {version} from '../../package.json';
 
 import * as constants from '../constants.js';
+import * as config from '../config.js';
 
 export default async function esyAutoconf(ctx: CommandContext) {
   console.log(outdent`
@@ -18,6 +19,10 @@ export default async function esyAutoconf(ctx: CommandContext) {
     export ESY__METADATA_VERSION="${constants.ESY_METADATA_VERSION}"
     # Store path padding required for relocatable artifacts
     export ESY__STORE_PADDING_LENGTH="${constants.ESY_STORE_PADDING_LENGTH}"
+
+    export ESYB_COMMAND="${config.ESYB_COMMAND}"
+    export FASTREPLACESTRING_COMMAND="${config.FASTREPLACESTRING_COMMAND}"
+    export FLOCK_COMMAND="${config.FLOCK_COMMAND}"
   `);
 }
 

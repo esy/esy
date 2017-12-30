@@ -14,7 +14,7 @@ import * as Env from '../environment';
 import * as Makefile from '../Makefile';
 import {normalizePackageName} from '../util';
 import {renderSandboxSbConfig} from './util';
-import {singleQuote} from '../lib/shell';
+import * as shell from '../lib/shell.js';
 import * as fs from '../lib/fs';
 import * as path from '../lib/path';
 import * as bashgen from './bashgen';
@@ -464,7 +464,11 @@ async function emitFile(
 }
 
 export function renderBuildTaskCommand(command: Array<BuildTaskCommand>) {
-  return command.map(c => Makefile.quoted(singleQuote(c.renderedCommand)));
+  return command.map(c =>
+    Makefile.quoted(
+      shell.singleQuote(c.renderedCommand.map(shell.quoteArgIfNeeded).join(' ')),
+    ),
+  );
 }
 
 function ejectedRootPath(...segments) {

@@ -13,7 +13,7 @@ import * as E from '../environment';
 import * as T from '../build-task';
 import * as B from '../builders/simple-builder';
 import * as path from '../lib/path';
-import * as ShellBuilder from '../builders/shell-builder';
+import * as BuildEnv from '../build-environment.js';
 
 export default async function esyInitGlobalSandbox(
   ctx: CommandContext,
@@ -48,7 +48,7 @@ export default async function esyInitGlobalSandbox(
 
   const buildDependencies = handleFinalBuildState(ctx, B.buildDependencies(task, config));
 
-  const ejectSandbox = ShellBuilder.eject(
+  const ejectSandbox = BuildEnv.eject(
     path.join(sandboxPath, 'build'),
     task,
     sandbox,
