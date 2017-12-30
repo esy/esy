@@ -12,6 +12,12 @@ import * as crypto from './lib/crypto';
 
 const NUM_CPUS = os.cpus().length;
 
+export const ESYB_COMMAND = require.resolve('@esy-ocaml/esyb/esyb');
+export const FLOCK_COMMAND = require.resolve('@esy-ocaml/flock/flock');
+export const FASTREPLACESTRING_COMMAND = require.resolve(
+  'fastreplacestring/.bin/fastreplacestring.exe',
+);
+
 function _create<Path: path.Path>(
   sandboxPath: Path,
   store: Store<Path>,

@@ -68,7 +68,7 @@ export const eject = async (
     Array.from(transientDeps.values(), async t => {
       const buildJson = `$ESY_EJECT__ROOT/build/${t.spec.id}.json`;
       return outdent`
-      ${C.OCAMLRUN} ${C.ESYB} build -B ${buildJson}
+      ${C.ESYB_COMMAND} build -B ${buildJson}
     `;
     }),
   );
@@ -180,7 +180,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.OCAMLRUN} ${C.ESYB} build -B $ESY_EJECT__ROOT/build/${task.spec
+      ${C.ESYB_COMMAND} build -B $ESY_EJECT__ROOT/build/${task.spec
         .id}.json --build-only --force
     `,
     }),
@@ -197,7 +197,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies --silent
-      ${C.OCAMLRUN} ${C.ESYB} exec -B $ESY_EJECT__ROOT/build/${task.spec.id}.json -- "$@"
+      ${C.ESYB_COMMAND} exec -B $ESY_EJECT__ROOT/build/${task.spec.id}.json -- "$@"
     `,
     }),
 
@@ -213,7 +213,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.OCAMLRUN} ${C.ESYB} build -B $ESY_EJECT__ROOT/build/${task.spec.id}.json
+      ${C.ESYB_COMMAND} build -B $ESY_EJECT__ROOT/build/${task.spec.id}.json
     `,
     }),
 
@@ -229,7 +229,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.OCAMLRUN} ${C.ESYB} shell -B $ESY_EJECT__ROOT/build/${task.spec.id}.json
+      ${C.ESYB_COMMAND} shell -B $ESY_EJECT__ROOT/build/${task.spec.id}.json
     `,
     }),
   );

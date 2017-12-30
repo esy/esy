@@ -103,7 +103,7 @@ withLock () {
     local command="$@"
     set +e
     # we do || exit 2 to distinguish between $command failure and flock failure
-    ESY__LOCKED="$ESY__LOCK" "$SCRIPTDIR/flock" -n "$ESY__LOCK" bash -c "$command || exit 2"
+    ESY__LOCKED="$ESY__LOCK" "$FLOCK_COMMAND" -n "$ESY__LOCK" bash -c "$command || exit 2"
     retCode="$?"
     set -e
     if [ $retCode -eq 1 ]; then
@@ -129,7 +129,7 @@ callBuiltInCommand__buildShell () {
   local buildJson
   buildJson=$(mktemp)
   node "$SCRIPTDIR/esy.js" plan "$@" > "$buildJson"
-  run withLock "$SCRIPTDIR/ocamlrun" "$SCRIPTDIR/esyb" shell -B "$buildJson"
+  run withLock "$ESYB_COMMAND" shell -B "$buildJson"
 }
 
 callBuiltInCommand__x () {
