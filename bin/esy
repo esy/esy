@@ -128,7 +128,7 @@ callBuiltInCommand__build () {
 callBuiltInCommand__buildShell () {
   local buildJson
   buildJson=$(mktemp)
-  node "$SCRIPTDIR/esy.js" plan "$@" > "$buildJson"
+  node "$SCRIPTDIR/esy.js" build-plan "$@" > "$buildJson"
   run withLock "$ESYB_COMMAND" shell -B "$buildJson"
 }
 
@@ -344,10 +344,10 @@ elif [ $# -eq 1 ]; then
       ensureSandbox
       callBuiltInCommand__buildShell
       ;;
-    plan)
+    build-plan)
       shift
       ensureSandbox
-      callBuiltInCommand plan
+      callBuiltInCommand build-plan
       ;;
     ls-builds)
       shift
@@ -477,10 +477,10 @@ else
       shift
       callBuiltInCommand create "$@"
       ;;
-    plan)
+    build-plan)
       shift
       ensureSandbox
-      callBuiltInCommand plan "$@"
+      callBuiltInCommand build-plan "$@"
       ;;
     install|i)
       shift

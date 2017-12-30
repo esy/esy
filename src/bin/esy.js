@@ -162,7 +162,6 @@ type Command = {
 const commandsByName: {[name: string]: () => Command} = {
   create: () => require('./esyCreate'),
   build: () => require('./esyBuild'),
-  plan: () => require('./esyPlan'),
   release: () => require('./esyRelease'),
   config: () => require('./esyConfig'),
   install: () => require('./esyInstall'),
@@ -171,6 +170,7 @@ const commandsByName: {[name: string]: () => Command} = {
   'ls-libs': () => require('./esyLsLibs'),
   'ls-modules': () => require('./esyLsModules'),
   'init-global-sandbox': () => require('./esyInitGlobalSandbox'),
+  'build-plan': () => require('./esyBuildPlan'),
   'build-eject': () => require('./esyBuildEject'),
   'import-opam': () => require('./esyImportOpam'),
   'command-env': () => require('./esyCommandEnv'),
