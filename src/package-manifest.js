@@ -9,7 +9,6 @@ import invariant from 'invariant';
 
 import {resolve as resolveNodeModule} from './util';
 import type {PackageManifest} from './types';
-import * as validate from './validate';
 
 const MANIFEST_NAME_LIST = ['esy.json', 'package.json'];
 
@@ -103,8 +102,6 @@ export function normalizeManifest(manifest: Object): PackageManifest {
   }
   if (manifest.esy.sandboxType == null) {
     manifest.esy.sandboxType = 'project';
-  } else {
-    manifest.esy.sandboxType = validate.sandboxType(manifest.esy.sandboxType);
   }
   return manifest;
 }
