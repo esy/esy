@@ -4,7 +4,11 @@
   "license": "MIT",
   "esy": {
     "build": [
-      "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name",
+      [
+        "bash",
+        "-c",
+        "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
+      ],
       "chmod +x $cur__target_dir/$cur__name"
     ],
     "install": [

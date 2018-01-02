@@ -5,7 +5,11 @@
   "esy": {
     "build": [
       "mkdir -p _build",
-      "echo '#!/bin/bash\necho $cur__name' > _build/$cur__name",
+      [
+        "bash",
+        "-c",
+        "echo '#!/bin/bash\necho $cur__name' > _build/$cur__name"
+      ],
       "chmod +x _build/$cur__name"
     ],
     "install": [
