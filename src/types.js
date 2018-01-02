@@ -179,9 +179,6 @@ export type BuildTaskExport = {
   build: Array<Array<string>>,
   install: Array<Array<string>>,
   sourcePath: string,
-  stagePath: string,
-  installPath: string,
-  buildPath: string,
   env: {[name: string]: string},
 };
 
