@@ -213,7 +213,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} build --build $ESY_EJECT__ROOT/build/${task.spec.id}.json
+      ${C.ESYB_COMMAND} build --build $ESY_EJECT__ROOT/build/${task.spec.id}.json --force
     `,
     }),
 
