@@ -79,13 +79,10 @@ function getBuildPlatform() {
 
 export async function getSandbox(
   ctx: CommandContext,
-  options?: {forRelease?: boolean, sandboxType?: 'global' | 'project'} = {},
+  options?: {forRelease?: boolean} = {},
 ): Promise<Sandbox> {
-  const {sandboxType = 'project', forRelease = false} = options;
-  const S =
-    sandboxType === 'project'
-      ? require('../sandbox/project-sandbox')
-      : require('../sandbox/global-sandbox');
+  const {forRelease = false} = options;
+  const S = require('../sandbox/project-sandbox');
   const sandbox = await S.create(ctx.sandboxPath, {
     installCachePath: path.join(ctx.prefixPath, 'install-cache'),
     reporter: ctx.reporter,
@@ -169,7 +166,6 @@ const commandsByName: {[name: string]: () => Command} = {
   'ls-builds': () => require('./esyLsBuilds'),
   'ls-libs': () => require('./esyLsLibs'),
   'ls-modules': () => require('./esyLsModules'),
-  'init-global-sandbox': () => require('./esyInitGlobalSandbox'),
   'build-plan': () => require('./esyBuildPlan'),
   'build-eject': () => require('./esyBuildEject'),
   'import-opam': () => require('./esyImportOpam'),

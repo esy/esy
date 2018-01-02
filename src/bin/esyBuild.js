@@ -83,8 +83,7 @@ export default async function esyBuild(
   invocation: CommandInvocation,
 ) {
   const config = await getBuildConfig(ctx);
-  const {manifest: {esy: {sandboxType}}} = await M.read(config.sandboxPath);
-  const sandbox = await getSandbox(ctx, {sandboxType});
+  const sandbox = await getSandbox(ctx);
   const task: BuildTask = Task.fromSandbox(sandbox, config);
 
   let ejectingBuild = null;
