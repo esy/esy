@@ -97,7 +97,7 @@ function renderMakefileRawItem({value}: MakefileRawItem) {
 
 function renderMakefileRuleItem(rule: MakefileRuleItem) {
   const {target, dependencies = [], command, phony, env, exportEnv, shell} = rule;
-  const header = `${target}: ${renderRuleDependencies(dependencies)}`;
+  const header = `${target}:${renderRuleDependencies(dependencies)}`;
 
   let prelude = '';
   if (exportEnv) {
@@ -130,6 +130,9 @@ function renderMakefileRuleItem(rule: MakefileRuleItem) {
 function renderRuleDependencies(
   dependencies: $ReadOnlyArray<MakefileItemDependency>,
 ): string {
+  if (dependencies.length === 0) {
+    return '';
+  }
   const rendered: Array<string> = [];
   for (const dep of dependencies) {
     if (typeof dep === 'string') {
@@ -138,7 +141,8 @@ function renderRuleDependencies(
       rendered.push(dep.target);
     }
   }
-  return rendered.join(' ');
+  const sep = '  \\\n  ';
+  return sep + rendered.join(sep);
 }
 
 function renderEnvValue(v: string | QuotedString) {

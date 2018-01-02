@@ -180,7 +180,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} build -B $ESY_EJECT__ROOT/build/${task.spec
+      ${C.ESYB_COMMAND} build --quiet --build $ESY_EJECT__ROOT/build/${task.spec
         .id}.json --build-only --force
     `,
     }),
@@ -197,7 +197,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies --silent
-      ${C.ESYB_COMMAND} exec -B $ESY_EJECT__ROOT/build/${task.spec.id}.json -- "$@"
+      ${C.ESYB_COMMAND} exec --build $ESY_EJECT__ROOT/build/${task.spec.id}.json -- "$@"
     `,
     }),
 
@@ -213,7 +213,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} build -B $ESY_EJECT__ROOT/build/${task.spec.id}.json
+      ${C.ESYB_COMMAND} build --build $ESY_EJECT__ROOT/build/${task.spec.id}.json
     `,
     }),
 
