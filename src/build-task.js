@@ -680,11 +680,7 @@ export function exportBuildTask(config: Config<*>, task: BuildTask): BuildTaskEx
     buildType: task.spec.buildType,
     build: task.buildCommand.map(c => c.renderedCommand),
     install: task.installCommand.map(c => c.renderedCommand),
-
     sourcePath: config.getSourcePath(task.spec),
-    stagePath: config.getInstallPath(task.spec),
-    installPath: config.getFinalInstallPath(task.spec),
-    buildPath: config.getBuildPath(task.spec),
     env,
   };
 }
