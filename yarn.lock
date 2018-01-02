@@ -10,20 +10,20 @@
   version "0.0.12"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.12.tgz#7eab51e8c9f1cbfec748935e3c178a83c31450cc"
 
-"@esy-ocaml/esyb@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/esyb/-/esyb-0.0.2.tgz#c032a4f1bf9d108e5125fcdd802a17424473e55f"
+"@esy-ocaml/esyb@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/esyb/-/esyb-0.0.4.tgz#975c742fe68da26780bb23efdc38dee39cd69b68"
   dependencies:
-    "@esy-ocaml/ocamlrun" "4.6.1"
+    "@esy-ocaml/ocamlrun" "4.6.2"
     fastreplacestring "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4"
 
 "@esy-ocaml/flock@esy-ocaml/flock#v0.2.3":
   version "0.2.3"
   resolved "https://codeload.github.com/esy-ocaml/flock/tar.gz/243b7b61a5ad5d6e529172e03025729a45acdd7f"
 
-"@esy-ocaml/ocamlrun@4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/ocamlrun/-/ocamlrun-4.6.1.tgz#1c288a1a70e3d6b01c1aafd561c473e2d478da29"
+"@esy-ocaml/ocamlrun@4.6.2":
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/ocamlrun/-/ocamlrun-4.6.2.tgz#8c4cc0c7a1b51b3471ef3e38afbdaba33aecf30f"
 
 abab@^1.0.3:
   version "1.0.3"
