@@ -146,7 +146,7 @@ esyRewriteStorePrefix () {
   local destPrefix="$3"
   # rewrite paths in files
   find "$path" -type f -print0 \
-    | xargs -0 -I {} -P 30 "$BINDIR/fastreplacestring.exe" "{}" "$origPrefix" "$destPrefix"
+    | xargs -0 -I {} -P 30 "$FASTREPLACESTRING_COMMAND" "{}" "$origPrefix" "$destPrefix"
   # rewrite paths symlinks point to
   find "$path" -type l | while read -r name; do
     esyRewriteSymlink "$name" "$origPrefix" "$destPrefix"
