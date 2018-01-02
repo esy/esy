@@ -15,7 +15,7 @@ import {indent, getSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as M from '../package-manifest';
 import * as Builder from '../builders/simple-builder';
-import * as BuildEnv from '../build-environment.js';
+import * as RootBuildEject from '../root-build-eject.js';
 
 const log = createLogger('esy:bin:esyBuild');
 
@@ -89,7 +89,7 @@ export default async function esyBuild(
 
   let ejectingBuild = null;
   if (invocation.options.options.eject != null) {
-    ejectingBuild = BuildEnv.eject(
+    ejectingBuild = RootBuildEject.eject(
       invocation.options.options.eject,
       task,
       sandbox,
