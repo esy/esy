@@ -24,7 +24,7 @@ export default async function esyCreate(
     [builderName, ...builderArgs] = invocation.args;
   } else {
     builderName = 'esy-project';
-    builderArgs = invocation.args;
+    builderArgs = ['my-esy-project', ...invocation.args];
   }
 
   const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1create-');
