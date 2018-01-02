@@ -619,7 +619,7 @@ exports[`calculating env invalid syntax in a build command 1`] = `
 Array [
   Object {
     "origin": BuildSpec { id: "app" },
-    "reason": "Invalid expression syntax: Expected (}) (at 10 character)",
+    "reason": "Invalid expression syntax: Expected (}) (at 5 character)",
   },
 ]
 `;
@@ -628,7 +628,7 @@ exports[`calculating env invalid syntax in an install command 1`] = `
 Array [
   Object {
     "origin": BuildSpec { id: "app" },
-    "reason": "Invalid expression syntax: Expected (}) (at 10 character)",
+    "reason": "Invalid expression syntax: Expected (}) (at 5 character)",
   },
 ]
 `;
