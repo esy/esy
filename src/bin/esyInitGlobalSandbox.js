@@ -13,7 +13,7 @@ import * as E from '../environment';
 import * as T from '../build-task';
 import * as B from '../builders/simple-builder';
 import * as path from '../lib/path';
-import * as BuildEnv from '../build-environment.js';
+import * as BuildEnv from '../root-build-eject.js';
 
 export default async function esyInitGlobalSandbox(
   ctx: CommandContext,
