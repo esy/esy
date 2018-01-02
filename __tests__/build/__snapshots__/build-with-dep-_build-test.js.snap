@@ -10,20 +10,10 @@ esy:bin prefix: <testRoot>/esy
 esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
 esy:bin trying to acquire lock
 esy:bin:esyBuild execute
-esy:simple-builder:dep build: { buildType: '_build', sourceType: 'immutable' }
-esy:simple-builder:dep relocateSource
-esy:simple-builder:dep executing: mkdir _build
-esy:simple-builder:dep executing: echo \\"#!/bin/bash
-esy:simple-builder:dep executing: chmod +x ./_build/$cur__name
-esy:simple-builder:dep executing: cp ./_build/$cur__name $cur__bin/$cur__name
-esy:simple-builder:dep rewritePaths
 esy:bin trying to acquire lock
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built
-esy:shell-builder esyPrepare
-esy:shell-builder esyRunBuildCommands
-esy:shell-builder esyComplete
 RUNNING: esy dep
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
@@ -36,8 +26,6 @@ esy:bin trying to acquire lock
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built
-esy:shell-builder esyPrepare
-esy:shell-builder esyComplete
 RUNNING: esy x dep
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
@@ -46,10 +34,6 @@ esy:bin trying to acquire lock
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built
-esy:shell-builder esyPrepare
-esy:shell-builder esyRunBuildCommands
-esy:shell-builder esyRunInstallCommands
-esy:shell-builder esyComplete
 RUNNING: esy x with-dep-_build
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy

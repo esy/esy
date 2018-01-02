@@ -5,7 +5,11 @@
   "esy": {
     "buildsInSource": true,
     "build": [
-      "echo '#!/bin/bash\necho $cur__name' > ./$cur__name",
+      [
+        "bash",
+        "-c",
+        "echo '#!/bin/bash\necho $cur__name' > ./$cur__name"
+      ],
       "chmod +x ./$cur__name"
     ],
     "install": [
