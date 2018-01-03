@@ -162,7 +162,7 @@ esyRelease__decompressBuilds () {
   tar -xzf "$releaseSandboxPath.tar.gz"
 
   cd "$releasePackagePath"
-  makeR bootstrap
+  makeR bootstrap.tools
 
   ESY__PREFIX="$releaseSandboxPath" \
     find "$releasePackagePath/_export" -name '*.tar.gz' -print0 |\
