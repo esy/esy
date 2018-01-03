@@ -169,15 +169,7 @@ export function defineTestCaseWithShell(
   }
 
   test(`build ${fixture.description}`, async function() {
-    let stdout = '';
-    try {
-      stdout = await fixture.shellInProject(shellScript);
-    } catch (err) {
-      if (err.stdout != null) {
-        maybeMakeExecutionTraceSnapshot(err.stdout);
-      }
-      throw err;
-    }
+    const stdout = await fixture.shellInProject(shellScript);
     maybeMakeExecutionTraceSnapshot(stdout);
     // Log stdout on CI servers so we can inspect failures.
     if (isCI) {
