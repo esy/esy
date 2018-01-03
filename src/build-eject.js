@@ -84,6 +84,24 @@ const files = {
     contents: fs.readFileSync(require.resolve('../bin/esyExportBuild')),
     executable: true,
   },
+
+  esyExportBuild: {
+    filename: ['bin', 'esyBuild'],
+    contents: outdent`
+      #!/bin/bash
+
+      build="$1"
+
+      log=$(ocamlrun $ESY_EJECT__ROOT/bin/esyb build --build "$build")
+
+      if [ $? -ne 0 ]; then
+        echo "$log"
+        exit 1
+      fi
+
+    `,
+    executable: true,
+  },
 };
 
 const preludeRuleSet = [
@@ -201,7 +219,7 @@ export function eject(
       target: 'build',
       command: outdent`
         @echo 'Building package: ${task.spec.name}'
-        $(ESYB) build --build $(ESY_EJECT__ROOT)/build/${task.spec.id}.json
+        esyBuild $(ESY_EJECT__ROOT)/build/${task.spec.id}.json
       `,
       dependencies: buildDependenciesRule,
     });
