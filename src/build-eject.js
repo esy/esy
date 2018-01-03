@@ -31,7 +31,7 @@ const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
 
 const bin = {
-  getStorePath: ejectedRootPath('bin', 'get-store-path'),
+  getStorePath: ejectedRootPath('bin', 'esyGetStorePath'),
   fastreplacestring: ejectedRootPath('bin', 'fastreplacestring.exe'),
   fastreplacestringSource: ejectedRootPath('bin', 'fastreplacestring.cpp'),
   ocamlrun: ejectedRootPath('bin', 'ocamlrun'),
@@ -39,7 +39,7 @@ const bin = {
 
 const files = {
   getStorePath: {
-    filename: ['bin/get-store-path'],
+    filename: ['bin/esyGetStorePath'],
     executable: true,
     contents: outdent`
       #!/bin/bash
@@ -137,10 +137,22 @@ const compileOCamlRunRule = Makefile.createRule({
   `,
 });
 
+const bootstrapOCamlRunRule = Makefile.createRule({
+  target: 'bootstrap.ocamlrun',
+  phony: true,
+  dependencies: [compileOCamlRunRule],
+});
+
+const bootstrapToolsRule = Makefile.createRule({
+  target: 'bootstrap.tools',
+  phony: true,
+  dependencies: [compileFastreplacestringRule],
+});
+
 const bootstrapRule = Makefile.createRule({
   target: 'bootstrap',
   phony: true,
-  dependencies: [compileOCamlRunRule, compileFastreplacestringRule],
+  dependencies: [bootstrapOCamlRunRule, bootstrapToolsRule],
 });
 
 /**
