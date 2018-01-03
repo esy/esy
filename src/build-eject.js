@@ -171,6 +171,10 @@ export function eject(
 
   const buildFiles = [];
 
+  for (const key in files) {
+    buildFiles.push(files[key]);
+  }
+
   function createBuildRule(
     build: BuildSpec,
     rule: {
@@ -313,20 +317,16 @@ export function eject(
   };
 
   log('build environment');
-  Promise.all([
-    ...buildFiles.map(file => emitFile(outputPath, file)),
-    emitFile(outputPath, files.getStorePath),
-    emitFile(outputPath, files.fastreplacestringSource),
-    emitFile(outputPath, files.realpathSh),
-    emitFile(outputPath, files.esyRuntimeSh),
-    emitFile(outputPath, files.esyConfigSh),
-    emitFile(outputPath, files.esyImportBuild),
-    emitFile(outputPath, files.esyExportBuild),
-    emitFile(outputPath, sandboxEnvFile),
-    emitFile(outputPath, makefileFile),
-    emitOcamlrun(outputPath),
-    emitEsyb(outputPath),
-  ]);
+  return Promise.all(
+    buildFiles
+      .map(file => emitFile(outputPath, file))
+      .concat([
+        emitFile(outputPath, sandboxEnvFile),
+        emitFile(outputPath, makefileFile),
+        emitOcamlrun(outputPath),
+        emitEsyb(outputPath),
+      ]),
+  );
 }
 
 async function emitOcamlrun(outputPath: string) {
