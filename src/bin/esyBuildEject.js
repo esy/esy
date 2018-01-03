@@ -23,7 +23,7 @@ export default async function buildEjectCommand(
     ctx.buildPlatform,
   );
   const sandbox = await getSandbox(ctx, {forRelease: true});
-  BuildEject.eject(
+  await BuildEject.eject(
     sandbox,
     path.join(ctx.sandboxPath, 'node_modules', '.cache', '_esy', 'build-eject'),
     {buildPlatform, reporter: ctx.reporter},
