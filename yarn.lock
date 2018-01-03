@@ -10,9 +10,9 @@
   version "0.0.12"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.12.tgz#7eab51e8c9f1cbfec748935e3c178a83c31450cc"
 
-"@esy-ocaml/esyb@0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/esyb/-/esyb-0.0.7.tgz#aee2339f58c047f9d70212af3348fd25281c17d8"
+"@esy-ocaml/esyb@0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/esyb/-/esyb-0.0.10.tgz#51305047e69388da0165e5cf35354fc1ceb00391"
   dependencies:
     "@esy-ocaml/ocamlrun" "^4.6.2"
     fastreplacestring "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4"
