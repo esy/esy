@@ -35,6 +35,8 @@ export const eject = async (
   sandbox: Sandbox,
   config: Config<path.AbsolutePath>,
 ) => {
+  const taskFilename = `$ESY_EJECT__ROOT/build/${task.spec.id}.json`;
+
   const immutableDeps = new Map();
   const transientDeps = new Map();
 
@@ -68,8 +70,8 @@ export const eject = async (
     Array.from(transientDeps.values(), async t => {
       const buildJson = `$ESY_EJECT__ROOT/build/${t.spec.id}.json`;
       return outdent`
-      ${C.ESYB_COMMAND} build -B ${buildJson}
-    `;
+        ${C.ESYB_COMMAND} build -B ${buildJson}
+      `;
     }),
   );
 
@@ -180,8 +182,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} build --quiet --build $ESY_EJECT__ROOT/build/${task.spec
-        .id}.json --build-only --force
+      ${C.ESYB_COMMAND} build --quiet --build ${taskFilename} --build-only --force
     `,
     }),
 
@@ -197,7 +198,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies --silent
-      ${C.ESYB_COMMAND} exec --build $ESY_EJECT__ROOT/build/${task.spec.id}.json -- "$@"
+      ${C.ESYB_COMMAND} exec --build ${taskFilename} -- "$@"
     `,
     }),
 
@@ -213,7 +214,9 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} build --build $ESY_EJECT__ROOT/build/${task.spec.id}.json --force
+      if [ ! -d "${config.getFinalInstallPath(task.spec)}" ]; then
+        ${C.ESYB_COMMAND} build --build ${taskFilename} --force
+      fi
     `,
     }),
 
@@ -229,7 +232,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} shell -B $ESY_EJECT__ROOT/build/${task.spec.id}.json
+      ${C.ESYB_COMMAND} shell -B ${taskFilename}
     `,
     }),
   );
