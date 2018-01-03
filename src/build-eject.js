@@ -85,7 +85,7 @@ const files = {
     executable: true,
   },
 
-  esyExportBuild: {
+  esyBuild: {
     filename: ['bin', 'esyBuild'],
     contents: outdent`
       #!/bin/bash
