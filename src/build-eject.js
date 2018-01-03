@@ -60,28 +60,28 @@ const files = {
 
   realpathSh: {
     filename: ['bin', 'realpath.sh'],
-    contents: fs.readFileSync(require.resolve('../../bin/realpath.sh')),
+    contents: fs.readFileSync(require.resolve('../bin/realpath.sh')),
   },
 
   esyRuntimeSh: {
     filename: ['bin', 'esyRuntime.sh'],
-    contents: fs.readFileSync(require.resolve('../../bin/esyRuntime.sh')),
+    contents: fs.readFileSync(require.resolve('../bin/esyRuntime.sh')),
   },
 
   esyConfigSh: {
     filename: ['bin', 'esyConfig.sh'],
-    contents: fs.readFileSync(require.resolve('../../bin/esyConfig.sh')),
+    contents: fs.readFileSync(require.resolve('../bin/esyConfig.sh')),
   },
 
   esyImportBuild: {
     filename: ['bin', 'esyImportBuild'],
-    contents: fs.readFileSync(require.resolve('../../bin/esyImportBuild')),
+    contents: fs.readFileSync(require.resolve('../bin/esyImportBuild')),
     executable: true,
   },
 
   esyExportBuild: {
     filename: ['bin', 'esyExportBuild'],
-    contents: fs.readFileSync(require.resolve('../../bin/esyExportBuild')),
+    contents: fs.readFileSync(require.resolve('../bin/esyExportBuild')),
     executable: true,
   },
 };
