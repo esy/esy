@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.0.63
+
+* New command `esy init` to initialize new esy projects from templates.
+  Implemented by @rauanmayemir.
+
+* New command `esy build-plan [dep]` which prints build task on stdout. Build
+  task is a JSON data structure which holds all info needed to build the package
+  (environment, commands, ...).
+
 ## 0.0.62
 
 * Allow to override `@opam/*` packages `url` and `checksum`.
