@@ -6,7 +6,7 @@ node_js:
   - "8"
   - "6"
 install:
-  - npm install -g esy@latest
-  - make bootstrap
+  - travis_retry npm install -g esy@latest
+  - travis_retry make bootstrap
 script:
   - make ci
