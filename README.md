@@ -9,6 +9,19 @@
 This README serves as a development documentation for esy. For user
 documentation refer to [esy.sh][] documentation site.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Repository structure](#repository-structure)
+- [Workflow](#workflow)
+  - [Testing Locally](#testing-locally)
+  - [Running Tests](#running-tests)
+  - [Issues](#issues)
+  - [Publishing Releases](#publishing-releases)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Repository structure
 
 - `src` — source code for core esy
@@ -22,7 +35,7 @@ documentation refer to [esy.sh][] documentation site.
   used by `esy-build-package` source code.
 - `__tests__` — integration tests for `esy`
 
-## Development workflow
+## Workflow
 
 To make changes to `esy` and test them locally:
 

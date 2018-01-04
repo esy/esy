@@ -1,8 +1,6 @@
 module.exports = function(babel) {
   var t = babel.types;
 
-  var staticModuleName = 'fs';
-
   let globalScope = null;
 
   const visitor = {
@@ -20,7 +18,7 @@ module.exports = function(babel) {
             path.replaceWith(
               t.callExpression(t.identifier('require'), [
                 t.stringLiteral(`raw-loader!${moduleNode.value}`),
-              ])
+              ]),
             );
           }
         }

@@ -9,13 +9,20 @@ import {STORE_BUILD_TREE, STORE_INSTALL_TREE, STORE_STAGE_TREE} from './constant
 import * as S from './store';
 import * as path from './lib/path';
 import * as crypto from './lib/crypto';
+import {sync as resolve} from 'resolve';
 
 const NUM_CPUS = os.cpus().length;
 
-export const ESYB_COMMAND = require.resolve('@esy-ocaml/esyb/esyb');
-export const FLOCK_COMMAND = require.resolve('@esy-ocaml/flock/flock');
-export const FASTREPLACESTRING_COMMAND = require.resolve(
+export const OCAMLRUN_COMMAND = resolve('@esy-ocaml/ocamlrun/install/bin/ocamlrun', {
+  basedir: __dirname,
+});
+export const ESY_BUILD_PACKAGE_COMMAND = resolve('../bin/esyBuildPackage', {
+  basedir: __dirname,
+});
+export const FLOCK_COMMAND = resolve('@esy-ocaml/flock/flock', {basedir: __dirname});
+export const FASTREPLACESTRING_COMMAND = resolve(
   'fastreplacestring/.bin/fastreplacestring.exe',
+  {basedir: __dirname},
 );
 
 function _create<Path: path.Path>(

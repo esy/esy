@@ -70,7 +70,7 @@ export const eject = async (
     Array.from(transientDeps.values(), async t => {
       const buildJson = `$ESY_EJECT__ROOT/build/${t.spec.id}.json`;
       return outdent`
-        ${C.ESYB_COMMAND} build -B ${buildJson}
+        ${C.OCAMLRUN_COMMAND} ${C.ESY_BUILD_PACKAGE_COMMAND} build -B ${buildJson}
       `;
     }),
   );
@@ -182,7 +182,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} build --quiet --build ${taskFilename} --build-only --force
+      ${C.OCAMLRUN_COMMAND} ${C.ESY_BUILD_PACKAGE_COMMAND} build --quiet --build ${taskFilename} --build-only --force
     `,
     }),
 
@@ -198,7 +198,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies --silent
-      ${C.ESYB_COMMAND} exec --build ${taskFilename} -- "$@"
+      ${C.OCAMLRUN_COMMAND} ${C.ESY_BUILD_PACKAGE_COMMAND} exec --build ${taskFilename} -- "$@"
     `,
     }),
 
@@ -215,7 +215,7 @@ export const eject = async (
 
       $ESY_EJECT__ROOT/bin/build-dependencies
       if [ ! -d "${config.getFinalInstallPath(task.spec)}" ]; then
-        ${C.ESYB_COMMAND} build --build ${taskFilename} --force
+        ${C.OCAMLRUN_COMMAND} ${C.ESY_BUILD_PACKAGE_COMMAND} build --build ${taskFilename} --force
       fi
     `,
     }),
@@ -232,7 +232,7 @@ export const eject = async (
       ${renderEnv(esyBuildWrapperEnv)}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      ${C.ESYB_COMMAND} shell -B ${taskFilename}
+      ${C.OCAMLRUN_COMMAND} ${C.ESY_BUILD_PACKAGE_COMMAND} shell -B ${taskFilename}
     `,
     }),
   );

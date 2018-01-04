@@ -21,7 +21,7 @@ define HELP
 
    clean               Clean build artefacts
 
- Release tasks:"
+ Release tasks:
 
    publish             Build release and run 'npm publish'
    build-release       Produce an npm package ready to be published (useful for debug)
@@ -99,22 +99,25 @@ ci:
 #
 
 RELEASE_ROOT = $(PWD)/dist
+RELEASE_FILES = \
+	bin/esy \
+	bin/esyBuildRelease \
+	bin/esyBuildPackage \
+	bin/esyExportBuild \
+	bin/esyImportBuild \
+	bin/esyRuntime.sh \
+	bin/realpath.sh \
+	scripts/postinstall.sh
 
 build-release:
 	@rm -rf $(RELEASE_ROOT)
-	@mkdir -p $(RELEASE_ROOT)
-	@mkdir -p $(RELEASE_ROOT)/bin
-	@cp $(PWD)/bin/esy $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/esx $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/esyBuildRelease $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/esyExportBuild $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/esyImportBuild $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/esyRuntime.sh $(RELEASE_ROOT)/bin/
-	@cp $(PWD)/bin/realpath.sh $(RELEASE_ROOT)/bin/
-	@mkdir -p $(RELEASE_ROOT)/scripts
-	@cp $(PWD)/scripts/postinstall.sh $(RELEASE_ROOT)/scripts
+	@$(MAKE) $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 	@node ./scripts/build-webpack.js ./dist/bin
 	@node ./scripts/generate-esy-install-package-json.js > $(RELEASE_ROOT)/package.json
+
+$(RELEASE_ROOT)/%: $(PWD)/%
+	@mkdir -p $(@D)
+	@cp $(<) $(@)
 
 publish: build-release
 	@(cd $(RELEASE_ROOT) && npm publish --access public --tag $(RELEASE_TAG))

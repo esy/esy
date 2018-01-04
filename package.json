@@ -8,8 +8,7 @@
     "postinstall": "bash ./scripts/postinstall.sh"
   },
   "bin": {
-    "esy": "./bin/esy",
-    "esx": "./bin/esx"
+    "esy": "./bin/esy"
   },
   "repository": {
     "type": "git",
@@ -67,7 +66,6 @@
   "dependencies": {
     "@esy-ocaml/esy-install": "link:./esy-install",
     "@esy-ocaml/esy-opam": "0.0.12",
-    "@esy-ocaml/esyb": "0.0.10",
     "@esy-ocaml/flock": "esy-ocaml/flock#v0.2.3",
     "@esy-ocaml/ocamlrun": "^4.6.2",
     "babel-polyfill": "^6.23.0",
@@ -82,6 +80,7 @@
     "npm-hooks": "https://github.com/jordwalke/npm-hooks.git#1.0.0-clobber",
     "outdent": "^0.3.0",
     "p-queue": "^1.0.0",
+    "resolve": "^1.5.0",
     "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
     "shellwords": "^0.1.1",
