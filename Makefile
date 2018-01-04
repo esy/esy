@@ -39,11 +39,11 @@ help:
 bootstrap:
 	@git submodule init
 	@git submodule update
-	@yarn
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
 	@make -C esy-build-package install build
+	@yarn
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
