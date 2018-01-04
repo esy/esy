@@ -1,0 +1,19 @@
+{
+  "id": "failing-1.0.0",
+  "name": "failing",
+  "version": "1.0.0",
+  "sourceType": "root",
+  "buildType": "out-of-source",
+  "build": [
+    [
+      "echo",
+      "going to fail now"
+    ],
+    [
+      "false"
+    ]
+  ],
+  "install": [],
+  "sourcePath": "%sandbox%",
+  "env": {}
+}

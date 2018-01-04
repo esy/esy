@@ -1,0 +1,21 @@
+{
+  "name": "@esy-ocaml/esyb",
+  "version": "0.0.10",
+  "description": "Package builder for esy",
+  "license": "MIT",
+  "bin": {
+    "esyb": "esyb"
+  },
+  "scripts": {
+    "postinstall": "bash postinstall.sh"
+  },
+  "files": [
+    "esyb",
+    "esyb.bc",
+    "postinstall.sh"
+  ],
+  "dependencies": {
+    "@esy-ocaml/ocamlrun": "^4.6.2",
+    "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4"
+  }
+}
