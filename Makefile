@@ -1,3 +1,5 @@
+ESY_EXT := $(shell command -v esy 2> /dev/null)
+
 RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
 
@@ -40,6 +42,10 @@ bootstrap:
 	@git submodule init
 	@git submodule update
 	@yarn
+ifndef ESY_EXT
+	$(error "esy command is not avaialble, run 'npm install -g esy'")
+endif
+	@make -C esy-build-package install build
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
