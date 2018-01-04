@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.62
+
+* Allow to override `@opam/*` packages `url` and `checksum`.
+
 ## 0.0.61
 
 * Add `esy ls-modules` command which shows a list of available OCaml modules for
