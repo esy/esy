@@ -361,10 +361,8 @@ async function emitOcamlrun(outputPath: string) {
 }
 
 async function emitEsyBuildPackage(outputPath: string) {
-  await fs.copy(
-    C.ESY_BUILD_PACKAGE_COMMAND,
-    path.join(outputPath, 'bin', 'esyBuildPackage'),
-  );
+  const esyBuildPackagePath = await fs.realpath(C.ESY_BUILD_PACKAGE_COMMAND);
+  await fs.copy(esyBuildPackagePath, path.join(outputPath, 'bin', 'esyBuildPackage'));
 }
 
 async function emitFile(
