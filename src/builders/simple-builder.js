@@ -332,7 +332,10 @@ async function performBuild(
     done();
   };
   try {
-    await child.spawn(C.ESYB_COMMAND, ['-B', '-'], {stdio, process: onProcess});
+    await child.spawn(C.OCAMLRUN_COMMAND, [C.ESY_BUILD_PACKAGE_COMMAND, '-B', '-'], {
+      stdio,
+      process: onProcess,
+    });
     buildSucceeded = true;
   } finally {
     const buildPath = config.getBuildPath(task.spec);

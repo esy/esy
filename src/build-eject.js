@@ -14,6 +14,7 @@ import type {
 import {sync as mkdirp} from 'mkdirp';
 import createLogger from 'debug';
 import outdent from 'outdent';
+import {sync as resolve} from 'resolve';
 
 import * as Graph from './graph';
 import * as S from './sandbox';
@@ -26,6 +27,7 @@ import * as json from './lib/json.js';
 import * as path from './lib/path';
 import * as bashgen from './builders/bashgen';
 import * as constants from './constants';
+import * as C from './config.js';
 
 const log = createLogger('esy:makefile-builder');
 const CWD = process.cwd();
@@ -92,7 +94,7 @@ const files = {
 
       build="$1"
 
-      log=$(ocamlrun $ESY_EJECT__ROOT/bin/esyb build --build "$build")
+      log=$(ocamlrun $ESY_EJECT__ROOT/bin/esyBuildPackage build --build "$build")
 
       if [ $? -ne 0 ]; then
         echo "$log"
@@ -117,7 +119,7 @@ const preludeRuleSet = [
     export ESY__SANDBOX = $(ESY_EJECT__SANDBOX)
     export ESY__SANDBOX = $(ESY_EJECT__SANDBOX)
     export PATH := $(ESY_EJECT__ROOT)/bin:$(PATH)
-    ESYB = ocamlrun $(ESY_EJECT__ROOT)/bin/esyb
+    ESYB = ocamlrun $(ESY_EJECT__ROOT)/bin/esyBuildPackage
     `,
   ),
 ];
@@ -336,7 +338,7 @@ export function eject(
         emitFile(outputPath, sandboxEnvFile),
         emitFile(outputPath, makefileFile),
         emitOcamlrun(outputPath),
-        emitEsyb(outputPath),
+        emitEsyBuildPackage(outputPath),
       ]),
   );
 }
@@ -345,23 +347,23 @@ async function emitOcamlrun(outputPath: string) {
   const ocamlrunPath = path.join(outputPath, 'ocamlrun');
   await fs.mkdirp(ocamlrunPath);
   await fs.copy(
-    require.resolve('@esy-ocaml/ocamlrun/ocaml.tar.gz'),
+    resolve('@esy-ocaml/ocamlrun/ocaml.tar.gz', {basedir: __dirname}),
     path.join(ocamlrunPath, 'ocaml.tar.gz'),
   );
   await fs.copy(
-    require.resolve('@esy-ocaml/ocamlrun/postinstall.sh'),
+    resolve('@esy-ocaml/ocamlrun/postinstall.sh', {basedir: __dirname}),
     path.join(ocamlrunPath, 'postinstall.sh'),
   );
   await fs.copy(
-    require.resolve('@esy-ocaml/ocamlrun/test'),
+    resolve('@esy-ocaml/ocamlrun/test', {basedir: __dirname}),
     path.join(ocamlrunPath, 'test'),
   );
 }
 
-async function emitEsyb(outputPath: string) {
+async function emitEsyBuildPackage(outputPath: string) {
   await fs.copy(
-    require.resolve('@esy-ocaml/esyb/esyb.bc'),
-    path.join(outputPath, 'bin', 'esyb'),
+    C.ESY_BUILD_PACKAGE_COMMAND,
+    path.join(outputPath, 'bin', 'esyBuildPackage'),
   );
 }
 

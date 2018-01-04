@@ -20,7 +20,8 @@ export default async function esyAutoconf(ctx: CommandContext) {
     # Store path padding required for relocatable artifacts
     export ESY__STORE_PADDING_LENGTH="${constants.ESY_STORE_PADDING_LENGTH}"
 
-    export ESYB_COMMAND="${config.ESYB_COMMAND}"
+    export OCAMLRUN_COMMAND="${config.OCAMLRUN_COMMAND}"
+    export ESY_BUILD_PACKAGE_COMMAND="${config.ESY_BUILD_PACKAGE_COMMAND}"
     export FASTREPLACESTRING_COMMAND="${config.FASTREPLACESTRING_COMMAND}"
     export FLOCK_COMMAND="${config.FLOCK_COMMAND}"
   `);

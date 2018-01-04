@@ -129,7 +129,7 @@ callBuiltInCommand__buildShell () {
   local buildJson
   buildJson=$(mktemp)
   node "$SCRIPTDIR/esy.js" build-plan "$@" > "$buildJson"
-  run withLock "$ESYB_COMMAND" shell -B "$buildJson"
+  run withLock "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" shell -B "$buildJson"
 }
 
 callBuiltInCommand__x () {

@@ -10,7 +10,7 @@ const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
 const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
 const babelPluginTrasnformFsReadFileSync = require.resolve(
-  './babel-plugin-transform-fs-read-file-sync.js'
+  './babel-plugin-transform-fs-read-file-sync.js',
 );
 
 babelRc.plugins.unshift(babelPluginTrasnformFsReadFileSync);
@@ -28,13 +28,23 @@ const nodeOptions = {
   __dirname: false,
 };
 
-// We need to exclude @esy-opam/esy-ocaml bundle b/c of lincesing concerns.
 // Note that we also need both commonjs and commonjs2 configurations due to a
 // bug in webpack.
 const externals = {
+  // Exclude @esy-opam/esy-ocaml from bundle b/c of lincesing concerns.
   '@esy-ocaml/esy-opam': {
     commonjs: '@esy-ocaml/esy-opam',
     commonjs2: '@esy-ocaml/esy-opam',
+  },
+  // Exclude @esy-opam/ocamlrun b/c it's a binary.
+  '@esy-ocaml/ocamlrun': {
+    commonjs: '@esy-ocaml/ocamlrun',
+    commonjs2: '@esy-ocaml/ocamlrun',
+  },
+  // Exclude fastreplacestring b/c it's a binary.
+  fastreplacestring: {
+    commonjs: 'fastreplacestring',
+    commonjs2: 'fastreplacestring',
   },
 };
 
