@@ -71,6 +71,9 @@ test-esy-build:
 test-e2e:
 	(cd __tests__ && bash symlink-workflow-test.sh)
 
+test-opam:
+	(cd __tests__ && bash opam-test.sh)
+
 test:
 	@$(BIN)/jest \
 		./src/__tests__ \
@@ -87,6 +90,7 @@ ci:
 		./__tests__/release/*-test.js \
 		./__tests__/export-import-build/*-test.js
 	$(MAKE) test-e2e
+	$(MAKE) test-opam
 
 #
 # Release
