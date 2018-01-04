@@ -11,16 +11,14 @@ BIN = $(PWD)/node_modules/.bin
 
 define HELP
 
- Available tasks:
+ Run "make bootstrap" if this is your first time with esy development. After
+ that you can use "bin/esy" executable to run the development version of esy
+ command. Enjoy!
+
+ Common tasks:
 
    bootstrap           Bootstrap the development environment
-
-   build               Build src/ into lib/
-   build-watch         Same as 'build' but watches for changes and rebuilds
-
    test                Run tests
-   test-watch          Watch for changes and re-run tests
-
    clean               Clean build artefacts
 
  Release tasks:
@@ -50,23 +48,13 @@ endif
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
 
-#
-# Build
-#
-
-build:
-	@$(BIN)/babel ./src --copy-files --out-dir ./lib
-
-build-watch:
-	@$(BIN)/babel --copy-files --watch -s inline ./src --out-dir ./lib
-
 clean:
 	@rm -rf lib/
+	@make -C esy-build-package clean
 
 #
 # Test
 #
-
 
 test-unit:
 	@$(BIN)/jest src/

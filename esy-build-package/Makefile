@@ -7,3 +7,6 @@ build:
 
 build-dev:
 	@esy b jbuilder build --dev
+
+clean:
+	@rm -rf _build
