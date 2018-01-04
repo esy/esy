@@ -1,0 +1,8 @@
+(jbuild_version 1)
+
+(executable
+ ((name esyBuildPackage)
+  (public_name esy-build-package)
+  (modes (byte))
+  (preprocess (pps (ppx_let)))
+  (libraries (cmdliner yojson bos EsyLib logs logs.fmt logs.cli re fmt fmt.cli fmt.tty))))
