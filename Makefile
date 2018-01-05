@@ -100,7 +100,6 @@ RELEASE_ROOT = dist
 RELEASE_FILES = \
 	bin/esy \
 	bin/esy.js \
-	bin/esyBuildRelease \
 	bin/esyBuildPackage \
 	bin/esyExportBuild \
 	bin/esyImportBuild \
