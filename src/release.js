@@ -130,7 +130,7 @@ import * as fs from './lib/fs';
 import * as child_process from './lib/child_process';
 import * as os from 'os';
 import * as path from 'path';
-import * as bashgen from './builders/bashgen';
+import * as bashgen from './bashgen';
 import outdent from 'outdent';
 import {RELEASE_TREE, CURRENT_ESY_EXECUTABLE} from './constants';
 import * as PackageManifest from './package-manifest.js';

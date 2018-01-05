@@ -2,7 +2,7 @@
  * @flow
  */
 
-import type {BuildTask, Store, Config} from '../types';
+import type {BuildTask, Store, Config} from './types';
 
 import invariant from 'invariant';
 import createLogger from 'debug';
@@ -10,16 +10,16 @@ import * as os from 'os';
 import * as nodefs from 'fs';
 import jsonStableStringify from 'json-stable-stringify';
 
-import * as Stream from '../lib/Stream.js';
-import * as C from '../config.js';
-import {PromiseQueue} from '../lib/Promise';
-import * as path from '../lib/path';
-import * as fs from '../lib/fs';
-import * as child from '../lib/child_process';
-import {fixupErrorSubclassing} from '../lib/lang';
+import * as Stream from './lib/Stream.js';
+import * as C from './config.js';
+import {PromiseQueue} from './lib/Promise';
+import * as path from './lib/path';
+import * as fs from './lib/fs';
+import * as child from './lib/child_process';
+import {fixupErrorSubclassing} from './lib/lang';
 
-import * as T from '../build-task.js';
-import * as Graph from '../graph';
+import * as T from './build-task.js';
+import * as Graph from './graph';
 import {
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
@@ -27,7 +27,7 @@ import {
   STORE_STAGE_TREE,
   STORE_INSTALL_TREE,
   CURRENT_ESY_EXECUTABLE,
-} from '../constants';
+} from './constants';
 
 type BuildStateSuccess = {
   state: 'success',

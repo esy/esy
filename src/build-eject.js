@@ -25,7 +25,7 @@ import * as Makefile from './Makefile';
 import * as fs from './lib/fs';
 import * as json from './lib/json.js';
 import * as path from './lib/path';
-import * as bashgen from './builders/bashgen';
+import * as bashgen from './bashgen';
 import * as constants from './constants';
 import * as C from './config.js';
 

@@ -14,19 +14,19 @@ import * as path from '../lib/path';
 import {indent, getSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as M from '../package-manifest';
-import * as Builder from '../builders/simple-builder';
+import * as B from '../build';
 import * as RootBuildEject from '../root-build-eject.js';
 
 const log = createLogger('esy:bin:esyBuild');
 
-export function reportBuildError(ctx: CommandContext, error: Builder.BuildError) {
+export function reportBuildError(ctx: CommandContext, error: B.BuildError) {
   const {spec} = error.task;
 
   const banner =
     spec.packagePath === '' ? spec.name : `${spec.name} (${spec.packagePath})`;
   const debugCommand = `esy build-shell ${error.task.spec.packagePath}`;
 
-  if (error instanceof Builder.BuildCommandError) {
+  if (error instanceof B.BuildCommandError) {
     const {logFilename} = (error: any);
     if (error.task.spec.sourceType !== 'immutable' || process.env.CI) {
       const logContents = fs.readFileSync(logFilename);
@@ -53,7 +53,7 @@ export function reportBuildError(ctx: CommandContext, error: Builder.BuildError)
         `,
       );
     }
-  } else if (error instanceof Builder.InternalBuildError) {
+  } else if (error instanceof B.InternalBuildError) {
     ctx.reporter.error(
       outdent`
         ${banner} failed to build.
@@ -98,9 +98,7 @@ export default async function esyBuild(
 
   log('execute');
 
-  const build = invocation.options.flags.dependenciesOnly
-    ? Builder.buildDependencies
-    : Builder.build;
+  const build = invocation.options.flags.dependenciesOnly ? B.buildDependencies : B.build;
 
   const [state, _] = await Promise.all([
     handleFinalBuildState(ctx, build(task, config)),
@@ -110,17 +108,17 @@ export default async function esyBuild(
   // TODO: parallelize it
   for (const devDep of sandbox.devDependencies.values()) {
     const task = Task.fromBuildSpec(devDep, config, {env: sandbox.env});
-    await handleFinalBuildState(ctx, Builder.build(task, config));
+    await handleFinalBuildState(ctx, B.build(task, config));
   }
 }
 
 export async function handleFinalBuildState(
   ctx: CommandContext,
-  build: Promise<Builder.FinalBuildState>,
+  build: Promise<B.FinalBuildState>,
 ) {
   const state = await build;
   if (state.state === 'failure') {
-    const errors = Builder.collectBuildErrors(state);
+    const errors = B.collectBuildErrors(state);
     for (const error of errors) {
       reportBuildError(ctx, error);
     }

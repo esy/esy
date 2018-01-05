@@ -5,7 +5,7 @@
  */
 
 import outdent from 'outdent';
-import {ESY_STORE_PADDING_LENGTH, ESY_STORE_VERSION} from '../constants';
+import {ESY_STORE_PADDING_LENGTH, ESY_STORE_VERSION} from './constants';
 
 export const defineScriptDir = outdent`
 
