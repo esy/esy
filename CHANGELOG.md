@@ -9,6 +9,8 @@
   task is a JSON data structure which holds all info needed to build the package
   (environment, commands, ...).
 
+* Build devDependencies in parallel with the root build.
+
 ## 0.0.62
 
 * Allow to override `@opam/*` packages `url` and `checksum`.
