@@ -7,6 +7,14 @@ type Node<N: Node<*>> = {
   +dependencies: Map<string, N>,
 };
 
+export function toArray<N: Node<*>>(node: N): Array<N> {
+  const result = [];
+  traverse(node, node => {
+    result.push(node);
+  });
+  return result;
+}
+
 export function size(node: Node<*>): number {
   let size = 0;
   traverse(node, () => {
@@ -18,14 +26,14 @@ export function size(node: Node<*>): number {
 /**
  * Find a dependency in the dependencies graph.
  */
-export function find<N: Node<*>> (node: N, f: N => boolean): ?N {
-  let result = null
-  traverse(node, (cur) => {
+export function find<N: Node<*>>(node: N, f: N => boolean): ?N {
+  let result = null;
+  traverse(node, cur => {
     if (f(cur)) {
-      result = cur
+      result = cur;
     }
-  })
-  return result
+  });
+  return result;
 }
 
 /**

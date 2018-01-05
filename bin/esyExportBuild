@@ -31,7 +31,11 @@ buildId=$(basename "$buildPath")
 stageDir=$(mktemp -d)
 stageBuildPath="$stageDir/$buildId"
 
-outputDir="$PWD/_export"
+if [ $# -lt 2 ]; then
+  outputDir="$PWD/_export"
+else
+  outputDir="$2"
+fi
 outputPath="$outputDir/$buildId.tar.gz"
 
 function _do () {

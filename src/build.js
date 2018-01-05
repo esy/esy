@@ -17,10 +17,10 @@ import * as path from './lib/path';
 import * as fs from './lib/fs';
 import * as child from './lib/child_process';
 import {fixupErrorSubclassing} from './lib/lang';
+import * as Graph from './lib/graph';
 
 import * as T from './build-task.js';
 import * as S from './store.js';
-import * as Graph from './graph';
 import {
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,

@@ -20,7 +20,7 @@ import * as shell from './lib/shell.js';
 import * as path from './lib/path';
 import * as Map from './lib/Map.js';
 import * as lang from './lib/lang.js';
-import * as Graph from './graph';
+import * as Graph from './lib/graph';
 import * as Env from './environment';
 import {SandboxError} from './errors.js';
 import * as CommandExpr from './command-expr.js';
