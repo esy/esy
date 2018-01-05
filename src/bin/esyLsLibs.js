@@ -8,7 +8,7 @@ import type {FormatBuildSpecTreeCtx, FormatBuildSpecQueueItem} from '../cli-util
 
 import chalk from 'chalk';
 import * as fs from '../lib/fs';
-import {find} from '../graph';
+import {find} from '../lib/graph';
 import {spawn} from '../lib/child_process';
 import {
   getBuildSpecPackages,

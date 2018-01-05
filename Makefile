@@ -96,22 +96,28 @@ ci:
 # Release
 #
 
-RELEASE_ROOT = $(PWD)/dist
+RELEASE_ROOT = dist
 RELEASE_FILES = \
 	bin/esy \
+	bin/esy.js \
 	bin/esyBuildRelease \
 	bin/esyBuildPackage \
 	bin/esyExportBuild \
 	bin/esyImportBuild \
 	bin/esyRuntime.sh \
 	bin/realpath.sh \
-	scripts/postinstall.sh
+	scripts/postinstall.sh \
+	package.json
 
 build-release:
 	@rm -rf $(RELEASE_ROOT)
-	@$(MAKE) $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
-	@node ./scripts/build-webpack.js ./dist/bin
-	@node ./scripts/generate-esy-install-package-json.js > $(RELEASE_ROOT)/package.json
+	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
+
+$(RELEASE_ROOT)/package.json:
+	@node ./scripts/generate-esy-install-package-json.js > $(@)
+
+$(RELEASE_ROOT)/bin/esy.js:
+	@node ./scripts/build-webpack.js ./src/bin/esy.js $(@)
 
 $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)

@@ -7,7 +7,7 @@ import type {CommandContext, CommandInvocation} from './esy';
 import {getSandbox, getBuildConfig} from './esy';
 import * as Sandbox from '../sandbox';
 import * as Env from '../environment';
-import * as Graph from '../graph.js';
+import * as Graph from '../lib/graph.js';
 import * as Child from '../lib/child_process.js';
 import * as fs from '../lib/fs.js';
 import * as path from '../lib/path.js';

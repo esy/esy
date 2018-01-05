@@ -16,7 +16,7 @@ import createLogger from 'debug';
 import outdent from 'outdent';
 import {sync as resolve} from 'resolve';
 
-import * as Graph from './graph';
+import * as Graph from './lib/graph';
 import * as S from './sandbox';
 import * as T from './build-task.js';
 import * as Config from './config.js';

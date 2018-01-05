@@ -173,6 +173,7 @@ const commandsByName: {[name: string]: () => Command} = {
   'sandbox-env': () => require('./esySandboxEnv'),
   'build-env': () => require('./esyBuildEnv'),
   'install-cache': () => require('./esyInstallCache'),
+  'install-release': () => require('./esyInstallRelease'),
   'export-dependencies': () => require('./esyExportDependencies'),
   'import-dependencies': () => require('./esyImportDependencies'),
   autoconf: () => require('./esyAutoconf'),

@@ -15,9 +15,11 @@ const babelPluginTrasnformFsReadFileSync = require.resolve(
 
 babelRc.plugins.unshift(babelPluginTrasnformFsReadFileSync);
 
-const output = process.argv[2];
-if (output == null) {
-  console.log(`error: provide output filename as an argument`);
+const input = process.argv[2];
+const output = process.argv[3];
+
+if (output == null || input == null) {
+  console.log(`error: node build-webpack.js <input> <output>`);
   process.exit(1);
 }
 
@@ -48,14 +50,10 @@ const externals = {
   },
 };
 
-//
-// Modern build
-//
-
 const compiler = webpack({
   // devtool: 'inline-source-map',
   entry: {
-    [`${output}/esy.js`]: path.join(basedir, 'src/bin/esy.js'),
+    [output]: input,
   },
   module: {
     rules: [

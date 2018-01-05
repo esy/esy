@@ -57,10 +57,12 @@ export function printEnvironment(env: Environment) {
     .join(EOL);
 }
 
+type EvalEnvironment = Map<string, string>;
+
 /**
  * Eval environment into a mapping of key-values.
  */
-export function evalEnvironment(env: Environment): Map<string, string> {
+export function evalEnvironment(env: Environment): EvalEnvironment {
   const envMap = new Map();
   env.forEach(item => {
     const {value} = shell.expand(item.value, name => {
@@ -72,4 +74,23 @@ export function evalEnvironment(env: Environment): Map<string, string> {
     }
   });
   return envMap;
+}
+
+export function printEvalEnvironment(env: EvalEnvironment) {
+  const lines = [];
+  for (const [k, v] in env.entries()) {
+    if (v == null) {
+      continue;
+    } else if (Array.isArray(v)) {
+      if (v.length === 0) {
+        lines.push(`export ${k}='';`);
+      } else {
+        const items = v.map(shell.doubleQuote);
+        lines.push(`export ${k}=(${items.join(' ')});`);
+      }
+    } else {
+      lines.push(`export ${k}=${shell.doubleQuote(v)};`);
+    }
+  }
+  return lines.join('\n');
 }

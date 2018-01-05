@@ -15,68 +15,9 @@ import {indent, getSandbox, getBuildConfig} from './esy';
 import * as Task from '../build-task';
 import * as M from '../package-manifest';
 import * as B from '../build';
-import * as RootBuildEject from '../root-build-eject.js';
+import * as Common from './common.js';
 
 const log = createLogger('esy:bin:esyBuild');
-
-export function reportBuildError(ctx: CommandContext, error: B.BuildError) {
-  const {spec} = error.task;
-
-  const banner =
-    spec.packagePath === '' ? spec.name : `${spec.name} (${spec.packagePath})`;
-  const debugCommand = `esy build-shell ${error.task.spec.packagePath}`;
-
-  if (error instanceof B.BuildCommandError) {
-    const {logFilename} = (error: any);
-    if (error.task.spec.sourceType !== 'immutable' || process.env.CI) {
-      const logContents = fs.readFileSync(logFilename);
-      ctx.reporter.error(outdent`
-        ${banner} failed to build, see log:
-
-        ${chalk.red(indent(logContents, '    '))}
-          To get into the build environment and debug it:
-
-            % ${chalk.bold(debugCommand)}
-
-        `);
-    } else {
-      ctx.reporter.error(
-        outdent`
-          ${banner} failed to build, see log for details:
-
-            ${chalk.bold(logFilename)}
-
-          To get into the build environment and debug it:
-
-            % ${chalk.bold(debugCommand)}
-
-        `,
-      );
-    }
-  } else if (error instanceof B.InternalBuildError) {
-    ctx.reporter.error(
-      outdent`
-        ${banner} failed to build.
-
-        The error below is likely a bug in Esy itself, please report it.
-
-          ${chalk.red(error.error.stack)}
-
-      `,
-    );
-  } else {
-    ctx.reporter.error(
-      outdent`
-        ${banner} failed to build.
-
-        The error below is likely a bug in Esy itself, please report it.
-
-          ${chalk.red(error.stack)}
-
-      `,
-    );
-  }
-}
 
 export default async function esyBuild(
   ctx: CommandContext,
@@ -84,47 +25,23 @@ export default async function esyBuild(
 ) {
   const config = await getBuildConfig(ctx);
   const sandbox = await getSandbox(ctx);
-  const task: BuildTask = Task.fromSandbox(sandbox, config);
-  const buildManager = B.createBuildManager(config);
+
+  const build = Common.build(ctx, config, sandbox, {
+    buildRoot: !invocation.options.flags.dependenciesOnly,
+    buildDependencies: true,
+  });
 
   let ejectingBuild = null;
   if (invocation.options.options.eject != null) {
-    ejectingBuild = RootBuildEject.eject(
-      invocation.options.options.eject,
-      task,
-      sandbox,
+    ejectingBuild = Common.ejectRootBuild(
+      ctx,
       config,
+      sandbox,
+      invocation.options.options.eject,
     );
   }
 
-  log('execute');
-
-  const build = invocation.options.flags.dependenciesOnly ? B.buildDependencies : B.build;
-  const rootBuild = handleFinalBuildState(ctx, build(buildManager, task, config));
-  const devDependenciesBuilds = Array.from(sandbox.devDependencies.values(), devDep => {
-    const task = Task.fromBuildSpec(devDep, config, {env: sandbox.env});
-    return handleFinalBuildState(ctx, B.build(buildManager, task, config));
-  });
-
-  try {
-    await Promise.all([ejectingBuild, rootBuild, ...devDependenciesBuilds]);
-  } finally {
-    buildManager.end();
-  }
-}
-
-export async function handleFinalBuildState(
-  ctx: CommandContext,
-  build: Promise<B.FinalBuildState>,
-) {
-  const state = await build;
-  if (state.state === 'failure') {
-    const errors = B.collectBuildErrors(state);
-    for (const error of errors) {
-      reportBuildError(ctx, error);
-    }
-    ctx.error();
-  }
+  await Promise.all([ejectingBuild, build]);
 }
 
 export const options = {
