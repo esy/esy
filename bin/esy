@@ -349,6 +349,10 @@ elif [ $# -eq 1 ]; then
       ensureSandbox
       callBuiltInCommand build-plan
       ;;
+    build-package)
+      shift
+      exec "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND"
+      ;;
     ls-builds)
       shift
       ensureSandbox
@@ -481,6 +485,10 @@ else
       shift
       ensureSandbox
       callBuiltInCommand build-plan "$@"
+      ;;
+    build-package)
+      shift
+      exec "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" "$@"
       ;;
     install|i)
       shift

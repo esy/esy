@@ -9,6 +9,28 @@
   task is a JSON data structure which holds all info needed to build the package
   (environment, commands, ...).
 
+* New command `esy build-package` which builds build tasks produced with `esy
+  build-plan` command:
+
+  ```
+  % esy build-plan > ./build.json
+  % esy build-package build -B ./build.json
+  ```
+
+  or directly via stdout:
+
+  ```
+  % esy build-plan | esy build-package build -B -
+  ```
+
+  Run:
+
+  ```
+  % esy build-package --help
+  ```
+
+  for more info.
+
 * Build devDependencies in parallel with the root build.
 
 ## 0.0.62
