@@ -19,13 +19,11 @@ import * as child from './lib/child_process';
 import {fixupErrorSubclassing} from './lib/lang';
 
 import * as T from './build-task.js';
+import * as S from './store.js';
 import * as Graph from './graph';
 import {
   BUILD_TREE_SYMLINK,
   INSTALL_TREE_SYMLINK,
-  STORE_BUILD_TREE,
-  STORE_STAGE_TREE,
-  STORE_INSTALL_TREE,
   CURRENT_ESY_EXECUTABLE,
 } from './constants';
 
@@ -48,32 +46,10 @@ type BuildStateInpProgress = {
 export type BuildState = BuildStateSuccess | BuildStateFailure | BuildStateInpProgress;
 export type FinalBuildState = BuildStateSuccess | BuildStateFailure;
 
-const INSTALL_DIR_STRUCTURE = [
-  'lib',
-  'bin',
-  'sbin',
-  'man',
-  'doc',
-  'share',
-  'stublibs',
-  'etc',
-];
-const BUILD_DIR_STRUCTURE = ['_esy'];
-
-const IGNORE_FOR_BUILD = [
-  BUILD_TREE_SYMLINK,
-  INSTALL_TREE_SYMLINK,
-  '_build', // this is needed b/c of buildType == '_build'
-  '_release',
-  'node_modules',
-];
-const IGNORE_FOR_MTIME = [
-  '_esy',
-  BUILD_TREE_SYMLINK,
-  INSTALL_TREE_SYMLINK,
-  '_release',
-  'node_modules',
-];
+type BuildManager = {
+  build(task: BuildTask, force?: boolean): Promise<FinalBuildState>,
+  end(): void,
+};
 
 const BUILD_STATE_CACHED_SUCCESS = {
   state: 'success',
@@ -85,15 +61,12 @@ const BUILD_STATE_CACHED_SUCCESS = {
 /**
  * Build the entire sandbox starting from the `rootTask`.
  */
-export const build = async (rootTask: BuildTask, config: Config<path.AbsolutePath>) => {
-  await initStores(config.store, config.localStore);
-
-  // TODO: we need to know in advance how much builds will be performed, now we
-  // approximate this by the total size of the bild graph
-  const total = Graph.size(rootTask);
-  const activitySet = config.reporter.activitySet(total, config.buildConcurrency);
-  const performBuild = createBuilder(config, activitySet);
-
+export const build = async (
+  buildManager: BuildManager,
+  rootTask: BuildTask,
+  config: Config<path.AbsolutePath>,
+) => {
+  await Promise.all([S.initStore(config.store), S.initStore(config.localStore)]);
   const state = await Graph.topologicalFold(
     rootTask,
     async (
@@ -118,14 +91,12 @@ export const build = async (rootTask: BuildTask, config: Config<path.AbsolutePat
         };
       } else if (states.some(state => state.state === 'success' && state.forced)) {
         // if some of the deps were forced then force the rebuild too
-        return performBuild(task, true);
+        return buildManager.build(task, true);
       } else {
-        return performBuild(task);
+        return buildManager.build(task);
       }
     },
   );
-
-  activitySet.end();
 
   return state;
 };
@@ -134,17 +105,11 @@ export const build = async (rootTask: BuildTask, config: Config<path.AbsolutePat
  * Build all the sandbox but not the `rootTask`.
  */
 export const buildDependencies = async (
+  buildManager: BuildManager,
   rootTask: BuildTask,
   config: Config<path.AbsolutePath>,
 ) => {
-  await initStores(config.store, config.localStore);
-
-  // TODO: we need to know in advance how much builds will be performed, now we
-  // approximate this by the total size of the bild graph
-  const total = Graph.size(rootTask) - 1;
-  const activitySet = config.reporter.activitySet(total, config.buildConcurrency);
-  const performBuild = createBuilder(config, activitySet);
-
+  await Promise.all([S.initStore(config.store), S.initStore(config.localStore)]);
   const state = await Graph.topologicalFold(
     rootTask,
     async (
@@ -172,20 +137,19 @@ export const buildDependencies = async (
           return BUILD_STATE_CACHED_SUCCESS;
         } else if (states.some(state => state.state === 'success' && state.forced)) {
           // if some of the deps were forced then force the rebuild too
-          return performBuild(task, true);
+          return buildManager.build(task, true);
         } else {
-          return performBuild(task);
+          return buildManager.build(task);
         }
       }
     },
   );
 
-  activitySet.end();
-
   return state;
 };
 
-const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
+export const createBuildManager = (config: Config<path.AbsolutePath>) => {
+  const activitySet = config.reporter.activitySet('-', config.buildConcurrency);
   const buildQueue = new PromiseQueue({concurrency: config.buildConcurrency});
   const taskInProgress = new Map();
 
@@ -235,6 +199,7 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
     return buildQueue.add(async () => {
       buildNumber += 1;
       const spinner = acquireSpinner();
+      log('start building');
       spinner.setPrefix(buildNumber, `building ${task.spec.name}@${task.spec.version}`);
       const startTime = Date.now();
       try {
@@ -247,47 +212,53 @@ const createBuilder = (config: Config<path.AbsolutePath>, activitySet) => {
           state: 'failure',
           error,
         };
+        freeSpinner(spinner);
+        log('build failure');
         return state;
       }
       const endTime = Date.now();
       const timeEllapsed = endTime - startTime;
       const state = {state: 'success', timeEllapsed, cached: false, forced};
       freeSpinner(spinner);
+      log('build success');
       return state;
     });
   }
 
-  async function performBuildMemoized(
+  function performBuildMemoized(
     task: BuildTask,
     forced: boolean = false,
   ): Promise<FinalBuildState> {
-    const log = createLogger(`esy:simple-builder:${task.spec.name}`);
+    const log = createLogger(`esy:build:${task.spec.name}@${task.spec.version}`);
     const {spec} = task;
     let inProgress = taskInProgress.get(task.id);
     if (inProgress == null) {
-      // if build task is forced (for example by one of the deps updated)
-      if (forced) {
-        if (task.spec.sourceType === 'immutable') {
-          inProgress = performBuildWithStatusReport(task, log, true);
+      inProgress = Promise.resolve().then(async () => {
+        // if build task is forced (for example by one of the deps updated)
+        if (forced) {
+          return performBuildWithStatusReport(task, log, true);
         } else {
-          inProgress = performBuildWithStatusReport(task, log, true);
+          const isInStore = await checkIfIsInStore(spec);
+          if (spec.sourceType === 'immutable' && isInStore) {
+            return BUILD_STATE_CACHED_SUCCESS;
+          } else if (spec.sourceType !== 'immutable') {
+            return performBuildWithStatusReport(task, log, true);
+          } else {
+            return performBuildWithStatusReport(task, log);
+          }
         }
-      } else {
-        const isInStore = await checkIfIsInStore(spec);
-        if (spec.sourceType === 'immutable' && isInStore) {
-          inProgress = Promise.resolve(BUILD_STATE_CACHED_SUCCESS);
-        } else if (spec.sourceType !== 'immutable') {
-          inProgress = performBuildWithStatusReport(task, log, true);
-        } else {
-          inProgress = performBuildWithStatusReport(task, log);
-        }
-      }
+      });
       taskInProgress.set(task.id, inProgress);
     }
     return inProgress;
   }
 
-  return performBuildMemoized;
+  return {
+    build: performBuildMemoized,
+    end() {
+      activitySet.end();
+    },
+  };
 };
 
 async function performBuild(
@@ -354,23 +325,6 @@ async function performBuild(
     }
   }
   await Stream.endWritableStream(logStream);
-}
-
-async function initStores(
-  store: Store<path.AbsolutePath>,
-  localStore: Store<path.AbsolutePath>,
-) {
-  await Promise.all([
-    fs.mkdirp(path.join(store.path, STORE_BUILD_TREE)),
-    fs.mkdirp(path.join(store.path, STORE_INSTALL_TREE)),
-    fs.mkdirp(path.join(store.path, STORE_STAGE_TREE)),
-    fs.mkdirp(path.join(localStore.path, STORE_BUILD_TREE)),
-    fs.mkdirp(path.join(localStore.path, STORE_INSTALL_TREE)),
-    fs.mkdirp(path.join(localStore.path, STORE_STAGE_TREE)),
-  ]);
-  if (store.path !== store.prettyPath) {
-    fs.symlink(store.path, store.prettyPath);
-  }
 }
 
 async function unlinkOrRemove(p) {

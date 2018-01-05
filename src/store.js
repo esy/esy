@@ -67,3 +67,14 @@ export function getStorePathForPrefix(prefix: path.AbsolutePath): path.AbsoluteP
     .padEnd(ESY_STORE_PADDING_LENGTH, '_');
   return (p: any);
 }
+
+export async function initStore(store: Store<path.AbsolutePath>) {
+  await Promise.all([
+    fs.mkdirp(path.join(store.path, STORE_BUILD_TREE)),
+    fs.mkdirp(path.join(store.path, STORE_INSTALL_TREE)),
+    fs.mkdirp(path.join(store.path, STORE_STAGE_TREE)),
+  ]);
+  if (store.path !== store.prettyPath) {
+    fs.symlink(store.path, store.prettyPath);
+  }
+}
