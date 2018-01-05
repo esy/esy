@@ -6,8 +6,6 @@ node_js:
   - "8"
   - "6"
 install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y libffi-dev libgmp-dev; else brew install libffi gmp; fi
-  - sudo apt-get install libgmp-dev libffi-dev
   - travis_retry npm install -g esy@latest
   - travis_retry make bootstrap
 script:
