@@ -115,7 +115,10 @@ let findSourceModTime = (spec: BuildSpec.t) => {
   open Run;
   let visit = (path: Path.t) =>
     fun
-    | Ok(maxTime) => {
+    | Ok(maxTime) =>
+      if (path == spec.sourcePath) {
+        Ok(maxTime);
+      } else {
         let%bind {Unix.st_mtime: time, _} = Bos.OS.Path.symlink_stat(path);
         Ok(time > maxTime ? time : maxTime);
       }
