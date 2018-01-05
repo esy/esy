@@ -85,6 +85,7 @@ export default async function esyBuild(
   const config = await getBuildConfig(ctx);
   const sandbox = await getSandbox(ctx);
   const task: BuildTask = Task.fromSandbox(sandbox, config);
+  const buildManager = B.createBuildManager(config);
 
   let ejectingBuild = null;
   if (invocation.options.options.eject != null) {
@@ -99,17 +100,13 @@ export default async function esyBuild(
   log('execute');
 
   const build = invocation.options.flags.dependenciesOnly ? B.buildDependencies : B.build;
-
-  const [state, _] = await Promise.all([
-    handleFinalBuildState(ctx, build(task, config)),
-    ejectingBuild,
-  ]);
-
-  // TODO: parallelize it
-  for (const devDep of sandbox.devDependencies.values()) {
+  const rootBuild = handleFinalBuildState(ctx, build(buildManager, task, config));
+  const devDependenciesBuilds = Array.from(sandbox.devDependencies.values(), devDep => {
     const task = Task.fromBuildSpec(devDep, config, {env: sandbox.env});
-    await handleFinalBuildState(ctx, B.build(task, config));
-  }
+    return handleFinalBuildState(ctx, B.build(buildManager, task, config));
+  });
+
+  await Promise.all([ejectingBuild, rootBuild, ...devDependenciesBuilds]);
 }
 
 export async function handleFinalBuildState(
