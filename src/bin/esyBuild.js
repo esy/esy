@@ -106,7 +106,11 @@ export default async function esyBuild(
     return handleFinalBuildState(ctx, B.build(buildManager, task, config));
   });
 
-  await Promise.all([ejectingBuild, rootBuild, ...devDependenciesBuilds]);
+  try {
+    await Promise.all([ejectingBuild, rootBuild, ...devDependenciesBuilds]);
+  } finally {
+    buildManager.end();
+  }
 }
 
 export async function handleFinalBuildState(
