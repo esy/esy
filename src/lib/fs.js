@@ -22,6 +22,7 @@ export const rename: (oldPath: string, newPath: string) => Promise<void> = promi
   fs.rename,
 );
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
+export const existsSync = fs.existsSync;
 export const realpath: (p: string) => Promise<string> = promisify(fs.realpath);
 export const readlink: (p: string) => Promise<string> = promisify(fs.readlink);
 export const realpathSync: (p: string) => string = fs.realpathSync;

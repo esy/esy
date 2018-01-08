@@ -1,22 +1,22 @@
 {
-  "name": "dep",
+  "name": "release-dep",
   "version": "0.1.0",
   "esy": {
     "build": [
       [
         "cp",
-        "./say-hello.exe",
-        "$cur__install/bin/say-hello.exe"
+        "#{self.name '.exe'}",
+        "#{self.bin / self.name '.exe'}"
       ],
       [
         "chmod",
         "+x",
-        "$cur__install/bin/say-hello.exe"
+        "#{self.bin / self.name '.exe'}"
       ]
     ],
     "release": {
       "releasedBinaries": [
-        "say-hello.exe"
+        "release-dep.exe"
       ]
     }
   }
