@@ -23,6 +23,7 @@ export default async function esyBuild(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
+  log('execute');
   const config = await getBuildConfig(ctx);
   const sandbox = await getSandbox(ctx);
 
