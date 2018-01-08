@@ -16,7 +16,6 @@ export const esyRoot = path.dirname(__dirname);
 // We use version of esy executable w/o lock so we can run in parallel. We make
 // sure we use isolated sources for tests so this is ok.
 export const esyBin = path.join(esyRoot, 'bin', 'esy');
-export const esyRelease = path.join(esyRoot, 'dist');
 export const testUtilsBash = require.resolve('./testlib.sh');
 
 let tempDirectoriesCreatedDuringTestRun = [];
@@ -67,7 +66,7 @@ export function mkdtempSync() {
 /**
  * Initialize fixture.
  */
-export function initFixtureSync(fixturePath: string, testAsIfEsyIsReleased) {
+export function initFixtureSync(fixturePath: string) {
   let root;
   if (process.env.DEBUG != null) {
     console.log(outdent`
@@ -91,16 +90,6 @@ export function initFixtureSync(fixturePath: string, testAsIfEsyIsReleased) {
   } else {
     root = mkdtempSync();
   }
-
-  if (testAsIfEsyIsReleased) {
-    if (!fs.existsSync(esyRelease)) {
-      throw new Error(outdent`
-        "dist/" directory does not exist, please prepare one
-        with "make build-release" for running this test
-      `);
-    }
-  }
-
   const project = path.join(root, 'project');
   const npmPrefix = path.join(root, 'npm');
   const esyPrefix = path.join(root, 'esy');
@@ -125,14 +114,12 @@ export function initFixtureSync(fixturePath: string, testAsIfEsyIsReleased) {
       source "${testUtilsBash}"
 
       function esy () {
-        "${testAsIfEsyIsReleased ? `${npmPrefix}/bin/esy` : esyBin}" "$@"
+        "${esyBin}" "$@"
       }
 
       function npmGlobal () {
         npm --prefix "${npmPrefix}" "$@"
       }
-
-      npmGlobal install -g ${esyRelease}
 
       export DEBUG="esy:*"
       export DEBUG_HIDE_DATE="yes"
@@ -168,11 +155,11 @@ export function initFixtureSync(fixturePath: string, testAsIfEsyIsReleased) {
 export function defineTestCaseWithShell(
   fixturePath: string,
   shellScript: string,
-  options: {snapshotExecutionTrace?: boolean, testAsIfEsyIsReleased?: boolean} = {},
+  options: {snapshotExecutionTrace?: boolean} = {},
 ) {
   jest.setTimeout(500000);
 
-  const fixture = initFixtureSync(fixturePath, options.testAsIfEsyIsReleased);
+  const fixture = initFixtureSync(fixturePath);
 
   function maybeMakeExecutionTraceSnapshot(stdout) {
     if (options.snapshotExecutionTrace) {
