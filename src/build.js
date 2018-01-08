@@ -150,9 +150,14 @@ export const buildDependencies = async (
 
 export const buildSession = async (
   config: Config<path.AbsolutePath>,
+  options: {estimatedTaskNumber?: number},
   f: ((task: BuildTask, forced?: boolean) => Promise<FinalBuildState>) => Promise<void>,
 ) => {
-  const activitySet = config.reporter.activitySet('-', config.buildConcurrency);
+  const totalTaskNumber = options.estimatedTaskNumber || ('-': any);
+  const activitySet = config.reporter.activitySet(
+    totalTaskNumber,
+    config.buildConcurrency,
+  );
   const buildQueue = new PromiseQueue({concurrency: config.buildConcurrency});
   const taskInProgress = new Map();
 
@@ -263,13 +268,8 @@ export const buildSession = async (
   }
 };
 
-async function performBuild(
-  task: BuildTask,
-  config: Config<path.AbsolutePath>,
-  spinner,
-): Promise<void> {
-  const logFilename = `${config.getBuildPath(task.spec)}.log`;
-  const logStream = nodefs.createWriteStream(logFilename);
+async function performBuild(task: BuildTask, config: Config<*>, spinner): Promise<void> {
+  const logStream = nodefs.createWriteStream(task.logPath);
 
   const isRoot = task.spec.packagePath === '';
   const sandboxRootBuildTreeSymlink = path.join(config.sandboxPath, BUILD_TREE_SYMLINK);
@@ -294,7 +294,7 @@ async function performBuild(
     logStream.write(data);
   };
   const onProcess = (p, updateStdout, reject, done) => {
-    const taskExport = T.exportBuildTask(config, task);
+    const taskExport = T.exportBuildTask(task);
     p.stdin.end(jsonStableStringify(taskExport, {space: '  '}));
     if (p.stderr) {
       p.stderr.on('data', updateStdout);
@@ -311,8 +311,6 @@ async function performBuild(
     });
     buildSucceeded = true;
   } finally {
-    const buildPath = config.getBuildPath(task.spec);
-    const installPath = config.getFinalInstallPath(task.spec);
     if (symlinksAreNeeded) {
       // Those can be either created by esy or by previous build process so we
       // forcefully remove them.
@@ -321,12 +319,27 @@ async function performBuild(
         unlinkOrRemove(sandboxRootInstallTreeSymlink),
       ]);
       await Promise.all([
-        fs.symlink(buildPath, sandboxRootBuildTreeSymlink),
-        buildSucceeded && fs.symlink(installPath, sandboxRootInstallTreeSymlink),
+        fs.symlink(task.buildPath, sandboxRootBuildTreeSymlink),
+        buildSucceeded && fs.symlink(task.installPath, sandboxRootInstallTreeSymlink),
       ]);
     }
   }
   await Stream.endWritableStream(logStream);
+}
+
+/**
+ * Return an array of tasks which are going to be built.
+ */
+export async function collectTasksToBuild(task: BuildTask): Promise<Array<BuildTask>> {
+  const checks = [];
+  const check = async task => {
+    return {ready: await fs.exists(task.installPath), task};
+  };
+  Graph.traverse(task, task => {
+    checks.push(check(task));
+  });
+  const tasks = await Promise.all(checks);
+  return tasks.filter(d => !d.ready).map(d => d.task);
 }
 
 async function unlinkOrRemove(p) {

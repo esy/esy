@@ -51,7 +51,7 @@ export default async function esyPlan(ctx: CommandContext, {args}: CommandInvoca
     );
   }
 
-  console.log(json.stableStringifyPretty(Task.exportBuildTask(config, task)));
+  console.log(json.stableStringifyPretty(Task.exportBuildTask(task)));
 }
 
 export const noHeader = true;

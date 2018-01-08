@@ -383,6 +383,11 @@ export function fromBuildSpec(
       scope,
       dependencies: Map.mapValues(v => v.task, dependencies),
       errors,
+      sourcePath: config.getSourcePath(spec),
+      stagePath: config.getInstallPath(spec),
+      buildPath: config.getBuildPath(spec),
+      logPath: config.getLogPath(spec),
+      installPath: config.getFinalInstallPath(spec),
     };
 
     return {
@@ -667,7 +672,7 @@ function getPathsDelimiter(envVarName: string, buildPlatform: BuildPlatform) {
       : ';';
 }
 
-export function exportBuildTask(config: Config<*>, task: BuildTask): BuildTaskExport {
+export function exportBuildTask(task: BuildTask): BuildTaskExport {
   const env = {};
   for (const [k, v] of Env.evalEnvironment(task.env)) {
     env[k] = v;
@@ -680,7 +685,7 @@ export function exportBuildTask(config: Config<*>, task: BuildTask): BuildTaskEx
     buildType: task.spec.buildType,
     build: task.buildCommand.map(c => c.renderedCommand),
     install: task.installCommand.map(c => c.renderedCommand),
-    sourcePath: config.getSourcePath(task.spec),
+    sourcePath: task.sourcePath,
     env,
   };
 }

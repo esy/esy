@@ -168,6 +168,12 @@ export type BuildTask = {
    * A list of errors found in build.
    */
   +errors: Array<BuildConfigError>,
+
+  logPath: string,
+  sourcePath: string,
+  buildPath: string,
+  stagePath: string,
+  installPath: string,
 };
 
 export type BuildTaskExport = {
@@ -230,6 +236,11 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {|
    * Generate path where build artefacts should be placed.
    */
   getBuildPath: (build: BuildSpec, ...segments: string[]) => RPath,
+
+  /**
+   * Generate path to the build log.
+   */
+  getLogPath: (build: BuildSpec) => RPath,
 
   /**
    * Generate path where installation artefacts should be placed.

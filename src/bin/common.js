@@ -103,35 +103,50 @@ export async function build(
 
   const {buildRoot = true, buildDevDependencies = true} = options;
 
-  await Build.buildSession(config, async buildTask => {
-    const tasks = [];
-
-    if (buildRoot) {
-      tasks.push(Build.build(buildTask, BuildTask.fromSandbox(sandbox, config), config));
-    } else {
-      tasks.push(
-        Build.buildDependencies(
-          buildTask,
-          BuildTask.fromSandbox(sandbox, config),
-          config,
-        ),
-      );
-    }
-
-    if (buildDevDependencies) {
-      for (const devDep of sandbox.devDependencies.values()) {
-        tasks.push(
-          Build.build(
-            buildTask,
-            BuildTask.fromBuildSpec(devDep, config, {env: sandbox.env}),
-            config,
-          ),
-        );
-      }
-    }
-
-    await Promise.all(tasks.map(handleFinalBuildState));
+  // collect all tasks
+  const tasks = [];
+  const rootTask = BuildTask.fromSandbox(sandbox, config);
+  tasks.push({
+    build: buildRoot ? Build.build : Build.buildDependencies,
+    toBuild: await Build.collectTasksToBuild(rootTask),
+    task: rootTask,
   });
+
+  if (buildDevDependencies) {
+    for (const devDep of sandbox.devDependencies.values()) {
+      const task = BuildTask.fromBuildSpec(devDep, config, {env: sandbox.env});
+      tasks.push({
+        build: Build.build,
+        toBuild: await Build.collectTasksToBuild(task),
+        task,
+      });
+    }
+  }
+
+  // collect task ids to be built so we can report better progress here
+  const taskIdsToBuild = new Set();
+  for (const t of tasks) {
+    t.toBuild.forEach(t => {
+      taskIdsToBuild.add(t.id);
+    });
+  }
+  if (!buildRoot) {
+    taskIdsToBuild.delete(rootTask.id);
+  }
+
+  if (taskIdsToBuild.size === 0) {
+    return;
+  }
+
+  await Build.buildSession(
+    config,
+    {estimatedTaskNumber: taskIdsToBuild.size},
+    async buildTask => {
+      await Promise.all(
+        tasks.map(t => handleFinalBuildState(t.build(buildTask, t.task, config))),
+      );
+    },
+  );
 }
 
 export async function ejectRootBuild(
@@ -203,7 +218,7 @@ export async function ejectRootBuild(
     ejects.push(
       emitFile({
         filename: [`build/${dep.spec.id}.json`],
-        contents: JSON.stableStringifyPretty(BuildTask.exportBuildTask(config, dep)),
+        contents: JSON.stableStringifyPretty(BuildTask.exportBuildTask(dep)),
       }),
     );
   }
@@ -211,7 +226,7 @@ export async function ejectRootBuild(
   ejects.push(
     emitFile({
       filename: [`build/${task.spec.id}.json`],
-      contents: JSON.stableStringifyPretty(BuildTask.exportBuildTask(config, task)),
+      contents: JSON.stableStringifyPretty(BuildTask.exportBuildTask(task)),
     }),
 
     emitFile({
