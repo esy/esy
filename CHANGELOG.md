@@ -1,9 +1,16 @@
 # CHANGELOG
 
+## 0.0.64
+
+* Fix a bug with error reporting in 0.0.63.
+
 ## 0.0.63
 
 * New command `esy init` to initialize new esy projects from templates.
   Implemented by @rauanmayemir.
+
+* Source modification check for linked packages is now much faster as it is
+  implemented in OCaml.
 
 * New command `esy build-plan [dep]` which prints build task on stdout. Build
   task is a JSON data structure which holds all info needed to build the package
@@ -32,6 +39,10 @@
   for more info.
 
 * Build devDependencies in parallel with the root build.
+
+* Remove `dev` and `pack` release and keep only `bin` releases.
+
+* Remove `esy build-eject` command.
 
 ## 0.0.62
 
