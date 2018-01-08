@@ -12,8 +12,8 @@ esy:bin trying to acquire lock
 esy:bin:esyBuild execute
 esy:build:dep@1.0.0 start building
 esy:build:dev-dep@1.0.0 start building
-esy:build:dev-dep@1.0.0 build success
 esy:build:dep@1.0.0 build success
+esy:build:dev-dep@1.0.0 build success
 esy:bin trying to acquire lock
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
