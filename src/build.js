@@ -62,7 +62,7 @@ const BUILD_STATE_CACHED_SUCCESS = {
  * Build the entire sandbox starting from the `rootTask`.
  */
 export const build = async (
-  buildManager: BuildManager,
+  build: (task: BuildTask, forced?: boolean) => Promise<FinalBuildState>,
   rootTask: BuildTask,
   config: Config<path.AbsolutePath>,
 ) => {
@@ -91,9 +91,9 @@ export const build = async (
         };
       } else if (states.some(state => state.state === 'success' && state.forced)) {
         // if some of the deps were forced then force the rebuild too
-        return buildManager.build(task, true);
+        return build(task, true);
       } else {
-        return buildManager.build(task);
+        return build(task);
       }
     },
   );
@@ -105,7 +105,7 @@ export const build = async (
  * Build all the sandbox but not the `rootTask`.
  */
 export const buildDependencies = async (
-  buildManager: BuildManager,
+  build: (task: BuildTask, forced?: boolean) => Promise<FinalBuildState>,
   rootTask: BuildTask,
   config: Config<path.AbsolutePath>,
 ) => {
@@ -137,9 +137,9 @@ export const buildDependencies = async (
           return BUILD_STATE_CACHED_SUCCESS;
         } else if (states.some(state => state.state === 'success' && state.forced)) {
           // if some of the deps were forced then force the rebuild too
-          return buildManager.build(task, true);
+          return build(task, true);
         } else {
-          return buildManager.build(task);
+          return build(task);
         }
       }
     },
@@ -148,7 +148,10 @@ export const buildDependencies = async (
   return state;
 };
 
-export const createBuildManager = (config: Config<path.AbsolutePath>) => {
+export const buildSession = async (
+  config: Config<path.AbsolutePath>,
+  f: ((task: BuildTask, forced?: boolean) => Promise<FinalBuildState>) => Promise<void>,
+) => {
   const activitySet = config.reporter.activitySet('-', config.buildConcurrency);
   const buildQueue = new PromiseQueue({concurrency: config.buildConcurrency});
   const taskInProgress = new Map();
@@ -227,7 +230,7 @@ export const createBuildManager = (config: Config<path.AbsolutePath>) => {
 
   function performBuildMemoized(
     task: BuildTask,
-    forced: boolean = false,
+    forced?: boolean = false,
   ): Promise<FinalBuildState> {
     const log = createLogger(`esy:build:${task.spec.name}@${task.spec.version}`);
     const {spec} = task;
@@ -253,12 +256,11 @@ export const createBuildManager = (config: Config<path.AbsolutePath>) => {
     return inProgress;
   }
 
-  return {
-    build: performBuildMemoized,
-    end() {
-      activitySet.end();
-    },
-  };
+  try {
+    await f(performBuildMemoized);
+  } finally {
+    activitySet.end();
+  }
 };
 
 async function performBuild(
