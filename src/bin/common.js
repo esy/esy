@@ -8,7 +8,7 @@ import * as t from '../types.js';
 import type {CommandContext} from './esy.js';
 import outdent from 'outdent';
 import {indent} from './esy';
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import * as Env from '../environment.js';
 import * as constants from '../constants.js';
 import * as BuildTask from '../build-task.js';
