@@ -89,6 +89,7 @@ ci:
 		./__tests__/build/*-test.js \
 		./__tests__/release/*-test.js \
 		./__tests__/export-import-build/*-test.js
+	$(MAKE) build-release
 	$(MAKE) test-e2e
 	$(MAKE) test-opam
 
