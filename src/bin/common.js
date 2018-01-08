@@ -103,38 +103,35 @@ export async function build(
 
   const {buildRoot = true, buildDevDependencies = true} = options;
 
-  const buildManager = Build.createBuildManager(config);
-  const tasks = [];
+  await Build.buildSession(config, async buildTask => {
+    const tasks = [];
 
-  if (buildRoot) {
-    tasks.push(Build.build(buildManager, BuildTask.fromSandbox(sandbox, config), config));
-  } else {
-    tasks.push(
-      Build.buildDependencies(
-        buildManager,
-        BuildTask.fromSandbox(sandbox, config),
-        config,
-      ),
-    );
-  }
-
-  if (buildDevDependencies) {
-    for (const devDep of sandbox.devDependencies.values()) {
+    if (buildRoot) {
+      tasks.push(Build.build(buildTask, BuildTask.fromSandbox(sandbox, config), config));
+    } else {
       tasks.push(
-        Build.build(
-          buildManager,
-          BuildTask.fromBuildSpec(devDep, config, {env: sandbox.env}),
+        Build.buildDependencies(
+          buildTask,
+          BuildTask.fromSandbox(sandbox, config),
           config,
         ),
       );
     }
-  }
 
-  try {
+    if (buildDevDependencies) {
+      for (const devDep of sandbox.devDependencies.values()) {
+        tasks.push(
+          Build.build(
+            buildTask,
+            BuildTask.fromBuildSpec(devDep, config, {env: sandbox.env}),
+            config,
+          ),
+        );
+      }
+    }
+
     await Promise.all(tasks.map(handleFinalBuildState));
-  } finally {
-    buildManager.end();
-  }
+  });
 }
 
 export async function ejectRootBuild(
