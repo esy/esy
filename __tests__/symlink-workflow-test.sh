@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source ./testlib.sh
+source ./setup.sh
 
 initFixture symlink-workflow
 
