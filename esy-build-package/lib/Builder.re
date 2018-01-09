@@ -27,6 +27,34 @@ let relocateSourcePath = (config: Config.t, spec: BuildSpec.t) => {
   Bos.OS.Cmd.run(cmd);
 };
 
+let withLock = (lockPath: Path.t, f) => {
+  let lockPath = Path.to_string(lockPath);
+  let fd =
+    UnixLabels.(
+      openfile(
+        ~mode=[O_WRONLY, O_CREAT, O_TRUNC, O_SYNC],
+        ~perm=0o640,
+        lockPath
+      )
+    );
+  let release = () => {
+    UnixLabels.(lockf(fd, ~mode=F_ULOCK, ~len=0));
+    Unix.close(fd);
+  };
+  UnixLabels.(lockf(fd, ~mode=F_TLOCK, ~len=0));
+  let res =
+    try {
+      let res = f();
+      release();
+      res;
+    } {
+    | e =>
+      release();
+      raise(e);
+    };
+  res;
+};
+
 let commitBuildToStore = (config: Config.t, spec: BuildSpec.t) => {
   open Run;
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
@@ -152,7 +180,8 @@ let doNothing = (_config: Config.t, _spec: BuildSpec.t) => Run.ok;
 /**
  * Execute `run` within the build environment for `spec`.
  */
-let withBuildEnv = (~commit=false, config: Config.t, spec: BuildSpec.t, f) => {
+let withBuildEnvUnlocked =
+    (~commit=false, config: Config.t, spec: BuildSpec.t, f) => {
   open Run;
   let {BuildSpec.sourcePath, installPath, buildPath, stagePath, _} = spec;
   let (rootPath, prepareRootPath, completeRootPath) =
@@ -273,13 +302,25 @@ let withBuildEnv = (~commit=false, config: Config.t, spec: BuildSpec.t, f) => {
       let%bind () = completeRootPath(config, spec);
       error;
     };
-  let%bind () = Store.init(config.storePath);
-  let%bind () = Store.init(config.localStorePath);
   let%bind () = prepare();
   let result = withCwd(rootPath, ~f=f(run, runInteractive));
   let%bind () = finalize(result);
   result;
 };
+
+let withBuildEnv = (~commit=false, config: Config.t, spec: BuildSpec.t, f) =>
+  Run.(
+    {
+      let%bind () = Store.init(config.storePath);
+      let%bind () = Store.init(config.localStorePath);
+      let perform = () => withBuildEnvUnlocked(~commit, config, spec, f);
+      switch spec.sourceType {
+      | BuildSpec.Transient
+      | BuildSpec.Root => withLock(spec.lockPath, perform)
+      | BuildSpec.Immutable => perform()
+      };
+    }
+  );
 
 let build =
     (~buildOnly=true, ~force=false, config: Config.t, spec: BuildSpec.t) => {
