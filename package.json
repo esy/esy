@@ -66,7 +66,6 @@
   "dependencies": {
     "@esy-ocaml/esy-install": "link:./esy-install",
     "@esy-ocaml/esy-opam": "0.0.12",
-    "@esy-ocaml/flock": "0.2.3001",
     "@esy-ocaml/ocamlrun": "^4.6.2",
     "babel-polyfill": "^6.23.0",
     "cli-argparse": "^1.1.2",
