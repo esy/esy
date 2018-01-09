@@ -73,6 +73,7 @@ type t = {
   installPath: Path.t,
   buildPath: Path.t,
   infoPath: Path.t,
+  lockPath: Path.t,
   env: Env.t
 };
 
@@ -142,6 +143,8 @@ module ConfigFile = {
       buildPath: Path.(storePath / Config.storeBuildTree / specConfig.id),
       infoPath:
         Path.(storePath / Config.storeBuildTree / (specConfig.id ++ ".info")),
+      lockPath:
+        Path.(storePath / Config.storeBuildTree / (specConfig.id ++ ".lock")),
       sourcePath,
       env,
       install,
