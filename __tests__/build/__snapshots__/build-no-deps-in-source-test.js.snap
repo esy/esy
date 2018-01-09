@@ -8,9 +8,7 @@ RUNNING: esy build
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
-esy:bin trying to acquire lock
 esy:bin:esyBuild execute
-esy:bin trying to acquire lock
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built
@@ -18,7 +16,6 @@ RUNNING: esy x no-deps-in-source
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
-esy:bin trying to acquire lock
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
 esy:build-dependencies checking if dependencies are built"
