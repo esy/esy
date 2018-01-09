@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.0.65
+
+* `esy install` now tries to fetch `@opam/*` packages from OPAM archive.
+
+  This is made so esy is less dependent on tarballs hosted on author's servers.
+
+  This only happens if there's no override specified in
+  esy-ocaml/esy-opam-override repository.
+
 ## 0.0.64
 
 * Fix a bug with error reporting in 0.0.63.
