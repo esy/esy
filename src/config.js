@@ -82,9 +82,9 @@ function _create<Path: path.Path>(
       const buildPath = genStorePath(STORE_BUILD_TREE, build, []);
       return path.join(path.dirname(buildPath), `${build.id}.log`);
     },
-    getInstallPath: (build: BuildSpec, ...segments) =>
+    getStagePath: (build: BuildSpec, ...segments) =>
       genStorePath(STORE_STAGE_TREE, build, segments),
-    getFinalInstallPath: (build: BuildSpec, ...segments) =>
+    getInstallPath: (build: BuildSpec, ...segments) =>
       genStorePath(STORE_INSTALL_TREE, build, segments),
 
     prettifyPath: (p: string) => {

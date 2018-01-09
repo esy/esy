@@ -36,7 +36,7 @@ export default async function esyExportDependencies(ctx: CommandContext) {
   const toExportMissing = [];
   await Promise.all(
     toExport.map(async build => {
-      const finalInstallPath = config.getFinalInstallPath(build);
+      const finalInstallPath = config.getInstallPath(build);
       if (!await fs.exists(finalInstallPath)) {
         toExportMissing.push(build);
       }

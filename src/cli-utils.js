@@ -80,7 +80,7 @@ export async function getPackageLibraries(
 ): Promise<Array<string>> {
   const result = await spawn(ocamlfind, ['list'], {
     env: {
-      OCAMLPATH: spec != null ? config.getFinalInstallPath(spec, 'lib') : '',
+      OCAMLPATH: spec != null ? config.getInstallPath(spec, 'lib') : '',
     },
   });
 
@@ -116,7 +116,7 @@ export async function formatPackageInfo(
 }
 
 export async function formatBuildInfo(config: Config<*>, spec: BuildSpec) {
-  const buildStatus = (await fs.exists(config.getFinalInstallPath(spec)))
+  const buildStatus = (await fs.exists(config.getInstallPath(spec)))
     ? chalk.green('[built]')
     : chalk.blue('[build pending]');
   let info = [buildStatus];

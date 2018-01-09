@@ -46,8 +46,8 @@ export default async function esyLsLibs(
     throw new Error("We couldn't find ocaml, consider adding it to your devDependencies");
   }
 
-  const ocamlfindCmd = config.getFinalInstallPath(ocamlfind, 'bin', 'ocamlfind');
-  const ocamlobjinfoCmd = config.getFinalInstallPath(ocaml, 'bin', 'ocamlobjinfo');
+  const ocamlfindCmd = config.getInstallPath(ocamlfind, 'bin', 'ocamlfind');
+  const ocamlobjinfoCmd = config.getInstallPath(ocaml, 'bin', 'ocamlobjinfo');
 
   const builtIns = await getPackageLibraries(config, ocamlfindCmd);
 
@@ -90,7 +90,7 @@ async function formatBuildSpecTree(
     const {spec, ctx} = cur;
 
     const pkg = formatPackageInfo(config, spec, {...ctx, isSeen: ctx.level > 1});
-    const libs = (await fs.exists(config.getFinalInstallPath(spec)))
+    const libs = (await fs.exists(config.getInstallPath(spec)))
       ? formatBuildLibrariesList(config, spec, options, {
           ...ctx,
           level: ctx.level + 1,
@@ -216,7 +216,7 @@ async function queryLibraryMeta(
     ['query', '-predicates', 'byte,native', '-long-format', lib],
     {
       env: {
-        OCAMLPATH: config.getFinalInstallPath(spec, 'lib'),
+        OCAMLPATH: config.getInstallPath(spec, 'lib'),
       },
     },
   );

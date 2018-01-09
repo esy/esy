@@ -39,7 +39,7 @@ export default async function esyLsLibs(
     );
   }
 
-  const ocamlfindCmd = config.getFinalInstallPath(ocamlfind, 'bin', 'ocamlfind');
+  const ocamlfindCmd = config.getInstallPath(ocamlfind, 'bin', 'ocamlfind');
   const builtIns = await getPackageLibraries(config, ocamlfindCmd);
 
   const queue = getBuildSpecPackages(config, sandbox.root, !!flags.all, false);
@@ -72,7 +72,7 @@ async function formatBuildSpecTree(
     const {spec, ctx} = cur;
 
     const pkg = formatPackageInfo(config, spec, {...ctx, isSeen: ctx.level > 1});
-    const libs = (await fs.exists(config.getFinalInstallPath(spec)))
+    const libs = (await fs.exists(config.getInstallPath(spec)))
       ? formatBuildLibrariesList(config, spec, options, {
           ...ctx,
           level: ctx.level + 1,

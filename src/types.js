@@ -243,18 +243,19 @@ export type Config<+Path: path.Path, RPath: Path = Path> = {|
   getLogPath: (build: BuildSpec) => RPath,
 
   /**
-   * Generate path where installation artefacts should be placed.
+   * Generate path where installation artefacts should be placed during the
+   * build process.
    */
-  getInstallPath: (build: BuildSpec, ...segments: string[]) => RPath,
+  getStagePath: (build: BuildSpec, ...segments: string[]) => RPath,
 
   /**
    * Generate path where finalized installation artefacts should be placed.
    *
-   * Installation and final installation path are different because we want to
-   * do atomic installs (possible by buiilding in one location and then mv'ing
-   * to another, final location).
+   * Stage and installation paths are different because we want to do atomic
+   * installs (possible by buiilding in one location and then mv'ing to another,
+   * final location).
    */
-  getFinalInstallPath: (build: BuildSpec, ...segments: string[]) => RPath,
+  getInstallPath: (build: BuildSpec, ...segments: string[]) => RPath,
 
   /**
    * Generate a pretty version of the path if possible.

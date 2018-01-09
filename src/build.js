@@ -162,7 +162,7 @@ export const buildSession = async (
   const taskInProgress = new Map();
 
   function checkIfIsInStore(spec) {
-    return fs.exists(config.getFinalInstallPath(spec));
+    return fs.exists(config.getInstallPath(spec));
   }
 
   async function performBuildOrImport(task, log, spinner): Promise<void> {

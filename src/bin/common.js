@@ -191,7 +191,7 @@ export async function ejectRootBuild(
   await fs.rmdir(outputPath);
 
   const checkImmutableDeps = Array.from(immutableDeps.values()).map(t => {
-    const installPath = config.getFinalInstallPath(t.spec);
+    const installPath = config.getInstallPath(t.spec);
     return outdent`
       if [ ! -d "${installPath}" ]; then
         buildDependencies "$@"
@@ -348,7 +348,7 @@ export async function ejectRootBuild(
       ${esyBuildWrapperEnv}
 
       $ESY_EJECT__ROOT/bin/build-dependencies
-      if [ ! -d "${config.getFinalInstallPath(task.spec)}" ]; then
+      if [ ! -d "${config.getInstallPath(task.spec)}" ]; then
         ${Config.OCAMLRUN_COMMAND} ${Config.ESY_BUILD_PACKAGE_COMMAND} build --build ${taskFilename} --force
       fi
     `,
@@ -380,7 +380,7 @@ export async function exportBuild(
   build: t.BuildSpec,
   outputPath?: string,
 ) {
-  const finalInstallPath = config.getFinalInstallPath(build);
+  const finalInstallPath = config.getInstallPath(build);
   const args = ['export-build', finalInstallPath];
   if (outputPath != null) {
     args.push(outputPath);

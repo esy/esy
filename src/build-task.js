@@ -289,9 +289,9 @@ export function fromBuildSpec(
     const reversedAllDependencies = Array.from(allDependencies.values());
     reversedAllDependencies.reverse();
     for (const dep of reversedAllDependencies) {
-      OCAMLPATH.push(config.getFinalInstallPath(dep.task.spec, 'lib'));
-      PATH.push(config.getFinalInstallPath(dep.task.spec, 'bin'));
-      MAN_PATH.push(config.getFinalInstallPath(dep.task.spec, 'man'));
+      OCAMLPATH.push(config.getInstallPath(dep.task.spec, 'lib'));
+      PATH.push(config.getInstallPath(dep.task.spec, 'bin'));
+      MAN_PATH.push(config.getInstallPath(dep.task.spec, 'man'));
     }
 
     // In ideal world we wouldn't need it as the whole toolchain should be
@@ -309,7 +309,7 @@ export function fromBuildSpec(
       },
       {
         name: 'OCAMLFIND_DESTDIR',
-        value: config.getInstallPath(spec, 'lib'),
+        value: config.getStagePath(spec, 'lib'),
         builtIn: false,
         exclusive: true,
         origin: null,
@@ -384,10 +384,10 @@ export function fromBuildSpec(
       dependencies: Map.mapValues(v => v.task, dependencies),
       errors,
       sourcePath: config.getSourcePath(spec),
-      stagePath: config.getInstallPath(spec),
+      stagePath: config.getStagePath(spec),
       buildPath: config.getBuildPath(spec),
       logPath: config.getLogPath(spec),
-      installPath: config.getFinalInstallPath(spec),
+      installPath: config.getInstallPath(spec),
     };
 
     return {
@@ -458,70 +458,70 @@ function getBuildCurrentEnv(config: Config<*>, spec: BuildSpec) {
     },
     {
       name: `cur__install`,
-      value: config.getInstallPath(spec),
+      value: config.getStagePath(spec),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__bin`,
-      value: config.getInstallPath(spec, 'bin'),
+      value: config.getStagePath(spec, 'bin'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__sbin`,
-      value: config.getInstallPath(spec, 'sbin'),
+      value: config.getStagePath(spec, 'sbin'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__lib`,
-      value: config.getInstallPath(spec, 'lib'),
+      value: config.getStagePath(spec, 'lib'),
       builtIn: true,
       exclusive: true,
       origin: spec,
     },
     {
       name: `cur__man`,
-      value: config.getInstallPath(spec, 'man'),
+      value: config.getStagePath(spec, 'man'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__doc`,
-      value: config.getInstallPath(spec, 'doc'),
+      value: config.getStagePath(spec, 'doc'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__stublibs`,
-      value: config.getInstallPath(spec, 'stublibs'),
+      value: config.getStagePath(spec, 'stublibs'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__toplevel`,
-      value: config.getInstallPath(spec, 'toplevel'),
+      value: config.getStagePath(spec, 'toplevel'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__share`,
-      value: config.getInstallPath(spec, 'share'),
+      value: config.getStagePath(spec, 'share'),
       origin: spec,
       builtIn: true,
       exclusive: true,
     },
     {
       name: `cur__etc`,
-      value: config.getInstallPath(spec, 'etc'),
+      value: config.getStagePath(spec, 'etc'),
       origin: spec,
       builtIn: true,
       exclusive: true,
@@ -535,8 +535,8 @@ function getBuildScopeBindings(
   isCurrentlyBuilding?: boolean,
 ): BuildScope {
   const getInstallPath = isCurrentlyBuilding
-    ? config.getInstallPath
-    : config.getFinalInstallPath;
+    ? config.getStagePath
+    : config.getInstallPath;
   const scope: BuildScope = Map.create(
     [
       {
