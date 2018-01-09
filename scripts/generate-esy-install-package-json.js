@@ -13,7 +13,6 @@ const releasePackageJson = {
   description: packageJson.description,
   dependencies: {
     '@esy-ocaml/esy-opam': packageJson.dependencies['@esy-ocaml/esy-opam'],
-    '@esy-ocaml/flock': packageJson.dependencies['@esy-ocaml/flock'],
     '@esy-ocaml/ocamlrun': packageJson.dependencies['@esy-ocaml/ocamlrun'],
     fastreplacestring: packageJson.dependencies['fastreplacestring'],
   },

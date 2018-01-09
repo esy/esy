@@ -19,7 +19,6 @@ export const OCAMLRUN_COMMAND = resolve('@esy-ocaml/ocamlrun/install/bin/ocamlru
 export const ESY_BUILD_PACKAGE_COMMAND = resolve('../bin/esyBuildPackage', {
   basedir: __dirname,
 });
-export const FLOCK_COMMAND = resolve('@esy-ocaml/flock/flock', {basedir: __dirname});
 export const FASTREPLACESTRING_COMMAND = resolve(
   'fastreplacestring/.bin/fastreplacestring.exe',
   {basedir: __dirname},

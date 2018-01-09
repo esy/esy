@@ -23,7 +23,6 @@ export default async function esyAutoconf(ctx: CommandContext) {
     export OCAMLRUN_COMMAND="${config.OCAMLRUN_COMMAND}"
     export ESY_BUILD_PACKAGE_COMMAND="${config.ESY_BUILD_PACKAGE_COMMAND}"
     export FASTREPLACESTRING_COMMAND="${config.FASTREPLACESTRING_COMMAND}"
-    export FLOCK_COMMAND="${config.FLOCK_COMMAND}"
   `);
 }
 

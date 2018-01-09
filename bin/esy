@@ -19,7 +19,6 @@ source "$SCRIPTDIR/esyConfig.sh"
 source "$SCRIPTDIR/esyRuntime.sh"
 
 mkdir -p "$ESY__PREFIX"
-ESY__LOCK="$ESY__PREFIX/lock"
 
 BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build"
 
@@ -96,31 +95,12 @@ run () {
   fi
 }
 
-withLock () {
-  if [ -z "${ESY__LOCKED+x}" ]; then
-    esyLog "esy:bin" "trying to acquire lock"
-    local command="$@"
-    set +e
-    # we do || exit 2 to distinguish between $command failure and flock failure
-    ESY__LOCKED="$ESY__LOCK" "$FLOCK_COMMAND" -n "$ESY__LOCK" bash -c "$command || exit 2"
-    retCode="$?"
-    set -e
-    if [ $retCode -eq 1 ]; then
-      esyError "another esy process is running ($ESY__LOCK exists), exiting..."
-    elif [ $retCode -ne 0 ]; then
-      exit 1
-    fi
-  else
-    "$@"
-  fi
-}
-
 callBuiltInCommand__build () {
   ensureBuildEjected
   if [ $# -eq 0 ]; then
-    withLock "$BUILD_EJECT_PATH/bin/build"
+    "$BUILD_EJECT_PATH/bin/build"
   else
-    withLock "$BUILD_EJECT_PATH/bin/build-exec" "$@"
+    "$BUILD_EJECT_PATH/bin/build-exec" "$@"
   fi
 }
 
@@ -128,12 +108,12 @@ callBuiltInCommand__buildShell () {
   local buildJson
   buildJson=$(mktemp)
   node "$SCRIPTDIR/esy.js" build-plan "$@" > "$buildJson"
-  run withLock "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" shell -B "$buildJson"
+  run "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" shell -B "$buildJson"
 }
 
 callBuiltInCommand__x () {
   ensureBuildEjected --silent
-  run --suppressOutput withLock "$BUILD_EJECT_PATH/bin/install"
+  run --suppressOutput "$BUILD_EJECT_PATH/bin/install"
   source "$BUILD_EJECT_PATH/bin/sandbox-env"
   shift
   # Checks if command ($1) is present available
@@ -154,7 +134,7 @@ ensureBuildEjected () {
       esyArgs="$esyArgs --silent"
       shift
     fi
-    run withLock node "$SCRIPTDIR/esy.js" "$esyArgs" build \
+    run node "$SCRIPTDIR/esy.js" "$esyArgs" build \
       --dependencies-only \
       --eject "$BUILD_EJECT_PATH" "$@"
   fi
@@ -165,7 +145,7 @@ callBuiltInCommand() {
 }
 
 callBuiltInCommandWithLock() {
-	withLock node "$SCRIPTDIR/esy.js" "$@"
+	node "$SCRIPTDIR/esy.js" "$@"
 }
 
 printHelp() {
