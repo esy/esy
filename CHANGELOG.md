@@ -9,6 +9,9 @@
   This only happens if there's no override specified in
   esy-ocaml/esy-opam-override repository.
 
+* Build locks are more granular now and don't require `@esy-ocaml/flock` package
+  which was fragile on some systems.
+
 ## 0.0.64
 
 * Fix a bug with error reporting in 0.0.63.
