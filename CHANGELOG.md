@@ -18,7 +18,7 @@
 
 ## 0.0.63
 
-* New command `esy init` to initialize new esy projects from templates.
+* New command `esy create` to initialize new esy projects from templates.
   Implemented by @rauanmayemir.
 
 * Source modification check for linked packages is now much faster as it is
