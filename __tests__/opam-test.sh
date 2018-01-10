@@ -1,4 +1,7 @@
+#!/bin/bash
+
 source ./testlib.sh
+source ./setup.sh
 
 initFixture opam-test
 
