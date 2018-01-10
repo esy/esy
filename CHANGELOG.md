@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.0.66
+
+* Report progress on console even if no tty is available.
+
+  This keeps CI updated and prevent it from timing out thinking builds are stale
+  while they are not.
+
 ## 0.0.65
 
 * `esy install` now tries to fetch `@opam/*` packages from OPAM archive.
