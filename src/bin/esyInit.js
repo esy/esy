@@ -9,21 +9,21 @@ import * as child from '@esy-ocaml/esy-install/src/util/child';
 import * as path from '../lib/path';
 import * as fs from '../lib/fs';
 import commander from 'commander';
+import dashify from 'dashify';
 import parse from 'cli-argparse';
 import runYarnCommand from './runYarnCommand';
 import {Promise} from '../lib/Promise';
 
-export default async function esyCreate(
+export default async function esyInit(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
   const clioptions = parse(invocation.args);
 
   const {['with']: packageName = 'create-esy-project', ...options} = clioptions.options;
-  const {force: forceInit = false} = clioptions.flags;
+  const {force: forceInit = false, ...flags} = clioptions.flags;
 
   const projectName = path.basename(ctx.sandboxPath);
-  const commandName = packageName.replace(/^@[^\/]+\//, '');
 
   if (!forceInit) {
     const safePath = await isSafeToInitProjectIn(ctx.sandboxPath, projectName);
@@ -43,10 +43,19 @@ export default async function esyCreate(
   await runYarnCommand(ctx, addInvocation, 'global');
 
   const binFolder = path.resolve(globalFolder, 'node_modules', '.bin');
+
+  const commandName = packageName.replace(/^@[^\/]+\//, '');
+
   const command = path.resolve(binFolder, path.basename(commandName));
+  const args = [
+    projectName,
+    ...clioptions.unparsed,
+    ...argvify(options),
+    ...argvify(flags),
+  ];
 
   try {
-    await child.spawn(command, [projectName], {
+    await child.spawn(command, args, {
       cwd: path.resolve(ctx.sandboxPath, '..'),
       stdio: `inherit`,
       shell: true,
@@ -56,8 +65,27 @@ export default async function esyCreate(
   }
 }
 
-// export const noHeader = true;
 export const noParse = true;
+
+function argvify(options: {[name: string]: any}) {
+  const argv = [];
+
+  for (const key in options) {
+    const opt = options[key];
+
+    const dashed = dashify(key);
+
+    if (opt === true) {
+      argv.push(`--${dashed}`);
+    } else if (typeof opt === 'number') {
+      const flag = new Array(opt + 1).join(key);
+      argv.push(`-${flag}`);
+    } else {
+      argv.push(`--${dashed}`, opt);
+    }
+  }
+  return argv;
+}
 
 async function isSafeToInitProjectIn(path, name) {
   const validFiles = [
@@ -68,12 +96,10 @@ async function isSafeToInitProjectIn(path, name) {
     '.idea',
     'README.md',
     'LICENSE',
-    'web.iml',
     '.hg',
     '.hgignore',
     '.hgcheck',
   ];
-  console.log();
 
   const files = await fs.readdir(path);
 
@@ -91,14 +117,10 @@ async function isSafeToInitProjectIn(path, name) {
     return true;
   }
 
-  console.log(`Your directory ${chalk.green(name)} contains files that could conflict:`);
   console.log();
-  for (const file of conflicts) {
-    console.log(`  ${file}`);
-  }
+  console.log(`Your directory ${chalk.green(name)} is not empty.`);
+  console.log(`Pass ${chalk.cyan('--force')} to override this check.`);
   console.log();
-  console.log('Either try using an empty directory, or remove the files listed above.');
-  console.log(`Alternatively, pass ${chalk.cyan('--force')} to override this check.`);
 
   return false;
 }
