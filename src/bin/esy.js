@@ -6,7 +6,6 @@ require('babel-polyfill');
 
 import type {Config, Reporter, Sandbox, BuildTask, BuildPlatform} from '../types';
 import type {Options as SandboxOptions} from '../sandbox/project-sandbox';
-import {ConsoleReporter, NoopReporter} from '@esy-ocaml/esy-install/src/reporters';
 
 import loudRejection from 'loud-rejection';
 import userHome from 'user-home';
@@ -16,6 +15,7 @@ import outdent from 'outdent';
 import parse from 'cli-argparse';
 import * as rc from '../rc.js';
 import {SandboxError} from '../errors.js';
+import {ConsoleReporter, HighSeverityReporter} from '../reporter.js';
 
 const pkg = require('../../package.json');
 // for deterministic test output
@@ -25,19 +25,6 @@ if (process.env.NODE_ENV === 'test') {
 
 const cwd = process.cwd();
 const rcConfig = rc.getRcConfigForCwd(cwd);
-
-class HighSeverityReporter extends NoopReporter {
-  reporter: Reporter;
-
-  constructor(reporter) {
-    super();
-    this.reporter = reporter;
-  }
-
-  error(...args) {
-    return this.reporter.error(...args);
-  }
-}
 
 function getSandboxPath() {
   if (process.env.ESY__SANDBOX != null) {
