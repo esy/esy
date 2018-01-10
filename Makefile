@@ -62,9 +62,6 @@ test-unit:
 test-unit-watch:
 	@$(BIN)/jest src/ --watch
 
-test-esy-release:
-	@$(BIN)/jest ./__tests__/release/*-test.js
-
 test-esy-build:
 	@$(BIN)/jest ./__tests__/build/*-test.js
 
@@ -78,7 +75,6 @@ test:
 	@$(BIN)/jest \
 		./src/__tests__ \
 		./__tests__/build/*-test.js \
-		./__tests__/release/*-test.js \
 		./__tests__/export-import-build/*-test.js
 	$(MAKE) test-e2e
 
@@ -111,6 +107,7 @@ RELEASE_FILES = \
 
 build-release:
 	@rm -rf $(RELEASE_ROOT)
+	@$(MAKE) -C esy-build-package build
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 
 $(RELEASE_ROOT)/package.json:
