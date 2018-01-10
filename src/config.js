@@ -11,7 +11,10 @@ import * as path from './lib/path';
 import * as crypto from './lib/crypto';
 import {sync as resolve} from 'resolve';
 
-const NUM_CPUS = os.cpus().length;
+const isTestEnvironment = process.env.NODE_ENV === 'test';
+
+// Pretent there's a single CPU in test environment
+const NUM_CPUS = isTestEnvironment ? 1 : os.cpus().length;
 
 export const OCAMLRUN_COMMAND = resolve('@esy-ocaml/ocamlrun/install/bin/ocamlrun', {
   basedir: __dirname,
