@@ -1,0 +1,9 @@
+(jbuild_version 1)
+
+(library (
+ (name EsyCore)
+ (public_name esy-core)
+ (modes (byte))
+ (flags (:standard (-w -39)))
+ (preprocess (pps (lwt_ppx ppx_import ppx_deriving_yojson ppx_deriving.std ppx_let)))
+ (libraries (lwt bos ppx_deriving_yojson.runtime logs re))))

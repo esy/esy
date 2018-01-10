@@ -2,7 +2,7 @@
 
 (library (
  (name EsyLib)
- (public_name EsyLib)
+ (public_name esy-lib)
  (modes (byte))
  (flags (:standard (-w -39)))
  (preprocess (pps (ppx_import ppx_deriving_yojson ppx_deriving.std ppx_let)))

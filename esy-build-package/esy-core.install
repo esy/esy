@@ -1,0 +1,11 @@
+lib: [
+  "_build/install/default/lib/esy-core/META" {"META"}
+  "_build/install/default/lib/esy-core/opam" {"opam"}
+  "_build/install/default/lib/esy-core/EsyCore.cmi"
+  "_build/install/default/lib/esy-core/EsyCore.cmt"
+  "_build/install/default/lib/esy-core/EsyCore.ml-gen"
+  "_build/install/default/lib/esy-core/EsyCore.cma"
+]
+doc: [
+  "_build/install/default/doc/esy-core/README.md"
+]
