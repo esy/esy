@@ -1,0 +1,10 @@
+lib: [
+  "_build/install/default/lib/esy-build-package/META" {"META"}
+  "_build/install/default/lib/esy-build-package/opam" {"opam"}
+]
+bin: [
+  "_build/install/default/bin/esy-build-package" {"esy-build-package"}
+]
+doc: [
+  "_build/install/default/doc/esy-build-package/README.md"
+]
