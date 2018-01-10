@@ -286,7 +286,7 @@ elif [ $# -eq 1 ]; then
       ;;
     init)
       shift
-      callBuiltInCommand create
+      callBuiltInCommand init
       ;;
     build|b)
       shift
@@ -431,7 +431,11 @@ else
       ensureSandbox
       callBuiltInCommand__buildShell "$@"
       ;;
-    init|create)
+    init)
+      shift
+      callBuiltInCommand init "$@"
+      ;;
+    create)
       shift
       callBuiltInCommand create "$@"
       ;;
