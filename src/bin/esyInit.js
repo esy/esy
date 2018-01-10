@@ -9,7 +9,6 @@ import * as child from '@esy-ocaml/esy-install/src/util/child';
 import * as path from '../lib/path';
 import * as fs from '../lib/fs';
 import commander from 'commander';
-import dashify from 'dashify';
 import parse from 'cli-argparse';
 import runYarnCommand from './runYarnCommand';
 import {Promise} from '../lib/Promise';
@@ -18,10 +17,14 @@ export default async function esyInit(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  const clioptions = parse(invocation.args);
+  const clioptions = parse(invocation.args, {
+    flags: ['--force'],
+    options: ['--with'],
+    strict: true,
+  });
 
-  const {['with']: packageName = 'create-esy-project', ...options} = clioptions.options;
-  const {force: forceInit = false, ...flags} = clioptions.flags;
+  const {['with']: packageName = 'create-esy-project'} = clioptions.options;
+  const {force: forceInit = false} = clioptions.flags;
 
   const projectName = path.basename(ctx.sandboxPath);
 
@@ -47,12 +50,7 @@ export default async function esyInit(
   const commandName = packageName.replace(/^@[^\/]+\//, '');
 
   const command = path.resolve(binFolder, path.basename(commandName));
-  const args = [
-    projectName,
-    ...clioptions.unparsed,
-    ...argvify(options),
-    ...argvify(flags),
-  ];
+  const args = [projectName, ...clioptions.unparsed];
 
   try {
     await child.spawn(command, args, {
@@ -66,26 +64,6 @@ export default async function esyInit(
 }
 
 export const noParse = true;
-
-function argvify(options: {[name: string]: any}) {
-  const argv = [];
-
-  for (const key in options) {
-    const opt = options[key];
-
-    const dashed = dashify(key);
-
-    if (opt === true) {
-      argv.push(`--${dashed}`);
-    } else if (typeof opt === 'number') {
-      const flag = new Array(opt + 1).join(key);
-      argv.push(`-${flag}`);
-    } else {
-      argv.push(`--${dashed}`, opt);
-    }
-  }
-  return argv;
-}
 
 async function isSafeToInitProjectIn(path, name) {
   const validFiles = [
