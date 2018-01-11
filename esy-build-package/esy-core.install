@@ -4,7 +4,28 @@ lib: [
   "_build/install/default/lib/esy-core/EsyCore.cmi"
   "_build/install/default/lib/esy-core/EsyCore.cmt"
   "_build/install/default/lib/esy-core/EsyCore.ml-gen"
+  "_build/install/default/lib/esy-core/EsyCore__Io.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Io.cmt"
+  "_build/install/default/lib/esy-core/Io.re"
+  "_build/install/default/lib/esy-core/EsyCore__Json.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Json.cmt"
+  "_build/install/default/lib/esy-core/Json.ml"
+  "_build/install/default/lib/esy-core/EsyCore__Manifest.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Manifest.cmt"
+  "_build/install/default/lib/esy-core/Manifest.ml"
+  "_build/install/default/lib/esy-core/EsyCore__Path.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Path.cmt"
+  "_build/install/default/lib/esy-core/Path.re"
+  "_build/install/default/lib/esy-core/EsyCore__Run.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Run.cmt"
+  "_build/install/default/lib/esy-core/Run.ml"
+  "_build/install/default/lib/esy-core/EsyCore__Sandbox.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Sandbox.cmt"
+  "_build/install/default/lib/esy-core/Sandbox.re"
   "_build/install/default/lib/esy-core/EsyCore.cma"
+]
+bin: [
+  "_build/install/default/bin/esy" {"esy"}
 ]
 doc: [
   "_build/install/default/doc/esy-core/README.md"

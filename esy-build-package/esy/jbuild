@@ -1,0 +1,9 @@
+(jbuild_version 1)
+
+(executable
+ ((name esy)
+  (public_name esy)
+  (package esy-core)
+  (modes (byte))
+  (preprocess (pps (lwt_ppx ppx_let)))
+  (libraries (esy-core esy-lib lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.cli re fmt fmt.cli fmt.tty))))
