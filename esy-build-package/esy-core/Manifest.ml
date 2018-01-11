@@ -17,7 +17,7 @@ module CommandList = struct
     let of_yojson (json : Json.t) =
       match json with
       | `String command ->
-        let command = String.split_on_char '/' command in
+        let command = ShellSplit.split command in
         Ok command
       | `List command ->
         Json.Parse.(list string (`List command))
@@ -92,6 +92,7 @@ module ExportedEnv = struct
 end
 
 module EsyManifest = struct
+
   type buildType =
     | InSource
     | OutOfSource
