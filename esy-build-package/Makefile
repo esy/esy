@@ -3,6 +3,9 @@ install:
 
 build:
 	@esy build
+	@$(MAKE) postbuild
+
+postbuild:
 	@esy ocamlstripdebug _build/default/esy-build-package/esyBuildPackage.bc _build/esyBuildPackage
 
 build-dev:

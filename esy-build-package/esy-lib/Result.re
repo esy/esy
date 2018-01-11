@@ -20,6 +20,17 @@ let (>>) = (a, b) =>
   | Error(msg) => Error(msg)
   };
 
+module Let_syntax = {
+  let bind = (~f, v) =>
+    switch v {
+    | Ok(v) => f(v)
+    | Error(e) => Error(e)
+    };
+  module Open_on_rhs = {
+    let return = v => Ok(v);
+  };
+};
+
 let listMap = (f, xs) => {
   let f = (prev, x) =>
     switch prev {
@@ -33,13 +44,12 @@ let listMap = (f, xs) => {
   xs |> List.fold_left(f, Ok([])) |> map(List.rev);
 };
 
-module Let_syntax = {
-  let bind = (~f, v) =>
-    switch v {
-    | Ok(v) => f(v)
-    | Error(e) => Error(e)
+let listFoldLeft = (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
+  let rec fold = (acc, xs) =>
+    switch (acc, xs) {
+    | (Error(err), _) => Error(err)
+    | (Ok(acc), []) => Ok(acc)
+    | (Ok(acc), [x, ...xs]) => fold(f(acc, x), xs)
     };
-  module Open_on_rhs = {
-    let return = v => Ok(v);
-  };
+  fold(Ok(init), xs);
 };
