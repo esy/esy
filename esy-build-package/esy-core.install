@@ -22,6 +22,9 @@ lib: [
   "_build/install/default/lib/esy-core/EsyCore__Sandbox.cmi"
   "_build/install/default/lib/esy-core/EsyCore__Sandbox.cmt"
   "_build/install/default/lib/esy-core/Sandbox.re"
+  "_build/install/default/lib/esy-core/EsyCore__ShellSplit.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__ShellSplit.cmt"
+  "_build/install/default/lib/esy-core/ShellSplit.ml"
   "_build/install/default/lib/esy-core/EsyCore.cma"
 ]
 bin: [
