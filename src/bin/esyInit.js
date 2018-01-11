@@ -31,7 +31,7 @@ export default async function esyInit(
   if (!forceInit) {
     const safePath = await isSafeToInitProjectIn(ctx.sandboxPath, projectName);
     if (!safePath) {
-      return;
+      process.exit(1);
     }
   }
 
@@ -59,7 +59,7 @@ export default async function esyInit(
       shell: true,
     });
   } catch (err) {
-    return;
+    process.exit(1);
   }
 }
 
