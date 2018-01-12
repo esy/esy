@@ -1,13 +1,4 @@
-{
-
-  include CommandExprSupport
-
-  let buf_from_str str =
-    let buf = Buffer.create 16 in
-    Buffer.add_string buf str;
-    buf
-
-}
+{ include CommandExprParserSupport }
 
 let safechars   = [^ '\\' ]
 let space       = [ ' ' '\t' ]
@@ -24,8 +15,8 @@ rule read result = parse
  | '\\' '''      { uquote result (buf_from_str "'") lexbuf }
  | '\\' '\\'     { uquote result (buf_from_str "\\") lexbuf }
  | '\\' ' '      { uquote result (buf_from_str " ") lexbuf }
- | '\\' _ as c   { raise (UnknownShellEscape c) }
- | _ as c        { raise (UnmatchedChar c) }
+ | '\\' _ as c   { raise (UnknownShellEscape (lexbuf.lex_curr_p, c)) }
+ | _ as c        { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
  | eof { List.rev result }
 
 and expr result tokens = parse
@@ -55,9 +46,9 @@ and uquote result buf = parse
  | '\\' '''    { Buffer.add_string buf "'"; uquote result buf lexbuf }
  | '\\' '\\'   { Buffer.add_string buf "\\"; uquote result buf lexbuf }
  | '\\' ' '    { Buffer.add_string buf " "; uquote result buf lexbuf }
- | '\\' _ as c { raise (UnknownShellEscape c) }
+ | '\\' _ as c { raise (UnknownShellEscape (lexbuf.lex_curr_p, c)) }
  | safechars   { Buffer.add_string buf (Lexing.lexeme lexbuf); uquote result buf lexbuf }
- | _ as c      { raise (UnmatchedChar c) }
+ | _ as c      { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
 
 and literal result tokens buf = parse
  | ''' {
@@ -72,16 +63,4 @@ and literal result tokens buf = parse
      Buffer.add_string buf (Lexing.lexeme lexbuf);
      literal result tokens buf lexbuf
    }
- | _ as c          { raise (UnmatchedChar c) }
-
-{
-
-  let parse v =
-    let lexbuf = Lexing.from_string v in
-    Ok (read [] lexbuf)
-    (*
-    | UnmatchedChar c ->
-      Error (Printf.sprintf "unknown character \"%c\"" c)
-    *)
-
-}
+ | _ as c          { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
