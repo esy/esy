@@ -49,8 +49,8 @@ let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(v("build.json"), buildPath);
   let%bind config = createConfig(copts);
-  let%bind spec = BuildSpec.ofFile(config, buildPath);
-  let%bind () = Builder.build(~buildOnly, ~force, config, spec);
+  let%bind task = BuildTask.ofFile(config, buildPath);
+  let%bind () = Builder.build(~buildOnly, ~force, config, task);
   Ok();
 };
 
@@ -79,8 +79,8 @@ let shell = (copts: commonOpts) => {
       ]);
     runInteractive(cmd);
   };
-  let%bind spec = BuildSpec.ofFile(config, buildPath);
-  let%bind () = Builder.withBuildEnv(config, spec, runShell);
+  let%bind task = BuildTask.ofFile(config, buildPath);
+  let%bind () = Builder.withBuildEnv(config, task, runShell);
   ok;
 };
 
@@ -93,8 +93,8 @@ let exec = (copts, command) => {
     let cmd = Bos.Cmd.of_list(command);
     runInteractive(cmd);
   };
-  let%bind spec = BuildSpec.ofFile(config, buildPath);
-  let%bind () = Builder.withBuildEnv(config, spec, runCommand);
+  let%bind task = BuildTask.ofFile(config, buildPath);
+  let%bind () = Builder.withBuildEnv(config, task, runCommand);
   ok;
 };
 
@@ -170,7 +170,7 @@ let () = {
       );
     };
     let buildPath = {
-      let doc = "Specifies path to build spec.";
+      let doc = "Specifies path to build task.";
       let env = Arg.env_var("ESY__BUILD_SPEC", ~doc);
       Arg.(
         value

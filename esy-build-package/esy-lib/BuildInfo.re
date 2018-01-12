@@ -1,5 +1,5 @@
 /**
- * Information about the spec.
+ * Information about the task.
  */
 [@deriving (show, of_yojson, to_yojson)]
 type t = {
@@ -7,19 +7,19 @@ type t = {
   sourceModTime: option(float)
 };
 
-let write = (spec: BuildSpec.t, info: t) => {
+let write = (task: BuildTask.t, info: t) => {
   let write = (oc, ()) => {
     Yojson.Safe.pretty_to_channel(oc, to_yojson(info));
     Run.ok;
   };
-  Result.join(Bos.OS.File.with_oc(spec.infoPath, write, ()));
+  Result.join(Bos.OS.File.with_oc(task.infoPath, write, ()));
 };
 
-let read = (spec: BuildSpec.t) => {
+let read = (task: BuildTask.t) => {
   let read =
     Run.(
-      if%bind (exists(spec.infoPath)) {
-        let%bind data = Bos.OS.File.read(spec.infoPath);
+      if%bind (exists(task.infoPath)) {
+        let%bind data = Bos.OS.File.read(task.infoPath);
         let%bind info = Json.parseWith(of_yojson, data);
         Ok(Some(info));
       } else {
