@@ -113,7 +113,7 @@ module EsyManifest = struct
   } [@@deriving (show, of_yojson { strict = false })]
 end
 
-module DependencyMap = struct
+module ManifestDependencyMap = struct
   type t = string StringMap.t
 
   let pp =
@@ -126,23 +126,46 @@ module DependencyMap = struct
 
 end
 
+module Manifest = struct
+  type t = {
+    name : string;
+    version : string;
+    dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
+    peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
+    devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
+    esy: EsyManifest.t;
+  } [@@deriving (show, of_yojson { strict = false })]
+
+  let ofFile path =
+    try%lwt (
+        let%lwt json = Io.readJsonFile path in
+        Lwt.return (Some (of_yojson json))
+    ) with | Unix.Unix_error (_, _, _) -> Lwt.return None
+
+  let ofDir (path : Path.t) =
+    match%lwt ofFile (let open Path in path / "esy.json") with
+    | None -> ofFile (let open Path in path / "package.json")
+    | manifest -> Lwt.return manifest
+end
 
 type t = {
-  name : string;
-  version : string;
-  dependencies : (DependencyMap.t [@default StringMap.empty]);
-  peerDependencies : (DependencyMap.t [@default StringMap.empty]);
-  devDependencies : (DependencyMap.t [@default StringMap.empty]);
-  esy: EsyManifest.t;
-} [@@deriving (show, of_yojson { strict = false })]
+  id: string;
+  name: string;
+  version: string;
+  dependencies: dependency list;
+  buildCommands: CommandList.t;
+  installCommands: CommandList.t;
+  buildType: EsyManifest.buildType;
+  exportedEnv: ExportedEnv.t;
+}
+[@@deriving show]
 
-let ofFile path =
-  try%lwt (
-      let%lwt json = Io.readJsonFile path in
-      Lwt.return (Some (of_yojson json))
-  ) with | Unix.Unix_error (_, _, _) -> Lwt.return None
+and dependency =
+  | Dependency of t
+  | DevDependency of t
+  | InvalidDependency of {
+    packageName: string;
+    reason: string;
+  }
+[@@deriving show]
 
-let ofDir (path : Path.t) =
-  match%lwt ofFile (let open Path in path / "esy.json") with
-  | None -> ofFile (let open Path in path / "package.json")
-  | manifest -> Lwt.return manifest
