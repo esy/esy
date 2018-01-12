@@ -52,30 +52,16 @@ let rec resolvePackage = (packageName: string, basedir: Path.t) => {
   resolve(basedir);
 };
 
-module Cache = {
-  let create = (~size=100) => {
-    let cache = Hashtbl.create(size);
-    let lookup = (key, compute) =>
-      try (Hashtbl.find(cache, key)) {
-      | Not_found =>
-        let promise = compute();
-        Hashtbl.add(cache, key, promise);
-        promise;
-      };
-    lookup;
-  };
-};
-
 module StringMap = Map.Make(String);
 
 let ofDir = path => {
-  let resolutionCache = Cache.create(~size=200);
+  let resolutionCache = Memoize.create(~size=200);
   let resolvePackageCached = (packageName, basedir) => {
     let key = (packageName, basedir);
     let compute = () => resolvePackage(packageName, basedir);
     resolutionCache(key, compute);
   };
-  let packageCache = Cache.create(~size=200);
+  let packageCache = Memoize.create(~size=200);
   let rec loadPackage = (path: EsyLib.Path.t) => {
     let resolveDep = (depPackageName: string) =>
       switch%lwt (resolvePackageCached(depPackageName, path)) {
