@@ -1,4 +1,4 @@
-let relocateSourcePath = (config: Config.t, spec: BuildSpec.t) => {
+let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
   let cmd =
     Bos.Cmd.(
       empty
@@ -6,7 +6,7 @@ let relocateSourcePath = (config: Config.t, spec: BuildSpec.t) => {
       % "--quiet"
       % "--archive"
       % "--exclude"
-      % p(spec.buildPath)
+      % p(task.buildPath)
       % "--exclude"
       % "node_modules"
       % "--exclude"
@@ -21,8 +21,8 @@ let relocateSourcePath = (config: Config.t, spec: BuildSpec.t) => {
        * origPath rather than the origPath itself into destPath, see "man rsync" for
        * details.
        */
-      % (Path.to_string(spec.sourcePath) ++ "/")
-      % p(spec.buildPath)
+      % (Path.to_string(task.sourcePath) ++ "/")
+      % p(task.buildPath)
     );
   Bos.OS.Cmd.run(cmd);
 };
@@ -55,7 +55,7 @@ let withLock = (lockPath: Path.t, f) => {
   res;
 };
 
-let commitBuildToStore = (config: Config.t, spec: BuildSpec.t) => {
+let commitBuildToStore = (config: Config.t, task: BuildTask.t) => {
   open Run;
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
     let cmd =
@@ -83,33 +83,33 @@ let commitBuildToStore = (config: Config.t, spec: BuildSpec.t) => {
     switch stats.st_kind {
     | Unix.S_REG =>
       rewritePrefixInFile(
-        ~origPrefix=spec.stagePath,
-        ~destPrefix=spec.installPath,
+        ~origPrefix=task.stagePath,
+        ~destPrefix=task.installPath,
         path
       )
     | Unix.S_LNK =>
       rewriteTargetInSymlink(
-        ~origPrefix=spec.stagePath,
-        ~destPrefix=spec.installPath,
+        ~origPrefix=task.stagePath,
+        ~destPrefix=task.installPath,
         path
       )
     | _ => Ok()
     };
   let%bind () =
     Bos.OS.File.write(
-      Path.(spec.stagePath / "_esy" / "storePrefix"),
+      Path.(task.stagePath / "_esy" / "storePrefix"),
       Path.to_string(config.storePath)
     );
-  let%bind () = traverse(spec.stagePath, relocate);
-  let%bind () = Bos.OS.Path.move(spec.stagePath, spec.installPath);
+  let%bind () = traverse(task.stagePath, relocate);
+  let%bind () = Bos.OS.Path.move(task.stagePath, task.installPath);
   ok;
 };
 
-let relocateBuildPath = (_config: Config.t, spec: BuildSpec.t) => {
+let relocateBuildPath = (_config: Config.t, task: BuildTask.t) => {
   open Run;
-  let savedBuild = spec.buildPath / "_build";
-  let currentBuild = spec.sourcePath / "_build";
-  let backupBuild = spec.sourcePath / "_build.prev";
+  let savedBuild = task.buildPath / "_build";
+  let currentBuild = task.sourcePath / "_build";
+  let backupBuild = task.sourcePath / "_build.prev";
   let start = (_config, _spec) => {
     let%bind () =
       if%bind (exists(currentBuild)) {
@@ -139,12 +139,12 @@ let relocateBuildPath = (_config: Config.t, spec: BuildSpec.t) => {
   (start, commit);
 };
 
-let findSourceModTime = (spec: BuildSpec.t) => {
+let findSourceModTime = (task: BuildTask.t) => {
   open Run;
   let visit = (path: Path.t) =>
     fun
     | Ok(maxTime) =>
-      if (path == spec.sourcePath) {
+      if (path == task.sourcePath) {
         Ok(maxTime);
       } else {
         let%bind {Unix.st_mtime: time, _} = Bos.OS.Path.symlink_stat(path);
@@ -170,26 +170,26 @@ let findSourceModTime = (spec: BuildSpec.t) => {
       ~traverse,
       visit,
       Ok(0.),
-      [spec.sourcePath]
+      [task.sourcePath]
     )
   );
 };
 
-let doNothing = (_config: Config.t, _spec: BuildSpec.t) => Run.ok;
+let doNothing = (_config: Config.t, _spec: BuildTask.t) => Run.ok;
 
 /**
- * Execute `run` within the build environment for `spec`.
+ * Execute `run` within the build environment for `task`.
  */
 let withBuildEnvUnlocked =
-    (~commit=false, config: Config.t, spec: BuildSpec.t, f) => {
+    (~commit=false, config: Config.t, task: BuildTask.t, f) => {
   open Run;
-  let {BuildSpec.sourcePath, installPath, buildPath, stagePath, _} = spec;
+  let {BuildTask.sourcePath, installPath, buildPath, stagePath, _} = task;
   let (rootPath, prepareRootPath, completeRootPath) =
-    switch (spec.buildType, spec.sourceType) {
+    switch (task.buildType, task.sourceType) {
     | (InSource, _) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Immutable) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Transient) =>
-      let (start, commit) = relocateBuildPath(config, spec);
+      let (start, commit) = relocateBuildPath(config, task);
       (sourcePath, start, commit);
     | (JbuilderLike, Root) => (sourcePath, doNothing, doNothing)
     | (OutOfSource, _) => (sourcePath, doNothing, doNothing)
@@ -207,7 +207,7 @@ let withBuildEnvUnlocked =
       Ok(Path.to_string(v));
     };
     let allowWriteToSourcePath =
-      switch spec.buildType {
+      switch task.buildType {
       | JbuilderLike => [
           Subpath(Path.to_string(sourcePath / "_build")),
           regex(sourcePath, [".*", "[^/]*\\.install"]),
@@ -233,8 +233,8 @@ let withBuildEnvUnlocked =
   };
   let env =
     switch (Bos.OS.Env.var("TERM")) {
-    | Some(term) => Astring.String.Map.add("TERM", term, spec.env)
-    | None => spec.env
+    | Some(term) => Astring.String.Map.add("TERM", term, task.env)
+    | None => task.env
     };
   let%bind exec = Sandbox.sandboxExec({allowWrite: sandboxConfig});
   let path =
@@ -270,7 +270,7 @@ let withBuildEnvUnlocked =
     let%bind () = mkdir(stagePath / "doc");
     let%bind () = mkdir(stagePath / "_esy");
     let%bind () =
-      switch (spec.sourceType, spec.buildType) {
+      switch (task.sourceType, task.buildType) {
       | (Immutable, _)
       | (_, InSource) =>
         let%bind () = rmdir(buildPath);
@@ -280,7 +280,7 @@ let withBuildEnvUnlocked =
         let%bind () = mkdir(buildPath);
         ok;
       };
-    let%bind () = prepareRootPath(config, spec);
+    let%bind () = prepareRootPath(config, task);
     let%bind () = mkdir(buildPath / "_esy");
     ok;
   };
@@ -292,14 +292,14 @@ let withBuildEnvUnlocked =
     | Ok () =>
       let%bind () =
         if (commit) {
-          commitBuildToStore(config, spec);
+          commitBuildToStore(config, task);
         } else {
           ok;
         };
-      let%bind () = completeRootPath(config, spec);
+      let%bind () = completeRootPath(config, task);
       ok;
     | error =>
-      let%bind () = completeRootPath(config, spec);
+      let%bind () = completeRootPath(config, task);
       error;
     };
   let%bind () = prepare();
@@ -308,24 +308,24 @@ let withBuildEnvUnlocked =
   result;
 };
 
-let withBuildEnv = (~commit=false, config: Config.t, spec: BuildSpec.t, f) =>
+let withBuildEnv = (~commit=false, config: Config.t, task: BuildTask.t, f) =>
   Run.(
     {
       let%bind () = Store.init(config.storePath);
       let%bind () = Store.init(config.localStorePath);
-      let perform = () => withBuildEnvUnlocked(~commit, config, spec, f);
-      switch spec.sourceType {
-      | BuildSpec.Transient
-      | BuildSpec.Root => withLock(spec.lockPath, perform)
-      | BuildSpec.Immutable => perform()
+      let perform = () => withBuildEnvUnlocked(~commit, config, task, f);
+      switch task.sourceType {
+      | BuildTask.Transient
+      | BuildTask.Root => withLock(task.lockPath, perform)
+      | BuildTask.Immutable => perform()
       };
     }
   );
 
 let build =
-    (~buildOnly=true, ~force=false, config: Config.t, spec: BuildSpec.t) => {
+    (~buildOnly=true, ~force=false, config: Config.t, task: BuildTask.t) => {
   open Run;
-  Logs.debug(m => m("start %s", spec.id));
+  Logs.debug(m => m("start %s", task.id));
   let performBuild = sourceModTime => {
     Logs.debug(m => m("building"));
     let runBuildAndInstall = (run, _runInteractive, ()) => {
@@ -344,7 +344,7 @@ let build =
           };
         _runList(cmds);
       };
-      let {BuildSpec.build, install, _} = spec;
+      let {BuildTask.build, install, _} = task;
       let%bind () = runList(build);
       let%bind () =
         if (! buildOnly) {
@@ -356,13 +356,13 @@ let build =
     };
     let startTime = Unix.gettimeofday();
     let%bind () =
-      withBuildEnv(~commit=! buildOnly, config, spec, runBuildAndInstall);
+      withBuildEnv(~commit=! buildOnly, config, task, runBuildAndInstall);
     let%bind info = {
       let%bind sourceModTime =
-        switch (sourceModTime, spec.sourceType) {
-        | (None, BuildSpec.Root)
-        | (None, BuildSpec.Transient) =>
-          let%bind v = findSourceModTime(spec);
+        switch (sourceModTime, task.sourceType) {
+        | (None, BuildTask.Root)
+        | (None, BuildTask.Transient) =>
+          let%bind v = findSourceModTime(task);
           Ok(Some(v));
         | (v, _) => Ok(v)
         };
@@ -370,19 +370,19 @@ let build =
         BuildInfo.{sourceModTime, timeSpent: Unix.gettimeofday() -. startTime}
       );
     };
-    BuildInfo.write(spec, info);
+    BuildInfo.write(task, info);
   };
-  switch (force, spec.sourceType) {
+  switch (force, task.sourceType) {
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);
-  | (false, BuildSpec.Transient)
-  | (false, BuildSpec.Root) =>
+  | (false, BuildTask.Transient)
+  | (false, BuildTask.Root) =>
     Logs.debug(m => m("checking for staleness"));
-    let info = BuildInfo.read(spec);
+    let info = BuildInfo.read(task);
     let prevSourceModTime =
       Option.bind(~f=v => v.BuildInfo.sourceModTime, info);
-    let%bind sourceModTime = findSourceModTime(spec);
+    let%bind sourceModTime = findSourceModTime(task);
     switch prevSourceModTime {
     | Some(prevSourceModTime) when sourceModTime > prevSourceModTime =>
       performBuild(Some(sourceModTime))
@@ -391,8 +391,8 @@ let build =
       Logs.debug(m => m("source code is not modified, skipping"));
       ok;
     };
-  | (false, BuildSpec.Immutable) =>
-    let%bind installPathExists = exists(spec.installPath);
+  | (false, BuildTask.Immutable) =>
+    let%bind installPathExists = exists(task.installPath);
     if (installPathExists) {
       Logs.debug(m => m("build exists in store, skipping"));
       ok;
