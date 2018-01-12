@@ -46,45 +46,53 @@ let ofDir = path => {
       switch%lwt (resolvePackageCached(depPackageName, path)) {
       | Some(depPackagePath) =>
         switch%lwt (loadPackageCached(depPackagePath)) {
-        | Ok(pkg) => Lwt.return(Package.Dependency(pkg))
-        | Error(reason) =>
-          Lwt.return(
-            Package.InvalidDependency({packageName: depPackageName, reason})
-          )
+        | Ok(pkg) => Lwt.return_ok(pkg)
+        | Error(reason) => Lwt.return_error((depPackageName, reason))
         }
-      | None =>
-        Lwt.return(
-          Package.InvalidDependency({
-            packageName: depPackageName,
-            reason: "cannot resolve dependency"
-          })
-        )
+      | None => Lwt.return_error((depPackageName, "cannot resolve dependency"))
       };
+    let resolveDeps = (dependencies, make) => {
+      let%lwt dependencies =
+        StringMap.bindings(dependencies)
+        |> List.map(((packageName, _)) => packageName)
+        |> Lwt_list.map_p(resolveDep);
+      Lwt.return(
+        List.map(
+          fun
+          | Ok(pkg) => make(pkg)
+          | Error((packageName, reason)) =>
+            Package.InvalidDependency({packageName, reason}),
+          dependencies
+        )
+      );
+    };
     let%lwt manifest = Package.Manifest.ofDir(path);
     switch manifest {
     | Some(Ok(manifest)) =>
       let%lwt dependencies =
-        StringMap.bindings(manifest.dependencies)
-        |> List.map(((packageName, _)) => packageName)
-        |> Lwt_list.map_p(resolveDep);
+        resolveDeps(manifest.dependencies, pkg => Package.Dependency(pkg));
+      let%lwt peerDependencies =
+        resolveDeps(manifest.peerDependencies, pkg =>
+          Package.PeerDependency(pkg)
+        );
       let pkg =
         Package.{
           id: manifest.name,
           name: manifest.name,
           version: manifest.version,
-          dependencies,
+          dependencies: dependencies @ peerDependencies,
           buildCommands: manifest.esy.build,
           installCommands: manifest.esy.install,
           buildType: manifest.esy.buildsInSource,
           exportedEnv: manifest.esy.exportedEnv
         };
-      Lwt.return(Ok(pkg));
+      Lwt.return_ok(pkg);
     | Some(Error(err)) =>
       let path = Path.to_string(path);
       let msg =
         Printf.sprintf("error parsing manifest '%s' at: %s", err, path);
-      Lwt.return(Error(msg));
-    | _ => Lwt.return(Error("no manifest found at: " ++ Path.to_string(path)))
+      Lwt.return_error(msg);
+    | _ => Lwt.return_error("no manifest found at: " ++ Path.to_string(path))
     };
   }
   and loadPackageCached = (path: Path.t) => {

@@ -1,6 +1,9 @@
 lib: [
   "_build/install/default/lib/esy-core/META" {"META"}
   "_build/install/default/lib/esy-core/opam" {"opam"}
+  "_build/install/default/lib/esy-core/EsyCore__BuildTask.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__BuildTask.cmt"
+  "_build/install/default/lib/esy-core/BuildTask.ml"
   "_build/install/default/lib/esy-core/EsyCore__CommandExpr.cmi"
   "_build/install/default/lib/esy-core/EsyCore__CommandExpr.cmt"
   "_build/install/default/lib/esy-core/CommandExpr.ml"
