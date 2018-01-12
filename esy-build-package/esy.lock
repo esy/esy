@@ -497,6 +497,22 @@
   peerDependencies:
     ocaml " >= 4.2.0"
 
+"@opam/ppx_inline_test@^100000000.10.0":
+  version "100000000.10.0"
+  uid "46268d1ce4555e87f4d1c6a83fe0188a"
+  resolved "@opam/ppx_inline_test@100000000.10.0-46268d1ce4555e87f4d1c6a83fe0188a.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/base" " >= 100000000.10.0  < 100000000.11.0"
+    "@opam/jbuilder" " >= 1.0.0-beta12"
+    "@opam/ocaml-migrate-parsetree" " >= 0.4.0"
+    "@opam/ppx_core" " >= 100000000.10.0  < 100000000.11.0"
+    "@opam/ppx_driver" " >= 100000000.10.0  < 100000000.11.0"
+    "@opam/ppx_metaquot" " >= 100000000.10.0  < 100000000.11.0"
+  peerDependencies:
+    ocaml " >= 4.4.1"
+
 "@opam/ppx_let@^100000000.9.0":
   version "100000000.10.0"
   uid "53932fd1834bf08e5c4e912dd84229d4"
@@ -508,6 +524,21 @@
     "@opam/ocaml-migrate-parsetree" " >= 0.4.0"
     "@opam/ppx_core" " >= 100000000.10.0  < 100000000.11.0"
     "@opam/ppx_driver" " >= 100000000.10.0  < 100000000.11.0"
+  peerDependencies:
+    ocaml " >= 4.4.1"
+
+"@opam/ppx_metaquot@ >= 100000000.10.0  < 100000000.11.0":
+  version "100000000.10.0"
+  uid eeb784604af5b82a103e5dde8c74a02d
+  resolved "@opam/ppx_metaquot@100000000.10.0-eeb784604af5b82a103e5dde8c74a02d.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/jbuilder" " >= 1.0.0-beta12"
+    "@opam/ocaml-migrate-parsetree" " >= 0.4.0"
+    "@opam/ppx_core" " >= 100000000.10.0  < 100000000.11.0"
+    "@opam/ppx_driver" " >= 100000000.10.0  < 100000000.11.0"
+    "@opam/ppx_traverse_builtins" " >= 100000000.10.0  < 100000000.11.0"
   peerDependencies:
     ocaml " >= 4.4.1"
 
