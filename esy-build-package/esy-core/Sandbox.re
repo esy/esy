@@ -1,24 +1,3 @@
-module Package = {
-  [@deriving show]
-  type t = {
-    id: string,
-    name: string,
-    version: string,
-    dependencies: list(dependency),
-    buildCommands: Manifest.CommandList.t,
-    installCommands: Manifest.CommandList.t,
-    buildType: Manifest.EsyManifest.buildType,
-    exportedEnv: Manifest.ExportedEnv.t
-  }
-  and dependency =
-    | Dependency(t)
-    | DevDependency(t)
-    | InvalidDependency{
-        packageName: string,
-        reason: string
-      };
-};
-
 [@deriving show]
 type t = {root: Package.t};
 
@@ -81,7 +60,7 @@ let ofDir = path => {
           })
         )
       };
-    let%lwt manifest = Manifest.ofDir(path);
+    let%lwt manifest = Package.Manifest.ofDir(path);
     switch manifest {
     | Some(Ok(manifest)) =>
       let%lwt dependencies =
