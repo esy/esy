@@ -11,5 +11,8 @@ postbuild:
 build-dev:
 	@esy b jbuilder build --dev
 
+test:
+	@esy b jbuilder build @runtest
+
 clean:
 	@rm -rf _build
