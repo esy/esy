@@ -1,4 +1,5 @@
 let main = () => {
+  module Let_syntax = EsyLib.Result.Let_syntax;
   let%lwt sandbox = EsyCore.Sandbox.ofDir(EsyCore.Path.v("."));
   switch sandbox {
   | Ok(sandbox) =>
