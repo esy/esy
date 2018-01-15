@@ -8,6 +8,11 @@ let paren_close = '}'
 let var_open    = '#' '{'
 let id          = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
+let pkg_name        = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
+let scoped_pkg_name = '@' pkg_name '/' pkg_name
+
+let capture_name = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '.' '/']*
+
 rule read result = parse
  | var_open      { expr result [] lexbuf }
  | safechars     { uquote result (buf_from_str (Lexing.lexeme lexbuf)) lexbuf }
@@ -23,9 +28,13 @@ and expr result tokens = parse
  | space        { expr result tokens lexbuf }
  | colon        { expr result (Colon::tokens) lexbuf }
  | path_sep     { expr result (PathSep::tokens) lexbuf }
- | id           {
-     let tok = Var (Lexing.lexeme lexbuf) in
-     expr result (tok::tokens) lexbuf
+ | '@' capture_name {
+     let name = nested name lexbuf in
+     expr result ((Var name)::tokens) lexbuf
+   }
+ | capture_name     {
+     let name = nested name lexbuf in
+     expr result ((Var name)::tokens) lexbuf
    }
  | '$' id       {
      let v = Lexing.lexeme lexbuf in
@@ -35,6 +44,14 @@ and expr result tokens = parse
    }
  | '''          { literal result tokens (Buffer.create 16) lexbuf }
  | paren_close  { let expr = Expr (List.rev tokens) in read (expr::result) lexbuf }
+
+and name = parse
+  | scoped_pkg_name as v  { `Token v }
+  | pkg_name as v         { `Token v }
+  | id as v               { `Token v }
+  | '.'                   { name lexbuf }
+  | _ as c                { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
+  | eof                   { `EOF }
 
 and uquote result buf = parse
  | eof         { let tok = String (Buffer.contents buf) in read (tok::result) lexbuf }
