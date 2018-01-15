@@ -84,7 +84,9 @@ let ofDir = path => {
           buildCommands: manifest.esy.build,
           installCommands: manifest.esy.install,
           buildType: manifest.esy.buildsInSource,
-          exportedEnv: manifest.esy.exportedEnv
+          sourceType: Package.Immutable,
+          exportedEnv: manifest.esy.exportedEnv,
+          sourcePath: path
         };
       Lwt.return_ok(pkg);
     | Some(Error(err)) =>
