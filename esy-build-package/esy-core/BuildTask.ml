@@ -8,23 +8,6 @@
 
 module StringMap = Map.Make(String)
 
-module Environment = struct
-
-  type t = item list
-  and item = { origin : Package.t option; name : string; value : string }
-
-  module PathLike = struct
-
-    let make (name : string) (value : Path.t list) =
-      let sep = match System.host, name with
-        | System.Cygwin, "OCAMLPATH" -> ";"
-        | _ -> ":"
-      in
-      value |> List.map Path.to_string |> String.concat sep
-
-  end
-end
-
 type t = {
   id : string;
   name : string;
@@ -53,9 +36,9 @@ type foldstate = {
 }
 
 let storePath (pkg : Package.t) = match pkg.sourceType with
-  | Package.Immutable -> Path.v "%store%"
-  | Package.Development
-  | Package.Root -> Path.v "%localStore%"
+  | Package.SourceType.Immutable -> Path.v "%store%"
+  | Package.SourceType.Development
+  | Package.SourceType.Root -> Path.v "%localStore%"
 
 let buildPath pkg =
   Path.(storePath pkg / Config.storeBuildTree / pkg.id)
@@ -113,12 +96,12 @@ let renderCommandList scope (commands : Package.CommandList.t) =
     | Error err -> Error err
 
 let renderEnvironment scope (env : Environment.t) =
-  let renderEnvironmentItem (item : Environment.item) =
-    match CommandExpr.render ~scope item.value with
-    | Ok value -> Ok { item with value }
+  let renderEnvironmentBinding (binding : Environment.binding) =
+    match CommandExpr.render ~scope binding.value with
+    | Ok value -> Ok { binding with value }
     | Error err -> Error err
   in
-  EsyLib.Result.listMap ~f:renderEnvironmentItem env
+  EsyLib.Result.listMap ~f:renderEnvironmentBinding env
 
 let ofPackage (pkg : Package.t) =
 
@@ -366,5 +349,5 @@ let ofPackage (pkg : Package.t) =
   in
 
   match Package.fold ~f pkg with
-  | Ok {task;_} -> Ok task
+  | Ok { task; _ } -> Ok task
   | Error msg -> Error msg

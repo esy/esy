@@ -5,9 +5,6 @@ module StringMap = Map.Make(String)
  *)
 module CommandList = struct
 
-  (**
-   * A single command.
-   *)
   module Command = struct
 
     type t =
@@ -47,6 +44,9 @@ module CommandList = struct
 
 end
 
+(**
+ * Environment exported from a package as specified in "esy.exportedEnv".
+ *)
 module ExportedEnv = struct
 
   type scope =
@@ -93,24 +93,36 @@ module ExportedEnv = struct
 
 end
 
-module EsyManifest = struct
-
-  type buildType =
+module BuildType = struct
+  type t =
     | InSource
     | OutOfSource
     | JBuilderLike
     [@@deriving show]
 
-  let buildType_of_yojson = function
+  let of_yojson = function
     | `String "_build" -> Ok JBuilderLike
     | `Bool true -> Ok InSource
     | `Bool false -> Ok OutOfSource
     | _ -> Error "expected false, true or \"_build\""
 
+end
+
+module SourceType = struct
+  type t =
+    | Immutable
+    | Development
+    | Root
+    [@@deriving show]
+end
+
+module EsyManifest = struct
+
+
   type t = {
     build: (CommandList.t [@default None]);
     install: (CommandList.t [@default None]);
-    buildsInSource: (buildType [@default OutOfSource]);
+    buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default []]);
   } [@@deriving (show, of_yojson { strict = false })]
 end
@@ -151,12 +163,6 @@ module Manifest = struct
     | manifest -> Lwt.return manifest
 end
 
-type sourceType =
-  | Immutable
-  | Development
-  | Root
-  [@@deriving show]
-
 type t = {
   id : string;
   name : string;
@@ -164,8 +170,8 @@ type t = {
   dependencies : dependency list;
   buildCommands : CommandList.t;
   installCommands : CommandList.t;
-  buildType : EsyManifest.buildType;
-  sourceType : sourceType;
+  buildType : BuildType.t;
+  sourceType : SourceType.t;
   exportedEnv : ExportedEnv.t;
   sourcePath : Path.t;
 }

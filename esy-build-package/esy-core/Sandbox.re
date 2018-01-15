@@ -26,10 +26,7 @@ let packageId =
   update_string(ctx, manifest.version);
   update_string(ctx, Package.CommandList.show(manifest.esy.build));
   update_string(ctx, Package.CommandList.show(manifest.esy.install));
-  update_string(
-    ctx,
-    Package.EsyManifest.show_buildType(manifest.esy.buildsInSource)
-  );
+  update_string(ctx, Package.BuildType.show(manifest.esy.buildsInSource));
   update_string(ctx, manifest._resolved);
   let updateWithDepId =
     fun
@@ -126,7 +123,7 @@ let ofDir = path => {
           buildCommands: manifest.esy.build,
           installCommands: manifest.esy.install,
           buildType: manifest.esy.buildsInSource,
-          sourceType: Package.Immutable,
+          sourceType: SourceType.Immutable,
           exportedEnv: manifest.esy.exportedEnv,
           sourcePath: path
         };
