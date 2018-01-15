@@ -87,3 +87,40 @@ let%test "parse namespace" =
     Var ["@scope/pkg"; "hi"];
     Literal ("hey");
   ]]
+
+let expectRenderOk env s expected =
+  match render ~env s with
+  | Ok v ->
+    if v <> expected then (
+      Printf.printf "Expected: %s\n" expected;
+      Printf.printf "     Got: %s\n" v;
+      false
+    ) else
+      true
+  | Error err ->
+    let msg = Printf.sprintf "error: %s" err in
+    print_endline msg;
+    false
+
+let expectRenderError env s expectedError =
+  match render ~env s with
+  | Ok v -> false
+  | Error error ->
+    if expectedError <> error then (
+      Printf.printf "Expected: %s\n" expectedError;
+      Printf.printf "     Got: %s\n" error;
+      false
+    ) else true
+
+let%test "render" =
+  let env = function
+  | "name"::[] -> Some "pkg"
+  | "self"::"lib"::[] -> Some "store/lib"
+  | "$env"::"NAME"::[] -> Some "envname"
+  | _ -> None
+  in
+
+  expectRenderOk env "Hello, #{name}!" "Hello, pkg!" &&
+  expectRenderOk env "#{self.lib / $NAME}" "store/lib/envname" &&
+  expectRenderError env "#{unknown}" "undefined variable: unknown" &&
+  expectRenderError env "#{ns.unknown}" "undefined variable: ns.unknown"
