@@ -13,6 +13,12 @@ lib: [
   "_build/install/default/lib/esy-core/EsyCore__CommandExprParserSupport.cmi"
   "_build/install/default/lib/esy-core/EsyCore__CommandExprParserSupport.cmt"
   "_build/install/default/lib/esy-core/CommandExprParserSupport.ml"
+  "_build/install/default/lib/esy-core/EsyCore__Config.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__Config.cmt"
+  "_build/install/default/lib/esy-core/Config.ml"
+  "_build/install/default/lib/esy-core/EsyCore__DependencyGraph.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__DependencyGraph.cmt"
+  "_build/install/default/lib/esy-core/DependencyGraph.ml"
   "_build/install/default/lib/esy-core/EsyCore.cmi"
   "_build/install/default/lib/esy-core/EsyCore.cmt"
   "_build/install/default/lib/esy-core/EsyCore.ml-gen"
@@ -40,6 +46,9 @@ lib: [
   "_build/install/default/lib/esy-core/EsyCore__ShellSplit.cmi"
   "_build/install/default/lib/esy-core/EsyCore__ShellSplit.cmt"
   "_build/install/default/lib/esy-core/ShellSplit.ml"
+  "_build/install/default/lib/esy-core/EsyCore__System.cmi"
+  "_build/install/default/lib/esy-core/EsyCore__System.cmt"
+  "_build/install/default/lib/esy-core/System.ml"
   "_build/install/default/lib/esy-core/EsyCore.cma"
 ]
 bin: [
