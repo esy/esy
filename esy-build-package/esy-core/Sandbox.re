@@ -1,5 +1,47 @@
+module StringMap = Map.Make(String);
+
 [@deriving show]
 type t = {root: Package.t};
+
+let safePackageName = (name: string) => {
+  let replaceAt = Str.regexp("@");
+  let replaceUnderscore = Str.regexp("_+");
+  let replaceSlash = Str.regexp("\\/");
+  let replaceDot = Str.regexp("\\.");
+  let replaceDash = Str.regexp("\\-");
+  name
+  |> String.lowercase_ascii
+  |> Str.global_replace(replaceAt, "")
+  |> Str.global_replace(replaceUnderscore, "__")
+  |> Str.global_replace(replaceSlash, "__slash__")
+  |> Str.global_replace(replaceDot, "__dot__")
+  |> Str.global_replace(replaceDash, "_");
+};
+
+let packageId =
+    (manifest: Package.Manifest.t, dependencies: list(Package.dependency)) => {
+  open Sha256;
+  let ctx = init();
+  update_string(ctx, manifest.name);
+  update_string(ctx, manifest.version);
+  update_string(ctx, Package.CommandList.show(manifest.esy.build));
+  update_string(ctx, Package.CommandList.show(manifest.esy.install));
+  update_string(
+    ctx,
+    Package.EsyManifest.show_buildType(manifest.esy.buildsInSource)
+  );
+  update_string(ctx, manifest._resolved);
+  let updateWithDepId =
+    fun
+    | Package.Dependency(pkg)
+    | Package.PeerDependency(pkg) => update_string(ctx, pkg.id)
+    | Package.InvalidDependency(_)
+    | Package.DevDependency(_) => ();
+  List.iter(updateWithDepId, dependencies);
+  let hash = finalize(ctx);
+  let hash = String.sub(to_hex(hash), 0, 8);
+  safePackageName(manifest.name) ++ "-" ++ manifest.version ++ "-" ++ hash;
+};
 
 let rec resolvePackage = (packageName: string, basedir: Path.t) => {
   let packagePath = (packageName, basedir) =>
@@ -30,8 +72,6 @@ let rec resolvePackage = (packageName: string, basedir: Path.t) => {
   };
   resolve(basedir);
 };
-
-module StringMap = Map.Make(String);
 
 let ofDir = path => {
   let resolutionCache = Memoize.create(~size=200);
@@ -75,12 +115,14 @@ let ofDir = path => {
         resolveDeps(manifest.peerDependencies, pkg =>
           Package.PeerDependency(pkg)
         );
+      let dependencies = dependencies @ peerDependencies;
+      let id = packageId(manifest, dependencies);
       let pkg =
         Package.{
-          id: manifest.name,
+          id,
           name: manifest.name,
           version: manifest.version,
-          dependencies: dependencies @ peerDependencies,
+          dependencies,
           buildCommands: manifest.esy.build,
           installCommands: manifest.esy.install,
           buildType: manifest.esy.buildsInSource,

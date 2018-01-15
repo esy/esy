@@ -136,6 +136,7 @@ module Manifest = struct
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     esy: EsyManifest.t;
+    _resolved: (string [@default "-"]);
   } [@@deriving (show, of_yojson { strict = false })]
 
   let ofFile path =
@@ -179,3 +180,18 @@ and dependency =
     reason: string;
   }
 [@@deriving show]
+
+(**
+ * Fold over a package dependency graph.
+ *)
+let fold ~(f : ('t, 'a) DependencyGraph.folder) (pkg : t) =
+  let idOf (pkg : t) = pkg.id in
+  let dependenciesOf pkg =
+    let filterDep = function
+      | Dependency p
+      | PeerDependency p -> Some p
+      | _ -> None
+    in
+    List.map filterDep pkg.dependencies
+  in
+  DependencyGraph.fold ~idOf ~dependenciesOf ~f pkg

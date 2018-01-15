@@ -32,6 +32,7 @@
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/re": "^1.7.1",
     "@opam/reason": "facebook/reason#28a8922ed2c2c2b5b32dcf2d72e93f56361959df",
+    "@opam/sha": "^1.12.0",
     "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4",
     "ocamlstripdebug": "andreypopp/ocamlstripdebug#de74dde"
   },

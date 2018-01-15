@@ -6,6 +6,6 @@
  (modes (byte))
  (flags (:standard (-w -39)))
  (preprocess (pps (lwt_ppx ppx_import ppx_deriving_yojson ppx_deriving.std ppx_let)))
- (libraries (lwt lwt.unix bos ppx_deriving_yojson.runtime logs re esy-lib))))
+ (libraries (str sha lwt lwt.unix bos ppx_deriving_yojson.runtime logs re esy-lib))))
 
 (ocamllex (ShellSplit CommandExprParser))
