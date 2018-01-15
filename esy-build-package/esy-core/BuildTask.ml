@@ -83,6 +83,88 @@ let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   |> add "share" Path.(installPath / "share" |> to_string)
   |> add "etc" Path.(installPath / "etc" |> to_string)
 
+let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
+  let buildPath = buildPath pkg in
+  let rootPath = rootPath pkg in
+  let stagePath = stagePath pkg in
+  Environment.[
+    {
+      name = "cur__name";
+      value = pkg.name;
+      origin = Some pkg;
+    };
+    {
+      name = "cur__version";
+      value = pkg.version;
+      origin = Some pkg;
+    };
+    {
+      name = "cur__root";
+      value = Path.to_string rootPath;
+      origin = Some pkg;
+    };
+    {
+      name = "cur__original_root";
+      value = Path.to_string pkg.sourcePath;
+      origin = Some pkg;
+    };
+    {
+      name = "cur__target_dir";
+      value = Path.to_string buildPath;
+      origin = Some pkg;
+    };
+    {
+      name = "cur__install";
+      value = Path.to_string stagePath;
+      origin = Some pkg;
+    };
+    {
+      name = "cur__bin";
+      value = Path.to_string Path.(stagePath / "bin");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__sbin";
+      value = Path.to_string Path.(stagePath / "sbin");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__lib";
+      value = Path.to_string Path.(stagePath / "lib");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__man";
+      value = Path.to_string Path.(stagePath / "man");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__doc";
+      value = Path.to_string Path.(stagePath / "doc");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__stublibs";
+      value = Path.to_string Path.(stagePath / "stublibs");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__toplevel";
+      value = Path.to_string Path.(stagePath / "toplevel");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__share";
+      value = Path.to_string Path.(stagePath / "share");
+      origin = Some pkg;
+    };
+    {
+      name = "cur__etc";
+      value = Path.to_string Path.(stagePath / "etc");
+      origin = Some pkg;
+    }
+  ]
+
 let renderCommandList scope (commands : Package.CommandList.t) =
   match commands with
   | None -> Ok None
@@ -132,7 +214,6 @@ let ofPackage (pkg : Package.t) =
     let buildPath = buildPath pkg in
     let stagePath = stagePath pkg in
     let installPath = installPath pkg in
-    let rootPath = rootPath pkg in
 
     let env =
 
@@ -205,107 +286,13 @@ let ofPackage (pkg : Package.t) =
         value = "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       } in
 
-      (* Those var (prefix with cur__) are part of the pjc spec, they always
-       * refer to the build currently in progress.
-       *)
-      let curName = Environment.{
-        name = "cur__name";
-        value = pkg.name;
-        origin = Some pkg;
-      } in
-      let curVersion = Environment.{
-        name = "cur__version";
-        value = pkg.version;
-        origin = Some pkg;
-      } in
-      let curRoot = Environment.{
-        name = "cur__root";
-        value = Path.to_string rootPath;
-        origin = Some pkg;
-      } in
-      let curOriginalRoot = Environment.{
-        name = "cur__original_root";
-        value = Path.to_string pkg.sourcePath;
-        origin = Some pkg;
-      } in
-      let curTargetDir = Environment.{
-        name = "cur__target_dir";
-        value = Path.to_string buildPath;
-        origin = Some pkg;
-      } in
-      let curInstall = Environment.{
-        name = "cur__install";
-        value = Path.to_string stagePath;
-        origin = Some pkg;
-      } in
-      let curBin = Environment.{
-        name = "cur__bin";
-        value = Path.to_string Path.(stagePath / "bin");
-        origin = Some pkg;
-      } in
-      let curSbin = Environment.{
-        name = "cur__sbin";
-        value = Path.to_string Path.(stagePath / "sbin");
-        origin = Some pkg;
-      } in
-      let curLib = Environment.{
-        name = "cur__lib";
-        value = Path.to_string Path.(stagePath / "lib");
-        origin = Some pkg;
-      } in
-      let curMan = Environment.{
-        name = "cur__man";
-        value = Path.to_string Path.(stagePath / "man");
-        origin = Some pkg;
-      } in
-      let curDoc = Environment.{
-        name = "cur__doc";
-        value = Path.to_string Path.(stagePath / "doc");
-        origin = Some pkg;
-      } in
-      let curStublibs = Environment.{
-        name = "cur__stublibs";
-        value = Path.to_string Path.(stagePath / "stublibs");
-        origin = Some pkg;
-      } in
-      let curToplevel = Environment.{
-        name = "cur__toplevel";
-        value = Path.to_string Path.(stagePath / "toplevel");
-        origin = Some pkg;
-      } in
-      let curShare = Environment.{
-        name = "cur__share";
-        value = Path.to_string Path.(stagePath / "share");
-        origin = Some pkg;
-      } in
-      let curEtc = Environment.{
-        name = "cur__etc";
-        value = Path.to_string Path.(stagePath / "etc");
-        origin = Some pkg;
-      } in
-
       path
       ::manPath
       ::ocamlpath
       ::ocamlfindDestdir
       ::ocamlfindLdconf
       ::ocamlfindCommands
-      ::curName
-      ::curVersion
-      ::curTargetDir
-      ::curRoot
-      ::curOriginalRoot
-      ::curInstall
-      ::curBin
-      ::curSbin
-      ::curLib
-      ::curStublibs
-      ::curEtc
-      ::curDoc
-      ::curMan
-      ::curShare
-      ::curToplevel
-      ::(localEnv @ globalEnv)
+      ::(addPackageEnvBindings pkg (localEnv @ globalEnv))
     in
 
     let scope =
