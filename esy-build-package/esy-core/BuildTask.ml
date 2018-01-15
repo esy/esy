@@ -50,7 +50,6 @@ let installPath pkg =
   Path.(storePath pkg / Config.storeInstallTree / pkg.id)
 
 let rootPath (pkg : Package.t) =
-  let open Package.EsyManifest in
   match pkg.buildType, pkg.sourceType with
   | InSource, _ -> buildPath pkg
   | JBuilderLike, Immutable -> buildPath pkg
@@ -87,83 +86,67 @@ let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
   let buildPath = buildPath pkg in
   let rootPath = rootPath pkg in
   let stagePath = stagePath pkg in
-  Environment.[
-    {
-      name = "cur__name";
-      value = pkg.name;
-      origin = Some pkg;
-    };
-    {
-      name = "cur__version";
-      value = pkg.version;
-      origin = Some pkg;
-    };
-    {
-      name = "cur__root";
-      value = Path.to_string rootPath;
-      origin = Some pkg;
-    };
-    {
-      name = "cur__original_root";
-      value = Path.to_string pkg.sourcePath;
-      origin = Some pkg;
-    };
-    {
-      name = "cur__target_dir";
-      value = Path.to_string buildPath;
-      origin = Some pkg;
-    };
-    {
-      name = "cur__install";
-      value = Path.to_string stagePath;
-      origin = Some pkg;
-    };
-    {
-      name = "cur__bin";
-      value = Path.to_string Path.(stagePath / "bin");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__sbin";
-      value = Path.to_string Path.(stagePath / "sbin");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__lib";
-      value = Path.to_string Path.(stagePath / "lib");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__man";
-      value = Path.to_string Path.(stagePath / "man");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__doc";
-      value = Path.to_string Path.(stagePath / "doc");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__stublibs";
-      value = Path.to_string Path.(stagePath / "stublibs");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__toplevel";
-      value = Path.to_string Path.(stagePath / "toplevel");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__share";
-      value = Path.to_string Path.(stagePath / "share");
-      origin = Some pkg;
-    };
-    {
-      name = "cur__etc";
-      value = Path.to_string Path.(stagePath / "etc");
-      origin = Some pkg;
-    }
-  ]
+  let open Environment in {
+    name = "cur__name";
+    value = pkg.name;
+    origin = Some pkg;
+  }::{
+    name = "cur__version";
+    value = pkg.version;
+    origin = Some pkg;
+  }::{
+    name = "cur__root";
+    value = Path.to_string rootPath;
+    origin = Some pkg;
+  }::{
+    name = "cur__original_root";
+    value = Path.to_string pkg.sourcePath;
+    origin = Some pkg;
+  }::{
+    name = "cur__target_dir";
+    value = Path.to_string buildPath;
+    origin = Some pkg;
+  }::{
+    name = "cur__install";
+    value = Path.to_string stagePath;
+    origin = Some pkg;
+  }::{
+    name = "cur__bin";
+    value = Path.to_string Path.(stagePath / "bin");
+    origin = Some pkg;
+  }::{
+    name = "cur__sbin";
+    value = Path.to_string Path.(stagePath / "sbin");
+    origin = Some pkg;
+  }::{
+    name = "cur__lib";
+    value = Path.to_string Path.(stagePath / "lib");
+    origin = Some pkg;
+  }::{
+    name = "cur__man";
+    value = Path.to_string Path.(stagePath / "man");
+    origin = Some pkg;
+  }::{
+    name = "cur__doc";
+    value = Path.to_string Path.(stagePath / "doc");
+    origin = Some pkg;
+  }::{
+    name = "cur__stublibs";
+    value = Path.to_string Path.(stagePath / "stublibs");
+    origin = Some pkg;
+  }::{
+    name = "cur__toplevel";
+    value = Path.to_string Path.(stagePath / "toplevel");
+    origin = Some pkg;
+  }::{
+    name = "cur__share";
+    value = Path.to_string Path.(stagePath / "share");
+    origin = Some pkg;
+  }::{
+    name = "cur__etc";
+    value = Path.to_string Path.(stagePath / "etc");
+    origin = Some pkg;
+  }::env
 
 let renderCommandList scope (commands : Package.CommandList.t) =
   match commands with
