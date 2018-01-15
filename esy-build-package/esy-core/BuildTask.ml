@@ -27,6 +27,7 @@ type t = {
   id : string;
   name : string;
   version : string;
+
   buildCommands : Package.CommandList.t option;
   installCommands : Package.CommandList.t option;
 
@@ -44,35 +45,21 @@ type task = t
 
 let ofPackage (pkg : Package.t) =
 
-  (* Fold over package dependency graph *)
-  let fold =
-    let idOf (pkg : Package.t) = pkg.id in
-    let dependenciesOf pkg =
-      let open Package in
-      List.map
-        (function | Dependency p | PeerDependency p -> Some p | _ -> None)
-        pkg.dependencies
-    in
-    DependencyGraph.fold ~idOf ~dependenciesOf
-  in
-
-  let exportedEnv (pkg : Package.t) =
-    let f (globalEnv, localEnv) Package.ExportedEnv.{name; scope; value; exclusive = _} =
-      match scope with
-      | Package.ExportedEnv.Global ->
-          let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
-        (globalEnv, localEnv)
-      | Package.ExportedEnv.Local ->
-          let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
-        (globalEnv, localEnv)
-    in
-    ListLabels.fold_left ~f ~init:([], []) pkg.exportedEnv
-  in
-
   let f ~allDependencies ~dependencies (pkg : Package.t) =
     print_endline pkg.id;
 
-    let globalEnv, localEnv = exportedEnv pkg in
+    let globalEnv, localEnv =
+      let f (globalEnv, localEnv) Package.ExportedEnv.{name; scope; value; exclusive = _} =
+        match scope with
+        | Package.ExportedEnv.Global ->
+            let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
+          (globalEnv, localEnv)
+        | Package.ExportedEnv.Local ->
+            let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
+          (globalEnv, localEnv)
+      in
+      ListLabels.fold_left ~f ~init:([], []) pkg.exportedEnv
+    in
 
     let storePath = match pkg.sourceType with
         | Package.Immutable -> Path.v "%store%"
@@ -96,18 +83,26 @@ let ofPackage (pkg : Package.t) =
 
     let env =
 
+      (* All dependencies (transitive included contribute env exported to the
+       * global scope (hence global)
+       *)
       let globalEnv =
         allDependencies
         |> List.map (fun (_, (globalEnv, _, _)) -> globalEnv)
         |> List.concat
       in
 
+      (* Direct dependencies contribute only env exported to the local scope
+       *)
       let localEnv =
         dependencies
         |> List.map (fun (_, (_, localEnv, _)) -> localEnv)
         |> List.concat
       in
 
+      (* Now $PATH, $MAN_PATH and $OCAMLPATH are constructed by appending
+       * corresponding paths of all dependencies (transtive included).
+       *)
       let path, manpath, ocamlpath =
         let f (_, (_, _, dep)) (path, manpath, ocamlpath) =
           let path = Path.(dep.installPath / "bin")::path in
@@ -130,6 +125,9 @@ let ofPackage (pkg : Package.t) =
         value = PathLike.make "MAN_PATH" manpath;
       } in
 
+      (* Configure environment for ocamlfind.
+       * These vars can be used instead of having findlib.conf emitted.
+       *)
       let ocamlpath = Environment.{
         origin = None;
         name = "OCAMLPATH";
@@ -154,6 +152,9 @@ let ofPackage (pkg : Package.t) =
         value = "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       } in
 
+      (* Those var (prefix with cur__) are part of the pjc spec, they always
+       * refer to the build currently in progress.
+       *)
       let curName = Environment.{
         name = "cur__name";
         value = pkg.name;
@@ -269,6 +270,7 @@ let ofPackage (pkg : Package.t) =
       version = pkg.version;
       buildCommands = Some pkg.buildCommands;
       installCommands = Some pkg.buildCommands;
+
       env;
 
       sourcePath = pkg.sourcePath;
@@ -283,5 +285,5 @@ let ofPackage (pkg : Package.t) =
 
   in
 
-  let _, _, task = fold ~f pkg in
+  let _, _, task = Package.fold ~f pkg in
   task

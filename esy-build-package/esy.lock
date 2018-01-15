@@ -667,6 +667,17 @@
   peerDependencies:
     ocaml " >= 4.4.1"
 
+"@opam/sha@^1.12.0":
+  version "1.12.0"
+  uid a48392c1aeccbd22f56077297d3012a7
+  resolved "@opam/sha@1.12.0-a48392c1aeccbd22f56077297d3012a7.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/jbuilder" " >= 1.0.0-beta13"
+  peerDependencies:
+    ocaml " >= 4.2.0"
+
 "@opam/stdio@ >= 100000000.10.0  < 100000000.11.0":
   version "100000000.10.0"
   uid "048b90814aaf3ff22912757a907f8790"
