@@ -31,7 +31,9 @@ module Let_syntax = {
   };
 };
 
-let listMap = (f, xs) => {
+let listMap =
+    (~f: 'a => result('b, 'err), xs: list('a))
+    : result(list('b), 'err) => {
   let f = (prev, x) =>
     switch prev {
     | Ok(xs) =>

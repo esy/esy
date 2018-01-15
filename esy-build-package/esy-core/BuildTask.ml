@@ -6,6 +6,8 @@
  * on better package boundaries.
  *)
 
+module StringMap = Map.Make(String)
+
 module Environment = struct
 
   type t = item list
@@ -28,8 +30,8 @@ type t = {
   name : string;
   version : string;
 
-  buildCommands : Package.CommandList.t option;
-  installCommands : Package.CommandList.t option;
+  buildCommands : Package.CommandList.t;
+  installCommands : Package.CommandList.t;
 
   env : Environment.t;
 
@@ -43,43 +45,111 @@ type t = {
 
 type task = t
 
+type foldstate = {
+  task : task;
+  pkg : Package.t;
+  globalEnv : Environment.t;
+  localEnv : Environment.t;
+}
+
+let storePath (pkg : Package.t) = match pkg.sourceType with
+  | Package.Immutable -> Path.v "%store%"
+  | Package.Development
+  | Package.Root -> Path.v "%localStore%"
+
+let buildPath pkg =
+  Path.(storePath pkg / Config.storeBuildTree / pkg.id)
+
+let stagePath pkg =
+  Path.(storePath pkg / Config.storeStageTree / pkg.id)
+
+let installPath pkg =
+  Path.(storePath pkg / Config.storeInstallTree / pkg.id)
+
+let rootPath (pkg : Package.t) =
+  let open Package.EsyManifest in
+  match pkg.buildType, pkg.sourceType with
+  | InSource, _ -> buildPath pkg
+  | JBuilderLike, Immutable -> buildPath pkg
+  | JBuilderLike, Development -> pkg.sourcePath
+  | JBuilderLike, Root -> pkg.sourcePath
+  | OutOfSource, _ -> pkg.sourcePath
+
+let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
+  let namespace, installPath = match kind with
+  | `AsSelf -> "self", stagePath pkg
+  | `AsDep -> pkg.name, installPath pkg
+  in
+  let add scope key value = StringMap.add scope (namespace ^ "." ^ key) value in
+  let buildPath = buildPath pkg in
+  let rootPath = rootPath pkg in
+  scope
+  |> add "name" pkg.name
+  |> add "version" pkg.version
+  |> add "root" (Path.to_string rootPath)
+  |> add "original_root" (Path.to_string pkg.sourcePath)
+  |> add "target_dir" (Path.to_string buildPath)
+  |> add "install" (Path.to_string installPath)
+  |> add "bin" Path.(installPath / "bin" |> to_string)
+  |> add "sbin" Path.(installPath / "sbin" |> to_string)
+  |> add "lib" Path.(installPath / "lib" |> to_string)
+  |> add "man" Path.(installPath / "man" |> to_string)
+  |> add "doc" Path.(installPath / "doc" |> to_string)
+  |> add "stublibs" Path.(installPath / "stublibs" |> to_string)
+  |> add "toplevel" Path.(installPath / "toplevel" |> to_string)
+  |> add "share" Path.(installPath / "share" |> to_string)
+  |> add "etc" Path.(installPath / "etc" |> to_string)
+
+let renderCommandList scope (commands : Package.CommandList.t) =
+  match commands with
+  | None -> Ok None
+  | Some commands ->
+    let renderCommand command =
+      let renderArg arg = CommandExpr.render ~scope arg in
+      EsyLib.Result.listMap ~f:renderArg command
+    in
+    match EsyLib.Result.listMap ~f:renderCommand commands with
+    | Ok commands -> Ok (Some commands)
+    | Error err -> Error err
+
+let renderEnvironment scope (env : Environment.t) =
+  let renderEnvironmentItem (item : Environment.item) =
+    match CommandExpr.render ~scope item.value with
+    | Ok value -> Ok { item with value }
+    | Error err -> Error err
+  in
+  EsyLib.Result.listMap ~f:renderEnvironmentItem env
+
 let ofPackage (pkg : Package.t) =
 
   let f ~allDependencies ~dependencies (pkg : Package.t) =
-    print_endline pkg.id;
+    let module Let_syntax = EsyLib.Result.Let_syntax in
+
+    let%bind allDependencies, dependencies =
+      let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
+      let joinDependencies dependencies = EsyLib.Result.listMap ~f dependencies in
+      let%bind dependencies = joinDependencies dependencies in
+      let%bind allDependencies = joinDependencies allDependencies in
+      Ok (allDependencies, dependencies)
+    in
 
     let globalEnv, localEnv =
       let f (globalEnv, localEnv) Package.ExportedEnv.{name; scope; value; exclusive = _} =
         match scope with
         | Package.ExportedEnv.Global ->
-            let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
-          (globalEnv, localEnv)
+          let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
+          globalEnv, localEnv
         | Package.ExportedEnv.Local ->
-            let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
-          (globalEnv, localEnv)
+          let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
+          globalEnv, localEnv
       in
       ListLabels.fold_left ~f ~init:([], []) pkg.exportedEnv
     in
 
-    let storePath = match pkg.sourceType with
-        | Package.Immutable -> Path.v "%store%"
-        | Package.Development
-        | Package.Root -> Path.v "%localStore%"
-    in
-
-    let buildPath = Path.(storePath / Config.storeBuildTree / pkg.id) in
-    let stagePath = Path.(storePath / Config.storeStageTree / pkg.id) in
-    let installPath = Path.(storePath / Config.storeInstallTree / pkg.id) in
-
-    let rootPath =
-      let open Package.EsyManifest in
-      match pkg.buildType, pkg.sourceType with
-      | InSource, _ -> buildPath
-      | JBuilderLike, Immutable -> buildPath
-      | JBuilderLike, Development -> pkg.sourcePath
-      | JBuilderLike, Root -> pkg.sourcePath
-      | OutOfSource, _ -> pkg.sourcePath
-    in
+    let buildPath = buildPath pkg in
+    let stagePath = stagePath pkg in
+    let installPath = installPath pkg in
+    let rootPath = rootPath pkg in
 
     let env =
 
@@ -88,7 +158,7 @@ let ofPackage (pkg : Package.t) =
        *)
       let globalEnv =
         allDependencies
-        |> List.map (fun (_, (globalEnv, _, _)) -> globalEnv)
+        |> List.map (fun (_, {globalEnv; _}) -> globalEnv)
         |> List.concat
       in
 
@@ -96,7 +166,7 @@ let ofPackage (pkg : Package.t) =
        *)
       let localEnv =
         dependencies
-        |> List.map (fun (_, (_, localEnv, _)) -> localEnv)
+        |> List.map (fun (_, {localEnv; _}) -> localEnv)
         |> List.concat
       in
 
@@ -104,7 +174,7 @@ let ofPackage (pkg : Package.t) =
        * corresponding paths of all dependencies (transtive included).
        *)
       let path, manpath, ocamlpath =
-        let f (_, (_, _, dep)) (path, manpath, ocamlpath) =
+        let f (_, {task = dep; _}) (path, manpath, ocamlpath) =
           let path = Path.(dep.installPath / "bin")::path in
           let manpath = Path.(dep.installPath / "man")::manpath in
           let ocamlpath = Path.(dep.installPath / "lib")::ocamlpath in
@@ -175,14 +245,6 @@ let ofPackage (pkg : Package.t) =
         value = Path.to_string pkg.sourcePath;
         origin = Some pkg;
       } in
-      let curDepends = Environment.{
-        name = "cur__depends";
-        value =
-          dependencies
-          |> List.map (fun (_, (_, _, (dep: task))) -> dep.name)
-          |> String.concat "";
-        origin = Some pkg;
-      } in
       let curTargetDir = Environment.{
         name = "cur__target_dir";
         value = Path.to_string buildPath;
@@ -247,7 +309,6 @@ let ofPackage (pkg : Package.t) =
       ::ocamlfindCommands
       ::curName
       ::curVersion
-      ::curDepends
       ::curTargetDir
       ::curRoot
       ::curOriginalRoot
@@ -264,12 +325,31 @@ let ofPackage (pkg : Package.t) =
       ::(localEnv @ globalEnv)
     in
 
+    let scope =
+      let bindings = StringMap.empty in
+      let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
+      let bindings = ListLabels.fold_left
+        ~f:(fun bindings (_, {pkg;_}) -> addPackageBindings ~kind:`AsDep pkg bindings)
+        ~init:bindings
+        dependencies
+      in
+      let lookup name =
+        let name = String.concat "." name in
+        try Some (StringMap.find name bindings)
+        with Not_found -> None
+      in lookup
+    in
+
+    let%bind env = renderEnvironment scope env in
+    let%bind buildCommands = renderCommandList scope pkg.buildCommands in
+    let%bind installCommands = renderCommandList scope pkg.installCommands in
+
     let task: t = {
       id = pkg.id;
       name = pkg.name;
       version = pkg.version;
-      buildCommands = Some pkg.buildCommands;
-      installCommands = Some pkg.buildCommands;
+      buildCommands;
+      installCommands;
 
       env;
 
@@ -278,12 +358,13 @@ let ofPackage (pkg : Package.t) =
       stagePath;
       installPath;
 
-      dependencies = List.map (fun (_, (_, _, dep)) -> dep) dependencies;
+      dependencies = List.map (fun (_, {task = dep; _}) -> dep) dependencies;
     } in
 
-    (globalEnv, localEnv, task)
+    Ok { globalEnv; localEnv; pkg; task; }
 
   in
 
-  let _, _, task = Package.fold ~f pkg in
-  task
+  match Package.fold ~f pkg with
+  | Ok {task;_} -> Ok task
+  | Error msg -> Error msg

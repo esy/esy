@@ -59,7 +59,7 @@ let%test "parse complex var" =
   expectParseOk "#{hi /}" [Expr [Var ["hi"]; PathSep]] &&
   expectParseOk "#{hi / world}" [Expr [Var ["hi"]; PathSep; Var ["world"]]]
 
-let%test "parse var with env vars" =
+let%test "parse var with scope vars" =
   expectParseOk "#{hi / $world}" [Expr [Var ["hi"]; PathSep; EnvVar "world"]]
 
 let%test "parse var with literals" =
@@ -88,8 +88,8 @@ let%test "parse namespace" =
     Literal ("hey");
   ]]
 
-let expectRenderOk env s expected =
-  match render ~env s with
+let expectRenderOk scope s expected =
+  match render ~scope s with
   | Ok v ->
     if v <> expected then (
       Printf.printf "Expected: %s\n" expected;
@@ -102,8 +102,8 @@ let expectRenderOk env s expected =
     print_endline msg;
     false
 
-let expectRenderError env s expectedError =
-  match render ~env s with
+let expectRenderError scope s expectedError =
+  match render ~scope s with
   | Ok v -> false
   | Error error ->
     if expectedError <> error then (
@@ -113,14 +113,14 @@ let expectRenderError env s expectedError =
     ) else true
 
 let%test "render" =
-  let env = function
+  let scope = function
   | "name"::[] -> Some "pkg"
   | "self"::"lib"::[] -> Some "store/lib"
-  | "$env"::"NAME"::[] -> Some "envname"
+  | "$scope"::"NAME"::[] -> Some "envname"
   | _ -> None
   in
 
-  expectRenderOk env "Hello, #{name}!" "Hello, pkg!" &&
-  expectRenderOk env "#{self.lib / $NAME}" "store/lib/envname" &&
-  expectRenderError env "#{unknown}" "undefined variable: unknown" &&
-  expectRenderError env "#{ns.unknown}" "undefined variable: ns.unknown"
+  expectRenderOk scope "Hello, #{name}!" "Hello, pkg!" &&
+  expectRenderOk scope "#{self.lib / $NAME}" "store/lib/envname" &&
+  expectRenderError scope "#{unknown}" "undefined variable: unknown" &&
+  expectRenderError scope "#{ns.unknown}" "undefined variable: ns.unknown"
