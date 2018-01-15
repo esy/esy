@@ -4,12 +4,12 @@ let parse v =
   let lexbuf = Lexing.from_string v in
   Ok (read [] lexbuf)
 
-type env = name -> string option
+type scope = name -> string option
 
-let render ?(pathSep="/") ?(colon=":") ~(env : env) (string : string) =
+let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
   let open EsyLib.Result in
 
-  let lookup name = match env name with
+  let lookup name = match scope name with
   | Some value -> Ok value
   | None ->
     let name = String.concat "." name in
@@ -20,7 +20,7 @@ let render ?(pathSep="/") ?(colon=":") ~(env : env) (string : string) =
   let renderExpr tokens =
     let f segments = function
     | Var name -> let%bind v = lookup name in Ok (v::segments)
-    | EnvVar name -> let%bind v = lookup ["$env"; name] in Ok (v::segments)
+    | EnvVar name -> let%bind v = lookup ["$scope"; name] in Ok (v::segments)
     | Literal v -> Ok (v::segments)
     | Colon -> Ok (colon::segments)
     | PathSep -> Ok (pathSep::segments)

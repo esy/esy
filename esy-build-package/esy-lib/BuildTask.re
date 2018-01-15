@@ -109,7 +109,7 @@ module ConfigFile = {
     let renderCommand = s =>
       s
       |> Bos.Cmd.to_list
-      |> Result.listMap(render)
+      |> Result.listMap(~f=render)
       |> Result.map(Bos.Cmd.of_list);
     let renderEnv = env => {
       let f = (k, v) =>
@@ -121,7 +121,8 @@ module ConfigFile = {
         | error => error;
       Astring.String.Map.fold(f, env, Ok(Astring.String.Map.empty));
     };
-    let renderCommands = commands => Result.listMap(renderCommand, commands);
+    let renderCommands = commands =>
+      Result.listMap(~f=renderCommand, commands);
     let storePath =
       switch specConfig.sourceType {
       | Immutable => config.storePath
