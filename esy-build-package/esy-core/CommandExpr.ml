@@ -7,14 +7,14 @@ let parse v =
 type scope = name -> string option
 
 let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
-  let open EsyLib.Result in
+  let open Run.Syntax in
 
   let lookup name = match scope name with
   | Some value -> Ok value
   | None ->
     let name = String.concat "." name in
-    let msg = Printf.sprintf "undefined variable: %s" name in
-    Error msg
+    let msg = Printf.sprintf "Undefined variable '%s'" name in
+    Run.error msg
   in
 
   let renderExpr tokens =
@@ -25,7 +25,7 @@ let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
     | Colon -> Ok (colon::segments)
     | PathSep -> Ok (pathSep::segments)
     in
-    let%bind segments = listFoldLeft ~f ~init:[] tokens in
+    let%bind segments = EsyLib.Result.listFoldLeft ~f ~init:[] tokens in
     Ok (segments |> List.rev |> String.concat "")
   in
 
@@ -35,5 +35,5 @@ let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
     | String v -> Ok(v::segments)
     | Expr tokens -> let%bind v = renderExpr tokens in Ok (v::segments)
   in
-  let%bind segments = listFoldLeft ~f ~init:[] tokens in
+  let%bind segments = EsyLib.Result.listFoldLeft ~f ~init:[] tokens in
   Ok (segments |> List.rev |> String.concat "")

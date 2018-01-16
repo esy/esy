@@ -16,7 +16,7 @@ type t = {
   buildCommands : Package.CommandList.t;
   installCommands : Package.CommandList.t;
 
-  env : Environment.t;
+  env : Environment.Normalized.t;
 
   sourcePath : Path.t;
   buildPath : Path.t;
@@ -31,6 +31,7 @@ type task = t
 type foldstate = {
   task : task;
   pkg : Package.t;
+  buildEnv : Environment.t;
   globalEnv : Environment.t;
   localEnv : Environment.t;
 }
@@ -62,8 +63,8 @@ let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   | `AsSelf -> "self", stagePath pkg
   | `AsDep -> pkg.name, installPath pkg
   in
-  let add scope key value =
-    StringMap.add scope (namespace ^ "." ^ key) value
+  let add key value scope =
+    StringMap.add (namespace ^ "." ^ key) value scope
   in
   let buildPath = buildPath pkg in
   let rootPath = rootPath pkg in
@@ -171,9 +172,9 @@ let renderEnvironment scope (env : Environment.t) =
   EsyLib.Result.listMap ~f:renderEnvironmentBinding env
 
 let ofPackage (pkg : Package.t) =
+  let open Run.Syntax in
 
   let f ~allDependencies ~dependencies (pkg : Package.t) =
-    let module Let_syntax = EsyLib.Result.Let_syntax in
 
     let%bind allDependencies, dependencies =
       let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
@@ -291,13 +292,31 @@ let ofPackage (pkg : Package.t) =
       let lookup name =
         let name = String.concat "." name in
         try Some (StringMap.find name bindings)
-        with Not_found -> None
+        with Not_found ->
+          print_endline "oops";
+          StringMap.iter (fun key _v -> print_endline key) bindings;
+          None
       in lookup
     in
 
-    let%bind env = renderEnvironment scope env in
-    let%bind buildCommands = renderCommandList scope pkg.buildCommands in
-    let%bind installCommands = renderCommandList scope pkg.installCommands in
+    let%bind buildEnv =
+      Run.withContext
+        "While processing environment"
+        (renderEnvironment scope env)
+    in
+
+    let%bind buildCommands =
+      Run.withContext
+        "While processing esy.build"
+        (renderCommandList scope pkg.buildCommands)
+    in
+    let%bind installCommands =
+      Run.withContext
+        "While processing esy.install"
+        (renderCommandList scope pkg.installCommands)
+    in
+
+    let%bind env = Environment.normalize buildEnv in
 
     let task: t = {
       id = pkg.id;
@@ -316,10 +335,28 @@ let ofPackage (pkg : Package.t) =
       dependencies = List.map (fun (_, {task = dep; _}) -> dep) dependencies;
     } in
 
-    Ok { globalEnv; localEnv; pkg; task; }
+    return { globalEnv; localEnv; buildEnv; pkg; task; }
 
   in
 
+  let f ~allDependencies ~dependencies pkg =
+    let v = f ~allDependencies ~dependencies pkg in
+    let context =
+      Printf.sprintf "While processing package: %s@%s" pkg.name pkg.version
+    in
+    Run.withContext context v
+  in
+
   match Package.fold ~f pkg with
-  | Ok { task; _ } -> Ok task
+  | Ok { task; buildEnv; _ } -> Ok (task, buildEnv)
   | Error msg -> Error msg
+
+(**
+ * Fold over a task dependency graph.
+ *)
+let fold ~(f : ('t, 'a) DependencyGraph.folder) (pkg : t) =
+  let idOf (pkg : t) = pkg.id in
+  let dependenciesOf pkg =
+    List.map (fun dep -> Some dep) pkg.dependencies
+  in
+  DependencyGraph.fold ~idOf ~dependenciesOf ~f pkg
