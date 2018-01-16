@@ -17,44 +17,68 @@ export default async function esyInit(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  const clioptions = parse(invocation.args, {
-    flags: ['--force'],
-    options: ['--with'],
-    strict: true,
-  });
+  const program = new commander.Command('init');
+  let initPath;
 
-  const {['with']: packageName = 'create-esy-project'} = clioptions.options;
-  const {force: forceInit = false} = clioptions.flags;
+  program
+    .usage(`[options] [<path>]`)
+    .option('--with <template>', 'use custom starter template', 'create-esy-project')
+    .option('--force', 'bypass init path sanity check')
+    .allowUnknownOption(true)
+    .arguments('[<path>]')
+    .action(function(argpath, options) {
+      initPath = argpath;
+    });
 
-  const projectName = path.basename(ctx.sandboxPath);
+  program.parse(['init', ...invocation.args]);
 
-  if (!forceInit) {
-    const safePath = await isSafeToInitProjectIn(ctx.sandboxPath, projectName);
-    if (!safePath) {
-      process.exit(1);
+  const projectPath = initPath ? path.resolve(initPath) : ctx.sandboxPath;
+  const projectName = path.basename(projectPath);
+
+  if (!program.force) {
+    // Perform sanity check for project path
+    if (await fs.exists(projectPath)) {
+      const safePath = await isSafeToInitProjectIn(projectPath, projectName);
+      if (!safePath) {
+        process.exit(1);
+      }
     }
   }
 
+  // Cache template package in our designated folder
+  const templatePackage = program.with;
   const globalFolder = path.join(ctx.prefixPath, 'install');
 
   const addInvocation = {
     commandName: 'global',
-    args: ['add', packageName, '--global-folder', globalFolder],
+    args: ['add', templatePackage, '--global-folder', globalFolder],
     options: {options: {}, flags: {}},
   };
 
   await runYarnCommand(ctx, addInvocation, 'global');
 
+  // Strip cli arguments before passing them to template script
+  const clioptions = parse(initPath ? invocation.args.slice(0, -1) : invocation.args, {
+    flags: ['--force'],
+    options: ['--with'],
+    strict: true,
+  });
+
+  const args = [projectName, ...clioptions.unparsed];
+
+  // Make sure template CWD exists
+  const commandCwd = path.resolve(projectPath, '..');
+  await fs.mkdirp(commandCwd);
+
+  // Run template script
   const binFolder = path.resolve(globalFolder, 'node_modules', '.bin');
 
-  const commandName = packageName.replace(/^@[^\/]+\//, '');
-
+  const commandName = templatePackage.replace(/^@[^\/]+\//, '');
   const command = path.resolve(binFolder, path.basename(commandName));
-  const args = [projectName, ...clioptions.unparsed];
 
   try {
     await child.spawn(command, args, {
-      cwd: path.resolve(ctx.sandboxPath, '..'),
+      cwd: commandCwd,
       stdio: `inherit`,
       shell: true,
     });
