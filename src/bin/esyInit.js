@@ -5,7 +5,7 @@
 import type {CommandContext, CommandInvocation} from './esy';
 
 import chalk from 'chalk';
-import * as child from '@esy-ocaml/esy-install/src/util/child';
+import * as child from '../lib/child_process';
 import * as path from '../lib/path';
 import * as fs from '../lib/fs';
 import commander from 'commander';
@@ -17,20 +17,21 @@ export default async function esyInit(
   ctx: CommandContext,
   invocation: CommandInvocation,
 ) {
-  const program = new commander.Command('init');
+  const program = new commander.Command();
   let initPath;
 
   program
-    .usage(`[options] [<path>]`)
+    .usage('[options] [<path>]')
+    .option('-y, --yes', 'answer yes to all interactive prompts or use defaults')
     .option('--with <template>', 'use custom starter template', 'create-esy-project')
     .option('--force', 'bypass init path sanity check')
     .allowUnknownOption(true)
     .arguments('[<path>]')
-    .action(function(argpath, options) {
-      initPath = argpath;
+    .action(function(path) {
+      initPath = path;
     });
 
-  program.parse(['init', ...invocation.args]);
+  program.parse(['esy', 'init', ...invocation.args]);
 
   const projectPath = initPath ? path.resolve(initPath) : ctx.sandboxPath;
   const projectName = path.basename(projectPath);

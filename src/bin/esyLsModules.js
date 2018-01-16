@@ -229,5 +229,5 @@ async function queryLibraryMeta(
     return {[key]: value};
   });
 
-  return Object.assign(...lines);
+  return Object.assign({}, ...lines);
 }
