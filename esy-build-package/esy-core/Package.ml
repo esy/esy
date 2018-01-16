@@ -152,15 +152,20 @@ module Manifest = struct
   } [@@deriving (show, of_yojson { strict = false })]
 
   let ofFile path =
-    try%lwt (
-        let%lwt json = Io.readJsonFile path in
-        Lwt.return (Some (of_yojson json))
-    ) with | Unix.Unix_error (_, _, _) -> Lwt.return None
+    let open RunAsync.Syntax in
+    if%bind (Io.exists path) then (
+      let%bind json = Io.readJsonFile path in
+      match of_yojson json with
+      | Ok manifest -> return (Some manifest)
+      | Error err -> error err
+    ) else
+      return None
 
   let ofDir (path : Path.t) =
-    match%lwt ofFile (let open Path in path / "esy.json") with
-    | None -> ofFile (let open Path in path / "package.json")
-    | manifest -> Lwt.return manifest
+    let open RunAsync.Syntax in
+    match%bind ofFile Path.(path / "esy.json") with
+    | None -> ofFile Path.(path / "package.json")
+    | manifest -> return manifest
 end
 
 type t = {

@@ -1,13 +1,35 @@
-type ('a, 'b) t = ('a, 'b) result Lwt.t
 
-module Let_syntax = struct
+(**
+ * Computation with structured error reporting.
+ *)
+type 'a t = ('a, error) result
+and error = string list
 
-  let bind ~f (v: ('a, 'b) t) =
-    match%lwt v with
-    | Ok(v) -> f(v)
-    | Error(e) -> Lwt.return(Error(e))
+let return v =
+  Ok v
 
+let error msg =
+  Error [msg]
+
+module Syntax = struct
+  let return = return
+  let error = error
+  module Let_syntax = EsyLib.Result.Let_syntax
 end
 
-let return v = Lwt.return(Ok(v))
-let error err = Lwt.return(Error(err))
+let withContext line v =
+  match v with
+  | Ok v -> Ok v
+  | Error lines -> Error (line::lines)
+
+let formatError lines = match List.rev lines with
+  | [] -> "Error"
+  | error::[] -> "Error: " ^ error
+  | error::context ->
+    let context = List.map (fun line -> "  " ^ line) context in
+    String.concat "\n" (("Error: " ^ error)::context)
+
+let liftOfSingleLineError v =
+  match v with
+  | Ok v -> Ok v
+  | Error line -> Error [line]

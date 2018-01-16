@@ -55,13 +55,14 @@ let rec resolvePackage = (packageName: string, basedir: Path.t) => {
     | _ => packagePath(packageName)
     };
   let rec resolve = basedir => {
+    open RunAsync.Syntax;
     let packagePath = packagePath(basedir);
-    if%lwt (Io.exists(packagePath)) {
-      Lwt.return(Some(packagePath));
+    if%bind (Io.exists(packagePath)) {
+      return(Some(packagePath));
     } else {
       let nextBasedir = Path.parent(basedir);
       if (nextBasedir === basedir) {
-        Lwt.return(None);
+        return(None);
       } else {
         resolve(nextBasedir);
       };
@@ -71,6 +72,7 @@ let rec resolvePackage = (packageName: string, basedir: Path.t) => {
 };
 
 let ofDir = path => {
+  open RunAsync.Syntax;
   let resolutionCache = Memoize.create(~size=200);
   let resolvePackageCached = (packageName, basedir) => {
     let key = (packageName, basedir);
@@ -81,12 +83,15 @@ let ofDir = path => {
   let rec loadPackage = (path: EsyLib.Path.t) => {
     let resolveDep = (depPackageName: string) =>
       switch%lwt (resolvePackageCached(depPackageName, path)) {
-      | Some(depPackagePath) =>
+      | Ok(Some(depPackagePath)) =>
         switch%lwt (loadPackageCached(depPackagePath)) {
         | Ok(pkg) => Lwt.return_ok(pkg)
-        | Error(reason) => Lwt.return_error((depPackageName, reason))
+        | Error(err) =>
+          Lwt.return_error((depPackageName, Run.formatError(err)))
         }
-      | None => Lwt.return_error((depPackageName, "cannot resolve dependency"))
+      | Ok(None) =>
+        Lwt.return_error((depPackageName, "cannot resolve dependency"))
+      | Error(err) => Lwt.return_error((depPackageName, Run.formatError(err)))
       };
     let resolveDeps = (dependencies, make) => {
       let%lwt dependencies =
@@ -103,11 +108,12 @@ let ofDir = path => {
         )
       );
     };
-    let%lwt manifest = Package.Manifest.ofDir(path);
-    switch manifest {
-    | Some(Ok(manifest)) =>
+    switch%bind (Package.Manifest.ofDir(path)) {
+    | Some(manifest) =>
       let%lwt dependencies =
-        resolveDeps(manifest.dependencies, pkg => Package.Dependency(pkg));
+        resolveDeps(manifest.Package.Manifest.dependencies, pkg =>
+          Package.Dependency(pkg)
+        );
       let%lwt peerDependencies =
         resolveDeps(manifest.peerDependencies, pkg =>
           Package.PeerDependency(pkg)
@@ -127,13 +133,8 @@ let ofDir = path => {
           exportedEnv: manifest.esy.exportedEnv,
           sourcePath: path
         };
-      Lwt.return_ok(pkg);
-    | Some(Error(err)) =>
-      let path = Path.to_string(path);
-      let msg =
-        Printf.sprintf("error parsing manifest '%s' at: %s", err, path);
-      Lwt.return_error(msg);
-    | _ => Lwt.return_error("no manifest found at: " ++ Path.to_string(path))
+      return(pkg);
+    | None => error("unable to find manifest")
     };
   }
   and loadPackageCached = (path: Path.t) => {
