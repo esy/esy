@@ -162,10 +162,6 @@ Install all dependencies and build the current project:
 
   add <package>         Add a specified package to dependencies and installs it.
 
-  version               Print esy version and exit
-
-  help                  Show detailed help.
-
 Running commands in a sandbox:
 
   build <command>       Run command inside the build environment.
@@ -206,6 +202,14 @@ Sandbox introspection:
   sandbox-env           Prints esy sandbox environment on stdout.
 
   build-env             Prints esy build environment on stdout.
+
+Some common commands:
+
+  init                  Create a new project in an existing directory.
+
+  version               Print esy version and exit.
+
+  help                  Show detailed help.
 
 EOF
 }
