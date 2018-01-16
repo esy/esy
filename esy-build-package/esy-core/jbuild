@@ -8,4 +8,4 @@
  (preprocess (pps (lwt_ppx ppx_import ppx_deriving_yojson ppx_deriving.std ppx_let)))
  (libraries (str sha lwt lwt.unix bos ppx_deriving_yojson.runtime logs re esy-lib))))
 
-(ocamllex (ShellSplit CommandExprParser))
+(ocamllex (ShellParamExpansionParser ShellSplit CommandExprParser))
