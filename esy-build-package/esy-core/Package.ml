@@ -9,7 +9,7 @@ module CommandList = struct
 
     type t =
       string list
-      [@@deriving show]
+      [@@deriving show, to_yojson]
 
     let of_yojson (json : Json.t) =
       match json with
@@ -41,6 +41,11 @@ module CommandList = struct
     match%bind commands with
     | [] -> Ok None
     | commands -> Ok (Some commands)
+
+  let to_yojson commands =
+    match commands with
+    | None -> `List []
+    | Some commands -> `List (List.map Command.to_yojson commands)
 
 end
 
