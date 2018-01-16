@@ -54,6 +54,7 @@ let%test "parse string + var" =
 
 let%test "parse complex var" =
   expectParseOk "#{hi world}" [Expr [Var ["hi"]; Var ["world"]]] &&
+  expectParseOk "#{h-i world}" [Expr [Var ["h-i"]; Var ["world"]]] &&
   expectParseOk "#{hi :}" [Expr [Var ["hi"]; Colon]] &&
   expectParseOk "#{hi : world}" [Expr [Var ["hi"]; Colon; Var ["world"]]] &&
   expectParseOk "#{hi /}" [Expr [Var ["hi"]; PathSep]] &&
@@ -80,16 +81,15 @@ let%test "parse var with literals" =
 
 let%test "parse namespace" =
   expectParseOk "#{ns.hi}" [Expr [Var ["ns"; "hi"]]] &&
+  expectParseOk "#{n-s.hi}" [Expr [Var ["n-s"; "hi"]]] &&
   expectParseOk "#{ns.hi.hey}" [Expr [Var ["ns"; "hi"; "hey"]]] &&
   expectParseOk "#{@scope/pkg.hi}" [Expr [Var ["@scope/pkg"; "hi"]]] &&
+  expectParseOk "#{@s-cope/pkg.hi}" [Expr [Var ["@s-cope/pkg"; "hi"]]] &&
   expectParseOk "#{@scope/pkg.hi.hey}" [Expr [Var ["@scope/pkg"; "hi"; "hey"]]] &&
   expectParseOk "#{@scope/pkg.hi 'hey'}" [Expr [
     Var ["@scope/pkg"; "hi"];
     Literal ("hey");
   ]]
-
-let%test "#{@opam/lambda-term.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}" =
-  expectParseOk "#{@opam/lambda-term.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}" []
 
 let expectRenderOk scope s expected =
   match render ~scope s with
