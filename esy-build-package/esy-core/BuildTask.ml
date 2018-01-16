@@ -163,14 +163,6 @@ let renderCommandList scope (commands : Package.CommandList.t) =
     | Ok commands -> Ok (Some commands)
     | Error err -> Error err
 
-let renderEnvironment scope (env : Environment.t) =
-  let renderEnvironmentBinding (binding : Environment.binding) =
-    match CommandExpr.render ~scope binding.value with
-    | Ok value -> Ok { binding with value }
-    | Error err -> Error err
-  in
-  EsyLib.Result.listMap ~f:renderEnvironmentBinding env
-
 let ofPackage (pkg : Package.t) =
   let open Run.Syntax in
 
@@ -184,24 +176,44 @@ let ofPackage (pkg : Package.t) =
       Ok (allDependencies, dependencies)
     in
 
-    let globalEnv, localEnv =
-      let f (globalEnv, localEnv) Package.ExportedEnv.{name; scope; value; exclusive = _} =
-        match scope with
-        | Package.ExportedEnv.Global ->
-          let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
-          globalEnv, localEnv
-        | Package.ExportedEnv.Local ->
-          let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
-          globalEnv, localEnv
+    let scope =
+      let bindings = StringMap.empty in
+      let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
+      let bindings = addPackageBindings ~kind:`AsDep pkg bindings in
+      let bindings = ListLabels.fold_left
+        ~f:(fun bindings (_, {pkg;_}) -> addPackageBindings ~kind:`AsDep pkg bindings)
+        ~init:bindings
+        dependencies
       in
-      ListLabels.fold_left ~f ~init:([], []) pkg.exportedEnv
+      let lookup name =
+        let name = String.concat "." name in
+        try Some (StringMap.find name bindings)
+        with Not_found -> None
+      in lookup
+    in
+
+    let%bind globalEnv, localEnv =
+      let f (globalEnv, localEnv) Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
+        let context = Printf.sprintf "While processing exportedEnv $%s" name in
+        Run.withContext context (
+          let%bind value = CommandExpr.render ~scope value in
+          match envScope with
+          | Package.ExportedEnv.Global ->
+            let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
+            Ok (globalEnv, localEnv)
+          | Package.ExportedEnv.Local ->
+            let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
+            Ok (globalEnv, localEnv)
+        )
+      in
+      Run.foldLeft ~f ~init:([], []) pkg.exportedEnv
     in
 
     let buildPath = buildPath pkg in
     let stagePath = stagePath pkg in
     let installPath = installPath pkg in
 
-    let env =
+    let buildEnv =
 
       (* All dependencies (transitive included contribute env exported to the
        * global scope (hence global)
@@ -281,30 +293,6 @@ let ofPackage (pkg : Package.t) =
       ::(addPackageEnvBindings pkg (localEnv @ globalEnv))
     in
 
-    let scope =
-      let bindings = StringMap.empty in
-      let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
-      let bindings = ListLabels.fold_left
-        ~f:(fun bindings (_, {pkg;_}) -> addPackageBindings ~kind:`AsDep pkg bindings)
-        ~init:bindings
-        dependencies
-      in
-      let lookup name =
-        let name = String.concat "." name in
-        try Some (StringMap.find name bindings)
-        with Not_found ->
-          print_endline "oops";
-          StringMap.iter (fun key _v -> print_endline key) bindings;
-          None
-      in lookup
-    in
-
-    let%bind buildEnv =
-      Run.withContext
-        "While processing environment"
-        (renderEnvironment scope env)
-    in
-
     let%bind buildCommands =
       Run.withContext
         "While processing esy.build"
@@ -316,7 +304,15 @@ let ofPackage (pkg : Package.t) =
         (renderCommandList scope pkg.installCommands)
     in
 
-    let%bind env = Environment.normalize buildEnv in
+    let%bind env =
+      let initEnv = StringMap.(
+        empty
+        |> add "CAML_LD_LIBRARY_PATH" ""
+      ) in
+      Run.withContext
+        "While evaluating environment"
+        (Environment.normalize ~init:initEnv buildEnv)
+    in
 
     let task: t = {
       id = pkg.id;

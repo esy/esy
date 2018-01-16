@@ -1,8 +1,13 @@
 include CommandExprParser
 
-let parse v =
+let parse_exn v =
   let lexbuf = Lexing.from_string v in
-  Ok (read [] lexbuf)
+  read [] lexbuf
+
+let parse v =
+  try Ok (parse_exn v)
+  with
+  | Failure v -> Run.error v
 
 type scope = name -> string option
 
@@ -20,7 +25,7 @@ let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
   let renderExpr tokens =
     let f segments = function
     | Var name -> let%bind v = lookup name in Ok (v::segments)
-    | EnvVar name -> let%bind v = lookup ["$scope"; name] in Ok (v::segments)
+    | EnvVar name -> let v = "$" ^ name in Ok (v::segments)
     | Literal v -> Ok (v::segments)
     | Colon -> Ok (colon::segments)
     | PathSep -> Ok (pathSep::segments)

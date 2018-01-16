@@ -22,22 +22,24 @@ let fold
 
   let rec visit pkg =
 
-    let visitDep acc = function
-      | Some pkg ->
-        let combine (seen, allDependencies, dependencies) (depAllDependencies, _, dep, depValue) =
-          let f (seen, allDependencies) (dep, depValue) =
-            if StringSet.mem (idOf dep) seen then
-              (seen, allDependencies)
-            else
-              let seen  = StringSet.add (idOf dep) seen in
-              let allDependencies = (dep, depValue)::allDependencies in
-              (seen, allDependencies)
-          in
-          let (seen, allDependencies) =
-            ListLabels.fold_left ~f ~init:(seen, allDependencies) depAllDependencies
-          in
-          (seen, allDependencies, (dep, depValue)::dependencies)
-        in combine acc (visitCached pkg)
+    let visitDep ((seen, allDependencies, dependencies) as acc) = function
+      | Some dep ->
+        let depAllDependencies, depDependencies, depValue = visitCached dep in
+        let f (seen, allDependencies) (dep, depValue) =
+          if StringSet.mem (idOf dep) seen then
+            (seen, allDependencies)
+          else
+            let seen  = StringSet.add (idOf dep) seen in
+            let allDependencies = (dep, depValue)::allDependencies in
+            (seen, allDependencies)
+        in
+        let (seen, allDependencies) =
+          ListLabels.fold_left ~f ~init:(seen, allDependencies) depDependencies
+        in
+        let (seen, allDependencies) =
+          ListLabels.fold_left ~f ~init:(seen, allDependencies) depAllDependencies
+        in
+        (seen, allDependencies, (dep, depValue)::dependencies)
       | None -> acc
     in
 
@@ -54,10 +56,10 @@ let fold
       ListLabels.rev allDependencies, List.rev dependencies
     in
 
-    allDependencies, dependencies, pkg, f ~allDependencies ~dependencies pkg
+    allDependencies, dependencies, f ~allDependencies ~dependencies pkg
 
   and visitCached pkg =
     visitCache (idOf pkg) (fun () -> visit pkg)
   in
 
-  let _, _, _, (value : 'a) = visitCached pkg in value
+  let _, _, (value : 'a) = visitCached pkg in value

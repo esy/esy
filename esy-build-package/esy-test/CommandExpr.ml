@@ -10,7 +10,7 @@ let expectParseOk s expectedTokens =
     ) else
       true
   | Error err ->
-    let msg = Printf.sprintf "parse error: %s" err in
+    let msg = Printf.sprintf "parse error: %s" (EsyCore.Run.formatError err) in
     print_endline msg;
     false
 
@@ -88,6 +88,9 @@ let%test "parse namespace" =
     Literal ("hey");
   ]]
 
+let%test "#{@opam/lambda-term.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}" =
+  expectParseOk "#{@opam/lambda-term.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}" []
+
 let expectRenderOk scope s expected =
   match render ~scope s with
   | Ok v ->
@@ -98,7 +101,7 @@ let expectRenderOk scope s expected =
     ) else
       true
   | Error err ->
-    let msg = Printf.sprintf "error: %s" err in
+    let msg = Printf.sprintf "error: %s" (EsyCore.Run.formatError err) in
     print_endline msg;
     false
 
@@ -106,6 +109,7 @@ let expectRenderError scope s expectedError =
   match render ~scope s with
   | Ok v -> false
   | Error error ->
+    let error = EsyCore.Run.formatError error in
     if expectedError <> error then (
       Printf.printf "Expected: %s\n" expectedError;
       Printf.printf "     Got: %s\n" error;
@@ -116,11 +120,11 @@ let%test "render" =
   let scope = function
   | "name"::[] -> Some "pkg"
   | "self"::"lib"::[] -> Some "store/lib"
-  | "$scope"::"NAME"::[] -> Some "envname"
   | _ -> None
   in
 
   expectRenderOk scope "Hello, #{name}!" "Hello, pkg!" &&
-  expectRenderOk scope "#{self.lib / $NAME}" "store/lib/envname" &&
-  expectRenderError scope "#{unknown}" "undefined variable: unknown" &&
-  expectRenderError scope "#{ns.unknown}" "undefined variable: ns.unknown"
+  expectRenderOk scope "#{self.lib / $NAME}" "store/lib/$NAME" &&
+  expectRenderError scope "#{unknown}" "Error: Undefined variable 'unknown'" &&
+  expectRenderError scope "#{ns.unknown}" "Error: Undefined variable 'ns.unknown'"
+

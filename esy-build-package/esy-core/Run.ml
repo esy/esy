@@ -33,3 +33,11 @@ let liftOfSingleLineError v =
   match v with
   | Ok v -> Ok v
   | Error line -> Error [line]
+
+let foldLeft ~f ~init xs =
+  let rec fold acc xs =  match acc, xs with
+    | Error err, _ -> Error err
+    | Ok acc, [] -> Ok acc
+    | Ok acc, x::xs -> fold (f acc x) xs
+  in
+  fold (Ok init) xs
