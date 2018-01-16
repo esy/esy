@@ -9,3 +9,5 @@ let of_yojson = (json: Yojson.Safe.json) =>
     }
   | _ => Error("invalid path")
   };
+
+let to_yojson = (path: t) => `String(to_string(path));

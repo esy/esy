@@ -10,8 +10,7 @@ module StringMap = Map.Make(String)
 
 type t = {
   id : string;
-  name : string;
-  version : string;
+  pkg : Package.t;
 
   buildCommands : Package.CommandList.t;
   installCommands : Package.CommandList.t;
@@ -316,8 +315,8 @@ let ofPackage (pkg : Package.t) =
 
     let task: t = {
       id = pkg.id;
-      name = pkg.name;
-      version = pkg.version;
+
+      pkg;
       buildCommands;
       installCommands;
 
@@ -356,3 +355,51 @@ let fold ~(f : ('t, 'a) DependencyGraph.folder) (pkg : t) =
     List.map (fun dep -> Some dep) pkg.dependencies
   in
   DependencyGraph.fold ~idOf ~dependenciesOf ~f pkg
+
+module ExternalFormat = struct
+
+  module SourceType = struct
+    type t = Package.SourceType.t
+
+    let to_yojson (sourceType: t) =
+      match sourceType with
+      | Package.SourceType.Immutable -> `String "immutable"
+      | Package.SourceType.Development -> `String "development"
+      | Package.SourceType.Root -> `String "root"
+  end
+
+  module BuildType = struct
+    type t = Package.BuildType.t
+
+    let to_yojson (buildType: t) =
+      match buildType with
+      | Package.BuildType.InSource -> `String "in-source"
+      | Package.BuildType.OutOfSource -> `String "out-of-source"
+      | Package.BuildType.JBuilderLike -> `String "_build"
+  end
+
+  type t = {
+    id : string;
+    name : string;
+    version : string;
+    sourceType : SourceType.t;
+    buildType : BuildType.t;
+    build: Package.CommandList.t;
+    install: Package.CommandList.t;
+    sourcePath: Path.t;
+    env: Environment.Normalized.t;
+  }
+  [@@deriving to_yojson]
+
+  let ofBuildTask (task : task) = {
+    id = task.id;
+    name = task.pkg.name;
+    version = task.pkg.version;
+    sourceType = task.pkg.sourceType;
+    buildType = task.pkg.buildType;
+    build = task.buildCommands;
+    install = task.installCommands;
+    sourcePath = task.sourcePath;
+    env = task.env;
+  }
+end

@@ -46,6 +46,11 @@ module Normalized = struct
     in
     EsyLib.Result.listFoldLeft ~f ~init env
 
+  let to_yojson env =
+    let f k v items = (k, `String v)::items in
+    let items = StringMap.fold f env [] in
+    `Assoc items
+
 end
 
 let normalize = Normalized.ofEnvironment
