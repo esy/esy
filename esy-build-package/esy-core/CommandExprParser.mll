@@ -11,7 +11,7 @@ let id          = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 let pkg_name        = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 let scoped_pkg_name = '@' pkg_name '/' pkg_name
 
-let capture_name = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '.' '/']*
+let capture_name = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '-' '_' '.' '/']*
 
 rule read result = parse
  | var_open      { expr result [] lexbuf }
