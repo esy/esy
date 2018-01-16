@@ -439,10 +439,6 @@ else
       shift
       callBuiltInCommand init "$@"
       ;;
-    create)
-      shift
-      callBuiltInCommand create "$@"
-      ;;
     build-plan)
       shift
       ensureSandbox
