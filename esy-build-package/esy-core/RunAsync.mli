@@ -1,11 +1,31 @@
+(**
+ * An async computation which might result in an error.
+ *)
 type 'a t = 'a Run.t Lwt.t
 
 val return : 'a -> 'a t
+
 val error : string -> 'a t
+
+(**
+ * Wrap computation with a context which will be reported in case of error.
+ *
+ * Example usage:
+ *
+ *   let build = withContext "building ocaml" build in ...
+ *
+ * In case build fails the error message would look like:
+ *
+ *   Error: command not found aclocal
+ *     While building ocaml
+ *
+ *)
+val withContext : string -> 'a t -> 'a t
 
 module Syntax : sig
 
   val return : 'a -> 'a t
+
   val error : string -> 'a t
 
   module Let_syntax : sig

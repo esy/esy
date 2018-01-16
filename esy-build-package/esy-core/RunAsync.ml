@@ -5,6 +5,10 @@ let return v = Lwt.return (Ok v)
 let error msg =
   Lwt.return (Run.error msg)
 
+let withContext msg v =
+  let%lwt v = v in
+  Lwt.return (Run.withContext msg v)
+
 let bind ~f v =
   let waitForPromise = function
     | Ok v -> f v
@@ -12,12 +16,11 @@ let bind ~f v =
   in
   Lwt.bind v waitForPromise
 
-
 module Syntax = struct
+  let return = return
+  let error = error
+
   module Let_syntax = struct
     let bind = bind
   end
-
-  let return = return
-  let error = error
 end
