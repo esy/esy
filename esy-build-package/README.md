@@ -4,7 +4,7 @@ A package builder for [esy][].
 
 ## How it works
 
-A single command `esybuild-package` operates on a build description, it allows
+A single command `esy-build-package` operates on a build description, it allows
 to:
 
 - Build a package with `esy-build-package build` command.
@@ -88,29 +88,10 @@ Then you can test it:
 % esy x esy-build-package
 ```
 
-## Publishing a release
-
-Things to consider:
-
-- `package.json` contains npm metadata for a dist package, you can bump version
-  in there using `npm version patch|minor|major` or othewise edit it however you
-  need. Note that the list of files in to be included in the dist is also
-  hardcoded in `Makefile`.
-
-- `postinstall.sh` contains a list of instructions to be performed after the
-  installation.
-
-Produce a ready to be published release package within the `dist/` directory:
+To test with esy:
 
 ```
-% make dist
-```
-
-Publish it:
-
-```
-% cd dist/
-% npm publish
+% esy build-plan | /path/to/in/dev/esy-build-package -B -
 ```
 
 [esy]: http://esy.sh
