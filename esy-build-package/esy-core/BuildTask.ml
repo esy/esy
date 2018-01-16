@@ -62,7 +62,9 @@ let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   | `AsSelf -> "self", stagePath pkg
   | `AsDep -> pkg.name, installPath pkg
   in
-  let add scope key value = StringMap.add scope (namespace ^ "." ^ key) value in
+  let add scope key value =
+    StringMap.add scope (namespace ^ "." ^ key) value
+  in
   let buildPath = buildPath pkg in
   let rootPath = rootPath pkg in
   scope

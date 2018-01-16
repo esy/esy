@@ -1,0 +1,38 @@
+include EsyCore.ShellParamExpansion
+
+let expectParseOk s expectedTokens =
+  match parse s with
+  | Ok tokens ->
+    if not (equal tokens expectedTokens) then (
+      Printf.printf "Expected: %s\n" (show expectedTokens);
+      Printf.printf "     Got: %s\n" (show tokens);
+      false
+    ) else
+      true
+  | Error err ->
+    let msg = Printf.sprintf "Error: %s\nWhile parsing: %s" err s in
+    print_endline msg;
+    false
+
+let%test "string" =
+  expectParseOk "string" [String "string"] &&
+  expectParseOk "just string" [String "just string"]
+
+let%test "$var" =
+  expectParseOk "$var" [Var ("var", None)] &&
+  expectParseOk "$var string" [Var ("var", None); String " string"] &&
+  expectParseOk "string $var" [String "string "; Var ("var", None)]
+
+let%test "${var}" =
+  expectParseOk "${var}" [Var ("var", None)] &&
+  expectParseOk "${var} string" [Var ("var", None); String " string"] &&
+  expectParseOk "string ${var}" [String "string "; Var ("var", None)] &&
+  expectParseOk "${var}string" [Var ("var", None); String "string"] &&
+  expectParseOk "string${var}" [String "string"; Var ("var", None)]
+
+let%test "${var:-default}" =
+  expectParseOk "${var:-def}" [Var ("var", Some "def")] &&
+  expectParseOk "${var:-def} string" [Var ("var", Some "def"); String " string"] &&
+  expectParseOk "string ${var:-def}" [String "string "; Var ("var", Some "def")] &&
+  expectParseOk "${var:-def}string" [Var ("var", Some "def"); String "string"] &&
+  expectParseOk "string${var:-def}" [String "string"; Var ("var", Some "def")]
