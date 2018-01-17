@@ -1,6 +1,10 @@
 module Path = EsyCore.Path
 module Package = EsyCore.Package
 module BuildTask = EsyCore.BuildTask
+module Environment = EsyCore.Environment
+module Sandbox = EsyCore.Sandbox
+module Run = EsyCore.Run
+module RunAsync = EsyCore.RunAsync
 
 let cwd = Sys.getcwd ()
 
@@ -75,13 +79,13 @@ module CommonOpts = struct
 end
 
 let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
-  let open EsyCore.RunAsync.Syntax in
+  let open RunAsync.Syntax in
 
   let printBuildEnv (pkg : Package.t) =
-    let%bind _task, buildEnv = Lwt.return @@ EsyCore.BuildTask.ofPackage pkg in
+    let%bind _task, buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
-    let%bind source = Lwt.return (
-      EsyCore.Environment.renderToShellSource
+    let%bind source = RunAsync.liftOfRun (
+      Environment.renderToShellSource
         ~header
         (* FIXME: those paths are invalid *)
         ~sandboxPath:opts.sandboxPath
@@ -93,7 +97,7 @@ let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
     return ()
   in
 
-  let%bind pkg = EsyCore.Sandbox.ofDir opts.sandboxPath in
+  let%bind pkg = Sandbox.ofDir opts.sandboxPath in
 
   match packagePath with
   | Some packagePath ->
@@ -108,29 +112,29 @@ let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
   | None -> printBuildEnv pkg
 
 let buildPlan (opts : CommonOpts.t) =
-  let open EsyCore.RunAsync.Syntax in
-  let%bind sandbox = EsyCore.Sandbox.ofDir opts.sandboxPath in
-  let%bind task, _buildEnv = Lwt.return @@ EsyCore.BuildTask.ofPackage sandbox in
+  let open RunAsync.Syntax in
+  let%bind sandbox = Sandbox.ofDir opts.sandboxPath in
+  let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
   return (
     task
-    |> EsyCore.BuildTask.ExternalFormat.ofBuildTask
-    |> EsyCore.BuildTask.ExternalFormat.to_yojson
+    |> BuildTask.ExternalFormat.ofBuildTask
+    |> BuildTask.ExternalFormat.to_yojson
     |> Yojson.Safe.pretty_print Format.std_formatter)
 
 let build (opts : CommonOpts.t) =
-  let open EsyCore.RunAsync.Syntax in
-  let%bind sandbox = EsyCore.Sandbox.ofDir opts.sandboxPath in
-  let%bind _task, _buildEnv = Lwt.return @@ EsyCore.BuildTask.ofPackage sandbox in
+  let open RunAsync.Syntax in
+  let%bind sandbox = Sandbox.ofDir opts.sandboxPath in
+  let%bind _task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
   return ()
 
-let run (cmd : unit EsyCore.Run.t) =
+let run (cmd : unit Run.t) =
   match cmd with
   | Ok () -> `Ok ()
   | Error error ->
-    let msg = EsyCore.Run.formatError error in
+    let msg = Run.formatError error in
     `Error (false, msg)
 
-let runAsync (cmd : unit EsyCore.RunAsync.t) =
+let runAsync (cmd : unit RunAsync.t) =
   cmd |> Lwt_main.run |> run
 
 let () =

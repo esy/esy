@@ -18,8 +18,6 @@ val withContext : string -> 'a t -> 'a t
  *)
 val formatError : error -> string
 
-val liftOfSingleLineError : ('a, string) result -> 'a t
-
 val foldLeft : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
 
 module Syntax : sig
@@ -31,3 +29,7 @@ module Syntax : sig
     val bind : f:('a -> 'b t) -> 'a t -> 'b t
   end
 end
+
+
+val liftOfStringError : ('a, string) result -> 'a t
+val liftOfBosError : ('a, [< `Msg of string]) result -> 'a t

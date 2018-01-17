@@ -29,10 +29,15 @@ let formatError lines = match List.rev lines with
     let context = List.map (fun line -> "  " ^ line) context in
     String.concat "\n" (("Error: " ^ error)::context)
 
-let liftOfSingleLineError v =
+let liftOfStringError v =
   match v with
   | Ok v -> Ok v
   | Error line -> Error [line]
+
+let liftOfBosError v =
+  match v with
+  | Ok v -> Ok v
+  | Error (`Msg line) -> Error [line]
 
 let foldLeft ~f ~init xs =
   let rec fold acc xs =  match acc, xs with
