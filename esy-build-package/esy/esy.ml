@@ -80,7 +80,15 @@ let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
   let printBuildEnv (pkg : Package.t) =
     let%bind _task, buildEnv = Lwt.return @@ EsyCore.BuildTask.ofPackage pkg in
     let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
-    let source = EsyCore.Environment.renderToShellSource ~header buildEnv in
+    let%bind source = Lwt.return (
+      EsyCore.Environment.renderToShellSource
+        ~header
+        (* FIXME: those paths are invalid *)
+        ~sandboxPath:opts.sandboxPath
+        ~storePath:opts.sandboxPath
+        ~localStorePath:opts.sandboxPath
+        buildEnv
+    ) in
     let%lwt () = Lwt_io.print source in
     return ()
   in
