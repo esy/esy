@@ -1,12 +1,15 @@
 module StringMap = Map.Make(String)
 
-type t = binding list
+type t =
+  binding list
+  [@@deriving show]
 
 and binding = {
-  name : string;
-  value : string;
-  origin : Package.t option;
-}
+    name : string;
+    value : string;
+    origin : Package.t option;
+  }
+  [@@deriving show]
 
 type env = t
 
