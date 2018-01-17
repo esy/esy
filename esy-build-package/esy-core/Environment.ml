@@ -13,18 +13,25 @@ type env = t
 (**
  * Render environment to a string.
  *)
-let render (env : t) =
+let renderToShellSource ?(header="# Environment") (env : t) =
+  let emptyLines = function
+    | [] -> true
+    | _ -> false
+  in
   let f (lines, prevOrigin) ({ name; value; origin } : binding) =
-    let lines, origin = if prevOrigin <> origin then
-      lines, origin
+    let lines = if prevOrigin <> origin || emptyLines lines then
+      let header = match origin with
+      | Some origin -> Printf.sprintf "\n#\n# Package %s@%s\n#" origin.name origin.version
+      | None -> "\n#\n# Built-in\n#"
+      in header::lines
     else
-      lines, origin
+      lines
     in
     let value = Printf.sprintf "export %s = \"%s\"" name value in
     value::lines, origin
   in
   let lines, _ = ListLabels.fold_left ~f ~init:([], None) env in
-  String.concat "\n" lines
+  header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
 
 
 module Normalized = struct

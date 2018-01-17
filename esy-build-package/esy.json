@@ -1,5 +1,5 @@
 {
-  "name": "@esy-ocaml/esyb",
+  "name": "esy",
   "version": "0.0.1",
   "description": "Package builder for esy",
   "license": "MIT",
