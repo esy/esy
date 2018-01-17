@@ -190,21 +190,37 @@ let ofPackage (pkg : Package.t) =
       in lookup
     in
 
-    let%bind globalEnv, localEnv =
-      let f (globalEnv, localEnv) Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
+    let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
+      let f acc Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
+        let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
         let context = Printf.sprintf "While processing exportedEnv $%s" name in
         Run.withContext context (
           let%bind value = CommandExpr.render ~scope value in
           match envScope with
           | Package.ExportedEnv.Global ->
+            let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" || injectCamlLdLibraryPath in
             let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
-            Ok (globalEnv, localEnv)
+            Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
           | Package.ExportedEnv.Local ->
             let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
-            Ok (globalEnv, localEnv)
+            Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
         )
       in
-      Run.foldLeft ~f ~init:([], []) pkg.exportedEnv
+      Run.foldLeft ~f ~init:(false, [], []) pkg.exportedEnv
+    in
+
+    let%bind globalEnv = if injectCamlLdLibraryPath then
+      let%bind value = CommandExpr.render
+        ~scope
+        "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
+      in
+      Ok (Environment.{
+            name = "CAML_LD_LIBRARY_PATH";
+            value;
+            origin = Some pkg;
+          }::globalEnv)
+    else
+      Ok globalEnv
     in
 
     let buildPath = buildPath pkg in
