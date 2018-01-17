@@ -342,19 +342,15 @@ let ofPackage (pkg : Package.t) =
     Run.withContext context v
   in
 
-  match Package.fold ~f pkg with
+  match Package.DependencyGraph.fold ~f pkg with
   | Ok { task; buildEnv; _ } -> Ok (task, buildEnv)
   | Error msg -> Error msg
 
-(**
- * Fold over a task dependency graph.
- *)
-let fold ~(f : ('t, 'a) DependencyGraph.folder) (pkg : t) =
-  let idOf (pkg : t) = pkg.id in
-  let dependenciesOf pkg =
-    List.map (fun dep -> Some dep) pkg.dependencies
-  in
-  DependencyGraph.fold ~idOf ~dependenciesOf ~f pkg
+module DependencyGraph = DependencyGraph.Make(struct
+  type t = task
+  let id task = task.id
+  let dependencies task = List.map (fun dep -> Some dep) task.dependencies
+end)
 
 module ExternalFormat = struct
 
