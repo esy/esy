@@ -197,17 +197,16 @@ and dependency =
   }
 [@@deriving show]
 
-(**
- * Fold over a package dependency graph.
- *)
-let fold ~(f : ('t, 'a) DependencyGraph.folder) (pkg : t) =
-  let idOf (pkg : t) = pkg.id in
-  let dependenciesOf pkg =
+type pkg = t
+
+module DependencyGraph = DependencyGraph.Make(struct
+  type t = pkg
+  let id (pkg : t) = pkg.id
+  let dependencies pkg =
     let filterDep = function
       | Dependency p
       | PeerDependency p -> Some p
       | _ -> None
     in
     List.map filterDep pkg.dependencies
-  in
-  DependencyGraph.fold ~idOf ~dependenciesOf ~f pkg
+end)

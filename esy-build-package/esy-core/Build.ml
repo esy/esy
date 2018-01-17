@@ -6,4 +6,4 @@ let build (task : BuildTask.t) =
   let f ~allDependencies:_ ~dependencies:_ _task =
     Lwt.return ()
   in
-  BuildTask.fold ~f task
+  BuildTask.DependencyGraph.fold ~f task
