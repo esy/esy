@@ -1,10 +1,37 @@
 module Path = EsyCore.Path
+module Package = EsyCore.Package
+module BuildTask = EsyCore.BuildTask
+
+let cwd = Sys.getcwd ()
 
 let path =
   let open Cmdliner in
   let parse = Path.of_string in
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
+
+let resolvedPath =
+  let open Cmdliner in
+  let parse v =
+    match Path.of_string v with
+    | Ok path ->
+      if Path.is_abs path then
+        Ok path
+      else
+        Ok Path.(v cwd // path |> normalize)
+    | err -> err
+  in
+  let print = Path.pp in
+  Arg.conv ~docv:"PATH" (parse, print)
+
+let packagePath =
+  let open Cmdliner in
+  let doc = "Path to package." in
+  Arg.(
+    value
+    & pos 0  (some resolvedPath) None
+    & info [] ~doc
+  )
 
 module CommonOpts = struct
 
@@ -47,12 +74,30 @@ module CommonOpts = struct
     );
 end
 
-let buildEnv (opts : CommonOpts.t) =
+let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
   let open EsyCore.RunAsync.Syntax in
-  let%bind sandbox = EsyCore.Sandbox.ofDir opts.sandboxPath in
-  let%bind _task, buildEnv = Lwt.return @@ EsyCore.BuildTask.ofPackage sandbox in
-  print_endline (EsyCore.Environment.render buildEnv);
-  return ()
+
+  let printBuildEnv (pkg : Package.t) =
+    let%bind _task, buildEnv = Lwt.return @@ EsyCore.BuildTask.ofPackage pkg in
+    let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
+    let source = EsyCore.Environment.renderToShellSource ~header buildEnv in
+    let%lwt () = Lwt_io.print source in
+    return ()
+  in
+
+  let%bind pkg = EsyCore.Sandbox.ofDir opts.sandboxPath in
+
+  match packagePath with
+  | Some packagePath ->
+    let findByPath (pkg : Package.t) =
+      Path.equal pkg.sourcePath packagePath
+    in begin match Package.DependencyGraph.find ~f:findByPath pkg with
+    | None ->
+      let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
+      error msg
+    | Some pkg -> printBuildEnv pkg
+    end
+  | None -> printBuildEnv pkg
 
 let buildPlan (opts : CommonOpts.t) =
   let open EsyCore.RunAsync.Syntax in
@@ -96,8 +141,8 @@ let () =
 
   let buildEnvCommand =
     let doc = "Print build environment to stdout" in
-    let cmd opts = runAsync (buildEnv opts) in
-    Term.(ret (const cmd $ CommonOpts.term)),
+    let cmd opts packagePath = runAsync (buildEnv opts packagePath) in
+    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
     Term.info "build-env" ~version ~doc ~sdocs ~exits
   in
 

@@ -24,7 +24,6 @@ module type DependencyGraph = sig
 
   type t
 
-
   (**
    * Fold over dependency graph and compute value of type 'a.
    *)
@@ -36,6 +35,11 @@ module type DependencyGraph = sig
     -> 'a
 
   val fold : f:'a folder -> t -> 'a
+
+  (**
+   * Find a node in a graph which satisfies the predicate.
+   *)
+  val find : f:(t -> bool) -> t -> t option
 
 end
 
@@ -51,16 +55,16 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
     -> t
     -> 'a
 
-  let fold ~(f: 'a folder) (pkg : 't) =
+  let fold ~(f: 'a folder) (node : 't) =
 
     let fCache = Memoize.create ~size:200 in
-    let f ~allDependencies ~dependencies pkg =
-      fCache (Kernel.id pkg) (fun () -> f ~allDependencies ~dependencies pkg)
+    let f ~allDependencies ~dependencies node =
+      fCache (Kernel.id node) (fun () -> f ~allDependencies ~dependencies node)
     in
 
     let visitCache = Memoize.create ~size:200 in
 
-    let rec visit pkg =
+    let rec visit node =
 
       let visitDep ((seen, allDependencies, dependencies) as acc) = function
         | Some dep ->
@@ -73,12 +77,13 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
               let allDependencies = (dep, depValue)::allDependencies in
               (seen, allDependencies)
           in
-          let (seen, allDependencies) =
-            ListLabels.fold_left ~f ~init:(seen, allDependencies) depDependencies
-          in
-          let (seen, allDependencies) =
-            ListLabels.fold_left ~f ~init:(seen, allDependencies) depAllDependencies
-          in
+
+          let ctx = seen, allDependencies in
+          let ctx = f ctx (dep, depValue) in
+          let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
+          let ctx = ListLabels.fold_left ~f ~init:ctx depAllDependencies in
+
+          let seen, allDependencies = ctx in
           (seen, allDependencies, (dep, depValue)::dependencies)
         | None -> acc
       in
@@ -91,17 +96,33 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
           ListLabels.fold_left
             ~f:visitDep
             ~init:(seen, allDependencies, dependencies)
-            (Kernel.dependencies pkg)
+            (Kernel.dependencies node)
         in
         ListLabels.rev allDependencies, List.rev dependencies
       in
 
-      allDependencies, dependencies, f ~allDependencies ~dependencies pkg
+      allDependencies, dependencies, f ~allDependencies ~dependencies node
 
-    and visitCached pkg =
-      visitCache (Kernel.id pkg) (fun () -> visit pkg)
+    and visitCached node =
+      visitCache (Kernel.id node) (fun () -> visit node)
     in
 
-    let _, _, (value : 'a) = visitCached pkg in value
+    let _, _, (value : 'a) = visitCached node in value
+
+  let find ~f node =
+    let rec find' = function
+      | None::dependencies ->
+        find' dependencies
+      | (Some node)::dependencies ->
+        if f node then
+          Some node
+        else begin
+          match find' (Kernel.dependencies node) with
+          | None -> find' dependencies
+          | res -> res
+        end
+      | [] ->
+        None
+    in find' [Some node]
 
 end

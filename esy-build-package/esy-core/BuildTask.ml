@@ -174,7 +174,6 @@ let ofPackage (pkg : Package.t) =
       let%bind allDependencies = joinDependencies allDependencies in
       Ok (allDependencies, dependencies)
     in
-
     let scope =
       let bindings = StringMap.empty in
       let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
@@ -217,7 +216,7 @@ let ofPackage (pkg : Package.t) =
       (* All dependencies (transitive included contribute env exported to the
        * global scope (hence global)
        *)
-      let globalEnv =
+      let globalEnvOfAllDeps =
         allDependencies
         |> List.map (fun (_, {globalEnv; _}) -> globalEnv)
         |> List.concat
@@ -225,7 +224,7 @@ let ofPackage (pkg : Package.t) =
 
       (* Direct dependencies contribute only env exported to the local scope
        *)
-      let localEnv =
+      let localEnvOfDeps =
         dependencies
         |> List.map (fun (_, {localEnv; _}) -> localEnv)
         |> List.concat
@@ -289,7 +288,7 @@ let ofPackage (pkg : Package.t) =
       ::ocamlfindDestdir
       ::ocamlfindLdconf
       ::ocamlfindCommands
-      ::(addPackageEnvBindings pkg (localEnv @ globalEnv))
+      ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @ globalEnvOfAllDeps))
     in
 
     let%bind buildCommands =
@@ -330,7 +329,7 @@ let ofPackage (pkg : Package.t) =
       dependencies = List.map (fun (_, {task = dep; _}) -> dep) dependencies;
     } in
 
-    return { globalEnv; localEnv; buildEnv; pkg; task; }
+    return { globalEnv; localEnv; buildEnv = List.rev buildEnv; pkg; task; }
 
   in
 

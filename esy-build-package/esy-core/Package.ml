@@ -177,7 +177,7 @@ type t = {
   id : string;
   name : string;
   version : string;
-  dependencies : dependency list;
+  dependencies : dependencies;
   buildCommands : CommandList.t;
   installCommands : CommandList.t;
   buildType : BuildType.t;
@@ -187,6 +187,10 @@ type t = {
 }
 [@@deriving show]
 
+and dependencies =
+  dependency list
+  [@@deriving show]
+
 and dependency =
   | Dependency of t
   | PeerDependency of t
@@ -195,7 +199,7 @@ and dependency =
     packageName: string;
     reason: string;
   }
-[@@deriving show]
+  [@@deriving show]
 
 type pkg = t
 
