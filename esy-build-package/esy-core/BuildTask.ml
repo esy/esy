@@ -84,6 +84,32 @@ let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   |> add "share" Path.(installPath / "share" |> to_string)
   |> add "etc" Path.(installPath / "etc" |> to_string)
 
+let initEnv = Environment.[
+  {
+    name = "PATH";
+    value = "";
+    origin = None;
+  };
+  {
+    name = "CAML_LD_LIBRARY_PATH";
+    value = "";
+    origin = None;
+  };
+]
+
+let finalEnv = Environment.[
+  {
+    name = "SHELL";
+    value = "env -i /bin/bash --norc --noprofile";
+    origin = None;
+  };
+  {
+    name = "PATH";
+    value = "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+    origin = None;
+  };
+]
+
 let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
   let buildPath = buildPath pkg in
   let rootPath = rootPath pkg in
@@ -298,13 +324,15 @@ let ofPackage (pkg : Package.t) =
         value = "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       } in
 
+      (finalEnv @ (
       path
       ::manPath
       ::ocamlpath
       ::ocamlfindDestdir
       ::ocamlfindLdconf
       ::ocamlfindCommands
-      ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @ globalEnvOfAllDeps))
+      ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @
+      globalEnvOfAllDeps @ initEnv)))) |> List.rev
     in
 
     let%bind buildCommands =
@@ -319,13 +347,9 @@ let ofPackage (pkg : Package.t) =
     in
 
     let%bind env =
-      let initEnv = StringMap.(
-        empty
-        |> add "CAML_LD_LIBRARY_PATH" ""
-      ) in
       Run.withContext
         "While evaluating environment"
-        (Environment.normalize ~init:initEnv buildEnv)
+        (Environment.normalize buildEnv)
     in
 
     let task: t = {
@@ -345,7 +369,7 @@ let ofPackage (pkg : Package.t) =
       dependencies = List.map (fun (_, {task = dep; _}) -> dep) dependencies;
     } in
 
-    return { globalEnv; localEnv; buildEnv = List.rev buildEnv; pkg; task; }
+    return { globalEnv; localEnv; buildEnv; pkg; task; }
 
   in
 
