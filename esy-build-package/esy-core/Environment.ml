@@ -39,12 +39,9 @@ let renderToShellSource
     else
       lines
     in
-    match EsyLib.PathSyntax.render lookup value with
-    | Ok value ->
-      let line = Printf.sprintf "export %s = \"%s\"" name value in
-      Ok (line::lines, origin)
-    | Error(`Msg msg) ->
-      error msg
+    let%bind value = Run.liftOfBosError (EsyLib.PathSyntax.render lookup value) in
+    let line = Printf.sprintf "export %s = \"%s\"" name value in
+    Ok (line::lines, origin)
   in
   let%bind lines, _ = Run.foldLeft ~f ~init:([], None) env in
   return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))

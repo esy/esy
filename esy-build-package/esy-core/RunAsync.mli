@@ -33,3 +33,4 @@ module Syntax : sig
   end
 end
 
+val liftOfRun : 'a Run.t -> 'a t

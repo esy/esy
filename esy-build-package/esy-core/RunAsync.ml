@@ -24,3 +24,5 @@ module Syntax = struct
     let bind = bind
   end
 end
+
+let liftOfRun = Lwt.return
