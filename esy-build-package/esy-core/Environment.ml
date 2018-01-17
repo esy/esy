@@ -13,11 +13,23 @@ type env = t
 (**
  * Render environment to a string.
  *)
-let renderToShellSource ?(header="# Environment") (env : t) =
+let renderToShellSource
+    ?(header="# Environment")
+    ~storePath
+    ~localStorePath
+    ~sandboxPath
+    (env : t) =
+  let open Run.Syntax in
   let emptyLines = function
     | [] -> true
     | _ -> false
   in
+    let lookup = function
+    | "store" -> Some (Path.to_string storePath)
+    | "localStore" -> Some (Path.to_string localStorePath)
+    | "sandbox" -> Some (Path.to_string sandboxPath)
+    | _ -> None
+    in
   let f (lines, prevOrigin) ({ name; value; origin } : binding) =
     let lines = if prevOrigin <> origin || emptyLines lines then
       let header = match origin with
@@ -27,11 +39,15 @@ let renderToShellSource ?(header="# Environment") (env : t) =
     else
       lines
     in
-    let value = Printf.sprintf "export %s = \"%s\"" name value in
-    value::lines, origin
+    match EsyLib.PathSyntax.render lookup value with
+    | Ok value ->
+      let line = Printf.sprintf "export %s = \"%s\"" name value in
+      Ok (line::lines, origin)
+    | Error(`Msg msg) ->
+      error msg
   in
-  let lines, _ = ListLabels.fold_left ~f ~init:([], None) env in
-  header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
+  let%bind lines, _ = Run.foldLeft ~f ~init:([], None) env in
+  return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))
 
 
 module Normalized = struct
