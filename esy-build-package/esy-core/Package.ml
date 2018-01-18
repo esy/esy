@@ -154,7 +154,7 @@ module Manifest = struct
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     optDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     esy: EsyManifest.t;
-    _resolved: (string [@default "-"]);
+    _resolved: (string option [@default None]);
   } [@@deriving (show, of_yojson { strict = false })]
 
   let ofFile path =
