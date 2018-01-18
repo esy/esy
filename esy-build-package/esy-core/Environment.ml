@@ -18,9 +18,7 @@ type env = t
  *)
 let renderToShellSource
     ?(header="# Environment")
-    ~storePath
-    ~localStorePath
-    ~sandboxPath
+    (cfg : Config.t)
     (env : t) =
   let open Run.Syntax in
   let emptyLines = function
@@ -28,9 +26,9 @@ let renderToShellSource
     | _ -> false
   in
     let lookup = function
-    | "store" -> Some (Path.to_string storePath)
-    | "localStore" -> Some (Path.to_string localStorePath)
-    | "sandbox" -> Some (Path.to_string sandboxPath)
+    | "store" -> Some (Path.to_string cfg.storePath)
+    | "localStore" -> Some (Path.to_string cfg.localStorePath)
+    | "sandbox" -> Some (Path.to_string cfg.sandboxPath)
     | _ -> None
     in
   let f (lines, prevOrigin) ({ name; value; origin } : binding) =
@@ -84,11 +82,11 @@ let normalize = Normalized.ofEnvironment
 
 module PathLike = struct
 
-  let make (name : string) (value : Path.t list) =
+  let make (name : string) (value : string list) =
     let sep = match System.host, name with
       | System.Cygwin, "OCAMLPATH" -> ";"
       | _ -> ":"
     in
-    value |> List.map Path.to_string |> String.concat sep
+    value |> String.concat sep
 
 end

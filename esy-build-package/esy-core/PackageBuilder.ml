@@ -1,4 +1,9 @@
-let run ?(stdin=`Null) action (task : BuildTask.t) =
+
+let run
+    ?(stdin=`Null)
+    ?(stderrout=`Log)
+    action
+    (task : BuildTask.t) =
   let open RunAsync.Syntax in
 
   let action = match action with
@@ -10,7 +15,8 @@ let run ?(stdin=`Null) action (task : BuildTask.t) =
   let runProcess buildJsonFilename buildJsonOc =
 
     let command =
-      let prg = "./_build/default/esy-build-package/esyBuildPackage.bc" in let args = [|
+      let prg = "./_build/default/esy-build-package/esyBuildPackage.bc" in
+      let args = [|
         prg;
         action;
         "--build"; (Path.to_string buildJsonFilename);
@@ -36,12 +42,13 @@ let run ?(stdin=`Null) action (task : BuildTask.t) =
     | `Null -> `Dev_null
     | `Keep -> `FD_copy Unix.stdin
     in
+    let stdout, stderr = match stderrout with
+    | `Log ->
+      `FD_copy Unix.stdout, `FD_copy Unix.stderr
+    | `Keep -> `FD_copy Unix.stdout, `FD_copy Unix.stderr
+    in
     try%lwt
-      Lwt_process.with_process_none
-        ~stderr:(`FD_copy Unix.stderr)
-        ~stdout:(`FD_copy Unix.stdout)
-        ~stdin
-        command f
+      Lwt_process.with_process_none ~stderr ~stdout ~stdin command f
     with
     | _ -> error "some error"
   in Io.withTemporaryFile runProcess
