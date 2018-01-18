@@ -93,14 +93,21 @@ let withPackageByPath packagePath root f =
     end
   | None -> f root
 
-let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
+let buildEnv (opts : CommonOpts.t) (asJson : bool) (packagePath : Path.t option) =
   let open RunAsync.Syntax in
 
   let f (pkg : Package.t) =
-    let%bind _task, buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task, buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
     let%bind source = RunAsync.liftOfRun (
-      Environment.renderToShellSource
+      if asJson
+      then
+        Ok (
+          task.BuildTask.env
+          |> Environment.Normalized.to_yojson
+          |> Yojson.Safe.pretty_to_string)
+      else
+        Environment.renderToShellSource
         ~header
         (* FIXME: those paths are invalid *)
         ~sandboxPath:opts.sandboxPath
@@ -187,8 +194,12 @@ let () =
 
   let buildEnvCommand =
     let doc = "Print build environment to stdout" in
-    let cmd opts packagePath = runAsync (buildEnv opts packagePath) in
-    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
+    let cmd opts asJson packagePath = runAsync (buildEnv opts asJson packagePath) in
+    let json =
+      let doc = "Format output as JSON" in
+      Arg.(value & flag & info ["json"]  ~doc);
+    in
+    Term.(ret (const cmd $ CommonOpts.term $ json $ packagePath)),
     Term.info "build-env" ~version ~doc ~sdocs ~exits
   in
 
