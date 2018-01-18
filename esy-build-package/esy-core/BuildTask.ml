@@ -22,6 +22,7 @@ type t = {
   buildPath : ConfigPath.t;
   stagePath : ConfigPath.t;
   installPath : ConfigPath.t;
+  logPath : ConfigPath.t;
 
   dependencies : t list;
 }
@@ -49,6 +50,10 @@ let pkgStagePath pkg =
 
 let pkgInstallPath pkg =
   ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeInstallTree / pkg.id)
+
+let pkgLogPath pkg =
+  let basename = pkg.Package.id ^ ".log" in
+  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeBuildTree / basename)
 
 let rootPath (pkg : Package.t) =
   match pkg.buildType, pkg.sourceType with
@@ -382,6 +387,7 @@ let ofPackage (pkg : Package.t) =
       buildPath;
       stagePath;
       installPath;
+      logPath = pkgLogPath pkg;
 
       dependencies = List.map (fun (_, {task = dep; _}) -> dep) dependencies;
     } in

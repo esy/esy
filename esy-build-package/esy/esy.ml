@@ -130,7 +130,7 @@ let buildShell cfg packagePath =
 
   let f pkg =
     let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    EsyCore.PackageBuilder.buildShell task
+    EsyCore.PackageBuilder.buildShell cfg task
   in
 
   let%bind root = Sandbox.ofDir cfg in
@@ -143,7 +143,7 @@ let buildPackage cfg packagePath =
 
   let f pkg =
     let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    EsyCore.Build.build task
+    EsyCore.Build.build ~force:`Root cfg task
   in
 
   let%bind root = Sandbox.ofDir cfg in
@@ -154,7 +154,7 @@ let build cfg =
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind sandbox = Sandbox.ofDir cfg in
   let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
-  let%bind () = EsyCore.Build.build task in
+  let%bind () = EsyCore.Build.build ~force:`Root cfg task in
   return ()
 
 let run (cmd : unit Run.t) =
