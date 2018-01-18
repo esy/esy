@@ -10,8 +10,7 @@ let run ?(stdin=`Null) action (task : BuildTask.t) =
   let runProcess buildJsonFilename buildJsonOc =
 
     let command =
-      let prg = "./_build/default/esy-build-package/esyBuildPackage.bc" in
-      let args = [|
+      let prg = "./_build/default/esy-build-package/esyBuildPackage.bc" in let args = [|
         prg;
         action;
         "--build"; (Path.to_string buildJsonFilename);
@@ -49,4 +48,4 @@ let run ?(stdin=`Null) action (task : BuildTask.t) =
 
 let build = run `Build
 let buildShell = run ~stdin:`Keep `Shell
-let buildExec = run `Exec
+let buildExec = run ~stdin:`Keep `Exec
