@@ -27,7 +27,10 @@ let packageId =
   update_string(ctx, Package.CommandList.show(manifest.esy.build));
   update_string(ctx, Package.CommandList.show(manifest.esy.install));
   update_string(ctx, Package.BuildType.show(manifest.esy.buildsInSource));
-  update_string(ctx, manifest._resolved);
+  switch manifest._resolved {
+  | Some(resolved) => update_string(ctx, resolved)
+  | None => ()
+  };
   let updateWithDepId =
     fun
     | Package.Dependency(pkg)
@@ -72,7 +75,7 @@ let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
   resolve(basedir);
 };
 
-let ofDir = path => {
+let ofDir = sandboxPath => {
   open RunAsync.Syntax;
   let resolutionCache = Memoize.create(~size=200);
   let resolvePackageCached = (pkgName, basedir) => {
@@ -142,6 +145,30 @@ let ofDir = path => {
           manifest.optDependencies,
           dependencies
         );
+      let sourceType = {
+        let isRootPath = path == sandboxPath;
+        let hasDepWithSourceTypeDevelopment =
+          List.exists(
+            fun
+            | Package.Dependency(pkg)
+            | Package.PeerDependency(pkg)
+            | Package.OptDependency(pkg) =>
+              pkg.sourceType == Package.SourceType.Development
+            | Package.DevDependency(_)
+            | Package.InvalidDependency(_) => false,
+            dependencies
+          );
+        switch (
+          isRootPath,
+          hasDepWithSourceTypeDevelopment,
+          manifest._resolved
+        ) {
+        | (true, _, _) => Package.SourceType.Root
+        | (_, true, _) => Package.SourceType.Development
+        | (_, _, None) => Package.SourceType.Development
+        | (_, _, Some(_)) => Package.SourceType.Immutable
+        };
+      };
       let id = packageId(manifest, dependencies);
       let pkg =
         Package.{
@@ -152,7 +179,7 @@ let ofDir = path => {
           buildCommands: manifest.esy.build,
           installCommands: manifest.esy.install,
           buildType: manifest.esy.buildsInSource,
-          sourceType: SourceType.Immutable,
+          sourceType,
           exportedEnv: manifest.esy.exportedEnv,
           sourcePath: path
         };
@@ -164,5 +191,5 @@ let ofDir = path => {
     let compute = () => loadPackage(path);
     packageCache(path, compute);
   };
-  loadPackageCached(path);
+  loadPackageCached(sandboxPath);
 };
