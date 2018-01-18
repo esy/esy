@@ -120,12 +120,23 @@ let buildPlan (opts : CommonOpts.t) (packagePath : Path.t option) =
 
   let f pkg =
     let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    return (
+    return BuildTask.ExternalFormat.(
       task
-      |> BuildTask.ExternalFormat.ofBuildTask
-      |> BuildTask.ExternalFormat.to_yojson
-      |> Yojson.Safe.pretty_print Format.std_formatter
+      |> ofBuildTask
+      |> toString ~pretty:true
+      |> print_endline
     )
+  in
+
+  let%bind root = Sandbox.ofDir opts.sandboxPath in
+  withPackageByPath packagePath root f
+
+let buildShell (opts : CommonOpts.t) packagePath =
+  let open RunAsync.Syntax in
+
+  let f pkg =
+    let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    EsyCore.PackageBuilder.buildShell task
   in
 
   let%bind root = Sandbox.ofDir opts.sandboxPath in
@@ -177,6 +188,13 @@ let () =
     Term.info "build-plan" ~version ~doc ~sdocs ~exits
   in
 
+  let buildShellCommand =
+    let doc = "Enter the build shell" in
+    let cmd opts packagePath = runAsync (buildShell opts packagePath) in
+    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
+    Term.info "build-shell" ~version ~doc ~sdocs ~exits
+  in
+
   let buildCommand =
     let doc = "Build what needs to be build" in
     let cmd opts = runAsync (build opts) in
@@ -185,7 +203,8 @@ let () =
   in
 
   let commands = [
-    buildCommand;
     buildEnvCommand;
     buildPlanCommand;
+    buildShellCommand;
+    buildCommand;
   ] in Term.(exit @@ eval_choice defaultCommand commands);
