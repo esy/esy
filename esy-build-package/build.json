@@ -1,0 +1,65 @@
+{
+  "id": "opam__slash__topkg-0.9.1-dc7c8c68",
+  "name": "@opam/topkg",
+  "version": "0.9.1",
+  "sourceType": "immutable",
+  "buildType": "in-source",
+  "build": [
+    [
+      "ocaml", "pkg/pkg.ml", "build", "--pkg-name", "topkg", "--dev-pkg",
+      "false"
+    ],
+    [ "sh", "-c", "(esy-installer || true)" ]
+  ],
+  "install": [],
+  "sourcePath":
+    "/Users/andreypopp/Workspace/esy-ocaml/esy/esy-build-package/node_modules/@opam/topkg",
+  "env": {
+    "topkg_version": "0.9.1",
+    "topkg_installed": "true",
+    "topkg_enable": "enable",
+    "result_version": "1.2.0",
+    "result_installed": "true",
+    "result_enable": "enable",
+    "ocamlfind_version": "1.7.3--1",
+    "ocamlfind_installed": "true",
+    "ocamlfind_enable": "enable",
+    "ocamlbuild_version": "0.12.0",
+    "ocamlbuild_installed": "true",
+    "ocamlbuild_enable": "enable",
+    "cur__version": "0.9.1",
+    "cur__toplevel": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/toplevel",
+    "cur__target_dir": "%store%/b/opam__slash__topkg-0.9.1-dc7c8c68",
+    "cur__stublibs": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/stublibs",
+    "cur__share": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/share",
+    "cur__sbin": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/sbin",
+    "cur__root": "%store%/b/opam__slash__topkg-0.9.1-dc7c8c68",
+    "cur__original_root":
+      "/Users/andreypopp/Workspace/esy-ocaml/esy/esy-build-package/node_modules/@opam/topkg",
+    "cur__name": "@opam/topkg",
+    "cur__man": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/man",
+    "cur__lib": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/lib",
+    "cur__install": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68",
+    "cur__etc": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/etc",
+    "cur__doc": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/doc",
+    "cur__bin": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/bin",
+    "conf_m4_version": "1.0.0",
+    "conf_m4_installed": "true",
+    "conf_m4_enable": "enable",
+    "SHELL": "env -i /bin/bash --norc --noprofile",
+    "PATH":
+      "%store%/i/esy_ocaml__slash__esy_installer-0.0.0-e74da98c/bin:%store%/i/esy_ocaml__slash__substs-0.0.1-c65668a7/bin:%store%/i/opam__slash__ocamlbuild-0.12.0-0a6dd1e4/bin:%store%/i/ocaml-4.6.1-d5949db9/bin:%store%/i/opam__slash__ocamlfind-1.7.3--1-ee1591bf/bin:%store%/i/opam__slash__conf_m4-1.0.0-10bb5081/bin:%store%/i/opam__slash__result-1.2.0-bf72b0d0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "OCAML_TOPLEVEL_PATH": "%store%/i/ocaml-4.6.1-d5949db9/lib/ocaml",
+    "OCAMLPATH":
+      "%store%/i/esy_ocaml__slash__esy_installer-0.0.0-e74da98c/lib:%store%/i/esy_ocaml__slash__substs-0.0.1-c65668a7/lib:%store%/i/opam__slash__ocamlbuild-0.12.0-0a6dd1e4/lib:%store%/i/ocaml-4.6.1-d5949db9/lib:%store%/i/opam__slash__ocamlfind-1.7.3--1-ee1591bf/lib:%store%/i/opam__slash__conf_m4-1.0.0-10bb5081/lib:%store%/i/opam__slash__result-1.2.0-bf72b0d0/lib",
+    "OCAMLLIB": "%store%/i/ocaml-4.6.1-d5949db9/lib/ocaml",
+    "OCAMLFIND_LDCONF": "ignore",
+    "OCAMLFIND_DESTDIR": "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/lib",
+    "OCAMLFIND_COMMANDS":
+      "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt",
+    "MAN_PATH":
+      "%store%/i/esy_ocaml__slash__esy_installer-0.0.0-e74da98c/man:%store%/i/esy_ocaml__slash__substs-0.0.1-c65668a7/man:%store%/i/opam__slash__ocamlbuild-0.12.0-0a6dd1e4/man:%store%/i/ocaml-4.6.1-d5949db9/man:%store%/i/opam__slash__ocamlfind-1.7.3--1-ee1591bf/man:%store%/i/opam__slash__conf_m4-1.0.0-10bb5081/man:%store%/i/opam__slash__result-1.2.0-bf72b0d0/man",
+    "CAML_LD_LIBRARY_PATH":
+      "%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/stublibs:%store%/s/opam__slash__topkg-0.9.1-dc7c8c68/lib/stublibs:%store%/s/opam__slash__ocamlbuild-0.12.0-0a6dd1e4/stublibs:%store%/s/opam__slash__ocamlbuild-0.12.0-0a6dd1e4/lib/stublibs:%store%/s/ocaml-4.6.1-d5949db9/stublibs:%store%/s/ocaml-4.6.1-d5949db9/lib/stublibs:%store%/i/ocaml-4.6.1-d5949db9/lib/ocaml/stublibs:%store%/i/ocaml-4.6.1-d5949db9/lib/ocaml:%store%/s/opam__slash__ocamlfind-1.7.3--1-ee1591bf/stublibs:%store%/s/opam__slash__ocamlfind-1.7.3--1-ee1591bf/lib/stublibs:%store%/i/opam__slash__ocamlfind-1.7.3--1-ee1591bf/lib/ocaml/stublibs:%store%/i/opam__slash__ocamlfind-1.7.3--1-ee1591bf/lib/ocaml:%store%/s/opam__slash__conf_m4-1.0.0-10bb5081/stublibs:%store%/s/opam__slash__conf_m4-1.0.0-10bb5081/lib/stublibs:%store%/s/opam__slash__result-1.2.0-bf72b0d0/stublibs:%store%/s/opam__slash__result-1.2.0-bf72b0d0/lib/stublibs:"
+  }
+}

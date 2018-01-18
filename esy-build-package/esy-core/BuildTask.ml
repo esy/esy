@@ -445,4 +445,10 @@ module ExternalFormat = struct
     env = task.env;
   }
 
+  let toString ?(pretty=false) (task : t) =
+    let json = to_yojson task in
+    if pretty
+    then Yojson.Safe.pretty_to_string json
+    else Yojson.Safe.to_string json
+
 end
