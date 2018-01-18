@@ -11,10 +11,16 @@ let return v =
 let error msg =
   Error [msg]
 
+let bind ~f v = match v with
+  | Ok v -> f v
+  | Error err -> Error err
+
 module Syntax = struct
   let return = return
   let error = error
-  module Let_syntax = EsyLib.Result.Let_syntax
+  module Let_syntax = struct
+    let bind = bind
+  end
 end
 
 let withContext line v =
@@ -26,7 +32,7 @@ let formatError lines = match List.rev lines with
   | [] -> "Error"
   | error::[] -> "Error: " ^ error
   | error::context ->
-    let context = List.map (fun line -> "  " ^ line) context in
+    let context = List.map (fun line -> "  While " ^ line) context in
     String.concat "\n" (("Error: " ^ error)::context)
 
 let liftOfStringError v =
@@ -46,3 +52,9 @@ let foldLeft ~f ~init xs =
     | Ok acc, x::xs -> fold (f acc x) xs
   in
   fold (Ok init) xs
+
+let rec waitAll = function
+  | [] -> return ()
+  | x::xs ->
+    let f () = waitAll xs in
+    bind ~f x

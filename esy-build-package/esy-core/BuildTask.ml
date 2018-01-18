@@ -176,12 +176,19 @@ let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
     origin = Some pkg;
   }::env
 
-let renderCommandList scope (commands : Package.CommandList.t) =
+let renderCommandList env scope (commands : Package.CommandList.t) =
+  let open Run.Syntax in
+  let envScope name =
+    Environment.Normalized.find name env
+  in
   match commands with
   | None -> Ok None
   | Some commands ->
     let renderCommand command =
-      let renderArg arg = CommandExpr.render ~scope arg in
+      let renderArg arg =
+        let%bind arg = CommandExpr.render ~scope arg in
+        ShellParamExpansion.render ~scope:envScope arg
+      in
       EsyLib.Result.listMap ~f:renderArg command
     in
     match EsyLib.Result.listMap ~f:renderCommand commands with
@@ -219,7 +226,7 @@ let ofPackage (pkg : Package.t) =
     let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
       let f acc Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
-        let context = Printf.sprintf "While processing exportedEnv $%s" name in
+        let context = Printf.sprintf "processing exportedEnv $%s" name in
         Run.withContext context (
           let%bind value = CommandExpr.render ~scope value in
           match envScope with
@@ -335,21 +342,21 @@ let ofPackage (pkg : Package.t) =
       globalEnvOfAllDeps @ initEnv)))) |> List.rev
     in
 
+    let%bind env =
+      Run.withContext
+        "evaluating environment"
+        (Environment.normalize buildEnv)
+    in
+
     let%bind buildCommands =
       Run.withContext
-        "While processing esy.build"
-        (renderCommandList scope pkg.buildCommands)
+        "processing esy.build"
+        (renderCommandList env scope pkg.buildCommands)
     in
     let%bind installCommands =
       Run.withContext
-        "While processing esy.install"
-        (renderCommandList scope pkg.installCommands)
-    in
-
-    let%bind env =
-      Run.withContext
-        "While evaluating environment"
-        (Environment.normalize buildEnv)
+        "processing esy.install"
+        (renderCommandList env scope pkg.installCommands)
     in
 
     let task: t = {
@@ -376,7 +383,7 @@ let ofPackage (pkg : Package.t) =
   let f ~allDependencies ~dependencies pkg =
     let v = f ~allDependencies ~dependencies pkg in
     let context =
-      Printf.sprintf "While processing package: %s@%s" pkg.name pkg.version
+      Printf.sprintf "processing package: %s@%s" pkg.name pkg.version
     in
     Run.withContext context v
   in
@@ -437,4 +444,5 @@ module ExternalFormat = struct
     sourcePath = task.sourcePath;
     env = task.env;
   }
+
 end

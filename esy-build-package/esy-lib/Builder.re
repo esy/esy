@@ -328,6 +328,9 @@ let build =
   Logs.debug(m => m("start %s", task.id));
   let performBuild = sourceModTime => {
     Logs.debug(m => m("building"));
+    Logs.app(m =>
+      m("# esy-build-package: building: %s@%s", task.name, task.version)
+    );
     let runBuildAndInstall = (run, _runInteractive, ()) => {
       let runList = cmds => {
         let rec _runList = cmds =>

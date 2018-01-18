@@ -22,6 +22,8 @@ val error : string -> 'a t
  *)
 val withContext : string -> 'a t -> 'a t
 
+val waitAll : unit t list -> unit t
+
 module Syntax : sig
 
   val return : 'a -> 'a t
