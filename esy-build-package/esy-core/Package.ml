@@ -152,6 +152,7 @@ module Manifest = struct
     dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
+    optDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     esy: EsyManifest.t;
     _resolved: (string [@default "-"]);
   } [@@deriving (show, of_yojson { strict = false })]
@@ -194,9 +195,10 @@ and dependencies =
 and dependency =
   | Dependency of t
   | PeerDependency of t
+  | OptDependency of t
   | DevDependency of t
   | InvalidDependency of {
-    packageName: string;
+    pkgName: string;
     reason: string;
   }
   [@@deriving show]
@@ -209,8 +211,10 @@ module DependencyGraph = DependencyGraph.Make(struct
   let dependencies pkg =
     let filterDep = function
       | Dependency p
+      | OptDependency p
       | PeerDependency p -> Some p
-      | _ -> None
+      | DevDependency _
+      | InvalidDependency _ -> None
     in
     List.map filterDep pkg.dependencies
 end)

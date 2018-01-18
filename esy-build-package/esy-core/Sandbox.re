@@ -31,6 +31,7 @@ let packageId =
   let updateWithDepId =
     fun
     | Package.Dependency(pkg)
+    | Package.OptDependency(pkg)
     | Package.PeerDependency(pkg) => update_string(ctx, pkg.id)
     | Package.InvalidDependency(_)
     | Package.DevDependency(_) => ();
@@ -40,19 +41,19 @@ let packageId =
   safePackageName(manifest.name) ++ "-" ++ manifest.version ++ "-" ++ hash;
 };
 
-let rec resolvePackage = (packageName: string, basedir: Path.t) => {
-  let packagePath = (packageName, basedir) =>
-    Path.(basedir / "node_modules" / packageName);
-  let scopedPackagePath = (scope, packageName, basedir) =>
-    Path.(basedir / "node_modules" / scope / packageName);
+let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
+  let packagePath = (pkgName, basedir) =>
+    Path.(basedir / "node_modules" / pkgName);
+  let scopedPackagePath = (scope, pkgName, basedir) =>
+    Path.(basedir / "node_modules" / scope / pkgName);
   let packagePath =
-    switch packageName.[0] {
+    switch pkgName.[0] {
     | '@' =>
-      switch (String.split_on_char('/', packageName)) {
-      | [scope, packageName] => scopedPackagePath(scope, packageName)
-      | _ => packagePath(packageName)
+      switch (String.split_on_char('/', pkgName)) {
+      | [scope, pkgName] => scopedPackagePath(scope, pkgName)
+      | _ => packagePath(pkgName)
       }
-    | _ => packagePath(packageName)
+    | _ => packagePath(pkgName)
     };
   let rec resolve = basedir => {
     open RunAsync.Syntax;
@@ -74,51 +75,73 @@ let rec resolvePackage = (packageName: string, basedir: Path.t) => {
 let ofDir = path => {
   open RunAsync.Syntax;
   let resolutionCache = Memoize.create(~size=200);
-  let resolvePackageCached = (packageName, basedir) => {
-    let key = (packageName, basedir);
-    let compute = () => resolvePackage(packageName, basedir);
+  let resolvePackageCached = (pkgName, basedir) => {
+    let key = (pkgName, basedir);
+    let compute = () => resolvePackage(pkgName, basedir);
     resolutionCache(key, compute);
   };
   let packageCache = Memoize.create(~size=200);
   let rec loadPackage = (path: EsyLib.Path.t) => {
-    let resolveDep = (depPackageName: string) =>
-      switch%lwt (resolvePackageCached(depPackageName, path)) {
+    let resolveDep = (pkgName: string) =>
+      switch%lwt (resolvePackageCached(pkgName, path)) {
       | Ok(Some(depPackagePath)) =>
         switch%lwt (loadPackageCached(depPackagePath)) {
-        | Ok(pkg) => Lwt.return_ok(pkg)
-        | Error(err) =>
-          Lwt.return_error((depPackageName, Run.formatError(err)))
+        | Ok(pkg) => Lwt.return_ok((pkgName, Some(pkg)))
+        | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
         }
-      | Ok(None) =>
-        Lwt.return_error((depPackageName, "cannot resolve dependency"))
-      | Error(err) => Lwt.return_error((depPackageName, Run.formatError(err)))
+      | Ok(None) => Lwt.return_ok((pkgName, None))
+      | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
       };
-    let resolveDeps = (dependencies, make) => {
+    let addDeps = (~allowFailure=false, dependencies, make, prevDependencies) => {
       let%lwt dependencies =
         StringMap.bindings(dependencies)
-        |> List.map(((packageName, _)) => packageName)
+        |> List.map(((pkgName, _)) => pkgName)
         |> Lwt_list.map_p(resolveDep);
+      let f = dependencies =>
+        fun
+        | Ok((_, Some(pkg))) => [make(pkg), ...dependencies]
+        | Ok((pkgName, None)) =>
+          if (allowFailure) {
+            dependencies;
+          } else {
+            [
+              Package.InvalidDependency({
+                pkgName,
+                reason: "unable to resolve package"
+              }),
+              ...dependencies
+            ];
+          }
+        | Error((pkgName, reason)) => [
+            Package.InvalidDependency({pkgName, reason}),
+            ...dependencies
+          ];
       Lwt.return(
-        List.map(
-          fun
-          | Ok(pkg) => make(pkg)
-          | Error((packageName, reason)) =>
-            Package.InvalidDependency({packageName, reason}),
-          dependencies
-        )
+        ListLabels.fold_left(~f, ~init=prevDependencies, dependencies)
       );
     };
     switch%bind (Package.Manifest.ofDir(path)) {
     | Some(manifest) =>
+      let dependencies = [];
       let%lwt dependencies =
-        resolveDeps(manifest.Package.Manifest.dependencies, pkg =>
-          Package.Dependency(pkg)
+        addDeps(
+          manifest.Package.Manifest.dependencies,
+          pkg => Package.Dependency(pkg),
+          dependencies
         );
-      let%lwt peerDependencies =
-        resolveDeps(manifest.peerDependencies, pkg =>
-          Package.PeerDependency(pkg)
+      let%lwt dependencies =
+        addDeps(
+          manifest.peerDependencies,
+          pkg => Package.PeerDependency(pkg),
+          dependencies
         );
-      let dependencies = dependencies @ peerDependencies;
+      let%lwt dependencies =
+        addDeps(
+          ~allowFailure=true,
+          manifest.optDependencies,
+          pkg => Package.OptDependency(pkg),
+          dependencies
+        );
       let id = packageId(manifest, dependencies);
       let pkg =
         Package.{
