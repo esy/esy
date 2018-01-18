@@ -7,6 +7,7 @@
  *)
 
 module StringMap = Map.Make(String)
+module ConfigPath = Config.ConfigPath
 
 type t = {
   id : string;
@@ -17,10 +18,10 @@ type t = {
 
   env : Environment.Normalized.t;
 
-  sourcePath : Path.t;
-  buildPath : Path.t;
-  stagePath : Path.t;
-  installPath : Path.t;
+  sourcePath : ConfigPath.t;
+  buildPath : ConfigPath.t;
+  stagePath : ConfigPath.t;
+  installPath : ConfigPath.t;
 
   dependencies : t list;
 }
@@ -35,54 +36,54 @@ type foldstate = {
   localEnv : Environment.t;
 }
 
-let storePath (pkg : Package.t) = match pkg.sourceType with
-  | Package.SourceType.Immutable -> Path.v "%store%"
+let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
+  | Package.SourceType.Immutable -> ConfigPath.storePath
   | Package.SourceType.Development
-  | Package.SourceType.Root -> Path.v "%localStore%"
+  | Package.SourceType.Root -> ConfigPath.localStorePath
 
-let buildPath pkg =
-  Path.(storePath pkg / Config.storeBuildTree / pkg.id)
+let pkgBuildPath pkg =
+  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeBuildTree / pkg.id)
 
-let stagePath pkg =
-  Path.(storePath pkg / Config.storeStageTree / pkg.id)
+let pkgStagePath pkg =
+  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeStageTree / pkg.id)
 
-let installPath pkg =
-  Path.(storePath pkg / Config.storeInstallTree / pkg.id)
+let pkgInstallPath pkg =
+  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeInstallTree / pkg.id)
 
 let rootPath (pkg : Package.t) =
   match pkg.buildType, pkg.sourceType with
-  | InSource, _ -> buildPath pkg
-  | JBuilderLike, Immutable -> buildPath pkg
+  | InSource, _ -> pkgBuildPath pkg
+  | JBuilderLike, Immutable -> pkgBuildPath pkg
   | JBuilderLike, Development -> pkg.sourcePath
   | JBuilderLike, Root -> pkg.sourcePath
   | OutOfSource, _ -> pkg.sourcePath
 
 let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   let namespace, installPath = match kind with
-  | `AsSelf -> "self", stagePath pkg
-  | `AsDep -> pkg.name, installPath pkg
+  | `AsSelf -> "self", pkgStagePath pkg
+  | `AsDep -> pkg.name, pkgInstallPath pkg
   in
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
-  let buildPath = buildPath pkg in
+  let buildPath = pkgBuildPath pkg in
   let rootPath = rootPath pkg in
   scope
   |> add "name" pkg.name
   |> add "version" pkg.version
-  |> add "root" (Path.to_string rootPath)
-  |> add "original_root" (Path.to_string pkg.sourcePath)
-  |> add "target_dir" (Path.to_string buildPath)
-  |> add "install" (Path.to_string installPath)
-  |> add "bin" Path.(installPath / "bin" |> to_string)
-  |> add "sbin" Path.(installPath / "sbin" |> to_string)
-  |> add "lib" Path.(installPath / "lib" |> to_string)
-  |> add "man" Path.(installPath / "man" |> to_string)
-  |> add "doc" Path.(installPath / "doc" |> to_string)
-  |> add "stublibs" Path.(installPath / "stublibs" |> to_string)
-  |> add "toplevel" Path.(installPath / "toplevel" |> to_string)
-  |> add "share" Path.(installPath / "share" |> to_string)
-  |> add "etc" Path.(installPath / "etc" |> to_string)
+  |> add "root" (ConfigPath.toString rootPath)
+  |> add "original_root" (ConfigPath.toString pkg.sourcePath)
+  |> add "target_dir" (ConfigPath.toString buildPath)
+  |> add "install" (ConfigPath.toString installPath)
+  |> add "bin" ConfigPath.(installPath / "bin" |> toString)
+  |> add "sbin" ConfigPath.(installPath / "sbin" |> toString)
+  |> add "lib" ConfigPath.(installPath / "lib" |> toString)
+  |> add "man" ConfigPath.(installPath / "man" |> toString)
+  |> add "doc" ConfigPath.(installPath / "doc" |> toString)
+  |> add "stublibs" ConfigPath.(installPath / "stublibs" |> toString)
+  |> add "toplevel" ConfigPath.(installPath / "toplevel" |> toString)
+  |> add "share" ConfigPath.(installPath / "share" |> toString)
+  |> add "etc" ConfigPath.(installPath / "etc" |> toString)
 
 let initEnv = Environment.[
   {
@@ -111,9 +112,9 @@ let finalEnv = Environment.[
 ]
 
 let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
-  let buildPath = buildPath pkg in
+  let buildPath = pkgBuildPath pkg in
   let rootPath = rootPath pkg in
-  let stagePath = stagePath pkg in
+  let stagePath = pkgStagePath pkg in
   let open Environment in {
     name = "cur__name";
     value = pkg.name;
@@ -124,55 +125,55 @@ let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
     origin = Some pkg;
   }::{
     name = "cur__root";
-    value = Path.to_string rootPath;
+    value = ConfigPath.toString rootPath;
     origin = Some pkg;
   }::{
     name = "cur__original_root";
-    value = Path.to_string pkg.sourcePath;
+    value = ConfigPath.toString pkg.sourcePath;
     origin = Some pkg;
   }::{
     name = "cur__target_dir";
-    value = Path.to_string buildPath;
+    value = ConfigPath.toString buildPath;
     origin = Some pkg;
   }::{
     name = "cur__install";
-    value = Path.to_string stagePath;
+    value = ConfigPath.toString stagePath;
     origin = Some pkg;
   }::{
     name = "cur__bin";
-    value = Path.to_string Path.(stagePath / "bin");
+    value = ConfigPath.(stagePath / "bin" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__sbin";
-    value = Path.to_string Path.(stagePath / "sbin");
+    value = ConfigPath.(stagePath / "sbin" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__lib";
-    value = Path.to_string Path.(stagePath / "lib");
+    value = ConfigPath.(stagePath / "lib" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__man";
-    value = Path.to_string Path.(stagePath / "man");
+    value = ConfigPath.(stagePath / "man" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__doc";
-    value = Path.to_string Path.(stagePath / "doc");
+    value = ConfigPath.(stagePath / "doc" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__stublibs";
-    value = Path.to_string Path.(stagePath / "stublibs");
+    value = ConfigPath.(stagePath / "stublibs" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__toplevel";
-    value = Path.to_string Path.(stagePath / "toplevel");
+    value = ConfigPath.(stagePath / "toplevel" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__share";
-    value = Path.to_string Path.(stagePath / "share");
+    value = ConfigPath.(stagePath / "share" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__etc";
-    value = Path.to_string Path.(stagePath / "etc");
+    value = ConfigPath.(stagePath / "etc" |> toString);
     origin = Some pkg;
   }::env
 
@@ -257,9 +258,9 @@ let ofPackage (pkg : Package.t) =
       Ok globalEnv
     in
 
-    let buildPath = buildPath pkg in
-    let stagePath = stagePath pkg in
-    let installPath = installPath pkg in
+    let buildPath = pkgBuildPath pkg in
+    let stagePath = pkgStagePath pkg in
+    let installPath = pkgInstallPath pkg in
 
     let buildEnv =
 
@@ -287,9 +288,9 @@ let ofPackage (pkg : Package.t) =
        *)
       let path, manpath, ocamlpath =
         let f (_, {task = dep; _}) (path, manpath, ocamlpath) =
-          let path = Path.(dep.installPath / "bin")::path in
-          let manpath = Path.(dep.installPath / "man")::manpath in
-          let ocamlpath = Path.(dep.installPath / "lib")::ocamlpath in
+          let path = ConfigPath.(dep.installPath / "bin")::path in
+          let manpath = ConfigPath.(dep.installPath / "man")::manpath in
+          let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
           path, manpath, ocamlpath
         in
         ListLabels.fold_right ~f ~init:([], [], []) allDependencies
@@ -298,13 +299,17 @@ let ofPackage (pkg : Package.t) =
       let path = Environment.{
         origin = None;
         name = "PATH";
-        value = PathLike.make "PATH" path;
+        value =
+          let v = List.map ConfigPath.toString path in
+          PathLike.make "PATH" v;
       } in
 
       let manPath = Environment.{
         origin = None;
         name = "MAN_PATH";
-        value = PathLike.make "MAN_PATH" manpath;
+        value =
+          let v = List.map ConfigPath.toString manpath in
+          PathLike.make "MAN_PATH" v;
       } in
 
       (* Configure environment for ocamlfind.
@@ -313,13 +318,15 @@ let ofPackage (pkg : Package.t) =
       let ocamlpath = Environment.{
         origin = None;
         name = "OCAMLPATH";
-        value = PathLike.make "OCAMLPATH" ocamlpath;
+        value =
+          let v = List.map ConfigPath.toString ocamlpath in
+          PathLike.make "OCAMLPATH" v;
       } in
 
       let ocamlfindDestdir = Environment.{
         origin = None;
         name = "OCAMLFIND_DESTDIR";
-        value = Path.to_string Path.(stagePath / "lib");
+        value = ConfigPath.(stagePath / "lib" |> toString);
       } in
 
       let ocamlfindLdconf = Environment.{
@@ -431,7 +438,7 @@ module ExternalFormat = struct
     buildType : BuildType.t;
     build: Package.CommandList.t;
     install: Package.CommandList.t;
-    sourcePath: Path.t;
+    sourcePath: ConfigPath.t;
     env: Environment.Normalized.t;
   }
   [@@deriving to_yojson]

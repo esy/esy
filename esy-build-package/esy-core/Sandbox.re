@@ -1,5 +1,7 @@
 module StringMap = Map.Make(String);
 
+module ConfigPath = Config.ConfigPath;
+
 [@deriving show]
 type t = {root: Package.t};
 
@@ -75,7 +77,7 @@ let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
   resolve(basedir);
 };
 
-let ofDir = sandboxPath => {
+let ofDir = (config: Config.t) => {
   open RunAsync.Syntax;
   let resolutionCache = Memoize.create(~size=200);
   let resolvePackageCached = (pkgName, basedir) => {
@@ -146,7 +148,7 @@ let ofDir = sandboxPath => {
           dependencies
         );
       let sourceType = {
-        let isRootPath = path == sandboxPath;
+        let isRootPath = path == config.sandboxPath;
         let hasDepWithSourceTypeDevelopment =
           List.exists(
             fun
@@ -181,7 +183,7 @@ let ofDir = sandboxPath => {
           buildType: manifest.esy.buildsInSource,
           sourceType,
           exportedEnv: manifest.esy.exportedEnv,
-          sourcePath: path
+          sourcePath: ConfigPath.ofPath(config, path)
         };
       return(pkg);
     | None => error("unable to find manifest")
@@ -191,5 +193,5 @@ let ofDir = sandboxPath => {
     let compute = () => loadPackage(path);
     packageCache(path, compute);
   };
-  loadPackageCached(sandboxPath);
+  loadPackageCached(config.sandboxPath);
 };

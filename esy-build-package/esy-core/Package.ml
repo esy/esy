@@ -184,7 +184,7 @@ type t = {
   buildType : BuildType.t;
   sourceType : SourceType.t;
   exportedEnv : ExportedEnv.t;
-  sourcePath : Path.t;
+  sourcePath : Config.ConfigPath.t;
 }
 [@@deriving show]
 

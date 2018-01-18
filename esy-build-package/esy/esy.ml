@@ -3,18 +3,20 @@ module Package = EsyCore.Package
 module BuildTask = EsyCore.BuildTask
 module Environment = EsyCore.Environment
 module Sandbox = EsyCore.Sandbox
+module Config = EsyCore.Config
 module Run = EsyCore.Run
 module RunAsync = EsyCore.RunAsync
+module StringMap = Map.Make(String)
 
 let cwd = Sys.getcwd ()
 
-let path =
+let pathTerm =
   let open Cmdliner in
   let parse = Path.of_string in
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let resolvedPath =
+let resolvedPathTerm =
   let open Cmdliner in
   let parse v =
     match Path.of_string v with
@@ -28,63 +30,48 @@ let resolvedPath =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let packagePath =
+let pkgPathTerm =
   let open Cmdliner in
   let doc = "Path to package." in
   Arg.(
     value
-    & pos 0  (some resolvedPath) None
+    & pos 0  (some resolvedPathTerm) None
     & info [] ~doc
   )
 
-module CommonOpts = struct
+let configTerm =
+  let open Cmdliner in
+  let docs = Manpage.s_common_options in
+  let prefixPath =
+    let doc = "Specifies esy prefix path." in
+    let env = Arg.env_var "ESY__PREFIX" ~doc in
+    Arg.(
+      value
+      & opt (some pathTerm) None
+      & info ["prefix-path"; "P"] ~env ~docs ~doc
+    )
+  in
+  let sandboxPath =
+    let doc = "Specifies esy sandbox path." in
+    let env = Arg.env_var "ESY__SANDBOX" ~doc in
+    Arg.(
+      value
+      & opt (some pathTerm) None
+      & info ["sandbox-path"; "S"] ~env ~docs ~doc
+    )
+  in
+  let parse prefixPath sandboxPath =
+    EsyCore.Config.create ~prefixPath sandboxPath
+  in
+  Term.(const(parse) $ prefixPath $ sandboxPath)
 
-  type t = {
-    prefixPath : Path.t;
-    sandboxPath : Path.t;
-  }
-
-  let term =
-    let open Cmdliner in
-    let docs = Manpage.s_common_options in
-    let prefixPath =
-      let doc = "Specifies esy prefix path." in
-      let env = Arg.env_var "ESY__PREFIX" ~doc in
-      Arg.(
-        value
-        & opt (some path) None
-        & info ["prefix-path"; "P"] ~env ~docs ~doc
-      )
-    in
-    let sandboxPath =
-      let doc = "Specifies esy sandbox path." in
-      let env = Arg.env_var "ESY__SANDBOX" ~doc in
-      Arg.(
-        value
-        & opt (some path) None
-        & info ["sandbox-path"; "S"] ~env ~docs ~doc
-      )
-    in
-    let parse prefixPath sandboxPath =
-      let prefixPath = EsyLib.Option.orDefault Path.(v "~" / ".esy") prefixPath in
-      let sandboxPath = EsyLib.Option.orDefault Path.(v ".") sandboxPath in
-      {
-        prefixPath;
-        sandboxPath;
-      }
-    in
-    Term.(
-      const(parse) $ prefixPath $ sandboxPath
-    );
-end
-
-
-let withPackageByPath packagePath root f =
+let withPackageByPath cfg packagePath root f =
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
     let findByPath (pkg : Package.t) =
-      Path.equal pkg.sourcePath packagePath
+      let sourcePath = Config.ConfigPath.toPath cfg pkg.sourcePath in
+      Path.equal sourcePath packagePath
     in begin match Package.DependencyGraph.find ~f:findByPath root with
     | None ->
       let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
@@ -93,8 +80,10 @@ let withPackageByPath packagePath root f =
     end
   | None -> f root
 
-let buildEnv (opts : CommonOpts.t) (asJson : bool) (packagePath : Path.t option) =
+let buildEnv cfg asJson packagePath =
   let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f (pkg : Package.t) =
     let%bind task, buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
@@ -107,23 +96,19 @@ let buildEnv (opts : CommonOpts.t) (asJson : bool) (packagePath : Path.t option)
           |> Environment.Normalized.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        Environment.renderToShellSource
-        ~header
-        (* FIXME: those paths are invalid *)
-        ~sandboxPath:opts.sandboxPath
-        ~storePath:opts.sandboxPath
-        ~localStorePath:opts.sandboxPath
-        buildEnv
+        Environment.renderToShellSource ~header cfg buildEnv
     ) in
     let%lwt () = Lwt_io.print source in
     return ()
   in
 
-  let%bind root = Sandbox.ofDir opts.sandboxPath in
-  withPackageByPath packagePath root f
+  let%bind root = Sandbox.ofDir cfg in
+  withPackageByPath cfg packagePath root f
 
-let buildPlan (opts : CommonOpts.t) (packagePath : Path.t option) =
+let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
     let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
@@ -135,34 +120,39 @@ let buildPlan (opts : CommonOpts.t) (packagePath : Path.t option) =
     )
   in
 
-  let%bind root = Sandbox.ofDir opts.sandboxPath in
-  withPackageByPath packagePath root f
+  let%bind root = Sandbox.ofDir cfg in
+  withPackageByPath cfg packagePath root f
 
-let buildShell (opts : CommonOpts.t) packagePath =
+let buildShell cfg packagePath =
   let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
     let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     EsyCore.PackageBuilder.buildShell task
   in
 
-  let%bind root = Sandbox.ofDir opts.sandboxPath in
-  withPackageByPath packagePath root f
+  let%bind root = Sandbox.ofDir cfg in
+  withPackageByPath cfg packagePath root f
 
-let buildPackage (opts : CommonOpts.t) packagePath =
+let buildPackage cfg packagePath =
   let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
     let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     EsyCore.Build.build task
   in
 
-  let%bind root = Sandbox.ofDir opts.sandboxPath in
-  withPackageByPath packagePath root f
+  let%bind root = Sandbox.ofDir cfg in
+  withPackageByPath cfg packagePath root f
 
-let build (opts : CommonOpts.t) =
+let build cfg =
   let open RunAsync.Syntax in
-  let%bind sandbox = Sandbox.ofDir opts.sandboxPath in
+  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind sandbox = Sandbox.ofDir cfg in
   let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
   let%bind () = EsyCore.Build.build task in
   return ()
@@ -188,46 +178,50 @@ let () =
   let defaultCommand =
     let doc = "package.json workflow for native development with Reason/OCaml" in
     let cmd _opts = `Ok () in
-    Term.(ret (const cmd $ CommonOpts.term)),
-    Term.info "esy" ~version ~doc ~sdocs ~exits
+    (
+      Term.(ret (const cmd $ configTerm)),
+      Term.info "esy" ~version ~doc ~sdocs ~exits
+    )
   in
 
   let buildEnvCommand =
     let doc = "Print build environment to stdout" in
-    let cmd opts asJson packagePath = runAsync (buildEnv opts asJson packagePath) in
+    let cmd cfg asJson packagePath =
+      runAsync (buildEnv cfg asJson packagePath)
+    in
     let json =
       let doc = "Format output as JSON" in
       Arg.(value & flag & info ["json"]  ~doc);
     in
-    Term.(ret (const cmd $ CommonOpts.term $ json $ packagePath)),
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm)),
     Term.info "build-env" ~version ~doc ~sdocs ~exits
   in
 
   let buildPlanCommand =
     let doc = "Print build plan to stdout" in
-    let cmd opts packagePath = runAsync (buildPlan opts packagePath) in
-    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
+    let cmd cfg packagePath = runAsync (buildPlan cfg packagePath) in
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm)),
     Term.info "build-plan" ~version ~doc ~sdocs ~exits
   in
 
   let buildShellCommand =
     let doc = "Enter the build shell" in
-    let cmd opts packagePath = runAsync (buildShell opts packagePath) in
-    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
+    let cmd cfg packagePath = runAsync (buildShell cfg packagePath) in
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm)),
     Term.info "build-shell" ~version ~doc ~sdocs ~exits
   in
 
   let buildPackageCommand =
     let doc = "Build specified package" in
-    let cmd opts packagePath = runAsync (buildPackage opts packagePath) in
-    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
+    let cmd cfg packagePath = runAsync (buildPackage cfg packagePath) in
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm)),
     Term.info "build-package" ~version ~doc ~sdocs ~exits
   in
 
   let buildCommand =
     let doc = "Build entire sandbox" in
-    let cmd opts = runAsync (build opts) in
-    Term.(ret (const cmd $ CommonOpts.term)),
+    let cmd cfg = runAsync (build cfg) in
+    Term.(ret (const cmd $ configTerm)),
     Term.info "build" ~version ~doc ~sdocs ~exits
   in
 
