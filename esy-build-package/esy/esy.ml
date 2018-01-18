@@ -149,13 +149,16 @@ let buildPackage cfg packagePath =
   let%bind root = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
-let build cfg =
+let build cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind sandbox = Sandbox.ofDir cfg in
   let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
-  let%bind () = EsyCore.Build.build ~force:`Root cfg task in
-  return ()
+  match command with
+  | [] ->
+    EsyCore.Build.build ~force:`Root cfg task
+  | command ->
+    EsyCore.PackageBuilder.buildExec cfg task command
 
 let run (cmd : unit Run.t) =
   match cmd with
@@ -220,8 +223,11 @@ let () =
 
   let buildCommand =
     let doc = "Build entire sandbox" in
-    let cmd cfg = runAsync (build cfg) in
-    Term.(ret (const cmd $ configTerm)),
+    let cmd cfg command = runAsync (build cfg command) in
+    let commandTerm =
+      Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    in
+    Term.(ret (const cmd $ configTerm $ commandTerm)),
     Term.info "build" ~version ~doc ~sdocs ~exits
   in
 

@@ -16,4 +16,4 @@ val buildShell : Config.t -> BuildTask.t -> unit RunAsync.t
 (*
  * Execute a command inside build environment of the task.
  *)
-val buildExec : Config.t -> BuildTask.t -> unit RunAsync.t
+val buildExec : Config.t -> BuildTask.t -> string list -> unit RunAsync.t

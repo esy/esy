@@ -2,7 +2,7 @@
 let run
     ?(stdin=`Null)
     ?(stderrout=`Log)
-    ?(force=false)
+    ?(args=[])
     action
     (cfg : Config.t)
     (task : BuildTask.t) =
@@ -18,19 +18,10 @@ let run
 
     let command =
       let prg = "./_build/default/esy-build-package/esyBuildPackage.bc" in
-      let args = [
-        Some prg;
-        Some action;
-        Some "--build"; Some (Path.to_string buildJsonFilename);
-        if force then Some "--force" else None
-      ] in
-      let args = args
-        |> ListLabels.fold_left ~init:[] ~f:(fun acc -> function
-          | Some item -> item::acc
-          | None -> acc)
-        |> List.rev
-        |> Array.of_list
-      in
+      let args = Array.of_list (
+        [prg; action; "--build"; (Path.to_string buildJsonFilename)]
+        @ args
+      ) in
       (prg, args)
     in
 
@@ -69,6 +60,13 @@ let run
     | _ -> error "some error"
   in Io.withTemporaryFile runProcess
 
-let build ?force ?stderrout = run ?force ?stderrout `Build
-let buildShell = run ~stdin:`Keep ~stderrout:`Keep `Shell
-let buildExec = run ~stdin:`Keep ~stderrout:`Keep `Exec
+let build ?(force=false) ?stderrout =
+  let args = if force then ["--force"] else [] in
+  run ~args ?stderrout `Build
+
+let buildShell =
+  run ~stdin:`Keep ~stderrout:`Keep `Shell
+
+let buildExec cfg task command =
+  let args = "--"::command in
+  run ~stdin:`Keep ~stderrout:`Keep `Exec ~args cfg task
