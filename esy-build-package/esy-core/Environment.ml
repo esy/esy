@@ -43,7 +43,7 @@ let renderToShellSource
       lines
     in
     let%bind value = Run.liftOfBosError (EsyLib.PathSyntax.render lookup value) in
-    let line = Printf.sprintf "export %s = \"%s\"" name value in
+    let line = Printf.sprintf "export %s=\"%s\"" name value in
     Ok (line::lines, origin)
   in
   let%bind lines, _ = Run.foldLeft ~f ~init:([], None) env in
@@ -56,6 +56,10 @@ module Normalized = struct
    * Environment with values with no references to other environment variables.
    *)
   type t = string StringMap.t
+
+  let find name env =
+    try Some (StringMap.find name env)
+    with Not_found -> None
 
   let ofEnvironment ?(init : t = StringMap.empty) (env : env) =
     let f env binding =

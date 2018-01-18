@@ -20,6 +20,8 @@ val formatError : error -> string
 
 val foldLeft : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
 
+val waitAll : unit t list -> unit t
+
 module Syntax : sig
 
   val return : 'a -> 'a t

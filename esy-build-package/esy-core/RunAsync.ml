@@ -16,6 +16,15 @@ let bind ~f v =
   in
   Lwt.bind v waitForPromise
 
+let waitAll xs =
+  let rec waitAll' xs = match xs with
+    | [] -> return ()
+    | x::xs ->
+      let f () = waitAll' xs in
+      bind ~f x
+  in
+  waitAll' xs
+
 module Syntax = struct
   let return = return
   let error = error

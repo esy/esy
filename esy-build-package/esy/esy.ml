@@ -78,10 +78,25 @@ module CommonOpts = struct
     );
 end
 
+
+let withPackageByPath packagePath root f =
+  let open RunAsync.Syntax in
+  match packagePath with
+  | Some packagePath ->
+    let findByPath (pkg : Package.t) =
+      Path.equal pkg.sourcePath packagePath
+    in begin match Package.DependencyGraph.find ~f:findByPath root with
+    | None ->
+      let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
+      error msg
+    | Some pkg -> f pkg
+    end
+  | None -> f root
+
 let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
   let open RunAsync.Syntax in
 
-  let printBuildEnv (pkg : Package.t) =
+  let f (pkg : Package.t) =
     let%bind _task, buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
     let%bind source = RunAsync.liftOfRun (
@@ -97,34 +112,30 @@ let buildEnv (opts : CommonOpts.t) (packagePath : Path.t option) =
     return ()
   in
 
-  let%bind pkg = Sandbox.ofDir opts.sandboxPath in
+  let%bind root = Sandbox.ofDir opts.sandboxPath in
+  withPackageByPath packagePath root f
 
-  match packagePath with
-  | Some packagePath ->
-    let findByPath (pkg : Package.t) =
-      Path.equal pkg.sourcePath packagePath
-    in begin match Package.DependencyGraph.find ~f:findByPath pkg with
-    | None ->
-      let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
-      error msg
-    | Some pkg -> printBuildEnv pkg
-    end
-  | None -> printBuildEnv pkg
-
-let buildPlan (opts : CommonOpts.t) =
+let buildPlan (opts : CommonOpts.t) (packagePath : Path.t option) =
   let open RunAsync.Syntax in
-  let%bind sandbox = Sandbox.ofDir opts.sandboxPath in
-  let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
-  return (
-    task
-    |> BuildTask.ExternalFormat.ofBuildTask
-    |> BuildTask.ExternalFormat.to_yojson
-    |> Yojson.Safe.pretty_print Format.std_formatter)
+
+  let f pkg =
+    let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    return (
+      task
+      |> BuildTask.ExternalFormat.ofBuildTask
+      |> BuildTask.ExternalFormat.to_yojson
+      |> Yojson.Safe.pretty_print Format.std_formatter
+    )
+  in
+
+  let%bind root = Sandbox.ofDir opts.sandboxPath in
+  withPackageByPath packagePath root f
 
 let build (opts : CommonOpts.t) =
   let open RunAsync.Syntax in
   let%bind sandbox = Sandbox.ofDir opts.sandboxPath in
-  let%bind _task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
+  let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
+  let%bind () = EsyCore.Build.build task in
   return ()
 
 let run (cmd : unit Run.t) =
@@ -132,6 +143,7 @@ let run (cmd : unit Run.t) =
   | Ok () -> `Ok ()
   | Error error ->
     let msg = Run.formatError error in
+    let msg = Printf.sprintf "fatal error, see below\n%s" msg in
     `Error (false, msg)
 
 let runAsync (cmd : unit RunAsync.t) =
@@ -160,8 +172,8 @@ let () =
 
   let buildPlanCommand =
     let doc = "Print build plan to stdout" in
-    let cmd opts = runAsync (buildPlan opts) in
-    Term.(ret (const cmd $ CommonOpts.term)),
+    let cmd opts packagePath = runAsync (buildPlan opts packagePath) in
+    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
     Term.info "build-plan" ~version ~doc ~sdocs ~exits
   in
 
