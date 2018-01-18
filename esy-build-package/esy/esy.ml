@@ -225,10 +225,17 @@ let () =
     let doc = "Build entire sandbox" in
     let cmd cfg command = runAsync (build cfg command) in
     let commandTerm =
-      Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
+      Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
     in
     Term.(ret (const cmd $ configTerm $ commandTerm)),
     Term.info "build" ~version ~doc ~sdocs ~exits
+  in
+
+  let bCommand =
+    let term, info = buildCommand in
+    let name = Term.name info in
+    let doc = Printf.sprintf "An alias for $(b,%s) subcommand" name in
+    term, Term.info "b" ~version ~doc ~sdocs ~exits
   in
 
   let commands = [
@@ -237,4 +244,5 @@ let () =
     buildShellCommand;
     buildPackageCommand;
     buildCommand;
+    bCommand;
   ] in Term.(exit @@ eval_choice defaultCommand commands);
