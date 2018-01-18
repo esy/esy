@@ -82,26 +82,26 @@ let ofDir = path => {
   };
   let packageCache = Memoize.create(~size=200);
   let rec loadPackage = (path: EsyLib.Path.t) => {
-    let resolveDep = (pkgName: string) =>
-      switch%lwt (resolvePackageCached(pkgName, path)) {
-      | Ok(Some(depPackagePath)) =>
-        switch%lwt (loadPackageCached(depPackagePath)) {
-        | Ok(pkg) => Lwt.return_ok((pkgName, Some(pkg)))
+    let addDeps =
+        (~skipUnresolved=false, ~make, dependencies, prevDependencies) => {
+      let resolve = (pkgName: string) =>
+        switch%lwt (resolvePackageCached(pkgName, path)) {
+        | Ok(Some(depPackagePath)) =>
+          switch%lwt (loadPackageCached(depPackagePath)) {
+          | Ok(pkg) => Lwt.return_ok((pkgName, Some(pkg)))
+          | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
+          }
+        | Ok(None) => Lwt.return_ok((pkgName, None))
         | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
-        }
-      | Ok(None) => Lwt.return_ok((pkgName, None))
-      | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
-      };
-    let addDeps = (~allowFailure=false, dependencies, make, prevDependencies) => {
+        };
       let%lwt dependencies =
         StringMap.bindings(dependencies)
-        |> List.map(((pkgName, _)) => pkgName)
-        |> Lwt_list.map_p(resolveDep);
+        |> Lwt_list.map_p(((pkgName, _)) => resolve(pkgName));
       let f = dependencies =>
         fun
         | Ok((_, Some(pkg))) => [make(pkg), ...dependencies]
         | Ok((pkgName, None)) =>
-          if (allowFailure) {
+          if (skipUnresolved) {
             dependencies;
           } else {
             [
@@ -125,21 +125,21 @@ let ofDir = path => {
       let dependencies = [];
       let%lwt dependencies =
         addDeps(
+          ~make=pkg => Package.Dependency(pkg),
           manifest.Package.Manifest.dependencies,
-          pkg => Package.Dependency(pkg),
           dependencies
         );
       let%lwt dependencies =
         addDeps(
+          ~make=pkg => Package.PeerDependency(pkg),
           manifest.peerDependencies,
-          pkg => Package.PeerDependency(pkg),
           dependencies
         );
       let%lwt dependencies =
         addDeps(
-          ~allowFailure=true,
+          ~skipUnresolved=true,
+          ~make=pkg => Package.OptDependency(pkg),
           manifest.optDependencies,
-          pkg => Package.OptDependency(pkg),
           dependencies
         );
       let id = packageId(manifest, dependencies);
