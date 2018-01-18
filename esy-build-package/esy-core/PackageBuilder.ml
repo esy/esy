@@ -2,7 +2,9 @@
 let run
     ?(stdin=`Null)
     ?(stderrout=`Log)
+    ?(force=false)
     action
+    (cfg : Config.t)
     (task : BuildTask.t) =
   let open RunAsync.Syntax in
 
@@ -16,11 +18,19 @@ let run
 
     let command =
       let prg = "./_build/default/esy-build-package/esyBuildPackage.bc" in
-      let args = [|
-        prg;
-        action;
-        "--build"; (Path.to_string buildJsonFilename);
-      |] in
+      let args = [
+        Some prg;
+        Some action;
+        Some "--build"; Some (Path.to_string buildJsonFilename);
+        if force then Some "--force" else None
+      ] in
+      let args = args
+        |> ListLabels.fold_left ~init:[] ~f:(fun acc -> function
+          | Some item -> item::acc
+          | None -> acc)
+        |> List.rev
+        |> Array.of_list
+      in
       (prg, args)
     in
 
@@ -42,17 +52,23 @@ let run
     | `Null -> `Dev_null
     | `Keep -> `FD_copy Unix.stdin
     in
-    let stdout, stderr = match stderrout with
+    let%bind stdout, stderr = match stderrout with
     | `Log ->
-      `FD_copy Unix.stdout, `FD_copy Unix.stderr
-    | `Keep -> `FD_copy Unix.stdout, `FD_copy Unix.stderr
+      let logPath = task.logPath |> Config.ConfigPath.toPath cfg |> Path.to_string in
+      let fd = UnixLabels.openfile ~mode:Unix.[O_WRONLY; O_CREAT] ~perm:0o644 logPath in
+      return (`FD_copy fd, `FD_copy fd)
+    | `Keep ->
+      return (`FD_copy Unix.stdout, `FD_copy Unix.stderr)
     in
     try%lwt
       Lwt_process.with_process_none ~stderr ~stdout ~stdin command f
     with
+    | Unix.Unix_error (err, _, _) ->
+      let msg = Unix.error_message err in
+      error msg
     | _ -> error "some error"
   in Io.withTemporaryFile runProcess
 
-let build = run `Build
-let buildShell = run ~stdin:`Keep `Shell
-let buildExec = run ~stdin:`Keep `Exec
+let build ?force ?stderrout = run ?force ?stderrout `Build
+let buildShell = run ~stdin:`Keep ~stderrout:`Keep `Shell
+let buildExec = run ~stdin:`Keep ~stderrout:`Keep `Exec

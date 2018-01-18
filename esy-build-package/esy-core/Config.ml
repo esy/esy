@@ -96,10 +96,8 @@ end = struct
     match Path.of_string path with
     | Ok path -> path
     | Error (`Msg msg) ->
-        (* This is ok as the only way tp construct such paths is validated, see:
-         *   ofPath : Path.t -> t Run.t
-         *)
-        failwith msg
+      (* FIXME: really should be fixed by ofPath returning result (validating) *)
+      failwith msg
 
   let cwd = Path.v (Sys.getcwd ())
 

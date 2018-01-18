@@ -11,7 +11,7 @@
       ]
     ],
     "install": [
-      "esy-installer"
+      "esy-installer ./esy-build-package.install"
     ],
     "buildsInSource": "_build"
   },
