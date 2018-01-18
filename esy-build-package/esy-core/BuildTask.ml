@@ -207,6 +207,7 @@ let ofPackage (pkg : Package.t) =
       let%bind allDependencies = joinDependencies allDependencies in
       Ok (allDependencies, dependencies)
     in
+
     let scope =
       let bindings = StringMap.empty in
       let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
@@ -269,6 +270,7 @@ let ofPackage (pkg : Package.t) =
         allDependencies
         |> List.map (fun (_, {globalEnv; _}) -> globalEnv)
         |> List.concat
+        |> List.rev
       in
 
       (* Direct dependencies contribute only env exported to the local scope
@@ -277,6 +279,7 @@ let ofPackage (pkg : Package.t) =
         dependencies
         |> List.map (fun (_, {localEnv; _}) -> localEnv)
         |> List.concat
+        |> List.rev
       in
 
       (* Now $PATH, $MAN_PATH and $OCAMLPATH are constructed by appending

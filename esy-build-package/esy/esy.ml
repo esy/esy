@@ -142,6 +142,17 @@ let buildShell (opts : CommonOpts.t) packagePath =
   let%bind root = Sandbox.ofDir opts.sandboxPath in
   withPackageByPath packagePath root f
 
+let buildPackage (opts : CommonOpts.t) packagePath =
+  let open RunAsync.Syntax in
+
+  let f pkg =
+    let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    EsyCore.Build.build task
+  in
+
+  let%bind root = Sandbox.ofDir opts.sandboxPath in
+  withPackageByPath packagePath root f
+
 let build (opts : CommonOpts.t) =
   let open RunAsync.Syntax in
   let%bind sandbox = Sandbox.ofDir opts.sandboxPath in
@@ -195,8 +206,15 @@ let () =
     Term.info "build-shell" ~version ~doc ~sdocs ~exits
   in
 
+  let buildPackageCommand =
+    let doc = "Build specified package" in
+    let cmd opts packagePath = runAsync (buildPackage opts packagePath) in
+    Term.(ret (const cmd $ CommonOpts.term $ packagePath)),
+    Term.info "build-package" ~version ~doc ~sdocs ~exits
+  in
+
   let buildCommand =
-    let doc = "Build what needs to be build" in
+    let doc = "Build entire sandbox" in
     let cmd opts = runAsync (build opts) in
     Term.(ret (const cmd $ CommonOpts.term)),
     Term.info "build" ~version ~doc ~sdocs ~exits
@@ -206,5 +224,6 @@ let () =
     buildEnvCommand;
     buildPlanCommand;
     buildShellCommand;
+    buildPackageCommand;
     buildCommand;
   ] in Term.(exit @@ eval_choice defaultCommand commands);

@@ -79,9 +79,9 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
           in
 
           let ctx = seen, allDependencies in
-          let ctx = f ctx (dep, depValue) in
-          let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
           let ctx = ListLabels.fold_left ~f ~init:ctx depAllDependencies in
+          let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
+          let ctx = f ctx (dep, depValue) in
 
           let seen, allDependencies = ctx in
           (seen, allDependencies, (dep, depValue)::dependencies)
@@ -98,7 +98,7 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
             ~init:(seen, allDependencies, dependencies)
             (Kernel.dependencies node)
         in
-        ListLabels.rev allDependencies, List.rev dependencies
+        ListLabels.rev allDependencies, ListLabels.rev dependencies
       in
 
       allDependencies, dependencies, f ~allDependencies ~dependencies node
