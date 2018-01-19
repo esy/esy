@@ -138,7 +138,7 @@ let buildEnv cfg asJson packagePath =
     return ()
   in
 
-  let%bind root = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let buildPlan cfg packagePath =
@@ -156,7 +156,7 @@ let buildPlan cfg packagePath =
     )
   in
 
-  let%bind root = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let buildShell cfg packagePath =
@@ -169,7 +169,7 @@ let buildShell cfg packagePath =
     EsyCore.PackageBuilder.buildShell cfg task
   in
 
-  let%bind root = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let buildPackage cfg packagePath =
@@ -182,14 +182,14 @@ let buildPackage cfg packagePath =
     EsyCore.Build.build ~force:`Root cfg task
   in
 
-  let%bind root = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let build cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
-  let%bind sandbox = Sandbox.ofDir cfg in
-  let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage root) in
   match command with
   | [] ->
     EsyCore.Build.build cfg task
