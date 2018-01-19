@@ -2,7 +2,7 @@
 (**
  * Execute build for the task.
  *)
-let build ?(force=`No) ?(buildOnly=`Root) (cfg : Config.t) (rootTask : BuildTask.t) =
+let build ?(force=`ForRoot) ?(buildOnly=`ForRoot) (cfg : Config.t) (rootTask : BuildTask.t) =
   let open RunAsync.Syntax in
 
   let f ~allDependencies:_ ~dependencies (task : BuildTask.t) =
@@ -14,9 +14,10 @@ let build ?(force=`No) ?(buildOnly=`Root) (cfg : Config.t) (rootTask : BuildTask
     in
 
     let isRoot = task.id == rootTask.id in
+    let installPath = Config.ConfigPath.toPath cfg task.installPath in
 
     let buildOnly = match buildOnly with
-    | `Root -> isRoot
+    | `ForRoot -> isRoot
     | `No -> false
     | `Yes -> true
     in
@@ -31,10 +32,7 @@ let build ?(force=`No) ?(buildOnly=`Root) (cfg : Config.t) (rootTask : BuildTask
       return ()
     in
 
-    let installPath = Config.ConfigPath.toPath cfg task.installPath in
-
-    match force with
-    | `No ->
+    let performBuildIfNeeded () =
       begin match task.pkg.sourceType with
       | Package.SourceType.Immutable ->
         if%bind Io.exists installPath then
@@ -45,9 +43,16 @@ let build ?(force=`No) ?(buildOnly=`Root) (cfg : Config.t) (rootTask : BuildTask
       | Package.SourceType.Root ->
         performBuild ()
       end
-    | `Root when isRoot ->
+    in
+
+    match force with
+    | `ForRoot ->
+      if isRoot
+      then performBuild ~force:true ()
+      else performBuildIfNeeded ()
+    | `No ->
+      performBuildIfNeeded ()
+    | `Yes ->
       performBuild ~force:true ()
-    | _ ->
-      return ()
 
   in BuildTask.DependencyGraph.fold ~f rootTask

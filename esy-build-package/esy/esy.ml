@@ -179,7 +179,7 @@ let buildPackage cfg packagePath =
 
   let f pkg =
     let%bind task, _buildEnv, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    EsyCore.Build.build ~force:`Root cfg task
+    EsyCore.Build.build ~force:`Yes cfg task
   in
 
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
@@ -197,13 +197,13 @@ let build cfg command =
 
   match command with
   | [] ->
-    let rootBuild = EsyCore.Build.build cfg task in
+    let rootBuild = EsyCore.Build.build ~force:`ForRoot cfg task in
     let%bind devDepBuilds, _ =
       let open Run.Syntax in
       let f (tasks, cache) = function
         | Package.DevDependency pkg ->
           let%bind task, _, cache = BuildTask.ofPackage ~cache pkg in
-          let process = EsyCore.Build.build ~buildOnly:`No ~force:`No cfg task in
+          let process = EsyCore.Build.build ~force:`No ~buildOnly:`No cfg task in
           Ok (process::tasks, cache)
         | _ ->
           Ok (tasks, cache)
