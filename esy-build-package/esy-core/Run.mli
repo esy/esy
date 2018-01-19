@@ -14,6 +14,11 @@ val error : string -> 'a t
 val withContext : string -> 'a t -> 'a t
 
 (**
+ * Wrap computation with a context which will be reported in case of error
+ *)
+val withContextOfLog : ?header:string -> string -> 'a t -> 'a t
+
+(**
  * Format error.
  *)
 val formatError : error -> string

@@ -65,6 +65,42 @@ let configTerm =
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
+let setupLogTerm =
+  let lwt_reporter () =
+    let buf_fmt ~like =
+      let b = Buffer.create 512 in
+      Fmt.with_buffer ~like b,
+      fun () -> let m = Buffer.contents b in Buffer.reset b; m
+    in
+    let app, app_flush = buf_fmt ~like:Fmt.stdout in
+    let dst, dst_flush = buf_fmt ~like:Fmt.stderr in
+    let reporter = Logs_fmt.reporter ~app ~dst () in
+    let report src level ~over k msgf =
+      let k () =
+        let write () = match level with
+        | Logs.App -> Lwt_io.write Lwt_io.stdout (app_flush ())
+        | _ -> Lwt_io.write Lwt_io.stderr (dst_flush ())
+        in
+        let unblock () = over (); Lwt.return_unit in
+        Lwt.finalize write unblock |> Lwt.ignore_result;
+        k ()
+      in
+      reporter.Logs.report src level ~over:(fun () -> ()) k msgf;
+    in
+    { Logs.report = report }
+  in
+  let setupLog style_renderer level =
+    let style_renderer = match style_renderer with
+    | None -> `None
+    | Some renderer -> renderer
+    in
+    Fmt_tty.setup_std_outputs ~style_renderer ();
+    Logs.set_level level;
+    Logs.set_reporter (lwt_reporter ())
+  in
+  let open Cmdliner in
+  Term.(const setupLog  $ Fmt_cli.style_renderer () $ Logs_cli.level  ())
+
 let withPackageByPath cfg packagePath root f =
   let open RunAsync.Syntax in
   match packagePath with
@@ -156,86 +192,112 @@ let build cfg command =
   let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage sandbox) in
   match command with
   | [] ->
-    EsyCore.Build.build ~force:`Root cfg task
+    EsyCore.Build.build cfg task
   | command ->
     EsyCore.PackageBuilder.buildExec cfg task command
-
-let run (cmd : unit Run.t) =
-  match cmd with
-  | Ok () -> `Ok ()
-  | Error error ->
-    let msg = Run.formatError error in
-    let msg = Printf.sprintf "fatal error, see below\n%s" msg in
-    `Error (false, msg)
-
-let runAsync (cmd : unit RunAsync.t) =
-  cmd |> Lwt_main.run |> run
 
 let () =
   let open Cmdliner in
 
-  let version = "v0.0.67" in
+  (** Prelude *)
+
   let exits = Term.default_exits in
   let sdocs = Manpage.s_common_options in
+  let version = "v0.0.67" in
+
+  (** CLI helpers *)
+
+  let runCommand (cmd : unit Run.t) =
+    match cmd with
+    | Ok () -> `Ok ()
+    | Error error ->
+      let msg = Run.formatError error in
+      let msg = Printf.sprintf "error, exiting...\n%s" msg in
+      `Error (false, msg)
+  in
+
+  let runAsyncCommand ?(header=`Standard) (info : Cmdliner.Term.info) (cmd : unit RunAsync.t) =
+    let work () =
+      let%lwt () = match header with
+      | `Standard -> begin match Cmdliner.Term.name info with
+        | "esy" -> Logs_lwt.app (fun m -> m "esy %s" version)
+        | name -> Logs_lwt.app (fun m -> m "esy %s %s" name version);
+        end
+      | `No -> Lwt.return ()
+      in
+      cmd
+    in
+    work () |> Lwt_main.run |> runCommand
+  in
+
+  (** Commands *)
 
   let defaultCommand =
     let doc = "package.json workflow for native development with Reason/OCaml" in
-    let cmd _opts = `Ok () in
-    (
-      Term.(ret (const cmd $ configTerm)),
-      Term.info "esy" ~version ~doc ~sdocs ~exits
-    )
+    let info = Term.info "esy" ~version ~doc ~sdocs ~exits in
+    let cmd _cfg () = runAsyncCommand info (
+      RunAsync.return ()
+    ) in
+    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
   in
 
   let buildEnvCommand =
     let doc = "Print build environment to stdout" in
-    let cmd cfg asJson packagePath =
-      runAsync (buildEnv cfg asJson packagePath)
+    let info = Term.info "build-env" ~version ~doc ~sdocs ~exits in
+    let cmd cfg asJson packagePath () =
+      runAsyncCommand ~header:`No info (buildEnv cfg asJson packagePath)
     in
     let json =
       let doc = "Format output as JSON" in
       Arg.(value & flag & info ["json"]  ~doc);
     in
-    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm)),
-    Term.info "build-env" ~version ~doc ~sdocs ~exits
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
   in
 
   let buildPlanCommand =
     let doc = "Print build plan to stdout" in
-    let cmd cfg packagePath = runAsync (buildPlan cfg packagePath) in
-    Term.(ret (const cmd $ configTerm $ pkgPathTerm)),
-    Term.info "build-plan" ~version ~doc ~sdocs ~exits
+    let info = Term.info "build-plan" ~version ~doc ~sdocs ~exits in
+    let cmd cfg packagePath () =
+      runAsyncCommand ~header:`No info (buildPlan cfg packagePath)
+    in
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
   in
 
   let buildShellCommand =
     let doc = "Enter the build shell" in
-    let cmd cfg packagePath = runAsync (buildShell cfg packagePath) in
-    Term.(ret (const cmd $ configTerm $ pkgPathTerm)),
-    Term.info "build-shell" ~version ~doc ~sdocs ~exits
+    let info = Term.info "build-shell" ~version ~doc ~sdocs ~exits in
+    let cmd cfg packagePath () =
+      runAsyncCommand info (buildShell cfg packagePath)
+    in
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
   in
 
   let buildPackageCommand =
     let doc = "Build specified package" in
-    let cmd cfg packagePath = runAsync (buildPackage cfg packagePath) in
-    Term.(ret (const cmd $ configTerm $ pkgPathTerm)),
-    Term.info "build-package" ~version ~doc ~sdocs ~exits
+    let info = Term.info "build-package" ~version ~doc ~sdocs ~exits in
+    let cmd cfg packagePath () =
+      runAsyncCommand info (buildPackage cfg packagePath)
+    in
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
   in
 
   let buildCommand =
     let doc = "Build entire sandbox" in
-    let cmd cfg command = runAsync (build cfg command) in
+    let info = Term.info "build" ~version ~doc ~sdocs ~exits in
+    let cmd cfg command () =
+      runAsyncCommand info (build cfg command)
+    in
     let commandTerm =
       Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
     in
-    Term.(ret (const cmd $ configTerm $ commandTerm)),
-    Term.info "build" ~version ~doc ~sdocs ~exits
+    Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
   in
 
-  let makeAlias command name =
+  let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
     let doc = Printf.sprintf "An alias for $(b,%s) command" name in
-    term, Term.info name ~version ~doc ~sdocs ~exits
+    term, Term.info alias ~version ~doc ~sdocs ~exits
   in
 
   let bCommand = makeAlias buildCommand "b" in
