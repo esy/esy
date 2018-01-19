@@ -231,18 +231,24 @@ let () =
     Term.info "build" ~version ~doc ~sdocs ~exits
   in
 
-  let bCommand =
-    let term, info = buildCommand in
+  let makeAlias command name =
+    let term, info = command in
     let name = Term.name info in
-    let doc = Printf.sprintf "An alias for $(b,%s) subcommand" name in
-    term, Term.info "b" ~version ~doc ~sdocs ~exits
+    let doc = Printf.sprintf "An alias for $(b,%s) command" name in
+    term, Term.info name ~version ~doc ~sdocs ~exits
   in
 
+  let bCommand = makeAlias buildCommand "b" in
+
   let commands = [
+    (* commands *)
     buildEnvCommand;
     buildPlanCommand;
     buildShellCommand;
     buildPackageCommand;
     buildCommand;
+
+    (* aliases *)
     bCommand;
-  ] in Term.(exit @@ eval_choice defaultCommand commands);
+  ] in
+  Term.(exit @@ eval_choice defaultCommand commands);
