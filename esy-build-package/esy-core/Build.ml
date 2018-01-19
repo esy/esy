@@ -33,16 +33,14 @@ let build ?(force=`ForRoot) ?(buildOnly=`ForRoot) (cfg : Config.t) (rootTask : B
     in
 
     let performBuildIfNeeded () =
-      begin match task.pkg.sourceType with
+      match task.pkg.sourceType with
       | Package.SourceType.Immutable ->
-        if%bind Io.exists installPath then
-          return ()
-        else
-          performBuild ()
+        if%bind Io.exists installPath
+        then return ()
+        else performBuild ()
       | Package.SourceType.Development
       | Package.SourceType.Root ->
         performBuild ()
-      end
     in
 
     match force with

@@ -189,31 +189,29 @@ let build cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+
   let cache = StringMap.empty in
 
   let%bind (task: BuildTask.t), _buildEnv, cache =
     RunAsync.liftOfRun (BuildTask.ofPackage ~cache root)
   in
 
+  (** TODO: figure out API to build devDeps in parallel with the root *)
+
   match command with
   | [] ->
-    let rootBuild = EsyCore.Build.build ~force:`ForRoot cfg task in
-    let%bind devDepBuilds, _ =
-      let open Run.Syntax in
-      let f (tasks, cache) = function
-        | Package.DevDependency pkg ->
-          let%bind task, _, cache = BuildTask.ofPackage ~cache pkg in
-          let process = EsyCore.Build.build ~force:`No ~buildOnly:`No cfg task in
-          Ok (process::tasks, cache)
-        | _ ->
-          Ok (tasks, cache)
-      in
-      RunAsync.liftOfRun @@ Run.foldLeft
-        ~f
-        ~init:([], cache)
-        task.pkg.dependencies
+    let%bind () = EsyCore.Build.build ~force:`ForRoot cfg task in
+    let rec buildDevDep = function
+      | [] ->
+        return ()
+      | (Package.DevDependency pkg)::dependencies ->
+        let%bind task, _, _ = RunAsync.liftOfRun (BuildTask.ofPackage ~cache pkg) in
+        let%bind () = EsyCore.Build.build ~force:`No ~buildOnly:`No cfg task in
+        buildDevDep dependencies
+      | _::dependencies ->
+        buildDevDep dependencies
     in
-    RunAsync.waitAll (rootBuild::devDepBuilds)
+    buildDevDep (task.pkg.dependencies)
 
   | command ->
     EsyCore.PackageBuilder.buildExec cfg task command
@@ -307,7 +305,11 @@ let () =
     let doc = "Build entire sandbox" in
     let info = Term.info "build" ~version ~doc ~sdocs ~exits in
     let cmd cfg command () =
-      runAsyncCommand info (build cfg command)
+      let header = match command with
+      | [] -> `Standard
+      | _ -> `No
+      in
+      runAsyncCommand ~header info (build cfg command)
     in
     let commandTerm =
       Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
