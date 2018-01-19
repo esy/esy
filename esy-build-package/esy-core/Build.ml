@@ -13,9 +13,16 @@ let build ?(force=`No) (cfg : Config.t) (rootTask : BuildTask.t) =
       |> RunAsync.waitAll
     in
 
-    let performBuild ?(force=false) () =
+    let isRoot = task.id == rootTask.id in
+
+    let performBuild ?force () =
       let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
-      RunAsync.withContext context (PackageBuilder.build ~force cfg task)
+      let%lwt () = Logs_lwt.app(fun m -> m "%s: starting" context) in
+      let%bind () = RunAsync.withContext context (
+        PackageBuilder.build ?force ~buildOnly:isRoot cfg task
+      ) in
+      let%lwt () = Logs_lwt.app(fun m -> m "%s: complete" context) in
+      return ()
     in
 
     match force with
@@ -24,7 +31,7 @@ let build ?(force=`No) (cfg : Config.t) (rootTask : BuildTask.t) =
         return ()
       else
         performBuild ()
-    | `Root when task.id == rootTask.id ->
+    | `Root when isRoot ->
       performBuild ~force:true ()
     | _ ->
       return ()

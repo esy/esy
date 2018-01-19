@@ -9,6 +9,10 @@ let withContext msg v =
   let%lwt v = v in
   Lwt.return (Run.withContext msg v)
 
+let withContextOfLog ?header content v =
+  let%lwt v = v in
+  Lwt.return (Run.withContextOfLog ?header content v)
+
 let bind ~f v =
   let waitForPromise = function
     | Ok v -> f v

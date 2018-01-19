@@ -5,4 +5,4 @@
   (public_name esy)
   (package esy-core)
   (preprocess (pps (lwt_ppx ppx_let)))
-  (libraries (esy-core esy-lib lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.cli re fmt fmt.cli fmt.tty))))
+  (libraries (esy-core esy-lib lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt logs.cli re fmt fmt.cli fmt.tty))))
