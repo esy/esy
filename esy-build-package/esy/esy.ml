@@ -122,7 +122,7 @@ let buildEnv cfg asJson packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f (pkg : Package.t) =
-    let%bind task, buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task, buildEnv, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
     let%bind source = RunAsync.liftOfRun (
       if asJson
@@ -147,7 +147,7 @@ let buildPlan cfg packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
-    let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task, _buildEnv, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     return BuildTask.ExternalFormat.(
       task
       |> ofBuildTask
@@ -165,7 +165,7 @@ let buildShell cfg packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
-    let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task, _buildEnv, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     EsyCore.PackageBuilder.buildShell cfg task
   in
 
@@ -178,7 +178,7 @@ let buildPackage cfg packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
-    let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task, _buildEnv, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     EsyCore.Build.build ~force:`Root cfg task
   in
 
@@ -189,10 +189,32 @@ let build cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
-  let%bind task, _buildEnv = RunAsync.liftOfRun (BuildTask.ofPackage root) in
+  let cache = StringMap.empty in
+
+  let%bind (task: BuildTask.t), _buildEnv, cache =
+    RunAsync.liftOfRun (BuildTask.ofPackage ~cache root)
+  in
+
   match command with
   | [] ->
-    EsyCore.Build.build cfg task
+    let rootBuild = EsyCore.Build.build cfg task in
+    let%bind devDepBuilds, _ =
+      let open Run.Syntax in
+      let f (tasks, cache) = function
+        | Package.DevDependency pkg ->
+          let%bind task, _, cache = BuildTask.ofPackage ~cache pkg in
+          let process = EsyCore.Build.build ~buildOnly:`No ~force:`No cfg task in
+          Ok (process::tasks, cache)
+        | _ ->
+          Ok (tasks, cache)
+      in
+      RunAsync.liftOfRun @@ Run.foldLeft
+        ~f
+        ~init:([], cache)
+        task.pkg.dependencies
+    in
+    RunAsync.waitAll (rootBuild::devDepBuilds)
+
   | command ->
     EsyCore.PackageBuilder.buildExec cfg task command
 

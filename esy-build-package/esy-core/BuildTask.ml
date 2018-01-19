@@ -201,7 +201,7 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
     | Ok commands -> Ok (Some commands)
     | Error err -> Error err
 
-let ofPackage (pkg : Package.t) =
+let ofPackage ?(cache=StringMap.empty) (pkg : Package.t) =
   let open Run.Syntax in
 
   let f ~allDependencies ~dependencies (pkg : Package.t) =
@@ -396,16 +396,28 @@ let ofPackage (pkg : Package.t) =
 
   in
 
-  let f ~allDependencies ~dependencies pkg =
-    let v = f ~allDependencies ~dependencies pkg in
-    let context =
-      Printf.sprintf "processing package: %s@%s" pkg.name pkg.version
-    in
-    Run.withContext context v
+  let cache = ref cache in
+
+  let f ~allDependencies ~dependencies (pkg : Package.t) =
+    try StringMap.find pkg.id !cache
+    with Not_found ->
+      let v =
+        let v = f ~allDependencies ~dependencies pkg in
+        let context =
+          Printf.sprintf
+            "processing package: %s@%s"
+            pkg.name
+            pkg.version
+        in
+        Run.withContext context v
+      in
+      cache := StringMap.add pkg.id v !cache;
+      v
+
   in
 
   match Package.DependencyGraph.fold ~f pkg with
-  | Ok { task; buildEnv; _ } -> Ok (task, buildEnv)
+  | Ok { task; buildEnv; _ } -> Ok (task, buildEnv, !cache)
   | Error msg -> Error msg
 
 module DependencyGraph = DependencyGraph.Make(struct

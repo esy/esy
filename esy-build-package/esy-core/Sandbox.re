@@ -147,6 +147,13 @@ let ofDir = (config: Config.t) => {
           manifest.optDependencies,
           dependencies
         );
+      let%lwt dependencies =
+        addDeps(
+          ~skipUnresolved=true,
+          ~make=pkg => Package.DevDependency(pkg),
+          manifest.devDependencies,
+          dependencies
+        );
       let sourceType = {
         let isRootPath = path == config.sandboxPath;
         let hasDepWithSourceTypeDevelopment =
