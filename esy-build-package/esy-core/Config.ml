@@ -20,8 +20,15 @@ let create ~prefixPath sandboxPath =
     storePath;
     localStorePath;
     _
-  } = Run.liftOfBosError (PackageBuilderConfig.create ~prefixPath ~sandboxPath ())
-  in Ok { sandboxPath;
+  } = Run.liftOfBosError (
+    let open EsyLib.Result in
+    let%bind (cfg: PackageBuilderConfig.t) = PackageBuilderConfig.create ~prefixPath ~sandboxPath () in
+    let%bind _ = EsyLib.Store.init cfg.storePath in
+    let%bind _ = EsyLib.Store.init cfg.localStorePath in
+    Ok cfg
+  )
+  in Ok {
+    sandboxPath;
     storePath;
     localStorePath;
   }
