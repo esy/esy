@@ -193,5 +193,6 @@ let ofDir = (config: Config.t) => {
     let compute = () => loadPackage(path);
     packageCache(path, compute);
   };
-  loadPackageCached(config.sandboxPath);
+  let%bind root = loadPackageCached(config.sandboxPath);
+  return({root: root});
 };
