@@ -231,6 +231,12 @@ let commandEnv =
   in
   makeEnvCommand ~computeEnv:BuildTask.commandEnv ~header
 
+let sandboxEnv =
+  let header (pkg : Package.t) =
+    Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
+  in
+  makeEnvCommand ~computeEnv:BuildTask.sandboxEnv ~header
+
 let () =
   let open Cmdliner in
 
@@ -345,6 +351,19 @@ let () =
     Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
   in
 
+  let sandboxEnvCommand =
+    let doc = "Print install environment to stdout" in
+    let info = Term.info "sandbox-env" ~version ~doc ~sdocs ~exits in
+    let cmd cfg asJson packagePath () =
+      runAsyncCommand ~header:`No info (sandboxEnv cfg asJson packagePath)
+    in
+    let json =
+      let doc = "Format output as JSON" in
+      Arg.(value & flag & info ["json"]  ~doc);
+    in
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -363,6 +382,7 @@ let () =
 
     buildEnvCommand;
     commandEnvCommand;
+    sandboxEnvCommand;
 
     (* aliases *)
     bCommand;
