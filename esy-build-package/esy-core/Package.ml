@@ -217,8 +217,8 @@ module DependencyGraph = DependencyGraph.Make(struct
     let f acc dep = match dep with
       | Dependency pkg
       | OptDependency pkg
+      | DevDependency pkg
       | PeerDependency pkg -> (pkg, dep)::acc
-      | DevDependency _
       | InvalidDependency _ -> acc
     in
     pkg.dependencies

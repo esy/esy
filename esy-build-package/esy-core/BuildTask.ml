@@ -16,7 +16,7 @@ type t = {
   buildCommands : Package.CommandList.t;
   installCommands : Package.CommandList.t;
 
-  env : Environment.Normalized.t;
+  env : Environment.Closed.t;
 
   sourcePath : ConfigPath.t;
   buildPath : ConfigPath.t;
@@ -24,17 +24,21 @@ type t = {
   installPath : ConfigPath.t;
   logPath : ConfigPath.t;
 
-  dependencies : t list;
+  dependencies : dependency list;
 }
 
+and dependency =
+  | Dependency of t
+  | DevDependency of t
+
 type task = t
+type task_dependency = dependency
 
 type foldstate = {
   task : task;
   pkg : Package.t;
-  buildEnv : Environment.t;
-  globalEnv : Environment.t;
-  localEnv : Environment.t;
+  globalEnv : Environment.binding list;
+  localEnv : Environment.binding list;
 }
 
 let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
@@ -116,7 +120,7 @@ let finalEnv = Environment.[
   };
 ]
 
-let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
+let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list) =
   let buildPath = pkgBuildPath pkg in
   let rootPath = rootPath pkg in
   let stagePath = pkgStagePath pkg in
@@ -180,12 +184,13 @@ let addPackageEnvBindings (pkg : Package.t) (env : Environment.t) =
     name = "cur__etc";
     value = ConfigPath.(stagePath / "etc" |> toString);
     origin = Some pkg;
-  }::env
+  }::bindings
 
 let renderCommandList env scope (commands : Package.CommandList.t) =
   let open Run.Syntax in
+  let env = Environment.Closed.value env in
   let envScope name =
-    Environment.Normalized.find name env
+    Environment.Value.find name env
   in
   match commands with
   | None -> Ok None
@@ -201,7 +206,11 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
     | Ok commands -> Ok (Some commands)
     | Error err -> Error err
 
-let ofPackage ?(cache=StringMap.empty) (pkg : Package.t) =
+let ofPackage
+    ?(cache=StringMap.empty)
+    (pkg : Package.t)
+    =
+
   let open Run.Syntax in
 
   let f ~allDependencies ~dependencies (pkg : Package.t) =
@@ -360,7 +369,7 @@ let ofPackage ?(cache=StringMap.empty) (pkg : Package.t) =
     let%bind env =
       Run.withContext
         "evaluating environment"
-        (Environment.normalize buildEnv)
+        (Environment.Closed.ofBindings buildEnv)
     in
 
     let%bind buildCommands =
@@ -389,10 +398,12 @@ let ofPackage ?(cache=StringMap.empty) (pkg : Package.t) =
       installPath;
       logPath = pkgLogPath pkg;
 
-      dependencies = List.map (fun (_, {task = dep; _}) -> dep) dependencies;
+      dependencies =
+        let f (_, {task; _}) = Dependency task in
+        ListLabels.map ~f dependencies;
     } in
 
-    return { globalEnv; localEnv; buildEnv; pkg; task; }
+    return { globalEnv; localEnv; pkg; task; }
 
   in
 
@@ -414,21 +425,36 @@ let ofPackage ?(cache=StringMap.empty) (pkg : Package.t) =
       cache := StringMap.add pkg.id v !cache;
       v
 
+  and traverse pkg =
+    let f acc dep = match dep with
+      | Package.Dependency pkg
+      | Package.OptDependency pkg
+      | Package.PeerDependency pkg -> (pkg, dep)::acc
+      | Package.DevDependency _
+      | Package.InvalidDependency _ -> acc
+    in
+    pkg.Package.dependencies
+    |> ListLabels.fold_left ~f ~init:[]
+    |> ListLabels.rev
   in
 
-  match Package.DependencyGraph.fold ~f pkg with
-  | Ok { task; buildEnv; _ } -> Ok (task, buildEnv, !cache)
+  match Package.DependencyGraph.fold ~traverse ~f pkg with
+  | Ok { task; _ } -> Ok (task, !cache)
   | Error msg -> Error msg
 
 module DependencyGraph = DependencyGraph.Make(struct
   type node = task
-  type dependency = task
+  type dependency = task_dependency
 
   let id task =
     task.id
 
   let traverse task =
-    List.map (fun dep -> (dep, dep)) task.dependencies
+    let f dep = match dep with
+      | Dependency task
+      | DevDependency task -> (task, dep)
+    in
+    ListLabels.map ~f task.dependencies
 end)
 
 module ExternalFormat = struct
@@ -462,7 +488,7 @@ module ExternalFormat = struct
     build: Package.CommandList.t;
     install: Package.CommandList.t;
     sourcePath: ConfigPath.t;
-    env: Environment.Normalized.t;
+    env: Environment.Value.t;
   }
   [@@deriving to_yojson]
 
@@ -475,7 +501,7 @@ module ExternalFormat = struct
     build = task.buildCommands;
     install = task.installCommands;
     sourcePath = task.sourcePath;
-    env = task.env;
+    env = Environment.Closed.value task.env;
   }
 
   let toString ?(pretty=false) (task : t) =
