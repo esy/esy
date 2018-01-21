@@ -6,56 +6,67 @@
  * top.
  *)
 module type Kernel = sig
-  type t
+  type node
+  type dependency
 
   (**
    * Given a node — extract its id
    *)
-  val id : t -> string
+  val id : node -> string
 
   (**
    * Given a node — a list of dependencies, option is just for convenience —
    * such values will be just filtered
    *)
-  val dependencies : t -> t option list
+  val traverse : node -> (node * dependency) list
 end
 
 module type DependencyGraph = sig
 
-  type t
+  type node
+  type dependency
 
   (**
    * Fold over dependency graph and compute value of type 'a.
    *)
 
   type 'a folder
-    =  allDependencies : (t * 'a) list
-    -> dependencies : (t * 'a) list
-    -> t
+    =  allDependencies : (dependency * 'a) list
+    -> dependencies : (dependency * 'a) list
+    -> node
     -> 'a
 
-  val fold : f:'a folder -> t -> 'a
+  val fold :
+    ?traverse:(node -> (node * dependency) list)
+    -> f:'a folder
+    -> node
+    -> 'a
 
   (**
    * Find a node in a graph which satisfies the predicate.
    *)
-  val find : f:(t -> bool) -> t -> t option
+  val find :
+    ?traverse:(node -> (node * dependency) list)
+    -> f:(node -> bool)
+    -> node
+    -> node option
 
 end
 
-module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
+module Make (Kernel : Kernel) : DependencyGraph with type node = Kernel.node = struct
 
   module StringSet = Set.Make(String)
 
-  type t = Kernel.t
+  type node = Kernel.node
+  type dependency = Kernel.dependency
 
   type 'a folder
-    =  allDependencies : (t * 'a) list
-    -> dependencies : (t * 'a) list
-    -> t
+    =  allDependencies : (dependency * 'a) list
+    -> dependencies : (dependency * 'a) list
+    -> node
     -> 'a
 
-  let fold ~(f: 'a folder) (node : 't) =
+  let fold ?(traverse=Kernel.traverse) ~(f: 'a folder) (node : node) =
 
     let fCache = Memoize.create ~size:200 in
     let f ~allDependencies ~dependencies node =
@@ -66,26 +77,24 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
 
     let rec visit node =
 
-      let visitDep ((seen, allDependencies, dependencies) as acc) = function
-        | Some dep ->
-          let depAllDependencies, depDependencies, depValue = visitCached dep in
-          let f (seen, allDependencies) (dep, depValue) =
-            if StringSet.mem (Kernel.id dep) seen then
-              (seen, allDependencies)
-            else
-              let seen  = StringSet.add (Kernel.id dep) seen in
-              let allDependencies = (dep, depValue)::allDependencies in
-              (seen, allDependencies)
-          in
+      let visitDep (seen, allDependencies, dependencies) (node, dep) =
+        let depAllDependencies, depDependencies, depValue = visitCached node in
+        let f (seen, allDependencies) (dep, depValue) =
+          if StringSet.mem (Kernel.id node) seen then
+            (seen, allDependencies)
+          else
+            let seen  = StringSet.add (Kernel.id node) seen in
+            let allDependencies = (dep, depValue)::allDependencies in
+            (seen, allDependencies)
+        in
 
-          let ctx = seen, allDependencies in
-          let ctx = ListLabels.fold_left ~f ~init:ctx depAllDependencies in
-          let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
-          let ctx = f ctx (dep, depValue) in
+        let ctx = seen, allDependencies in
+        let ctx = ListLabels.fold_left ~f ~init:ctx depAllDependencies in
+        let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
+        let ctx = f ctx (dep, depValue) in
 
-          let seen, allDependencies = ctx in
-          (seen, allDependencies, (dep, depValue)::dependencies)
-        | None -> acc
+        let seen, allDependencies = ctx in
+        (seen, allDependencies, (dep, depValue)::dependencies)
       in
 
       let allDependencies, dependencies =
@@ -96,7 +105,7 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
           ListLabels.fold_left
             ~f:visitDep
             ~init:(seen, allDependencies, dependencies)
-            (Kernel.dependencies node)
+            (traverse node)
         in
         ListLabels.rev allDependencies, ListLabels.rev dependencies
       in
@@ -109,20 +118,24 @@ module Make (Kernel : Kernel) : DependencyGraph with type t = Kernel.t = struct
 
     let _, _, (value : 'a) = visitCached node in value
 
-  let find ~f node =
+  let find ?(traverse=Kernel.traverse) ~f node =
     let rec find' = function
-      | None::dependencies ->
-        find' dependencies
-      | (Some node)::dependencies ->
+      | node::dependencies ->
         if f node then
           Some node
         else begin
-          match find' (Kernel.dependencies node) with
+          (** Deep first search *)
+          let nodeDependencies =
+            node
+            |> traverse
+            |> List.map (fun (node, _dep) -> node)
+          in
+          match find' nodeDependencies with
           | None -> find' dependencies
           | res -> res
         end
       | [] ->
         None
-    in find' [Some node]
+    in find' [node]
 
 end
