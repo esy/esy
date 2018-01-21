@@ -83,22 +83,22 @@ module Make (Kernel : Kernel) : DependencyGraph
 
       let visitDep (seen, allDependencies, dependencies) (node, dep) =
         let depAllDependencies, depDependencies, depValue = visitCached node in
-        let f (seen, allDependencies) (dep, depValue) =
+        let f (seen, allDependencies) (node, dep, depValue) =
           if StringSet.mem (Kernel.id node) seen then
             (seen, allDependencies)
           else
             let seen  = StringSet.add (Kernel.id node) seen in
-            let allDependencies = (dep, depValue)::allDependencies in
+            let allDependencies = (node, dep, depValue)::allDependencies in
             (seen, allDependencies)
         in
 
         let ctx = seen, allDependencies in
         let ctx = ListLabels.fold_left ~f ~init:ctx depAllDependencies in
         let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
-        let ctx = f ctx (dep, depValue) in
+        let ctx = f ctx (node, dep, depValue) in
 
         let seen, allDependencies = ctx in
-        (seen, allDependencies, (dep, depValue)::dependencies)
+        (seen, allDependencies, (node, dep, depValue)::dependencies)
       in
 
       let allDependencies, dependencies =
@@ -114,7 +114,13 @@ module Make (Kernel : Kernel) : DependencyGraph
         ListLabels.rev allDependencies, ListLabels.rev dependencies
       in
 
-      allDependencies, dependencies, f ~allDependencies ~dependencies node
+      let value =
+        let skipNode (_node, dep, v) = (dep, v) in
+        let allDependencies = List.map skipNode allDependencies
+        and dependencies = List.map skipNode dependencies in
+        f ~allDependencies ~dependencies node
+      in
+      allDependencies, dependencies, value
 
     and visitCached node =
       visitCache (Kernel.id node) (fun () -> visit node)
