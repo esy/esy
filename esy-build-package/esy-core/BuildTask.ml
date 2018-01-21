@@ -421,9 +421,14 @@ let ofPackage ?(cache=StringMap.empty) (pkg : Package.t) =
   | Error msg -> Error msg
 
 module DependencyGraph = DependencyGraph.Make(struct
-  type t = task
-  let id task = task.id
-  let dependencies task = List.map (fun dep -> Some dep) task.dependencies
+  type node = task
+  type dependency = task
+
+  let id task =
+    task.id
+
+  let traverse task =
+    List.map (fun dep -> (dep, dep)) task.dependencies
 end)
 
 module ExternalFormat = struct

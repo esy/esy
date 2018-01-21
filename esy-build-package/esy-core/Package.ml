@@ -204,17 +204,24 @@ and dependency =
   [@@deriving show]
 
 type pkg = t
+type pkg_dependency = dependency
 
 module DependencyGraph = DependencyGraph.Make(struct
-  type t = pkg
+
+  type node = pkg
+  type dependency = pkg_dependency
+
   let id (pkg : t) = pkg.id
-  let dependencies pkg =
-    let filterDep = function
-      | Dependency p
-      | OptDependency p
-      | PeerDependency p -> Some p
+
+  let traverse pkg =
+    let f acc dep = match dep with
+      | Dependency pkg
+      | OptDependency pkg
+      | PeerDependency pkg -> (pkg, dep)::acc
       | DevDependency _
-      | InvalidDependency _ -> None
+      | InvalidDependency _ -> acc
     in
-    List.map filterDep pkg.dependencies
+    pkg.dependencies
+    |> ListLabels.fold_left ~f ~init:[]
+    |> ListLabels.rev
 end)
