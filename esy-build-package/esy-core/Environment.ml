@@ -7,6 +7,15 @@ type binding = {
   }
   [@@deriving show]
 
+let renderStringWithConfig (cfg : Config.t) value =
+  let lookup = function
+  | "store" -> Some (Path.to_string cfg.storePath)
+  | "localStore" -> Some (Path.to_string cfg.localStorePath)
+  | "sandbox" -> Some (Path.to_string cfg.sandboxPath)
+  | _ -> None
+  in
+  Run.liftOfBosError (EsyLib.PathSyntax.render lookup value)
+
 (**
  * Render environment to a string.
  *)
@@ -19,12 +28,6 @@ let renderToShellSource
     | [] -> true
     | _ -> false
   in
-    let lookup = function
-    | "store" -> Some (Path.to_string cfg.storePath)
-    | "localStore" -> Some (Path.to_string cfg.localStorePath)
-    | "sandbox" -> Some (Path.to_string cfg.sandboxPath)
-    | _ -> None
-    in
   let f (lines, prevOrigin) ({ name; value; origin } : binding) =
     let lines = if prevOrigin <> origin || emptyLines lines then
       let header = match origin with
@@ -34,13 +37,12 @@ let renderToShellSource
     else
       lines
     in
-    let%bind value = Run.liftOfBosError (EsyLib.PathSyntax.render lookup value) in
+    let%bind value = renderStringWithConfig cfg value in
     let line = Printf.sprintf "export %s=\"%s\"" name value in
     Ok (line::lines, origin)
   in
   let%bind lines, _ = Run.foldLeft ~f ~init:([], None) bindings in
   return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))
-
 
 module Value = struct
 
@@ -64,6 +66,16 @@ module Value = struct
       | Error err -> Error err
     in
     EsyLib.Result.listFoldLeft ~f ~init bindings
+
+  let bindToConfig cfg env =
+    let f k v = function
+      | Ok env ->
+        let open Run.Syntax in
+        let%bind v = renderStringWithConfig cfg v in
+        Ok (StringMap.add k v env)
+      | err -> err
+    in
+    StringMap.fold f env (Ok StringMap.empty)
 
   let to_yojson env =
     let f k v items = (k, `String v)::items in

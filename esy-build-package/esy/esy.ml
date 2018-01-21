@@ -175,7 +175,7 @@ let build cfg command =
 
   match command with
   | [] ->
-    let%bind () = EsyCore.Build.build ~force:`ForRoot cfg task in
+    let%bind () = EsyCore.Build.build ~force:`ForRoot ~buildOnly:`ForRoot cfg task in
     let rec buildDevDep = function
       | [] ->
         return ()
@@ -197,14 +197,16 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f (pkg : Package.t) =
-    let%bind env = RunAsync.liftOfRun (computeEnv pkg) in
-    let header = header pkg in
     let%bind source = RunAsync.liftOfRun (
+      let open Run.Syntax in
+      let%bind env = computeEnv pkg in
+      let header = header pkg in
       if asJson
       then
+        let env = Environment.Closed.value env in
+        let%bind env = Environment.Value.bindToConfig cfg env in
         Ok (
           env
-          |> Environment.Closed.value
           |> Environment.Value.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
@@ -236,6 +238,71 @@ let sandboxEnv =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
   makeEnvCommand ~computeEnv:BuildTask.sandboxEnv ~header
+
+let makeExecCommand ~computeEnv cfg command =
+  let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
+
+  let f (pkg : Package.t) =
+
+    let%bind envValue = RunAsync.liftOfRun (
+      let open Run.Syntax in
+      let%bind env = computeEnv pkg in
+      let env = Environment.Closed.value env in
+      Environment.Value.bindToConfig cfg env
+    ) in
+
+    let%bind env = RunAsync.liftOfRun (
+      Ok (
+        envValue
+        |> StringMap.bindings
+        |> List.map (fun (name, value) -> Printf.sprintf "%s=%s" name value)
+        |> Array.of_list)
+    ) in
+
+    let resolvePrg prg =
+      let path =
+        let v =
+          try StringMap.find "PATH" envValue
+          with Not_found -> ""
+        in String.split_on_char ':' v
+      in
+      Run.liftOfBosError (EsyLib.Cmd.resolveCmd path prg)
+    in
+
+    let%bind command = RunAsync.liftOfRun (
+      let open Run.Syntax in
+      match command with
+      | [] -> Run.error "empty command"
+      | (prg::_) as entire ->
+        let%bind prg = resolvePrg prg in
+        Ok (prg, Array.of_list entire)
+    ) in
+
+    let waitForProcess process =
+      let%lwt status = process#status in
+      match status with
+      | Unix.WEXITED 0 -> return ()
+      | _ -> RunAsync.error "error running command"
+    in
+
+    Lwt_process.with_process_none
+      ~env
+      ~stderr:(`FD_copy Unix.stderr)
+      ~stdout:(`FD_copy Unix.stdout)
+      ~stdin:(`FD_copy Unix.stdin)
+      command waitForProcess
+  in
+
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  f root
+
+let exec =
+  makeExecCommand ~computeEnv:BuildTask.sandboxEnv
+
+let devExec =
+  makeExecCommand ~computeEnv:BuildTask.commandEnv
 
 let () =
   let open Cmdliner in
@@ -276,10 +343,13 @@ let () =
   let defaultCommand =
     let doc = "package.json workflow for native development with Reason/OCaml" in
     let info = Term.info "esy" ~version ~doc ~sdocs ~exits in
-    let cmd _cfg () = runAsyncCommand info (
-      RunAsync.return ()
-    ) in
-    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+    let cmd cfg command () =
+      runAsyncCommand ~header:`No info (devExec cfg command)
+    in
+    let commandTerm =
+      Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    in
+    Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
   in
 
   let buildPlanCommand =
@@ -364,6 +434,18 @@ let () =
     Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
   in
 
+  let execCommand =
+    let doc = "Execute command as if the package is installed" in
+    let info = Term.info "x" ~version ~doc ~sdocs ~exits in
+    let cmd cfg command () =
+      runAsyncCommand ~header:`No info (exec cfg command)
+    in
+    let commandTerm =
+      Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    in
+    Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -383,6 +465,8 @@ let () =
     buildEnvCommand;
     commandEnvCommand;
     sandboxEnvCommand;
+
+    execCommand;
 
     (* aliases *)
     bCommand;
