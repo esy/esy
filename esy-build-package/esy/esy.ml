@@ -116,35 +116,6 @@ let withPackageByPath cfg packagePath root f =
     end
   | None -> f root
 
-let buildEnv cfg asJson packagePath =
-  let open RunAsync.Syntax in
-
-  let%bind cfg = RunAsync.liftOfRun cfg in
-
-  let f (pkg : Package.t) =
-    let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    let header = Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version in
-    let%bind source = RunAsync.liftOfRun (
-      if asJson
-      then
-        Ok (
-          task.BuildTask.env
-          |> Environment.Closed.value
-          |> Environment.Value.to_yojson
-          |> Yojson.Safe.pretty_to_string)
-      else
-        task.BuildTask.env
-        |> Environment.Closed.bindings
-        |> Environment.renderToShellSource ~header cfg
-    ) in
-    let%lwt () = Lwt_io.print source in
-    return ()
-  in
-
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
-  withPackageByPath cfg packagePath root f
-
-
 let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
 
@@ -220,6 +191,46 @@ let build cfg command =
   | command ->
     EsyCore.PackageBuilder.buildExec cfg task command
 
+let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
+  let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
+
+  let f (pkg : Package.t) =
+    let%bind env = RunAsync.liftOfRun (computeEnv pkg) in
+    let header = header pkg in
+    let%bind source = RunAsync.liftOfRun (
+      if asJson
+      then
+        Ok (
+          env
+          |> Environment.Closed.value
+          |> Environment.Value.to_yojson
+          |> Yojson.Safe.pretty_to_string)
+      else
+        env
+        |> Environment.Closed.bindings
+        |> Environment.renderToShellSource ~header cfg
+    ) in
+    let%lwt () = Lwt_io.print source in
+    return ()
+  in
+
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  withPackageByPath cfg packagePath root f
+
+let buildEnv =
+  let header (pkg : Package.t) =
+    Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
+  in
+  makeEnvCommand ~computeEnv:BuildTask.buildEnv ~header
+
+let commandEnv =
+  let header (pkg : Package.t) =
+    Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
+  in
+  makeEnvCommand ~computeEnv:BuildTask.commandEnv ~header
+
 let () =
   let open Cmdliner in
 
@@ -265,19 +276,6 @@ let () =
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
   in
 
-  let buildEnvCommand =
-    let doc = "Print build environment to stdout" in
-    let info = Term.info "build-env" ~version ~doc ~sdocs ~exits in
-    let cmd cfg asJson packagePath () =
-      runAsyncCommand ~header:`No info (buildEnv cfg asJson packagePath)
-    in
-    let json =
-      let doc = "Format output as JSON" in
-      Arg.(value & flag & info ["json"]  ~doc);
-    in
-    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
-  in
-
   let buildPlanCommand =
     let doc = "Print build plan to stdout" in
     let info = Term.info "build-plan" ~version ~doc ~sdocs ~exits in
@@ -321,6 +319,32 @@ let () =
     Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
   in
 
+  let buildEnvCommand =
+    let doc = "Print build environment to stdout" in
+    let info = Term.info "build-env" ~version ~doc ~sdocs ~exits in
+    let cmd cfg asJson packagePath () =
+      runAsyncCommand ~header:`No info (buildEnv cfg asJson packagePath)
+    in
+    let json =
+      let doc = "Format output as JSON" in
+      Arg.(value & flag & info ["json"]  ~doc);
+    in
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
+  in
+
+  let commandEnvCommand =
+    let doc = "Print command environment to stdout" in
+    let info = Term.info "command-env" ~version ~doc ~sdocs ~exits in
+    let cmd cfg asJson packagePath () =
+      runAsyncCommand ~header:`No info (commandEnv cfg asJson packagePath)
+    in
+    let json =
+      let doc = "Format output as JSON" in
+      Arg.(value & flag & info ["json"]  ~doc);
+    in
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -332,11 +356,13 @@ let () =
 
   let commands = [
     (* commands *)
-    buildEnvCommand;
     buildPlanCommand;
     buildShellCommand;
     buildPackageCommand;
     buildCommand;
+
+    buildEnvCommand;
+    commandEnvCommand;
 
     (* aliases *)
     bCommand;

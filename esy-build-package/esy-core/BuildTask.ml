@@ -208,7 +208,8 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
 
 let ofPackage
     ?(cache=StringMap.empty)
-    (pkg : Package.t)
+    ?(includeRootDevDependenciesInEnv=false)
+    (rootPkg : Package.t)
     =
 
   let open Run.Syntax in
@@ -425,22 +426,35 @@ let ofPackage
       cache := StringMap.add pkg.id v !cache;
       v
 
-  and traverse pkg =
+  and traverse (pkg : Package.t) =
     let f acc dep = match dep with
-      | Package.Dependency pkg
-      | Package.OptDependency pkg
-      | Package.PeerDependency pkg -> (pkg, dep)::acc
-      | Package.DevDependency _
+      | Package.Dependency dpkg
+      | Package.OptDependency dpkg
+      | Package.PeerDependency dpkg -> (dpkg, dep)::acc
+      | Package.DevDependency dpkg ->
+        if includeRootDevDependenciesInEnv && rootPkg.id = pkg.id
+        then (dpkg, dep)::acc
+        else acc
       | Package.InvalidDependency _ -> acc
     in
-    pkg.Package.dependencies
+    pkg.dependencies
     |> ListLabels.fold_left ~f ~init:[]
     |> ListLabels.rev
   in
 
-  match Package.DependencyGraph.fold ~traverse ~f pkg with
+  match Package.DependencyGraph.fold ~traverse ~f rootPkg with
   | Ok { task; _ } -> Ok (task, !cache)
   | Error msg -> Error msg
+
+let buildEnv pkg =
+  let open Run.Syntax in
+  let%bind (task, _cache) = ofPackage pkg in
+  Ok task.env
+
+let commandEnv pkg =
+  let open Run.Syntax in
+  let%bind (task, _cache) = ofPackage ~includeRootDevDependenciesInEnv:true pkg in
+  Ok task.env
 
 module DependencyGraph = DependencyGraph.Make(struct
   type node = task
