@@ -1,17 +1,11 @@
 module StringMap = Map.Make(String)
 
-type t =
-  binding list
-  [@@deriving show]
-
-and binding = {
+type binding = {
     name : string;
     value : string;
     origin : Package.t option;
   }
   [@@deriving show]
-
-type env = t
 
 (**
  * Render environment to a string.
@@ -19,7 +13,7 @@ type env = t
 let renderToShellSource
     ?(header="# Environment")
     (cfg : Config.t)
-    (env : t) =
+    (bindings : binding list) =
   let open Run.Syntax in
   let emptyLines = function
     | [] -> true
@@ -44,11 +38,11 @@ let renderToShellSource
     let line = Printf.sprintf "export %s=\"%s\"" name value in
     Ok (line::lines, origin)
   in
-  let%bind lines, _ = Run.foldLeft ~f ~init:([], None) env in
+  let%bind lines, _ = Run.foldLeft ~f ~init:([], None) bindings in
   return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))
 
 
-module Normalized = struct
+module Value = struct
 
   (*
    * Environment with values with no references to other environment variables.
@@ -59,7 +53,7 @@ module Normalized = struct
     try Some (StringMap.find name env)
     with Not_found -> None
 
-  let ofEnvironment ?(init : t = StringMap.empty) (env : env) =
+  let ofBindings ?(init : t = StringMap.empty) (bindings : binding list) =
     let f env binding =
       let scope name =
         try Some (StringMap.find name env)
@@ -69,7 +63,7 @@ module Normalized = struct
       | Ok value -> Ok (StringMap.add binding.name value env)
       | Error err -> Error err
     in
-    EsyLib.Result.listFoldLeft ~f ~init env
+    EsyLib.Result.listFoldLeft ~f ~init bindings
 
   let to_yojson env =
     let f k v items = (k, `String v)::items in
@@ -78,7 +72,30 @@ module Normalized = struct
 
 end
 
-let normalize = Normalized.ofEnvironment
+(**
+ * A closed environment (which doesn't have references outside of own values).
+ *)
+module Closed : sig
+
+  type t
+
+  val bindings : t -> binding list
+  val value : t -> Value.t
+
+  val ofBindings : binding list -> t Run.t
+
+end = struct
+
+  type t = (Value.t * binding list)
+
+  let bindings (_, bindings) = bindings
+  let value (value, _) = value
+
+  let ofBindings bindings =
+    let open Run.Syntax in
+    let%bind value = Value.ofBindings bindings in
+    Ok (value, bindings)
+end
 
 module PathLike = struct
 
