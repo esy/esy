@@ -53,7 +53,11 @@ module type DependencyGraph = sig
 
 end
 
-module Make (Kernel : Kernel) : DependencyGraph with type node = Kernel.node = struct
+module Make (Kernel : Kernel) : DependencyGraph
+  with
+    type node = Kernel.node and
+    type dependency = Kernel.dependency
+  = struct
 
   module StringSet = Set.Make(String)
 
