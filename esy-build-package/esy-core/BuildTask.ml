@@ -456,6 +456,24 @@ let commandEnv pkg =
   let%bind (task, _cache) = ofPackage ~includeRootDevDependenciesInEnv:true pkg in
   Ok task.env
 
+let sandboxEnv (pkg : Package.t) =
+  let open Run.Syntax in
+  let synPkg = {
+    Package.
+    id = "__installation_env__";
+    name = "installation_env";
+    version = pkg.version;
+    dependencies = [Package.Dependency pkg];
+    buildCommands = None;
+    installCommands = None;
+    buildType = Package.BuildType.OutOfSource;
+    sourceType = Package.SourceType.Root;
+    exportedEnv = [];
+    sourcePath = pkg.sourcePath;
+  } in
+  let%bind (task, _cache) = ofPackage synPkg in
+  Ok task.env
+
 module DependencyGraph = DependencyGraph.Make(struct
   type node = task
   type dependency = task_dependency
