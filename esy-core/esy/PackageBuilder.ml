@@ -17,7 +17,7 @@ let run
   let runProcess buildJsonFilename buildJsonOc =
     let%bind command =
       let%bind prg = RunAsync.liftOfRun (Run.liftOfBosError(
-        let open EsyLib.Result in
+        let open Std.Result in
         let%bind currentFilename = Path.of_string (Sys.argv.(0)) in
         let currentDirname = Path.parent currentFilename in
         Ok Path.(currentDirname / ".." / "esy-build-package" / "esyBuildPackage.bc" |> to_string)

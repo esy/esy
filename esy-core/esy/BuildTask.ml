@@ -1,3 +1,5 @@
+open Std
+
 (**
  * Build task.
  *
@@ -47,17 +49,17 @@ let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
   | Package.SourceType.Root -> ConfigPath.localStorePath
 
 let pkgBuildPath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeBuildTree / pkg.id)
+  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / pkg.id)
 
 let pkgStagePath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeStageTree / pkg.id)
+  ConfigPath.(pkgStorePath pkg / Config.storeStageTree / pkg.id)
 
 let pkgInstallPath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeInstallTree / pkg.id)
+  ConfigPath.(pkgStorePath pkg / Config.storeInstallTree / pkg.id)
 
 let pkgLogPath pkg =
   let basename = pkg.Package.id ^ ".log" in
-  ConfigPath.(pkgStorePath pkg / Config.PackageBuilderConfig.storeBuildTree / basename)
+  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / basename)
 
 let rootPath (pkg : Package.t) =
   match pkg.buildType, pkg.sourceType with
@@ -200,9 +202,9 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
         let%bind arg = CommandExpr.render ~scope arg in
         ShellParamExpansion.render ~scope:envScope arg
       in
-      EsyLib.Result.listMap ~f:renderArg command
+      Result.listMap ~f:renderArg command
     in
-    match EsyLib.Result.listMap ~f:renderCommand commands with
+    match Result.listMap ~f:renderCommand commands with
     | Ok commands -> Ok (Some commands)
     | Error err -> Error err
 
@@ -218,7 +220,7 @@ let ofPackage
 
     let%bind allDependencies, dependencies =
       let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
-      let joinDependencies dependencies = EsyLib.Result.listMap ~f dependencies in
+      let joinDependencies dependencies = Result.listMap ~f dependencies in
       let%bind dependencies = joinDependencies dependencies in
       let%bind allDependencies = joinDependencies allDependencies in
       Ok (allDependencies, dependencies)

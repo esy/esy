@@ -1,0 +1,7 @@
+lib: [
+  "_build/install/default/lib/esy/META" {"META"}
+  "_build/install/default/lib/esy/opam" {"opam"}
+]
+bin: [
+  "_build/install/default/bin/esy" {"esy"}
+]

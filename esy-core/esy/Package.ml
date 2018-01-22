@@ -1,3 +1,4 @@
+open Std
 module StringMap = Map.Make(String)
 
 (**
@@ -27,7 +28,7 @@ module CommandList = struct
     [@@deriving show]
 
   let of_yojson (json : Json.t) =
-    let open EsyLib.Result in
+    let open Result in
     let commands =
       match json with
       | `Null -> Ok []
@@ -87,7 +88,7 @@ module ExportedEnv = struct
 
   let of_yojson = function
     | `Assoc items ->
-      let open EsyLib.Result in
+      let open Result in
       let f items (k, v) =
         let%bind {Item. value; scope; exclusive} = Item.of_yojson v in
         Ok ({name = k; value; scope; exclusive}::items)
