@@ -88,10 +88,10 @@ let resolve_extensionless_path = (path: Fpath.t) =>
 
 /** Try to resolve a package */
 let rec resolve_package =
-        (package: string, segments: option(list(string)), basedir: Fpath.t) => {
+        (package: Path.t, segments: option(list(string)), basedir: Fpath.t) => {
   open Run;
   let node_modules_path = basedir / "node_modules";
-  let package_path = node_modules_path / package;
+  let package_path = Path.append(node_modules_path, package);
   if%bind (exists(node_modules_path)) {
     if%bind (exists(package_path)) {
       switch segments {
@@ -139,9 +139,9 @@ let resolve = (path, basedir) =>
           switch (String.split_on_char('/', path)) {
           | [] => (None, None)
           | [_scope] => (None, None)
-          | [scope, package] => (Some(scope ++ "/" ++ package), None)
+          | [scope, package] => (Some(Path.(v(scope) / package)), None)
           | [scope, package, ...rest] => (
-              Some(scope ++ "/" ++ package),
+              Some(Path.(v(scope) / package)),
               Some(rest)
             )
           };
@@ -154,8 +154,8 @@ let resolve = (path, basedir) =>
         let (package, segments) =
           switch (String.split_on_char('/', path)) {
           | [] => (None, None)
-          | [package] => (Some(package), None)
-          | [package, ...rest] => (Some(package), Some(rest))
+          | [package] => (Some(Path.v(package)), None)
+          | [package, ...rest] => (Some(Path.v(package)), Some(rest))
           };
         switch package {
         | None => Ok(None)
