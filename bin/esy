@@ -111,6 +111,10 @@ callBuiltInCommand__buildShell () {
   run "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" shell -B "$buildJson"
 }
 
+callEsyCoreCommand() {
+  "$OCAMLRUN_COMMAND" "$ESY_CORE_COMMAND" "$@"
+}
+
 callBuiltInCommand__x () {
   ensureBuildEjected --silent
   run --suppressOutput "$BUILD_EJECT_PATH/bin/install"
@@ -293,42 +297,28 @@ elif [ $# -eq 1 ]; then
       callBuiltInCommand init
       ;;
     build|b)
-      shift
-      ensureSandbox
-      callBuiltInCommand__build
-      ;;
-    _build)
-      shift
-      ensureSandbox
-      callBuiltInCommandWithLock build
+      callEsyCoreCommand "build"
       ;;
     build-shell)
-      shift
-      ensureSandbox
-      callBuiltInCommand__buildShell
+      callEsyCoreCommand "build-shell"
       ;;
     build-plan)
-      shift
-      ensureSandbox
-      callBuiltInCommand build-plan
+      callEsyCoreCommand "build-plan"
       ;;
     build-package)
-      shift
-      exec "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND"
+      callEsyCoreCommand "build-package"
       ;;
     ls-builds)
-      shift
-      ensureSandbox
-      callBuiltInCommand ls-builds
+      echo >&2 "$1 command is temporarily disabled.";
+      exit 1
       ;;
     ls-libs)
-      shift
-      ensureSandbox
-      callBuiltInCommand ls-libs
+      echo >&2 "$1 command is temporarily disabled.";
+      exit 1
       ;;
     ls-modules)
-      shift
-      callBuiltInCommand ls-modules
+      echo >&2 "$1 command is temporarily disabled.";
+      exit 1
       ;;
     import-opam)
       shift
@@ -336,24 +326,16 @@ elif [ $# -eq 1 ]; then
       callBuiltInCommand import-opam
       ;;
     shell)
-      ensureSandbox
-      ensureBuildEjected
-      ENV="$BUILD_EJECT_PATH/bin/command-env" PS1="esy % " sh
+      callEsyCoreCommand "shell"
       ;;
     command-env)
-      ensureSandbox
-      ensureBuildEjected --silent
-      cat "$BUILD_EJECT_PATH/bin/command-env"
+      callEsyCoreCommand "command-env"
       ;;
     sandbox-env)
-      ensureSandbox
-      ensureBuildEjected --silent
-      cat "$BUILD_EJECT_PATH/bin/sandbox-env"
+      callEsyCoreCommand "sandbox-env"
       ;;
     build-env)
-      ensureSandbox
-      ensureBuildEjected --silent
-      cat "$BUILD_EJECT_PATH/bin/build-env"
+      callEsyCoreCommand "build-env"
       ;;
     config)
       shift
@@ -397,25 +379,20 @@ elif [ $# -eq 1 ]; then
       exec "$SCRIPTDIR/esyImportBuild"
       ;;
     x)
-      ensureSandbox
-      callBuiltInCommand__x
+      callEsyCoreCommand "x"
       ;;
     version|--version|-v)
-      printVersion
+      callEsyCoreCommand "--version"
       ;;
-    help)
-      printDetailedHelp
-      ;;
-    --help|-h)
-      printHelp
+    help|--help|-h)
+      callEsyCoreCommand "--help"
       ;;
     -*)
       esyError "unknown option '$1'"
       exit 1
       ;;
     *)
-      ensureSandbox
-      callAnyCommand "$@"
+      callEsyCoreCommand "--" "$@"
       ;;
   esac
 else
@@ -432,8 +409,7 @@ else
       ;;
     build-shell)
       shift
-      ensureSandbox
-      callBuiltInCommand__buildShell "$@"
+      callEsyCoreCommand "build-shell" "$@"
       ;;
     init)
       shift
@@ -441,12 +417,11 @@ else
       ;;
     build-plan)
       shift
-      ensureSandbox
-      callBuiltInCommand build-plan "$@"
+      callEsyCoreCommand "build-plan" "$@"
       ;;
     build-package)
       shift
-      exec "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" "$@"
+      callEsyCoreCommand "build-package" "$@"
       ;;
     install|i)
       shift
@@ -455,20 +430,7 @@ else
       ;;
     build|b)
       shift
-      ensureSandbox
-      case "$1" in
-        -*)
-          callBuiltInCommandWithLock build "$@"
-          ;;
-        *)
-          callBuiltInCommand__build "$@"
-          ;;
-      esac
-      ;;
-    _build)
-      shift
-      ensureSandbox
-      callBuiltInCommandWithLock build "$@"
+      callEsyCoreCommand "build" -- "$@"
       ;;
     install-cache)
       shift
@@ -520,8 +482,8 @@ else
       callBuiltInCommand config "$@"
       ;;
     x)
-      ensureSandbox
-      callBuiltInCommand__x "$@"
+      shift
+      callEsyCoreCommand "x" "--" "$@"
       ;;
     -*)
       echo Unknown option "$1" >&2
@@ -529,7 +491,7 @@ else
       ;;
     *)
       ensureSandbox
-      callAnyCommand "$@"
+      callEsyCoreCommand "--" "$@"
       ;;
   esac
 fi

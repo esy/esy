@@ -21,6 +21,7 @@ export default async function esyAutoconf(ctx: CommandContext) {
     export ESY__STORE_PADDING_LENGTH="${constants.ESY_STORE_PADDING_LENGTH}"
 
     export OCAMLRUN_COMMAND="${config.OCAMLRUN_COMMAND}"
+    export ESY_CORE_COMMAND="${config.ESY_CORE_COMMAND}"
     export ESY_BUILD_PACKAGE_COMMAND="${config.ESY_BUILD_PACKAGE_COMMAND}"
     export FASTREPLACESTRING_COMMAND="${config.FASTREPLACESTRING_COMMAND}"
   `);

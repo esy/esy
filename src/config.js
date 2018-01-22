@@ -19,7 +19,10 @@ const NUM_CPUS = isTestEnvironment ? 1 : os.cpus().length;
 export const OCAMLRUN_COMMAND = resolve('@esy-ocaml/ocamlrun/install/bin/ocamlrun', {
   basedir: __dirname,
 });
-export const ESY_BUILD_PACKAGE_COMMAND = resolve('../bin/esyBuildPackage', {
+export const ESY_BUILD_PACKAGE_COMMAND = resolve('../bin/esyBuildPackage.bc', {
+  basedir: __dirname,
+});
+export const ESY_CORE_COMMAND = resolve('../bin/esy.bc', {
   basedir: __dirname,
 });
 export const FASTREPLACESTRING_COMMAND = resolve(
