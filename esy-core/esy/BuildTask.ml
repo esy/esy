@@ -304,13 +304,13 @@ let ofPackage
        * corresponding paths of all dependencies (transtive included).
        *)
       let path, manpath, ocamlpath =
-        let f (_, {task = dep; _}) (path, manpath, ocamlpath) =
+        let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
           let path = ConfigPath.(dep.installPath / "bin")::path in
           let manpath = ConfigPath.(dep.installPath / "man")::manpath in
           let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
           path, manpath, ocamlpath
         in
-        ListLabels.fold_right ~f ~init:([], [], []) allDependencies
+        ListLabels.fold_left ~f ~init:([], [], []) allDependencies
       in
 
       let path = Environment.{
