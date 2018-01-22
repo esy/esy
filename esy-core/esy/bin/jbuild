@@ -1,0 +1,23 @@
+(jbuild_version 1)
+
+(executable
+ ((name esyCommand)
+  (public_name esy)
+  (package esy)
+  (preprocess (pps (lwt_ppx ppx_let)))
+  (libraries (
+              lwt
+              lwt.unix
+              cmdliner
+              logs
+              logs.fmt
+              logs.lwt
+              logs.cli
+              fmt
+              fmt.cli
+              fmt.tty
+              str
+              astring
+              esy
+              ))
+  ))
