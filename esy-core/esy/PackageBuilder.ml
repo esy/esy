@@ -16,17 +16,28 @@ let run
 
   let runProcess buildJsonFilename buildJsonOc =
     let%bind command =
-      let%bind prg = RunAsync.liftOfRun (Run.liftOfBosError(
+      let%bind path = RunAsync.liftOfRun (Run.liftOfBosError(
         let open Std.Result in
         let%bind currentFilename = Path.of_string (Sys.argv.(0)) in
         let currentDirname = Path.parent currentFilename in
-        Ok Path.(currentDirname / ".." / "esy-build-package" / "esyBuildPackage.bc" |> to_string)
+        let path = Path.(
+          currentDirname
+          / ".."
+          / ".."
+          / "esy-build-package"
+          / "bin"
+          / "esyBuildPackageCommand.bc"
+        ) in Ok path
       )) in
-      let args = Array.of_list (
-        [prg; action; "--build"; (Path.to_string buildJsonFilename)]
-        @ args
-      ) in
-      return (prg, args)
+      if%bind Io.exists path then
+        let prg = Path.to_string path in
+        let args = Array.of_list (
+          [prg; action; "--build"; (Path.to_string buildJsonFilename)]
+          @ args
+        ) in
+        return (prg, args)
+      else
+        error "unable to resolve esy-build-package command"
     in
 
     let%lwt () =
