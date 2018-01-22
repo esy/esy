@@ -1,15 +1,15 @@
+TARGETS = \
+	esy-build-package/bin/esyBuildPackage \
+	esy/bin/esy
+
 install:
 	@esy install
 
 build:
-	@esy build
-	@$(MAKE) postbuild
-
-postbuild:
-	@esy ocamlstripdebug _build/default/esy-build-package/esyBuildPackage.bc _build/esyBuildPackage
+	@esy b jbuilder build -j 4 $(TARGETS)
 
 build-dev:
-	@esy b jbuilder build --dev
+	@esy b jbuilder build -j 4 --dev $(TARGETS)
 
 .PHONY: test
 test:
