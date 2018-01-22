@@ -1,3 +1,4 @@
+open Std
 module StringMap = Map.Make(String)
 
 type binding = {
@@ -14,7 +15,7 @@ let renderStringWithConfig (cfg : Config.t) value =
   | "sandbox" -> Some (Path.to_string cfg.sandboxPath)
   | _ -> None
   in
-  Run.liftOfBosError (EsyLib.PathSyntax.render lookup value)
+  Run.liftOfBosError (PathSyntax.render lookup value)
 
 (**
  * Render environment to a string.
@@ -65,7 +66,7 @@ module Value = struct
       | Ok value -> Ok (StringMap.add binding.name value env)
       | Error err -> Error err
     in
-    EsyLib.Result.listFoldLeft ~f ~init bindings
+    Result.listFoldLeft ~f ~init bindings
 
   let bindToConfig cfg env =
     let f k v = function

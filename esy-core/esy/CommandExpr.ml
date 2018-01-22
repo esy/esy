@@ -1,3 +1,5 @@
+open Std
+
 include CommandExprParser
 
 let parse_exn v =
@@ -30,7 +32,7 @@ let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
     | Colon -> Ok (colon::segments)
     | PathSep -> Ok (pathSep::segments)
     in
-    let%bind segments = EsyLib.Result.listFoldLeft ~f ~init:[] tokens in
+    let%bind segments = Result.listFoldLeft ~f ~init:[] tokens in
     Ok (segments |> List.rev |> String.concat "")
   in
 
@@ -40,5 +42,5 @@ let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
     | String v -> Ok(v::segments)
     | Expr tokens -> let%bind v = renderExpr tokens in Ok (v::segments)
   in
-  let%bind segments = EsyLib.Result.listFoldLeft ~f ~init:[] tokens in
+  let%bind segments = Result.listFoldLeft ~f ~init:[] tokens in
   Ok (segments |> List.rev |> String.concat "")

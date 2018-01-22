@@ -1,11 +1,3 @@
-module Path = EsyCore.Path
-module Package = EsyCore.Package
-module BuildTask = EsyCore.BuildTask
-module Environment = EsyCore.Environment
-module Sandbox = EsyCore.Sandbox
-module Config = EsyCore.Config
-module Run = EsyCore.Run
-module RunAsync = EsyCore.RunAsync
 module StringMap = Map.Make(String)
 
 let cwd = Sys.getcwd ()
@@ -61,7 +53,7 @@ let configTerm =
     )
   in
   let parse prefixPath sandboxPath =
-    EsyCore.Config.create ~prefixPath sandboxPath
+    Config.create ~prefixPath sandboxPath
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
@@ -141,7 +133,7 @@ let buildShell cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    EsyCore.PackageBuilder.buildShell cfg task
+    PackageBuilder.buildShell cfg task
   in
 
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
@@ -154,7 +146,7 @@ let buildPackage cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    EsyCore.Build.build ~force:`Yes cfg task
+    Build.build ~force:`Yes cfg task
   in
 
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
@@ -175,13 +167,13 @@ let build cfg command =
 
   match command with
   | [] ->
-    let%bind () = EsyCore.Build.build ~force:`ForRoot ~buildOnly:`ForRoot cfg task in
+    let%bind () = Build.build ~force:`ForRoot ~buildOnly:`ForRoot cfg task in
     let rec buildDevDep = function
       | [] ->
         return ()
       | (Package.DevDependency pkg)::dependencies ->
         let%bind task, _ = RunAsync.liftOfRun (BuildTask.ofPackage ~cache pkg) in
-        let%bind () = EsyCore.Build.build ~force:`No ~buildOnly:`No cfg task in
+        let%bind () = Build.build ~force:`No ~buildOnly:`No cfg task in
         buildDevDep dependencies
       | _::dependencies ->
         buildDevDep dependencies
@@ -189,7 +181,7 @@ let build cfg command =
     buildDevDep (task.pkg.dependencies)
 
   | command ->
-    EsyCore.PackageBuilder.buildExec cfg task command
+    PackageBuilder.buildExec cfg task command
 
 let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let open RunAsync.Syntax in
@@ -268,7 +260,7 @@ let makeExecCommand ~computeEnv cfg command =
           with Not_found -> ""
         in String.split_on_char ':' v
       in
-      Run.liftOfBosError (EsyLib.Cmd.resolveCmd path prg)
+      Run.liftOfBosError (Cmd.resolveCmd path prg)
     in
 
     let%bind command = RunAsync.liftOfRun (

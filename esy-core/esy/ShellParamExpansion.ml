@@ -1,3 +1,4 @@
+open Std
 include ShellParamExpansionParser
 
 let parse_exn v =
@@ -25,5 +26,5 @@ let render ~(scope : scope) v =
       | _, _ -> Run.error ("unable to resolve: $" ^ name)
       end
   in
-  let%bind segments = EsyLib.Result.listFoldLeft ~f ~init:[] tokens in
+  let%bind segments = Result.listFoldLeft ~f ~init:[] tokens in
   Ok (segments |> List.rev |> String.concat "")

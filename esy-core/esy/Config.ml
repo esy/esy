@@ -1,5 +1,6 @@
+open Std
+
 module PackageBuilderConfig = struct
-  include EsyLib.Config
 end
 
 type t = {
@@ -12,26 +13,73 @@ type config = t
 
 let defaultPrefixPath = Path.v "~/.esy"
 
+let storeInstallTree = "i"
+let storeBuildTree = "b"
+let storeStageTree = "s"
+
+let storeVersion = "3"
+
+let maxStorePaddingLength =
+  (*
+   * This is restricted by POSIX, Linux enforces this but macOS is more
+   * forgiving.
+   *)
+  let maxShebangLength = 127 in
+  (*
+   * We reserve that amount of chars from padding so ocamlrun can be placed in
+   * shebang lines
+   *)
+  let ocamlrunStorePath = "ocaml-n.00.000-########/bin/ocamlrun" in
+  maxShebangLength
+  - String.length "!#"
+  - String.length (
+      "/"
+      ^ storeVersion
+      ^ "/"
+      ^ storeInstallTree
+      ^ "/"
+      ^ ocamlrunStorePath
+    )
+
 let create ~prefixPath sandboxPath =
-  let open Run.Syntax in
-  let%bind {
-    PackageBuilderConfig.
-    sandboxPath;
-    storePath;
-    localStorePath;
-    _
-  } = Run.liftOfBosError (
-    let open EsyLib.Result in
-    let%bind (cfg: PackageBuilderConfig.t) = PackageBuilderConfig.create ~prefixPath ~sandboxPath () in
-    let%bind _ = EsyLib.Store.init cfg.storePath in
-    let%bind _ = EsyLib.Store.init cfg.localStorePath in
-    Ok cfg
-  )
-  in Ok {
-    sandboxPath;
-    storePath;
-    localStorePath;
-  }
+  let value =
+    let module Let_syntax = Result.Let_syntax in
+    let initStore (path: Path.t) =
+      let module Let_syntax = Result.Let_syntax in
+      let%bind _ = Bos.OS.Dir.create(Path.(path / "i")) in
+      let%bind _ = Bos.OS.Dir.create(Path.(path / "b")) in
+      let%bind _ = Bos.OS.Dir.create(Path.(path / "s")) in
+      Ok ()
+    in
+    let%bind prefixPath =
+      match prefixPath with
+      | Some v -> Ok v
+      | None ->
+        let%bind home = Bos.OS.Dir.user() in
+        Ok Path.(home / ".esy")
+    in
+    let%bind sandboxPath =
+      match sandboxPath with
+      | Some v -> Ok v
+      | None -> Bos.OS.Dir.current ()
+    in
+    let storePadding =
+      let prefixPathLength = String.length (Fpath.to_string prefixPath) in
+      let paddingLength = maxStorePaddingLength - prefixPathLength in
+      String.make paddingLength '_'
+    in
+    let storePath = Path.(prefixPath / (storeVersion ^ storePadding)) in
+    let localStorePath =
+      Path.(sandboxPath / "node_modules" / ".cache" / "_esy" / "store")
+    in
+    let%bind () = initStore storePath in
+    let%bind () = initStore localStorePath in
+    Ok {
+      storePath;
+      sandboxPath;
+      localStorePath;
+    }
+  in Run.liftOfBosError value
 
 module type ABSTRACT_PATH = sig
   (**
@@ -99,7 +147,7 @@ end = struct
       | "localStore" -> Some (Path.to_string config.localStorePath)
       | _ -> None
     in
-    let path = EsyLib.PathSyntax.renderExn env (Path.to_string p) in
+    let path = PathSyntax.renderExn env (Path.to_string p) in
     match Path.of_string path with
     | Ok path -> path
     | Error (`Msg msg) ->

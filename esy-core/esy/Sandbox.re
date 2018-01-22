@@ -86,7 +86,7 @@ let ofDir = (config: Config.t) => {
     resolutionCache(key, compute);
   };
   let packageCache = Memoize.create(~size=200);
-  let rec loadPackage = (path: EsyLib.Path.t) => {
+  let rec loadPackage = (path: Path.t) => {
     let addDeps =
         (~skipUnresolved=false, ~make, dependencies, prevDependencies) => {
       let resolve = (pkgName: string) =>

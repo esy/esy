@@ -1,5 +1,5 @@
 (library
- ((name EsyTest)
+ ((name Test)
   (library_flags (-linkall))
   (libraries (esy-core ppx_inline_test.runtime-lib))
   (preprocess (pps (ppx_inline_test ppx_driver.runner)))

@@ -3,6 +3,26 @@
 (executable
  ((name esy)
   (public_name esy)
-  (package esy-core)
-  (preprocess (pps (lwt_ppx ppx_let)))
-  (libraries (esy-core esy-lib lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt logs.cli re fmt fmt.cli fmt.tty))))
+  (package esy)
+  (preprocess (pps (lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std)))
+  (libraries (
+              lwt
+              lwt.unix
+              cmdliner
+              yojson
+              bos
+              logs
+              logs.fmt
+              logs.lwt
+              logs.cli
+              re
+              fmt
+              fmt.cli
+              fmt.tty
+              ppx_deriving_yojson.runtime
+              str
+              sha
+              ))
+  ))
+
+(ocamllex (ShellParamExpansionParser ShellSplit CommandExprParser))
