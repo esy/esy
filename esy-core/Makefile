@@ -13,7 +13,7 @@ build-dev:
 
 .PHONY: test
 test:
-	@esy b jbuilder build @runtest
+	@esy b jbuilder build --dev @runtest
 
 clean:
 	@rm -rf _build
