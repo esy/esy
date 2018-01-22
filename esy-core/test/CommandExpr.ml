@@ -107,7 +107,7 @@ let expectRenderOk scope s expected =
 
 let expectRenderError scope s expectedError =
   match render ~scope s with
-  | Ok v -> false
+  | Ok _ -> false
   | Error error ->
     let error = Esy.Run.formatError error in
     if expectedError <> error then (
