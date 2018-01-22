@@ -1,3 +1,31 @@
+let resolveCommand req =
+  let cache = ref None in
+
+  let resolver () =
+    Run.liftOfBosError(
+      match !cache with
+      | Some path -> path
+      | None ->
+        let open Std.Result in
+        let%bind currentFilename = Path.of_string (Sys.argv.(0)) in
+        let currentDirname = Path.parent currentFilename in
+        let path =
+          match EsyBuildPackage.NodeResolution.resolve req currentDirname with
+          | Ok (Some path) -> Ok (Path.to_string path)
+          | Ok None -> Error (`Msg ("unable to resolve " ^ req))
+          | Error err -> Error err
+        in
+        cache := Some path;
+        path
+    )
+
+  in resolver
+
+let esyBuildPackage =
+  resolveCommand "./esyBuildPackage.bc"
+
+let ocamlrun =
+  resolveCommand "@esy-ocaml/ocamlrun/install/bin/ocamlrun"
 
 let run
     ?(stdin=`Null)
@@ -15,30 +43,16 @@ let run
   in
 
   let runProcess buildJsonFilename buildJsonOc =
-    let%bind command =
-      let%bind path = RunAsync.liftOfRun (Run.liftOfBosError(
-        let open Std.Result in
-        let%bind currentFilename = Path.of_string (Sys.argv.(0)) in
-        let currentDirname = Path.parent currentFilename in
-        let path = Path.(
-          currentDirname
-          / ".."
-          / ".."
-          / "esy-build-package"
-          / "bin"
-          / "esyBuildPackageCommand"
-        ) in Ok path
-      )) in
-      if%bind Io.exists path then
-        let prg = Path.to_string path in
-        let args = Array.of_list (
-          [prg; action; "--build"; (Path.to_string buildJsonFilename)]
-          @ args
-        ) in
-        return (prg, args)
-      else
-        error "unable to resolve esy-build-package command"
-    in
+    let%bind command = RunAsync.liftOfRun (
+      let open Run.Syntax in
+      let%bind ocamlrun = ocamlrun () in
+      let%bind esyBuildPackage = esyBuildPackage () in
+      let args = Array.of_list (
+        [ocamlrun; esyBuildPackage; action; "--build"; (Path.to_string buildJsonFilename)]
+        @ args
+      ) in
+      return (ocamlrun, args)
+    ) in
 
     let%lwt () =
       let buildJsonData = BuildTask.toBuildProtocolString task in
