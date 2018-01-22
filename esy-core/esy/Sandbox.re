@@ -22,27 +22,33 @@ let safePackageName = (name: string) => {
 
 let packageId =
     (manifest: Package.Manifest.t, dependencies: list(Package.dependency)) => {
-  open Sha256;
-  let ctx = init();
-  update_string(ctx, manifest.name);
-  update_string(ctx, manifest.version);
-  update_string(ctx, Package.CommandList.show(manifest.esy.build));
-  update_string(ctx, Package.CommandList.show(manifest.esy.install));
-  update_string(ctx, Package.BuildType.show(manifest.esy.buildsInSource));
-  switch manifest._resolved {
-  | Some(resolved) => update_string(ctx, resolved)
-  | None => ()
-  };
-  let updateWithDepId =
+  let digest = (acc, update) => Digest.string(acc ++ "--" ++ update);
+  let id =
+    ListLabels.fold_left(
+      ~f=digest,
+      ~init="",
+      [
+        manifest.name,
+        manifest.version,
+        Package.CommandList.show(manifest.esy.build),
+        Package.CommandList.show(manifest.esy.install),
+        Package.BuildType.show(manifest.esy.buildsInSource),
+        switch manifest._resolved {
+        | Some(resolved) => resolved
+        | None => ""
+        }
+      ]
+    );
+  let updateWithDepId = id =>
     fun
     | Package.Dependency(pkg)
     | Package.OptDependency(pkg)
-    | Package.PeerDependency(pkg) => update_string(ctx, pkg.id)
+    | Package.PeerDependency(pkg) => digest(id, pkg.id)
     | Package.InvalidDependency(_)
-    | Package.DevDependency(_) => ();
-  List.iter(updateWithDepId, dependencies);
-  let hash = finalize(ctx);
-  let hash = String.sub(to_hex(hash), 0, 8);
+    | Package.DevDependency(_) => id;
+  let id = ListLabels.fold_left(~f=updateWithDepId, ~init=id, dependencies);
+  let hash = Digest.to_hex(id);
+  let hash = String.sub(hash, 0, 8);
   safePackageName(manifest.name) ++ "-" ++ manifest.version ++ "-" ++ hash;
 };
 

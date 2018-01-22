@@ -22,7 +22,6 @@
               fmt.tty
               ppx_deriving_yojson.runtime
               str
-              sha
               astring
               esy-build-package
               ))
