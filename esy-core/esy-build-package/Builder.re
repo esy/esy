@@ -317,9 +317,9 @@ let withBuildEnv = (~commit=false, config: Config.t, task: BuildTask.t, f) =>
       let%bind () = Store.init(config.localStorePath);
       let perform = () => withBuildEnvUnlocked(~commit, config, task, f);
       switch task.sourceType {
-      | BuildTask.Transient
-      | BuildTask.Root => withLock(task.lockPath, perform)
-      | BuildTask.Immutable => perform()
+      | BuildTask.SourceType.Transient
+      | BuildTask.SourceType.Root => withLock(task.lockPath, perform)
+      | BuildTask.SourceType.Immutable => perform()
       };
     }
   );
@@ -365,8 +365,8 @@ let build =
     let%bind info = {
       let%bind sourceModTime =
         switch (sourceModTime, task.sourceType) {
-        | (None, BuildTask.Root)
-        | (None, BuildTask.Transient) =>
+        | (None, BuildTask.SourceType.Root)
+        | (None, BuildTask.SourceType.Transient) =>
           let%bind v = findSourceModTime(task);
           Ok(Some(v));
         | (v, _) => Ok(v)
@@ -381,8 +381,8 @@ let build =
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);
-  | (false, BuildTask.Transient)
-  | (false, BuildTask.Root) =>
+  | (false, BuildTask.SourceType.Transient)
+  | (false, BuildTask.SourceType.Root) =>
     Logs.debug(m => m("checking for staleness"));
     let info = BuildInfo.read(task);
     let prevSourceModTime =
@@ -396,7 +396,7 @@ let build =
       Logs.debug(m => m("source code is not modified, skipping"));
       ok;
     };
-  | (false, BuildTask.Immutable) =>
+  | (false, BuildTask.SourceType.Immutable) =>
     let%bind installPathExists = exists(task.installPath);
     if (installPathExists) {
       Logs.debug(m => m("build exists in store, skipping"));

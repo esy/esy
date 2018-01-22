@@ -1,36 +1,50 @@
 open Std;
 
-[@deriving show]
-type sourceType =
-  | Immutable
-  | Transient
-  | Root;
+module SourceType = {
+  [@deriving show]
+  type t =
+    | Immutable
+    | Transient
+    | Root;
+  let of_yojson = (json: Yojson.Safe.json) =>
+    switch json {
+    | `String("immutable") => Ok(Immutable)
+    | `String("transient") => Ok(Transient)
+    | `String("root") => Ok(Root)
+    | _ => Error("invalid buildType")
+    };
+  let to_yojson = (sourceType: t) =>
+    switch sourceType {
+    | Immutable => `String("immutable")
+    | Transient => `String("transient")
+    | Root => `String("root")
+    };
+};
 
-let sourceType_of_yojson = (json: Yojson.Safe.json) =>
-  switch json {
-  | `String("immutable") => Ok(Immutable)
-  | `String("transient") => Ok(Transient)
-  | `String("root") => Ok(Root)
-  | _ => Error("invalid buildType")
-  };
-
-[@deriving show]
-type buildType =
-  | InSource
-  | JbuilderLike
-  | OutOfSource;
-
-let buildType_of_yojson = (json: Yojson.Safe.json) =>
-  switch json {
-  | `String("in-source") => Ok(InSource)
-  | `String("out-of-source") => Ok(OutOfSource)
-  | `String("_build") => Ok(JbuilderLike)
-  | _ => Error("invalid buildType")
-  };
+module BuildType = {
+  [@deriving show]
+  type t =
+    | InSource
+    | JbuilderLike
+    | OutOfSource;
+  let of_yojson = (json: Yojson.Safe.json) =>
+    switch json {
+    | `String("in-source") => Ok(InSource)
+    | `String("out-of-source") => Ok(OutOfSource)
+    | `String("_build") => Ok(JbuilderLike)
+    | _ => Error("invalid buildType")
+    };
+  let to_yojson = (buildType: t) =>
+    switch buildType {
+    | InSource => `String("in-source")
+    | JbuilderLike => `String("_build")
+    | OutOfSource => `String("out-of-source")
+    };
+};
 
 module Cmd = {
   module JsonRepr = {
-    [@deriving of_yojson]
+    [@deriving (of_yojson, to_yojson)]
     type t = list(string);
   };
   type t = Bos.Cmd.t;
@@ -42,6 +56,7 @@ module Cmd = {
         Ok(Bos.Cmd.of_list(items));
       }
     );
+  let to_yojson = (cmd: t) => cmd |> Bos.Cmd.to_list |> JsonRepr.to_yojson;
 };
 
 module Env = {
@@ -59,6 +74,11 @@ module Env = {
       List.fold_left(add_to_map, Ok(Astring.String.Map.empty), items);
     | _ => Error("expected an object")
     };
+  let to_yojson = (env: t) => {
+    let f = (k, v, items) => [(k, `String(v)), ...items];
+    let items = Astring.String.Map.fold(f, env, []);
+    `Assoc(items);
+  };
 };
 
 [@deriving show]
@@ -66,8 +86,8 @@ type t = {
   id: string,
   name: string,
   version: string,
-  sourceType,
-  buildType,
+  sourceType: SourceType.t,
+  buildType: BuildType.t,
   build: list(Cmd.t),
   install: list(Cmd.t),
   sourcePath: Path.t,
@@ -82,16 +102,16 @@ type t = {
 type spec = t;
 
 module ConfigFile = {
-  [@deriving (show, of_yojson)]
+  [@deriving (show, of_yojson, to_yojson)]
   type t = {
     id: string,
     name: string,
     version: string,
-    sourceType,
-    buildType,
-    build: list(Cmd.t),
-    install: list(Cmd.t),
-    sourcePath: Path.t,
+    sourceType: SourceType.t,
+    buildType: BuildType.t,
+    build: list(list(string)),
+    install: list(list(string)),
+    sourcePath: string,
     env: Env.t
   };
   let configure = (config: Config.t, specConfig: t) : Run.t(spec, 'a) => {
@@ -104,15 +124,9 @@ module ConfigFile = {
       | _ => None;
     let render = s => PathSyntax.render(lookupVar, s);
     let renderPath = s => {
-      let s = Path.to_string(s);
       let%bind s = PathSyntax.render(lookupVar, s);
       Path.of_string(s);
     };
-    let renderCommand = s =>
-      s
-      |> Bos.Cmd.to_list
-      |> Result.listMap(~f=render)
-      |> Result.map(Bos.Cmd.of_list);
     let renderEnv = env => {
       let f = (k, v) =>
         fun
@@ -123,8 +137,11 @@ module ConfigFile = {
         | error => error;
       Astring.String.Map.fold(f, env, Ok(Astring.String.Map.empty));
     };
-    let renderCommands = commands =>
+    let renderCommands = commands => {
+      let renderCommand = s =>
+        s |> Result.listMap(~f=render) |> Result.map(Bos.Cmd.of_list);
       Result.listMap(~f=renderCommand, commands);
+    };
     let storePath =
       switch specConfig.sourceType {
       | Immutable => config.storePath

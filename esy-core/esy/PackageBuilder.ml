@@ -30,11 +30,7 @@ let run
     in
 
     let%lwt () =
-      let buildJsonData =
-        task
-        |> BuildTask.ExternalFormat.ofBuildTask
-        |> BuildTask.ExternalFormat.toString
-        in
+      let buildJsonData = BuildTask.toBuildProtocolString task in
       Lwt_io.write buildJsonOc buildJsonData
     in
 

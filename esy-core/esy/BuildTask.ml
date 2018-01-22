@@ -491,57 +491,34 @@ module DependencyGraph = DependencyGraph.Make(struct
     ListLabels.map ~f task.dependencies
 end)
 
-module ExternalFormat = struct
-
-  module SourceType = struct
-    type t = Package.SourceType.t
-
-    let to_yojson (sourceType: t) =
-      match sourceType with
-      | Package.SourceType.Immutable -> `String "immutable"
-      | Package.SourceType.Development -> `String "development"
-      | Package.SourceType.Root -> `String "root"
-  end
-
-  module BuildType = struct
-    type t = Package.BuildType.t
-
-    let to_yojson (buildType: t) =
-      match buildType with
-      | Package.BuildType.InSource -> `String "in-source"
-      | Package.BuildType.OutOfSource -> `String "out-of-source"
-      | Package.BuildType.JBuilderLike -> `String "_build"
-  end
-
-  type t = {
-    id : string;
-    name : string;
-    version : string;
-    sourceType : SourceType.t;
-    buildType : BuildType.t;
-    build: Package.CommandList.t;
-    install: Package.CommandList.t;
-    sourcePath: ConfigPath.t;
-    env: Environment.Value.t;
-  }
-  [@@deriving to_yojson]
-
-  let ofBuildTask (task : task) = {
+let toBuildProtocol (task : task) =
+  let exportCommands commands = match commands with
+  | None -> []
+  | Some commands -> commands
+  in
+  EsyBuildPackage.BuildTask.ConfigFile.{
     id = task.id;
     name = task.pkg.name;
     version = task.pkg.version;
-    sourceType = task.pkg.sourceType;
-    buildType = task.pkg.buildType;
-    build = task.buildCommands;
-    install = task.installCommands;
-    sourcePath = task.sourcePath;
+    sourceType = (match task.pkg.sourceType with
+      | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
+      | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
+      | Package.SourceType.Root -> EsyBuildPackage.BuildTask.SourceType.Root
+    );
+    buildType = (match task.pkg.buildType with
+      | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
+      | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
+      | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
+    );
+    build = exportCommands task.buildCommands;
+    install = exportCommands task.installCommands;
+    sourcePath = ConfigPath.toString task.sourcePath;
     env = Environment.Closed.value task.env;
   }
 
-  let toString ?(pretty=false) (task : t) =
-    let json = to_yojson task in
-    if pretty
-    then Yojson.Safe.pretty_to_string json
-    else Yojson.Safe.to_string json
-
-end
+let toBuildProtocolString ?(pretty=false) (task : task) =
+  let task = toBuildProtocol task in
+  let json = EsyBuildPackage.BuildTask.ConfigFile.to_yojson task in
+  if pretty
+  then Yojson.Safe.pretty_to_string json
+  else Yojson.Safe.to_string json

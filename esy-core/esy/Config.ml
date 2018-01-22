@@ -147,7 +147,7 @@ end = struct
       | "localStore" -> Some (Path.to_string config.localStorePath)
       | _ -> None
     in
-    let path = PathSyntax.renderExn env (Path.to_string p) in
+    let path = EsyBuildPackage.PathSyntax.renderExn env (Path.to_string p) in
     match Path.of_string path with
     | Ok path -> path
     | Error (`Msg msg) ->
