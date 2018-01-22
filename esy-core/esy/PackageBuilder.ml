@@ -26,7 +26,7 @@ let run
           / ".."
           / "esy-build-package"
           / "bin"
-          / "esyBuildPackageCommand.bc"
+          / "esyBuildPackageCommand"
         ) in Ok path
       )) in
       if%bind Io.exists path then
