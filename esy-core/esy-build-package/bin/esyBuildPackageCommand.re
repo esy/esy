@@ -1,4 +1,6 @@
-open Std;
+open EsyBuildPackage.Std;
+
+module Run = EsyBuildPackage.Run;
 
 module File = Bos.OS.File;
 
@@ -32,7 +34,7 @@ let createConfig = (copts: commonOpts) => {
     let%bind program = realpath(v(program));
     let basedir = Fpath.parent(program);
     switch%bind (
-      NodeResolution.resolve(
+      EsyBuildPackage.NodeResolution.resolve(
         "fastreplacestring/.bin/fastreplacestring.exe",
         basedir
       )
@@ -41,7 +43,12 @@ let createConfig = (copts: commonOpts) => {
     | None => Ok("fastreplacestring.exe")
     };
   };
-  Config.create(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
+  EsyBuildPackage.Config.create(
+    ~prefixPath,
+    ~sandboxPath,
+    ~fastreplacestringCmd,
+    ()
+  );
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
@@ -49,8 +56,9 @@ let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(v("build.json"), buildPath);
   let%bind config = createConfig(copts);
-  let%bind task = BuildTask.ofFile(config, buildPath);
-  let%bind () = Builder.build(~buildOnly, ~force, config, task);
+  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+  let%bind () =
+    EsyBuildPackage.Builder.build(~buildOnly, ~force, config, task);
   Ok();
 };
 
@@ -79,8 +87,8 @@ let shell = (copts: commonOpts) => {
       ]);
     runInteractive(cmd);
   };
-  let%bind task = BuildTask.ofFile(config, buildPath);
-  let%bind () = Builder.withBuildEnv(config, task, runShell);
+  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+  let%bind () = EsyBuildPackage.Builder.withBuildEnv(config, task, runShell);
   ok;
 };
 
@@ -93,8 +101,8 @@ let exec = (copts, command) => {
     let cmd = Bos.Cmd.of_list(command);
     runInteractive(cmd);
   };
-  let%bind task = BuildTask.ofFile(config, buildPath);
-  let%bind () = Builder.withBuildEnv(config, task, runCommand);
+  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+  let%bind () = EsyBuildPackage.Builder.withBuildEnv(config, task, runCommand);
   ok;
 };
 

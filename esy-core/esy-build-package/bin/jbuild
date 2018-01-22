@@ -1,8 +1,9 @@
 (jbuild_version 1)
 
-(library
- ((name EsyBuildPackage)
+(executable
+ ((name esyBuildPackageCommand)
   (public_name esy-build-package)
+  (package esy-build-package)
   (modes (byte))
   (flags (:standard (-w -39)))
   (preprocess (
@@ -13,8 +14,9 @@
                     ppx_deriving.std
                     )
                ))
-  (modules (:standard \ esyBuildPackageCommand))
+  (modules (esyBuildPackageCommand))
   (libraries (
+              esy-build-package
               cmdliner
               yojson
               bos

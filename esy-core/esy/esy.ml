@@ -115,10 +115,8 @@ let buildPlan cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    return BuildTask.ExternalFormat.(
-      task
-      |> ofBuildTask
-      |> toString ~pretty:true
+    return (
+      BuildTask.toBuildProtocolString ~pretty:true task
       |> print_endline
     )
   in
@@ -248,16 +246,16 @@ let makeExecCommand ~computeEnv cfg command =
     let%bind env = RunAsync.liftOfRun (
       Ok (
         envValue
-        |> StringMap.bindings
+        |> Environment.Value.M.bindings
         |> List.map (fun (name, value) -> Printf.sprintf "%s=%s" name value)
         |> Array.of_list)
     ) in
 
     let resolvePrg prg =
       let path =
-        let v =
-          try StringMap.find "PATH" envValue
-          with Not_found -> ""
+        let v = match Environment.Value.M.find_opt "PATH" envValue with
+        | Some v -> v
+        | None -> ""
         in String.split_on_char ':' v
       in
       Run.liftOfBosError (Cmd.resolveCmd path prg)

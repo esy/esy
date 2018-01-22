@@ -1,5 +1,4 @@
 open Std
-module StringMap = Map.Make(String)
 
 type binding = {
     name : string;
@@ -15,7 +14,7 @@ let renderStringWithConfig (cfg : Config.t) value =
   | "sandbox" -> Some (Path.to_string cfg.sandboxPath)
   | _ -> None
   in
-  Run.liftOfBosError (PathSyntax.render lookup value)
+  Run.liftOfBosError (EsyBuildPackage.PathSyntax.render lookup value)
 
 (**
  * Render environment to a string.
@@ -50,20 +49,17 @@ module Value = struct
   (*
    * Environment with values with no references to other environment variables.
    *)
-  type t = string StringMap.t
+  type t = string Astring.String.map
 
-  let find name env =
-    try Some (StringMap.find name env)
-    with Not_found -> None
+  module M = Astring.String.Map
 
-  let ofBindings ?(init : t = StringMap.empty) (bindings : binding list) =
+  let find = M.find_opt
+
+  let ofBindings ?(init : t = M.empty) (bindings : binding list) =
     let f env binding =
-      let scope name =
-        try Some (StringMap.find name env)
-        with Not_found -> None
-      in
+      let scope name = M.find name env in
       match ShellParamExpansion.render ~scope binding.value with
-      | Ok value -> Ok (StringMap.add binding.name value env)
+      | Ok value -> Ok (M.add binding.name value env)
       | Error err -> Error err
     in
     Result.listFoldLeft ~f ~init bindings
@@ -73,14 +69,14 @@ module Value = struct
       | Ok env ->
         let open Run.Syntax in
         let%bind v = renderStringWithConfig cfg v in
-        Ok (StringMap.add k v env)
+        Ok (M.add k v env)
       | err -> err
     in
-    StringMap.fold f env (Ok StringMap.empty)
+    M.fold f env (Ok M.empty)
 
   let to_yojson env =
     let f k v items = (k, `String v)::items in
-    let items = StringMap.fold f env [] in
+    let items = M.fold f env [] in
     `Assoc items
 
 end
