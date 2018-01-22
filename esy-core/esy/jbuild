@@ -1,10 +1,10 @@
 (jbuild_version 1)
 
-(executable
- ((name esy)
+(library
+ ((name Esy)
   (public_name esy)
-  (package esy)
   (preprocess (pps (lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std)))
+  (modules (:standard \ esyCommand))
   (libraries (
               lwt
               lwt.unix

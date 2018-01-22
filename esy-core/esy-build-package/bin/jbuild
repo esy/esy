@@ -6,14 +6,7 @@
   (package esy-build-package)
   (modes (byte))
   (flags (:standard (-w -39)))
-  (preprocess (
-               pps (
-                    ppx_let
-                    ppx_import
-                    ppx_deriving_yojson
-                    ppx_deriving.std
-                    )
-               ))
+  (preprocess (pps (ppx_let)))
   (modules (esyBuildPackageCommand))
   (libraries (
               esy-build-package

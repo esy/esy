@@ -1,3 +1,5 @@
+open Esy
+
 module StringMap = Map.Make(String)
 
 let cwd = Sys.getcwd ()
