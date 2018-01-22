@@ -152,7 +152,7 @@ let buildPackage cfg packagePath =
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
-let build cfg command =
+let build ?(buildOnly=`ForRoot) cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
@@ -167,7 +167,7 @@ let build cfg command =
 
   match command with
   | [] ->
-    let%bind () = Build.build ~force:`ForRoot ~buildOnly:`ForRoot cfg task in
+    let%bind () = Build.build ~force:`ForRoot ~buildOnly cfg task in
     let rec buildDevDep = function
       | [] ->
         return ()
@@ -231,12 +231,17 @@ let sandboxEnv =
   in
   makeEnvCommand ~computeEnv:BuildTask.sandboxEnv ~header
 
-let makeExecCommand ~computeEnv cfg command =
+let makeExecCommand ~computeEnv ?prepare cfg command =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f (pkg : Package.t) =
+
+    let%bind () = match prepare with
+    | None -> return ()
+    | Some prepare -> prepare cfg pkg
+    in
 
     let%bind envValue = RunAsync.liftOfRun (
       let open Run.Syntax in
@@ -290,8 +295,20 @@ let makeExecCommand ~computeEnv cfg command =
   let%bind {Sandbox. root} = Sandbox.ofDir cfg in
   f root
 
-let exec =
-  makeExecCommand ~computeEnv:BuildTask.sandboxEnv
+let exec cfgRes =
+  let open RunAsync.Syntax in
+  let prepare cfg (pkg : Package.t) =
+    let installPath =
+      pkg
+      |> BuildTask.pkgInstallPath
+      |> Config.ConfigPath.toPath cfg
+    in
+    if%bind Esy.Io.exists installPath then
+      return ()
+    else
+      build ~buildOnly:`No cfgRes []
+  in
+  makeExecCommand ~prepare ~computeEnv:BuildTask.sandboxEnv cfgRes
 
 let devExec =
   makeExecCommand ~computeEnv:BuildTask.commandEnv
