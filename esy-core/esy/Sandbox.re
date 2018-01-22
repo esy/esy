@@ -185,6 +185,19 @@ let ofDir = (config: Config.t) => {
         };
       };
       let id = packageId(manifest, dependencies);
+      let%bind sourcePath = {
+        let linkPath = Path.(path / "_esylink");
+        if%bind (Io.exists(linkPath)) {
+          let%bind path = Io.readFile(linkPath);
+          path
+          |> String.trim
+          |> Path.of_string
+          |> Run.liftOfBosError
+          |> RunAsync.liftOfRun;
+        } else {
+          return(path);
+        };
+      };
       let pkg =
         Package.{
           id,
@@ -196,7 +209,7 @@ let ofDir = (config: Config.t) => {
           buildType: manifest.esy.buildsInSource,
           sourceType,
           exportedEnv: manifest.esy.exportedEnv,
-          sourcePath: ConfigPath.ofPath(config, path)
+          sourcePath: ConfigPath.ofPath(config, sourcePath)
         };
       return(pkg);
     | None => error("unable to find manifest")
