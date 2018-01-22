@@ -27,12 +27,13 @@ documentation refer to [esy.sh][] documentation site.
 - `src` — source code for core esy
 - `bin` - bash executable wrappers and utilities
     - `bin/esy` — the entry point of `esy` command
-- `esy-build-package` — source code for `esy-build-package` command
+- `esy-core/esy-build-package` — source code for `esy-build-package` command
+- `esy-core/esy` — source code for `esy` core commands
 - `esy-install` — source code for `esy install`, `esy add` and other yarn-based
   command, this is a submodule which points to `esy/esy-install` repo, a fork of
   `yarn`.
 - `merlin` — submodule which points to a development version of Merlin, this is
-  used by `esy-build-package` source code.
+  used by `esy-core` source code.
 - `__tests__` — integration tests for `esy`
 
 ## Workflow
