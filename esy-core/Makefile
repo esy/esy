@@ -11,6 +11,7 @@ postbuild:
 build-dev:
 	@esy b jbuilder build --dev
 
+.PHONY: test
 test:
 	@esy b jbuilder build @runtest
 

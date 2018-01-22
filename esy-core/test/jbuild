@@ -1,7 +1,7 @@
 (library
  ((name Test)
   (library_flags (-linkall))
-  (libraries (esy-core ppx_inline_test.runtime-lib))
+  (libraries (esy ppx_inline_test.runtime-lib))
   (preprocess (pps (ppx_inline_test ppx_driver.runner)))
   )
  )
@@ -9,9 +9,9 @@
 (executable
  ((name test_runner)
   (modules (test_runner))
-  (libraries (EsyTest ppx_inline_test.runner.lib))))
+  (libraries (Test ppx_inline_test.runner.lib))))
 
 (alias
  ((name    runtest)
   (deps    (test_runner.exe))
-  (action  (run ${<} inline-test-runner EsyTest))))
+  (action  (run ${<} inline-test-runner Test))))
