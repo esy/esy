@@ -1,3 +1,5 @@
+open Std;
+
 /**
  * This module implements utilities which are used to "script" build processes.
  */

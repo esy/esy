@@ -1,9 +1,0 @@
-(jbuild_version 1)
-
-(library (
- (name EsyLib)
- (public_name esy-lib)
- (modes (byte))
- (flags (:standard (-w -39)))
- (preprocess (pps (ppx_import ppx_deriving_yojson ppx_deriving.std ppx_let)))
- (libraries (bos ppx_deriving_yojson.runtime logs re))))

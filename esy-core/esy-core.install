@@ -79,6 +79,3 @@ lib: [
 bin: [
   "_build/install/default/bin/esy" {"esy"}
 ]
-doc: [
-  "_build/install/default/doc/esy-core/README.md"
-]
