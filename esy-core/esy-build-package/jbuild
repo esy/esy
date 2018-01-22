@@ -5,5 +5,27 @@
   (public_name esy-build-package)
   (package esy-build-package)
   (modes (byte))
-  (preprocess (pps (ppx_let)))
-  (libraries (cmdliner yojson bos EsyLib logs logs.fmt logs.cli re fmt fmt.cli fmt.tty))))
+  (flags (:standard (-w -39)))
+  (preprocess (
+               pps (
+                    ppx_let
+                    ppx_import
+                    ppx_deriving_yojson
+                    ppx_deriving.std
+                    )
+               ))
+  (libraries (
+              cmdliner
+              yojson
+              bos
+              logs
+              logs.fmt
+              logs.cli
+              re
+              fmt
+              fmt.cli
+              fmt.tty
+              ppx_deriving_yojson.runtime
+              rresult
+              ))
+  ))

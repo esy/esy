@@ -1,3 +1,5 @@
+open Std;
+
 let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
   let cmd =
     Bos.Cmd.(
