@@ -51,3 +51,6 @@ lib: [
 bin: [
   "_build/install/default/bin/esy-build-package" {"esy-build-package"}
 ]
+doc: [
+  "_build/install/default/doc/esy-build-package/README.md"
+]
