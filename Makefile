@@ -42,7 +42,7 @@ bootstrap:
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
-	@make -C esy-build-package install build
+	@make -C esy-core install build-dev
 	@yarn
 
 doctoc:
@@ -50,7 +50,7 @@ doctoc:
 
 clean:
 	@rm -rf lib/
-	@make -C esy-build-package clean
+	@make -C esy-core clean
 
 #
 # Test
@@ -97,7 +97,8 @@ RELEASE_ROOT = dist
 RELEASE_FILES = \
 	bin/esy \
 	bin/esy.js \
-	bin/esyBuildPackage \
+	bin/esyBuildPackage.bc \
+	bin/esy.bc \
 	bin/esyExportBuild \
 	bin/esyImportBuild \
 	bin/esyRuntime.sh \
@@ -107,7 +108,7 @@ RELEASE_FILES = \
 
 build-release:
 	@rm -rf $(RELEASE_ROOT)
-	@$(MAKE) -C esy-build-package build
+	@$(MAKE) -C esy-core build
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 
 $(RELEASE_ROOT)/package.json:
