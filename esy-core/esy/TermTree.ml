@@ -29,15 +29,3 @@ let toString (node : t) =
   |> nodeToLines ~indent:[] ~lines:[]
   |> List.rev
   |> StringLabels.concat ~sep:"\n"
-
-  (*
-      let indent =
-        let f index = match (index, indent = 0, last) with
-          | 0, true, _ -> ""
-          | _, _, _ -> "│   "
-        in
-        ListLabels.init ~len:indent ~f
-        |> ListLabels.rev
-        |> StringLabels.concat ~sep:""
-      in
-      *)
