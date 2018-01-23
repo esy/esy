@@ -1,6 +1,7 @@
 open Esy
 
 module StringMap = Map.Make(String)
+module StringSet = Set.Make(String)
 
 let cwd = Sys.getcwd ()
 
@@ -313,6 +314,59 @@ let exec cfgRes =
 let devExec =
   makeExecCommand ~computeEnv:BuildTask.commandEnv
 
+let makeLsCommand ~computeLine ~includeTransitive cfg =
+  let open RunAsync.Syntax in
+
+  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+
+  let seen = ref StringSet.empty in
+
+  let f ~foldDependencies (pkg : Package.t) =
+    if StringSet.mem pkg.id !seen then
+      return None
+    else (
+      seen := StringSet.add pkg.id !seen;
+      let%bind children =
+        if not includeTransitive && pkg.id <> root.id then
+          return []
+        else
+          foldDependencies ()
+          |> List.map (fun (_, v) -> v)
+          |> RunAsync.joinAll
+      in
+      let children =
+        let f xs = function | Some x -> x::xs | None -> xs in
+        children
+        |> ListLabels.fold_left ~f ~init:[]
+        |> List.rev
+      in
+      let%bind line = computeLine cfg pkg in
+      return (Some (Esy.TermTree.Node { children; line; }))
+    )
+  in
+
+  match%bind Package.DependencyGraph.fold ~f root with
+  | Some tree -> return (print_endline (Esy.TermTree.toString tree))
+  | None -> return ()
+
+let lsBuilds =
+  let open RunAsync.Syntax in
+  let computeLine cfg (pkg : Package.t) =
+    let%bind built =
+      BuildTask.pkgInstallPath pkg
+      |> Config.ConfigPath.toPath cfg
+      |> Esy.Io.exists
+    in
+    let status = match built with
+    | true -> "[built]"
+    | false -> "[build pending]"
+    in
+    let line = Printf.sprintf "%s@%s %s" pkg.name pkg.version status in
+    return line
+  in
+  makeLsCommand ~computeLine
+
 let () =
   let open Cmdliner in
 
@@ -455,6 +509,19 @@ let () =
     Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
   in
 
+  let lsBuildsCommand =
+    let doc = "Output a tree of packages in the sandbox along with their status" in
+    let info = Term.info "ls-builds" ~version ~doc ~sdocs ~exits in
+    let cmd includeTransitive cfg () =
+      runAsyncCommand info (lsBuilds ~includeTransitive cfg)
+    in
+    let includeTransitive =
+      let doc = "Include transitive dependencies" in
+      Arg.(value & flag & info ["T"; "include-transitive"]  ~doc);
+    in
+    Term.(ret (const cmd $ includeTransitive $ configTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -474,6 +541,8 @@ let () =
     buildEnvCommand;
     commandEnvCommand;
     sandboxEnvCommand;
+
+    lsBuildsCommand;
 
     execCommand;
 

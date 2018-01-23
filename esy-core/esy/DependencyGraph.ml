@@ -42,6 +42,13 @@ module type DependencyGraph = sig
     -> node
     -> 'a
 
+
+  val fold :
+    ?traverse:(node -> (node * dependency) list)
+    -> f:(foldDependencies : (unit -> (dependency * 'a) list) -> node -> 'a)
+    -> node
+    -> 'a
+
   (**
    * Find a node in a graph which satisfies the predicate.
    *)
@@ -127,6 +134,14 @@ module Make (Kernel : Kernel) : DependencyGraph
     in
 
     let _, _, (value : 'a) = visitCached node in value
+
+  let rec fold ?(traverse=Kernel.traverse) ~f node =
+    let foldDependencies () =
+      node |> traverse |> List.map (fun (node, dep) ->
+        let v = fold ~traverse ~f node in
+        (dep, v))
+    in
+    f ~foldDependencies node
 
   let find ?(traverse=Kernel.traverse) ~f node =
     let rec find' = function

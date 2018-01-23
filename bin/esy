@@ -309,8 +309,7 @@ elif [ $# -eq 1 ]; then
       callEsyCoreCommand "build-package"
       ;;
     ls-builds)
-      echo >&2 "$1 command is temporarily disabled.";
-      exit 1
+      callEsyCoreCommand "ls-builds"
       ;;
     ls-libs)
       echo >&2 "$1 command is temporarily disabled.";
@@ -444,8 +443,7 @@ else
       ;;
     ls-builds)
       shift
-      ensureSandbox
-      callBuiltInCommand ls-builds "$@"
+      callEsyCoreCommand "ls-builds" "$@"
       ;;
     ls-libs)
       shift

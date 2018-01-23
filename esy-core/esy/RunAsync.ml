@@ -20,14 +20,24 @@ let bind ~f v =
   in
   Lwt.bind v waitForPromise
 
-let waitAll xs =
-  let rec waitAll' xs = match xs with
-    | [] -> return ()
+let joinAll xs =
+  let rec _joinAll xs res = match xs with
+    | [] ->
+      return (List.rev res)
     | x::xs ->
-      let f () = waitAll' xs in
+      let f v = _joinAll xs (v::res) in
       bind ~f x
   in
-  waitAll' xs
+  _joinAll xs []
+
+let waitAll xs =
+  let rec _waitAll xs = match xs with
+    | [] -> return ()
+    | x::xs ->
+      let f () = _waitAll xs in
+      bind ~f x
+  in
+  _waitAll xs
 
 module Syntax = struct
   let return = return
