@@ -476,20 +476,19 @@ let buildEnv pkg =
   let%bind (task, _cache) = ofPackage pkg in
   Ok task.env
 
+let initEnv =
+  let parseEnv item =
+    let idx = String.index item '=' in
+    let name = String.sub item 0 idx in
+    let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+    Environment.{name; value; origin = None;}
+  in
+  Unix.environment ()
+  |> Array.map parseEnv
+  |> Array.to_list
+
 let commandEnv pkg =
   let open Run.Syntax in
-
-  let initEnv =
-    let parseEnv item =
-      let idx = String.index item '=' in
-      let name = String.sub item 0 idx in
-      let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-      Environment.{name; value; origin = None;}
-    in
-    Unix.environment ()
-    |> Array.map parseEnv
-    |> Array.to_list
-  in
 
   let%bind (task, _cache) =
     ofPackage
@@ -515,8 +514,13 @@ let sandboxEnv (pkg : Package.t) =
     exportedEnv = [];
     sourcePath = pkg.sourcePath;
   } in
-  let%bind (task, _cache) = ofPackage synPkg in
-  Ok task.env
+  let%bind (task, _cache) = ofPackage
+    ~overrideShell:false
+    ?initEnv:(Some initEnv)
+    ?initialPath:(getenv "PATH")
+    ?initialManPath:(getenv "MAN_PATH")
+    synPkg
+  in Ok task.env
 
 module DependencyGraph = DependencyGraph.Make(struct
   type node = task
