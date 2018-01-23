@@ -164,7 +164,7 @@ let ofDir = (config: Config.t) => {
             dependencies
           );
         } else {
-          Lwt.return([]);
+          Lwt.return(dependencies);
         };
       let id = packageId(manifest, dependencies);
       let sourceType = {
