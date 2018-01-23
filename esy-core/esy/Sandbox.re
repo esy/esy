@@ -23,22 +23,24 @@ let safePackageName = (name: string) => {
 let packageId =
     (manifest: Package.Manifest.t, dependencies: list(Package.dependency)) => {
   let digest = (acc, update) => Digest.string(acc ++ "--" ++ update);
-  let id =
+  let id = {
+    let esy = Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
     ListLabels.fold_left(
       ~f=digest,
       ~init="",
       [
         manifest.name,
         manifest.version,
-        Package.CommandList.show(manifest.esy.build),
-        Package.CommandList.show(manifest.esy.install),
-        Package.BuildType.show(manifest.esy.buildsInSource),
+        Package.CommandList.show(esy.build),
+        Package.CommandList.show(esy.install),
+        Package.BuildType.show(esy.buildsInSource),
         switch manifest._resolved {
         | Some(resolved) => resolved
         | None => ""
         }
       ]
     );
+  };
   let updateWithDepId = id =>
     fun
     | Package.Dependency(pkg)
@@ -198,19 +200,22 @@ let ofDir = (config: Config.t) => {
           return(path);
         };
       };
-      let pkg =
+      let pkg = {
+        let esy =
+          Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
         Package.{
           id,
           name: manifest.name,
           version: manifest.version,
           dependencies,
-          buildCommands: manifest.esy.build,
-          installCommands: manifest.esy.install,
-          buildType: manifest.esy.buildsInSource,
+          buildCommands: esy.build,
+          installCommands: esy.install,
+          buildType: esy.buildsInSource,
           sourceType,
-          exportedEnv: manifest.esy.exportedEnv,
+          exportedEnv: esy.exportedEnv,
           sourcePath: ConfigPath.ofPath(config, sourcePath)
         };
+      };
       return(pkg);
     | None => error("unable to find manifest")
     };

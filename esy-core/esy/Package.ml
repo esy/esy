@@ -131,6 +131,13 @@ module EsyManifest = struct
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default []]);
   } [@@deriving (show, of_yojson { strict = false })]
+
+  let empty = {
+    build = None;
+    install = None;
+    buildsInSource = BuildType.OutOfSource;
+    exportedEnv = [];
+  }
 end
 
 module ManifestDependencyMap = struct
@@ -154,7 +161,7 @@ module Manifest = struct
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     optDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
-    esy: EsyManifest.t;
+    esy: EsyManifest.t option [@default None];
     _resolved: (string option [@default None]);
   } [@@deriving (show, of_yojson { strict = false })]
 
