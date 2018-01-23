@@ -314,6 +314,13 @@ let exec cfgRes =
 let devExec =
   makeExecCommand ~computeEnv:BuildTask.commandEnv
 
+let devShell cfg =
+  let shell =
+    try Sys.getenv "SHELL"
+    with Not_found -> "/bin/bash"
+  in
+  makeExecCommand ~computeEnv:BuildTask.commandEnv cfg [shell]
+
 let makeLsCommand ~computeLine ~includeTransitive cfg =
   let open RunAsync.Syntax in
 
@@ -510,6 +517,15 @@ let () =
     Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
   in
 
+  let shellCommand =
+    let doc = "Enter esy sandbox shell" in
+    let info = Term.info "shell" ~version ~doc ~sdocs ~exits in
+    let cmd cfg () =
+      runAsyncCommand ~header:`No info (devShell cfg)
+    in
+    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+  in
+
   let lsBuildsCommand =
     let doc = "Output a tree of packages in the sandbox along with their status" in
     let info = Term.info "ls-builds" ~version ~doc ~sdocs ~exits in
@@ -538,6 +554,8 @@ let () =
     buildShellCommand;
     buildPackageCommand;
     buildCommand;
+
+    shellCommand;
 
     buildEnvCommand;
     commandEnvCommand;
