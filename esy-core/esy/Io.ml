@@ -11,8 +11,8 @@ let readFile (path : Path.t) =
   let path = Path.to_string path in
   let desc = Printf.sprintf "Unable to read file %s" path in
   toRunAsync ~desc (fun () ->
-    let%lwt ic = Lwt_io.open_file ~mode:Lwt_io.Input path in
-    Lwt_io.read ic
+    let f ic = Lwt_io.read ic in
+    Lwt_io.with_file ~mode:Lwt_io.Input path f
   )
 
 let openFile ~mode ~perm path =
