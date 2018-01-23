@@ -109,7 +109,7 @@ let ofDir = (config: Config.t) => {
         };
       let%lwt dependencies =
         StringMap.bindings(dependencies)
-        |> Lwt_list.map_p(((pkgName, _)) => resolve(pkgName));
+        |> Lwt_list.map_s(((pkgName, _)) => resolve(pkgName));
       let f = dependencies =>
         fun
         | Ok((_, Some(pkg))) => [make(pkg), ...dependencies]
