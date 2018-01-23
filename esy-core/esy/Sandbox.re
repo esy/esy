@@ -94,13 +94,13 @@ let ofDir = (config: Config.t) => {
     resolutionCache(key, compute);
   };
   let packageCache = Memoize.create(~size=200);
-  let rec loadPackage = (path: Path.t) => {
+  let rec loadPackage = (path: Path.t, stack: list(Path.t)) => {
     let addDeps =
         (~skipUnresolved=false, ~make, dependencies, prevDependencies) => {
       let resolve = (pkgName: string) =>
         switch%lwt (resolvePackageCached(pkgName, path)) {
         | Ok(Some(depPackagePath)) =>
-          switch%lwt (loadPackageCached(depPackagePath)) {
+          switch%lwt (loadPackageCached(depPackagePath, [path, ...stack])) {
           | Ok(pkg) => Lwt.return_ok((pkgName, Some(pkg)))
           | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
           }
@@ -220,10 +220,13 @@ let ofDir = (config: Config.t) => {
     | None => error("unable to find manifest")
     };
   }
-  and loadPackageCached = (path: Path.t) => {
-    let compute = () => loadPackage(path);
-    packageCache(path, compute);
-  };
-  let%bind root = loadPackageCached(config.sandboxPath);
+  and loadPackageCached = (path: Path.t, stack) =>
+    if (List.mem(path, stack)) {
+      error("circular dependency");
+    } else {
+      let compute = () => loadPackage(path, stack);
+      packageCache(path, compute);
+    };
+  let%bind root = loadPackageCached(config.sandboxPath, []);
   return({root: root});
 };
