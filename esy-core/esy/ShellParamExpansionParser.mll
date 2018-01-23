@@ -31,6 +31,7 @@ rule read result state = parse
  | '\\' '"'      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' '''      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' '\\'     { read_string result state (Lexing.lexeme lexbuf) lexbuf }
+ | '\\' '/'      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' ' '      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
 
  | '\\' _ as c   { raise (UnknownShellEscape (lexbuf.lex_curr_p, c)) }

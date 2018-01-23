@@ -69,6 +69,10 @@ let rootPath (pkg : Package.t) =
   | JBuilderLike, Root -> pkg.sourcePath
   | OutOfSource, _ -> pkg.sourcePath
 
+let getenv name =
+  try Some (Sys.getenv name)
+  with Not_found -> None
+
 let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   let namespace, installPath = match kind with
   | `AsSelf -> "self", pkgStagePath pkg
@@ -95,32 +99,6 @@ let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
   |> add "toplevel" ConfigPath.(installPath / "toplevel" |> toString)
   |> add "share" ConfigPath.(installPath / "share" |> toString)
   |> add "etc" ConfigPath.(installPath / "etc" |> toString)
-
-let initEnv = Environment.[
-  {
-    name = "PATH";
-    value = "";
-    origin = None;
-  };
-  {
-    name = "CAML_LD_LIBRARY_PATH";
-    value = "";
-    origin = None;
-  };
-]
-
-let finalEnv = Environment.[
-  {
-    name = "SHELL";
-    value = "env -i /bin/bash --norc --noprofile";
-    origin = None;
-  };
-  {
-    name = "PATH";
-    value = "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
-    origin = None;
-  };
-]
 
 let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list) =
   let buildPath = pkgBuildPath pkg in
@@ -211,8 +189,14 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
 let ofPackage
     ?(cache=StringMap.empty)
     ?(includeRootDevDependenciesInEnv=false)
+    ?(overrideShell=true)
+    ?initEnv
+    ?initialPath
+    ?initialManPath
     (rootPkg : Package.t)
     =
+
+  let term = Option.orDefault "" (getenv "TERM") in
 
   let open Run.Syntax in
 
@@ -318,7 +302,7 @@ let ofPackage
         name = "PATH";
         value =
           let v = List.map ConfigPath.toString path in
-          PathLike.make "PATH" v;
+          PathLike.make "PATH" ("$PATH"::v);
       } in
 
       let manPath = Environment.{
@@ -326,7 +310,7 @@ let ofPackage
         name = "MAN_PATH";
         value =
           let v = List.map ConfigPath.toString manpath in
-          PathLike.make "MAN_PATH" v;
+          PathLike.make "MAN_PATH" ("$MAN_PATH"::v);
       } in
 
       (* Configure environment for ocamlfind.
@@ -357,6 +341,45 @@ let ofPackage
         name = "OCAMLFIND_COMMANDS";
         value = "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       } in
+
+      let initEnv = (Std.Option.orDefault [] initEnv) @ Environment.[
+        {
+          name = "TERM";
+          value = term;
+          origin = None;
+        };
+        {
+          name = "PATH";
+          value = Std.Option.orDefault "" initialPath;
+          origin = None;
+        };
+        {
+          name = "MAN_PATH";
+          value = Std.Option.orDefault "" initialManPath;
+          origin = None;
+        };
+        {
+          name = "CAML_LD_LIBRARY_PATH";
+          value = "";
+          origin = None;
+        };
+      ] in
+
+      let finalEnv = Environment.(
+        let path = {
+          name = "PATH";
+          value = "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+          origin = None;
+        } in
+        if overrideShell then
+          let shell = {
+            name = "SHELL";
+            value = "env -i /bin/bash --norc --noprofile";
+            origin = None;
+          } in shell::[path]
+        else
+          [path]
+      ) in
 
       (finalEnv @ (
       path
@@ -455,8 +478,27 @@ let buildEnv pkg =
 
 let commandEnv pkg =
   let open Run.Syntax in
-  let%bind (task, _cache) = ofPackage ~includeRootDevDependenciesInEnv:true pkg in
-  Ok task.env
+
+  let initEnv =
+    let parseEnv item =
+      let idx = String.index item '=' in
+      let name = String.sub item 0 idx in
+      let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+      Environment.{name; value; origin = None;}
+    in
+    Unix.environment ()
+    |> Array.map parseEnv
+    |> Array.to_list
+  in
+
+  let%bind (task, _cache) =
+    ofPackage
+      ~overrideShell:false
+      ?initEnv:(Some initEnv)
+      ?initialPath:(getenv "PATH")
+      ?initialManPath:(getenv "MAN_PATH")
+      ~includeRootDevDependenciesInEnv:true pkg
+  in Ok task.env
 
 let sandboxEnv (pkg : Package.t) =
   let open Run.Syntax in

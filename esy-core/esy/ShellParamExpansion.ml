@@ -11,6 +11,11 @@ let parse v =
   | UnmatchedChar (pos, c) ->
     let msg = Printf.sprintf "unknown char: '%c' at position %d" c pos.Lexing.pos_cnum
     in Run.error msg
+  | UnknownShellEscape (pos, c) ->
+    let ctxMsg = Printf.sprintf "parsing %s" v in
+    let msg = Printf.sprintf "unknown escape sequence: '%s' at position %d" c pos.Lexing.pos_cnum in
+    let err = Run.error msg in
+    Run.withContext ctxMsg err
 
 type scope = string -> string option
 
