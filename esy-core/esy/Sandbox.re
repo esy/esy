@@ -156,12 +156,17 @@ let ofDir = (config: Config.t) => {
           dependencies
         );
       let%lwt dependencies =
-        addDeps(
-          ~skipUnresolved=true,
-          ~make=pkg => Package.DevDependency(pkg),
-          manifest.devDependencies,
-          dependencies
-        );
+        if (Path.equal(config.sandboxPath, path)) {
+          addDeps(
+            ~skipUnresolved=true,
+            ~make=pkg => Package.DevDependency(pkg),
+            manifest.devDependencies,
+            dependencies
+          );
+        } else {
+          Lwt.return([]);
+        };
+      let id = packageId(manifest, dependencies);
       let sourceType = {
         let isRootPath = path == config.sandboxPath;
         let hasDepWithSourceTypeDevelopment =
@@ -186,7 +191,6 @@ let ofDir = (config: Config.t) => {
         | (_, _, Some(_)) => Package.SourceType.Immutable
         };
       };
-      let id = packageId(manifest, dependencies);
       let%bind sourcePath = {
         let linkPath = Path.(path / "_esylink");
         if%bind (Io.exists(linkPath)) {
