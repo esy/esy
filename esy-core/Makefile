@@ -2,6 +2,31 @@ TARGETS = \
 	esy-build-package/bin/esyBuildPackage \
 	esy/bin/esy
 
+.DEFAULT: help
+
+define HELP
+
+ Run "make bootstrap" if you are not sure, then go edit esy source code
+ with "esy vim ./path/to/source.re".
+
+ Common tasks:
+
+   bootstrap           Bootstrap the development environment
+   test                Run tests
+   clean               Clean build artefacts
+   build-dev           Incrememental dev build (more warning enabled)
+   build               Release build
+   help                Show this message.
+
+endef
+export HELP
+
+help:
+	@echo "$$HELP"
+
+bootstrap:
+	@$(MAKE) install build-dev
+
 install:
 	@esy install
 
@@ -16,4 +41,4 @@ test:
 	@esy b jbuilder build --dev @runtest
 
 clean:
-	@rm -rf _build
+	@rm -rf _build node_modules/.cache/
