@@ -10,9 +10,9 @@
   version "0.0.12"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.12.tgz#7eab51e8c9f1cbfec748935e3c178a83c31450cc"
 
-"@esy-ocaml/ocamlrun@^4.6.4":
-  version "4.6.5"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/ocamlrun/-/ocamlrun-4.6.5.tgz#715ac817581a9ac60a1685002e546591244e2248"
+"@esy-ocaml/ocamlrun@4.6.6":
+  version "4.6.6"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/ocamlrun/-/ocamlrun-4.6.6.tgz#3b5157977d68922801115a34b21d708a84b8afed"
 
 abab@^1.0.3:
   version "1.0.3"
