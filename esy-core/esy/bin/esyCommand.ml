@@ -358,9 +358,10 @@ let lsBuilds =
       |> Config.ConfigPath.toPath cfg
       |> Esy.Io.exists
     in
-    let status = match built with
-    | true -> "[built]"
-    | false -> "[build pending]"
+    let status = match pkg.sourceType, built with
+    | Esy.Package.SourceType.Immutable, true -> "[built]"
+    | Esy.Package.SourceType.Immutable, false
+    | _, _  -> "[build pending]"
     in
     let line = Printf.sprintf "%s@%s %s" pkg.name pkg.version status in
     return line
