@@ -36,7 +36,7 @@ module type DependencyGraph = sig
     -> node
     -> 'a
 
-  val fold :
+  val foldWithAllDependencies :
     ?traverse:(node -> (node * dependency) list)
     -> f:'a folder
     -> node
@@ -70,7 +70,7 @@ module Make (Kernel : Kernel) : DependencyGraph
     -> node
     -> 'a
 
-  let fold ?(traverse=Kernel.traverse) ~(f: 'a folder) (node : node) =
+  let foldWithAllDependencies ?(traverse=Kernel.traverse) ~(f: 'a folder) (node : node) =
 
     let fCache = Memoize.create ~size:200 in
     let f ~allDependencies ~dependencies node =

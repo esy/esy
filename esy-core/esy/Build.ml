@@ -53,4 +53,4 @@ let build ?(force=`ForRoot) ?(buildOnly=`ForRoot) (cfg : Config.t) (rootTask : B
     | `Yes ->
       performBuild ~force:true ()
 
-  in BuildTask.DependencyGraph.fold ~f rootTask
+  in BuildTask.DependencyGraph.foldWithAllDependencies ~f rootTask

@@ -444,7 +444,7 @@ let ofPackage
     |> ListLabels.rev
   in
 
-  match Package.DependencyGraph.fold ~traverse ~f rootPkg with
+  match Package.DependencyGraph.foldWithAllDependencies ~traverse ~f rootPkg with
   | Ok { task; _ } -> Ok (task, !cache)
   | Error msg -> Error msg
 
