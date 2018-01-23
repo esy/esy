@@ -382,7 +382,10 @@ let () =
 
   let exits = Term.default_exits in
   let sdocs = Manpage.s_common_options in
-  let version = "v0.0.67" in
+  let version =
+    try Sys.getenv "ESY__VERSION"
+    with Not_found -> "dev"
+  in
 
   (** CLI helpers *)
 
