@@ -191,8 +191,8 @@ let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?initEnv
-    ?initialPath
-    ?initialManPath
+    ?finalPath
+    ?finalManPath
     (rootPkg : Package.t)
     =
 
@@ -302,7 +302,7 @@ let ofPackage
         name = "PATH";
         value =
           let v = List.map ConfigPath.toString path in
-          PathLike.make "PATH" ("$PATH"::v);
+          PathLike.make "PATH" v
       } in
 
       let manPath = Environment.{
@@ -310,7 +310,7 @@ let ofPackage
         name = "MAN_PATH";
         value =
           let v = List.map ConfigPath.toString manpath in
-          PathLike.make "MAN_PATH" ("$MAN_PATH"::v);
+          PathLike.make "MAN_PATH" v
       } in
 
       (* Configure environment for ocamlfind.
@@ -350,12 +350,12 @@ let ofPackage
         };
         {
           name = "PATH";
-          value = Std.Option.orDefault "" initialPath;
+          value = "";
           origin = None;
         };
         {
           name = "MAN_PATH";
-          value = Std.Option.orDefault "" initialManPath;
+          value = "";
           origin = None;
         };
         {
@@ -366,19 +366,30 @@ let ofPackage
       ] in
 
       let finalEnv = Environment.(
-        let path = {
-          name = "PATH";
-          value = "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
-          origin = None;
-        } in
+        let v = [
+          {
+            name = "PATH";
+            value = Std.Option.orDefault
+              "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+              finalPath;
+            origin = None;
+          };
+          {
+            name = "MAN_PATH";
+            value = Std.Option.orDefault
+              "$MAN_PATH"
+              finalManPath;
+            origin = None;
+          }
+        ] in
         if overrideShell then
           let shell = {
             name = "SHELL";
             value = "env -i /bin/bash --norc --noprofile";
             origin = None;
-          } in shell::[path]
+          } in shell::v
         else
-          [path]
+          v
       ) in
 
       (finalEnv @ (
@@ -494,8 +505,8 @@ let commandEnv pkg =
     ofPackage
       ~overrideShell:false
       ?initEnv:(Some initEnv)
-      ?initialPath:(getenv "PATH")
-      ?initialManPath:(getenv "MAN_PATH")
+      ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
+      ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
       ~includeRootDevDependenciesInEnv:true pkg
   in Ok task.env
 
@@ -517,8 +528,8 @@ let sandboxEnv (pkg : Package.t) =
   let%bind (task, _cache) = ofPackage
     ~overrideShell:false
     ?initEnv:(Some initEnv)
-    ?initialPath:(getenv "PATH")
-    ?initialManPath:(getenv "MAN_PATH")
+    ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
+    ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
     synPkg
   in Ok task.env
 
