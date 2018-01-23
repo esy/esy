@@ -17,6 +17,7 @@ documentation refer to [esy.sh][] documentation site.
 - [Workflow](#workflow)
   - [Testing Locally](#testing-locally)
   - [Running Tests](#running-tests)
+  - [Branches](#branches)
   - [Issues](#issues)
   - [Publishing Releases](#publishing-releases)
 
@@ -64,12 +65,18 @@ to see the description of development workflow.
 
 Now you may run `esy` commands using your local version of `esy`.
 
-
 ### Running Tests
 
 ```
 % make test
 ```
+
+### Branches
+
+There are two branches:
+
+- `master` — the active development, we cut new versions out of there regularly.
+- `0.0.x` — maintainance branch for 0.0.x releases.
 
 ### Issues
 
