@@ -441,6 +441,18 @@ else
       ensureSandbox
       callBuiltInCommandWithLock release "$@"
       ;;
+    command-env)
+      shift
+      callEsyCoreCommand "command-env" "$@"
+      ;;
+    sandbox-env)
+      shift
+      callEsyCoreCommand "sandbox-env" "$@"
+      ;;
+    build-env)
+      shift
+      callEsyCoreCommand "build-env" "$@"
+      ;;
     ls-builds)
       shift
       callEsyCoreCommand "ls-builds" "$@"
