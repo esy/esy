@@ -5,6 +5,11 @@ module StringSet = Set.Make(String)
 
 let cwd = Sys.getcwd ()
 
+(** This is set by bash script wrapper currently *)
+let version =
+  try Sys.getenv "ESY__VERSION"
+  with Not_found -> "dev"
+
 let pathTerm =
   let open Cmdliner in
   let parse = Path.of_string in
@@ -56,7 +61,7 @@ let configTerm =
     )
   in
   let parse prefixPath sandboxPath =
-    Config.create ~prefixPath sandboxPath
+    Config.create ~esyVersion:version ~prefixPath sandboxPath
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
@@ -124,7 +129,7 @@ let buildPlan cfg packagePath =
     )
   in
 
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let buildShell cfg packagePath =
@@ -138,7 +143,7 @@ let buildShell cfg packagePath =
     PackageBuilder.buildShell cfg task
   in
 
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let buildPackage cfg packagePath =
@@ -152,13 +157,13 @@ let buildPackage cfg packagePath =
     Build.build ~force:`Yes cfg task
   in
 
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let build ?(buildOnly=`ForRoot) cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
 
   let cache = StringMap.empty in
 
@@ -214,7 +219,7 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
     return ()
   in
 
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
   withPackageByPath cfg packagePath root f
 
 let buildEnv =
@@ -311,7 +316,7 @@ let makeExecCommand
       command waitForProcess
   in
 
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
   f root
 
 let exec cfgRes =
@@ -348,7 +353,7 @@ let makeLsCommand ~computeLine ~includeTransitive cfg =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
-  let%bind {Sandbox. root} = Sandbox.ofDir cfg in
+  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
 
   let seen = ref StringSet.empty in
 
@@ -405,11 +410,6 @@ let () =
 
   let exits = Term.default_exits in
   let sdocs = Manpage.s_common_options in
-  let version =
-    try Sys.getenv "ESY__VERSION"
-    with Not_found -> "dev"
-  in
-
   (** CLI helpers *)
 
   let runCommand (cmd : unit Run.t) =

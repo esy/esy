@@ -177,9 +177,14 @@ module Manifest = struct
 
   let ofDir (path : Path.t) =
     let open RunAsync.Syntax in
-    match%bind ofFile Path.(path / "esy.json") with
-    | None -> ofFile Path.(path / "package.json")
-    | manifest -> return manifest
+    let esyJson = Path.(path / "esy.json")
+    and packageJson = Path.(path / "package.json")
+    in match%bind ofFile esyJson with
+    | None -> begin match%bind ofFile packageJson with
+      | Some manifest -> return (Some (manifest, packageJson))
+      | None -> return None
+      end
+    | Some manifest -> return (Some (manifest, esyJson))
 end
 
 type t = {
