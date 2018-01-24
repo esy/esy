@@ -516,12 +516,13 @@ let lsBuilds =
       |> Config.ConfigPath.toPath cfg
       |> Fs.exists
     in
+    let version = Chalk.(highlight ~color:grey ("@" ^ pkg.version)) in
     let status = match pkg.sourceType, built with
-    | Esy.Package.SourceType.Immutable, true -> "[built]"
-    | Esy.Package.SourceType.Immutable, false
-    | _, _  -> "[build pending]"
+      | Esy.Package.SourceType.Immutable, true -> Chalk.(highlight ~color:green "[built]")
+      | Esy.Package.SourceType.Immutable, false
+      | _, _  -> Chalk.(highlight ~color:blue "[build pending]")
     in
-    let line = Printf.sprintf "%s@%s %s" pkg.name pkg.version status in
+    let line = Printf.sprintf "%s%s %s" pkg.name version status in
     return line
   in
   makeLsCommand ~computeLine
