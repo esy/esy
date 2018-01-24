@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 0.1.1 @ preview
+
+  * Fix a bug with how esy constructed command-env — the external `$PATH` was
+    taking a precedence over sandboxed `$PATH`.
+
+## 0.1.0 @ preview
+
+  * Release new esy core re-implementation in Reason/OCaml.
+
+    A lot of code was replaced and rewritten. This is why we release it under
+    `preview` npm tag and not even `next`. Though `esy@preview` already can
+    support the workflow of building itself.
+
+## 0.0.68 @ latest
+
+  * Pin dependency to `@esy-ocaml/ocamlrun` package.
+
+## 0.0.67
+
+  * Broken release
+
 ## 0.0.66
 
 * Report progress on console even if no tty is available.
