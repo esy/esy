@@ -10,6 +10,14 @@ let version =
   try Sys.getenv "ESY__VERSION"
   with Not_found -> "dev"
 
+let measureTime ~label f =
+  let open RunAsync.Syntax in
+  let s = Unix.gettimeofday () in
+  let%bind res = f () in
+  let e = Unix.gettimeofday () in
+  let%lwt () = Logs_lwt.debug(fun m -> m "time spent %s: %f" label (e -. s)) in
+  return res
+
 let pathTerm =
   let open Cmdliner in
   let parse = Path.of_string in
@@ -99,22 +107,109 @@ let setupLogTerm =
     Logs.set_reporter (lwt_reporter ())
   in
   let open Cmdliner in
-  Term.(const setupLog  $ Fmt_cli.style_renderer () $ Logs_cli.level  ())
+  Term.(
+    const setupLog
+    $ Fmt_cli.style_renderer ()
+    $ Logs_cli.level ~env:(Arg.env_var "ESY__LOG") ())
 
-let withPackageByPath cfg packagePath root f =
+module SandboxInfo = struct
+
+  open RunAsync.Syntax
+
+  type t = {
+    sandbox : Sandbox.t;
+    task : BuildTask.t;
+    commandEnv : Environment.Closed.t;
+    sandboxEnv : Environment.Closed.t;
+  }
+
+  let cachePath (cfg : Config.t) =
+    let hash = [
+        Path.to_string cfg.storePath;
+        Path.to_string cfg.localStorePath;
+        Path.to_string cfg.sandboxPath;
+        cfg.esyVersion
+      ]
+      |> String.concat "$$"
+      |> Digest.string
+      |> Digest.to_hex
+    in
+    let name = Printf.sprintf "sandbox-%s" hash in
+    Path.(cfg.sandboxPath / "node_modules" / ".cache" / "_esy" / name)
+
+  let writeCache (cfg : Config.t) (info : t) =
+    let f () =
+      let cachePath = cachePath cfg in
+      let%bind () = Io.createDirectory (Path.parent cachePath) in
+      let f oc =
+        let%lwt () = Lwt_io.write_value oc info in
+        Lwt.return_ok ()
+      in
+      Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string cachePath) f
+    in measureTime ~label:"writing sandbox info cache" f
+
+  let readCache (cfg : Config.t) =
+    let f () =
+      let cachePath = cachePath cfg in
+      let f ic =
+        let%lwt info = (Lwt_io.read_value ic : t Lwt.t) in
+        let%bind isStale =
+          let checkMtime (path, mtime) =
+            let%bind { Unix.st_mtime = curMtime; _ } = Io.stat path in
+            return (curMtime > mtime)
+          in
+          info.sandbox.manifestInfo
+            |> List.map checkMtime
+            |> RunAsync.joinAll
+          in
+        if List.exists (fun x -> x) isStale
+        then return None
+        else return (Some info)
+      in
+      try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.to_string cachePath) f
+      with | Unix.Unix_error _ -> return None
+    in measureTime ~label:"reading sandbox info cache" f
+
+  let ofConfig (cfg : Config.t) =
+    let makeInfo () =
+      let f () =
+        let%bind sandbox = Sandbox.ofDir cfg in
+        let%bind task, commandEnv, sandboxEnv = RunAsync.liftOfRun (
+          let open Run.Syntax in
+          let%bind task, _cache = BuildTask.ofPackage sandbox.root in
+          let%bind commandEnv = BuildTask.commandEnv sandbox.root in
+          let%bind sandboxEnv = BuildTask.sandboxEnv sandbox.root in
+          return (task, commandEnv, sandboxEnv)
+        ) in
+        return {task; sandbox; commandEnv; sandboxEnv}
+      in measureTime ~label:"constructing sandbox info" f
+    in
+    match%bind readCache cfg with
+    | Some info -> return info
+    | None ->
+      let%bind info = makeInfo () in
+      let%bind () = writeCache cfg info in
+      return info
+end
+
+let withPackageByPath
+    ~(cfg : Config.t)
+    ~(info : SandboxInfo.t)
+    packagePath
+    f =
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
     let findByPath (pkg : Package.t) =
       let sourcePath = Config.ConfigPath.toPath cfg pkg.sourcePath in
       Path.equal sourcePath packagePath
-    in begin match Package.DependencyGraph.find ~f:findByPath root with
+    in begin match Package.DependencyGraph.find ~f:findByPath info.sandbox.root with
     | None ->
       let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
       error msg
     | Some pkg -> f pkg
     end
-  | None -> f root
+  | None -> f info.sandbox.root
 
 let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
@@ -129,8 +224,8 @@ let buildPlan cfg packagePath =
     )
   in
 
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
-  withPackageByPath cfg packagePath root f
+  let%bind info = SandboxInfo.ofConfig cfg in
+  withPackageByPath ~cfg ~info packagePath f
 
 let buildShell cfg packagePath =
   let open RunAsync.Syntax in
@@ -143,8 +238,8 @@ let buildShell cfg packagePath =
     PackageBuilder.buildShell cfg task
   in
 
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
-  withPackageByPath cfg packagePath root f
+  let%bind info = SandboxInfo.ofConfig cfg in
+  withPackageByPath ~cfg ~info packagePath f
 
 let buildPackage cfg packagePath =
   let open RunAsync.Syntax in
@@ -157,19 +252,15 @@ let buildPackage cfg packagePath =
     Build.build ~force:`Yes cfg task
   in
 
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
-  withPackageByPath cfg packagePath root f
+  let%bind info = SandboxInfo.ofConfig cfg in
+  withPackageByPath ~cfg ~info packagePath f
 
 let build ?(buildOnly=`ForRoot) cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
+  let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
 
   let cache = StringMap.empty in
-
-  let%bind (task: BuildTask.t), cache =
-    RunAsync.liftOfRun (BuildTask.ofPackage ~cache root)
-  in
 
   (** TODO: figure out API to build devDeps in parallel with the root *)
 
@@ -219,8 +310,8 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
     return ()
   in
 
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
-  withPackageByPath cfg packagePath root f
+  let%bind info = SandboxInfo.ofConfig cfg in
+  withPackageByPath ~cfg ~info packagePath f
 
 let buildEnv =
   let header (pkg : Package.t) =
@@ -243,81 +334,75 @@ let sandboxEnv =
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
     ?prepare
-    ~computeEnv
+    ~env
     cfg
     command
     =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind (info: SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
-  let f (pkg : Package.t) =
-
-    let%bind () = match prepare with
-    | None -> return ()
-    | Some prepare -> prepare cfg pkg
-    in
-
-    let%bind () = if checkIfDependenciesAreBuilt then
-      let%bind (task: BuildTask.t), _cache =
-        RunAsync.liftOfRun (BuildTask.ofPackage pkg)
-      in
-      Build.buildDependencies cfg task
-    else
-      return ()
-    in
-
-    let%bind envValue = RunAsync.liftOfRun (
-      let open Run.Syntax in
-      let%bind env = computeEnv pkg in
-      let env = Environment.Closed.value env in
-      Environment.Value.bindToConfig cfg env
-    ) in
-
-    let%bind env = RunAsync.liftOfRun (
-      Ok (
-        envValue
-        |> Environment.Value.M.bindings
-        |> List.map (fun (name, value) -> Printf.sprintf "%s=%s" name value)
-        |> Array.of_list)
-    ) in
-
-    let resolvePrg prg =
-      let path =
-        let v = match Environment.Value.M.find_opt "PATH" envValue with
-        | Some v -> v
-        | None -> ""
-        in String.split_on_char ':' v
-      in
-      Run.liftOfBosError (Cmd.resolveCmd path prg)
-    in
-
-    let%bind command = RunAsync.liftOfRun (
-      let open Run.Syntax in
-      match command with
-      | [] -> Run.error "empty command"
-      | (prg::_) as entire ->
-        let%bind prg = resolvePrg prg in
-        Ok (prg, Array.of_list entire)
-    ) in
-
-    let waitForProcess process =
-      let%lwt status = process#status in
-      match status with
-      | Unix.WEXITED 0 -> return ()
-      | _ -> RunAsync.error "error running command"
-    in
-
-    Lwt_process.with_process_none
-      ~env
-      ~stderr:(`FD_copy Unix.stderr)
-      ~stdout:(`FD_copy Unix.stdout)
-      ~stdin:(`FD_copy Unix.stdin)
-      command waitForProcess
+  let%bind () = match prepare with
+  | None -> return ()
+  | Some prepare -> prepare cfg info.sandbox.root
   in
 
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
-  f root
+  let%bind () =
+    if checkIfDependenciesAreBuilt
+    then Build.buildDependencies cfg info.task
+    else return ()
+  in
+
+  let%bind envValue = RunAsync.liftOfRun (
+    let env = match env with
+    | `CommandEnv -> info.commandEnv
+    | `SandboxEnv -> info.sandboxEnv
+    in
+    let env = Environment.Closed.value env in
+    Environment.Value.bindToConfig cfg env
+  ) in
+
+  let%bind env = RunAsync.liftOfRun (
+    Ok (
+      envValue
+      |> Environment.Value.M.bindings
+      |> List.map (fun (name, value) -> Printf.sprintf "%s=%s" name value)
+      |> Array.of_list)
+  ) in
+
+  let resolvePrg prg =
+    let path =
+      let v = match Environment.Value.M.find_opt "PATH" envValue with
+      | Some v -> v
+      | None -> ""
+      in String.split_on_char ':' v
+    in
+    Run.liftOfBosError (Cmd.resolveCmd path prg)
+  in
+
+  let%bind command = RunAsync.liftOfRun (
+    let open Run.Syntax in
+    match command with
+    | [] -> Run.error "empty command"
+    | (prg::_) as entire ->
+      let%bind prg = resolvePrg prg in
+      Ok (prg, Array.of_list entire)
+  ) in
+
+  let waitForProcess process =
+    let%lwt status = process#status in
+    match status with
+    | Unix.WEXITED 0 -> return ()
+    | _ -> RunAsync.error "error running command"
+  in
+
+  Lwt_process.with_process_none
+    ~env
+    ~stderr:(`FD_copy Unix.stderr)
+    ~stdout:(`FD_copy Unix.stdout)
+    ~stdin:(`FD_copy Unix.stdin)
+    command waitForProcess
 
 let exec cfgRes =
   let open RunAsync.Syntax in
@@ -334,26 +419,29 @@ let exec cfgRes =
   in
   makeExecCommand
     ~prepare
-    ~computeEnv:BuildTask.sandboxEnv
+    ~env:`SandboxEnv
     cfgRes
 
 let devExec =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
-    ~computeEnv:BuildTask.commandEnv
+    ~env:`CommandEnv
 
 let devShell cfg =
   let shell =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
-  makeExecCommand ~computeEnv:BuildTask.commandEnv cfg [shell]
+  makeExecCommand
+    ~env:`CommandEnv
+    cfg
+    [shell]
 
 let makeLsCommand ~computeLine ~includeTransitive cfg =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
-  let%bind {Sandbox. root; _} = Sandbox.ofDir cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
   let seen = ref StringSet.empty in
 
@@ -363,7 +451,7 @@ let makeLsCommand ~computeLine ~includeTransitive cfg =
     else (
       seen := StringSet.add pkg.id !seen;
       let%bind children =
-        if not includeTransitive && pkg.id <> root.id then
+        if not includeTransitive && pkg.id <> info.sandbox.root.id then
           return []
         else
           foldDependencies ()
@@ -381,7 +469,7 @@ let makeLsCommand ~computeLine ~includeTransitive cfg =
     )
   in
 
-  match%bind Package.DependencyGraph.fold ~f root with
+  match%bind Package.DependencyGraph.fold ~f info.sandbox.root with
   | Some tree -> return (print_endline (Esy.TermTree.toString tree))
   | None -> return ()
 

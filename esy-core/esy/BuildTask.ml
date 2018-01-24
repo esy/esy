@@ -503,10 +503,10 @@ let commandEnv pkg =
 
   let%bind (task, _cache) =
     ofPackage
-      ~overrideShell:false
       ?initEnv:(Some initEnv)
       ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
       ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
+      ~overrideShell:false
       ~includeRootDevDependenciesInEnv:true pkg
   in Ok task.env
 
