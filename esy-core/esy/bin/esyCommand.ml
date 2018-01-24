@@ -10,6 +10,17 @@ let version =
   try Sys.getenv "ESY__VERSION"
   with Not_found -> "dev"
 
+let concurrency =
+  (** TODO: handle more platforms, right now this is tested only on macOS and
+   * Linux *)
+  let cmd = Bos.Cmd.(v "getconf" % "_NPROCESSORS_ONLN") in
+  match Bos.OS.Cmd.(run_out cmd |> to_string) with
+  | Ok out -> begin match out |> String.trim |> int_of_string_opt with
+    | Some n -> n
+    | None -> 1
+    end
+  | Error _ -> 1
+
 let measureTime ~label f =
   let open RunAsync.Syntax in
   let s = Unix.gettimeofday () in
@@ -234,7 +245,7 @@ let buildShell cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    let%bind () = Build.buildDependencies cfg task in
+    let%bind () = Build.buildDependencies ~concurrency cfg task in
     PackageBuilder.buildShell cfg task
   in
 
@@ -248,8 +259,8 @@ let buildPackage cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    let%bind () = Build.buildDependencies cfg task in
-    Build.build ~force:`Yes cfg task
+    let%bind () = Build.buildDependencies ~concurrency cfg task in
+    Build.build ~concurrency ~force:`Yes cfg task
   in
 
   let%bind info = SandboxInfo.ofConfig cfg in
@@ -266,13 +277,13 @@ let build ?(buildOnly=`ForRoot) cfg command =
 
   match command with
   | [] ->
-    let%bind () = Build.build ~force:`ForRoot ~buildOnly cfg task in
+    let%bind () = Build.build ~concurrency ~force:`ForRoot ~buildOnly cfg task in
     let rec buildDevDep = function
       | [] ->
         return ()
       | (Package.DevDependency pkg)::dependencies ->
         let%bind task, _ = RunAsync.liftOfRun (BuildTask.ofPackage ~cache pkg) in
-        let%bind () = Build.build ~force:`No ~buildOnly:`No cfg task in
+        let%bind () = Build.build ~concurrency ~force:`No ~buildOnly:`No cfg task in
         buildDevDep dependencies
       | _::dependencies ->
         buildDevDep dependencies
@@ -280,7 +291,7 @@ let build ?(buildOnly=`ForRoot) cfg command =
     buildDevDep (task.pkg.dependencies)
 
   | command ->
-    let%bind () = Build.buildDependencies cfg task in
+    let%bind () = Build.buildDependencies ~concurrency cfg task in
     PackageBuilder.buildExec cfg task command
 
 let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
@@ -350,7 +361,7 @@ let makeExecCommand
 
   let%bind () =
     if checkIfDependenciesAreBuilt
-    then Build.buildDependencies cfg info.task
+    then Build.buildDependencies ~concurrency cfg info.task
     else return ()
   in
 
