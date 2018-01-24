@@ -221,8 +221,12 @@ type pkg_dependency = dependency
 
 module DependencyGraph = DependencyGraph.Make(struct
 
-  type node = pkg
-  type dependency = pkg_dependency
+  type t = pkg
+
+  module Dependency = struct
+    type t = pkg_dependency
+    let compare a b = compare a b
+  end
 
   let id (pkg : t) = pkg.id
 

@@ -199,17 +199,19 @@ let ofPackage
 
   let open Run.Syntax in
 
-  let includeDependency = function
-    | Package.Dependency _
-    | Package.PeerDependency _
-    | Package.OptDependency _ -> true
-    | Package.DevDependency _ -> includeRootDevDependenciesInEnv
-    | Package.InvalidDependency _ ->
-      (** TODO: need to fail gracefully here *)
-      failwith "invalid dependency"
-  in
-
   let f ~allDependencies ~dependencies (pkg : Package.t) =
+
+    let isRoot = pkg.id = rootPkg.id in
+
+    let includeDependency = function
+      | Package.Dependency _pkg
+      | Package.PeerDependency _pkg
+      | Package.OptDependency _pkg -> true
+      | Package.DevDependency _pkg -> isRoot && includeRootDevDependenciesInEnv
+      | Package.InvalidDependency _ ->
+        (** TODO: need to fail gracefully here *)
+        failwith "invalid dependency"
+    in
 
     let%bind allDependencies, dependencies =
       let joinDependencies dependencies =
@@ -544,8 +546,12 @@ let sandboxEnv (pkg : Package.t) =
   in Ok task.env
 
 module DependencyGraph = DependencyGraph.Make(struct
-  type node = task
-  type dependency = task_dependency
+  type t = task
+
+  module Dependency = struct
+    type t = task_dependency
+    let compare a b = compare a b
+  end
 
   let id task =
     task.id

@@ -6,19 +6,22 @@
  * top.
  *)
 module type Kernel = sig
-  type node
-  type dependency
+  type t
+
+  module Dependency : sig
+    type t
+    val compare : t -> t -> int
+  end
 
   (**
-   * Given a node — extract its id
+   * Given a node — extract its id.
    *)
-  val id : node -> string
+  val id : t -> string
 
   (**
-   * Given a node — a list of dependencies, option is just for convenience —
-   * such values will be just filtered
+   * Given a node — get a list of dependencies with corresponding nodes.
    *)
-  val traverse : node -> (node * dependency) list
+  val traverse : t -> (t * Dependency.t) list
 end
 
 module type DependencyGraph = sig
@@ -62,14 +65,14 @@ end
 
 module Make (Kernel : Kernel) : DependencyGraph
   with
-    type node = Kernel.node and
-    type dependency = Kernel.dependency
+    type node = Kernel.t and
+    type dependency = Kernel.Dependency.t
   = struct
 
-  module StringSet = Set.Make(String)
+  module DependencySet = Set.Make(Kernel.Dependency)
 
-  type node = Kernel.node
-  type dependency = Kernel.dependency
+  type node = Kernel.t
+  type dependency = Kernel.Dependency.t
 
   type 'a folder
     =  allDependencies : (dependency * 'a) list
@@ -91,10 +94,10 @@ module Make (Kernel : Kernel) : DependencyGraph
       let visitDep (seen, allDependencies, dependencies) (node, dep) =
         let depAllDependencies, depDependencies, depValue = visitCached node in
         let f (seen, allDependencies) (node, dep, depValue) =
-          if StringSet.mem (Kernel.id node) seen then
+          if DependencySet.mem dep seen then
             (seen, allDependencies)
           else
-            let seen  = StringSet.add (Kernel.id node) seen in
+            let seen  = DependencySet.add dep seen in
             let allDependencies = (node, dep, depValue)::allDependencies in
             (seen, allDependencies)
         in
@@ -110,7 +113,7 @@ module Make (Kernel : Kernel) : DependencyGraph
 
       let allDependencies, dependencies =
         let _, allDependencies, dependencies =
-          let seen = StringSet.empty in
+          let seen = DependencySet.empty in
           let allDependencies = [] in
           let dependencies = [] in
           ListLabels.fold_left
