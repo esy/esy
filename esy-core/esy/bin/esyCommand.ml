@@ -134,6 +134,7 @@ let buildShell cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind () = Build.buildDependencies cfg task in
     PackageBuilder.buildShell cfg task
   in
 
@@ -147,6 +148,7 @@ let buildPackage cfg packagePath =
 
   let f pkg =
     let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind () = Build.buildDependencies cfg task in
     Build.build ~force:`Yes cfg task
   in
 
@@ -182,6 +184,7 @@ let build ?(buildOnly=`ForRoot) cfg command =
     buildDevDep (task.pkg.dependencies)
 
   | command ->
+    let%bind () = Build.buildDependencies cfg task in
     PackageBuilder.buildExec cfg task command
 
 let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
@@ -232,7 +235,13 @@ let sandboxEnv =
   in
   makeEnvCommand ~computeEnv:BuildTask.sandboxEnv ~header
 
-let makeExecCommand ~computeEnv ?prepare cfg command =
+let makeExecCommand
+    ?(checkIfDependenciesAreBuilt=false)
+    ?prepare
+    ~computeEnv
+    cfg
+    command
+    =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
@@ -242,6 +251,15 @@ let makeExecCommand ~computeEnv ?prepare cfg command =
     let%bind () = match prepare with
     | None -> return ()
     | Some prepare -> prepare cfg pkg
+    in
+
+    let%bind () = if checkIfDependenciesAreBuilt then
+      let%bind (task: BuildTask.t), _cache =
+        RunAsync.liftOfRun (BuildTask.ofPackage pkg)
+      in
+      Build.buildDependencies cfg task
+    else
+      return ()
     in
 
     let%bind envValue = RunAsync.liftOfRun (
@@ -309,10 +327,15 @@ let exec cfgRes =
     else
       build ~buildOnly:`No cfgRes []
   in
-  makeExecCommand ~prepare ~computeEnv:BuildTask.sandboxEnv cfgRes
+  makeExecCommand
+    ~prepare
+    ~computeEnv:BuildTask.sandboxEnv
+    cfgRes
 
 let devExec =
-  makeExecCommand ~computeEnv:BuildTask.commandEnv
+  makeExecCommand
+    ~checkIfDependenciesAreBuilt:true
+    ~computeEnv:BuildTask.commandEnv
 
 let devShell cfg =
   let shell =
