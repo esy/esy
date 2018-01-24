@@ -187,7 +187,7 @@ module SandboxInfo = struct
         let%bind sandbox = Sandbox.ofDir cfg in
         let%bind task, commandEnv, sandboxEnv = RunAsync.liftOfRun (
           let open Run.Syntax in
-          let%bind task, _cache = BuildTask.ofPackage sandbox.root in
+          let%bind task = BuildTask.ofPackage sandbox.root in
           let%bind commandEnv = BuildTask.commandEnv sandbox.root in
           let%bind sandboxEnv = BuildTask.sandboxEnv sandbox.root in
           return (task, commandEnv, sandboxEnv)
@@ -228,7 +228,7 @@ let buildPlan cfg packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
-    let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     return (
       BuildTask.toBuildProtocolString ~pretty:true task
       |> print_endline
@@ -244,7 +244,7 @@ let buildShell cfg packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
-    let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     let%bind () = Build.buildDependencies ~concurrency cfg task in
     PackageBuilder.buildShell cfg task
   in
@@ -258,7 +258,7 @@ let buildPackage cfg packagePath =
   let%bind cfg = RunAsync.liftOfRun cfg in
 
   let f pkg =
-    let%bind task, _cache = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+    let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
     let%bind () = Build.buildDependencies ~concurrency cfg task in
     Build.build ~concurrency ~force:`Yes cfg task
   in
@@ -271,24 +271,11 @@ let build ?(buildOnly=`ForRoot) cfg command =
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
 
-  let cache = StringMap.empty in
-
   (** TODO: figure out API to build devDeps in parallel with the root *)
 
   match command with
   | [] ->
-    let%bind () = Build.build ~concurrency ~force:`ForRoot ~buildOnly cfg task in
-    let rec buildDevDep = function
-      | [] ->
-        return ()
-      | (Package.DevDependency pkg)::dependencies ->
-        let%bind task, _ = RunAsync.liftOfRun (BuildTask.ofPackage ~cache pkg) in
-        let%bind () = Build.build ~concurrency ~force:`No ~buildOnly:`No cfg task in
-        buildDevDep dependencies
-      | _::dependencies ->
-        buildDevDep dependencies
-    in
-    buildDevDep (task.pkg.dependencies)
+    Build.build ~concurrency ~force:`ForRoot ~buildOnly cfg task
 
   | command ->
     let%bind () = Build.buildDependencies ~concurrency cfg task in

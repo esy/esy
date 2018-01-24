@@ -187,7 +187,6 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
     | Error err -> Error err
 
 let ofPackage
-    ?(cache=StringMap.empty)
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?initEnv
@@ -200,11 +199,23 @@ let ofPackage
 
   let open Run.Syntax in
 
+  let includeDependency = function
+    | Package.Dependency _
+    | Package.PeerDependency _
+    | Package.OptDependency _ -> true
+    | Package.DevDependency _ -> includeRootDevDependenciesInEnv
+    | Package.InvalidDependency _ ->
+      (** TODO: need to fail gracefully here *)
+      failwith "invalid dependency"
+  in
+
   let f ~allDependencies ~dependencies (pkg : Package.t) =
 
     let%bind allDependencies, dependencies =
-      let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
-      let joinDependencies dependencies = Result.listMap ~f dependencies in
+      let joinDependencies dependencies =
+        let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
+        Result.listMap ~f dependencies
+      in
       let%bind dependencies = joinDependencies dependencies in
       let%bind allDependencies = joinDependencies allDependencies in
       Ok (allDependencies, dependencies)
@@ -214,10 +225,13 @@ let ofPackage
       let bindings = StringMap.empty in
       let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
       let bindings = addPackageBindings ~kind:`AsDep pkg bindings in
-      let bindings = ListLabels.fold_left
-        ~f:(fun bindings (_, {pkg;_}) -> addPackageBindings ~kind:`AsDep pkg bindings)
-        ~init:bindings
-        dependencies
+      let bindings =
+        let f bindings (dep, {pkg; _}) =
+          if includeDependency dep
+          then addPackageBindings ~kind:`AsDep pkg bindings
+          else bindings
+        in
+        ListLabels.fold_left ~f ~init:bindings dependencies
       in
       let lookup name =
         let name = String.concat "." name in
@@ -270,6 +284,7 @@ let ofPackage
        *)
       let globalEnvOfAllDeps =
         allDependencies
+        |> List.filter (fun (dep, _) -> includeDependency dep)
         |> List.map (fun (_, {globalEnv; _}) -> globalEnv)
         |> List.concat
         |> List.rev
@@ -279,6 +294,7 @@ let ofPackage
        *)
       let localEnvOfDeps =
         dependencies
+        |> List.filter (fun (dep, _) -> includeDependency dep)
         |> List.map (fun (_, {localEnv; _}) -> localEnv)
         |> List.concat
         |> List.rev
@@ -294,7 +310,9 @@ let ofPackage
           let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
           path, manpath, ocamlpath
         in
-        ListLabels.fold_left ~f ~init:([], [], []) allDependencies
+        allDependencies
+        |> ListLabels.filter ~f:(fun (dep, _) -> includeDependency dep)
+        |> ListLabels.fold_left ~f ~init:([], [], [])
       in
 
       let path = Environment.{
@@ -436,7 +454,10 @@ let ofPackage
       logPath = pkgLogPath pkg;
 
       dependencies =
-        let f (_, {task; _}) = Dependency task in
+        let f (dep, {task; _}) = match dep with
+        | Package.DevDependency _ -> DevDependency task
+        | _ -> Dependency task
+        in
         ListLabels.map ~f dependencies;
     } in
 
@@ -444,33 +465,22 @@ let ofPackage
 
   in
 
-  let cache = ref cache in
-
   let f ~allDependencies ~dependencies (pkg : Package.t) =
-    try StringMap.find pkg.id !cache
-    with Not_found ->
-      let v =
-        let v = f ~allDependencies ~dependencies pkg in
-        let context =
-          Printf.sprintf
-            "processing package: %s@%s"
-            pkg.name
-            pkg.version
-        in
-        Run.withContext context v
-      in
-      cache := StringMap.add pkg.id v !cache;
-      v
+    let v = f ~allDependencies ~dependencies pkg in
+    let context =
+      Printf.sprintf
+        "processing package: %s@%s"
+        pkg.name
+        pkg.version
+    in
+    Run.withContext context v
 
   and traverse (pkg : Package.t) =
     let f acc dep = match dep with
       | Package.Dependency dpkg
       | Package.OptDependency dpkg
-      | Package.PeerDependency dpkg -> (dpkg, dep)::acc
-      | Package.DevDependency dpkg ->
-        if includeRootDevDependenciesInEnv && rootPkg.id = pkg.id
-        then (dpkg, dep)::acc
-        else acc
+      | Package.PeerDependency dpkg
+      | Package.DevDependency dpkg -> (dpkg, dep)::acc
       | Package.InvalidDependency _ -> acc
     in
     pkg.dependencies
@@ -479,12 +489,12 @@ let ofPackage
   in
 
   match Package.DependencyGraph.foldWithAllDependencies ~traverse ~f rootPkg with
-  | Ok { task; _ } -> Ok (task, !cache)
+  | Ok { task; _ } -> Ok task
   | Error msg -> Error msg
 
 let buildEnv pkg =
   let open Run.Syntax in
-  let%bind (task, _cache) = ofPackage pkg in
+  let%bind task = ofPackage pkg in
   Ok task.env
 
 let initEnv =
@@ -501,7 +511,7 @@ let initEnv =
 let commandEnv pkg =
   let open Run.Syntax in
 
-  let%bind (task, _cache) =
+  let%bind task =
     ofPackage
       ?initEnv:(Some initEnv)
       ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
@@ -525,7 +535,7 @@ let sandboxEnv (pkg : Package.t) =
     exportedEnv = [];
     sourcePath = pkg.sourcePath;
   } in
-  let%bind (task, _cache) = ofPackage
+  let%bind task = ofPackage
     ~overrideShell:false
     ?initEnv:(Some initEnv)
     ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
