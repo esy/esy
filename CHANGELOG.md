@@ -4,6 +4,8 @@
 
   * Make things faster by adding caching to sandbox metadata.
 
+  * Build devDependencies in parallel with the root package.
+
   * Fix a bug with `esy build <anycmd>`, `esy <anycmd>`, `esy build-shell` not
     checking if deps are built before starting.
 
