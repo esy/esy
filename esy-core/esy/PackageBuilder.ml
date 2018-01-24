@@ -56,7 +56,8 @@ let run
 
     let%lwt () =
       let buildJsonData = BuildTask.toBuildProtocolString task in
-      Lwt_io.write buildJsonOc buildJsonData
+      let%lwt () = Lwt_io.write buildJsonOc buildJsonData in
+      Lwt_io.flush buildJsonOc;
     in
 
     let stdin = match stdin with
