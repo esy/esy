@@ -57,12 +57,15 @@ let unlink (path : Path.t) =
 
 let withTemporaryFile f =
   let path = Filename.temp_file "esy" "tmp" in
-  let%lwt oc = Lwt_io.open_file ~mode:Lwt_io.Output path in
-  let%lwt result =
-    try
-      f (Path.v path) oc
-    with e ->
-      let%lwt () = Lwt_unix.unlink path in
-      raise e
+  let f oc =
+    let%lwt result =
+      try%lwt
+        let%lwt res = f (Path.v path) oc in
+        Lwt.return res
+      with e ->
+        let%lwt () = Lwt_unix.unlink path in
+        Lwt.fail e
+    in
+    Lwt.return result
   in
-  Lwt.return result
+  Lwt_io.with_file ~mode:Lwt_io.Output path f
