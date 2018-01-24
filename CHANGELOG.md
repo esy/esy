@@ -2,8 +2,14 @@
 
 ## 0.1.2 @ preview
 
+  * Make things faster by adding caching to sandbox metadata.
+
   * Fix a bug with `esy build <anycmd>`, `esy <anycmd>`, `esy build-shell` not
     checking if deps are built before starting.
+
+  * Restrict build concurrency by the number of CPU cores available.
+
+  * Fix various bugs: fd leaks, not flushing output channels and so on.
 
 ## 0.1.1 @ preview
 
