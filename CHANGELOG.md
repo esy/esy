@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.1.2 @ preview
+
+  * Fix a bug with `esy build <anycmd>`, `esy <anycmd>`, `esy build-shell` not
+    checking if deps are built before starting.
+
 ## 0.1.1 @ preview
 
   * Fix a bug with how esy constructed command-env — the external `$PATH` was
