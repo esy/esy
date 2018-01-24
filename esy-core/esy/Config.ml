@@ -4,6 +4,7 @@ module PackageBuilderConfig = struct
 end
 
 type t = {
+  esyVersion : string;
   sandboxPath : Path.t;
   storePath : Path.t;
   localStorePath : Path.t;
@@ -41,7 +42,7 @@ let maxStorePaddingLength =
       ^ ocamlrunStorePath
     )
 
-let create ~prefixPath sandboxPath =
+let create ~esyVersion ~prefixPath sandboxPath =
   let value =
     let module Let_syntax = Result.Let_syntax in
     let initStore (path: Path.t) =
@@ -75,6 +76,7 @@ let create ~prefixPath sandboxPath =
     let%bind () = initStore storePath in
     let%bind () = initStore localStorePath in
     Ok {
+      esyVersion;
       storePath;
       sandboxPath;
       localStorePath;

@@ -29,6 +29,27 @@ let exists (path : Path.t) =
   let%lwt exists = Lwt_unix.file_exists path in
   RunAsync.return exists
 
+let createDirectory (path : Path.t) =
+  let rec create path =
+    try%lwt (
+      let path = Path.to_string path in
+      Lwt_unix.mkdir path 0o777
+    ) with
+    | Unix.Unix_error (Unix.EEXIST, _, _) ->
+      Lwt.return ()
+    | Unix.Unix_error (Unix.ENOENT, _, _) ->
+      let%lwt () = create (Path.parent path) in
+      let%lwt () = create path in
+      Lwt.return ()
+  in
+  let%lwt () = create path in
+  RunAsync.return ()
+
+let stat (path : Path.t) =
+  let path = Path.to_string path in
+  let%lwt stats = Lwt_unix.stat path in
+  RunAsync.return stats
+
 let unlink (path : Path.t) =
   let path = Path.to_string path in
   let%lwt () = Lwt_unix.unlink path in

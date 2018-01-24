@@ -9,4 +9,8 @@ val exists : Path.t -> bool RunAsync.t
 
 val unlink : Path.t -> unit RunAsync.t
 
+val stat : Path.t -> Unix.stats RunAsync.t
+
+val createDirectory : Path.t -> unit RunAsync.t
+
 val withTemporaryFile : (Path.t -> Lwt_io.output_channel -> 'a Lwt.t) -> 'a Lwt.t
