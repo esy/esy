@@ -251,8 +251,7 @@ let buildPackage cfg packagePath =
 
   let f pkg =
     let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    let%bind () = Build.buildDependencies ~concurrency cfg task in
-    Build.build ~concurrency ~force:`Yes cfg task
+    Build.build ~concurrency ~force:`ForRoot cfg task
   in
 
   let%bind info = SandboxInfo.ofConfig cfg in
@@ -272,8 +271,7 @@ let build ?(buildOnly=true) cfg command =
         ~concurrency
         ~force:`ForRoot
         cfg task
-    in PackageBuilder.build ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
-
+    in Build.buildPackage ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
   | command ->
     let%bind () = Build.buildDependencies ~concurrency cfg task in

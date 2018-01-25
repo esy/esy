@@ -3,6 +3,26 @@ let waitForDependencies dependencies =
   |> List.map (fun (_, dep) -> dep)
   |> RunAsync.waitAll
 
+let buildPackage ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : BuildTask.t) =
+  let f () =
+    let open RunAsync.Syntax in
+    let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
+    let%lwt () = if not quiet
+      then Logs_lwt.app(fun m -> m "%s: starting" context)
+      else Lwt.return ()
+    in
+    let%bind () = RunAsync.withContext context (
+      PackageBuilder.build ~quiet ?stderrout ?force ~buildOnly cfg task
+    ) in
+    let%lwt () = if not quiet
+      then Logs_lwt.app(fun m -> m "%s: complete" context)
+      else Lwt.return ()
+    in
+    return ()
+  in
+  let label = Printf.sprintf "building %s" task.pkg.id in
+  Perf.measureTime ~label f
+
 let runTask
   ?(force=`ForRoot)
   ?(buildOnly=`ForRoot)
@@ -26,20 +46,6 @@ let runTask
   | `Yes -> true
   in
 
-  let performBuild ?force () =
-    let f () =
-      let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
-      let%lwt () = Logs_lwt.app(fun m -> m "%s: starting" context) in
-      let%bind () = RunAsync.withContext context (
-        PackageBuilder.build ?force ~buildOnly cfg task
-      ) in
-      let%lwt () = Logs_lwt.app(fun m -> m "%s: complete" context) in
-      return ()
-    in
-    let label = Printf.sprintf "building %s" task.pkg.id in
-    Perf.measureTime ~label f
-  in
-
   let checkSourceModTime () =
     let f () =
       let infoPath =
@@ -56,7 +62,7 @@ let runTask
           Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
         ) in
         begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with
-        | None -> performBuild ()
+        | None -> buildPackage ~buildOnly cfg task
         | Some buildMtime ->
           let skipTraverse path = match Path.basename path with
           | "node_modules"
@@ -75,10 +81,10 @@ let runTask
           in
           let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
           if curMtime > buildMtime
-          then performBuild ()
+          then buildPackage ~buildOnly cfg task
           else return ()
         end
-      | Error _ -> performBuild ()
+      | Error _ -> buildPackage ~buildOnly cfg task
     in
     let label = Printf.sprintf "checking mtime for %s" task.pkg.id in
     Perf.measureTime ~label f
@@ -90,25 +96,25 @@ let runTask
     | Package.SourceType.Immutable ->
       if%bind Fs.exists installPath
       then return ()
-      else performBuild ()
+      else buildPackage ~buildOnly cfg task
     | Package.SourceType.Development ->
       if%bind Fs.exists installPath
       then checkSourceModTime ()
-      else performBuild ()
+      else buildPackage ~buildOnly cfg task
     | Package.SourceType.Root ->
-      performBuild ()
+      buildPackage ~buildOnly cfg task
     in LwtTaskQueue.submit queue f
   in
 
   match force with
   | `ForRoot ->
     if isRoot
-    then performBuild ~force:true ()
+    then buildPackage ~force:true ~buildOnly cfg task
     else performBuildIfNeeded ()
   | `No ->
     performBuildIfNeeded ()
   | `Yes ->
-    performBuild ~force:true ()
+    buildPackage ~force:true ~buildOnly cfg task
 
 (**
  * Build task tree.
