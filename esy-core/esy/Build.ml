@@ -27,53 +27,61 @@ let runTask
   in
 
   let performBuild ?force () =
-    let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
-    let%lwt () = Logs_lwt.app(fun m -> m "%s: starting" context) in
-    let%bind () = RunAsync.withContext context (
-      PackageBuilder.build ?force ~buildOnly cfg task
-    ) in
-    let%lwt () = Logs_lwt.app(fun m -> m "%s: complete" context) in
-    return ()
+    let f () =
+      let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
+      let%lwt () = Logs_lwt.app(fun m -> m "%s: starting" context) in
+      let%bind () = RunAsync.withContext context (
+        PackageBuilder.build ?force ~buildOnly cfg task
+      ) in
+      let%lwt () = Logs_lwt.app(fun m -> m "%s: complete" context) in
+      return ()
+    in
+    let label = Printf.sprintf "building %s" task.pkg.id in
+    Perf.measureTime ~label f
   in
 
   let checkSourceModTime () =
-    let infoPath =
-      task.pkg
-      |> BuildTask.pkgBuildInfoPath
-      |> Config.ConfigPath.toPath cfg
-    and sourcePath =
-      task.pkg.sourcePath
-      |> Config.ConfigPath.toPath cfg
+    let f () =
+      let infoPath =
+        task.pkg
+        |> BuildTask.pkgBuildInfoPath
+        |> Config.ConfigPath.toPath cfg
+      and sourcePath =
+        task.pkg.sourcePath
+        |> Config.ConfigPath.toPath cfg
+      in
+      match%lwt Fs.readFile infoPath with
+      | Ok data ->
+        let%bind buildInfo = RunAsync.liftOfRun (
+          Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
+        ) in
+        begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with
+        | None -> performBuild ()
+        | Some buildMtime ->
+          let skipTraverse path = match Path.basename path with
+          | "node_modules"
+          | "_esy"
+          | "_release"
+          | "_build"
+          | "_install" -> true
+          | _ -> false
+          in
+          let f mtime _path stat =
+            Lwt.return (
+              if stat.Unix.st_mtime > mtime
+              then stat.Unix.st_mtime
+              else mtime
+            )
+          in
+          let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
+          if curMtime > buildMtime
+          then performBuild ()
+          else return ()
+        end
+      | Error _ -> performBuild ()
     in
-    match%lwt Fs.readFile infoPath with
-    | Ok data ->
-      let%bind buildInfo = RunAsync.liftOfRun (
-        Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
-      ) in
-      begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with
-      | None -> performBuild ()
-      | Some buildMtime ->
-        let skipTraverse path = match Path.basename path with
-        | "node_modules"
-        | "_esy"
-        | "_release"
-        | "_build"
-        | "_install" -> true
-        | _ -> false
-        in
-        let f mtime _path stat =
-          Lwt.return (
-            if stat.Unix.st_mtime > mtime
-            then stat.Unix.st_mtime
-            else mtime
-          )
-        in
-        let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
-        if curMtime > buildMtime
-        then performBuild ()
-        else return ()
-      end
-    | Error _ -> performBuild ()
+    let label = Printf.sprintf "checking mtime for %s" task.pkg.id in
+    Perf.measureTime ~label f
   in
 
   let performBuildIfNeeded () =
