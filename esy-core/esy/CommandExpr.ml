@@ -6,10 +6,20 @@ let parse_exn v =
   let lexbuf = Lexing.from_string v in
   read [] lexbuf
 
-let parse v =
-  try Ok (parse_exn v)
+let parse src =
+  try Ok (parse_exn src)
   with
-  | Failure v -> Run.error v
+  | Failure v ->
+    Run.error v
+  | UnmatchedChar (pos, chr) ->
+    let cnum = pos.Lexing.pos_cnum - 1 in
+    let msg = Printf.sprintf "unmatched character: %c" chr in
+    let msg = ParseUtil.formatParseError ~src ~cnum msg in
+    Run.error msg
+  | UnmatchedVarBrace (pos, ()) ->
+    let cnum = pos.Lexing.pos_cnum - 1 in
+    let msg = ParseUtil.formatParseError ~src ~cnum "unmatched brace: {" in
+    Run.error msg
 
 type scope = name -> string option
 

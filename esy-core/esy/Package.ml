@@ -14,9 +14,11 @@ module CommandList = struct
 
     let of_yojson (json : Json.t) =
       match json with
-      | `String command ->
-        let command = ShellSplit.split command in
-        Ok command
+      | `String command -> begin
+        match ShellSplit.split command with
+        | Ok command -> Ok command
+        | Error err -> Error (Run.formatError err)
+        end
       | `List command ->
         Json.Parse.(list string (`List command))
       | _ -> Error("expected either a string or an array of strings")

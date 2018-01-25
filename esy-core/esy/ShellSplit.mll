@@ -8,7 +8,6 @@
 {
 
   exception UnknownShellEscape of string
-
   exception UnmatchedChar of char
 
   let buf_from_str str =
@@ -65,7 +64,10 @@ and squote argv buf = parse
 {
 
   let split v =
+    let open Run.Syntax in
     let lexbuf = Lexing.from_string v in
-    shell_command [] lexbuf
+    try Ok (shell_command [] lexbuf) with
+    | UnknownShellEscape s ->
+      error (Printf.sprintf "unknown shell escape sequence: %s" s)
 
 }

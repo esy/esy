@@ -1,4 +1,3 @@
-exception UnknownShellEscape of (Lexing.position * string)
 exception UnmatchedChar of (Lexing.position * char)
 exception UnmatchedVarBrace of (Lexing.position * unit)
 

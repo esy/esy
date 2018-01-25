@@ -1,6 +1,5 @@
 { include CommandExprParserSupport }
 
-let safechars   = [^ '\\' ]
 let space       = [ ' ' '\t' ]
 let colon       = ':'
 let path_sep    = '/'
@@ -15,13 +14,11 @@ let capture_name = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '-' '_' '.' '/
 
 rule read result = parse
  | var_open      { expr result [] lexbuf }
- | safechars     { uquote result (buf_from_str (Lexing.lexeme lexbuf)) lexbuf }
  | '\\' '"'      { uquote result (buf_from_str "\"") lexbuf }
  | '\\' '''      { uquote result (buf_from_str "'") lexbuf }
  | '\\' '\\'     { uquote result (buf_from_str "\\") lexbuf }
  | '\\' ' '      { uquote result (buf_from_str " ") lexbuf }
- | '\\' _ as c   { raise (UnknownShellEscape (lexbuf.lex_curr_p, c)) }
- | _ as c        { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
+ | _             { uquote result (buf_from_str (Lexing.lexeme lexbuf)) lexbuf }
  | eof { List.rev result }
 
 and expr result tokens = parse
@@ -63,9 +60,7 @@ and uquote result buf = parse
  | '\\' '''    { Buffer.add_string buf "'"; uquote result buf lexbuf }
  | '\\' '\\'   { Buffer.add_string buf "\\"; uquote result buf lexbuf }
  | '\\' ' '    { Buffer.add_string buf " "; uquote result buf lexbuf }
- | '\\' _ as c { raise (UnknownShellEscape (lexbuf.lex_curr_p, c)) }
- | safechars   { Buffer.add_string buf (Lexing.lexeme lexbuf); uquote result buf lexbuf }
- | _ as c      { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
+ | _           { Buffer.add_string buf (Lexing.lexeme lexbuf); uquote result buf lexbuf }
 
 and literal result tokens buf = parse
  | ''' {

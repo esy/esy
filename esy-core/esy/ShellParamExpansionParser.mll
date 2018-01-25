@@ -8,7 +8,6 @@
 
 }
 
-let safechars   = [^ '\\' ]
 let id          = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
 rule read result state = parse
@@ -27,15 +26,12 @@ rule read result state = parse
       let result = finalize_string result state in
       read (item::result) `Init lexbuf
     }
- | safechars     { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' '"'      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' '''      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' '\\'     { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' '/'      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
  | '\\' ' '      { read_string result state (Lexing.lexeme lexbuf) lexbuf }
-
- | '\\' _ as c   { raise (UnknownShellEscape (lexbuf.lex_curr_p, c)) }
- | _ as c        { raise (UnmatchedChar (lexbuf.lex_curr_p, c)) }
+ | _             { read_string result state (Lexing.lexeme lexbuf) lexbuf }
 
  | eof           {
     let result = finalize_string result state in
@@ -58,11 +54,12 @@ rule read result state = parse
     let lexbuf = Lexing.from_string v in
     read [] `Init lexbuf
 
-  let parse v =
-    try Ok (parse_exn v)
+  let parse src =
+    try Ok (parse_exn src)
     with
-    | UnmatchedChar (pos, c) ->
-      let msg = Printf.sprintf "unknown char: '%c' at position %d" c pos.Lexing.pos_cnum
-      in Error msg
+    | UnmatchedChar (pos, _) ->
+      let cnum = pos.Lexing.pos_cnum - 1 in
+      let msg = ParseUtil.formatParseError ~cnum ~src "unknown char" in
+      Error msg
 
  }
