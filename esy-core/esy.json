@@ -10,6 +10,12 @@
         "build",
         "-j",
         "4"
+      ],
+      [
+        "jbuilder",
+        "build",
+        "esy/bin/esy",
+        "esy-build-package/bin/esyBuildPackage"
       ]
     ],
     "install": [
