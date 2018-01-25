@@ -4,6 +4,14 @@
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
+    "build": [
+      [
+        "jbuilder",
+        "build",
+        "esy-build-package/bin/esyBuildPackage",
+        "esy/bin/esy"
+      ]
+    ],
     "buildsInSource": "_build"
   },
   "dependencies": {
