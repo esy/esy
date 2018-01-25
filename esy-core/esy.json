@@ -8,8 +8,18 @@
       [
         "jbuilder",
         "build",
-        "esy-build-package/bin/esyBuildPackage",
-        "esy/bin/esy"
+        "-j",
+        "4"
+      ]
+    ],
+    "install": [
+      [
+        "esy-installer",
+        "./esy-build-package.install"
+      ],
+      [
+        "esy-installer",
+        "./esy.install"
       ]
     ],
     "buildsInSource": "_build"
