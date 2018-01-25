@@ -5,6 +5,10 @@
   * Do not run `esy-build-package` just to check if linked deps are changed, do
     it in the same process — this is faster.
 
+  * Fixes to parsing of `"esy.build"` and `"esy.install"` commands.
+
+  * Better error reporting for parsing commands and environment declarations.
+
   * Show output for the root package build.
 
 ## 0.1.2 @ preview
