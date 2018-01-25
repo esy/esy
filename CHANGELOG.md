@@ -5,6 +5,8 @@
   * Do not run `esy-build-package` just to check if linked deps are changed, do
     it in the same process — this is faster.
 
+  * Show output for the root package build.
+
 ## 0.1.2 @ preview
 
   * Make things faster by adding caching to sandbox metadata.
