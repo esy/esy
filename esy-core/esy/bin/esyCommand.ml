@@ -195,7 +195,7 @@ module SandboxInfo = struct
       return info
 end
 
-let withPackageByPath
+let withBuildTaskByPath
     ~(cfg : Config.t)
     ~(info : SandboxInfo.t)
     packagePath
@@ -203,59 +203,50 @@ let withPackageByPath
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
-    let findByPath (pkg : Package.t) =
-      let sourcePath = Config.ConfigPath.toPath cfg pkg.sourcePath in
+    let findByPath (task : BuildTask.t) =
+      let sourcePath = Config.ConfigPath.toPath cfg task.pkg.sourcePath in
       Path.equal sourcePath packagePath
-    in begin match Package.DependencyGraph.find ~f:findByPath info.sandbox.root with
+    in begin match BuildTask.DependencyGraph.find ~f:findByPath info.task with
     | None ->
       let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
       error msg
     | Some pkg -> f pkg
     end
-  | None -> f info.sandbox.root
+  | None -> f info.task
 
 let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind info = SandboxInfo.ofConfig cfg in
 
-  let f pkg =
-    let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+  let f task =
     return (
       BuildTask.toBuildProtocolString ~pretty:true task
       |> print_endline
     )
-  in
-
-  let%bind info = SandboxInfo.ofConfig cfg in
-  withPackageByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~cfg ~info packagePath f
 
 let buildShell cfg packagePath =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind info = SandboxInfo.ofConfig cfg in
 
-  let f pkg =
-    let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
+  let f task =
     let%bind () = Build.buildDependencies ~concurrency cfg task in
     PackageBuilder.buildShell cfg task
-  in
-
-  let%bind info = SandboxInfo.ofConfig cfg in
-  withPackageByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~cfg ~info packagePath f
 
 let buildPackage cfg packagePath =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
-
-  let f pkg =
-    let%bind task = RunAsync.liftOfRun (BuildTask.ofPackage pkg) in
-    Build.build ~concurrency ~force:`ForRoot cfg task
-  in
-
   let%bind info = SandboxInfo.ofConfig cfg in
-  withPackageByPath ~cfg ~info packagePath f
+
+  let f task =
+    Build.build ~concurrency ~force:`ForRoot cfg task
+  in withBuildTaskByPath ~cfg ~info packagePath f
 
 let build ?(buildOnly=true) cfg command =
   let open RunAsync.Syntax in
@@ -281,12 +272,13 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let open RunAsync.Syntax in
 
   let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind info = SandboxInfo.ofConfig cfg in
 
-  let f (pkg : Package.t) =
+  let f (task : BuildTask.t) =
     let%bind source = RunAsync.liftOfRun (
       let open Run.Syntax in
-      let%bind env = computeEnv pkg in
-      let header = header pkg in
+      let%bind env = computeEnv task.pkg in
+      let header = header task.pkg in
       if asJson
       then
         let env = Environment.Closed.value env in
@@ -302,10 +294,7 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
     ) in
     let%lwt () = Lwt_io.print source in
     return ()
-  in
-
-  let%bind info = SandboxInfo.ofConfig cfg in
-  withPackageByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~cfg ~info packagePath f
 
 let buildEnv =
   let header (pkg : Package.t) =
