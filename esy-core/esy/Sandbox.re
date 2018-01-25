@@ -76,7 +76,7 @@ let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
   let rec resolve = basedir => {
     open RunAsync.Syntax;
     let packagePath = packagePath(basedir);
-    if%bind (Io.exists(packagePath)) {
+    if%bind (Fs.exists(packagePath)) {
       return(Some(packagePath));
     } else {
       let nextBasedir = Path.parent(basedir);
@@ -200,8 +200,8 @@ let ofDir = (cfg: Config.t) => {
       };
       let%bind sourcePath = {
         let linkPath = Path.(path / "_esylink");
-        if%bind (Io.exists(linkPath)) {
-          let%bind path = Io.readFile(linkPath);
+        if%bind (Fs.exists(linkPath)) {
+          let%bind path = Fs.readFile(linkPath);
           path
           |> String.trim
           |> Path.of_string
@@ -243,7 +243,7 @@ let ofDir = (cfg: Config.t) => {
     manifestInfo^
     |> PathSet.elements
     |> List.map(path => {
-         let%bind stat = Io.stat(path);
+         let%bind stat = Fs.stat(path);
          return((path, stat.Unix.st_mtime));
        })
     |> RunAsync.joinAll;

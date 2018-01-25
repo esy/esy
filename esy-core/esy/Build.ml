@@ -116,7 +116,7 @@ let runTask
   let performBuildIfNeeded () =
     match task.pkg.sourceType with
     | Package.SourceType.Immutable ->
-      if%bind Io.exists installPath
+      if%bind Fs.exists installPath
       then return ()
       else performBuild ()
     | Package.SourceType.Development

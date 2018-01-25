@@ -151,7 +151,7 @@ module SandboxInfo = struct
   let writeCache (cfg : Config.t) (info : t) =
     let f () =
       let cachePath = cachePath cfg in
-      let%bind () = Io.createDirectory (Path.parent cachePath) in
+      let%bind () = Fs.createDirectory (Path.parent cachePath) in
       let f oc =
         let%lwt () = Lwt_io.write_value oc info in
         Lwt.return_ok ()
@@ -166,7 +166,7 @@ module SandboxInfo = struct
         let%lwt info = (Lwt_io.read_value ic : t Lwt.t) in
         let%bind isStale =
           let checkMtime (path, mtime) =
-            let%bind { Unix.st_mtime = curMtime; _ } = Io.stat path in
+            let%bind { Unix.st_mtime = curMtime; _ } = Fs.stat path in
             return (curMtime > mtime)
           in
           info.sandbox.manifestInfo
@@ -410,7 +410,7 @@ let exec cfgRes =
       |> BuildTask.pkgInstallPath
       |> Config.ConfigPath.toPath cfg
     in
-    if%bind Esy.Io.exists installPath then
+    if%bind Fs.exists installPath then
       return ()
     else
       build ~buildOnly:`No cfgRes []
@@ -477,7 +477,7 @@ let lsBuilds =
     let%bind built =
       BuildTask.pkgInstallPath pkg
       |> Config.ConfigPath.toPath cfg
-      |> Esy.Io.exists
+      |> Fs.exists
     in
     let status = match pkg.sourceType, built with
     | Esy.Package.SourceType.Immutable, true -> "[built]"

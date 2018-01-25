@@ -88,7 +88,7 @@ let run
         return ()
       | _, Some (logPath, fd) ->
         UnixLabels.close fd;
-        let%bind log = Io.readFile logPath in
+        let%bind log = Fs.readFile logPath in
         RunAsync.withContextOfLog ~header:"Build log:" log (error "build failed")
       | _, None ->
         error "build failed"
@@ -103,7 +103,7 @@ let run
       let msg = Unix.error_message err in
       error msg
     | _ -> error "some error"
-  in Io.withTemporaryFile runProcess
+  in Fs.withTemporaryFile runProcess
 
 let build ?(force=false) ?(buildOnly=false) ?stderrout =
   let args =

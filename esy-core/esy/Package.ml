@@ -167,8 +167,8 @@ module Manifest = struct
 
   let ofFile path =
     let open RunAsync.Syntax in
-    if%bind (Io.exists path) then (
-      let%bind json = Io.readJsonFile path in
+    if%bind (Fs.exists path) then (
+      let%bind json = Fs.readJsonFile path in
       match of_yojson json with
       | Ok manifest -> return (Some manifest)
       | Error err -> error err
