@@ -51,6 +51,10 @@ let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
 let pkgBuildPath pkg =
   ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / pkg.id)
 
+let pkgBuildInfoPath (pkg : Package.t) =
+  let name = pkg.id ^ ".info" in
+  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / name)
+
 let pkgStagePath pkg =
   ConfigPath.(pkgStorePath pkg / Config.storeStageTree / pkg.id)
 

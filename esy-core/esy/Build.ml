@@ -113,13 +113,56 @@ let runTask
     in TaskQueue.submit queue f
   in
 
+  let checkSourceModTime () =
+    let infoPath =
+      task.pkg
+      |> BuildTask.pkgBuildInfoPath
+      |> Config.ConfigPath.toPath cfg
+    and sourcePath =
+      task.pkg.sourcePath
+      |> Config.ConfigPath.toPath cfg
+    in
+    match%lwt Fs.readFile infoPath with
+    | Ok data ->
+      let%bind buildInfo = RunAsync.liftOfRun (
+        Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
+      ) in
+      begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with
+      | None -> performBuild ()
+      | Some buildMtime ->
+        let skipTraverse path = match Path.basename path with
+        | "node_modules"
+        | "_esy"
+        | "_release"
+        | "_build"
+        | "_install" -> true
+        | _ -> false
+        in
+        let f mtime _path stat =
+          Lwt.return (
+            if stat.Unix.st_mtime > mtime
+            then stat.Unix.st_mtime
+            else mtime
+          )
+        in
+        let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
+        if curMtime > buildMtime
+        then performBuild ()
+        else return ()
+      end
+    | Error _ -> performBuild ()
+  in
+
   let performBuildIfNeeded () =
     match task.pkg.sourceType with
     | Package.SourceType.Immutable ->
       if%bind Fs.exists installPath
       then return ()
       else performBuild ()
-    | Package.SourceType.Development
+    | Package.SourceType.Development ->
+      if%bind Fs.exists installPath
+      then checkSourceModTime ()
+      else performBuild ()
     | Package.SourceType.Root ->
       performBuild ()
   in

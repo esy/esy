@@ -14,3 +14,10 @@ val stat : Path.t -> Unix.stats RunAsync.t
 val createDirectory : Path.t -> unit RunAsync.t
 
 val withTemporaryFile : (Path.t -> Lwt_io.output_channel -> 'a Lwt.t) -> 'a Lwt.t
+
+val fold :
+  ?skipTraverse : (Path.t -> bool)
+  -> f : ('a -> Path.t -> Unix.stats -> 'a Lwt.t)
+  -> init : 'a
+  -> Path.t
+  -> 'a RunAsync.t

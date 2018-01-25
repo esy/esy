@@ -69,3 +69,33 @@ let withTemporaryFile f =
     Lwt.return result
   in
   Lwt_io.with_file ~mode:Lwt_io.Output path f
+
+let no _path = false
+
+let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
+  let rec visitPathItems acc path dir =
+    match%lwt Lwt_unix.readdir dir with
+    | exception End_of_file -> Lwt.return acc
+    | "." | ".." -> visitPathItems acc path dir
+    | name ->
+      let%lwt acc = visitPath acc Path.(path / name) in
+      visitPathItems acc path dir
+  and visitPath (acc : 'a) path =
+    if skipTraverse path
+    then Lwt.return acc
+    else (
+      let spath = Path.to_string path in
+      let%lwt stat = Lwt_unix.stat spath in
+      match stat.Unix.st_kind with
+      | Unix.S_DIR ->
+        let%lwt dir = Lwt_unix.opendir spath in begin
+          try%lwt visitPathItems acc path dir
+          with err ->
+            let%lwt () = Lwt_unix.closedir dir in
+            Lwt.fail err
+        end
+      | _ -> f acc path stat
+    )
+  in
+  let%lwt v = visitPath init path
+  in RunAsync.return v

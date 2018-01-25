@@ -2,11 +2,12 @@ module StringMap = (Map.Make)(String)
 
 type t = Yojson.Safe.json
 
-let parseWith parser data =
+let parseJsonWith parser json =
+  Run.liftOfStringError (parser json)
+
+let parseStringWith parser data =
   let json = Yojson.Safe.from_string data in
-  match parser json with
-  | Ok value -> Ok value
-  | Error msg -> Error (`Msg msg)
+  parseJsonWith parser json
 
 module Parse = struct
 
