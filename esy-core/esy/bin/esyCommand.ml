@@ -21,14 +21,6 @@ let concurrency =
     end
   | Error _ -> 1
 
-let measureTime ~label f =
-  let open RunAsync.Syntax in
-  let s = Unix.gettimeofday () in
-  let%bind res = f () in
-  let e = Unix.gettimeofday () in
-  let%lwt () = Logs_lwt.debug(fun m -> m "time spent %s: %f" label (e -. s)) in
-  return res
-
 let pathTerm =
   let open Cmdliner in
   let parse = Path.of_string in
@@ -157,7 +149,7 @@ module SandboxInfo = struct
         Lwt.return_ok ()
       in
       Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string cachePath) f
-    in measureTime ~label:"writing sandbox info cache" f
+    in Esy.Perf.measureTime ~label:"writing sandbox info cache" f
 
   let readCache (cfg : Config.t) =
     let f () =
@@ -179,7 +171,7 @@ module SandboxInfo = struct
       in
       try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.to_string cachePath) f
       with | Unix.Unix_error _ -> return None
-    in measureTime ~label:"reading sandbox info cache" f
+    in Esy.Perf.measureTime ~label:"reading sandbox info cache" f
 
   let ofConfig (cfg : Config.t) =
     let makeInfo () =
@@ -193,7 +185,7 @@ module SandboxInfo = struct
           return (task, commandEnv, sandboxEnv)
         ) in
         return {task; sandbox; commandEnv; sandboxEnv}
-      in measureTime ~label:"constructing sandbox info" f
+      in Esy.Perf.measureTime ~label:"constructing sandbox info" f
     in
     match%bind readCache cfg with
     | Some info -> return info
