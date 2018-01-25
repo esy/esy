@@ -102,15 +102,13 @@ let runTask
   in
 
   let performBuild ?force () =
-    let f () =
-      let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
-      let%lwt () = Logs_lwt.app(fun m -> m "%s: starting" context) in
-      let%bind () = RunAsync.withContext context (
-        PackageBuilder.build ?force ~buildOnly cfg task
-      ) in
-      let%lwt () = Logs_lwt.app(fun m -> m "%s: complete" context) in
-      return ()
-    in TaskQueue.submit queue f
+    let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
+    let%lwt () = Logs_lwt.app(fun m -> m "%s: starting" context) in
+    let%bind () = RunAsync.withContext context (
+      PackageBuilder.build ?force ~buildOnly cfg task
+    ) in
+    let%lwt () = Logs_lwt.app(fun m -> m "%s: complete" context) in
+    return ()
   in
 
   let checkSourceModTime () =
@@ -154,6 +152,7 @@ let runTask
   in
 
   let performBuildIfNeeded () =
+    let f () =
     match task.pkg.sourceType with
     | Package.SourceType.Immutable ->
       if%bind Fs.exists installPath
@@ -165,6 +164,7 @@ let runTask
       else performBuild ()
     | Package.SourceType.Root ->
       performBuild ()
+    in TaskQueue.submit queue f
   in
 
   match force with

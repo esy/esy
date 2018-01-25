@@ -88,12 +88,10 @@ let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
       let%lwt stat = Lwt_unix.stat spath in
       match stat.Unix.st_kind with
       | Unix.S_DIR ->
-        let%lwt dir = Lwt_unix.opendir spath in begin
-          try%lwt visitPathItems acc path dir
-          with err ->
-            let%lwt () = Lwt_unix.closedir dir in
-            Lwt.fail err
-        end
+        let%lwt dir = Lwt_unix.opendir spath in
+        Lwt.finalize
+          (fun () -> visitPathItems acc path dir)
+          (fun () -> Lwt_unix.closedir dir)
       | _ -> f acc path stat
     )
   in
