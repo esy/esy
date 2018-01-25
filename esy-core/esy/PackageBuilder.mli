@@ -9,6 +9,7 @@
 val build :
   ?force:bool
   -> ?buildOnly:bool
+  -> ?quiet:bool
   -> ?stderrout:[ `Keep | `Log ]
   -> Config.t
   -> BuildTask.t

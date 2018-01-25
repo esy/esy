@@ -1,4 +1,5 @@
 let resolveCommand req =
+  
   let cache = ref None in
 
   let resolver () =
@@ -105,7 +106,12 @@ let run
     | _ -> error "some error"
   in Fs.withTemporaryFile runProcess
 
-let build ?(force=false) ?(buildOnly=false) ?stderrout =
+let build
+    ?(force=false)
+    ?(buildOnly=false)
+    ?(quiet=false)
+    ?(stderrout : [`Keep | `Log] option)
+    =
   let args =
     let addIf cond arg args =
       if cond then arg::args else args
@@ -113,6 +119,7 @@ let build ?(force=false) ?(buildOnly=false) ?stderrout =
     []
     |> addIf force "--force"
     |> addIf buildOnly "--build-only"
+    |> addIf quiet "--quiet"
   in
   run ~args ?stderrout `Build
 

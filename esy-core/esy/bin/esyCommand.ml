@@ -266,7 +266,7 @@ let buildPackage cfg packagePath =
   let%bind info = SandboxInfo.ofConfig cfg in
   withPackageByPath ~cfg ~info packagePath f
 
-let build ?(buildOnly=`ForRoot) cfg command =
+let build ?(buildOnly=true) cfg command =
   let open RunAsync.Syntax in
   let%bind cfg = RunAsync.liftOfRun cfg in
   let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
@@ -275,7 +275,13 @@ let build ?(buildOnly=`ForRoot) cfg command =
 
   match command with
   | [] ->
-    Build.build ~concurrency ~force:`ForRoot ~buildOnly cfg task
+    let%bind () =
+      Build.buildDependencies
+        ~concurrency
+        ~force:`ForRoot
+        cfg task
+    in PackageBuilder.build ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
+
 
   | command ->
     let%bind () = Build.buildDependencies ~concurrency cfg task in
@@ -413,7 +419,7 @@ let exec cfgRes =
     if%bind Fs.exists installPath then
       return ()
     else
-      build ~buildOnly:`No cfgRes []
+      build ~buildOnly:false cfgRes []
   in
   makeExecCommand
     ~prepare
