@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.1.3 @ preview
+
+  * Do not run `esy-build-package` just to check if linked deps are changed, do
+    it in the same process — this is faster.
+
 ## 0.1.2 @ preview
 
   * Make things faster by adding caching to sandbox metadata.
