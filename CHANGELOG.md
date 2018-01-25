@@ -11,6 +11,8 @@
 
   * Show output for the root package build.
 
+  * Fix `esy build-package` command not to build dependencies twice.
+
 ## 0.1.2 @ preview
 
   * Make things faster by adding caching to sandbox metadata.
