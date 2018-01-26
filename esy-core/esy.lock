@@ -359,7 +359,7 @@
   peerDependencies:
     ocaml " >= 4.4.1"
 
-"@opam/ocaml-migrate-parsetree@ >= 0.4.0", "@opam/ocaml-migrate-parsetree@ >= 0.7.0", "@opam/ocaml-migrate-parsetree@*":
+"@opam/ocaml-migrate-parsetree@ >= 0.4.0", "@opam/ocaml-migrate-parsetree@*":
   version "1.0.7"
   uid "8dd63da93ee2ed29313f5b50471c94ae"
   resolved "@opam/ocaml-migrate-parsetree@1.0.7-8dd63da93ee2ed29313f5b50471c94ae.tgz"
@@ -565,14 +565,14 @@
   peerDependencies:
     ocaml " >= 4.6.0  < 4.7.0"
 
-"@opam/ppx_tools_versioned@*":
-  version "5.0.1"
-  uid bfa682fa35533cf09315885cb0f25de7
-  resolved "@opam/ppx_tools_versioned@5.0.1-bfa682fa35533cf09315885cb0f25de7.tgz"
+"@opam/ppx_tools_versioned@ >= 5.0.1":
+  version "5.1.0"
+  uid "8c474fc8622c3cdf7683533fae007ea5"
+  resolved "@opam/ppx_tools_versioned@5.1.0-8c474fc8622c3cdf7683533fae007ea5.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
-    "@opam/ocaml-migrate-parsetree" " >= 0.7.0"
+    "@opam/ocaml-migrate-parsetree" " >= 0.4.0"
     "@opam/ocamlfind" " >= 1.5.0"
   peerDependencies:
     ocaml " >= 4.2.0"
