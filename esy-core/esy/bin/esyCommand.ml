@@ -394,7 +394,7 @@ let makeLsCommand ~computeLine ~includeTransitive cfg =
 
   let seen = ref StringSet.empty in
 
-  let f ~foldDependencies (pkg : Package.t) =
+  let f ~foldDependencies _prev (pkg : Package.t) =
     if StringSet.mem pkg.id !seen then
       return None
     else (
@@ -418,7 +418,7 @@ let makeLsCommand ~computeLine ~includeTransitive cfg =
     )
   in
 
-  match%bind Package.DependencyGraph.fold ~f info.sandbox.root with
+  match%bind Package.DependencyGraph.fold ~f ~init:(return None) info.sandbox.root with
   | Some tree -> return (print_endline (Esy.TermTree.toString tree))
   | None -> return ()
 
@@ -602,6 +602,44 @@ let () =
     Term.(ret (const cmd $ includeTransitive $ configTerm $ setupLogTerm)), info
   in
 
+  let exportDependenciesCommand =
+    let doc = "Export sandbox dependendencies as prebuilt artifacts" in
+    let info = Term.info "export-dependencies" ~version ~doc ~sdocs ~exits in
+    let cmd cfg () =
+      let f =
+        let open RunAsync.Syntax in
+
+        let%bind cfg = RunAsync.liftOfRun cfg in
+        let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
+
+        let traverse (task : BuildTask.t) =
+          let f deps dep = match dep with
+            | BuildTask.Dependency ({
+                pkg = { sourceType = Package.SourceType.Immutable; _ }; _
+              } as task) -> (task, dep)::deps
+            | _ -> deps
+          in
+          task.dependencies
+          |> ListLabels.fold_left ~f ~init:[]
+          |> ListLabels.rev
+        in
+        let tasks =
+          task
+          |> BuildTask.DependencyGraph.traverse ~traverse
+          |> List.filter (fun t -> not (t.BuildTask.id = task.id))
+        in
+
+        let run path oc =
+          List.iter (fun t -> print_endline t.BuildTask.id) tasks;
+          return ()
+        in
+        Fs.withTemporaryFile run
+      in
+      runAsyncCommand info f
+    in
+    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -625,6 +663,8 @@ let () =
     sandboxEnvCommand;
 
     lsBuildsCommand;
+
+    exportDependenciesCommand;
 
     execCommand;
 

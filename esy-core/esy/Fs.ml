@@ -55,20 +55,21 @@ let unlink (path : Path.t) =
   let%lwt () = Lwt_unix.unlink path in
   RunAsync.return ()
 
-let withTemporaryFile f =
+let withTemporaryFile content f =
   let path = Filename.temp_file "esy" "tmp" in
-  let f oc =
-    let%lwt result =
-      try%lwt
-        let%lwt res = f (Path.v path) oc in
-        Lwt.return res
-      with e ->
-        let%lwt () = Lwt_unix.unlink path in
-        Lwt.fail e
+
+  let%lwt () =
+    let writeContent oc =
+      let%lwt () = Lwt_io.write oc content in
+      let%lwt () = Lwt_io.flush oc in
+      Lwt.return ()
     in
-    Lwt.return result
+    Lwt_io.with_file ~mode:Lwt_io.Output path writeContent
   in
-  Lwt_io.with_file ~mode:Lwt_io.Output path f
+
+  Lwt.finalize
+    (fun () -> f (Path.v path))
+    (fun () -> Lwt_unix.unlink path)
 
 let no _path = false
 

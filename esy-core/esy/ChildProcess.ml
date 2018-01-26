@@ -1,4 +1,4 @@
-let withProcess ?env ?stdin ?stdout ?stderr ?(resolveProgramInEnv=false) cmd f =
+let withProcess ?env ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
   let open RunAsync.Syntax in
 
   let%bind cmd = RunAsync.liftOfRun (
@@ -21,7 +21,15 @@ let withProcess ?env ?stdin ?stdout ?stderr ?(resolveProgramInEnv=false) cmd f =
     |> Array.of_list)
   in
 
-  Lwt_process.with_process_none ?env ?stdin ?stdout ?stderr cmd f
+  try%lwt
+    Lwt_process.with_process_none ?env ?stdin ?stdout ?stderr cmd f
+  with
+  | Unix.Unix_error (err, _, _) ->
+    let msg = Unix.error_message err in
+    error msg
+  | _ ->
+    error "error running subprocess"
+
 
 let run ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd =
   let open RunAsync.Syntax in

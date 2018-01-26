@@ -1,32 +1,8 @@
-let resolveCommand req =
-  
-  let cache = ref None in
-
-  let resolver () =
-    Run.liftOfBosError(
-      match !cache with
-      | Some path -> path
-      | None ->
-        let open Std.Result in
-        let%bind currentFilename = Path.of_string (Sys.argv.(0)) in
-        let currentDirname = Path.parent currentFilename in
-        let path =
-          match EsyBuildPackage.NodeResolution.resolve req currentDirname with
-          | Ok (Some path) -> Ok (Path.to_string path)
-          | Ok None -> Error (`Msg ("unable to resolve " ^ req))
-          | Error err -> Error err
-        in
-        cache := Some path;
-        path
-    )
-
-  in resolver
-
 let esyBuildPackage =
-  resolveCommand "./esyBuildPackage.bc"
+  Cmd.resolveCmdRelativeToCurrentCmd "./esyBuildPackage.bc"
 
 let ocamlrun =
-  resolveCommand "@esy-ocaml/ocamlrun/install/bin/ocamlrun"
+  Cmd.resolveCmdRelativeToCurrentCmd "@esy-ocaml/ocamlrun/install/bin/ocamlrun"
 
 let run
     ?(stdin=`Null)
@@ -43,23 +19,20 @@ let run
   | `Exec -> "exec"
   in
 
-  let runProcess buildJsonFilename buildJsonOc =
+  let runProcess buildJsonFilename =
     let%bind command = RunAsync.liftOfRun (
       let open Run.Syntax in
       let%bind ocamlrun = ocamlrun () in
       let%bind esyBuildPackage = esyBuildPackage () in
-      let args = Array.of_list (
-        [ocamlrun; esyBuildPackage; action; "--build"; (Path.to_string buildJsonFilename)]
-        @ args
-      ) in
-      return (ocamlrun, args)
+      return Cmd.(
+        ocamlrun
+        %% esyBuildPackage
+        % action
+        % "--build"
+        % Path.to_string buildJsonFilename
+        %% (Cmd.ofList args)
+      )
     ) in
-
-    let%lwt () =
-      let buildJsonData = BuildTask.toBuildProtocolString task in
-      let%lwt () = Lwt_io.write buildJsonOc buildJsonData in
-      Lwt_io.flush buildJsonOc;
-    in
 
     let stdin = match stdin with
     | `Null -> `Dev_null
@@ -95,16 +68,13 @@ let run
         error "build failed"
     in
 
-    try%lwt
-      Lwt_process.with_process_none
-        ~stderr ~stdout ~stdin
-        command waitForProcess
-    with
-    | Unix.Unix_error (err, _, _) ->
-      let msg = Unix.error_message err in
-      error msg
-    | _ -> error "some error"
-  in Fs.withTemporaryFile runProcess
+    ChildProcess.withProcess
+      ~stderr ~stdout ~stdin
+      command waitForProcess
+  in
+
+  let buildJson = BuildTask.toBuildProtocolString task in
+  Fs.withTemporaryFile buildJson runProcess
 
 let build
     ?(force=false)

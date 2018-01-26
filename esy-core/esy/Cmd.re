@@ -4,6 +4,12 @@ let ofList = Bos.Cmd.of_list;
 
 let toList = Bos.Cmd.to_list;
 
+let v = Bos.Cmd.v;
+
+let (%) = Bos.Cmd.(%);
+
+let (%%) = Bos.Cmd.(%%);
+
 let isExecutable = (stats: Unix.stats) => {
   let userExecute = 0b001000000;
   let groupExecute = 0b000001000;
@@ -48,6 +54,34 @@ let resolveCmdInEnv = (env: Environment.Value.t, prg: string) => {
     String.split_on_char(':', v);
   };
   Run.liftOfBosError(resolveCmd(path, prg));
+};
+
+let resolveCmdRelativeToCurrentCmd = req => {
+  let cache = ref(None);
+  let resolver = () =>
+    Run.liftOfBosError(
+      switch cache^ {
+      | Some(path) => path
+      | None =>
+        Std.Result.(
+          {
+            let%bind currentFilename = Path.of_string(Sys.argv[0]);
+            let currentDirname = Path.parent(currentFilename);
+            let cmd =
+              switch (
+                EsyBuildPackage.NodeResolution.resolve(req, currentDirname)
+              ) {
+              | Ok(Some(path)) => Ok(v(Path.to_string(path)))
+              | Ok(None) => Error(`Msg("unable to resolve " ++ req))
+              | Error(err) => Error(err)
+              };
+            cache := Some(cmd);
+            cmd;
+          }
+        )
+      }
+    );
+  resolver;
 };
 
 let resolveInvocation = (path, cmd) => {
