@@ -7,36 +7,16 @@ esy:bin prefix: <testRoot>/esy
 RUNNING: esy build
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
-esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
-esy:bin:esyBuild execute
-esy:build:dep@1.0.0 start building
-esy:build:dep@1.0.0 build success
-esy:bin no .esyrc found
-esy:bin prefix: <testRoot>/esy
-esy:build-dependencies checking if dependencies are built
 RUNNING: esy dep
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
-esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
 RUNNING: esy b dep
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
-esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
-esy:bin no .esyrc found
-esy:bin prefix: <testRoot>/esy
-esy:build-dependencies checking if dependencies are built
 RUNNING: esy x dep
 esy:bin no .esyrc found
 esy:bin prefix: <testRoot>/esy
-esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
-esy:bin no .esyrc found
-esy:bin prefix: <testRoot>/esy
-esy:build-dependencies checking if dependencies are built
 RUNNING: esy x with-dep-_build
 esy:bin no .esyrc found
-esy:bin prefix: <testRoot>/esy
-esy:bin needRebuildTarget <sandbox>/node_modules/.cache/_esy/build/bin/build
-esy:bin no .esyrc found
-esy:bin prefix: <testRoot>/esy
-esy:build-dependencies checking if dependencies are built"
+esy:bin prefix: <testRoot>/esy"
 `;

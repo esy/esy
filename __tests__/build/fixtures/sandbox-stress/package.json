@@ -4,14 +4,32 @@
   "license": "MIT",
   "esy": {
     "build": [
-      "touch $cur__target_dir/ok",
-      "touch #{self.target_dir / 'ok'}",
-      "touch $cur__original_root/.merlin",
-      "touch #{self.original_root / '.merlin'}"
+      [
+        "touch",
+        "$cur__target_dir/ok"
+      ],
+      [
+        "touch",
+        "#{self.target_dir / 'ok'}"
+      ],
+      [
+        "touch",
+        "$cur__original_root/.merlin"
+      ],
+      [
+        "touch",
+        "#{self.original_root / '.merlin'}"
+      ]
     ],
     "install": [
-      "touch $cur__install/ok",
-      "touch #{self.install / 'ok'}"
+      [
+        "touch",
+        "$cur__install/ok"
+      ],
+      [
+        "touch",
+        "#{self.install / 'ok'}"
+      ]
     ]
   }
 }

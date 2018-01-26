@@ -5,23 +5,69 @@
   "esy": {
     "buildsInSource": "_build",
     "build": [
-      "mkdir -p $cur__root/_build",
-      "touch $cur__root/_build/ok",
-      "touch #{self.root / '_build' / 'ok'}",
-      "touch $cur__root/pkg.install",
-      "touch #{self.root / 'pkg.install'}",
-      "touch $cur__root/pkg.opam",
-      "touch #{self.root / 'pkg.opam'}",
-      "touch $cur__root/jbuild-ignore",
-      "touch #{self.root / 'jbuild-ignore'}",
-      "touch $cur__target_dir/ok",
-      "touch #{self.target_dir / 'ok'}",
-      "touch $cur__original_root/.merlin",
-      "touch #{self.original_root / '.merlin'}"
+      [
+        "mkdir",
+        "-p",
+        "$cur__root/_build"
+      ],
+      [
+        "touch",
+        "$cur__root/_build/ok"
+      ],
+      [
+        "touch",
+        "#{self.root / '_build' / 'ok'}"
+      ],
+      [
+        "touch",
+        "$cur__root/pkg.install"
+      ],
+      [
+        "touch",
+        "#{self.root / 'pkg.install'}"
+      ],
+      [
+        "touch",
+        "$cur__root/pkg.opam"
+      ],
+      [
+        "touch",
+        "#{self.root / 'pkg.opam'}"
+      ],
+      [
+        "touch",
+        "$cur__root/jbuild-ignore"
+      ],
+      [
+        "touch",
+        "#{self.root / 'jbuild-ignore'}"
+      ],
+      [
+        "touch",
+        "$cur__target_dir/ok"
+      ],
+      [
+        "touch",
+        "#{self.target_dir / 'ok'}"
+      ],
+      [
+        "touch",
+        "$cur__original_root/.merlin"
+      ],
+      [
+        "touch",
+        "#{self.original_root / '.merlin'}"
+      ]
     ],
     "install": [
-      "touch $cur__install/ok",
-      "touch #{self.install / 'ok'}"
+      [
+        "touch",
+        "$cur__install/ok"
+      ],
+      [
+        "touch",
+        "#{self.install / 'ok'}"
+      ]
     ]
   }
 }
