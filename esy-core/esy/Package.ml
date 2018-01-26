@@ -225,6 +225,8 @@ module DependencyGraph = DependencyGraph.Make(struct
 
   type t = pkg
 
+  let compare a b = compare a b
+
   module Dependency = struct
     type t = pkg_dependency
     let compare a b = compare a b

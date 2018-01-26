@@ -13,6 +13,8 @@ module type Kernel = sig
     val compare : t -> t -> int
   end
 
+  val compare : t -> t -> int
+
   (**
    * Given a node — extract its id.
    *)
@@ -48,9 +50,15 @@ module type DependencyGraph = sig
 
   val fold :
     ?traverse:(node -> (node * dependency) list)
-    -> f:(foldDependencies : (unit -> (dependency * 'a) list) -> node -> 'a)
+    -> init:'a
+    -> f:(foldDependencies : (unit -> (dependency * 'a) list) -> 'a -> node -> 'a)
     -> node
     -> 'a
+
+  val traverse :
+    ?traverse:(node -> (node * dependency) list)
+    -> node
+    -> node list
 
   (**
    * Find a node in a graph which satisfies the predicate.
@@ -69,6 +77,7 @@ module Make (Kernel : Kernel) : DependencyGraph
     type dependency = Kernel.Dependency.t
   = struct
 
+  module NodeSet = Set.Make(Kernel)
   module DependencySet = Set.Make(Kernel.Dependency)
 
   type node = Kernel.t
@@ -138,13 +147,34 @@ module Make (Kernel : Kernel) : DependencyGraph
 
     let _, _, (value : 'a) = visitCached node in value
 
-  let rec fold ?(traverse=Kernel.traverse) ~f node =
+  let rec fold ?(traverse=Kernel.traverse) ~(init : 'a) ~f node =
     let foldDependencies () =
       node |> traverse |> List.map (fun (node, dep) ->
-        let v = fold ~traverse ~f node in
+        let v = fold ~traverse ~f ~init node in
         (dep, v))
     in
-    f ~foldDependencies node
+    f ~foldDependencies init node
+
+  let traverse ?(traverse=Kernel.traverse) node =
+    let rec aux (seen, nodes) node =
+      if NodeSet.mem node seen then
+        (seen, nodes)
+      else
+        let (seen, nodes) =
+          let dependencies =
+            node
+            |> traverse
+            |> List.map (fun (node, _) -> node)
+          in
+          ListLabels.fold_left
+            ~f:aux
+            ~init:(seen, nodes)
+            dependencies
+        in
+        (NodeSet.add node seen, node::nodes)
+    in
+    let _, nodes = aux (NodeSet.empty, []) node in
+    nodes
 
   let find ?(traverse=Kernel.traverse) ~f node =
     let rec find' = function

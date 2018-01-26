@@ -552,9 +552,11 @@ let sandboxEnv (pkg : Package.t) =
 module DependencyGraph = DependencyGraph.Make(struct
   type t = task
 
+  let compare = Pervasives.compare
+
   module Dependency = struct
     type t = task_dependency
-    let compare a b = compare a b
+    let compare = Pervasives.compare
   end
 
   let id task =
