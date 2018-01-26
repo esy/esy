@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.1.4 @ preview
+
+  * Reimplement `esy export-dependencies` and `esy import-dependencies`.
+
+  * Fix bug with splitting `"esy.install"` and `"esy.build"` commands.
+
+  * Cleanup `bin/esy` bash wrapper script to remove cruft which resulted in
+    100ms faster invocations.
+
 ## 0.1.3 @ preview
 
   * Do not run `esy-build-package` just to check if linked deps are changed, do
