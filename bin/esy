@@ -359,8 +359,7 @@ elif [ $# -eq 1 ]; then
       ;;
     export-dependencies)
       shift
-      ensureSandbox
-      callBuiltInCommand export-dependencies
+      callEsyCoreCommand "export-dependencies"
       ;;
     import-dependencies)
       shift
@@ -468,8 +467,7 @@ else
       ;;
     on-demand|export-dependencies)
       shift
-      ensureSandbox
-      callBuiltInCommand export-dependencies "$@"
+      callEsyCoreCommand "export-dependencies" "$@"
       ;;
     import-dependencies)
       shift
