@@ -6,6 +6,8 @@ let toList = Bos.Cmd.to_list;
 
 let v = Bos.Cmd.v;
 
+let p = Bos.Cmd.p;
+
 let (%) = Bos.Cmd.(%);
 
 let (%%) = Bos.Cmd.(%%);

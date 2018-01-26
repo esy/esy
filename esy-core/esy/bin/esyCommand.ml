@@ -10,6 +10,9 @@ let version =
   try Sys.getenv "ESY__VERSION"
   with Not_found -> "dev"
 
+let esyExportBuildCmd =
+  Cmd.resolveCmdRelativeToCurrentCmd "./esyExportBuild"
+
 let concurrency =
   (** TODO: handle more platforms, right now this is tested only on macOS and
    * Linux *)
@@ -612,28 +615,35 @@ let () =
         let%bind cfg = RunAsync.liftOfRun cfg in
         let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
 
-        let traverse (task : BuildTask.t) =
-          let f deps dep = match dep with
-            | BuildTask.Dependency ({
-                pkg = { sourceType = Package.SourceType.Immutable; _ }; _
-              } as task) -> (task, dep)::deps
-            | _ -> deps
-          in
-          task.dependencies
-          |> ListLabels.fold_left ~f ~init:[]
-          |> ListLabels.rev
-        in
         let tasks =
+          let traverse (task : BuildTask.t) =
+            let f deps dep = match dep with
+              | BuildTask.Dependency ({
+                  pkg = { sourceType = Package.SourceType.Immutable; _ }; _
+                } as task) -> (task, dep)::deps
+              | _ -> deps
+            in
+            task.dependencies
+            |> ListLabels.fold_left ~f ~init:[]
+            |> ListLabels.rev
+          in
           task
           |> BuildTask.DependencyGraph.traverse ~traverse
           |> List.filter (fun t -> not (t.BuildTask.id = task.id))
         in
 
-        let run path oc =
-          List.iter (fun t -> print_endline t.BuildTask.id) tasks;
-          return ()
+        let exportBuild (task : BuildTask.t) =
+          match esyExportBuildCmd () with
+          | Ok cmd ->
+            let path = BuildTask.pkgInstallPath task.pkg |> Config.ConfigPath.toPath cfg in
+            let cmd = Cmd.(cmd % p path) in
+            ChildProcess.run ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
+          | Error err -> Lwt.return (Error err)
         in
-        Fs.withTemporaryFile run
+
+        tasks
+        |> List.map exportBuild
+        |> RunAsync.waitAll
       in
       runAsyncCommand info f
     in
