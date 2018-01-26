@@ -337,55 +337,21 @@ let makeExecCommand
     else return ()
   in
 
-  let%bind envValue = RunAsync.liftOfRun (
+  let%bind env = RunAsync.liftOfRun (
     let env = match env with
-    | `CommandEnv -> info.commandEnv
-    | `SandboxEnv -> info.sandboxEnv
+    | `CommandEnv -> Environment.Closed.value info.commandEnv
+    | `SandboxEnv -> Environment.Closed.value info.sandboxEnv
     in
-    let env = Environment.Closed.value env in
     Environment.Value.bindToConfig cfg env
   ) in
 
-  let%bind env = RunAsync.liftOfRun (
-    Ok (
-      envValue
-      |> Environment.Value.M.bindings
-      |> List.map (fun (name, value) -> Printf.sprintf "%s=%s" name value)
-      |> Array.of_list)
-  ) in
-
-  let resolvePrg prg =
-    let path =
-      let v = match Environment.Value.M.find_opt "PATH" envValue with
-      | Some v -> v
-      | None -> ""
-      in String.split_on_char ':' v
-    in
-    Run.liftOfBosError (Cmd.resolveCmd path prg)
-  in
-
-  let%bind command = RunAsync.liftOfRun (
-    let open Run.Syntax in
-    match command with
-    | [] -> Run.error "empty command"
-    | (prg::_) as entire ->
-      let%bind prg = resolvePrg prg in
-      Ok (prg, Array.of_list entire)
-  ) in
-
-  let waitForProcess process =
-    let%lwt status = process#status in
-    match status with
-    | Unix.WEXITED 0 -> return ()
-    | _ -> RunAsync.error "error running command"
-  in
-
-  Lwt_process.with_process_none
+  ChildProcess.run
     ~env
+    ~resolveProgramInEnv:true
     ~stderr:(`FD_copy Unix.stderr)
     ~stdout:(`FD_copy Unix.stdout)
     ~stdin:(`FD_copy Unix.stdin)
-    command waitForProcess
+    (Cmd.ofList command)
 
 let exec cfgRes =
   let open RunAsync.Syntax in

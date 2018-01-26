@@ -1,3 +1,9 @@
+type t = Bos.Cmd.t;
+
+let ofList = Bos.Cmd.of_list;
+
+let toList = Bos.Cmd.to_list;
+
 let isExecutable = (stats: Unix.stats) => {
   let userExecute = 0b001000000;
   let groupExecute = 0b000001000;
@@ -30,6 +36,18 @@ let resolveCmd = (path, cmd) => {
   | '/' => Ok(cmd)
   | _ => resolve(path)
   };
+};
+
+let resolveCmdInEnv = (env: Environment.Value.t, prg: string) => {
+  let path = {
+    let v =
+      switch (Environment.Value.M.find_opt("PATH", env)) {
+      | Some(v) => v
+      | None => ""
+      };
+    String.split_on_char(':', v);
+  };
+  Run.liftOfBosError(resolveCmd(path, prg));
 };
 
 let resolveInvocation = (path, cmd) => {
