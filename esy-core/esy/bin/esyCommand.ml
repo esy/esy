@@ -613,35 +613,25 @@ let () =
         let open RunAsync.Syntax in
 
         let%bind cfg = RunAsync.liftOfRun cfg in
-        let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
+        let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
 
-        let tasks =
-          let traverse (task : BuildTask.t) =
-            let f deps dep = match dep with
-              | BuildTask.Dependency ({
-                  pkg = { sourceType = Package.SourceType.Immutable; _ }; _
-                } as task) -> (task, dep)::deps
-              | _ -> deps
-            in
-            task.dependencies
-            |> ListLabels.fold_left ~f ~init:[]
-            |> ListLabels.rev
-          in
-          task
-          |> BuildTask.DependencyGraph.traverse ~traverse
-          |> List.filter (fun t -> not (t.BuildTask.id = task.id))
+        let pkgs =
+          let open Package in
+          sandbox.root
+          |> DependencyGraph.traverse ~traverse:traverseImmutableDependencies
+          |> List.filter (fun pkg -> not (pkg.id = sandbox.root.id))
         in
 
-        let exportBuild (task : BuildTask.t) =
+        let exportBuild (pkg : Package.t) =
           match esyExportBuildCmd () with
           | Ok cmd ->
-            let path = BuildTask.pkgInstallPath task.pkg |> Config.ConfigPath.toPath cfg in
-            let cmd = Cmd.(cmd % p path) in
+            let installPath = BuildTask.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
+            let cmd = Cmd.(cmd % p installPath) in
             ChildProcess.run ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
           | Error err -> Lwt.return (Error err)
         in
 
-        tasks
+        pkgs
         |> List.map exportBuild
         |> RunAsync.waitAll
       in
