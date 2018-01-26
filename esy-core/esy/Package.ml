@@ -9,19 +9,19 @@ module CommandList = struct
   module Command = struct
 
     type t =
-      string list
+      | Parsed of string list
+      | Unparsed of string
       [@@deriving show, to_yojson]
 
     let of_yojson (json : Json.t) =
       match json with
-      | `String command -> begin
-        match ShellSplit.split command with
-        | Ok command -> Ok command
-        | Error err -> Error (Run.formatError err)
-        end
+      | `String command -> Ok (Unparsed command)
       | `List command ->
-        Json.Parse.(list string (`List command))
-      | _ -> Error("expected either a string or an array of strings")
+        begin match Json.Parse.(list string (`List command)) with
+        | Ok args -> Ok (Parsed args)
+        | Error err -> Error err
+        end
+      | _ -> Error "expected either a string or an array of strings"
 
   end
 

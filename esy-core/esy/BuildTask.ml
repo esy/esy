@@ -15,8 +15,8 @@ type t = {
   id : string;
   pkg : Package.t;
 
-  buildCommands : Package.CommandList.t;
-  installCommands : Package.CommandList.t;
+  buildCommands : string list list;
+  installCommands : string list list;
 
   env : Environment.Closed.t;
 
@@ -177,17 +177,23 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
     Environment.Value.find name env
   in
   match commands with
-  | None -> Ok None
+  | None -> Ok []
   | Some commands ->
-    let renderCommand command =
-      let renderArg arg =
-        let%bind arg = CommandExpr.render ~scope arg in
-        ShellParamExpansion.render ~scope:envScope arg
+    let renderCommand =
+      let render v =
+        let%bind v = CommandExpr.render ~scope v in
+        ShellParamExpansion.render ~scope:envScope v
       in
-      Result.listMap ~f:renderArg command
+      function
+      | Package.CommandList.Command.Parsed args ->
+        Result.listMap ~f:render args
+      | Package.CommandList.Command.Unparsed string ->
+        let%bind string = render string in
+        let%bind args = ShellSplit.split string in
+        return args
     in
     match Result.listMap ~f:renderCommand commands with
-    | Ok commands -> Ok (Some commands)
+    | Ok commands -> Ok commands
     | Error err -> Error err
 
 let ofPackage
@@ -571,10 +577,6 @@ module DependencyGraph = DependencyGraph.Make(struct
 end)
 
 let toBuildProtocol (task : task) =
-  let exportCommands commands = match commands with
-  | None -> []
-  | Some commands -> commands
-  in
   EsyBuildPackage.BuildTask.ConfigFile.{
     id = task.id;
     name = task.pkg.name;
@@ -589,8 +591,8 @@ let toBuildProtocol (task : task) =
       | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
       | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
     );
-    build = exportCommands task.buildCommands;
-    install = exportCommands task.installCommands;
+    build = task.buildCommands;
+    install = task.installCommands;
     sourcePath = ConfigPath.toString task.sourcePath;
     env = Environment.Closed.value task.env;
   }
