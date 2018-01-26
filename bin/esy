@@ -11,290 +11,31 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-# shellcheck source=./realpath.sh
-source "$SCRIPTDIR/realpath.sh"
 # shellcheck source=./esyConfig.sh
 source "$SCRIPTDIR/esyConfig.sh"
-# shellcheck source=./esyRuntime.sh
-source "$SCRIPTDIR/esyRuntime.sh"
-
-mkdir -p "$ESY__PREFIX"
-
-BUILD_EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/_esy/build"
-
-if [ -d "$ESY__SANDBOX/node_modules" ]; then
-  DEPENDENCIES_PACKAGE_JSON=$(find "$ESY__SANDBOX/node_modules" -name 'package.json' -or -name 'esy.json')
-else
-  DEPENDENCIES_PACKAGE_JSON=""
-fi
-
-ensureSandbox () {
-  if [ ! -f "$ESY__SANDBOX/package.json" ] && [ ! -f "$ESY__SANDBOX/esy.json" ]; then
-    esyError "no package.json found in the current directory"
-  fi
-}
-
-needRebuildTarget () {
-  TARGET="$1"
-  NEED_REBUILD="false"
-
-  esyLog "esy:bin" "needRebuildTarget <sandbox>${TARGET#$ESY__SANDBOX}"
-
-  # check if target exist
-  if [ ! -f "$TARGET" ]; then
-    NEED_REBUILD="true"
-  else
-    # check sandbox package.json
-    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ] || [ "$TARGET" -ot "$ESY__SANDBOX/esy.json" ]; then
-      NEED_REBUILD="true"
-    elif [ "$TARGET" -ot "$ESY__SANDBOX/esy.lock" ]; then
-      NEED_REBUILD="true"
-    else
-      # check each dependencies' package.json
-      for dep in $DEPENDENCIES_PACKAGE_JSON; do
-        if [ "$TARGET" -ot "$dep" ]; then
-          NEED_REBUILD="true"
-          break
-        fi
-      done
-    fi
-  fi
-
-  echo "$NEED_REBUILD"
-}
-
-run () {
-  local suppressOutput
-  local output
-  local ret
-
-  if [ "$1" == "--suppressOutput" ]; then
-    suppressOutput="yes"
-    shift
-  fi
-
-  set +e
-  if [ "$suppressOutput" == "yes" ]; then
-    output=$("$@")
-    ret="$?"
-  else
-    "$@"
-    ret="$?"
-  fi
-  set -e
-
-  if [ $ret -ne 0 ]; then
-    if [ "$suppressOutput" == "yes" ]; then
-      echo "$output"
-    fi
-    exit 1
-  fi
-
-  if [ "$ESY__LOG_ACTION" == "yes" ] && [ "$suppressOutput" == "yes" ]; then
-    echo "$output" | grep "# ACTION:"
-  fi
-}
-
-callBuiltInCommand__build () {
-  ensureBuildEjected
-  if [ $# -eq 0 ]; then
-    "$BUILD_EJECT_PATH/bin/build"
-  else
-    "$BUILD_EJECT_PATH/bin/build-exec" "$@"
-  fi
-}
-
-callBuiltInCommand__buildShell () {
-  local buildJson
-  buildJson=$(mktemp)
-  node "$SCRIPTDIR/esy.js" build-plan "$@" > "$buildJson"
-  run "$OCAMLRUN_COMMAND" "$ESY_BUILD_PACKAGE_COMMAND" shell -B "$buildJson"
-}
 
 callEsyCoreCommand() {
   "$OCAMLRUN_COMMAND" "$ESY_CORE_COMMAND" "$@"
 }
 
-callBuiltInCommand__x () {
-  ensureBuildEjected --silent
-  run --suppressOutput "$BUILD_EJECT_PATH/bin/install"
-  source "$BUILD_EJECT_PATH/bin/sandbox-env"
-  shift
-  # Checks if command ($1) is present available
-  command -v "$1" >/dev/null 2>&1 || {
-    echo >&2 "$1 command is not installed.";
-    exit 1;
-  }
-  exec "$@"
-}
-
-ensureBuildEjected () {
-  local esyArgs
-  local needRebuild
-  needRebuild=$(needRebuildTarget "$BUILD_EJECT_PATH/bin/build")
-  if [ "$needRebuild" == "true" ]; then
-    if [ "$1" == "--silent" ]; then
-      esyInfo "rebuilding the project, this will take some time..."
-      esyArgs="$esyArgs --silent"
-      shift
-    fi
-    run node "$SCRIPTDIR/esy.js" "$esyArgs" build \
-      --dependencies-only \
-      --eject "$BUILD_EJECT_PATH" "$@"
-  fi
-}
-
-callBuiltInCommand() {
+callEsyJSCommand() {
 	node "$SCRIPTDIR/esy.js" "$@"
-}
-
-callBuiltInCommandWithLock() {
-	node "$SCRIPTDIR/esy.js" "$@"
-}
-
-printHelp() {
-  cat <<EOF
-Usage: $(basename "$0") <command> [--help] [--version]
-
-Install all dependencies and build the current project:
-
-  install               Installs packages declared in package.json.
-  i
-
-  build                 Run build commands for the project.
-  b                     (as specified in "esy.build" key within package.json)
-
-  add <package>         Add a specified package to dependencies and installs it.
-
-Running commands in a sandbox:
-
-  build <command>       Run command inside the build environment.
-  b <command>
-
-  x <command>           Run command as if the package is already installed.
-                        Useful for testing.
-
-  <command>             Executes <command> as if you had executed it inside of
-                        esy shell.
-
-  build-shell [path]    Drops into a shell with environment matching your
-                        package's build environment. If argument is provided
-                        then it should point to the package inside the current
-                        sandbox — that will initialize build shell for that
-                        specified package.
-
-  shell                 Drops into development shell.
-                        Less strict than build-shell and allows access to
-                        devDependencies.
-
-Sandbox introspection:
-
-  ls-builds             Lists package dependencies along with each package's build status.
-                        This will include transitive package dependencies.
-
-  ls-libs [--all]       Lists package dependencies along with the set of libraries made
-                        available by each package dependency. By default, only includes
-                        immediate package dependencies.  Pass --all to include
-                        transitive dependencies.
-
-  ls-modules [lib ...]  Lists package dependencies along with the set of libraries
-                        and modules available by each package dependency. By default, shows
-                        all modules. To show only specific libraries, pass library name(s).
-
-  command-env           Prints esy command environment on stdout.
-
-  sandbox-env           Prints esy sandbox environment on stdout.
-
-  build-env             Prints esy build environment on stdout.
-
-Some common commands:
-
-  init                  Create a new project in an existing directory.
-
-  version               Print esy version and exit.
-
-  help                  Show detailed help.
-
-EOF
-}
-
-printDetailedHelp () {
-  less <<EOF
-$(printHelp)
-
-Advanced commands:
-
-  release TYPE                Create a release of type TYPE ("dev", "pack" or "bin").
-
-  install-cache               Manage installation cache (similar to 'yarn cache'
-                              command).
-
-  import-opam                 Read a provided opam file and print esy-enabled
-                              package.json conents on stdout. Example:
-
-                                esy import-opam lwt 3.0.0 ./opam
-
-  config ls                   Query esy configuration.
-  config get
-
-  export-dependencies         Export all dependencies of the current sandbox.
-
-  import-dependencies <path>  Try to import dependencies for the current
-                              sandbox from the <path> (previously populated by
-                              esy export-dependencies command or pointing to the
-                              "store/i" directory. If <path> is not provided
-                              then PWD/_export is going to be used.
-
-
-Environment variables:
-
-  ESY__SANDBOX          Path to the current sandbox.
-
-  ESY__PREFIX           Path to the global Esy prefix where Esy puts its
-                        caches.
-
-Configuration file (.esyrc):
-
-  esy-import-path       Path to the directory with exported builds which will be
-                        loooked up during build processes to import builds from.
-
-  <yarn config vars>    All yarn configuration parameters are supported. They
-                        only take effect for yarn-based commands such as
-                        "esy install", "esy add" and so on.
-
-EOF
-}
-
-printVersion() {
-  (cd "$SCRIPTDIR/.." && node -p "require('./package.json').version")
-}
-
-callAnyCommand() {
-  ensureBuildEjected --silent
-
-  source "$BUILD_EJECT_PATH/bin/command-env"
-  # Checks if command ($1) is present available
-  command -v "$1" >/dev/null 2>&1 || {
-  echo >&2 "$1 command is not installed.";
-  exit 1;
-  }
-  exec "$@"
 }
 
 if [ $# -eq 0 ]
 then
-  callBuiltInCommand install
-  callBuiltInCommand__build
+  # TODO: run esy install && esy build here instead
+  callEsyCoreCommand "--help"
 elif [ $# -eq 1 ]; then
   case $1 in
     release)
       shift
       ensureSandbox
-      callBuiltInCommandWithLock release
+      callEsyJSCommand release
       ;;
     init)
       shift
-      callBuiltInCommand init
+      callEsyJSCommand init
       ;;
     build|b)
       callEsyCoreCommand "build"
@@ -322,7 +63,7 @@ elif [ $# -eq 1 ]; then
     import-opam)
       shift
       ensureSandbox
-      callBuiltInCommand import-opam
+      callEsyJSCommand import-opam
       ;;
     shell)
       callEsyCoreCommand "shell"
@@ -338,24 +79,20 @@ elif [ $# -eq 1 ]; then
       ;;
     config)
       shift
-      ensureSandbox
-      callBuiltInCommand config
+      callEsyJSCommand config
       ;;
     install|i)
       shift
-      ensureSandbox
-      callBuiltInCommand install
+      callEsyJSCommand install
       ;;
     add)
       shift
-      ensureSandbox
-      callBuiltInCommand add "$@"
-      callBuiltInCommand__build
+      callEsyJSCommand add "$@"
+      callEsyCoreCommand "build"
       ;;
     install-cache)
       shift
-      ensureSandbox
-      callBuiltInCommand install-cache
+      callEsyJSCommand install-cache
       ;;
     export-dependencies)
       shift
@@ -363,17 +100,14 @@ elif [ $# -eq 1 ]; then
       ;;
     import-dependencies)
       shift
-      ensureSandbox
-      callBuiltInCommand import-dependencies
+      callEsyJSCommand import-dependencies
       ;;
     export-build)
       shift
-      ensureSandbox
       exec "$SCRIPTDIR/esyExportBuild"
       ;;
     import-build)
       shift
-      ensureSandbox
       exec "$SCRIPTDIR/esyImportBuild"
       ;;
     x)
@@ -397,13 +131,12 @@ else
   case $1 in
     import-opam)
       shift
-      callBuiltInCommand import-opam "$@"
+      callEsyJSCommand import-opam "$@"
       ;;
     add)
       shift
-      ensureSandbox
-      callBuiltInCommand add "$@"
-      callBuiltInCommand__build
+      callEsyJSCommand add "$@"
+      callEsyCoreCommand "build"
       ;;
     build-shell)
       shift
@@ -411,7 +144,7 @@ else
       ;;
     init)
       shift
-      callBuiltInCommand init "$@"
+      callEsyJSCommand init "$@"
       ;;
     build-plan)
       shift
@@ -423,8 +156,7 @@ else
       ;;
     install|i)
       shift
-      ensureSandbox
-      callBuiltInCommand install "$@"
+      callEsyJSCommand install "$@"
       ;;
     build|b)
       shift
@@ -432,13 +164,11 @@ else
       ;;
     install-cache)
       shift
-      ensureSandbox
-      callBuiltInCommand install-cache "$@"
+      callEsyJSCommand install-cache "$@"
       ;;
     release)
       shift
-      ensureSandbox
-      callBuiltInCommandWithLock release "$@"
+      callEsyJSCommand release "$@"
       ;;
     command-env)
       shift
@@ -458,12 +188,11 @@ else
       ;;
     ls-libs)
       shift
-      ensureSandbox
-      callBuiltInCommand ls-libs "$@"
+      callEsyJSCommand ls-libs "$@"
       ;;
     ls-modules)
       shift
-      callBuiltInCommand ls-modules "$@"
+      callEsyJSCommand ls-modules "$@"
       ;;
     on-demand|export-dependencies)
       shift
@@ -471,23 +200,19 @@ else
       ;;
     import-dependencies)
       shift
-      ensureSandbox
-      callBuiltInCommand import-dependencies "$@"
+      callEsyJSCommand import-dependencies "$@"
       ;;
     export-build)
       shift
-      ensureSandbox
       exec "$SCRIPTDIR/esyExportBuild" "$@"
       ;;
     import-build)
       shift
-      ensureSandbox
       exec "$SCRIPTDIR/esyImportBuild" "$@"
       ;;
     config)
       shift
-      ensureSandbox
-      callBuiltInCommand config "$@"
+      callEsyJSCommand config "$@"
       ;;
     x)
       shift
@@ -498,7 +223,6 @@ else
       exit 1
       ;;
     *)
-      ensureSandbox
       callEsyCoreCommand "--" "$@"
       ;;
   esac
