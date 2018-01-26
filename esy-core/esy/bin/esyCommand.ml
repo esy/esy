@@ -13,6 +13,9 @@ let version =
 let esyExportBuildCmd =
   Cmd.resolveCmdRelativeToCurrentCmd "./esyExportBuild"
 
+let esyImportBuildCmd =
+  Cmd.resolveCmdRelativeToCurrentCmd "./esyImportBuild"
+
 let concurrency =
   (** TODO: handle more platforms, right now this is tested only on macOS and
    * Linux *)
@@ -640,6 +643,71 @@ let () =
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
   in
 
+  let importDependenciesCommand =
+    let doc = "Import sandbox dependencies" in
+    let info = Term.info "import-dependencies" ~version ~doc ~sdocs ~exits in
+    let cmd cfg fromPath () =
+      let f =
+        let open RunAsync.Syntax in
+
+        let%bind cfg = RunAsync.liftOfRun cfg in
+        let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
+
+        let fromPath = match fromPath with
+        | Some fromPath -> fromPath
+        | None -> Path.(cfg.Config.sandboxPath / "_export")
+        in
+
+        let pkgs =
+          let open Package in
+          sandbox.root
+          |> DependencyGraph.traverse ~traverse:traverseImmutableDependencies
+          |> List.filter (fun pkg -> not (pkg.id = sandbox.root.id))
+        in
+
+        let importBuild (pkg : Package.t) =
+          match esyImportBuildCmd () with
+          | Ok cmd ->
+            let importBuildFromPath path =
+              let cmd = Cmd.(cmd % p path) in
+              ChildProcess.run ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
+            in
+            let installPath = BuildTask.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
+            if%bind Fs.exists installPath
+            then return ()
+            else (
+              let pathDir = Path.(fromPath / pkg.id) in
+              let pathTgz = Path.(fromPath / (pkg.id ^ ".tar.gz")) in
+              if%bind Fs.exists pathDir
+              then importBuildFromPath pathDir
+              else if%bind Fs.exists pathTgz
+              then importBuildFromPath pathTgz
+              else
+                let%lwt () =
+                  Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" pkg.id)
+                in return ()
+            )
+          | Error err -> Lwt.return (Error err)
+        in
+
+        pkgs
+        |> List.map importBuild
+        |> RunAsync.waitAll
+      in
+      runAsyncCommand info f
+    in
+    let fromPathTerm =
+      let open Cmdliner in
+      let doc = "Path with builds." in
+      Arg.(
+        value
+        & pos 0  (some resolvedPathTerm) None
+        & info [] ~doc
+      )
+    in
+    Term.(ret (const cmd $ configTerm $ fromPathTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -665,6 +733,7 @@ let () =
     lsBuildsCommand;
 
     exportDependenciesCommand;
+    importDependenciesCommand;
 
     execCommand;
 

@@ -100,7 +100,7 @@ elif [ $# -eq 1 ]; then
       ;;
     import-dependencies)
       shift
-      callEsyJSCommand import-dependencies
+      callEsyCoreCommand "import-dependencies"
       ;;
     export-build)
       shift
@@ -200,7 +200,7 @@ else
       ;;
     import-dependencies)
       shift
-      callEsyJSCommand import-dependencies "$@"
+      callEsyCoreCommand "import-dependencies" "$@"
       ;;
     export-build)
       shift
