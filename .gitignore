@@ -3,6 +3,7 @@
 /lib
 /dist
 /_esyInstallCache-*
+_export
 /bin/flock
 /bin/fastreplacestring.exe
 /bin/esyConfig.sh
