@@ -148,13 +148,48 @@ module SandboxInfo = struct
 
   let writeCache (cfg : Config.t) (info : t) =
     let f () =
-      let cachePath = cachePath cfg in
-      let%bind () = Fs.createDirectory (Path.parent cachePath) in
-      let f oc =
-        let%lwt () = Lwt_io.write_value oc info in
-        Lwt.return_ok ()
+
+      let%bind () =
+        let f oc =
+          let%lwt () = Lwt_io.write_value oc info in
+          let%lwt () = Lwt_io.flush oc in
+          return ()
+        in
+        let cachePath = cachePath cfg in
+        let%bind () = Fs.createDirectory (Path.parent cachePath) in
+        Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string cachePath) f
       in
-      Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string cachePath) f
+
+      let%bind () =
+        let f oc =
+          let%bind commandEnv = RunAsync.liftOfRun(
+            let header =
+              let pkg = info.sandbox.root in
+              Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
+            in
+            info.commandEnv
+            |> Environment.Closed.bindings
+            |> Environment.renderToShellSource ~header cfg
+          ) in
+          let%lwt () = Lwt_io.write oc commandEnv in
+          let%lwt () = Lwt_io.flush oc in
+          return ()
+        in
+        let commandEnvPath = Path.(
+          cfg.sandboxPath
+          / "node_modules"
+          / ".cache"
+          / "_esy"
+          / "build"
+          / "bin"
+          / "command-env"
+        ) in
+        let%bind () = Fs.createDirectory (Path.parent commandEnvPath) in
+        Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string commandEnvPath) f
+      in
+
+      return ()
+
     in Esy.Perf.measureTime ~label:"writing sandbox info cache" f
 
   let readCache (cfg : Config.t) =
