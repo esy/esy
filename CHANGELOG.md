@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.70
+
+* `esy release`: fix `"deleteFromBinraryRelease"`.
+
 ## 0.0.69
 
 * Fix mapping from original OCaml compiler version to npm released OCaml
