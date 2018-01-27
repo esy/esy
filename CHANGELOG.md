@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 0.0.69
+
+* Fix mapping from original OCaml compiler version to npm released OCaml
+  compilers for `@opam/*` packages.
+
+## 0.0.68
+
+* Pin dependency on `ocamlrun`.
+
+## 0.0.67
+
+* Broken release.
+
 ## 0.0.66
 
 * Report progress on console even if no tty is available.
