@@ -6,9 +6,9 @@
   version "0.0.0"
   uid ""
 
-"@esy-ocaml/esy-opam@0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.13.tgz#54ba8463644ec49e85f56830b7436a5fead03635"
+"@esy-ocaml/esy-opam@0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.14.tgz#f7c1ed6246d6e6ff2dff1e9f74b90875b1fa061f"
 
 "@esy-ocaml/ocamlrun@4.6.3":
   version "4.6.3"
