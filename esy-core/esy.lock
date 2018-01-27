@@ -124,7 +124,7 @@
   peerDependencies:
     ocaml " >= 4.2.3"
 
-"@opam/cmdliner@^1.0.2":
+"@opam/cmdliner@ >= 1.0.0", "@opam/cmdliner@^1.0.2":
   version "1.0.2"
   uid "4b1c61475a9d1d2451b622ad0f3e58d2"
   resolved "@opam/cmdliner@1.0.2-4b1c61475a9d1d2451b622ad0f3e58d2.tgz"
@@ -392,6 +392,31 @@
     "@opam/conf-m4" "*"
   peerDependencies:
     ocaml " >= 3.12.0"
+
+"@opam/ocp-build@ >= 1.99.6--beta":
+  version "1.99.20--beta"
+  uid "010d08eecfe9a9f3c6d108928965a467"
+  resolved "@opam/ocp-build@1.99.20--beta-010d08eecfe9a9f3c6d108928965a467.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/cmdliner" " >= 1.0.0"
+    "@opam/ocamlfind" "*"
+  peerDependencies:
+    ocaml " >= 4.2.1"
+
+"@opam/ocp-indent@*":
+  version "1.6.1"
+  uid bd067691c0bc8b5137864b3fbc313cb8
+  resolved "@opam/ocp-indent@1.6.1-bd067691c0bc8b5137864b3fbc313cb8.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/base-bytes" "*"
+    "@opam/cmdliner" " >= 1.0.0"
+    "@opam/ocp-build" " >= 1.99.6--beta"
+  peerDependencies:
+    ocaml "*"
 
 "@opam/ppx_ast@ >= 100000000.10.0  < 100000000.11.0":
   version "100000000.10.0"
