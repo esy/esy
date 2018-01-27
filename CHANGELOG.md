@@ -4,7 +4,12 @@
 
   * Reimplement `esy export-dependencies` and `esy import-dependencies`.
 
+  * Eject `command-env` shell source to `node_modules/.cache/_est`. This is
+    needed for integration with OCaml language server.
+
   * Fix bug with splitting `"esy.install"` and `"esy.build"` commands.
+
+  * Fix `{comamnd,sandbox}-env` commands to escape double quotes in var values.
 
   * Cleanup `bin/esy` bash wrapper script to remove cruft which resulted in
     100ms faster invocations.
