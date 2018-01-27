@@ -15,7 +15,7 @@ let toString (node : t) =
     let indent = match indent with
     | [] -> []
     | "└── "::indent -> "    "::indent
-    | _::indent -> "|   "::indent
+    | _::indent -> "│   "::indent
     in
     nodeListToLines ~indent ~lines children
   and nodeListToLines ~indent ~lines = function
