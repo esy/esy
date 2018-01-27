@@ -75,6 +75,7 @@
     "json-stable-stringify": "https://github.com/substack/json-stable-stringify",
     "json5": "^0.5.1",
     "loud-rejection": "^1.6.0",
+    "minimatch": "^3.0.4",
     "mkdirp": "^0.5.1",
     "npm-hooks": "https://github.com/jordwalke/npm-hooks.git#1.0.0-clobber",
     "outdent": "^0.3.0",

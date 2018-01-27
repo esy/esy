@@ -7,6 +7,7 @@ import * as types from '../types.js';
 
 import outdent from 'outdent';
 
+import minimatch from 'minimatch';
 import {indent, getSandbox, getBuildConfig} from './esy';
 import * as PackageManifest from '../package-manifest';
 import * as Sandbox from '../sandbox/index.js';
@@ -84,8 +85,16 @@ export default async function esyRelease(
     const queue = new PromiseQueue({concurrency: 20});
     const builds = Graph.toArray(sandbox.root);
 
+    let deleteFromBinaryRelease =
+      manifest.esy.release.deleteFromBinaryRelease != null
+        ? build =>
+            manifest.esy.release.deleteFromBinaryRelease.some(pattern =>
+              minimatch(build.id, pattern),
+            )
+        : _build => false;
+
     await Promise.all(
-      builds.map(build =>
+      builds.filter(b => !deleteFromBinaryRelease(b)).map(build =>
         queue.add(async () => {
           await Common.exportBuild(
             ctx,
