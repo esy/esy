@@ -30,7 +30,6 @@ elif [ $# -eq 1 ]; then
   case $1 in
     release)
       shift
-      ensureSandbox
       callEsyJSCommand release
       ;;
     init)
@@ -62,7 +61,6 @@ elif [ $# -eq 1 ]; then
       ;;
     import-opam)
       shift
-      ensureSandbox
       callEsyJSCommand import-opam
       ;;
     shell)
