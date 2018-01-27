@@ -24,6 +24,10 @@ let renderToShellSource
     (cfg : Config.t)
     (bindings : binding list) =
   let open Run.Syntax in
+  let escapeDoubleQuote value =
+    let doubleQuoteRe = Str.regexp "\"" in
+    Str.global_replace doubleQuoteRe "\\\"" value
+  in
   let emptyLines = function
     | [] -> true
     | _ -> false
@@ -38,6 +42,7 @@ let renderToShellSource
       lines
     in
     let%bind value = renderStringWithConfig cfg value in
+    let value = escapeDoubleQuote value in
     let line = Printf.sprintf "export %s=\"%s\"" name value in
     Ok (line::lines, origin)
   in
