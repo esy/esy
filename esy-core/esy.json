@@ -54,7 +54,7 @@
     "ocaml": "~4.6.0"
   },
   "devDependencies": {
-    "@opam/merlin": "link:../merlin",
+    "@esy-ocaml/merlin": "*",
     "@opam/ocp-indent": "*",
     "ocaml": "~4.6.0"
   }

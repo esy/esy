@@ -1,7 +1,3 @@
 [submodule "esy-install"]
 	path = esy-install
   url = https://github.com/esy-ocaml/esy-install.git
-[submodule "merlin"]
-	path = merlin
-	url = https://github.com/esy-ocaml/merlin.git
-	branch = esy

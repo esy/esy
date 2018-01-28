@@ -6,6 +6,17 @@
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-installer/-/esy-installer-0.0.0.tgz#6b0e2bd4ee43531ac74793fe55cfcc3aca197a66"
 
+"@esy-ocaml/merlin@*":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@esy-ocaml/merlin/-/merlin-3.0.5.tgz#f1459f159f56fb0dd73e64b77ed432b1d3d15bd7"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/ocamlfind" " >= 1.5.2"
+    "@opam/yojson" "*"
+  peerDependencies:
+    ocaml " >= 4.2.1  < 4.7.0"
+
 "@esy-ocaml/substs@^0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/substs/-/substs-0.0.1.tgz#59ebdbbaedcda123fc7ed8fb2b302b7d819e9a46"
@@ -332,10 +343,6 @@
     "@opam/ocamlfind" "*"
   peerDependencies:
     ocaml " >= 4.2.3"
-
-"@opam/merlin@link:../merlin":
-  version "0.0.0"
-  uid ""
 
 "@opam/num@*":
   version "1.1.0"
