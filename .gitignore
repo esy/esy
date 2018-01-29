@@ -7,3 +7,4 @@ _export
 /bin/flock
 /bin/fastreplacestring.exe
 /bin/esyConfig.sh
+bin/esy

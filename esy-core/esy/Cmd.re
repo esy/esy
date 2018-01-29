@@ -12,6 +12,8 @@ let (%) = Bos.Cmd.(%);
 
 let (%%) = Bos.Cmd.(%%);
 
+let empty = Bos.Cmd.empty;
+
 let isExecutable = (stats: Unix.stats) => {
   let userExecute = 0b001000000;
   let groupExecute = 0b000001000;

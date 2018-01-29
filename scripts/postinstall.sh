@@ -4,18 +4,12 @@ set -e
 set -u
 set -o pipefail
 
-#
-# Spit out config for Esy executables implemented in bash
-#
+ocamlrun=$(node -p 'require.resolve("@esy-ocaml/ocamlrun/install/bin/ocamlrun")')
+version=$(node -p 'require("./package.json").version')
 
-set +e
-(cd bin && node ./esy.js autoconf > ./esyConfig.sh)
-ret=$?
-set -e
+cat <<EOF > ./bin/esy
+#!/bin/bash
+ESY__VERSION="${version}" ${ocamlrun} ${PWD}/bin/esy.bc "\$@"
+EOF
 
-if [ $ret -ne 0 ]; then
-  echo "error:"
-  cat bin/esyConfig.sh
-  exit 1
-fi
-
+chmod +x ./bin/esy

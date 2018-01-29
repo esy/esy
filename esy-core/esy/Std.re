@@ -68,4 +68,7 @@ module Option = {
     fun
     | None => true
     | _ => false;
+  module Let_syntax = {
+    let bind = bind;
+  };
 };
