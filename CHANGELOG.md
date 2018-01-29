@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.1.5 @ preview
+
+  * Include `devDependencies` in `esy x <anycommand>` environment.
+
+    See [#137](https://github.com/esy/esy/issues/137) for rationale.
+
+  * Fix `esy import-opam` command which was broken in 0.1.4.
+
+  * Fix creating `~/.esy/3` symlink to a padded store path when initializing
+    global store.
+
 ## 0.1.4 @ preview
 
   * Reimplement `esy export-dependencies` and `esy import-dependencies`.
