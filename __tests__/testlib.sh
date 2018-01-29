@@ -12,6 +12,7 @@ run () {
   echo "RUNNING:" "$@"
   "$@"
 }
+export -f run
 
 runAndExpectFailure () {
   echo "RUNNING (expecting failure):" "$@"
@@ -23,11 +24,13 @@ runAndExpectFailure () {
     failwith "expected command to fail"
   fi
 }
+export -f runAndExpectFailure
 
 failwith () {
   >&2 echo "ERROR: $1"
   exit 1
 }
+export -f failwith
 
 assertStdout () {
   local command="$1"
@@ -46,7 +49,9 @@ assertStdout () {
     echo "$actual"
   fi
 }
+export -f assertStdout
 
 info () {
   echo "INFO:" "$@"
 }
+export -f info
