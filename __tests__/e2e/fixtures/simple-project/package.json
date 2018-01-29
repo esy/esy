@@ -1,0 +1,17 @@
+{
+  "name": "simple-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "dep": "^1.0.0"
+  },
+  "devDependencies": {
+    "dev-dep": "^1.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrey Popp <8mayday@gmail.com> (http://andreypopp.com/)",
+  "license": "MIT"
+}

@@ -24,19 +24,24 @@ export DEBUG="esy:*"
 export DEBUG_HIDE_DATE="yes"
 
 initFixture () {
+  set +x
   local name
 
   name="$1"
   TEST_ROOT=$(mktemp -d)
   TEST_PROJECT="$TEST_ROOT/project"
 
+  export ESY_PREFIX="$TEST_ROOT/esy"
+
   cp -r "fixtures/$name" "$TEST_PROJECT"
 
   pushd "$TEST_PROJECT"
+  set -x
 }
 export -f initFixture
 
 initFixtureAsIfEsyReleased () {
+  set +x
   local name
   local releaseDir="$PWD/../dist"
 
@@ -65,6 +70,7 @@ initFixtureAsIfEsyReleased () {
   npmGlobal install --global "$releaseDir/esy.tgz"
 
   pushd "$TEST_PROJECT" > /dev/null
+  set -x
 }
 export -f initFixtureAsIfEsyReleased
 
@@ -85,7 +91,7 @@ cd $(dirname "$TESTCASE")
 
 echo "Running $TESTCASE"
 set +e
-OUT=$(PATH="$SCRIPTDIR/../bin:$PATH" bash -c 'set -eu; set -o pipefail; doTest' 2>&1)
+OUT=$(PATH="$SCRIPTDIR/../bin:$PATH" bash -c 'set -xeu; set -o pipefail; doTest' 2>&1)
 RET="$?"
 set -e
 
