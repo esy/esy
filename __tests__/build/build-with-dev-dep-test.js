@@ -18,7 +18,7 @@ defineTestCaseWithShell(
     # package "dev-dep" should be visible only in command env
     assertStdout "esy dev-dep" "dev-dep"
     runAndExpectFailure esy b dev-dep
-    runAndExpectFailure esy x dev-dep
+    assertStdout "esy x dev-dep" "dev-dep"
 
     assertStdout "esy x with-dev-dep" "with-dev-dep"
   `,

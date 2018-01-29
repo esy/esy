@@ -534,12 +534,16 @@ let commandEnv pkg =
 
 let sandboxEnv (pkg : Package.t) =
   let open Run.Syntax in
+  let devDependencies =
+    pkg.dependencies
+    |> List.filter (function | Package.DevDependency _ -> true | _ -> false)
+  in
   let synPkg = {
     Package.
     id = "__installation_env__";
     name = "installation_env";
     version = pkg.version;
-    dependencies = [Package.Dependency pkg];
+    dependencies = (Package.Dependency pkg)::devDependencies;
     buildCommands = None;
     installCommands = None;
     buildType = Package.BuildType.OutOfSource;
@@ -548,10 +552,11 @@ let sandboxEnv (pkg : Package.t) =
     sourcePath = pkg.sourcePath;
   } in
   let%bind task = ofPackage
-    ~overrideShell:false
     ?initEnv:(Some initEnv)
     ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
     ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
+    ~overrideShell:false
+    ~includeRootDevDependenciesInEnv:true
     synPkg
   in Ok task.env
 
