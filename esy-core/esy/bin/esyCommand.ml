@@ -124,6 +124,14 @@ let setupLogTerm =
     $ Fmt_cli.style_renderer ()
     $ Logs_cli.level ~env:(Arg.env_var "ESY__LOG") ())
 
+let runCommandViaNode _cfg name args =
+  match esyJs () with
+  | Ok esyJs ->
+    let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
+    ChildProcess.run cmd
+  | Error _err ->
+    RunAsync.error "unable to find esy.js"
+
 module SandboxInfo = struct
 
   open RunAsync.Syntax
@@ -784,15 +792,8 @@ let () =
 
   let makeCommandDelegatingToJsImpl ~name ~doc =
     let info = Term.info name ~version ~doc ~sdocs ~exits in
-    let cmd args _cfg () =
-      let f =
-        match esyJs () with
-        | Ok esyJs ->
-          let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
-          ChildProcess.run cmd
-        | Error _err ->
-          RunAsync.error "unable to find esy.js"
-      in
+    let cmd args cfg () =
+      let f = runCommandViaNode cfg name args in
       runAsyncCommand info f
     in
     let argTerm =
