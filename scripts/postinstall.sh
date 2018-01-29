@@ -13,3 +13,5 @@ ESY__VERSION="${version}" ${ocamlrun} ${PWD}/bin/esy.bc "\$@"
 EOF
 
 chmod +x ./bin/esy
+
+(cd bin && node ./esy.js autoconf > ./esyConfig.sh)
