@@ -9,4 +9,4 @@ install:
   - travis_retry npm install -g esy@latest
   - travis_wait travis_retry make bootstrap
 script:
-  - make ci
+  - travis_wait make ci
