@@ -746,6 +746,23 @@ let () =
     Term.(ret (const cmd $ configTerm $ fromPathTerm $ setupLogTerm)), info
   in
 
+  let helpCommand =
+    let info = Term.info "help" ~version ~doc:"Show this message and exit" ~sdocs ~exits in
+    let cmd () =
+      `Help (`Auto, None)
+    in
+    Term.(ret (const cmd $ const ())), info
+  in
+
+  let versionCommand =
+    let info = Term.info "version" ~version ~doc:"Print esy version and exit" ~sdocs ~exits in
+    let cmd () =
+      print_endline version;
+      `Ok ()
+    in
+    Term.(ret (const cmd $ const ())), info
+  in
+
   let makeCommandDelegatingTo ~name ~doc resolveCommand =
     let info = Term.info name ~version ~doc ~sdocs ~exits in
     let cmd args _cfg () =
@@ -810,6 +827,9 @@ let () =
     importDependenciesCommand;
 
     execCommand;
+
+    helpCommand;
+    versionCommand;
 
     (* commands implemented via JS *)
     makeCommandDelegatingToJsImpl
