@@ -16,6 +16,9 @@ let esyExportBuildCmd =
 let esyImportBuildCmd =
   Cmd.resolveCmdRelativeToCurrentCmd "./esyImportBuild"
 
+let esyJs =
+  Cmd.resolveCmdRelativeToCurrentCmd "./esy.js"
+
 let concurrency =
   (** TODO: handle more platforms, right now this is tested only on macOS and
    * Linux *)
@@ -743,14 +746,50 @@ let () =
     Term.(ret (const cmd $ configTerm $ fromPathTerm $ setupLogTerm)), info
   in
 
+  let makeCommandDelegatingTo ~name ~doc resolveCommand =
+    let info = Term.info name ~version ~doc ~sdocs ~exits in
+    let cmd args _cfg () =
+      let f =
+        match resolveCommand () with
+        | Ok cmd ->
+          let cmd = Cmd.(cmd %% Cmd.ofList args) in
+          ChildProcess.run cmd
+        | Error _err ->
+          RunAsync.error "unable to find esy.js"
+      in
+      runAsyncCommand info f
+    in
+    let argTerm =
+      Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    in
+    Term.(ret (const cmd $ argTerm $ configTerm $ setupLogTerm)), info
+  in
+
+  let makeCommandDelegatingToJsImpl ~name ~doc =
+    let info = Term.info name ~version ~doc ~sdocs ~exits in
+    let cmd args _cfg () =
+      let f =
+        match esyJs () with
+        | Ok esyJs ->
+          let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
+          ChildProcess.run cmd
+        | Error _err ->
+          RunAsync.error "unable to find esy.js"
+      in
+      runAsyncCommand info f
+    in
+    let argTerm =
+      Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    in
+    Term.(ret (const cmd $ argTerm $ configTerm $ setupLogTerm)), info
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
     let doc = Printf.sprintf "An alias for $(b,%s) command" name in
     term, Term.info alias ~version ~doc ~sdocs ~exits
   in
-
-  let bCommand = makeAlias buildCommand "b" in
 
   let commands = [
     (* commands *)
@@ -772,7 +811,111 @@ let () =
 
     execCommand;
 
+    (* commands implemented via JS *)
+    makeCommandDelegatingToJsImpl
+      ~name:"install"
+      ~doc:"Install dependencies";
+    makeCommandDelegatingToJsImpl
+      ~name:"add"
+      ~doc:"Add new dependency";
+    makeCommandDelegatingToJsImpl
+      ~name:"install-cache"
+      ~doc:"Manage installation cache";
+    makeCommandDelegatingToJsImpl
+      ~name:"init"
+      ~doc:"Initialize new project";
+    makeCommandDelegatingToJsImpl
+      ~name:"release"
+      ~doc:"Produce npm package with prebuilt artifacts";
+    makeCommandDelegatingToJsImpl
+      ~name:"import-opam"
+      ~doc:"Produce esy package metadata from OPAM package metadata";
+
+    (* commands implemented via bash *)
+    makeCommandDelegatingTo
+      ~name:"import-build"
+      ~doc:"Import build into the store"
+      esyImportBuildCmd;
+    makeCommandDelegatingTo
+      ~name:"export-build"
+      ~doc:"Export build from the store"
+      esyExportBuildCmd;
+
     (* aliases *)
-    bCommand;
+    makeAlias buildCommand "b"
   ] in
-  Term.(exit @@ eval_choice defaultCommand commands);
+
+  let hasCommand name =
+    List.exists
+      (fun (_cmd, info) -> Term.name info = name)
+      commands
+  in
+
+  let runCmdliner argv =
+    Term.(exit @@ eval_choice ~argv defaultCommand commands);
+  in
+
+  let commandName =
+    let open Std.Option in
+    let%bind commandName =
+      try Some Sys.argv.(1)
+      with Invalid_argument _ -> None
+    in
+    if String.get commandName 0 = '-'
+    then None
+    else Some commandName
+  in
+
+  match commandName with
+
+  (*
+   * Fixup invocations for commands which pass their arguments through to other
+   * executables.
+   *
+   * TODO: currently this is implemented in a way which prevents common options
+   * (like --sandbox-path or --prefix-path) from working for these commands.
+   * This should be fixed.
+   *)
+  | Some "export-build"
+  | Some "import-build"
+  | Some "init"
+  | Some "release"
+  | Some "import-opam"
+  | Some "install"
+  | Some "add"
+  | Some "install-cache"
+  | Some "x"
+  | Some "b"
+  | Some "build" ->
+    let argv =
+      match Array.to_list Sys.argv with
+      | prg::command::rest -> prg::command::"--"::rest
+      | argv -> argv
+    in
+    let argv = Array.of_list argv in
+    runCmdliner argv
+
+  | Some "" ->
+    runCmdliner Sys.argv
+
+  (*
+   * Fix
+   *
+   *   esy <anycommand>
+   *
+   * for cmdliner by injecting "--" so that users are not requied to do that.
+   *)
+  | Some commandName ->
+    if hasCommand commandName
+    then runCmdliner Sys.argv
+    else
+      let argv =
+        match Array.to_list Sys.argv with
+        | prg::rest -> prg::"--"::rest
+        | argv -> argv
+      in
+      let argv = Array.of_list argv in
+      runCmdliner argv
+
+  | _ ->
+    runCmdliner Sys.argv

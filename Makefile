@@ -71,7 +71,6 @@ ci:: test
 
 RELEASE_ROOT = dist
 RELEASE_FILES = \
-	bin/esy \
 	bin/esy.js \
 	bin/esyBuildPackage.bc \
 	bin/esy.bc \
@@ -82,10 +81,19 @@ RELEASE_FILES = \
 	scripts/postinstall.sh \
 	package.json
 
+define BIN_ESY
+#!/bin/bash
+
+>&2 echo "esy: installed incorrectly because of failed postinstall hook"
+exit 1
+endef
+export BIN_ESY
+
 build-release:
 	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -C esy-core build
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
+	@echo "$$BIN_ESY" > "$(RELEASE_ROOT)/bin/esy"
 
 $(RELEASE_ROOT)/package.json:
 	@node ./scripts/generate-esy-install-package-json.js > $(@)
