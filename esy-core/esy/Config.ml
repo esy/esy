@@ -70,12 +70,16 @@ let create ~esyVersion ~prefixPath sandboxPath =
       String.make paddingLength '_'
     in
     let storePath = Path.(prefixPath / (storeVersion ^ storePadding)) in
+    let storeLinkPath = Path.(prefixPath / storeVersion) in
     let localStorePath =
       Path.(sandboxPath / "node_modules" / ".cache" / "_esy" / "store")
     in
     let%bind () = initStore storePath in
     let%bind () = initStore localStorePath in
-    Ok {
+    let%bind () = if%bind Bos.OS.Path.exists storeLinkPath
+    then Ok ()
+    else Bos.OS.Path.symlink ~target:storePath storeLinkPath
+    in Ok {
       esyVersion;
       storePath;
       sandboxPath;
