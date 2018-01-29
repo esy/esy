@@ -57,11 +57,15 @@ clean:
 #
 
 test::
+	@$(MAKE) test-build
+	@$(MAKE) -j test-e2e
+	@$(MAKE) -C esy-core test
+
+test-build:
 	@$(BIN)/jest --runInBand \
 		./src/__tests__ \
 		./__tests__/build/*-test.js \
 		./__tests__/export-import-build/*-test.js
-	$(MAKE) -j test-e2e
 
 test-e2e: \
 	test-e2e/symlink-workflow \
