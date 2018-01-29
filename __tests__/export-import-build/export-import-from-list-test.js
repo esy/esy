@@ -14,13 +14,11 @@ defineTestCaseWithShell(
     find _export -type f > list.txt
     run cat list.txt
 
-    run rm -rf ../esy/3/i/*
-    run ls -1 ../esy/3/i/
+    run rm -rf ../esy/3_*/i/*
 
     run esy import-build --from ./list.txt
 
     run ls -1 ../esy/3/i/
 
   `,
-  {snapshotExecutionTrace: true},
 );

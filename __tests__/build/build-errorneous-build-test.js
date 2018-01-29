@@ -10,5 +10,4 @@ defineTestCaseWithShell(
   `
     runAndExpectFailure esy build
   `,
-  {snapshotExecutionTrace: true},
 );

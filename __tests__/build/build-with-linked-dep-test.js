@@ -24,5 +24,4 @@ defineTestCaseWithShell(
     info "this SHOULD rebuild dep"
     run esy build
   `,
-  {snapshotExecutionTrace: true},
 );

@@ -14,5 +14,4 @@ defineTestCaseWithShell(
     run esy x no-deps-_build
     assertStdout "esy x no-deps-_build" "no-deps-_build"
   `,
-  {snapshotExecutionTrace: true},
 );

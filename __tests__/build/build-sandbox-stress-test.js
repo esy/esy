@@ -11,5 +11,4 @@ defineTestCaseWithShell(
     run esy build
     run esy x echo ok
   `,
-  {snapshotExecutionTrace: true},
 );

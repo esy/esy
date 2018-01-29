@@ -157,8 +157,6 @@ export function defineTestCaseWithShell(
   shellScript: string,
   options: {snapshotExecutionTrace?: boolean} = {},
 ) {
-  jest.setTimeout(500000);
-
   const fixture = initFixtureSync(fixturePath);
 
   function maybeMakeExecutionTraceSnapshot(stdout) {

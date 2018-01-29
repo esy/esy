@@ -12,5 +12,4 @@ defineTestCaseWithShell(
     run esy build
     assertStdout "esy x custom-prefix" "custom-prefix"
   `,
-  {snapshotExecutionTrace: true},
 );

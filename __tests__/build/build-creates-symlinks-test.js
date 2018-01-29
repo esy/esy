@@ -17,5 +17,4 @@ defineTestCaseWithShell(
 
     assertStdout "esy x creates-symlinks" "creates-symlinks"
   `,
-  {snapshotExecutionTrace: true},
 );

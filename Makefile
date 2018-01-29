@@ -56,38 +56,19 @@ clean:
 # Test
 #
 
-test-unit:
-	@$(BIN)/jest src/
-
-test-unit-watch:
-	@$(BIN)/jest src/ --watch
-
-test-esy-build:
-	@$(BIN)/jest ./__tests__/build/*-test.js
-
-test-e2e:
-	(cd __tests__ && bash symlink-workflow-test.sh)
-
-test-opam:
-	(cd __tests__ && bash opam-test.sh)
-
 test:
 	@$(BIN)/jest \
 		./src/__tests__ \
 		./__tests__/build/*-test.js \
 		./__tests__/export-import-build/*-test.js
-	$(MAKE) test-e2e
+	(cd __tests__ && bash symlink-workflow-test.sh)
 
 ci:
 	@$(BIN)/jest \
 		--runInBand \
-		./src/__tests__ \
 		./__tests__/build/*-test.js \
-		./__tests__/release/*-test.js \
 		./__tests__/export-import-build/*-test.js
-	$(MAKE) build-release
-	$(MAKE) test-e2e
-	$(MAKE) test-opam
+	(cd __tests__ && bash symlink-workflow-test.sh)
 
 #
 # Release
