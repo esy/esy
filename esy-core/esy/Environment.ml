@@ -2,10 +2,14 @@ open Std
 
 type binding = {
     name : string;
-    value : string;
+    value : bindingValue;
     origin : Package.t option;
   }
   [@@deriving show]
+
+and bindingValue =
+  | Value of string
+  | ExpandedValue of string
 
 let renderStringWithConfig (cfg : Config.t) value =
   let lookup = function
@@ -25,8 +29,12 @@ let renderToShellSource
     (bindings : binding list) =
   let open Run.Syntax in
   let escapeDoubleQuote value =
-    let doubleQuoteRe = Str.regexp "\"" in
-    Str.global_replace doubleQuoteRe "\\\"" value
+    let re = Str.regexp "\"" in
+    Str.global_replace re "\\\"" value
+  in
+  let escapeSingleQuote value =
+    let re = Str.regexp "'" in
+    Str.global_replace re "''" value
   in
   let emptyLines = function
     | [] -> true
@@ -41,9 +49,13 @@ let renderToShellSource
     else
       lines
     in
-    let%bind value = renderStringWithConfig cfg value in
-    let value = escapeDoubleQuote value in
-    let line = Printf.sprintf "export %s=\"%s\"" name value in
+    let%bind line = match value with
+    | Value value ->
+      let%bind value = renderStringWithConfig cfg value in
+      Ok (value |> escapeDoubleQuote |> Printf.sprintf "export %s=\"%s\"" name)
+    | ExpandedValue value ->
+      Ok (value |> escapeSingleQuote |> Printf.sprintf "export %s=\'%s\'" name)
+    in
     Ok (line::lines, origin)
   in
   let%bind lines, _ = Run.foldLeft ~f ~init:([], None) bindings in
@@ -61,11 +73,15 @@ module Value = struct
   let find = M.find_opt
 
   let ofBindings ?(init : t = M.empty) (bindings : binding list) =
+    let open Run.Syntax in
     let f env binding =
       let scope name = M.find name env in
-      match ShellParamExpansion.render ~scope binding.value with
-      | Ok value -> Ok (M.add binding.name value env)
-      | Error err -> Error err
+      match binding.value with
+      | Value value ->
+        let%bind value = ShellParamExpansion.render ~scope value in
+        Ok (M.add binding.name value env)
+      | ExpandedValue value ->
+        Ok (M.add binding.name value env)
     in
     Result.listFoldLeft ~f ~init bindings
 

@@ -110,63 +110,63 @@ let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list
   let stagePath = pkgStagePath pkg in
   let open Environment in {
     name = "cur__name";
-    value = pkg.name;
+    value = Value pkg.name;
     origin = Some pkg;
   }::{
     name = "cur__version";
-    value = pkg.version;
+    value = Value pkg.version;
     origin = Some pkg;
   }::{
     name = "cur__root";
-    value = ConfigPath.toString rootPath;
+    value = Value (ConfigPath.toString rootPath);
     origin = Some pkg;
   }::{
     name = "cur__original_root";
-    value = ConfigPath.toString pkg.sourcePath;
+    value = Value (ConfigPath.toString pkg.sourcePath);
     origin = Some pkg;
   }::{
     name = "cur__target_dir";
-    value = ConfigPath.toString buildPath;
+    value = Value (ConfigPath.toString buildPath);
     origin = Some pkg;
   }::{
     name = "cur__install";
-    value = ConfigPath.toString stagePath;
+    value = Value (ConfigPath.toString stagePath);
     origin = Some pkg;
   }::{
     name = "cur__bin";
-    value = ConfigPath.(stagePath / "bin" |> toString);
+    value = Value ConfigPath.(stagePath / "bin" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__sbin";
-    value = ConfigPath.(stagePath / "sbin" |> toString);
+    value = Value ConfigPath.(stagePath / "sbin" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__lib";
-    value = ConfigPath.(stagePath / "lib" |> toString);
+    value = Value ConfigPath.(stagePath / "lib" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__man";
-    value = ConfigPath.(stagePath / "man" |> toString);
+    value = Value ConfigPath.(stagePath / "man" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__doc";
-    value = ConfigPath.(stagePath / "doc" |> toString);
+    value = Value ConfigPath.(stagePath / "doc" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__stublibs";
-    value = ConfigPath.(stagePath / "stublibs" |> toString);
+    value = Value ConfigPath.(stagePath / "stublibs" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__toplevel";
-    value = ConfigPath.(stagePath / "toplevel" |> toString);
+    value = Value ConfigPath.(stagePath / "toplevel" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__share";
-    value = ConfigPath.(stagePath / "share" |> toString);
+    value = Value ConfigPath.(stagePath / "share" |> toString);
     origin = Some pkg;
   }::{
     name = "cur__etc";
-    value = ConfigPath.(stagePath / "etc" |> toString);
+    value = Value ConfigPath.(stagePath / "etc" |> toString);
     origin = Some pkg;
   }::bindings
 
@@ -261,10 +261,10 @@ let ofPackage
           match envScope with
           | Package.ExportedEnv.Global ->
             let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" || injectCamlLdLibraryPath in
-            let globalEnv = Environment.{origin = Some pkg; name; value}::globalEnv in
+            let globalEnv = Environment.{origin = Some pkg; name; value = Value value}::globalEnv in
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
           | Package.ExportedEnv.Local ->
-            let localEnv = Environment.{origin = Some pkg; name; value}::localEnv in
+            let localEnv = Environment.{origin = Some pkg; name; value = Value value}::localEnv in
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
         )
       in
@@ -278,7 +278,7 @@ let ofPackage
       in
       Ok (Environment.{
             name = "CAML_LD_LIBRARY_PATH";
-            value;
+            value = Value value;
             origin = Some pkg;
           }::globalEnv)
     else
@@ -330,17 +330,17 @@ let ofPackage
       let path = Environment.{
         origin = None;
         name = "PATH";
-        value =
+        value = Value (
           let v = List.map ConfigPath.toString path in
-          PathLike.make "PATH" v
+          PathLike.make "PATH" v)
       } in
 
       let manPath = Environment.{
         origin = None;
         name = "MAN_PATH";
-        value =
+        value = Value (
           let v = List.map ConfigPath.toString manpath in
-          PathLike.make "MAN_PATH" v
+          PathLike.make "MAN_PATH" v)
       } in
 
       (* Configure environment for ocamlfind.
@@ -349,48 +349,48 @@ let ofPackage
       let ocamlpath = Environment.{
         origin = None;
         name = "OCAMLPATH";
-        value =
+        value = Value (
           let v = List.map ConfigPath.toString ocamlpath in
-          PathLike.make "OCAMLPATH" v;
+          PathLike.make "OCAMLPATH" v);
       } in
 
       let ocamlfindDestdir = Environment.{
         origin = None;
         name = "OCAMLFIND_DESTDIR";
-        value = ConfigPath.(stagePath / "lib" |> toString);
+        value = Value ConfigPath.(stagePath / "lib" |> toString);
       } in
 
       let ocamlfindLdconf = Environment.{
         origin = None;
         name = "OCAMLFIND_LDCONF";
-        value = "ignore";
+        value = Value "ignore";
       } in
 
       let ocamlfindCommands = Environment.{
         origin = None;
         name = "OCAMLFIND_COMMANDS";
-        value = "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
+        value = Value "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       } in
 
       let initEnv = (Std.Option.orDefault [] initEnv) @ Environment.[
         {
           name = "TERM";
-          value = term;
+          value = Value term;
           origin = None;
         };
         {
           name = "PATH";
-          value = "";
+          value = Value "";
           origin = None;
         };
         {
           name = "MAN_PATH";
-          value = "";
+          value = Value "";
           origin = None;
         };
         {
           name = "CAML_LD_LIBRARY_PATH";
-          value = "";
+          value = Value "";
           origin = None;
         };
       ] in
@@ -399,23 +399,23 @@ let ofPackage
         let v = [
           {
             name = "PATH";
-            value = Std.Option.orDefault
+            value = Value (Std.Option.orDefault
               "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-              finalPath;
+              finalPath);
             origin = None;
           };
           {
             name = "MAN_PATH";
-            value = Std.Option.orDefault
+            value = Value (Std.Option.orDefault
               "$MAN_PATH"
-              finalManPath;
+              finalManPath);
             origin = None;
           }
         ] in
         if overrideShell then
           let shell = {
             name = "SHELL";
-            value = "env -i /bin/bash --norc --noprofile";
+            value = Value "env -i /bin/bash --norc --noprofile";
             origin = None;
           } in shell::v
         else
@@ -514,11 +514,21 @@ let initEnv =
     let idx = String.index item '=' in
     let name = String.sub item 0 idx in
     let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-    Environment.{name; value; origin = None;}
+    Environment.{name; value = ExpandedValue value; origin = None;}
+  in
+  let filterFunctions {Environment. name; _} =
+    let starting = "BASH_FUNC_" in
+    let ending = "%%" in
+    not (
+      String.length name > String.length starting
+      && Str.first_chars name (String.length starting) = starting
+      && Str.last_chars name (String.length ending) = ending
+    )
   in
   Unix.environment ()
   |> Array.map parseEnv
   |> Array.to_list
+  |> List.filter filterFunctions
 
 let commandEnv pkg =
   let open Run.Syntax in
