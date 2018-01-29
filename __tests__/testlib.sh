@@ -33,25 +33,56 @@ failwith () {
 export -f failwith
 
 assertStdout () {
+  set +x
   local command="$1"
   local expected="$2"
   local actual
   echo "RUNNING: $command"
+  set -x
   actual=$($command)
+  set +x
   if [ ! $? -eq 0 ]; then
     failwith "command failed"
   fi
   if [ "$actual" != "$expected" ]; then
+    set +x
     echo "EXPECTED: $expected"
     echo "ACTUAL: $actual"
     failwith "assertion failed"
   else
+    set -x
     echo "$actual"
   fi
 }
 export -f assertStdout
 
+expectStdout () {
+  set +x
+  local expected="$1"
+  shift
+  local actual
+  echo "RUNNING: " "$@"
+  set -x
+  actual=$("$@")
+  set +x
+  if [ ! $? -eq 0 ]; then
+    failwith "command failed"
+  fi
+  if [ "$actual" != "$expected" ]; then
+    set +x
+    echo "EXPECTED: $expected"
+    echo "ACTUAL: $actual"
+    failwith "assertion failed"
+  else
+    set -x
+    echo "$actual"
+  fi
+}
+export -f expectStdout
+
 info () {
+  set +x
   echo "INFO:" "$@"
+  set -x
 }
 export -f info

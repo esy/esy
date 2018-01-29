@@ -8,3 +8,4 @@ _export
 /bin/fastreplacestring.exe
 /bin/esyConfig.sh
 bin/esy
+**/node_modules/.cache
