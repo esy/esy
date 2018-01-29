@@ -7,6 +7,13 @@ type binding = {
   }
   [@@deriving show]
 
+(* TODO: Expand this variant to include
+ *
+ *   - Path of string
+ *   - PathConcat of * string list
+ *
+ * And defer its expansion till the `esy-build-package` invocation.
+ *)
 and bindingValue =
   | Value of string
   | ExpandedValue of string
