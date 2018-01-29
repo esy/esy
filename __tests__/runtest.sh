@@ -14,7 +14,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-ESYCOMMAND="$SCRIPTDIR/../bin/esy"
+export ESYCOMMAND="$SCRIPTDIR/../bin/esy"
 
 export TEST_ROOT=""
 export TEST_PROJECT=""
@@ -32,12 +32,9 @@ initFixture () {
 
   cp -r "fixtures/$name" "$TEST_PROJECT"
 
-  esy () {
-    "$ESYCOMMAND" "$@"
-  }
-
   pushd "$TEST_PROJECT"
 }
+export -f initFixture
 
 initFixtureAsIfEsyReleased () {
   local name
@@ -69,6 +66,12 @@ initFixtureAsIfEsyReleased () {
 
   pushd "$TEST_PROJECT" > /dev/null
 }
+export -f initFixtureAsIfEsyReleased
+
+esy () {
+  "$ESYCOMMAND" "$@"
+}
+export -f esy
 
 # shellcheck source=./testlib.sh
 source "$SCRIPTDIR/testlib.sh"
@@ -76,13 +79,17 @@ source "$SCRIPTDIR/testlib.sh"
 TESTCASE="$1"
 
 source "$TESTCASE"
+export -f doTest
 
 cd $(dirname "$TESTCASE")
+
 echo "Running $TESTCASE"
+set +e
+OUT=$(PATH="$SCRIPTDIR/../bin:$PATH" bash -c 'set -eu; set -o pipefail; doTest' 2>&1)
+RET="$?"
+set -e
 
-OUT=$(doTest)
-
-if [ $? -ne 0 ]; then
+if [ $RET -ne 0 ]; then
   echo "Running $TESTCASE: error"
   echo "$OUT"
   exit 1
