@@ -24,11 +24,14 @@
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "<rootDir>/__tests__/fixtures/",
+      "<rootDir>/__tests__/build/fixtures",
+      "<rootDir>/esy-install",
       "<rootDir>/dist",
       "<rootDir>/esyInstallCache-3.x.x"
     ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
+      "<rootDir>/esy-install",
       "<rootDir>/dist",
       "<rootDir>/esyInstallCache-3.x.x",
       "<rootDir>/lib"

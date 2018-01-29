@@ -56,19 +56,14 @@ clean:
 # Test
 #
 
-test:
-	@$(BIN)/jest \
+test::
+	@$(BIN)/jest --runInBand \
 		./src/__tests__ \
 		./__tests__/build/*-test.js \
 		./__tests__/export-import-build/*-test.js
-	(cd __tests__ && bash symlink-workflow-test.sh)
+	./__tests__/runtest.sh ./__tests__/e2e/symlink-workflow-test.sh
 
-ci:
-	@$(BIN)/jest \
-		--runInBand \
-		./__tests__/build/*-test.js \
-		./__tests__/export-import-build/*-test.js
-	(cd __tests__ && bash symlink-workflow-test.sh)
+ci:: test
 
 #
 # Release
