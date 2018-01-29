@@ -7,7 +7,6 @@ jest.setTimeout(200000);
 import * as path from 'path';
 import * as fs from '../src/lib/fs';
 import * as child from '../src/lib/child_process.js';
-import isCI from 'is-ci';
 import outdent from 'outdent';
 
 const DEBUG_TEST_LOC = '/tmp/esydbg';
@@ -169,10 +168,6 @@ export function defineTestCaseWithShell(
   test(`build ${fixture.description}`, async function() {
     const stdout = await fixture.shellInProject(shellScript);
     maybeMakeExecutionTraceSnapshot(stdout);
-    // Log stdout on CI servers so we can inspect failures.
-    if (isCI) {
-      console.log(stdout);
-    }
   });
 
   afterAll(cleanUp);
