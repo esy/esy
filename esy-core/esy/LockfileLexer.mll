@@ -9,7 +9,7 @@ let float   = digit* frac? exp?
 
 let ws      = '\t' | ' '
 let newline = '\r' | '\n' | "\r\n"
-let id      = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
+let id      = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 
 rule read =
   parse

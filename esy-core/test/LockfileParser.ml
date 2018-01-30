@@ -60,4 +60,7 @@ let%test "a:b\n" =
   expectParseOk "a:b\n" (Mapping [("a", String "b")])
 
 let%test "\na:b" =
-  expectParseOk "a:b\n" (Mapping [("a", String "b")])
+  expectParseOk "\na:b" (Mapping [("a", String "b")])
+
+let%test "esy-store-path: \"/some/path\"" =
+  expectParseOk "esy-store-path: \"/some/path\"" (Mapping [("esy-store-path", String "/some/path")])
