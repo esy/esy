@@ -27,4 +27,9 @@
               ))
   ))
 
-(ocamllex (ShellParamExpansionParser ShellSplit CommandExprParser))
+(ocamllex (
+           ShellParamExpansionParser
+           ShellSplit
+           CommandExprParser
+           LockfileLexer
+           ))
