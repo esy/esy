@@ -1,7 +1,7 @@
 #!/bin/bash
 
 doTest() {
-  initFixture simple-project
+  initFixture ./fixtures/simple-project
 
   run esy build
   expectStdout "dep" esy dep

@@ -1,5 +1,5 @@
 doTest () {
-  initFixture symlinks-into-dep
+  initFixture ./fixtures/symlinks-into-dep
   run esy build
 
   # package "subdep" should be visible in all envs

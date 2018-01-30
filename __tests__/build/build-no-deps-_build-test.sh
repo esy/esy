@@ -1,5 +1,5 @@
 doTest() {
-  initFixture no-deps-_build
+  initFixture ./fixtures/no-deps-_build
   run esy build
   run ls
   run ls _build

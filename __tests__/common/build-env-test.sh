@@ -1,7 +1,7 @@
 #!/bin/bash
 
 doTest() {
-  initFixture simple-project
+  initFixture ./fixtures/simple-project
 
   # Check that `esy build-env` generates an environment with deps in $PATH.
   run esy build

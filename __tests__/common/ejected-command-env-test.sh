@@ -1,7 +1,7 @@
 #!/bin/bash
 
 doTest() {
-  initFixture simple-project
+  initFixture ./fixtures/simple-project
 
   # Check that `esy build` ejects a command-env which contains deps and devDeps
   # in $PATH.

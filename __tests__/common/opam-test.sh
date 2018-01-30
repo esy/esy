@@ -2,7 +2,9 @@
 
 skipTest "does not build on CI yet"
 
-initFixture opam-test
+doTest () {
+  initFixture ./fixtures/opam-test
 
-run esy install
-run esy build
+  run esy install
+  run esy build
+}

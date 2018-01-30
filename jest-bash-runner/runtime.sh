@@ -16,15 +16,14 @@ skipTest () {
 
 initFixture () {
   set +x
-  local name
 
-  name="$1"
+  local fixture="$1"
   TEST_ROOT=$(mktemp -d)
   TEST_PROJECT="$TEST_ROOT/project"
 
   export ESY__PREFIX="$TEST_ROOT/esy"
 
-  cp -r "fixtures/$name" "$TEST_PROJECT"
+  cp -r "$fixture" "$TEST_PROJECT"
 
   pushd "$TEST_PROJECT"
   set -x

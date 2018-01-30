@@ -1,5 +1,5 @@
 doTest () {
-  initFixture with-linked-dep-in-source
+  initFixture ./fixtures/with-linked-dep-in-source
   run esy build
 
   # package "dep" should be visible in all envs
