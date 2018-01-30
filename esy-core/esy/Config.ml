@@ -6,6 +6,7 @@ end
 type t = {
   esyVersion : string;
   sandboxPath : Path.t;
+  prefixPath : Path.t;
   storePath : Path.t;
   localStorePath : Path.t;
 }
@@ -42,16 +43,17 @@ let maxStorePaddingLength =
       ^ ocamlrunStorePath
     )
 
-let create ~esyVersion ~prefixPath sandboxPath =
+let initStore (path: Path.t) =
+  let module Let_syntax = Result.Let_syntax in
+  let%bind _ = Bos.OS.Dir.create(Path.(path / "i")) in
+  let%bind _ = Bos.OS.Dir.create(Path.(path / "b")) in
+  let%bind _ = Bos.OS.Dir.create(Path.(path / "s")) in
+  Ok ()
+
+let create ~esyVersion ~prefixPath (sandboxPath : Path.t) =
   let value =
     let module Let_syntax = Result.Let_syntax in
-    let initStore (path: Path.t) =
-      let module Let_syntax = Result.Let_syntax in
-      let%bind _ = Bos.OS.Dir.create(Path.(path / "i")) in
-      let%bind _ = Bos.OS.Dir.create(Path.(path / "b")) in
-      let%bind _ = Bos.OS.Dir.create(Path.(path / "s")) in
-      Ok ()
-    in
+
     let%bind prefixPath =
       match prefixPath with
       | Some v -> Ok v
@@ -59,33 +61,38 @@ let create ~esyVersion ~prefixPath sandboxPath =
         let%bind home = Bos.OS.Dir.user() in
         Ok Path.(home / ".esy")
     in
-    let%bind sandboxPath =
-      match sandboxPath with
-      | Some v -> Ok v
-      | None -> Bos.OS.Dir.current ()
+
+    let%bind storePath =
+      let%bind storePadding =
+        let prefixPathLength = String.length (Fpath.to_string prefixPath) in
+        let paddingLength = maxStorePaddingLength - prefixPathLength in
+        if paddingLength < 0
+        then Error (`Msg "prefixPath is too deep in the filesystem")
+        else Ok (String.make paddingLength '_')
+      in
+      Ok Path.(prefixPath / (storeVersion ^ storePadding))
     in
-    let storePadding =
-      let prefixPathLength = String.length (Fpath.to_string prefixPath) in
-      let paddingLength = maxStorePaddingLength - prefixPathLength in
-      String.make paddingLength '_'
-    in
-    let storePath = Path.(prefixPath / (storeVersion ^ storePadding)) in
-    let storeLinkPath = Path.(prefixPath / storeVersion) in
     let localStorePath =
       Path.(sandboxPath / "node_modules" / ".cache" / "_esy" / "store")
     in
+    let storeLinkPath =
+      Path.(prefixPath / storeVersion)
+    in
+
     let%bind () = initStore storePath in
     let%bind () = initStore localStorePath in
     let%bind () = if%bind Bos.OS.Path.exists storeLinkPath
-    then Ok ()
-    else Bos.OS.Path.symlink ~target:storePath storeLinkPath
+      then Ok ()
+      else Bos.OS.Path.symlink ~target:storePath storeLinkPath
     in Ok {
       esyVersion;
+      prefixPath;
       storePath;
       sandboxPath;
       localStorePath;
     }
-  in Run.liftOfBosError value
+  in
+  value |> Run.liftOfBosError |> RunAsync.liftOfRun
 
 module type ABSTRACT_PATH = sig
   (**
