@@ -1,8 +1,15 @@
 (**
  * Run command.
  *)
+
+type env = [
+  | `CurrentEnv
+  | `CurrentEnvOverride of Environment.Value.t
+  | `CustomEnv of Environment.Value.t
+]
+
 val run :
-  ?env:Environment.Value.t
+  ?env:env
   -> ?resolveProgramInEnv:bool
   -> ?stdin:Lwt_process.redirection
   -> ?stdout:Lwt_process.redirection
@@ -11,7 +18,7 @@ val run :
   -> unit RunAsync.t
 
 val withProcess :
-  ?env:Environment.Value.t
+  ?env:env
   -> ?resolveProgramInEnv:bool
   -> ?stdin:Lwt_process.redirection
   -> ?stdout:Lwt_process.redirection

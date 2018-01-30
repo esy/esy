@@ -509,33 +509,12 @@ let buildEnv pkg =
   let%bind task = ofPackage pkg in
   Ok task.env
 
-let initEnv =
-  let parseEnv item =
-    let idx = String.index item '=' in
-    let name = String.sub item 0 idx in
-    let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-    Environment.{name; value = ExpandedValue value; origin = None;}
-  in
-  let filterFunctions {Environment. name; _} =
-    let starting = "BASH_FUNC_" in
-    let ending = "%%" in
-    not (
-      String.length name > String.length starting
-      && Str.first_chars name (String.length starting) = starting
-      && Str.last_chars name (String.length ending) = ending
-    )
-  in
-  Unix.environment ()
-  |> Array.map parseEnv
-  |> Array.to_list
-  |> List.filter filterFunctions
-
 let commandEnv pkg =
   let open Run.Syntax in
 
   let%bind task =
     ofPackage
-      ?initEnv:(Some initEnv)
+      ?initEnv:(Some Environment.current)
       ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
       ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
       ~overrideShell:false
@@ -562,7 +541,7 @@ let sandboxEnv (pkg : Package.t) =
     sourcePath = pkg.sourcePath;
   } in
   let%bind task = ofPackage
-    ?initEnv:(Some initEnv)
+    ?initEnv:(Some Environment.current)
     ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
     ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
     ~overrideShell:false

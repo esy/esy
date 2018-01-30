@@ -1,5 +1,27 @@
-let withProcess ?env ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
+type env = [
+  (* Use current env *)
+  | `CurrentEnv
+  (* Use current env add some override on top *)
+  | `CurrentEnvOverride of Environment.Value.t
+  (* Use custom env *)
+  | `CustomEnv of Environment.Value.t
+]
+
+let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
   let open RunAsync.Syntax in
+
+  let env = match env with
+  | `CurrentEnv -> None
+  | `CurrentEnvOverride env ->
+      let env =
+        Astring.String.Map.fold
+          Astring.String.Map.add
+          env
+          Environment.Value.current
+      in
+      Some env
+  | `CustomEnv env -> Some env
+  in
 
   let%bind cmd = RunAsync.liftOfRun (
     let open Run.Syntax in

@@ -30,6 +30,14 @@ let concurrency =
     end
   | Error _ -> 1
 
+let esyEnvOverride (cfg : Config.t) =
+  let env = Astring.String.Map.(
+    empty
+    |> add "ESY__PREFIX" (Path.to_string cfg.prefixPath)
+    |> add "ESY__SANDBOX" (Path.to_string cfg.sandboxPath)
+  ) in
+  `CurrentEnvOverride env
+
 let pathTerm =
   let open Cmdliner in
   let parse = Path.of_string in
@@ -136,11 +144,14 @@ let setupLogTerm =
     $ Fmt_cli.style_renderer ()
     $ Logs_cli.level ~env:(Arg.env_var "ESY__LOG") ())
 
-let runCommandViaNode _cfg name args =
+let runCommandViaNode cfg name args =
+  let open RunAsync.Syntax in
+  let%bind cfg = cfg in
+  let env = esyEnvOverride cfg in
   match esyJs () with
   | Ok esyJs ->
     let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
-    ChildProcess.run cmd
+    ChildProcess.run ~env cmd
   | Error _err ->
     RunAsync.error "unable to find esy.js"
 
@@ -402,11 +413,13 @@ let makeExecCommand
   in
 
   let%bind env = RunAsync.liftOfRun (
+    let open Run.Syntax in
     let env = match env with
     | `CommandEnv -> Environment.Closed.value info.commandEnv
     | `SandboxEnv -> Environment.Closed.value info.sandboxEnv
     in
-    Environment.Value.bindToConfig cfg env
+    let%bind env = Environment.Value.bindToConfig cfg env in
+    Ok (`CustomEnv env)
   ) in
 
   ChildProcess.run
@@ -676,6 +689,8 @@ let () =
         let%bind cfg = cfg in
         let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
 
+        let env = esyEnvOverride cfg in
+
         let pkgs =
           let open Package in
           sandbox.root
@@ -688,7 +703,7 @@ let () =
           | Ok cmd ->
             let installPath = BuildTask.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
             let cmd = Cmd.(cmd % p installPath) in
-            ChildProcess.run ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
+            ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
           | Error err -> Lwt.return (Error err)
         in
 
@@ -723,12 +738,14 @@ let () =
           |> List.filter (fun pkg -> not (pkg.id = sandbox.root.id))
         in
 
+        let env = esyEnvOverride cfg in
+
         let importBuild (pkg : Package.t) =
           match esyImportBuildCmd () with
           | Ok cmd ->
             let importBuildFromPath path =
               let cmd = Cmd.(cmd % p path) in
-              ChildProcess.run ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
+              ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
             in
             let installPath = BuildTask.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
             if%bind Fs.exists installPath
@@ -785,12 +802,14 @@ let () =
 
   let makeCommandDelegatingTo ~name ~doc resolveCommand =
     let info = Term.info name ~version ~doc ~sdocs ~exits in
-    let cmd args _cfg () =
+    let cmd args cfg () =
       let f =
+        let open RunAsync.Syntax in
+        let%bind cfg = cfg in
         match resolveCommand () with
         | Ok cmd ->
           let cmd = Cmd.(cmd %% Cmd.ofList args) in
-          ChildProcess.run cmd
+          ChildProcess.run ~env:(esyEnvOverride cfg) cmd
         | Error _err ->
           RunAsync.error "unable to find esy.js"
       in
