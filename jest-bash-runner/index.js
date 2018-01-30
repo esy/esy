@@ -9,13 +9,9 @@ const chalk = require('chalk');
 const RUNTIME = require.resolve('./runtime.sh');
 const ESYCOMMAND = require.resolve('../bin/esy');
 
-module.exports = async function testRunner(
-  globalConfig,
-  config,
-  environment,
-  runtime,
-  testPath,
-) {
+module.exports = testRunner;
+
+function testRunner(globalConfig, config, environment, runtime, testPath) {
   const start = +new Date();
   const source = `
     export ESYCOMMAND="${ESYCOMMAND}"
@@ -23,19 +19,21 @@ module.exports = async function testRunner(
     source "${testPath}"
     doTest
   `;
-  try {
-    await spawn('/bin/bash', ['-c', source], {cwd: path.dirname(testPath)});
-  } catch (err) {
-    const end = +new Date();
-    if (err.EXIT_CODE === 66) {
-      return skipped({testPath, start, end, message: chalk.yellow(err.stdout)});
-    } else {
-      return failure({testPath, start, end, failureMessage: err.stdout});
+  return spawn('/bin/bash', ['-c', source], {cwd: path.dirname(testPath)}).then(
+    () => {
+      const end = +new Date();
+      return success({testPath, start, end});
+    },
+    err => {
+      const end = +new Date();
+      if (err.EXIT_CODE === 66) {
+        return skipped({testPath, start, end, message: chalk.yellow(err.stdout)});
+      } else {
+        return failure({testPath, start, end, failureMessage: err.stdout});
+      }
     }
-  }
-  const end = +new Date();
-  return success({testPath, start, end});
-};
+  );
+}
 
 function success({testPath, start, end}) {
   return {
@@ -213,7 +211,7 @@ function spawn(program, args, opts = {}, onData) {
             `Arguments: ${args.join(' ')}`,
             `Directory: ${opts.cwd || process.cwd()}`,
             `Output:\n${stdout}`,
-          ].join('\n'),
+          ].join('\n')
         );
         // $FlowFixMe: ...
         err.EXIT_CODE = code;
