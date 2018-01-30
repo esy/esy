@@ -81,6 +81,18 @@ let configTerm =
     )
   in
   let parse prefixPath sandboxPath =
+    let open RunAsync.Syntax in
+    let%bind sandboxPath = RunAsync.liftOfRun(
+      match sandboxPath with
+      | Some v -> Ok v
+      | None -> Run.liftOfBosError (Path.of_string (Unix.getcwd ()))
+    ) in
+    let%bind prefixPath = match prefixPath with
+    | Some prefixPath -> return (Some prefixPath)
+    | None ->
+      let%bind rc = EsyRc.ofPath sandboxPath in
+      return rc.EsyRc.prefixPath
+    in
     Config.create ~esyVersion:version ~prefixPath sandboxPath
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
@@ -269,7 +281,7 @@ let withBuildTaskByPath
 let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
 
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
@@ -282,7 +294,7 @@ let buildPlan cfg packagePath =
 let buildShell cfg packagePath =
   let open RunAsync.Syntax in
 
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
@@ -293,7 +305,7 @@ let buildShell cfg packagePath =
 let buildPackage cfg packagePath =
   let open RunAsync.Syntax in
 
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
@@ -302,7 +314,7 @@ let buildPackage cfg packagePath =
 
 let build ?(buildOnly=true) cfg command =
   let open RunAsync.Syntax in
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
 
   (** TODO: figure out API to build devDeps in parallel with the root *)
@@ -323,7 +335,7 @@ let build ?(buildOnly=true) cfg command =
 let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let open RunAsync.Syntax in
 
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f (task : BuildTask.t) =
@@ -375,7 +387,7 @@ let makeExecCommand
     =
   let open RunAsync.Syntax in
 
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind (info: SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
   let%bind () = match prepare with
@@ -441,7 +453,7 @@ let devShell cfg =
 let makeLsCommand ~computeLine ~includeTransitive cfg =
   let open RunAsync.Syntax in
 
-  let%bind cfg = RunAsync.liftOfRun cfg in
+  let%bind cfg = cfg in
   let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
   let seen = ref StringSet.empty in
@@ -661,7 +673,7 @@ let () =
       let f =
         let open RunAsync.Syntax in
 
-        let%bind cfg = RunAsync.liftOfRun cfg in
+        let%bind cfg = cfg in
         let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
 
         let pkgs =
@@ -696,7 +708,7 @@ let () =
       let f =
         let open RunAsync.Syntax in
 
-        let%bind cfg = RunAsync.liftOfRun cfg in
+        let%bind cfg = cfg in
         let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
 
         let fromPath = match fromPath with

@@ -58,7 +58,7 @@ clean:
 
 test::
 	@$(MAKE) test-build
-	@$(MAKE) -j test-e2e
+	@$(MAKE) test-e2e
 	@$(MAKE) -C esy-core test
 
 test-build:
@@ -76,6 +76,7 @@ test-e2e: \
 	test-e2e/anycmd \
 	test-e2e/build-anycmd \
 	test-e2e/x-anycmd \
+	test-e2e/esy-prefix-via-esyrc
 
 test-e2e/%:
 	@./__tests__/runtest.sh ./__tests__/e2e/$(@:test-e2e/%=%)-test.sh
