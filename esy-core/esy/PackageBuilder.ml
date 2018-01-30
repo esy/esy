@@ -28,6 +28,8 @@ let run
         ocamlrun
         %% esyBuildPackage
         % action
+        % "--prefix-path" % p cfg.prefixPath
+        % "--sandbox-path" % p cfg.sandboxPath
         % "--build"
         % Path.to_string buildJsonFilename
         %% (Cmd.ofList args)
