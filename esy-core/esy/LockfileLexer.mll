@@ -9,16 +9,16 @@ let float   = digit* frac? exp?
 
 let ws      = '\t' | ' '
 let newline = '\r' | '\n' | "\r\n"
-let id      = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
+let id      = ['a'-'z' 'A'-'Z' '_' '/' '.'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-' '/' '.']*
 
 rule read =
   parse
   | newline  { NEWLINE }
   | ws       { read lexbuf }
-  | float    { NUMBER (float_of_string (Lexing.lexeme lexbuf)) }
   | "true"   { TRUE }
   | "false"  { FALSE }
   | id       { IDENTIFIER (Lexing.lexeme lexbuf) }
+  | float    { NUMBER (float_of_string (Lexing.lexeme lexbuf)) }
   | '"'      { read_string (Buffer.create 16) lexbuf }
   | ':'      { COLON }
   | ','      { COMMA }
