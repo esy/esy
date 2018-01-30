@@ -44,11 +44,12 @@ let run
     let%bind stdout, stderr, log = match stderrout with
     | `Log ->
       let logPath = Config.ConfigPath.toPath cfg task.logPath in
-      let fd = UnixLabels.openfile
-        ~mode:Unix.[O_WRONLY; O_CREAT]
-        ~perm:0o644
+      let%lwt fd = Lwt_unix.openfile
         (Path.to_string logPath)
+        Lwt_unix.[O_WRONLY; O_CREAT]
+        0o644
       in
+      let fd = Lwt_unix.unix_file_descr fd in
       return (`FD_copy fd, `FD_copy fd, Some (logPath, fd))
     | `Keep ->
       return (`FD_copy Unix.stdout, `FD_copy Unix.stderr, None)
