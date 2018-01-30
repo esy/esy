@@ -1,7 +1,6 @@
 #!/bin/bash
 
-source ../testlib.sh
-source ../setup.sh
+skipTest "does not build on CI yet"
 
 initFixture opam-test
 

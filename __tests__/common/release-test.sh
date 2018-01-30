@@ -1,7 +1,6 @@
 #!/bin/bash
 
-source ../testlib.sh
-source ../setup.sh
+skipTest "not implemented yet"
 
 initFixtureAsIfEsyReleased release
 

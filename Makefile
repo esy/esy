@@ -56,30 +56,18 @@ clean:
 # Test
 #
 
+JEST = $(BIN)/jest --runInBand
+
 test::
-	@$(MAKE) test-build
 	@$(MAKE) test-e2e
 	@$(MAKE) -C esy-core test
 
-test-build:
-	@$(BIN)/jest --runInBand \
-		./src/__tests__ \
+test-e2e:
+	@$(JEST) \
+		--config jest-e2e.config.js \
 		./__tests__/build/*-test.js \
-		./__tests__/export-import-build/*-test.js
-
-test-e2e: \
-	test-e2e/symlink-workflow \
-	test-e2e/build-anycmd \
-	test-e2e/build-env \
-	test-e2e/command-env \
-	test-e2e/ejected-command-env \
-	test-e2e/anycmd \
-	test-e2e/build-anycmd \
-	test-e2e/x-anycmd \
-	test-e2e/esy-prefix-via-esyrc
-
-test-e2e/%:
-	@./__tests__/runtest.sh ./__tests__/e2e/$(@:test-e2e/%=%)-test.sh
+		./__tests__/export-import-build/*-test.js \
+		./__tests__/e2e/*-test.sh
 
 ci:: test
 

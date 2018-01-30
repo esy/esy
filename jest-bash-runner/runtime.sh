@@ -4,6 +4,72 @@ set -e
 set -o pipefail
 set -u
 
+export TEST_ROOT=""
+export TEST_PROJECT=""
+export TEST_NPM_PREFIX=""
+
+skipTest () {
+  local msg="$1"
+  echo "$msg"
+  exit 66
+}
+
+initFixture () {
+  set +x
+  local name
+
+  name="$1"
+  TEST_ROOT=$(mktemp -d)
+  TEST_PROJECT="$TEST_ROOT/project"
+
+  export ESY__PREFIX="$TEST_ROOT/esy"
+
+  cp -r "fixtures/$name" "$TEST_PROJECT"
+
+  pushd "$TEST_PROJECT"
+  set -x
+}
+export -f initFixture
+
+initFixtureAsIfEsyReleased () {
+  set +x
+  local name
+  local releaseDir="$PWD/../dist"
+
+  name="$1"
+  TEST_ROOT=$(mktemp -d /tmp/esy.XXXX)
+  TEST_PROJECT="$TEST_ROOT/project"
+  TEST_NPM_PREFIX="$TEST_ROOT/npm"
+
+  cp -r "fixtures/$name" "$TEST_PROJECT"
+  mkdir -p "$TEST_NPM_PREFIX"
+
+  function npmGlobal () {
+    npm --prefix "$TEST_NPM_PREFIX" "$@"
+  }
+
+  esy () {
+    "$TEST_NPM_PREFIX/bin/esy" "$@"
+  }
+
+  if [ ! -d "$releaseDir" ]; then
+    exit 1
+  else
+    (cd "$releaseDir" && npm pack && mv esy-*.tgz esy.tgz)
+  fi
+
+  npmGlobal install --global "$releaseDir/esy.tgz"
+
+  pushd "$TEST_PROJECT" > /dev/null
+  set -x
+}
+export -f initFixtureAsIfEsyReleased
+
+esy () {
+  "$ESYCOMMAND" "$@"
+}
+export -f esy
+
 info () {
   >&2 echo "$1"
 }
