@@ -65,9 +65,9 @@ test::
 test-e2e:
 	@$(JEST) \
 		--config jest-e2e.config.js \
-		./__tests__/build/*-test.js \
-		./__tests__/export-import-build/*-test.js \
-		./__tests__/e2e/*-test.sh
+		./__tests__/build/*-test.sh \
+		./__tests__/export-import-build/*-test.sh \
+		./__tests__/common/*-test.sh
 
 ci:: test
 
