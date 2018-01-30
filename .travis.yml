@@ -10,3 +10,6 @@ install:
   - travis_wait travis_retry make bootstrap
 script:
   - travis_wait make ci
+cache:
+  directories:
+  - /home/travis/.esy/
