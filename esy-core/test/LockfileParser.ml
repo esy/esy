@@ -64,3 +64,9 @@ let%test "\na:b" =
 
 let%test "esy-store-path: \"/some/path\"" =
   expectParseOk "esy-store-path: \"/some/path\"" (Mapping [("esy-store-path", String "/some/path")])
+
+let%test "esy-store-path: \"./some/path\"" =
+  expectParseOk "esy-store-path: \"./some/path\"" (Mapping [("esy-store-path", String "./some/path")])
+
+let%test "esy-store-path: ./some/path" =
+  expectParseOk "esy-store-path: ./some/path" (Mapping [("esy-store-path", String "./some/path")])
