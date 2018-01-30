@@ -1,4 +1,4 @@
 doTest() {
-  initFixture errorneous-build
+  initFixture ./fixtures/errorneous-build
   runAndExpectFailure esy build
 }

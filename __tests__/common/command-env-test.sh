@@ -1,7 +1,7 @@
 #!/bin/bash
 
 doTest() {
-  initFixture simple-project
+  initFixture ./fixtures/simple-project
 
   # Check that `esy command-env` generates valid envitronmenmt with deps and
   # devdeps in $PATH

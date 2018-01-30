@@ -1,7 +1,7 @@
 #!/bin/bash
 
 doTest () {
-  initFixture symlink-workflow
+  initFixture ./fixtures/symlink-workflow
 
   cd ./app || exit 1
 

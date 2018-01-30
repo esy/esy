@@ -1,5 +1,5 @@
 doTest () {
-  initFixture simple-project
+  initFixture ./fixtures/simple-project
 
   unset ESY__PREFIX
 

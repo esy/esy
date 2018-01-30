@@ -1,5 +1,5 @@
 doTest () {
-  initFixture creates-symlinks
+  initFixture ./fixtures/creates-symlinks
   run esy build
 
   expectStdout "dep" esy dep
