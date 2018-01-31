@@ -2,6 +2,9 @@
 
 ## 0.1.5 @ preview
 
+  * Implement `bin/esy` entry point in OCaml — much fatser startup as we do less
+    slow things in `bash`.
+
   * Include `devDependencies` in `esy x <anycommand>` environment.
 
     See [#137](https://github.com/esy/esy/issues/137) for rationale.
@@ -10,6 +13,16 @@
 
   * Fix creating `~/.esy/3` symlink to a padded store path when initializing
     global store.
+
+  * Fix bug with overly aggressive caching of a command environment.
+
+    Previously the environment was computed once and cached, this prevented
+    passing environment variables from the outside like on a second run (with a
+    cache active):
+
+    ```
+    % OCAMLRUNPARAM="b" esy ocamlrun ...
+    ```
 
 ## 0.1.4 @ preview
 
