@@ -228,9 +228,6 @@ async function main() {
     const executeCommand = async (commandName, initialArgs) => {
       const command = commandsByName[commandName];
       const commandImpl = command();
-      if (!commandImpl.noHeader) {
-        reporter.header(commandName, pkg);
-      }
       let args = [];
       let options = {options: {}, flags: {}};
       if (commandImpl.noParse) {
