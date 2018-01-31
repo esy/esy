@@ -12,4 +12,4 @@ script:
   - travis_wait make ci
 cache:
   directories:
-  - /home/travis/.esy/
+  - $HOME/.esy/
