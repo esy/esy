@@ -833,6 +833,12 @@ let () =
     Term.(ret (const cmd $ argTerm $ configTerm $ setupLogTerm)), info
   in
 
+  let installCommand =
+    makeCommandDelegatingToJsImpl
+      ~name:"install"
+      ~doc:"Install dependencies"
+  in
+
   let makeAlias command alias =
     let term, info = command in
     let name = Term.name info in
@@ -864,9 +870,7 @@ let () =
     versionCommand;
 
     (* commands implemented via JS *)
-    makeCommandDelegatingToJsImpl
-      ~name:"install"
-      ~doc:"Install dependencies";
+    installCommand;
     makeCommandDelegatingToJsImpl
       ~name:"add"
       ~doc:"Add new dependency";
@@ -894,7 +898,8 @@ let () =
       esyExportBuildCmd;
 
     (* aliases *)
-    makeAlias buildCommand "b"
+    makeAlias buildCommand "b";
+    makeAlias installCommand "i";
   ] in
 
   let hasCommand name =
