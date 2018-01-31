@@ -162,8 +162,8 @@ module SandboxInfo = struct
   type t = {
     sandbox : Sandbox.t;
     task : BuildTask.t;
-    commandEnv : Environment.Closed.t;
-    sandboxEnv : Environment.Closed.t;
+    commandEnv : Environment.t;
+    sandboxEnv : Environment.t;
   }
 
   let cachePath (cfg : Config.t) =
@@ -202,7 +202,6 @@ module SandboxInfo = struct
               Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
             in
             info.commandEnv
-            |> Environment.Closed.bindings
             |> Environment.renderToShellSource ~header cfg
           ) in
           let%lwt () = Lwt_io.write oc commandEnv in
@@ -356,16 +355,14 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
       let header = header task.pkg in
       if asJson
       then
-        let env = Environment.Closed.value env in
+        let%bind env = Environment.Value.ofBindings env in
         let%bind env = Environment.Value.bindToConfig cfg env in
         Ok (
           env
           |> Environment.Value.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        env
-        |> Environment.Closed.bindings
-        |> Environment.renderToShellSource ~header cfg
+        Environment.renderToShellSource ~header cfg env
     ) in
     let%lwt () = Lwt_io.print source in
     return ()
@@ -378,16 +375,26 @@ let buildEnv =
   makeEnvCommand ~computeEnv:BuildTask.buildEnv ~header
 
 let commandEnv =
+  let open Run.Syntax in
   let header (pkg : Package.t) =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
-  makeEnvCommand ~computeEnv:BuildTask.commandEnv ~header
+  let computeEnv pkg =
+    let%bind env = BuildTask.commandEnv pkg in
+    Ok (Environment.current @ env)
+  in
+  makeEnvCommand ~computeEnv ~header
 
 let sandboxEnv =
+  let open Run.Syntax in
   let header (pkg : Package.t) =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
-  makeEnvCommand ~computeEnv:BuildTask.sandboxEnv ~header
+  let computeEnv pkg =
+    let%bind env = BuildTask.sandboxEnv pkg in
+    Ok (Environment.current @ env)
+  in
+  makeEnvCommand ~computeEnv ~header
 
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
@@ -415,9 +422,11 @@ let makeExecCommand
   let%bind env = RunAsync.liftOfRun (
     let open Run.Syntax in
     let env = match env with
-    | `CommandEnv -> Environment.Closed.value info.commandEnv
-    | `SandboxEnv -> Environment.Closed.value info.sandboxEnv
+    | `CommandEnv -> info.commandEnv
+    | `SandboxEnv -> info.sandboxEnv
     in
+    let env = Environment.current @ env in
+    let%bind env = Environment.Value.ofBindings env in
     let%bind env = Environment.Value.bindToConfig cfg env in
     Ok (`CustomEnv env)
   ) in

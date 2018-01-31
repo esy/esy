@@ -199,7 +199,6 @@ let renderCommandList env scope (commands : Package.CommandList.t) =
 let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
-    ?initEnv
     ?finalPath
     ?finalManPath
     (rootPkg : Package.t)
@@ -372,7 +371,7 @@ let ofPackage
         value = Value "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       } in
 
-      let initEnv = (Std.Option.orDefault [] initEnv) @ Environment.[
+      let initEnv = Environment.[
         {
           name = "TERM";
           value = Value term;
@@ -507,19 +506,18 @@ let ofPackage
 let buildEnv pkg =
   let open Run.Syntax in
   let%bind task = ofPackage pkg in
-  Ok task.env
+  Ok (Environment.Closed.bindings task.env)
 
-let commandEnv pkg =
+let commandEnv (pkg : Package.t) =
   let open Run.Syntax in
 
   let%bind task =
     ofPackage
-      ?initEnv:(Some Environment.current)
       ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
       ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
       ~overrideShell:false
       ~includeRootDevDependenciesInEnv:true pkg
-  in Ok task.env
+  in Ok (Environment.Closed.bindings task.env)
 
 let sandboxEnv (pkg : Package.t) =
   let open Run.Syntax in
@@ -541,13 +539,12 @@ let sandboxEnv (pkg : Package.t) =
     sourcePath = pkg.sourcePath;
   } in
   let%bind task = ofPackage
-    ?initEnv:(Some Environment.current)
     ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
     ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
     ~overrideShell:false
     ~includeRootDevDependenciesInEnv:true
     synPkg
-  in Ok task.env
+  in Ok (Environment.Closed.bindings task.env)
 
 module DependencyGraph = DependencyGraph.Make(struct
   type t = task

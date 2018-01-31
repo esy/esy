@@ -1,6 +1,8 @@
 open Std
 
-type binding = {
+type t = binding list
+
+and binding = {
   name : string;
   value : bindingValue;
   origin : Package.t option;
