@@ -2,27 +2,31 @@
 
 ## 0.1.5 @ preview
 
-  * Implement `bin/esy` entry point in OCaml — much fatser startup as we do less
-    slow things in `bash`.
+  * Implement `bin/esy` entry point in OCaml.
+
+    This makes `esy` command much faster — `esy <cmd>` is around 80ms (was
+    180ms) before on MacBook Pro 2016.
+
+  * Implement `esy export-dependencies` and `esy import-dependencies`
+    commands in OCaml.
 
   * Include `devDependencies` in `esy x <anycommand>` environment.
 
     See [#137](https://github.com/esy/esy/issues/137) for rationale.
 
-  * Fix `esy import-opam` command which was broken in 0.1.4.
-
-  * Fix creating `~/.esy/3` symlink to a padded store path when initializing
-    global store.
-
   * Fix bug with overly aggressive caching of a command environment.
 
     Previously the environment was computed once and cached, this prevented
-    passing environment variables from the outside like on a second run (with a
-    cache active):
+    passing environment variables from the outside, for example:
 
     ```
     % OCAMLRUNPARAM="b" esy ocamlrun ...
     ```
+
+  * Fix `esy import-opam` command which was broken in 0.1.4.
+
+  * Fix creating `~/.esy/3` symlink to a padded store path when initializing
+    global store.
 
 ## 0.1.4 @ preview
 
