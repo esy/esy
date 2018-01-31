@@ -58,8 +58,7 @@ clean:
 
 JEST = $(BIN)/jest --runInBand
 
-test::
-	@$(MAKE) test-e2e
+test-unit:
 	@$(MAKE) -C esy-core test
 
 test-e2e:
@@ -69,7 +68,13 @@ test-e2e:
 		./__tests__/export-import-build/*-test.sh \
 		./__tests__/common/*-test.sh
 
-ci:: test
+test-opam:
+	$(MAKE) -C __tests__/opam
+
+ci::
+	$(MAKE) test-unit
+	$(MAKE) test-e2e
+	$(MAKE) test-opam
 
 #
 # Release
