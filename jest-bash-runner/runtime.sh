@@ -69,10 +69,6 @@ esy () {
 }
 export -f esy
 
-info () {
-  >&2 echo "$1"
-}
-
 run () {
   echo "RUNNING:" "$@"
   "$@"
