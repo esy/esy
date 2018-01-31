@@ -74,7 +74,6 @@ test-opam:
 ci::
 	$(MAKE) test-unit
 	$(MAKE) test-e2e
-	$(MAKE) test-opam
 
 #
 # Release
