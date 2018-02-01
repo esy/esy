@@ -75,6 +75,10 @@ ci::
 	$(MAKE) test-unit
 	$(MAKE) test-e2e
 
+test::
+	$(MAKE) test-unit
+	$(MAKE) test-e2e
+
 #
 # Release
 #
