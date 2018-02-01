@@ -11,12 +11,18 @@ open Std
 module StringMap = Map.Make(String)
 module ConfigPath = Config.ConfigPath
 
+module CommandList = struct
+  type t =
+    string list list
+    [@@deriving show]
+end
+
 type t = {
   id : string;
   pkg : Package.t;
 
-  buildCommands : string list list;
-  installCommands : string list list;
+  buildCommands : CommandList.t;
+  installCommands : CommandList.t;
 
   env : Environment.Closed.t;
 
@@ -80,10 +86,15 @@ let getenv name =
   try Some (Sys.getenv name)
   with Not_found -> None
 
-let addPackageBindings ~(kind : [`AsSelf | `AsDep]) (pkg : Package.t) scope =
+let addPackageBindings
+  ?(mapSelfToStagePath=false)
+  ~(kind : [`AsSelf | `AsDep])
+  (pkg : Package.t)
+  scope
+  =
   let namespace, installPath = match kind with
-    | `AsSelf -> "self", pkgStagePath pkg
-    | `AsDep -> pkg.name, pkgInstallPath pkg
+  | `AsSelf -> "self", if mapSelfToStagePath then pkgStagePath pkg else pkgInstallPath pkg
+  | `AsDep -> pkg.name, pkgInstallPath pkg
   in
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
@@ -235,10 +246,22 @@ let ofPackage
       Ok (allDependencies, dependencies)
     in
 
-    let scope =
+    (*
+     * Scopes for #{...} syntax.
+     *
+     * There are two different scopes used to eval "esy.build/esy.install" and
+     * "esy.exportedEnv".
+     *
+     * The only difference is how #{self.<path>} handled:
+     * - For "esy.exportedEnv" it expands to "<store>/i/<id>/<path>"
+     * - For "esy.build/esy.install" it expands to "<store>/s/<id>/<path>"
+     *
+     * This is because "esy.exportedEnv" is used when package is already built
+     * while "esy.build/esy.install" commands are used while package is
+     * building.
+     *)
+    let scopeForExportEnv, scopeForCommands =
       let bindings = StringMap.empty in
-      let bindings = addPackageBindings ~kind:`AsSelf pkg bindings in
-      let bindings = addPackageBindings ~kind:`AsDep pkg bindings in
       let bindings =
         let f bindings (dep, {pkg; _}) =
           if includeDependency dep
@@ -247,11 +270,15 @@ let ofPackage
         in
         ListLabels.fold_left ~f ~init:bindings dependencies
       in
-      let lookup name =
+      let bindings = addPackageBindings ~kind:`AsDep pkg bindings in
+      let bindingsForExportedEnv = addPackageBindings ~kind:`AsSelf pkg bindings in
+      let bindingsForCommands = addPackageBindings ~mapSelfToStagePath:true ~kind:`AsSelf pkg bindings in
+      let lookup bindings name =
         let name = String.concat "." name in
         try Some (StringMap.find name bindings)
         with Not_found -> None
-      in lookup
+      in
+      lookup bindingsForExportedEnv, lookup bindingsForCommands
     in
 
     let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
@@ -259,7 +286,7 @@ let ofPackage
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
         let context = Printf.sprintf "processing exportedEnv $%s" name in
         Run.withContext context (
-          let%bind value = CommandExpr.render ~scope value in
+          let%bind value = CommandExpr.render ~scope:scopeForExportEnv value in
           match envScope with
           | Package.ExportedEnv.Global ->
             let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" || injectCamlLdLibraryPath in
@@ -274,11 +301,11 @@ let ofPackage
     in
 
     let%bind globalEnv = if injectCamlLdLibraryPath then
-        let%bind value = CommandExpr.render
-            ~scope
-            "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
-        in
-        Ok (Environment.{
+      let%bind value = CommandExpr.render
+        ~scope:scopeForExportEnv
+        "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
+      in
+      Ok (Environment.{
             name = "CAML_LD_LIBRARY_PATH";
             value = Value value;
             origin = Some pkg;
@@ -444,12 +471,12 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        (renderCommandList env scope pkg.buildCommands)
+        (renderCommandList env scopeForCommands pkg.buildCommands)
     in
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        (renderCommandList env scope pkg.installCommands)
+        (renderCommandList env scopeForCommands pkg.installCommands)
     in
 
     let task: t = {
