@@ -1,4 +1,2 @@
 #!/bin/bash
-
->&2 echo "esy: installed incorrectly because of failed postinstall hook"
-exit 1
+ESY__VERSION="0.1.5" /Users/rauan/workspace/rauanmayemir/esy/node_modules/@esy-ocaml/ocamlrun/install/bin/ocamlrun /Users/rauan/workspace/rauanmayemir/esy/bin/esy.bc "$@"

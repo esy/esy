@@ -1,6 +1,6 @@
 (**
  * Run command.
- *)
+*)
 
 type env = [
   | `CurrentEnv
@@ -16,6 +16,14 @@ val run :
   -> ?stderr:Lwt_process.redirection
   -> Cmd.t
   -> unit RunAsync.t
+
+val runOut :
+  ?env:env
+  -> ?resolveProgramInEnv:bool
+  -> ?stdin:Lwt_process.redirection
+  -> ?stderr:Lwt_process.redirection
+  -> Cmd.t
+  -> string RunAsync.t
 
 val withProcess :
   ?env:env
