@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.1.6 @ preview
+
+  * Fix how `#{self.*}` variables were treated inside `"esy.exportedEnv"` — they
+    were expanded into `%store%/s/...` *stage paths* while the correct way to expand
+    them into `%store%/i/...` *install paths* as dependent packages consume env
+    when origin package is already built and installed.
+
 ## 0.1.5 @ preview
 
   * Implement `bin/esy` entry point in OCaml.
