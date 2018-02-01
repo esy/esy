@@ -62,6 +62,14 @@ let run ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd =
   in
   withProcess ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd f
 
+let runToStatus ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd =
+  let open RunAsync.Syntax in
+  let f process =
+    let%lwt status = process#status in
+    return status
+  in
+  withProcess ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd f
+
 let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
   let open RunAsync.Syntax in
 
