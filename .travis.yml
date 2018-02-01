@@ -11,5 +11,8 @@ install:
 script:
   - travis_wait make ci
 cache:
+  # default timeout is 180 but it takes longer sometimes
+  timeout: 360
+  # this caches esy build store and esy install cache too
   directories:
   - $HOME/.esy/
