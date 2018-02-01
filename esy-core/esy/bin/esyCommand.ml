@@ -431,13 +431,17 @@ let makeExecCommand
       Ok (`CustomEnv env)
     ) in
 
-  ChildProcess.run
+  let%bind status = ChildProcess.runToStatus
     ~env
     ~resolveProgramInEnv:true
     ~stderr:(`FD_copy Unix.stderr)
     ~stdout:(`FD_copy Unix.stdout)
     ~stdin:(`FD_copy Unix.stdin)
     (Cmd.ofList command)
+  in match status with
+  | Unix.WEXITED n
+  | Unix.WSTOPPED n
+  | Unix.WSIGNALED n -> exit n
 
 let exec cfgRes =
   let open RunAsync.Syntax in

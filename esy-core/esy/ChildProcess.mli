@@ -25,6 +25,15 @@ val runOut :
   -> Cmd.t
   -> string RunAsync.t
 
+val runToStatus :
+  ?env:env
+  -> ?resolveProgramInEnv:bool
+  -> ?stdin:Lwt_process.redirection
+  -> ?stdout:Lwt_process.redirection
+  -> ?stderr:Lwt_process.redirection
+  -> Cmd.t
+  -> Unix.process_status RunAsync.t
+
 val withProcess :
   ?env:env
   -> ?resolveProgramInEnv:bool
