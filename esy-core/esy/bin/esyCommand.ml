@@ -544,6 +544,86 @@ let lsLibs ~includeTransitive cfg =
   in
   makeLsCommand ~computeTermNode ~includeTransitive cfg info
 
+let lsModules ~libs:only cfg =
+  let open RunAsync.Syntax in
+
+  let%bind cfg = cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
+
+  let%bind ocamlfind = SandboxTools.getOcamlfind ~cfg info.task in
+  let%bind ocamlobjinfo = SandboxTools.getOcamlobjinfo ~cfg info.task in
+  let%bind builtIns = SandboxTools.getPackageLibraries ~cfg ~ocamlfind () in
+
+  let formatLibraryModules ~cfg ~task lib =
+    let%bind meta = SandboxTools.queryMeta ~cfg ~ocamlfind ~task lib in
+    let open SandboxTools in
+
+    if String.length(meta.archive) == 0 then
+      let description = Chalk.dim(meta.description) in
+      return [TermTree.Node { line=description; children=[]; }]
+    else begin
+      Path.of_string (meta.location ^ Path.dir_sep ^ meta.archive) |> function
+      | Ok archive -> 
+        if%bind Fs.exists archive then
+          let archive = Path.to_string archive in
+          let%bind lines = 
+            SandboxTools.queryModules ~ocamlobjinfo archive
+          in
+
+          let modules =
+            lines |> List.map(fun line ->
+                let line = Chalk.cyan(line) in
+                TermTree.Node { line; children=[]; }
+              )
+          in
+
+          return modules
+        else
+          return []
+      | Error `Msg msg -> error msg
+    end
+  in
+
+  let computeTermNode ~cfg (task: BuildTask.t) children =
+    let%bind built = BuildTask.isBuilt ~cfg task in
+    let%bind line = SandboxTools.formatPackageInfo ~built task in
+
+    let%bind libs =
+      if built then
+        SandboxTools.getPackageLibraries ~cfg ~ocamlfind ~builtIns ~task ()
+      else
+        return []
+    in
+
+    let isNotRoot = task.id <> info.task.id in
+    let constraintsSet = List.length only <> 0 in
+    let noMatchedLibs = List.length (Std.List.intersect only libs) = 0 in
+
+    if isNotRoot && constraintsSet && noMatchedLibs then
+      return None
+    else
+      let%bind libs =
+        libs
+        |> List.filter (fun lib ->
+            if List.length only = 0 then
+              true
+            else
+              List.mem lib only
+          )
+        |> List.map (fun lib ->
+            let line = Chalk.yellow(lib) in
+            let%bind children = 
+              formatLibraryModules ~cfg ~task lib
+            in
+            return (TermTree.Node { line; children; })
+          )
+        |> RunAsync.joinAll
+      in
+
+      return (Some (TermTree.Node { line; children = libs @ children; }))
+  in
+  makeLsCommand ~computeTermNode ~includeTransitive:false cfg info
+
 let () =
   let open Cmdliner in
 
@@ -717,6 +797,19 @@ let () =
       Arg.(value & flag & info ["T"; "include-transitive"]  ~doc);
     in
     Term.(ret (const cmd $ includeTransitive $ configTerm $ setupLogTerm)), info
+  in
+
+  let lsModulesCommand =
+    let doc = "Output a tree of packages along with the set of libraries and modules made available by each package dependency." in
+    let info = Term.info "ls-modules" ~version ~doc ~sdocs ~exits in
+    let cmd libs cfg () =
+      runAsyncCommand info (lsModules ~libs cfg)
+    in
+    let lib = 
+      let doc = "Output modules only for specified lib(s)" in
+      Arg.(value & (pos_all string []) & info [] ~docv:"LIB" ~doc);
+    in
+    Term.(ret (const cmd $ lib $ configTerm $ setupLogTerm)), info
   in
 
   let exportDependenciesCommand =
@@ -901,6 +994,7 @@ let () =
 
     lsBuildsCommand;
     lsLibsCommand;
+    lsModulesCommand;
 
     exportDependenciesCommand;
     importDependenciesCommand;

@@ -87,4 +87,8 @@ module List = {
       };
     loop(l, []);
   };
+  let diff = (list1, list2) =>
+    List.filter(elem => ! List.mem(elem, list2), list1);
+  let intersect = (list1, list2) =>
+    List.filter(elem => List.mem(elem, list2), list1);
 };
