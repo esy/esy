@@ -6,7 +6,7 @@ open Std
  * TODO: Reconcile with EsyLib.BuildTask, right now we just reuse types & code
  * from there but it probably should live here instead. Fix that after we decide
  * on better package boundaries.
- *)
+*)
 
 module StringMap = Map.Make(String)
 module ConfigPath = Config.ConfigPath
@@ -79,6 +79,9 @@ let rootPath (pkg : Package.t) =
   | JBuilderLike, Root -> pkg.sourcePath
   | OutOfSource, _ -> pkg.sourcePath
 
+let isBuilt ~cfg task = 
+  Fs.exists ConfigPath.(task.installPath / "lib" |> toPath(cfg))
+
 let getenv name =
   try Some (Sys.getenv name)
   with Not_found -> None
@@ -124,62 +127,62 @@ let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list
     value = Value pkg.name;
     origin = Some pkg;
   }::{
-    name = "cur__version";
-    value = Value pkg.version;
-    origin = Some pkg;
-  }::{
-    name = "cur__root";
-    value = Value (ConfigPath.toString rootPath);
-    origin = Some pkg;
-  }::{
-    name = "cur__original_root";
-    value = Value (ConfigPath.toString pkg.sourcePath);
-    origin = Some pkg;
-  }::{
-    name = "cur__target_dir";
-    value = Value (ConfigPath.toString buildPath);
-    origin = Some pkg;
-  }::{
-    name = "cur__install";
-    value = Value (ConfigPath.toString stagePath);
-    origin = Some pkg;
-  }::{
-    name = "cur__bin";
-    value = Value ConfigPath.(stagePath / "bin" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__sbin";
-    value = Value ConfigPath.(stagePath / "sbin" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__lib";
-    value = Value ConfigPath.(stagePath / "lib" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__man";
-    value = Value ConfigPath.(stagePath / "man" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__doc";
-    value = Value ConfigPath.(stagePath / "doc" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__stublibs";
-    value = Value ConfigPath.(stagePath / "stublibs" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__toplevel";
-    value = Value ConfigPath.(stagePath / "toplevel" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__share";
-    value = Value ConfigPath.(stagePath / "share" |> toString);
-    origin = Some pkg;
-  }::{
-    name = "cur__etc";
-    value = Value ConfigPath.(stagePath / "etc" |> toString);
-    origin = Some pkg;
-  }::bindings
+      name = "cur__version";
+      value = Value pkg.version;
+      origin = Some pkg;
+    }::{
+      name = "cur__root";
+      value = Value (ConfigPath.toString rootPath);
+      origin = Some pkg;
+    }::{
+      name = "cur__original_root";
+      value = Value (ConfigPath.toString pkg.sourcePath);
+      origin = Some pkg;
+    }::{
+      name = "cur__target_dir";
+      value = Value (ConfigPath.toString buildPath);
+      origin = Some pkg;
+    }::{
+      name = "cur__install";
+      value = Value (ConfigPath.toString stagePath);
+      origin = Some pkg;
+    }::{
+      name = "cur__bin";
+      value = Value ConfigPath.(stagePath / "bin" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__sbin";
+      value = Value ConfigPath.(stagePath / "sbin" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__lib";
+      value = Value ConfigPath.(stagePath / "lib" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__man";
+      value = Value ConfigPath.(stagePath / "man" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__doc";
+      value = Value ConfigPath.(stagePath / "doc" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__stublibs";
+      value = Value ConfigPath.(stagePath / "stublibs" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__toplevel";
+      value = Value ConfigPath.(stagePath / "toplevel" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__share";
+      value = Value ConfigPath.(stagePath / "share" |> toString);
+      origin = Some pkg;
+    }::{
+      name = "cur__etc";
+      value = Value ConfigPath.(stagePath / "etc" |> toString);
+      origin = Some pkg;
+    }::bindings
 
 let renderCommandList env scope (commands : Package.CommandList.t) =
   let open Run.Syntax in
@@ -213,7 +216,7 @@ let ofPackage
     ?finalPath
     ?finalManPath
     (rootPkg : Package.t)
-    =
+  =
 
   let term = Option.orDefault "" (getenv "TERM") in
 
@@ -307,8 +310,8 @@ let ofPackage
             value = Value value;
             origin = Some pkg;
           }::globalEnv)
-    else
-      Ok globalEnv
+      else
+        Ok globalEnv
     in
 
     let buildPath = pkgBuildPath pkg in
@@ -319,7 +322,7 @@ let ofPackage
 
       (* All dependencies (transitive included contribute env exported to the
        * global scope (hence global)
-       *)
+      *)
       let globalEnvOfAllDeps =
         allDependencies
         |> List.filter (fun (dep, _) -> includeDependency dep)
@@ -329,7 +332,7 @@ let ofPackage
       in
 
       (* Direct dependencies contribute only env exported to the local scope
-       *)
+      *)
       let localEnvOfDeps =
         dependencies
         |> List.filter (fun (dep, _) -> includeDependency dep)
@@ -340,7 +343,7 @@ let ofPackage
 
       (* Now $PATH, $MAN_PATH and $OCAMLPATH are constructed by appending
        * corresponding paths of all dependencies (transtive included).
-       *)
+      *)
       let path, manpath, ocamlpath =
         let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
           let path = ConfigPath.(dep.installPath / "bin")::path in
@@ -354,109 +357,109 @@ let ofPackage
       in
 
       let path = Environment.{
-        origin = None;
-        name = "PATH";
-        value = Value (
-          let v = List.map ConfigPath.toString path in
-          PathLike.make "PATH" v)
-      } in
+          origin = None;
+          name = "PATH";
+          value = Value (
+              let v = List.map ConfigPath.toString path in
+              PathLike.make "PATH" v)
+        } in
 
       let manPath = Environment.{
-        origin = None;
-        name = "MAN_PATH";
-        value = Value (
-          let v = List.map ConfigPath.toString manpath in
-          PathLike.make "MAN_PATH" v)
-      } in
+          origin = None;
+          name = "MAN_PATH";
+          value = Value (
+              let v = List.map ConfigPath.toString manpath in
+              PathLike.make "MAN_PATH" v)
+        } in
 
       (* Configure environment for ocamlfind.
        * These vars can be used instead of having findlib.conf emitted.
-       *)
+      *)
       let ocamlpath = Environment.{
-        origin = None;
-        name = "OCAMLPATH";
-        value = Value (
-          let v = List.map ConfigPath.toString ocamlpath in
-          PathLike.make "OCAMLPATH" v);
-      } in
+          origin = None;
+          name = "OCAMLPATH";
+          value = Value (
+              let v = List.map ConfigPath.toString ocamlpath in
+              PathLike.make "OCAMLPATH" v);
+        } in
 
       let ocamlfindDestdir = Environment.{
-        origin = None;
-        name = "OCAMLFIND_DESTDIR";
-        value = Value ConfigPath.(stagePath / "lib" |> toString);
-      } in
+          origin = None;
+          name = "OCAMLFIND_DESTDIR";
+          value = Value ConfigPath.(stagePath / "lib" |> toString);
+        } in
 
       let ocamlfindLdconf = Environment.{
-        origin = None;
-        name = "OCAMLFIND_LDCONF";
-        value = Value "ignore";
-      } in
+          origin = None;
+          name = "OCAMLFIND_LDCONF";
+          value = Value "ignore";
+        } in
 
       let ocamlfindCommands = Environment.{
-        origin = None;
-        name = "OCAMLFIND_COMMANDS";
-        value = Value "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
-      } in
+          origin = None;
+          name = "OCAMLFIND_COMMANDS";
+          value = Value "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
+        } in
 
       let initEnv = Environment.[
-        {
-          name = "TERM";
-          value = Value term;
-          origin = None;
-        };
-        {
-          name = "PATH";
-          value = Value "";
-          origin = None;
-        };
-        {
-          name = "MAN_PATH";
-          value = Value "";
-          origin = None;
-        };
-        {
-          name = "CAML_LD_LIBRARY_PATH";
-          value = Value "";
-          origin = None;
-        };
-      ] in
-
-      let finalEnv = Environment.(
-        let v = [
+          {
+            name = "TERM";
+            value = Value term;
+            origin = None;
+          };
           {
             name = "PATH";
-            value = Value (Std.Option.orDefault
-              "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-              finalPath);
+            value = Value "";
             origin = None;
           };
           {
             name = "MAN_PATH";
-            value = Value (Std.Option.orDefault
-              "$MAN_PATH"
-              finalManPath);
+            value = Value "";
             origin = None;
-          }
+          };
+          {
+            name = "CAML_LD_LIBRARY_PATH";
+            value = Value "";
+            origin = None;
+          };
         ] in
-        if overrideShell then
-          let shell = {
-            name = "SHELL";
-            value = Value "env -i /bin/bash --norc --noprofile";
-            origin = None;
-          } in shell::v
-        else
-          v
-      ) in
+
+      let finalEnv = Environment.(
+          let v = [
+            {
+              name = "PATH";
+              value = Value (Std.Option.orDefault
+                               "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+                               finalPath);
+              origin = None;
+            };
+            {
+              name = "MAN_PATH";
+              value = Value (Std.Option.orDefault
+                               "$MAN_PATH"
+                               finalManPath);
+              origin = None;
+            }
+          ] in
+          if overrideShell then
+            let shell = {
+              name = "SHELL";
+              value = Value "env -i /bin/bash --norc --noprofile";
+              origin = None;
+            } in shell::v
+          else
+            v
+        ) in
 
       (finalEnv @ (
-      path
-      ::manPath
-      ::ocamlpath
-      ::ocamlfindDestdir
-      ::ocamlfindLdconf
-      ::ocamlfindCommands
-      ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @
-      globalEnvOfAllDeps @ initEnv)))) |> List.rev
+          path
+          ::manPath
+          ::ocamlpath
+          ::ocamlfindDestdir
+          ::ocamlfindLdconf
+          ::ocamlfindCommands
+          ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @
+                                        globalEnvOfAllDeps @ initEnv)))) |> List.rev
     in
 
     let%bind env =
@@ -493,8 +496,8 @@ let ofPackage
 
       dependencies =
         let f (dep, {task; _}) = match dep with
-        | Package.DevDependency _ -> DevDependency task
-        | _ -> Dependency task
+          | Package.DevDependency _ -> DevDependency task
+          | _ -> Dependency task
         in
         ListLabels.map ~f dependencies;
     } in
@@ -566,33 +569,33 @@ let sandboxEnv (pkg : Package.t) =
     sourcePath = pkg.sourcePath;
   } in
   let%bind task = ofPackage
-    ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
-    ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
-    ~overrideShell:false
-    ~includeRootDevDependenciesInEnv:true
-    synPkg
+      ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
+      ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
+      ~overrideShell:false
+      ~includeRootDevDependenciesInEnv:true
+      synPkg
   in Ok (Environment.Closed.bindings task.env)
 
 module DependencyGraph = DependencyGraph.Make(struct
-  type t = task
+    type t = task
 
-  let compare = Pervasives.compare
-
-  module Dependency = struct
-    type t = task_dependency
     let compare = Pervasives.compare
-  end
 
-  let id task =
-    task.id
+    module Dependency = struct
+      type t = task_dependency
+      let compare = Pervasives.compare
+    end
 
-  let traverse task =
-    let f dep = match dep with
-      | Dependency task
-      | DevDependency task -> (task, dep)
-    in
-    ListLabels.map ~f task.dependencies
-end)
+    let id task =
+      task.id
+
+    let traverse task =
+      let f dep = match dep with
+        | Dependency task
+        | DevDependency task -> (task, dep)
+      in
+      ListLabels.map ~f task.dependencies
+  end)
 
 let toBuildProtocol (task : task) =
   EsyBuildPackage.BuildTask.ConfigFile.{
@@ -600,15 +603,15 @@ let toBuildProtocol (task : task) =
     name = task.pkg.name;
     version = task.pkg.version;
     sourceType = (match task.pkg.sourceType with
-      | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
-      | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
-      | Package.SourceType.Root -> EsyBuildPackage.BuildTask.SourceType.Root
-    );
+        | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
+        | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
+        | Package.SourceType.Root -> EsyBuildPackage.BuildTask.SourceType.Root
+      );
     buildType = (match task.pkg.buildType with
-      | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
-      | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-      | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-    );
+        | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
+        | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
+        | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
+      );
     build = task.buildCommands;
     install = task.installCommands;
     sourcePath = ConfigPath.toString task.sourcePath;
