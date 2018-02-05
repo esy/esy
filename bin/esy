@@ -1,4 +1,0 @@
-#!/bin/bash
-
->&2 echo "esy: installed incorrectly because of failed postinstall hook"
-exit 1
