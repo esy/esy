@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.1.7 @ preview
+
+  * `esy ls-libs` and `esy ls-modules` commands are implement in Reason
+
+  * `esy <anycmd>`, `esy x <anycmd>` and `esy b <anycmd>` now preserve
+    exit code.
+
+  * `esy build` now provides better formatting in case of command failures.
+
 ## 0.1.6 @ preview
 
   * Fix how `#{self.*}` variables were treated inside `"esy.exportedEnv"` — they
