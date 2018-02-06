@@ -375,10 +375,11 @@ let build =
     let%bind info = {
       let%bind sourceModTime =
         switch (sourceModTime, task.sourceType) {
-        | (None, BuildTask.SourceType.Root)
         | (None, BuildTask.SourceType.Transient) =>
+          Logs.debug(m => m("computing build mtime"));
           let%bind v = findSourceModTime(task);
           Ok(Some(v));
+        | (None, BuildTask.SourceType.Root) => Ok(None)
         | (v, _) => Ok(v)
         };
       Ok(
@@ -391,8 +392,8 @@ let build =
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);
-  | (false, BuildTask.SourceType.Transient)
-  | (false, BuildTask.SourceType.Root) =>
+  | (false, BuildTask.SourceType.Root) => performBuild(None)
+  | (false, BuildTask.SourceType.Transient) =>
     Logs.debug(m => m("checking for staleness"));
     let info = BuildInfo.read(task);
     let prevSourceModTime =
