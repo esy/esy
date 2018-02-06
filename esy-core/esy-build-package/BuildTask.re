@@ -125,7 +125,9 @@ module ConfigFile = {
     let render = s => PathSyntax.render(lookupVar, s);
     let renderPath = s => {
       let%bind s = PathSyntax.render(lookupVar, s);
-      Path.of_string(s);
+      (
+        Path.of_string(s): result(Path.t, [ | `Msg(string)]) :> Run.t(Path.t, _)
+      );
     };
     let renderEnv = env => {
       let f = (k, v) =>
@@ -173,7 +175,7 @@ module ConfigFile = {
   };
 };
 
-let ofFile = (config: Config.t, path: Path.t) =>
+let ofFile = (config: Config.t, path: Path.t) : Run.t(t, _) =>
   Run.(
     {
       let%bind data = Bos.OS.File.read(path);
