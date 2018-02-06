@@ -57,18 +57,7 @@ let run
 
     let waitForProcess process =
       let%lwt status = process#status in
-      match status, log with
-      | Unix.WEXITED 0, Some (_, fd)  ->
-        UnixLabels.close fd;
-        return ()
-      | Unix.WEXITED 0, None ->
-        return ()
-      | _, Some (logPath, fd) ->
-        UnixLabels.close fd;
-        let%bind log = Fs.readFile logPath in
-        RunAsync.withContextOfLog ~header:"Build log:" log (error "build failed")
-      | _, None ->
-        error "build failed"
+      return (status, log)
     in
 
     ChildProcess.withProcess
@@ -84,7 +73,10 @@ let build
     ?(buildOnly=false)
     ?(quiet=false)
     ?(stderrout : [`Keep | `Log] option)
+    cfg
+    task
     =
+  let open RunAsync.Syntax in
   let args =
     let addIf cond arg args =
       if cond then arg::args else args
@@ -94,11 +86,27 @@ let build
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in
-  run ~args ?stderrout `Build
+  let%bind status, log = run ~args ?stderrout `Build cfg task in
+  match status, log with
+  | Unix.WEXITED 0, Some (_, fd)  ->
+    UnixLabels.close fd;
+    return ()
+  | Unix.WEXITED 0, None ->
+    return ()
+  | _, Some (logPath, fd) ->
+    UnixLabels.close fd;
+    let%bind log = Fs.readFile logPath in
+    RunAsync.withContextOfLog ~header:"Build log:" log (error "build failed")
+  | _, None ->
+    error "build failed"
 
-let buildShell =
-  run ~stdin:`Keep ~stderrout:`Keep `Shell
+let buildShell cfg task =
+  let open RunAsync.Syntax in
+  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Shell cfg task in
+  return status
 
 let buildExec cfg task command =
+  let open RunAsync.Syntax in
   let args = "--"::command in
-  run ~stdin:`Keep ~stderrout:`Keep `Exec ~args cfg task
+  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Exec ~args cfg task in
+  return status
