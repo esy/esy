@@ -309,7 +309,11 @@ let buildShell cfg packagePath =
 
   let f task =
     let%bind () = Build.buildDependencies ~concurrency cfg task in
-    PackageBuilder.buildShell cfg task
+    match%bind PackageBuilder.buildShell cfg task with
+    | Unix.WEXITED 0 -> return ()
+    | Unix.WEXITED n
+    | Unix.WSTOPPED n
+    | Unix.WSIGNALED n -> exit n
   in withBuildTaskByPath ~cfg ~info packagePath f
 
 let buildPackage cfg packagePath =
@@ -340,7 +344,11 @@ let build ?(buildOnly=true) cfg command =
 
   | command ->
     let%bind () = Build.buildDependencies ~concurrency cfg task in
-    PackageBuilder.buildExec cfg task command
+    match%bind PackageBuilder.buildExec cfg task command with
+    | Unix.WEXITED 0 -> return ()
+    | Unix.WEXITED n
+    | Unix.WSTOPPED n
+    | Unix.WSIGNALED n -> exit n
 
 let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let open RunAsync.Syntax in
