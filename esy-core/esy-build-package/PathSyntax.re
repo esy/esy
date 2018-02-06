@@ -25,7 +25,7 @@ let render = (env: env, path: string) =>
       Printf.sprintf(
         "unable to render path: '%s' because of unknown variable %s",
         path,
-        name
+        name,
       );
     Error(`Msg(msg));
   };

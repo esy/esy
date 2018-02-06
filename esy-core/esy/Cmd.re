@@ -41,7 +41,7 @@ let resolveCmd = (path, cmd) => {
       | Ok(None)
       | Error(_) => resolve(xs)
       };
-  switch cmd.[0] {
+  switch (cmd.[0]) {
   | '.'
   | '/' => Ok(cmd)
   | _ => resolve(path)
@@ -64,7 +64,7 @@ let resolveCmdRelativeToCurrentCmd = req => {
   let cache = ref(None);
   let resolver = () =>
     Run.liftOfBosError(
-      switch cache^ {
+      switch (cache^) {
       | Some(path) => path
       | None =>
         Std.Result.(
@@ -83,7 +83,7 @@ let resolveCmdRelativeToCurrentCmd = req => {
             cmd;
           }
         )
-      }
+      },
     );
   resolver;
 };
@@ -91,7 +91,7 @@ let resolveCmdRelativeToCurrentCmd = req => {
 let resolveInvocation = (path, cmd) => {
   module Let_syntax = Std.Result.Let_syntax;
   let cmd = Bos.Cmd.to_list(cmd);
-  switch cmd {
+  switch (cmd) {
   | [] => Error(`Msg("empty command"))
   | [cmd, ...args] =>
     let%bind cmd = resolveCmd(path, cmd);

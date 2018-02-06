@@ -36,7 +36,7 @@ let withLock = (lockPath: Path.t, f) => {
       openfile(
         ~mode=[O_WRONLY, O_CREAT, O_TRUNC, O_SYNC],
         ~perm=0o640,
-        lockPath
+        lockPath,
       )
     );
   let release = () => {
@@ -45,11 +45,13 @@ let withLock = (lockPath: Path.t, f) => {
   };
   UnixLabels.(lockf(fd, ~mode=F_TLOCK, ~len=0));
   let res =
-    try {
-      let res = f();
-      release();
-      res;
-    } {
+    try (
+      {
+        let res = f();
+        release();
+        res;
+      }
+    ) {
     | e =>
       release();
       raise(e);
@@ -82,25 +84,25 @@ let commitBuildToStore = (config: Config.t, task: BuildTask.t) => {
     };
   };
   let relocate = (path: Path.t, stats: Unix.stats) =>
-    switch stats.st_kind {
+    switch (stats.st_kind) {
     | Unix.S_REG =>
       rewritePrefixInFile(
         ~origPrefix=task.stagePath,
         ~destPrefix=task.installPath,
-        path
+        path,
       )
     | Unix.S_LNK =>
       rewriteTargetInSymlink(
         ~origPrefix=task.stagePath,
         ~destPrefix=task.installPath,
-        path
+        path,
       )
     | _ => Ok()
     };
   let%bind () =
     Bos.OS.File.write(
       Path.(task.stagePath / "_esy" / "storePrefix"),
-      Path.to_string(config.storePath)
+      Path.to_string(config.storePath),
     );
   let%bind () = traverse(task.stagePath, relocate);
   let%bind () = Bos.OS.Path.move(task.stagePath, task.installPath);
@@ -164,7 +166,7 @@ let findSourceModTime = (task: BuildTask.t) => {
         | "_install" => Ok(false)
         | base when base.[0] == '.' => Ok(false)
         | _ => Ok(true)
-        }
+        },
     );
   Result.join(
     Bos.OS.Path.fold(
@@ -172,8 +174,8 @@ let findSourceModTime = (task: BuildTask.t) => {
       ~traverse,
       visit,
       Ok(0.),
-      [task.sourcePath]
-    )
+      [task.sourcePath],
+    ),
   );
 };
 
@@ -209,14 +211,14 @@ let withBuildEnvUnlocked =
       Ok(Path.to_string(v));
     };
     let allowWriteToSourcePath =
-      switch task.buildType {
+      switch (task.buildType) {
       | JbuilderLike => [
           Subpath(Path.to_string(sourcePath / "_build")),
           regex(sourcePath, [".*", "[^/]*\\.install"]),
           regex(sourcePath, ["[^/]*\\.install"]),
           regex(sourcePath, [".*", "[^/]*\\.opam"]),
           regex(sourcePath, ["[^/]*\\.opam"]),
-          regex(sourcePath, [".*", "jbuild-ignore"])
+          regex(sourcePath, [".*", "jbuild-ignore"]),
         ]
       | _ => []
       };
@@ -229,8 +231,8 @@ let withBuildEnvUnlocked =
         Subpath(Path.to_string(stagePath)),
         Subpath("/private/tmp"),
         Subpath("/tmp"),
-        Subpath(tempPath)
-      ]
+        Subpath(tempPath),
+      ],
     );
   };
   let env =
@@ -290,7 +292,7 @@ let withBuildEnvUnlocked =
    * Finalize build/install.
    */
   let finalize = result =>
-    switch result {
+    switch (result) {
     | Ok () =>
       let%bind () =
         if (commit) {
@@ -316,7 +318,7 @@ let withBuildEnv = (~commit=false, config: Config.t, task: BuildTask.t, f) =>
       let%bind () = Store.init(config.storePath);
       let%bind () = Store.init(config.localStorePath);
       let perform = () => withBuildEnvUnlocked(~commit, config, task, f);
-      switch task.sourceType {
+      switch (task.sourceType) {
       | BuildTask.SourceType.Transient
       | BuildTask.SourceType.Root => withLock(task.lockPath, perform)
       | BuildTask.SourceType.Immutable => perform()
@@ -336,7 +338,7 @@ let build =
     let runBuildAndInstall = (run, _runInteractive, ()) => {
       let runList = cmds => {
         let rec _runList = cmds =>
-          switch cmds {
+          switch (cmds) {
           | [] => Ok()
           | [cmd, ...cmds] =>
             Logs.app(m =>
@@ -372,7 +374,10 @@ let build =
         | (v, _) => Ok(v)
         };
       Ok(
-        BuildInfo.{sourceModTime, timeSpent: Unix.gettimeofday() -. startTime}
+        BuildInfo.{
+          sourceModTime,
+          timeSpent: Unix.gettimeofday() -. startTime,
+        },
       );
     };
     BuildInfo.write(task, info);
@@ -388,7 +393,7 @@ let build =
     let prevSourceModTime =
       Option.bind(~f=v => v.BuildInfo.sourceModTime, info);
     let%bind sourceModTime = findSourceModTime(task);
-    switch prevSourceModTime {
+    switch (prevSourceModTime) {
     | Some(prevSourceModTime) when sourceModTime > prevSourceModTime =>
       performBuild(Some(sourceModTime))
     | None => performBuild(Some(sourceModTime))

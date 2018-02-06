@@ -2,16 +2,18 @@ module PackageJson = {
   type t = {
     name: string,
     main: option(string),
-    browser: option(string)
+    browser: option(string),
   };
   let of_json = data =>
     Yojson.Safe.Util.(
-      try {
-        let name = member("name", data) |> to_string;
-        let main = member("main", data) |> to_string_option;
-        let browser = member("browser", data) |> to_string_option;
-        Result.Ok({name, main, browser});
-      } {
+      try (
+        {
+          let name = member("name", data) |> to_string;
+          let main = member("main", data) |> to_string_option;
+          let browser = member("browser", data) |> to_string_option;
+          Result.Ok({name, main, browser});
+        }
+      ) {
       | Type_error(_) => Result.Error("Error parsing package.json")
       }
     );
@@ -39,7 +41,7 @@ let package_entry_point = (package_json_path: Fpath.t) => {
       Error(`Msg(msg))
     };
   };
-  switch main_value {
+  switch (main_value) {
   | Some(main_value) =>
     let%bind main_path = Fpath.of_string(main_value);
     Ok(Fpath.(package_path /\/ main_path));
@@ -53,7 +55,7 @@ let resolve_path = path =>
     switch (stat_option(path)) {
     | None => Ok(None)
     | Some(stat) =>
-      switch stat.st_kind {
+      switch (stat.st_kind) {
       | Unix.S_DIR =>
         /* Check if directory contains package.json and read entry point from
            there if any */
@@ -62,6 +64,7 @@ let resolve_path = path =>
           let%bind entry_point = package_entry_point(package_json_path);
           Ok(Some(entry_point));
         } else {
+
           /*** Check if directory contains index.js and return it if found */
           let index_js_path = Fpath.(path / "index.js");
           if%bind (exists(index_js_path)) {
@@ -94,7 +97,7 @@ let rec resolve_package =
   let package_path = Path.append(node_modules_path, package);
   if%bind (exists(node_modules_path)) {
     if%bind (exists(package_path)) {
-      switch segments {
+      switch (segments) {
       | None => resolve_extensionless_path(package_path)
       | Some(segments) =>
         let path = List.fold_left((p, x) => p / x, package_path, segments);
@@ -120,10 +123,10 @@ let rec resolve_package =
 
 let resolve = (path, basedir) =>
   Run.(
-    switch path {
+    switch (path) {
     | "" => Ok(None)
     | path =>
-      switch path.[0] {
+      switch (path.[0]) {
       /* relative module path */
       | '.' =>
         let%bind path = Fpath.of_string(path);
@@ -142,10 +145,10 @@ let resolve = (path, basedir) =>
           | [scope, package] => (Some(Path.(v(scope) / package)), None)
           | [scope, package, ...rest] => (
               Some(Path.(v(scope) / package)),
-              Some(rest)
+              Some(rest),
             )
           };
-        switch package {
+        switch (package) {
         | None => Ok(None)
         | Some(package) => resolve_package(package, segments, basedir)
         };
@@ -157,7 +160,7 @@ let resolve = (path, basedir) =>
           | [package] => (Some(Path.v(package)), None)
           | [package, ...rest] => (Some(Path.v(package)), Some(rest))
           };
-        switch package {
+        switch (package) {
         | None => Ok(None)
         | Some(package) => resolve_package(package, segments, basedir)
         };

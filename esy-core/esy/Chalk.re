@@ -9,7 +9,7 @@ module IntMap =
     {
       type t = int;
       let compare = compare;
-    }
+    },
   );
 
 module IntSet =
@@ -17,7 +17,7 @@ module IntSet =
     {
       type t = int;
       let compare = compare;
-    }
+    },
   );
 
 module StringMap = Map.Make(String);
@@ -29,13 +29,13 @@ module Ansi = {
     start: string,
     startCode: int,
     stop: string,
-    stopCode: int
+    stopCode: int,
   };
   let createStyle = (start: int, stop: int) : style => {
     start: "\027[" ++ string_of_int(start) ++ "m",
     startCode: start,
     stop: "\027[" ++ string_of_int(stop) ++ "m",
-    stopCode: stop
+    stopCode: stop,
   };
   type modifier = {
     reset: string,
@@ -45,7 +45,7 @@ module Ansi = {
     underline: style,
     inverse: style,
     hidden: style,
-    strikethrough: style
+    strikethrough: style,
   };
   type color = {
     stop: string,
@@ -68,7 +68,7 @@ module Ansi = {
     blueBright: style,
     magentaBright: style,
     cyanBright: style,
-    whiteBright: style
+    whiteBright: style,
   };
   type bg = {
     stop: string,
@@ -89,7 +89,7 @@ module Ansi = {
     blueBright: style,
     magentaBright: style,
     cyanBright: style,
-    whiteBright: style
+    whiteBright: style,
   };
   let modifier: modifier = {
     reset: "\027[0m",
@@ -100,7 +100,7 @@ module Ansi = {
     underline: createStyle(4, 24),
     inverse: createStyle(7, 27),
     hidden: createStyle(8, 28),
-    strikethrough: createStyle(9, 29)
+    strikethrough: createStyle(9, 29),
   };
   let color: color = {
     stop: "\027[39m",
@@ -120,7 +120,7 @@ module Ansi = {
     blueBright: createStyle(94, 39),
     magentaBright: createStyle(95, 39),
     cyanBright: createStyle(96, 39),
-    whiteBright: createStyle(97, 39)
+    whiteBright: createStyle(97, 39),
   };
   let bg: bg = {
     stop: "\027[49m",
@@ -139,7 +139,7 @@ module Ansi = {
     blueBright: createStyle(104, 49),
     magentaBright: createStyle(105, 49),
     cyanBright: createStyle(106, 49),
-    whiteBright: createStyle(107, 49)
+    whiteBright: createStyle(107, 49),
   };
   /**
    * All start codes.
@@ -185,7 +185,7 @@ module Ansi = {
       104,
       105,
       106,
-      107
+      107,
     ]);
   /**
    * All stop codes.
@@ -208,11 +208,44 @@ module Ansi = {
     |> IntMap.add(29, IntSet.of_list([9]))
     |> IntMap.add(
          39,
-         IntSet.of_list([30, 31, 32, 33, 34, 35, 36, 37, 90, 91, 92, 93, 94, 95, 96, 97])
+         IntSet.of_list([
+           30,
+           31,
+           32,
+           33,
+           34,
+           35,
+           36,
+           37,
+           90,
+           91,
+           92,
+           93,
+           94,
+           95,
+           96,
+           97,
+         ]),
        )
     |> IntMap.add(
          49,
-         IntSet.of_list([40, 41, 42, 43, 44, 45, 46, 100, 101, 102, 103, 104, 105, 106, 107])
+         IntSet.of_list([
+           40,
+           41,
+           42,
+           43,
+           44,
+           45,
+           46,
+           100,
+           101,
+           102,
+           103,
+           104,
+           105,
+           106,
+           107,
+         ]),
        );
 };
 
@@ -221,7 +254,7 @@ type chalker = string => string;
 type part = {
   value: string,
   isModifier: bool,
-  modifiers: IntSet.t
+  modifiers: IntSet.t,
 };
 
 let escapeCodeRegex = {
@@ -232,12 +265,12 @@ let escapeCodeRegex = {
     List.fold_left(
       (s, code) => s ++ "\\|" ++ string_of_int(code),
       string_of_int(List.hd(codesList)),
-      List.tl(codesList)
+      List.tl(codesList),
     );
   let codesStop = "\\)";
   let stop = "m";
   let regexString = start ++ codesStart ++ codesMiddle ++ codesStop ++ stop;
-  Str.regexp(regexString)
+  Str.regexp(regexString);
 };
 
 let nonDigitRegex = Str.regexp("[^0-9]");
@@ -248,25 +281,34 @@ let parseString = (s: string) : list(part) => {
     parts
     |> List.fold_left(
          ((result, modifiers), part) =>
-           switch part {
-           | Str.Text(value) => (result @ [{value, modifiers, isModifier: false}], modifiers)
+           switch (part) {
+           | Str.Text(value) => (
+               result @ [{value, modifiers, isModifier: false}],
+               modifiers,
+             )
            | Str.Delim(value) =>
              let codeString = Str.global_replace(nonDigitRegex, "", value);
              let code = int_of_string(codeString);
              let modifiers =
                if (IntSet.mem(code, Ansi.starts)) {
-                 IntSet.add(code, modifiers)
+                 IntSet.add(code, modifiers);
                } else if (IntSet.mem(code, Ansi.stops)) {
                  let startsToRemove = IntMap.find(code, Ansi.stopToStarts);
-                 IntSet.filter((code) => ! IntSet.mem(code, startsToRemove), modifiers)
+                 IntSet.filter(
+                   code => ! IntSet.mem(code, startsToRemove),
+                   modifiers,
+                 );
                } else {
-                 failwith("Unknown escape code matched escapeCodeRegex: " ++ codeString)
+                 failwith(
+                   "Unknown escape code matched escapeCodeRegex: "
+                   ++ codeString,
+                 );
                };
-             (result @ [{value, modifiers, isModifier: true}], modifiers)
+             (result @ [{value, modifiers, isModifier: true}], modifiers);
            },
-         ([], IntSet.empty)
+         ([], IntSet.empty),
        );
-  parts
+  parts;
 };
 
 let createChalker = (style: Ansi.style) : chalker => {
@@ -276,23 +318,26 @@ let createChalker = (style: Ansi.style) : chalker => {
     List.fold_left(
       (result, part) =>
         if (part.isModifier) {
-          result ++ part.value
+          result ++ part.value;
         } else {
           let myStopCode = style.stopCode;
           let conflictingStarts = IntMap.find(myStopCode, Ansi.stopToStarts);
           let next =
-            if (IntSet.exists((code) => IntSet.mem(code, conflictingStarts), part.modifiers)) {
-              part.value
+            if (IntSet.exists(
+                  code => IntSet.mem(code, conflictingStarts),
+                  part.modifiers,
+                )) {
+              part.value;
             } else {
-              style.start ++ part.value ++ style.stop
+              style.start ++ part.value ++ style.stop;
             };
-          result ++ next
+          result ++ next;
         },
       "",
-      parts
-    )
+      parts,
+    );
   };
-  chalker
+  chalker;
 };
 
 type modifier = {
@@ -302,7 +347,7 @@ type modifier = {
   underline: chalker,
   inverse: chalker,
   hidden: chalker,
-  strikethrough: chalker
+  strikethrough: chalker,
 };
 
 type color = {
@@ -322,7 +367,7 @@ type color = {
   blueBright: chalker,
   magentaBright: chalker,
   cyanBright: chalker,
-  whiteBright: chalker
+  whiteBright: chalker,
 };
 
 type bg = {
@@ -341,7 +386,7 @@ type bg = {
   blueBright: chalker,
   magentaBright: chalker,
   cyanBright: chalker,
-  whiteBright: chalker
+  whiteBright: chalker,
 };
 
 let modifier: modifier = {
@@ -351,7 +396,7 @@ let modifier: modifier = {
   underline: createChalker(Ansi.modifier.underline),
   inverse: createChalker(Ansi.modifier.inverse),
   hidden: createChalker(Ansi.modifier.hidden),
-  strikethrough: createChalker(Ansi.modifier.strikethrough)
+  strikethrough: createChalker(Ansi.modifier.strikethrough),
 };
 
 let bold = modifier.bold;
@@ -385,7 +430,7 @@ let color: color = {
   blueBright: createChalker(Ansi.color.blueBright),
   magentaBright: createChalker(Ansi.color.magentaBright),
   cyanBright: createChalker(Ansi.color.cyanBright),
-  whiteBright: createChalker(Ansi.color.whiteBright)
+  whiteBright: createChalker(Ansi.color.whiteBright),
 };
 
 let black = color.black;
@@ -438,5 +483,5 @@ let bg: bg = {
   blueBright: createChalker(Ansi.bg.blueBright),
   magentaBright: createChalker(Ansi.bg.magentaBright),
   cyanBright: createChalker(Ansi.bg.cyanBright),
-  whiteBright: createChalker(Ansi.bg.whiteBright)
+  whiteBright: createChalker(Ansi.bg.whiteBright),
 };

@@ -15,7 +15,7 @@ type commonOpts = {
   buildPath: option(Fpath.t),
   prefixPath: option(Fpath.t),
   sandboxPath: option(Fpath.t),
-  logLevel: option(Logs.level)
+  logLevel: option(Logs.level),
 };
 
 let setupLog = (style_renderer, level) => {
@@ -36,7 +36,7 @@ let createConfig = (copts: commonOpts) => {
     switch%bind (
       EsyBuildPackage.NodeResolution.resolve(
         "fastreplacestring/.bin/fastreplacestring.exe",
-        basedir
+        basedir,
       )
     ) {
     | Some(path) => Ok(Fpath.to_string(path))
@@ -47,7 +47,7 @@ let createConfig = (copts: commonOpts) => {
     ~prefixPath,
     ~sandboxPath,
     ~fastreplacestringCmd,
-    ()
+    (),
   );
 };
 
@@ -76,14 +76,14 @@ let shell = (copts: commonOpts) => {
         echo ""
         echo "  esy build shell for $cur__name@$cur__version package"
         echo ""
-        |}
+        |},
       );
     let cmd =
       Bos.Cmd.of_list([
         "bash",
         "--noprofile",
         "--rcfile",
-        Fpath.to_string(rcFilename)
+        Fpath.to_string(rcFilename),
       ]);
     runInteractive(cmd);
   };
@@ -102,18 +102,19 @@ let exec = (copts, command) => {
     runInteractive(cmd);
   };
   let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
-  let%bind () = EsyBuildPackage.Builder.withBuildEnv(config, task, runCommand);
+  let%bind () =
+    EsyBuildPackage.Builder.withBuildEnv(config, task, runCommand);
   ok;
 };
 
 let runToCompletion = run =>
-  switch run {
+  switch (run) {
   | Error(`Msg(msg)) => `Error((false, msg))
   | _ => `Ok()
   };
 
 let help = (_copts, man_format, cmds, topic) =>
-  switch topic {
+  switch (topic) {
   | None => `Help((`Pager, None)) /* help about the program. */
   | Some(topic) =>
     let topics = ["topics", "patterns", "environment", ...cmds];
@@ -125,7 +126,10 @@ let help = (_copts, man_format, cmds, topic) =>
       `Ok();
     | `Ok(t) when List.mem(t, cmds) => `Help((man_format, Some(t)))
     | `Ok(_) =>
-      let page = ((topic, 7, "", "", ""), [`S(topic), `P("Say something")]);
+      let page = (
+        (topic, 7, "", "", ""),
+        [`S(topic), `P("Say something")],
+      );
       `Ok(Cmdliner.Manpage.print(man_format, Format.std_formatter, page));
     };
   };
@@ -143,14 +147,14 @@ let () = {
     `Noblank,
     `P("Use `$(mname) help environment' for help on environment variables."),
     `S(Manpage.s_bugs),
-    `P("Check bug reports at https://github.com/esy/esy.")
+    `P("Check bug reports at https://github.com/esy/esy."),
   ];
   /* Options common to all commands */
   let commonOpts = (prefixPath, sandboxPath, buildPath, logLevel) => {
     prefixPath,
     sandboxPath,
     buildPath,
-    logLevel
+    logLevel,
   };
   let path = {
     let parse = Fpath.of_string;
@@ -207,8 +211,8 @@ let () = {
         ~doc,
         ~sdocs,
         ~exits,
-        ~man
-      )
+        ~man,
+      ),
     );
   };
   let build_cmd = {
@@ -228,7 +232,7 @@ let () = {
     };
     (
       Term.(ret(const(cmd) $ commonOptsT $ buildOnlyT $ forceT)),
-      Term.info("build", ~doc, ~sdocs, ~exits, ~man)
+      Term.info("build", ~doc, ~sdocs, ~exits, ~man),
     );
   };
   let shell_cmd = {
@@ -239,7 +243,7 @@ let () = {
     let cmd = opts => runToCompletion(shell(opts));
     (
       Term.(ret(const(cmd) $ commonOptsT)),
-      Term.info("shell", ~doc, ~sdocs, ~exits, ~man)
+      Term.info("shell", ~doc, ~sdocs, ~exits, ~man),
     );
   };
   let exec_cmd = {
@@ -252,19 +256,23 @@ let () = {
     let cmd = (opts, command) => runToCompletion(exec(opts, command));
     (
       Term.(ret(const(cmd) $ commonOptsT $ command_t)),
-      Term.info("exec", ~doc, ~sdocs, ~exits, ~man)
+      Term.info("exec", ~doc, ~sdocs, ~exits, ~man),
     );
   };
   let help_cmd = {
     let topic = {
       let doc = "The topic to get help on. `topics' lists the topics.";
-      Arg.(value & pos(0, some(string), None) & info([], ~docv="TOPIC", ~doc));
+      Arg.(
+        value & pos(0, some(string), None) & info([], ~docv="TOPIC", ~doc)
+      );
     };
     let doc = "display help about esy-build-package and its commands";
     let man = [
       `S(Manpage.s_description),
-      `P("Prints help about esy-build-package commands and other subjects..."),
-      `Blocks(help_secs)
+      `P(
+        "Prints help about esy-build-package commands and other subjects...",
+      ),
+      `Blocks(help_secs),
     ];
     (
       Term.(
@@ -273,10 +281,10 @@ let () = {
           $ commonOptsT
           $ Arg.man_format
           $ Term.choice_names
-          $ topic
+          $ topic,
         )
       ),
-      Term.info("help", ~doc, ~exits=Term.default_exits, ~man)
+      Term.info("help", ~doc, ~exits=Term.default_exits, ~man),
     );
   };
   let cmds = [build_cmd, shell_cmd, exec_cmd, help_cmd];

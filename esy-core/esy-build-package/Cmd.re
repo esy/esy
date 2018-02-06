@@ -25,7 +25,7 @@ let resolveCmd = (path, cmd) => {
       | Ok(None)
       | Error(_) => resolve(xs)
       };
-  switch cmd.[0] {
+  switch (cmd.[0]) {
   | '.'
   | '/' => Ok(cmd)
   | _ => resolve(path)
@@ -35,7 +35,7 @@ let resolveCmd = (path, cmd) => {
 let resolveInvocation = (path, cmd) => {
   open Run;
   let cmd = Bos.Cmd.to_list(cmd);
-  switch cmd {
+  switch (cmd) {
   | [] => Error(`Msg("empty command"))
   | [cmd, ...args] =>
     let%bind cmd = resolveCmd(path, cmd);

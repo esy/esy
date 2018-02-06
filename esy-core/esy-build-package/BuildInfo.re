@@ -6,7 +6,7 @@ open Std;
 [@deriving (show, of_yojson, to_yojson)]
 type t = {
   timeSpent: float,
-  sourceModTime: option(float)
+  sourceModTime: option(float),
 };
 
 let write = (task: BuildTask.t, info: t) => {
@@ -28,7 +28,7 @@ let read = (task: BuildTask.t) => {
         Ok(None);
       }
     );
-  switch read {
+  switch (read) {
   | Ok(v) => v
   | Error(_) => None
   };

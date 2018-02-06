@@ -2,7 +2,7 @@ module Result = {
   include Rresult;
   let ok = Ok();
   let join = rr =>
-    switch rr {
+    switch (rr) {
     | Ok(Ok(v)) => Ok(v)
     | Ok(v) => v
     | Error(msg) => Error(msg)
@@ -12,13 +12,13 @@ module Result = {
     | Ok(v) => Ok(f(v))
     | Error(err) => Error(err);
   let (>>) = (a, b) =>
-    switch a {
+    switch (a) {
     | Ok () => b()
     | Error(msg) => Error(msg)
     };
   module Let_syntax = {
     let bind = (~f, v) =>
-      switch v {
+      switch (v) {
       | Ok(v) => f(v)
       | Error(e) => Error(e)
       };
@@ -30,7 +30,7 @@ module Result = {
       (~f: 'a => result('b, 'err), xs: list('a))
       : result(list('b), 'err) => {
     let f = (prev, x) =>
-      switch prev {
+      switch (prev) {
       | Ok(xs) =>
         switch (f(x)) {
         | Ok(x) => Ok([x, ...xs])
@@ -40,7 +40,8 @@ module Result = {
       };
     xs |> List.fold_left(f, Ok([])) |> map(List.rev);
   };
-  let listFoldLeft = (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
+  let listFoldLeft =
+      (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
     let rec fold = (acc, xs) =>
       switch (acc, xs) {
       | (Error(err), _) => Error(err)
@@ -77,10 +78,10 @@ module List = {
   include List;
   let filterNone = l => {
     let rec loop = (o, accum) =>
-      switch o {
+      switch (o) {
       | [] => accum
       | [hd, ...tl] =>
-        switch hd {
+        switch (hd) {
         | Some(v) => loop(tl, [v, ...accum])
         | None => loop(tl, accum)
         }
