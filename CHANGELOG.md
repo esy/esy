@@ -7,6 +7,10 @@
   * `esy <anycmd>`, `esy x <anycmd>` and `esy b <anycmd>` now preserve
     exit code.
 
+  * Do not store mtime of the sources for the root package.
+
+    See [#144](https://github.com/esy/esy/issues/144) for rationale.
+
   * `esy build` now provides better formatting in case of command failures.
 
 ## 0.1.6 @ preview
