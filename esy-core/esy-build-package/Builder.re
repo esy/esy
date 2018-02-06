@@ -246,15 +246,25 @@ let withBuildEnvUnlocked =
     };
   let run = cmd => {
     let%bind cmd = Cmd.resolveInvocation(path, cmd);
-    Bos.OS.Cmd.(
-      in_null |> exec(~err=Bos.OS.Cmd.err_run_out, ~env, cmd) |> to_stdout
-    );
+    let%bind ((), (_runInfo, runStatus)) =
+      Bos.OS.Cmd.(
+        in_null |> exec(~err=Bos.OS.Cmd.err_run_out, ~env, cmd) |> out_stdout
+      );
+    switch runStatus {
+    | `Exited(0) => Ok()
+    | status => Error(`CommandError((cmd, status)))
+    };
   };
   let runInteractive = cmd => {
     let%bind cmd = Cmd.resolveInvocation(path, cmd);
-    Bos.OS.Cmd.(
-      in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr, ~env, cmd) |> to_stdout
-    );
+    let%bind ((), (_runInfo, runStatus)) =
+      Bos.OS.Cmd.(
+        in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr, ~env, cmd) |> out_stdout
+      );
+    switch runStatus {
+    | `Exited(0) => Ok()
+    | status => Error(`CommandError((cmd, status)))
+    };
   };
   /*
    * Prepare build/install.

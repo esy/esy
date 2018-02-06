@@ -33,12 +33,12 @@ let createConfig = (copts: commonOpts) => {
     let program = Sys.argv[0];
     let%bind program = realpath(v(program));
     let basedir = Fpath.parent(program);
-    switch%bind (
+    let resolution =
       EsyBuildPackage.NodeResolution.resolve(
         "fastreplacestring/.bin/fastreplacestring.exe",
         basedir
-      )
-    ) {
+      );
+    switch%bind (Run.coerceFrmMsgOnly(resolution)) {
     | Some(path) => Ok(Fpath.to_string(path))
     | None => Ok("fastreplacestring.exe")
     };
@@ -106,9 +106,26 @@ let exec = (copts, command) => {
   ok;
 };
 
-let runToCompletion = run =>
+let runToCompletion = (~forceExitOnError=false, run) =>
   switch run {
   | Error(`Msg(msg)) => `Error((false, msg))
+  | Error(`CommandError(cmd, status)) =>
+    let exitCode =
+      switch status {
+      | `Exited(n) => n
+      | `Signaled(n) => n
+      };
+    if (forceExitOnError) {
+      exit(exitCode);
+    } else {
+      let msg =
+        Printf.sprintf(
+          "command failed:\n%s\nwith exit code: %d",
+          Bos.Cmd.to_string(cmd),
+          exitCode
+        );
+      `Error((false, msg));
+    };
   | _ => `Ok()
   };
 
@@ -249,7 +266,8 @@ let () = {
     let man = help_secs;
     let command_t =
       Arg.(non_empty & pos_all(string, []) & info([], ~docv="COMMAND"));
-    let cmd = (opts, command) => runToCompletion(exec(opts, command));
+    let cmd = (opts, command) =>
+      runToCompletion(~forceExitOnError=true, exec(opts, command));
     (
       Term.(ret(const(cmd) $ commonOptsT $ command_t)),
       Term.info("exec", ~doc, ~sdocs, ~exits, ~man)
