@@ -204,7 +204,11 @@ let () = {
       );
     };
     let setupLogT =
-      Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
+      Term.(
+        const(setupLog)
+        $ Fmt_cli.style_renderer()
+        $ Logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
+      );
     Term.(
       const(commonOpts) $ prefixPath $ sandboxPath $ buildPath $ setupLogT
     );
