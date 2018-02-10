@@ -163,6 +163,7 @@ module Manifest = struct
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     optDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
+    buildTimeDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     esy: EsyManifest.t option [@default None];
     _resolved: (string option [@default None]);
   } [@@deriving (show, of_yojson { strict = false })]
@@ -213,6 +214,7 @@ and dependency =
   | PeerDependency of t
   | OptDependency of t
   | DevDependency of t
+  | BuildDependency of t
   | InvalidDependency of {
     pkgName: string;
     reason: string;
@@ -240,6 +242,7 @@ module DependencyGraph = DependencyGraph.Make(struct
       | Dependency pkg
       | OptDependency pkg
       | DevDependency pkg
+      | BuildDependency pkg
       | PeerDependency pkg -> (pkg, dep)::acc
       | InvalidDependency _ -> acc
     in
@@ -253,10 +256,12 @@ let traverseImmutableDependencies (pkg : t) =
   let f deps dep = match dep with
     | Dependency ({ sourceType = SourceType.Immutable; _ } as pkg)
     | OptDependency ({ sourceType = SourceType.Immutable; _ } as pkg)
+    | BuildDependency ({ sourceType = SourceType.Immutable; _ } as pkg)
     | PeerDependency ({ sourceType = SourceType.Immutable; _ } as pkg) ->
       (pkg, dep)::deps
     | Dependency _
     | OptDependency _
+    | BuildDependency _
     | PeerDependency _
     | DevDependency _
     | InvalidDependency _ -> deps

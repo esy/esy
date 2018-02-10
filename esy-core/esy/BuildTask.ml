@@ -268,11 +268,24 @@ let ofPackage
 
     let isRoot = pkg.id = rootPkg.id in
 
-    let includeDependency = function
+    let runTimeDependenciesOnly (dep, _) = match dep with
       | Package.Dependency _pkg
       | Package.PeerDependency _pkg
       | Package.OptDependency _pkg -> true
-      | Package.DevDependency _pkg -> isRoot && includeRootDevDependenciesInEnv
+      | Package.BuildDependency _pkg -> false
+      | Package.DevDependency _pkg -> isRoot &&
+                                     includeRootDevDependenciesInEnv
+      | Package.InvalidDependency _ ->
+        (** TODO: need to fail gracefully here *)
+        failwith "invalid dependency"
+    in
+
+    let buildTimeDependenciesOnly (dep, _) = match dep with
+      | Package.Dependency _pkg
+      | Package.PeerDependency _pkg
+      | Package.DevDependency _pkg
+      | Package.OptDependency _pkg -> false
+      | Package.BuildDependency _pkg -> true
       | Package.InvalidDependency _ ->
         (** TODO: need to fail gracefully here *)
         failwith "invalid dependency"
@@ -305,8 +318,8 @@ let ofPackage
     let scopeForExportEnv, scopeForCommands =
       let bindings = StringMap.empty in
       let bindings =
-        let f bindings (dep, {pkg; _}) =
-          if includeDependency dep
+        let f bindings ((_, {pkg; _}) as d) =
+          if runTimeDependenciesOnly d
           then addPackageBindings ~kind:`AsDep pkg bindings
           else bindings
         in
@@ -366,9 +379,15 @@ let ofPackage
        * global scope (hence global)
       *)
       let globalEnvOfAllDeps =
-        allDependencies
-        |> List.filter (fun (dep, _) -> includeDependency dep)
-        |> List.map (fun (_, {globalEnv; _}) -> globalEnv)
+        let collectFrom dependencies v =
+          let f bindings (_, {globalEnv; _}) = globalEnv::bindings in
+          dependencies
+          |> ListLabels.fold_left ~f ~init:v
+          |> List.rev
+        in
+        []
+        |> collectFrom (List.filter runTimeDependenciesOnly allDependencies)
+        |> collectFrom (List.filter buildTimeDependenciesOnly dependencies)
         |> List.concat
         |> List.rev
       in
@@ -376,9 +395,15 @@ let ofPackage
       (* Direct dependencies contribute only env exported to the local scope
       *)
       let localEnvOfDeps =
-        dependencies
-        |> List.filter (fun (dep, _) -> includeDependency dep)
-        |> List.map (fun (_, {localEnv; _}) -> localEnv)
+        let collectFrom dependencies v =
+          let f bindings (_, {localEnv; _}) = localEnv::bindings in
+          dependencies
+          |> ListLabels.fold_left ~f ~init:v
+          |> List.rev
+        in
+        []
+        |> collectFrom (List.filter runTimeDependenciesOnly dependencies)
+        |> collectFrom (List.filter buildTimeDependenciesOnly dependencies)
         |> List.concat
         |> List.rev
       in
@@ -387,15 +412,18 @@ let ofPackage
        * corresponding paths of all dependencies (transtive included).
       *)
       let path, manpath, ocamlpath =
-        let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
-          let path = ConfigPath.(dep.installPath / "bin")::path in
-          let manpath = ConfigPath.(dep.installPath / "man")::manpath in
-          let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
-          path, manpath, ocamlpath
+        let collectFrom dependencies v =
+          let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
+            let path = ConfigPath.(dep.installPath / "bin")::path in
+            let manpath = ConfigPath.(dep.installPath / "man")::manpath in
+            let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
+            path, manpath, ocamlpath
+          in
+          ListLabels.fold_left ~f ~init:v dependencies
         in
-        allDependencies
-        |> ListLabels.filter ~f:(fun (dep, _) -> includeDependency dep)
-        |> ListLabels.fold_left ~f ~init:([], [], [])
+        ([], [], [])
+        |> collectFrom (List.filter runTimeDependenciesOnly allDependencies)
+        |> collectFrom (List.filter buildTimeDependenciesOnly dependencies)
       in
 
       let path = Environment.{
@@ -527,6 +555,7 @@ let ofPackage
         | Package.Dependency _
         | Package.PeerDependency _
         | Package.OptDependency _
+        | Package.BuildDependency _
         (* TODO: make sure we ignore InvalidDependency *)
         | Package.InvalidDependency _ -> Dependency task
       in
@@ -570,6 +599,7 @@ let ofPackage
       | Package.Dependency dpkg
       | Package.OptDependency dpkg
       | Package.PeerDependency dpkg
+      | Package.BuildDependency dpkg
       | Package.DevDependency dpkg -> (dpkg, dep)::acc
       | Package.InvalidDependency _ -> acc
     in
