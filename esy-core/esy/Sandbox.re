@@ -50,6 +50,7 @@ let packageId =
     fun
     | Package.Dependency(pkg)
     | Package.OptDependency(pkg)
+    | Package.BuildDependency(pkg)
     | Package.PeerDependency(pkg) => digest(id, pkg.id)
     | Package.InvalidDependency(_)
     | Package.DevDependency(_) => id;
@@ -163,6 +164,12 @@ let ofDir = (cfg: Config.t) => {
           dependencies
         );
       let%lwt dependencies =
+        addDeps(
+          ~make=pkg => Package.BuildDependency(pkg),
+          manifest.buildTimeDependencies,
+          dependencies
+        );
+      let%lwt dependencies =
         if (Path.equal(cfg.sandboxPath, path)) {
           addDeps(
             ~skipUnresolved=true,
@@ -173,7 +180,6 @@ let ofDir = (cfg: Config.t) => {
         } else {
           Lwt.return(dependencies);
         };
-      let id = packageId(manifest, dependencies);
       let sourceType = {
         let isRootPath = path == cfg.sandboxPath;
         let hasDepWithSourceTypeDevelopment =
@@ -181,6 +187,7 @@ let ofDir = (cfg: Config.t) => {
             fun
             | Package.Dependency(pkg)
             | Package.PeerDependency(pkg)
+            | Package.BuildDependency(pkg)
             | Package.OptDependency(pkg) =>
               pkg.sourceType == Package.SourceType.Development
             | Package.DevDependency(_)
@@ -215,7 +222,7 @@ let ofDir = (cfg: Config.t) => {
         let esy =
           Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
         Package.{
-          id,
+          id: Path.to_string(sourcePath),
           name: manifest.name,
           version: manifest.version,
           dependencies,
@@ -224,7 +231,8 @@ let ofDir = (cfg: Config.t) => {
           buildType: esy.buildsInSource,
           sourceType,
           exportedEnv: esy.exportedEnv,
-          sourcePath: ConfigPath.ofPath(cfg, sourcePath)
+          sourcePath: ConfigPath.ofPath(cfg, sourcePath),
+          resolution: manifest._resolved
         };
       };
       return(pkg);

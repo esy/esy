@@ -29,6 +29,7 @@ module TestCommandExpr = struct
       }
     ];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
+    resolution = None;
   }
 
   let pkg = Package.{
@@ -42,6 +43,7 @@ module TestCommandExpr = struct
     sourceType = SourceType.Immutable;
     exportedEnv = [];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
+    resolution = None;
   }
 
   let task = BuildTask.ofPackage pkg
