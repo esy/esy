@@ -49,6 +49,48 @@ type foldstate = {
   localEnv : Environment.binding list;
 }
 
+let safePackageName =
+  let replaceAt = Str.regexp "@" in
+  let replaceUnderscore = Str.regexp "_+" in
+  let replaceSlash = Str.regexp "\\/" in
+  let replaceDot = Str.regexp "\\." in
+  let replaceDash = Str.regexp "\\-" in
+  let make (name : string) =
+  name
+  |> String.lowercase_ascii
+  |> Str.global_replace replaceAt ""
+  |> Str.global_replace replaceUnderscore "__"
+  |> Str.global_replace replaceSlash "__slash__"
+  |> Str.global_replace replaceDot "__dot__"
+  |> Str.global_replace replaceDash "_"
+  in make
+
+let buildId
+  (pkg : Package.t)
+  (dependencies : dependency list) =
+  let digest acc update = Digest.string (acc ^ "--" ^ update) in
+  let id =
+    ListLabels.fold_left ~f:digest ~init:"" [
+      pkg.name;
+      pkg.version;
+      Package.CommandList.show pkg.buildCommands;
+      Package.CommandList.show pkg.installCommands;
+      Package.BuildType.show pkg.buildType;
+      (match pkg.resolution with
+       | Some resolved -> resolved
+       | None -> "")
+    ]
+  in
+  let updateWithDepId id = function
+    | Dependency pkg -> digest id pkg.id
+    | DevDependency _ -> id
+  in
+  let id = ListLabels.fold_left ~f:updateWithDepId ~init:id dependencies in
+  let hash = Digest.to_hex id in
+  let hash = String.sub hash 0 8 in
+  (safePackageName pkg.name ^ "-" ^ pkg.version ^ "-" ^ hash)
+
+
 let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
   | Package.SourceType.Immutable -> ConfigPath.storePath
   | Package.SourceType.Development
@@ -79,7 +121,7 @@ let rootPath (pkg : Package.t) =
   | JBuilderLike, Root -> pkg.sourcePath
   | OutOfSource, _ -> pkg.sourcePath
 
-let isBuilt ~cfg task = 
+let isBuilt ~cfg task =
   Fs.exists ConfigPath.(task.installPath / "lib" |> toPath(cfg))
 
 let getenv name =
@@ -501,8 +543,20 @@ let ofPackage
         (renderCommandList env scopeForCommands pkg.installCommands)
     in
 
+    let dependencies =
+      let f (dep, {task; _}) = match dep with
+        | Package.DevDependency _ -> DevDependency task
+        | Package.Dependency _
+        | Package.PeerDependency _
+        | Package.OptDependency _
+        (* TODO: make sure we ignore InvalidDependency *)
+        | Package.InvalidDependency _ -> Dependency task
+      in
+      ListLabels.map ~f dependencies;
+    in
+
     let task: t = {
-      id = pkg.id;
+      id = buildId pkg dependencies;
 
       pkg;
       buildCommands;
@@ -516,12 +570,7 @@ let ofPackage
       installPath;
       logPath = pkgLogPath pkg;
 
-      dependencies =
-        let f (dep, {task; _}) = match dep with
-          | Package.DevDependency _ -> DevDependency task
-          | _ -> Dependency task
-        in
-        ListLabels.map ~f dependencies;
+      dependencies;
     } in
 
     return { globalEnv; localEnv; pkg; task; }
@@ -589,6 +638,7 @@ let sandboxEnv (pkg : Package.t) =
     sourceType = Package.SourceType.Root;
     exportedEnv = [];
     sourcePath = pkg.sourcePath;
+    resolution = None;
   } in
   let%bind task = ofPackage
       ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
