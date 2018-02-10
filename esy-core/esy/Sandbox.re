@@ -173,7 +173,6 @@ let ofDir = (cfg: Config.t) => {
         } else {
           Lwt.return(dependencies);
         };
-      let id = packageId(manifest, dependencies);
       let sourceType = {
         let isRootPath = path == cfg.sandboxPath;
         let hasDepWithSourceTypeDevelopment =
@@ -215,7 +214,7 @@ let ofDir = (cfg: Config.t) => {
         let esy =
           Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
         Package.{
-          id,
+          id: Path.to_string(sourcePath),
           name: manifest.name,
           version: manifest.version,
           dependencies,
@@ -224,7 +223,8 @@ let ofDir = (cfg: Config.t) => {
           buildType: esy.buildsInSource,
           sourceType,
           exportedEnv: esy.exportedEnv,
-          sourcePath: ConfigPath.ofPath(cfg, sourcePath)
+          sourcePath: ConfigPath.ofPath(cfg, sourcePath),
+          resolution: manifest._resolved
         };
       };
       return(pkg);
