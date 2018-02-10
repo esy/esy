@@ -2,7 +2,7 @@
 
 ## 0.1.7 @ preview
 
-  * `esy ls-libs` and `esy ls-modules` commands are implement in Reason
+  * `esy ls-libs` and `esy ls-modules` commands are implemented in Reason.
 
   * `esy <anycmd>`, `esy x <anycmd>` and `esy b <anycmd>` now preserve
     exit code.
