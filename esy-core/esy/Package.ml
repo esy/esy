@@ -200,6 +200,7 @@ type t = {
   sourceType : SourceType.t;
   exportedEnv : ExportedEnv.t;
   sourcePath : Config.ConfigPath.t;
+  resolution : string option;
 }
 [@@deriving show]
 
