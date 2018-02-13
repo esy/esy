@@ -6,7 +6,7 @@ open Std;
 type t('a, 'b) =
   result(
     'a,
-    [> | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)] as 'b
+    [> | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)] as 'b,
   );
 
 let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));

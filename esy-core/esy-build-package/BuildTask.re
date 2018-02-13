@@ -126,7 +126,8 @@ module ConfigFile = {
     let renderPath = s => {
       let%bind s = PathSyntax.render(lookupVar, s);
       (
-        Path.of_string(s): result(Path.t, [ | `Msg(string)]) :> Run.t(Path.t, _)
+        Path.of_string(s): result(Path.t, [ | `Msg(string)]) :>
+          Run.t(Path.t, _)
       );
     };
     let renderEnv = env => {

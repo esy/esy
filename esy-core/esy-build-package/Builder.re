@@ -252,7 +252,7 @@ let withBuildEnvUnlocked =
       Bos.OS.Cmd.(
         in_null |> exec(~err=Bos.OS.Cmd.err_run_out, ~env, cmd) |> out_stdout
       );
-    switch runStatus {
+    switch (runStatus) {
     | `Exited(0) => Ok()
     | status => Error(`CommandError((cmd, status)))
     };
@@ -263,7 +263,7 @@ let withBuildEnvUnlocked =
       Bos.OS.Cmd.(
         in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr, ~env, cmd) |> out_stdout
       );
-    switch runStatus {
+    switch (runStatus) {
     | `Exited(0) => Ok()
     | status => Error(`CommandError((cmd, status)))
     };

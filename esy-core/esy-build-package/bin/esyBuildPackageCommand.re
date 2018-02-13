@@ -112,7 +112,7 @@ let runToCompletion = (~forceExitOnError=false, run) =>
   | Error(`Msg(msg)) => `Error((false, msg))
   | Error(`CommandError(cmd, status)) =>
     let exitCode =
-      switch status {
+      switch (status) {
       | `Exited(n) => n
       | `Signaled(n) => n
       };
@@ -123,7 +123,7 @@ let runToCompletion = (~forceExitOnError=false, run) =>
         Printf.sprintf(
           "command failed:\n%s\nwith exit code: %d",
           Bos.Cmd.to_string(cmd),
-          exitCode
+          exitCode,
         );
       `Error((false, msg));
     };
