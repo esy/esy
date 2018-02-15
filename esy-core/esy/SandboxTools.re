@@ -16,7 +16,7 @@ let getOcamlfind = (~cfg: Config.t, task: BuildTask.t) =>
     switch (find(~name="@opam/ocamlfind", task)) {
     | None =>
       error(
-        "We couldn't find ocamlfind, consider adding it to your devDependencies"
+        "We couldn't find ocamlfind, consider adding it to your devDependencies",
       )
     | Some(ocamlfindTask) =>
       let ocamlfindBin =
@@ -29,7 +29,7 @@ let getOcamlfind = (~cfg: Config.t, task: BuildTask.t) =>
       } else {
         /* TODO Autmatically build ocamlfind instead */
         error(
-          "No ocamlfind binary was found, build your project first"
+          "No ocamlfind binary was found, build your project first",
         );
       };
     }
@@ -51,7 +51,7 @@ let getOcamlobjinfo = (~cfg: Config.t, task: BuildTask.t) =>
       } else {
         /* TODO Automatically build ocaml instead */
         error(
-          "OCaml hasn't been yet compiled, build your project first"
+          "OCaml hasn't been yet compiled, build your project first",
         );
       };
     }
@@ -71,7 +71,7 @@ let getPackageLibraries =
     (~cfg: Config.t, ~ocamlfind: string, ~builtIns=?, ~task=?, ()) => {
   open RunAsync.Syntax;
   let ocamlpath =
-    switch task {
+    switch (task) {
     | Some((task: BuildTask.t)) =>
       ConfigPath.(task.installPath / "lib" |> toPath(cfg)) |> Path.to_string
     | None => ""
@@ -86,7 +86,7 @@ let getPackageLibraries =
     |> Std.List.filterNone
     |> List.map(((key, _)) => key)
     |> List.rev;
-  switch builtIns {
+  switch (builtIns) {
   | Some(discard) => return(Std.List.diff(libs, discard))
   | None => return(libs)
   };
@@ -97,7 +97,7 @@ type meta = {
   description: string,
   version: string,
   archive: string,
-  location: string
+  location: string,
 };
 
 let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: BuildTask.t, lib) => {
@@ -113,7 +113,7 @@ let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: BuildTask.t, lib) =>
       "-predicates",
       "byte,native",
       "-long-format",
-      lib
+      lib,
     ]);
   let%bind out = ChildProcess.runOut(~env, cmd);
   let lines =
@@ -131,7 +131,7 @@ let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: BuildTask.t, lib) =>
     description: findField(~name="description"),
     version: findField(~name="version"),
     archive: findField(~name="archive(s)"),
-    location: findField(~name="location")
+    location: findField(~name="location"),
   });
 };
 

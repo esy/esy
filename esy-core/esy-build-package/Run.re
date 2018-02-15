@@ -6,7 +6,7 @@ open Std;
 type t('a, 'b) =
   result(
     'a,
-    [> | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)] as 'b
+    [> | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)] as 'b,
   );
 
 let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
@@ -17,7 +17,8 @@ let (/) = Fpath.(/);
 
 let v = Fpath.v;
 
-let withCwd = (path, ~f) => Result.join(Bos.OS.Dir.with_current(path, f, ()));
+let withCwd = (path, ~f) =>
+  Result.join(Bos.OS.Dir.with_current(path, f, ()));
 
 let exists = Bos.OS.Path.exists;
 
@@ -68,7 +69,9 @@ let rec realpath = (p: Fpath.t) => {
       let%bind isSymlink = isSymlinkAndExists(p);
       if (isSymlink) {
         let%bind target = symlinkTarget(p);
-        realpath(target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize);
+        realpath(
+          target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
+        );
       } else {
         let parent = p |> Fpath.parent |> Fpath.rem_empty_seg;
         let%bind parent = realpath(parent);

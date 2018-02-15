@@ -7,14 +7,14 @@ module SourceType = {
     | Transient
     | Root;
   let of_yojson = (json: Yojson.Safe.json) =>
-    switch json {
+    switch (json) {
     | `String("immutable") => Ok(Immutable)
     | `String("transient") => Ok(Transient)
     | `String("root") => Ok(Root)
     | _ => Error("invalid buildType")
     };
   let to_yojson = (sourceType: t) =>
-    switch sourceType {
+    switch (sourceType) {
     | Immutable => `String("immutable")
     | Transient => `String("transient")
     | Root => `String("root")
@@ -28,14 +28,14 @@ module BuildType = {
     | JbuilderLike
     | OutOfSource;
   let of_yojson = (json: Yojson.Safe.json) =>
-    switch json {
+    switch (json) {
     | `String("in-source") => Ok(InSource)
     | `String("out-of-source") => Ok(OutOfSource)
     | `String("_build") => Ok(JbuilderLike)
     | _ => Error("invalid buildType")
     };
   let to_yojson = (buildType: t) =>
-    switch buildType {
+    switch (buildType) {
     | InSource => `String("in-source")
     | JbuilderLike => `String("_build")
     | OutOfSource => `String("out-of-source")
@@ -63,7 +63,7 @@ module Env = {
   type t = Bos.OS.Env.t;
   let pp = (_fmt, _env) => ();
   let of_yojson = (json: Yojson.Safe.json) =>
-    switch json {
+    switch (json) {
     | `Assoc(items) =>
       let add_to_map = (res, (key, value)) =>
         switch (res, value) {
@@ -96,7 +96,7 @@ type t = {
   buildPath: Path.t,
   infoPath: Path.t,
   lockPath: Path.t,
-  env: Env.t
+  env: Env.t,
 };
 
 type spec = t;
@@ -112,7 +112,7 @@ module ConfigFile = {
     build: list(list(string)),
     install: list(list(string)),
     sourcePath: string,
-    env: Env.t
+    env: Env.t,
   };
   let configure = (config: Config.t, specConfig: t) : Run.t(spec, 'a) => {
     open Result;
@@ -126,7 +126,8 @@ module ConfigFile = {
     let renderPath = s => {
       let%bind s = PathSyntax.render(lookupVar, s);
       (
-        Path.of_string(s): result(Path.t, [ | `Msg(string)]) :> Run.t(Path.t, _)
+        Path.of_string(s): result(Path.t, [ | `Msg(string)]) :>
+          Run.t(Path.t, _)
       );
     };
     let renderEnv = env => {
@@ -145,7 +146,7 @@ module ConfigFile = {
       Result.listMap(~f=renderCommand, commands);
     };
     let storePath =
-      switch specConfig.sourceType {
+      switch (specConfig.sourceType) {
       | Immutable => config.storePath
       | Transient
       | Root => config.localStorePath
@@ -170,7 +171,7 @@ module ConfigFile = {
       sourcePath,
       env,
       install,
-      build
+      build,
     });
   };
 };

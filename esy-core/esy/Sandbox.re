@@ -7,7 +7,7 @@ module ConfigPath = Config.ConfigPath;
 [@deriving show]
 type t = {
   root: Package.t,
-  manifestInfo: list((Path.t, float))
+  manifestInfo: list((Path.t, float)),
 };
 
 let safePackageName = (name: string) => {
@@ -39,11 +39,11 @@ let packageId =
         Package.CommandList.show(esy.build),
         Package.CommandList.show(esy.install),
         Package.BuildType.show(esy.buildsInSource),
-        switch manifest._resolved {
+        switch (manifest._resolved) {
         | Some(resolved) => resolved
         | None => ""
-        }
-      ]
+        },
+      ],
     );
   };
   let updateWithDepId = id =>
@@ -65,7 +65,7 @@ let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
   let scopedPackagePath = (scope, pkgName, basedir) =>
     Path.(basedir / "node_modules" / scope / pkgName);
   let packagePath =
-    switch pkgName.[0] {
+    switch (pkgName.[0]) {
     | '@' =>
       switch (String.split_on_char('/', pkgName)) {
       | [scope, pkgName] => scopedPackagePath(scope, pkgName)
@@ -126,17 +126,17 @@ let ofDir = (cfg: Config.t) => {
             [
               Package.InvalidDependency({
                 pkgName,
-                reason: "unable to resolve package"
+                reason: "unable to resolve package",
               }),
-              ...dependencies
+              ...dependencies,
             ];
           }
         | Error((pkgName, reason)) => [
             Package.InvalidDependency({pkgName, reason}),
-            ...dependencies
+            ...dependencies,
           ];
       Lwt.return(
-        ListLabels.fold_left(~f, ~init=prevDependencies, dependencies)
+        ListLabels.fold_left(~f, ~init=prevDependencies, dependencies),
       );
     };
     switch%bind (Package.Manifest.ofDir(path)) {
@@ -147,20 +147,20 @@ let ofDir = (cfg: Config.t) => {
         addDeps(
           ~make=pkg => Package.Dependency(pkg),
           manifest.Package.Manifest.dependencies,
-          dependencies
+          dependencies,
         );
       let%lwt dependencies =
         addDeps(
           ~make=pkg => Package.PeerDependency(pkg),
           manifest.peerDependencies,
-          dependencies
+          dependencies,
         );
       let%lwt dependencies =
         addDeps(
           ~skipUnresolved=true,
           ~make=pkg => Package.OptDependency(pkg),
           manifest.optDependencies,
-          dependencies
+          dependencies,
         );
       let%lwt dependencies =
         if (Path.equal(cfg.sandboxPath, path)) {
@@ -168,7 +168,7 @@ let ofDir = (cfg: Config.t) => {
             ~skipUnresolved=true,
             ~make=pkg => Package.DevDependency(pkg),
             manifest.devDependencies,
-            dependencies
+            dependencies,
           );
         } else {
           Lwt.return(dependencies);
@@ -185,12 +185,12 @@ let ofDir = (cfg: Config.t) => {
               pkg.sourceType == Package.SourceType.Development
             | Package.DevDependency(_)
             | Package.InvalidDependency(_) => false,
-            dependencies
+            dependencies,
           );
         switch (
           isRootPath,
           hasDepWithSourceTypeDevelopment,
-          manifest._resolved
+          manifest._resolved,
         ) {
         | (true, _, _) => Package.SourceType.Root
         | (_, true, _) => Package.SourceType.Development
@@ -224,7 +224,7 @@ let ofDir = (cfg: Config.t) => {
           buildType: esy.buildsInSource,
           sourceType,
           exportedEnv: esy.exportedEnv,
-          sourcePath: ConfigPath.ofPath(cfg, sourcePath)
+          sourcePath: ConfigPath.ofPath(cfg, sourcePath),
         };
       };
       return(pkg);

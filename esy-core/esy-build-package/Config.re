@@ -4,7 +4,7 @@ type t = {
   storePath: Fpath.t,
   localStorePath: Fpath.t,
   rsyncCmd: string,
-  fastreplacestringCmd: string
+  fastreplacestringCmd: string,
 };
 
 let storeInstallTree = "i";
@@ -34,7 +34,7 @@ let maxStorePaddingLength = {
       ++ "/"
       ++ storeInstallTree
       ++ "/"
-      ++ ocamlrunStorePath
+      ++ ocamlrunStorePath,
     );
 };
 
@@ -50,19 +50,19 @@ let create =
       ~sandboxPath,
       ~rsyncCmd="rsync",
       ~fastreplacestringCmd="fastreplacestring.exe",
-      ()
+      (),
     ) =>
   Run.(
     {
       let%bind prefixPath =
-        switch prefixPath {
+        switch (prefixPath) {
         | Some(v) => Ok(v)
         | None =>
           let%bind home = Bos.OS.Dir.user();
           Ok(home / ".esy");
         };
       let%bind sandboxPath =
-        switch sandboxPath {
+        switch (sandboxPath) {
         | Some(v) => Ok(v)
         | None => Bos.OS.Dir.current()
         };
@@ -79,7 +79,7 @@ let create =
         sandboxPath,
         localStorePath,
         fastreplacestringCmd,
-        rsyncCmd
+        rsyncCmd,
       });
     }
   );
