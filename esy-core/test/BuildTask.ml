@@ -36,7 +36,10 @@ module TestCommandExpr = struct
     name = "pkg";
     version = "1.0.0";
     dependencies = [Dependency dep];
-    buildCommands = Some [CommandList.Command.Unparsed "cp ./hello #{self.bin}"];
+    buildCommands = Some [
+      CommandList.Command.Unparsed "cp ./hello #{self.bin}";
+      CommandList.Command.Unparsed "cp ./hello2 #{pkg.bin}";
+    ];
     installCommands = Some [CommandList.Command.Parsed ["cp"; "./man"; "#{self.man}"]];
     buildType = BuildType.InSource;
     sourceType = SourceType.Immutable;
@@ -56,8 +59,10 @@ module TestCommandExpr = struct
 
   let%test "#{self...} inside esy.build" =
     check (fun task ->
-      let commands = BuildTask.CommandList.show task.buildCommands in
-      commands = {|[["cp"; "./hello"; "%store%/s/%pkg%/bin"]]|}
+      BuildTask.CommandList.equal
+        task.buildCommands
+        [["cp"; "./hello"; "%store%/s/%pkg%/bin"];
+         ["cp"; "./hello2"; "%store%/s/%pkg%/bin"]]
     )
 
   let%test "#{self...} inside esy.install" =
