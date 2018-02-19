@@ -14,7 +14,7 @@ module ConfigPath = Config.ConfigPath
 module CommandList = struct
   type t =
     string list list
-    [@@deriving show]
+    [@@deriving (show, eq)]
 end
 
 type t = {
@@ -87,14 +87,19 @@ let getenv name =
   with Not_found -> None
 
 let addPackageBindings
-  ?(mapSelfToStagePath=false)
+  ?(useStageDirectory=false)
   ~(kind : [`AsSelf | `AsDep])
   (pkg : Package.t)
   scope
   =
-  let namespace, installPath = match kind with
-  | `AsSelf -> "self", if mapSelfToStagePath then pkgStagePath pkg else pkgInstallPath pkg
-  | `AsDep -> pkg.name, pkgInstallPath pkg
+  let installPath =
+    if useStageDirectory
+    then pkgStagePath pkg
+    else pkgInstallPath pkg
+  in
+  let namespace = match kind with
+  | `AsSelf -> "self"
+  | `AsDep -> pkg.name
   in
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
@@ -270,9 +275,26 @@ let ofPackage
         in
         ListLabels.fold_left ~f ~init:bindings dependencies
       in
-      let bindings = addPackageBindings ~kind:`AsDep pkg bindings in
-      let bindingsForExportedEnv = addPackageBindings ~kind:`AsSelf pkg bindings in
-      let bindingsForCommands = addPackageBindings ~mapSelfToStagePath:true ~kind:`AsSelf pkg bindings in
+      let bindingsForExportedEnv =
+        bindings
+        |> addPackageBindings
+            ~kind:`AsSelf
+            pkg
+        |> addPackageBindings
+            ~kind:`AsDep
+            pkg
+      in
+      let bindingsForCommands =
+        bindings
+        |> addPackageBindings
+            ~useStageDirectory:true
+            ~kind:`AsSelf
+            pkg
+        |> addPackageBindings
+            ~useStageDirectory:true
+            ~kind:`AsDep
+            pkg
+      in
       let lookup bindings name =
         let name = String.concat "." name in
         try Some (StringMap.find name bindings)
