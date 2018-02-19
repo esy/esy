@@ -88,7 +88,7 @@ let getenv name =
 
 let addPackageBindings
   ?(useStageDirectory=false)
-  ~(kind : [`AsSelf | `AsDep])
+  ~(scopeName : [`Self | `PackageName])
   (pkg : Package.t)
   scope
   =
@@ -97,9 +97,9 @@ let addPackageBindings
     then pkgStagePath pkg
     else pkgInstallPath pkg
   in
-  let namespace = match kind with
-  | `AsSelf -> "self"
-  | `AsDep -> pkg.name
+  let namespace = match scopeName with
+  | `Self -> "self"
+  | `PackageName -> pkg.name
   in
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
@@ -270,7 +270,7 @@ let ofPackage
       let bindings =
         let f bindings (dep, {pkg; _}) =
           if includeDependency dep
-          then addPackageBindings ~kind:`AsDep pkg bindings
+          then addPackageBindings ~scopeName:`PackageName pkg bindings
           else bindings
         in
         ListLabels.fold_left ~f ~init:bindings dependencies
@@ -278,21 +278,21 @@ let ofPackage
       let bindingsForExportedEnv =
         bindings
         |> addPackageBindings
-            ~kind:`AsSelf
+            ~scopeName:`Self
             pkg
         |> addPackageBindings
-            ~kind:`AsDep
+            ~scopeName:`PackageName
             pkg
       in
       let bindingsForCommands =
         bindings
         |> addPackageBindings
             ~useStageDirectory:true
-            ~kind:`AsSelf
+            ~scopeName:`Self
             pkg
         |> addPackageBindings
             ~useStageDirectory:true
-            ~kind:`AsDep
+            ~scopeName:`PackageName
             pkg
       in
       let lookup bindings name =
