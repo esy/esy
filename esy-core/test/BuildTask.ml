@@ -26,6 +26,13 @@ module TestCommandExpr = struct
         value = "#{self.install / 'ok'}";
         exclusive = false;
         scope = Local;
+      };
+      {
+        ExportedEnv.
+        name = "OK_BY_NAME";
+        value = "#{dep.install / 'ok-by-name'}";
+        exclusive = false;
+        scope = Local;
       }
     ];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
@@ -57,7 +64,7 @@ module TestCommandExpr = struct
       print_endline (Run.formatError err);
       false
 
-  let%test "#{self...} inside esy.build" =
+  let%test "#{...} inside esy.build" =
     check (fun task ->
       BuildTask.CommandList.equal
         task.buildCommands
@@ -67,21 +74,27 @@ module TestCommandExpr = struct
 
   let%test "#{self...} inside esy.install" =
     check (fun task ->
-      let commands = BuildTask.CommandList.show task.installCommands in
-      commands = {|[["cp"; "./man"; "%store%/s/%pkg%/man"]]|}
+      BuildTask.CommandList.equal
+        task.installCommands
+        [["cp"; "./man"; "%store%/s/%pkg%/man"]]
     )
 
-  let%test "#{self...} inside esy.exportedEnv" =
+  let%test "#{...} inside esy.exportedEnv" =
     check (fun task ->
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
-          value = "%store%/i/%dep%/ok"
+          Some (value = "%store%/i/%dep%/ok")
+        | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
+          Some (value = "%store%/i/%dep%/ok-by-name")
         | _ ->
-          false
+          None
       in
-      match ListLabels.find_opt ~f bindings with
-      | Some _ -> true
-      | None -> false
+      not (
+        bindings
+        |> List.map f
+        |> List.exists (function | Some false -> true | _ -> false)
+      )
     )
+
 end
