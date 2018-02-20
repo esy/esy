@@ -15,6 +15,33 @@ module CommandList = struct
   type t =
     string list list
     [@@deriving (show, eq)]
+
+  let render ~env ~scope (commands : Package.CommandList.t) =
+    let open Run.Syntax in
+    let env = Environment.Closed.value env in
+    let envScope name =
+      Environment.Value.find name env
+    in
+    match commands with
+    | None -> Ok []
+    | Some commands ->
+      let renderCommand =
+        let render v =
+          let%bind v = CommandExpr.render ~scope v in
+          ShellParamExpansion.render ~scope:envScope v
+        in
+        function
+        | Package.CommandList.Command.Parsed args ->
+          Result.listMap ~f:render args
+        | Package.CommandList.Command.Unparsed string ->
+          let%bind string = render string in
+          let%bind args = ShellSplit.split string in
+          return args
+      in
+      match Result.listMap ~f:renderCommand commands with
+      | Ok commands -> Ok commands
+      | Error err -> Error err
+
 end
 
 type t = {
@@ -232,32 +259,6 @@ let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list
       value = Value ConfigPath.(stagePath / "etc" |> toString);
       origin = Some pkg;
     }::bindings
-
-let renderCommandList env scope (commands : Package.CommandList.t) =
-  let open Run.Syntax in
-  let env = Environment.Closed.value env in
-  let envScope name =
-    Environment.Value.find name env
-  in
-  match commands with
-  | None -> Ok []
-  | Some commands ->
-    let renderCommand =
-      let render v =
-        let%bind v = CommandExpr.render ~scope v in
-        ShellParamExpansion.render ~scope:envScope v
-      in
-      function
-      | Package.CommandList.Command.Parsed args ->
-        Result.listMap ~f:render args
-      | Package.CommandList.Command.Unparsed string ->
-        let%bind string = render string in
-        let%bind args = ShellSplit.split string in
-        return args
-    in
-    match Result.listMap ~f:renderCommand commands with
-    | Ok commands -> Ok commands
-    | Error err -> Error err
 
 let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
@@ -538,12 +539,12 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        (renderCommandList env scopeForCommands pkg.buildCommands)
+        (CommandList.render ~env ~scope:scopeForCommands pkg.buildCommands)
     in
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        (renderCommandList env scopeForCommands pkg.installCommands)
+        (CommandList.render ~env ~scope:scopeForCommands pkg.installCommands)
     in
 
     let dependencies =
