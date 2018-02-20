@@ -10,56 +10,6 @@ type t = {
   manifestInfo: list((Path.t, float)),
 };
 
-let safePackageName = (name: string) => {
-  let replaceAt = Str.regexp("@");
-  let replaceUnderscore = Str.regexp("_+");
-  let replaceSlash = Str.regexp("\\/");
-  let replaceDot = Str.regexp("\\.");
-  let replaceDash = Str.regexp("\\-");
-  name
-  |> String.lowercase_ascii
-  |> Str.global_replace(replaceAt, "")
-  |> Str.global_replace(replaceUnderscore, "__")
-  |> Str.global_replace(replaceSlash, "__slash__")
-  |> Str.global_replace(replaceDot, "__dot__")
-  |> Str.global_replace(replaceDash, "_");
-};
-
-let packageId =
-    (manifest: Package.Manifest.t, dependencies: list(Package.dependency)) => {
-  let digest = (acc, update) => Digest.string(acc ++ "--" ++ update);
-  let id = {
-    let esy = Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
-    ListLabels.fold_left(
-      ~f=digest,
-      ~init="",
-      [
-        manifest.name,
-        manifest.version,
-        Package.CommandList.show(esy.build),
-        Package.CommandList.show(esy.install),
-        Package.BuildType.show(esy.buildsInSource),
-        switch (manifest._resolved) {
-        | Some(resolved) => resolved
-        | None => ""
-        },
-      ],
-    );
-  };
-  let updateWithDepId = id =>
-    fun
-    | Package.Dependency(pkg)
-    | Package.OptDependency(pkg)
-    | Package.BuildTimeDependency(pkg)
-    | Package.PeerDependency(pkg) => digest(id, pkg.id)
-    | Package.InvalidDependency(_)
-    | Package.DevDependency(_) => id;
-  let id = ListLabels.fold_left(~f=updateWithDepId, ~init=id, dependencies);
-  let hash = Digest.to_hex(id);
-  let hash = String.sub(hash, 0, 8);
-  safePackageName(manifest.name) ++ "-" ++ manifest.version ++ "-" ++ hash;
-};
-
 let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
   let packagePath = (pkgName, basedir) =>
     Path.(basedir / "node_modules" / pkgName);
