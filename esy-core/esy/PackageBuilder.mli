@@ -11,7 +11,7 @@ val build :
   -> ?quiet:bool
   -> ?stderrout:[ `Keep | `Log ]
   -> Config.t
-  -> BuildTask.t
+  -> Task.t
   -> unit RunAsync.t
 
 (*
@@ -19,7 +19,7 @@ val build :
  *)
 val buildShell :
   Config.t
-  -> BuildTask.t
+  -> Task.t
   -> Unix.process_status RunAsync.t
 
 (*
@@ -27,6 +27,6 @@ val buildShell :
  *)
 val buildExec :
   Config.t
-  -> BuildTask.t
+  -> Task.t
   -> string list
   -> Unix.process_status RunAsync.t
