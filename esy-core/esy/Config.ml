@@ -139,17 +139,17 @@ end
 module ConfigPath : sig
   include ABSTRACT_PATH with type ctx = t
 
-  val sandboxPath : t
-  val storePath : t
-  val localStorePath : t
+  val sandbox : t
+  val store : t
+  val localStore : t
 end = struct
 
   type t = Path.t
   type ctx = config
 
-  let sandboxPath = Path.v "%sandbox%"
-  let storePath = Path.v "%store%"
-  let localStorePath = Path.v "%localStore%"
+  let sandbox = Path.v "%sandbox%"
+  let store = Path.v "%store%"
+  let localStore = Path.v "%localStore%"
 
   let (/) a b = Path.(a / b)
 
@@ -173,18 +173,18 @@ end = struct
     let p = if Path.is_abs p then p else Path.(cwd // p) in
     let p = Path.normalize p in
     if Path.equal p config.storePath then
-      storePath
+      store
     else if Path.equal p config.localStorePath then
-      localStorePath
+      localStore
     else if Path.equal p config.sandboxPath then
-      sandboxPath
+      sandbox
     else begin
       match Path.rem_prefix config.storePath p with
-      | Some suffix -> Path.(storePath // suffix)
+      | Some suffix -> Path.(store // suffix)
       | None -> begin match Path.rem_prefix config.localStorePath p with
-        | Some suffix -> Path.(localStorePath // suffix)
+        | Some suffix -> Path.(localStore // suffix)
         | None -> begin match Path.rem_prefix config.sandboxPath p with
-          | Some suffix -> Path.(sandboxPath // suffix)
+          | Some suffix -> Path.(sandbox // suffix)
           | None -> p
         end
       end

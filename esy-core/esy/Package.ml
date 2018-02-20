@@ -251,21 +251,3 @@ module DependencyGraph = DependencyGraph.Make(struct
     |> ListLabels.rev
 
 end)
-
-let traverseImmutableDependencies (pkg : t) =
-  let f deps dep = match dep with
-    | Dependency ({ sourceType = SourceType.Immutable; _ } as pkg)
-    | BuildTimeDependency ({ sourceType = SourceType.Immutable; _ } as pkg)
-    | OptDependency ({ sourceType = SourceType.Immutable; _ } as pkg)
-    | PeerDependency ({ sourceType = SourceType.Immutable; _ } as pkg) ->
-      (pkg, dep)::deps
-    | Dependency _
-    | OptDependency _
-    | PeerDependency _
-    | DevDependency _
-    | BuildTimeDependency _
-    | InvalidDependency _ -> deps
-  in
-  pkg.dependencies
-  |> ListLabels.fold_left ~f ~init:[]
-  |> ListLabels.rev

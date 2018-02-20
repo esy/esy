@@ -38,7 +38,7 @@ let runTask
   let%bind () = waitForDependencies dependencies in
 
   let isRoot = task.id == rootTask.id in
-  let installPath = Config.ConfigPath.toPath cfg task.installPath in
+  let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
 
   let buildOnly = match buildOnly with
   | `ForRoot -> isRoot
@@ -49,11 +49,10 @@ let runTask
   let checkSourceModTime () =
     let f () =
       let infoPath =
-        task.pkg
-        |> Task.pkgBuildInfoPath
+        task.paths.buildInfoPath
         |> Config.ConfigPath.toPath cfg
       and sourcePath =
-        task.pkg.sourcePath
+        task.paths.sourcePath
         |> Config.ConfigPath.toPath cfg
       in
       match%lwt Fs.readFile infoPath with
