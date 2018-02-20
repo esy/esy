@@ -36,6 +36,7 @@ module TestCommandExpr = struct
       }
     ];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
+    resolution = Some "resolution";
   }
 
   let pkg = Package.{
@@ -52,9 +53,10 @@ module TestCommandExpr = struct
     sourceType = SourceType.Immutable;
     exportedEnv = [];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
+    resolution = Some "resolution";
   }
 
-  let task = BuildTask.ofPackage pkg
+  let task = Task.ofPackage pkg
 
   let check f =
     match task with
@@ -66,7 +68,7 @@ module TestCommandExpr = struct
 
   let%test "#{...} inside esy.build" =
     check (fun task ->
-      BuildTask.CommandList.equal
+      Task.CommandList.equal
         task.buildCommands
         [["cp"; "./hello"; "%store%/s/%pkg%/bin"];
          ["cp"; "./hello2"; "%store%/s/%pkg%/bin"]]
@@ -74,7 +76,7 @@ module TestCommandExpr = struct
 
   let%test "#{self...} inside esy.install" =
     check (fun task ->
-      BuildTask.CommandList.equal
+      Task.CommandList.equal
         task.installCommands
         [["cp"; "./man"; "%store%/s/%pkg%/man"]]
     )

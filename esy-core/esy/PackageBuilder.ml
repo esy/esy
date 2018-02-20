@@ -10,7 +10,7 @@ let run
     ?(args=[])
     action
     (cfg : Config.t)
-    (task : BuildTask.t) =
+    (task : Task.t) =
   let open RunAsync.Syntax in
 
   let action = match action with
@@ -65,7 +65,7 @@ let run
       command waitForProcess
   in
 
-  let buildJson = BuildTask.toBuildProtocolString task in
+  let buildJson = Task.toBuildProtocolString task in
   Fs.withTemporaryFile buildJson runProcess
 
 let build

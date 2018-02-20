@@ -163,10 +163,10 @@ let withBuildTaskByPath
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
-    let findByPath (task : BuildTask.t) =
+    let findByPath (task : Task.t) =
       let sourcePath = Config.ConfigPath.toPath cfg task.pkg.sourcePath in
       Path.equal sourcePath packagePath
-    in begin match BuildTask.DependencyGraph.find ~f:findByPath info.task with
+    in begin match Task.DependencyGraph.find ~f:findByPath info.task with
       | None ->
         let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
         error msg
@@ -182,7 +182,7 @@ let buildPlan cfg packagePath =
 
   let f task =
     return (
-      BuildTask.toBuildProtocolString ~pretty:true task
+      Task.toBuildProtocolString ~pretty:true task
       |> print_endline
     )
   in withBuildTaskByPath ~cfg ~info packagePath f
@@ -242,7 +242,7 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let%bind cfg = cfg in
   let%bind info = SandboxInfo.ofConfig cfg in
 
-  let f (task : BuildTask.t) =
+  let f (task : Task.t) =
     let%bind source = RunAsync.liftOfRun (
         let open Run.Syntax in
         let%bind env = computeEnv task.pkg in
@@ -266,7 +266,7 @@ let buildEnv =
   let header (pkg : Package.t) =
     Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
   in
-  makeEnvCommand ~computeEnv:BuildTask.buildEnv ~header
+  makeEnvCommand ~computeEnv:Task.buildEnv ~header
 
 let commandEnv =
   let open Run.Syntax in
@@ -274,7 +274,7 @@ let commandEnv =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
   let computeEnv pkg =
-    let%bind env = BuildTask.commandEnv pkg in
+    let%bind env = Task.commandEnv pkg in
     Ok (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
@@ -285,7 +285,7 @@ let sandboxEnv =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
   let computeEnv pkg =
-    let%bind env = BuildTask.sandboxEnv pkg in
+    let%bind env = Task.sandboxEnv pkg in
     Ok (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
@@ -342,7 +342,7 @@ let exec cfgRes =
   let prepare cfg (pkg : Package.t) =
     let installPath =
       pkg
-      |> BuildTask.pkgInstallPath
+      |> Task.pkgInstallPath
       |> Config.ConfigPath.toPath cfg
     in
     if%bind Fs.exists installPath then
@@ -375,7 +375,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
 
   let seen = ref StringSet.empty in
 
-  let f ~foldDependencies _prev (task : BuildTask.t) =
+  let f ~foldDependencies _prev (task : Task.t) =
     if StringSet.mem task.id !seen then
       return None
     else (
@@ -393,7 +393,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
     )
   in
 
-  match%bind BuildTask.DependencyGraph.fold ~f ~init:(return None) info.task with
+  match%bind Task.DependencyGraph.fold ~f ~init:(return None) info.task with
   | Some tree -> return (print_endline (Esy.TermTree.toString tree))
   | None -> return ()
 
@@ -404,7 +404,7 @@ let lsBuilds ~includeTransitive cfg =
   let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
   let computeTermNode ~cfg task children =
-    let%bind built = BuildTask.isBuilt ~cfg task in
+    let%bind built = Task.isBuilt ~cfg task in
     let%bind line = SandboxTools.formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
@@ -419,8 +419,8 @@ let lsLibs ~includeTransitive cfg =
   let%bind ocamlfind = SandboxTools.getOcamlfind ~cfg info.task in
   let%bind builtIns = SandboxTools.getPackageLibraries ~cfg ~ocamlfind () in
 
-  let computeTermNode ~cfg (task: BuildTask.t) children =
-    let%bind built = BuildTask.isBuilt ~cfg task in
+  let computeTermNode ~cfg (task: Task.t) children =
+    let%bind built = Task.isBuilt ~cfg task in
     let%bind line = SandboxTools.formatPackageInfo ~built task in
 
     let%bind libs =
@@ -482,8 +482,8 @@ let lsModules ~libs:only cfg =
     end
   in
 
-  let computeTermNode ~cfg (task: BuildTask.t) children =
-    let%bind built = BuildTask.isBuilt ~cfg task in
+  let computeTermNode ~cfg (task: Task.t) children =
+    let%bind built = Task.isBuilt ~cfg task in
     let%bind line = SandboxTools.formatPackageInfo ~built task in
 
     let%bind libs =
@@ -732,7 +732,7 @@ let () =
         let exportBuild (pkg : Package.t) =
           match esyExportBuildCmd () with
           | Ok cmd ->
-            let installPath = BuildTask.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
+            let installPath = Task.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
             let cmd = Cmd.(cmd % p installPath) in
             ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
           | Error err -> Lwt.return (Error err)
@@ -778,7 +778,7 @@ let () =
               let cmd = Cmd.(cmd % p path) in
               ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
             in
-            let installPath = BuildTask.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
+            let installPath = Task.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
             if%bind Fs.exists installPath
             then return ()
             else (

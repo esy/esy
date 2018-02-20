@@ -6,7 +6,7 @@ open Esy
 
 type t = {
   sandbox : Sandbox.t;
-  task : BuildTask.t;
+  task : Task.t;
   commandEnv : Environment.t;
   sandboxEnv : Environment.t;
 }
