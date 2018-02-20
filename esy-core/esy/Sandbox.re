@@ -224,7 +224,7 @@ let ofDir = (cfg: Config.t) => {
           sourceType,
           exportedEnv: esy.exportedEnv,
           sourcePath: ConfigPath.ofPath(cfg, sourcePath),
-          resolution: manifest._resolved
+          resolution: manifest._resolved,
         };
       };
       return(pkg);
