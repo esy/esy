@@ -174,3 +174,9 @@ module PathLike = struct
     value |> String.concat sep
 
 end
+
+module Current = struct
+  let get name =
+    try Some (Sys.getenv name)
+    with Not_found -> None
+end

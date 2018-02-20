@@ -2,7 +2,7 @@ open Esy
 
 type t = {
   sandbox : Sandbox.t;
-  task : BuildTask.t;
+  task : Task.t;
   commandEnv : Environment.t;
   sandboxEnv : Environment.t;
 }
@@ -97,9 +97,9 @@ let ofConfig (cfg : Config.t) =
       let%bind sandbox = Sandbox.ofDir cfg in
       let%bind task, commandEnv, sandboxEnv = RunAsync.liftOfRun (
           let open Run.Syntax in
-          let%bind task = BuildTask.ofPackage sandbox.root in
-          let%bind commandEnv = BuildTask.commandEnv sandbox.root in
-          let%bind sandboxEnv = BuildTask.sandboxEnv sandbox.root in
+          let%bind task = Task.ofPackage sandbox.root in
+          let%bind commandEnv = Task.commandEnv sandbox.root in
+          let%bind sandboxEnv = Task.sandboxEnv sandbox.root in
           return (task, commandEnv, sandboxEnv)
         ) in
       return {task; sandbox; commandEnv; sandboxEnv}

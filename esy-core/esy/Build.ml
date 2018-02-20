@@ -3,7 +3,7 @@ let waitForDependencies dependencies =
   |> List.map (fun (_, dep) -> dep)
   |> RunAsync.waitAll
 
-let buildPackage ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : BuildTask.t) =
+let buildPackage ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
   let f () =
     let open RunAsync.Syntax in
     let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
@@ -30,8 +30,8 @@ let runTask
   ~allDependencies:_
   ~dependencies
   (cfg : Config.t)
-  (rootTask : BuildTask.t)
-  (task : BuildTask.t) =
+  (rootTask : Task.t)
+  (task : Task.t) =
 
   let open RunAsync.Syntax in
 
@@ -50,7 +50,7 @@ let runTask
     let f () =
       let infoPath =
         task.pkg
-        |> BuildTask.pkgBuildInfoPath
+        |> Package.Path.buildInfoPath
         |> Config.ConfigPath.toPath cfg
       and sourcePath =
         task.pkg.sourcePath
@@ -124,11 +124,11 @@ let build
     ?buildOnly
     ~concurrency
     (cfg : Config.t)
-    (rootTask : BuildTask.t)
+    (rootTask : Task.t)
     =
   let queue = LwtTaskQueue.create ~concurrency () in
   let f = runTask ?force ?buildOnly ~queue cfg rootTask in
-  BuildTask.DependencyGraph.foldWithAllDependencies ~f rootTask
+  Task.DependencyGraph.foldWithAllDependencies ~f rootTask
 
 (**
  * Build only dependencies of the task but not the task itself.
@@ -138,15 +138,15 @@ let buildDependencies
     ?buildOnly
     ~concurrency
     (cfg : Config.t)
-    (rootTask : BuildTask.t)
+    (rootTask : Task.t)
     =
   let open RunAsync.Syntax in
   let queue = LwtTaskQueue.create ~concurrency () in
-  let f ~allDependencies ~dependencies (task : BuildTask.t) =
+  let f ~allDependencies ~dependencies (task : Task.t) =
     if task.id = rootTask.id
     then (
       let%bind () = waitForDependencies dependencies in
       return ()
     ) else runTask ?force ?buildOnly ~allDependencies ~dependencies ~queue cfg rootTask task
   in
-  BuildTask.DependencyGraph.foldWithAllDependencies ~f rootTask
+  Task.DependencyGraph.foldWithAllDependencies ~f rootTask

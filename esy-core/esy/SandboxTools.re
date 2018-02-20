@@ -6,12 +6,12 @@ module PathSet = Set.Make(Path);
 
 module ConfigPath = Config.ConfigPath;
 
-let find = (~name, task: BuildTask.t) => {
-  let f = (task: BuildTask.t) => task.pkg.name == name;
-  BuildTask.DependencyGraph.find(~f, task);
+let find = (~name, task: Task.t) => {
+  let f = (task: Task.t) => task.pkg.name == name;
+  Task.DependencyGraph.find(~f, task);
 };
 
-let getOcamlfind = (~cfg: Config.t, task: BuildTask.t) =>
+let getOcamlfind = (~cfg: Config.t, task: Task.t) =>
   RunAsync.Syntax.(
     switch (find(~name="@opam/ocamlfind", task)) {
     | None =>
@@ -35,7 +35,7 @@ let getOcamlfind = (~cfg: Config.t, task: BuildTask.t) =>
     }
   );
 
-let getOcamlobjinfo = (~cfg: Config.t, task: BuildTask.t) =>
+let getOcamlobjinfo = (~cfg: Config.t, task: Task.t) =>
   RunAsync.Syntax.(
     switch (find(~name="ocaml", task)) {
     | None =>
@@ -72,7 +72,7 @@ let getPackageLibraries =
   open RunAsync.Syntax;
   let ocamlpath =
     switch task {
-    | Some((task: BuildTask.t)) =>
+    | Some((task: Task.t)) =>
       ConfigPath.(task.installPath / "lib" |> toPath(cfg)) |> Path.to_string
     | None => ""
     };
@@ -100,7 +100,7 @@ type meta = {
   location: string
 };
 
-let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: BuildTask.t, lib) => {
+let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: Task.t, lib) => {
   open RunAsync.Syntax;
   let ocamlpath =
     ConfigPath.(task.installPath / "lib" |> toPath(cfg)) |> Path.to_string;
@@ -157,7 +157,7 @@ let queryModules = (~ocamlobjinfo: string, archive) => {
   return(lines);
 };
 
-let formatPackageInfo = (~built: bool, task: BuildTask.t) => {
+let formatPackageInfo = (~built: bool, task: Task.t) => {
   open RunAsync.Syntax;
   let pkg = task.pkg;
   let version = Chalk.grey("@" ++ pkg.version);

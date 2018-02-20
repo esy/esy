@@ -1,20 +1,52 @@
 open Std
 
-(**
- * Build task.
- *
- * TODO: Reconcile with EsyLib.BuildTask, right now we just reuse types & code
- * from there but it probably should live here instead. Fix that after we decide
- * on better package boundaries.
-*)
-
-module StringMap = Map.Make(String)
 module ConfigPath = Config.ConfigPath
+module StringMap = Map.Make(String)
+module StringSet = Set.Make(String)
 
-module CommandList = struct
+module CommandList : sig
+  type t =
+    string list list
+
+  val ofPackageCommandList :
+    env:Environment.Closed.t
+    -> scope:CommandExpr.scope
+    -> Package.CommandList.t
+    -> t Run.t
+
+  val show : t -> string
+  val pp : Format.formatter -> t -> unit
+
+end = struct
   type t =
     string list list
     [@@deriving show]
+
+  let ofPackageCommandList ~env ~scope (commands : Package.CommandList.t) =
+    let open Run.Syntax in
+    let env = Environment.Closed.value env in
+    let envScope name =
+      Environment.Value.find name env
+    in
+    match commands with
+    | None -> Ok []
+    | Some commands ->
+      let renderCommand =
+        let render v =
+          let%bind v = CommandExpr.render ~scope v in
+          ShellParamExpansion.render ~scope:envScope v
+        in
+        function
+        | Package.CommandList.Command.Parsed args ->
+          Result.listMap ~f:render args
+        | Package.CommandList.Command.Unparsed string ->
+          let%bind string = render string in
+          let%bind args = ShellSplit.split string in
+          return args
+      in
+      match Result.listMap ~f:renderCommand commands with
+      | Ok commands -> Ok commands
+      | Error err -> Error err
 end
 
 type t = {
@@ -33,41 +65,40 @@ type t = {
   logPath : ConfigPath.t;
 
   dependencies : dependency list;
+
+  localEnv : Environment.binding list;
+  globalEnv : Environment.binding list;
 }
 
 and dependency =
   | Dependency of t
   | DevDependency of t
+  | BuildDependency of t
 
 type task = t
 type task_dependency = dependency
 
-type foldstate = {
-  task : task;
-  pkg : Package.t;
-  globalEnv : Environment.binding list;
-  localEnv : Environment.binding list;
-}
-
-let safePackageName =
-  let replaceAt = Str.regexp "@" in
-  let replaceUnderscore = Str.regexp "_+" in
-  let replaceSlash = Str.regexp "\\/" in
-  let replaceDot = Str.regexp "\\." in
-  let replaceDash = Str.regexp "\\-" in
-  let make (name : string) =
-  name
-  |> String.lowercase_ascii
-  |> Str.global_replace replaceAt ""
-  |> Str.global_replace replaceUnderscore "__"
-  |> Str.global_replace replaceSlash "__slash__"
-  |> Str.global_replace replaceDot "__dot__"
-  |> Str.global_replace replaceDash "_"
-  in make
-
-let buildId
+let computeTaskId
   (pkg : Package.t)
   (dependencies : dependency list) =
+
+  let safePackageName =
+    let replaceAt = Str.regexp "@" in
+    let replaceUnderscore = Str.regexp "_+" in
+    let replaceSlash = Str.regexp "\\/" in
+    let replaceDot = Str.regexp "\\." in
+    let replaceDash = Str.regexp "\\-" in
+    let make (name : string) =
+      name
+      |> String.lowercase_ascii
+      |> Str.global_replace replaceAt ""
+      |> Str.global_replace replaceUnderscore "__"
+      |> Str.global_replace replaceSlash "__slash__"
+      |> Str.global_replace replaceDot "__dot__"
+      |> Str.global_replace replaceDash "_"
+    in make
+  in
+
   let digest acc update = Digest.string (acc ^ "--" ^ update) in
   let id =
     ListLabels.fold_left ~f:digest ~init:"" [
@@ -82,51 +113,14 @@ let buildId
     ]
   in
   let updateWithDepId id = function
-    | Dependency pkg -> digest id pkg.id
+    | Dependency task -> digest id task.id
+    | BuildDependency task -> digest id task.id
     | DevDependency _ -> id
   in
   let id = ListLabels.fold_left ~f:updateWithDepId ~init:id dependencies in
   let hash = Digest.to_hex id in
   let hash = String.sub hash 0 8 in
   (safePackageName pkg.name ^ "-" ^ pkg.version ^ "-" ^ hash)
-
-
-let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
-  | Package.SourceType.Immutable -> ConfigPath.storePath
-  | Package.SourceType.Development
-  | Package.SourceType.Root -> ConfigPath.localStorePath
-
-let pkgBuildPath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / pkg.id)
-
-let pkgBuildInfoPath (pkg : Package.t) =
-  let name = pkg.id ^ ".info" in
-  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / name)
-
-let pkgStagePath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.storeStageTree / pkg.id)
-
-let pkgInstallPath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.storeInstallTree / pkg.id)
-
-let pkgLogPath pkg =
-  let basename = pkg.Package.id ^ ".log" in
-  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / basename)
-
-let rootPath (pkg : Package.t) =
-  match pkg.buildType, pkg.sourceType with
-  | InSource, _ -> pkgBuildPath pkg
-  | JBuilderLike, Immutable -> pkgBuildPath pkg
-  | JBuilderLike, Development -> pkg.sourcePath
-  | JBuilderLike, Root -> pkg.sourcePath
-  | OutOfSource, _ -> pkg.sourcePath
-
-let isBuilt ~cfg task =
-  Fs.exists ConfigPath.(task.installPath / "lib" |> toPath(cfg))
-
-let getenv name =
-  try Some (Sys.getenv name)
-  with Not_found -> None
 
 let addPackageBindings
   ?(mapSelfToStagePath=false)
@@ -135,14 +129,16 @@ let addPackageBindings
   scope
   =
   let namespace, installPath = match kind with
-  | `AsSelf -> "self", if mapSelfToStagePath then pkgStagePath pkg else pkgInstallPath pkg
-  | `AsDep -> pkg.name, pkgInstallPath pkg
+  | `AsSelf -> "self", if mapSelfToStagePath
+                       then Package.Path.stagePath pkg
+                       else Package.Path.installPath pkg
+  | `AsDep -> pkg.name, Package.Path.installPath pkg
   in
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
-  let buildPath = pkgBuildPath pkg in
-  let rootPath = rootPath pkg in
+  let buildPath = Package.Path.buildPath pkg in
+  let rootPath = Package.Path.rootPath pkg in
   scope
   |> add "name" pkg.name
   |> add "version" pkg.version
@@ -161,9 +157,9 @@ let addPackageBindings
   |> add "etc" ConfigPath.(installPath / "etc" |> toString)
 
 let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list) =
-  let buildPath = pkgBuildPath pkg in
-  let rootPath = rootPath pkg in
-  let stagePath = pkgStagePath pkg in
+  let buildPath = Package.Path.buildPath pkg in
+  let rootPath = Package.Path.rootPath pkg in
+  let stagePath = Package.Path.stagePath pkg in
   let open Environment in {
     name = "cur__name";
     value = Value pkg.name;
@@ -226,79 +222,65 @@ let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list
       origin = Some pkg;
     }::bindings
 
-let renderCommandList env scope (commands : Package.CommandList.t) =
-  let open Run.Syntax in
-  let env = Environment.Closed.value env in
-  let envScope name =
-    Environment.Value.find name env
-  in
-  match commands with
-  | None -> Ok []
-  | Some commands ->
-    let renderCommand =
-      let render v =
-        let%bind v = CommandExpr.render ~scope v in
-        ShellParamExpansion.render ~scope:envScope v
-      in
-      function
-      | Package.CommandList.Command.Parsed args ->
-        Result.listMap ~f:render args
-      | Package.CommandList.Command.Unparsed string ->
-        let%bind string = render string in
-        let%bind args = ShellSplit.split string in
-        return args
-    in
-    match Result.listMap ~f:renderCommand commands with
-    | Ok commands -> Ok commands
-    | Error err -> Error err
-
 let ofPackage
-    ?(includeRootDevDependenciesInEnv=false)
-    ?(overrideShell=true)
-    ?finalPath
-    ?finalManPath
-    (rootPkg : Package.t)
-  =
+  ?(overrideShell=true)
+  ?finalPath
+  ?finalManPath
+  (pkg : Package.t) =
 
-  let term = Option.orDefault "" (getenv "TERM") in
+  let term = Option.orDefault "" (Environment.Current.get "TERM") in
 
-  let open Run.Syntax in
+  let collectDependency (seen, dependencies) = function
+    | Package.Dependency pkg
+    | Package.PeerDependency pkg
+    | Package.OptDependency pkg ->
+      if StringSet.mem pkg.id seen
+      then (seen, dependencies)
+      else
+        let seen = StringSet.add pkg.id seen in
+        let dependencies = pkg::dependencies in
+        (seen, dependencies)
+    | Package.DevDependency _
+    | Package.BuildDependency _
+    | Package.InvalidDependency _ -> (seen, dependencies)
+  in
 
-  let f ~allDependencies ~dependencies (pkg : Package.t) =
-
-    let isRoot = pkg.id = rootPkg.id in
-
-    let runTimeDependenciesOnly (dep, _) = match dep with
-      | Package.Dependency _pkg
-      | Package.PeerDependency _pkg
-      | Package.OptDependency _pkg -> true
-      | Package.BuildDependency _pkg -> false
-      | Package.DevDependency _pkg -> isRoot &&
-                                     includeRootDevDependenciesInEnv
-      | Package.InvalidDependency _ ->
-        (** TODO: need to fail gracefully here *)
-        failwith "invalid dependency"
+  let collectDependencies (pkg : Package.t) =
+    let _, dependencies =
+      ListLabels.fold_left
+        ~f:collectDependency
+        ~init:(StringSet.empty, [])
+        pkg.dependencies
     in
+    dependencies
+  in
 
-    let buildTimeDependenciesOnly (dep, _) = match dep with
-      | Package.Dependency _pkg
-      | Package.PeerDependency _pkg
-      | Package.DevDependency _pkg
-      | Package.OptDependency _pkg -> false
-      | Package.BuildDependency _pkg -> true
-      | Package.InvalidDependency _ ->
-        (** TODO: need to fail gracefully here *)
-        failwith "invalid dependency"
-    in
-
-    let%bind allDependencies, dependencies =
-      let joinDependencies dependencies =
-        let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
-        Result.listMap ~f dependencies
+  let collectAllDependencies (pkg : Package.t) =
+    let rec collect (seen, dependencies) (pkg : Package.t) =
+      let f state dep =
+        let state = collectDependency state dep in
+        match Package.packageOfDependency dep with
+        | None -> state
+        | Some pkg -> collect state pkg
       in
-      let%bind dependencies = joinDependencies dependencies in
-      let%bind allDependencies = joinDependencies allDependencies in
-      Ok (allDependencies, dependencies)
+      ListLabels.fold_left ~f ~init:(seen, dependencies) pkg.dependencies
+    in
+    let _, dependencies = collect (StringSet.empty, []) pkg in
+    dependencies
+  in
+
+  let rec packageToTask (pkg : Package.t) =
+    let open Run.Syntax in
+
+    let%bind dependencies =
+      pkg
+      |> collectDependencies
+      |> Result.listMap ~f:packageToTask
+    in
+    let%bind allDependencies =
+      pkg
+      |> collectAllDependencies
+      |> Result.listMap ~f:packageToTask
     in
 
     (*
@@ -318,10 +300,8 @@ let ofPackage
     let scopeForExportEnv, scopeForCommands =
       let bindings = StringMap.empty in
       let bindings =
-        let f bindings ((_, {pkg; _}) as d) =
-          if runTimeDependenciesOnly d
-          then addPackageBindings ~kind:`AsDep pkg bindings
-          else bindings
+        let f bindings task =
+          addPackageBindings ~kind:`AsDep task.pkg bindings
         in
         ListLabels.fold_left ~f ~init:bindings dependencies
       in
@@ -369,9 +349,9 @@ let ofPackage
         Ok globalEnv
     in
 
-    let buildPath = pkgBuildPath pkg in
-    let stagePath = pkgStagePath pkg in
-    let installPath = pkgInstallPath pkg in
+    let buildPath = Package.Path.buildPath pkg in
+    let stagePath = Package.Path.stagePath pkg in
+    let installPath = Package.Path.installPath pkg in
 
     let buildEnv =
 
@@ -380,14 +360,13 @@ let ofPackage
       *)
       let globalEnvOfAllDeps =
         let collectFrom dependencies v =
-          let f bindings (_, {globalEnv; _}) = globalEnv::bindings in
+          let f bindings {globalEnv; _} = globalEnv::bindings in
           dependencies
           |> ListLabels.fold_left ~f ~init:v
           |> List.rev
         in
         []
-        |> collectFrom (List.filter runTimeDependenciesOnly allDependencies)
-        |> collectFrom (List.filter buildTimeDependenciesOnly dependencies)
+        |> collectFrom allDependencies
         |> List.concat
         |> List.rev
       in
@@ -396,14 +375,13 @@ let ofPackage
       *)
       let localEnvOfDeps =
         let collectFrom dependencies v =
-          let f bindings (_, {localEnv; _}) = localEnv::bindings in
+          let f bindings {localEnv; _} = localEnv::bindings in
           dependencies
           |> ListLabels.fold_left ~f ~init:v
           |> List.rev
         in
         []
-        |> collectFrom (List.filter runTimeDependenciesOnly dependencies)
-        |> collectFrom (List.filter buildTimeDependenciesOnly dependencies)
+        |> collectFrom dependencies
         |> List.concat
         |> List.rev
       in
@@ -413,7 +391,7 @@ let ofPackage
       *)
       let path, manpath, ocamlpath =
         let collectFrom dependencies v =
-          let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
+          let f (path, manpath, ocamlpath) dep =
             let path = ConfigPath.(dep.installPath / "bin")::path in
             let manpath = ConfigPath.(dep.installPath / "man")::manpath in
             let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
@@ -422,8 +400,7 @@ let ofPackage
           ListLabels.fold_left ~f ~init:v dependencies
         in
         ([], [], [])
-        |> collectFrom (List.filter runTimeDependenciesOnly allDependencies)
-        |> collectFrom (List.filter buildTimeDependenciesOnly dependencies)
+        |> collectFrom allDependencies
       in
 
       let path = Environment.{
@@ -521,15 +498,16 @@ let ofPackage
             v
         ) in
 
-      (finalEnv @ (
-          path
-          ::manPath
-          ::ocamlpath
-          ::ocamlfindDestdir
-          ::ocamlfindLdconf
-          ::ocamlfindCommands
-          ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @
-                                        globalEnvOfAllDeps @ initEnv)))) |> List.rev
+      List.rev (
+        finalEnv @ (
+        path
+        ::manPath
+        ::ocamlpath
+        ::ocamlfindDestdir
+        ::ocamlfindLdconf
+        ::ocamlfindCommands
+        ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @
+                                        globalEnvOfAllDeps @ initEnv))))
     in
 
     let%bind env =
@@ -541,29 +519,18 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        (renderCommandList env scopeForCommands pkg.buildCommands)
+        (CommandList.ofPackageCommandList ~env ~scope:scopeForCommands pkg.buildCommands)
     in
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        (renderCommandList env scopeForCommands pkg.installCommands)
+        (CommandList.ofPackageCommandList ~env ~scope:scopeForCommands pkg.installCommands)
     in
 
-    let dependencies =
-      let f (dep, {task; _}) = match dep with
-        | Package.DevDependency _ -> DevDependency task
-        | Package.Dependency _
-        | Package.PeerDependency _
-        | Package.OptDependency _
-        | Package.BuildDependency _
-        (* TODO: make sure we ignore InvalidDependency *)
-        | Package.InvalidDependency _ -> Dependency task
-      in
-      ListLabels.map ~f dependencies;
-    in
+    let dependencies = [] in
 
     let task: t = {
-      id = buildId pkg dependencies;
+      id = computeTaskId pkg dependencies;
 
       pkg;
       buildCommands;
@@ -575,42 +542,18 @@ let ofPackage
       buildPath;
       stagePath;
       installPath;
-      logPath = pkgLogPath pkg;
+      logPath = Package.Path.logPath pkg;
 
       dependencies;
+
+      globalEnv;
+      localEnv;
     } in
 
-    return { globalEnv; localEnv; pkg; task; }
-
+    return task
   in
 
-  let f ~allDependencies ~dependencies (pkg : Package.t) =
-    let v = f ~allDependencies ~dependencies pkg in
-    let context =
-      Printf.sprintf
-        "processing package: %s@%s"
-        pkg.name
-        pkg.version
-    in
-    Run.withContext context v
-
-  and traverse (pkg : Package.t) =
-    let f acc dep = match dep with
-      | Package.Dependency dpkg
-      | Package.OptDependency dpkg
-      | Package.PeerDependency dpkg
-      | Package.BuildDependency dpkg
-      | Package.DevDependency dpkg -> (dpkg, dep)::acc
-      | Package.InvalidDependency _ -> acc
-    in
-    pkg.dependencies
-    |> ListLabels.fold_left ~f ~init:[]
-    |> ListLabels.rev
-  in
-
-  match Package.DependencyGraph.foldWithAllDependencies ~traverse ~f rootPkg with
-  | Ok { task; _ } -> Ok task
-  | Error msg -> Error msg
+  packageToTask pkg
 
 let buildEnv pkg =
   let open Run.Syntax in
@@ -621,11 +564,13 @@ let commandEnv (pkg : Package.t) =
   let open Run.Syntax in
 
   let%bind task =
+    let path = Environment.Current.get "PATH" in
+    let manPath = Environment.Current.get "MAN_PATH" in
     ofPackage
-      ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
-      ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
+      ?finalPath:(Option.map ~f:(fun v -> "$PATH:" ^ v) path)
+      ?finalManPath:(Option.map ~f:(fun v -> "$MAN_PATH:" ^ v) manPath)
       ~overrideShell:false
-      ~includeRootDevDependenciesInEnv:true pkg
+      pkg
   in Ok (Environment.Closed.bindings task.env)
 
 let sandboxEnv (pkg : Package.t) =
@@ -648,15 +593,45 @@ let sandboxEnv (pkg : Package.t) =
     sourcePath = pkg.sourcePath;
     resolution = None;
   } in
+  let path = Environment.Current.get "PATH" in
+  let manPath = Environment.Current.get "MAN_PATH" in
   let%bind task = ofPackage
-      ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
-      ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
-      ~overrideShell:false
-      ~includeRootDevDependenciesInEnv:true
-      synPkg
+    ?finalPath:(Option.map ~f:(fun v -> "$PATH:" ^ v) path)
+    ?finalManPath:(Option.map ~f:(fun v -> "$MAN_PATH:" ^ v) manPath)
+    ~overrideShell:false
+    synPkg
   in Ok (Environment.Closed.bindings task.env)
 
-module DependencyGraph = DependencyGraph.Make(struct
+let isBuilt ~cfg task =
+  Fs.exists ConfigPath.(task.installPath / "lib" |> toPath(cfg))
+
+module ConfigFile = struct
+  include EsyBuildPackage.BuildTask.ConfigFile
+
+  let ofTask (task : task) =
+    EsyBuildPackage.BuildTask.ConfigFile.{
+      id = task.id;
+      name = task.pkg.name;
+      version = task.pkg.version;
+      sourceType = (match task.pkg.sourceType with
+          | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
+          | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
+          | Package.SourceType.Root -> EsyBuildPackage.BuildTask.SourceType.Root
+        );
+      buildType = (match task.pkg.buildType with
+          | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
+          | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
+          | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
+        );
+      build = task.buildCommands;
+      install = task.installCommands;
+      sourcePath = ConfigPath.toString task.sourcePath;
+      env = Environment.Closed.value task.env;
+    }
+end
+
+module DependencyGraph = DependencyGraph.Make(
+  struct
     type t = task
 
     let compare = Pervasives.compare
@@ -672,35 +647,8 @@ module DependencyGraph = DependencyGraph.Make(struct
     let traverse task =
       let f dep = match dep with
         | Dependency task
+        | BuildDependency task
         | DevDependency task -> (task, dep)
       in
       ListLabels.map ~f task.dependencies
   end)
-
-let toBuildProtocol (task : task) =
-  EsyBuildPackage.BuildTask.ConfigFile.{
-    id = task.id;
-    name = task.pkg.name;
-    version = task.pkg.version;
-    sourceType = (match task.pkg.sourceType with
-        | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
-        | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
-        | Package.SourceType.Root -> EsyBuildPackage.BuildTask.SourceType.Root
-      );
-    buildType = (match task.pkg.buildType with
-        | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
-        | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-        | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-      );
-    build = task.buildCommands;
-    install = task.installCommands;
-    sourcePath = ConfigPath.toString task.sourcePath;
-    env = Environment.Closed.value task.env;
-  }
-
-let toBuildProtocolString ?(pretty=false) (task : task) =
-  let task = toBuildProtocol task in
-  let json = EsyBuildPackage.BuildTask.ConfigFile.to_yojson task in
-  if pretty
-  then Yojson.Safe.pretty_to_string json
-  else Yojson.Safe.to_string json

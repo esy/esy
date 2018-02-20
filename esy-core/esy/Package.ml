@@ -224,6 +224,14 @@ and dependency =
 type pkg = t
 type pkg_dependency = dependency
 
+let packageOfDependency (dep : dependency) = match dep with
+  | Dependency pkg
+  | PeerDependency pkg
+  | OptDependency pkg
+  | DevDependency pkg
+  | BuildDependency pkg -> Some pkg
+  | InvalidDependency _ -> None
+
 module DependencyGraph = DependencyGraph.Make(struct
 
   type t = pkg
@@ -269,3 +277,39 @@ let traverseImmutableDependencies (pkg : t) =
   pkg.dependencies
   |> ListLabels.fold_left ~f ~init:[]
   |> ListLabels.rev
+
+module Path = struct
+
+  module ConfigPath = Config.ConfigPath
+
+  let _storePath pkg = match pkg.sourceType with
+    | SourceType.Immutable -> ConfigPath.storePath
+    | SourceType.Development
+    | SourceType.Root -> ConfigPath.localStorePath
+
+  let buildPath pkg =
+    ConfigPath.(_storePath pkg / Config.storeBuildTree / pkg.id)
+
+  let buildInfoPath pkg =
+    let name = pkg.id ^ ".info" in
+    ConfigPath.(_storePath pkg / Config.storeBuildTree / name)
+
+  let stagePath pkg =
+    ConfigPath.(_storePath pkg / Config.storeStageTree / pkg.id)
+
+  let installPath pkg =
+    ConfigPath.(_storePath pkg / Config.storeInstallTree / pkg.id)
+
+  let logPath pkg =
+    let basename = pkg.id ^ ".log" in
+    ConfigPath.(stagePath pkg / Config.storeBuildTree / basename)
+
+  let rootPath (pkg : t) =
+    match pkg.buildType, pkg.sourceType with
+    | InSource, _ -> buildPath pkg
+    | JBuilderLike, Immutable -> buildPath pkg
+    | JBuilderLike, Development -> pkg.sourcePath
+    | JBuilderLike, Root -> pkg.sourcePath
+    | OutOfSource, _ -> pkg.sourcePath
+
+end

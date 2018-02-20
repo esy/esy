@@ -173,6 +173,14 @@ module ConfigFile = {
       build
     });
   };
+  let toString = (~pretty=false, task) => {
+    let json = to_yojson(task);
+    if (pretty) {
+      Yojson.Safe.pretty_to_string(json);
+    } else {
+      Yojson.Safe.to_string(json);
+    };
+  };
 };
 
 let ofFile = (config: Config.t, path: Path.t) : Run.t(t, _) =>
