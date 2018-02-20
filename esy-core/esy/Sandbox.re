@@ -50,6 +50,7 @@ let packageId =
     fun
     | Package.Dependency(pkg)
     | Package.OptDependency(pkg)
+    | Package.BuildTimeDependency(pkg)
     | Package.PeerDependency(pkg) => digest(id, pkg.id)
     | Package.InvalidDependency(_)
     | Package.DevDependency(_) => id;
@@ -151,6 +152,12 @@ let ofDir = (cfg: Config.t) => {
         );
       let%lwt dependencies =
         addDeps(
+          ~make=pkg => Package.BuildTimeDependency(pkg),
+          manifest.Package.Manifest.buildTimeDependencies,
+          dependencies,
+        );
+      let%lwt dependencies =
+        addDeps(
           ~make=pkg => Package.PeerDependency(pkg),
           manifest.peerDependencies,
           dependencies,
@@ -180,6 +187,7 @@ let ofDir = (cfg: Config.t) => {
             fun
             | Package.Dependency(pkg)
             | Package.PeerDependency(pkg)
+            | Package.BuildTimeDependency(pkg)
             | Package.OptDependency(pkg) =>
               pkg.sourceType == Package.SourceType.Development
             | Package.DevDependency(_)

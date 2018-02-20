@@ -38,6 +38,7 @@ type t = {
 and dependency =
   | Dependency of t
   | DevDependency of t
+  | BuildTimeDependency of t
 
 type task = t
 type task_dependency = dependency
@@ -83,6 +84,7 @@ let buildId
   in
   let updateWithDepId id = function
     | Dependency pkg -> digest id pkg.id
+    | BuildTimeDependency pkg -> digest id pkg.id
     | DevDependency _ -> id
   in
   let id = ListLabels.fold_left ~f:updateWithDepId ~init:id dependencies in
@@ -276,6 +278,7 @@ let ofPackage
     let includeDependency = function
       | Package.Dependency _pkg
       | Package.PeerDependency _pkg
+      | Package.BuildTimeDependency _pkg
       | Package.OptDependency _pkg -> true
       | Package.DevDependency _pkg -> isRoot && includeRootDevDependenciesInEnv
       | Package.InvalidDependency _ ->
@@ -546,6 +549,7 @@ let ofPackage
     let dependencies =
       let f (dep, {task; _}) = match dep with
         | Package.DevDependency _ -> DevDependency task
+        | Package.BuildTimeDependency _ -> BuildTimeDependency task
         | Package.Dependency _
         | Package.PeerDependency _
         | Package.OptDependency _
@@ -592,6 +596,7 @@ let ofPackage
       | Package.Dependency dpkg
       | Package.OptDependency dpkg
       | Package.PeerDependency dpkg
+      | Package.BuildTimeDependency dpkg
       | Package.DevDependency dpkg -> (dpkg, dep)::acc
       | Package.InvalidDependency _ -> acc
     in
@@ -664,6 +669,7 @@ module DependencyGraph = DependencyGraph.Make(struct
     let traverse task =
       let f dep = match dep with
         | Dependency task
+        | BuildTimeDependency task
         | DevDependency task -> (task, dep)
       in
       ListLabels.map ~f task.dependencies
