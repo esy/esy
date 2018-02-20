@@ -43,7 +43,7 @@ let run
 
     let%bind stdout, stderr, log = match stderrout with
     | `Log ->
-      let logPath = Config.ConfigPath.toPath cfg task.logPath in
+      let logPath = Config.ConfigPath.toPath cfg task.paths.logPath in
       let%lwt fd = Lwt_unix.openfile
         (Path.to_string logPath)
         Lwt_unix.[O_WRONLY; O_CREAT]

@@ -52,14 +52,19 @@ type t = {
   installCommands : CommandList.t;
 
   env : Environment.Closed.t;
+  paths : paths;
 
+  dependencies : dependency list;
+}
+
+and paths = {
+  rootPath : ConfigPath.t;
   sourcePath : ConfigPath.t;
   buildPath : ConfigPath.t;
+  buildInfoPath : ConfigPath.t;
   stagePath : ConfigPath.t;
   installPath : ConfigPath.t;
   logPath : ConfigPath.t;
-
-  dependencies : dependency list;
 }
 
 and dependency =
@@ -119,54 +124,24 @@ let buildId
   let hash = String.sub hash 0 8 in
   (safePackageName pkg.name ^ "-" ^ pkg.version ^ "-" ^ hash)
 
-
-let pkgStorePath (pkg : Package.t) = match pkg.sourceType with
-  | Package.SourceType.Immutable -> ConfigPath.storePath
-  | Package.SourceType.Development
-  | Package.SourceType.Root -> ConfigPath.localStorePath
-
-let pkgBuildPath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / pkg.id)
-
-let pkgBuildInfoPath (pkg : Package.t) =
-  let name = pkg.id ^ ".info" in
-  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / name)
-
-let pkgStagePath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.storeStageTree / pkg.id)
-
-let pkgInstallPath pkg =
-  ConfigPath.(pkgStorePath pkg / Config.storeInstallTree / pkg.id)
-
-let pkgLogPath pkg =
-  let basename = pkg.Package.id ^ ".log" in
-  ConfigPath.(pkgStorePath pkg / Config.storeBuildTree / basename)
-
-let rootPath (pkg : Package.t) =
-  match pkg.buildType, pkg.sourceType with
-  | InSource, _ -> pkgBuildPath pkg
-  | JBuilderLike, Immutable -> pkgBuildPath pkg
-  | JBuilderLike, Development -> pkg.sourcePath
-  | JBuilderLike, Root -> pkg.sourcePath
-  | OutOfSource, _ -> pkg.sourcePath
-
 let isBuilt ~cfg task =
-  Fs.exists ConfigPath.(task.installPath / "lib" |> toPath(cfg))
+  Fs.exists ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))
 
 let getenv name =
   try Some (Sys.getenv name)
   with Not_found -> None
 
-let addPackageBindings
+let addTaskBindings
   ?(useStageDirectory=false)
   ~(scopeName : [`Self | `PackageName])
   (pkg : Package.t)
+  (paths : paths)
   scope
   =
   let installPath =
     if useStageDirectory
-    then pkgStagePath pkg
-    else pkgInstallPath pkg
+    then paths.stagePath
+    else paths.installPath
   in
   let namespace = match scopeName with
   | `Self -> "self"
@@ -175,14 +150,12 @@ let addPackageBindings
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
-  let buildPath = pkgBuildPath pkg in
-  let rootPath = rootPath pkg in
   scope
   |> add "name" pkg.name
   |> add "version" pkg.version
-  |> add "root" (ConfigPath.toString rootPath)
+  |> add "root" (ConfigPath.toString paths.rootPath)
   |> add "original_root" (ConfigPath.toString pkg.sourcePath)
-  |> add "target_dir" (ConfigPath.toString buildPath)
+  |> add "target_dir" (ConfigPath.toString paths.buildPath)
   |> add "install" (ConfigPath.toString installPath)
   |> add "bin" ConfigPath.(installPath / "bin" |> toString)
   |> add "sbin" ConfigPath.(installPath / "sbin" |> toString)
@@ -194,10 +167,10 @@ let addPackageBindings
   |> add "share" ConfigPath.(installPath / "share" |> toString)
   |> add "etc" ConfigPath.(installPath / "etc" |> toString)
 
-let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list) =
-  let buildPath = pkgBuildPath pkg in
-  let rootPath = rootPath pkg in
-  let stagePath = pkgStagePath pkg in
+let addTaskEnvBindings
+  (pkg : Package.t)
+  (paths : paths)
+  (bindings : Environment.binding list) =
   let open Environment in {
     name = "cur__name";
     value = Value pkg.name;
@@ -208,7 +181,7 @@ let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list
       origin = Some pkg;
     }::{
       name = "cur__root";
-      value = Value (ConfigPath.toString rootPath);
+      value = Value (ConfigPath.toString paths.rootPath);
       origin = Some pkg;
     }::{
       name = "cur__original_root";
@@ -216,47 +189,47 @@ let addPackageEnvBindings (pkg : Package.t) (bindings : Environment.binding list
       origin = Some pkg;
     }::{
       name = "cur__target_dir";
-      value = Value (ConfigPath.toString buildPath);
+      value = Value (ConfigPath.toString paths.buildPath);
       origin = Some pkg;
     }::{
       name = "cur__install";
-      value = Value (ConfigPath.toString stagePath);
+      value = Value (ConfigPath.toString paths.stagePath);
       origin = Some pkg;
     }::{
       name = "cur__bin";
-      value = Value ConfigPath.(stagePath / "bin" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "bin" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__sbin";
-      value = Value ConfigPath.(stagePath / "sbin" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "sbin" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__lib";
-      value = Value ConfigPath.(stagePath / "lib" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__man";
-      value = Value ConfigPath.(stagePath / "man" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "man" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__doc";
-      value = Value ConfigPath.(stagePath / "doc" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "doc" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__stublibs";
-      value = Value ConfigPath.(stagePath / "stublibs" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "stublibs" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__toplevel";
-      value = Value ConfigPath.(stagePath / "toplevel" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "toplevel" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__share";
-      value = Value ConfigPath.(stagePath / "share" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "share" |> toString);
       origin = Some pkg;
     }::{
       name = "cur__etc";
-      value = Value ConfigPath.(stagePath / "etc" |> toString);
+      value = Value ConfigPath.(paths.stagePath / "etc" |> toString);
       origin = Some pkg;
     }::bindings
 
@@ -297,6 +270,64 @@ let ofPackage
       Ok (allDependencies, dependencies)
     in
 
+    let taskDependencies =
+      let f (dep, {task; _}) = match dep with
+        | Package.DevDependency _ -> DevDependency task
+        | Package.BuildTimeDependency _ -> BuildTimeDependency task
+        | Package.Dependency _
+        | Package.PeerDependency _
+        | Package.OptDependency _
+        (* TODO: make sure we ignore InvalidDependency *)
+        | Package.InvalidDependency _ -> Dependency task
+      in
+      ListLabels.map ~f dependencies;
+    in
+
+    let id =
+      buildId pkg taskDependencies
+    in
+
+    let paths =
+      let storePath = match pkg.sourceType with
+        | Package.SourceType.Immutable -> ConfigPath.store
+        | Package.SourceType.Development
+        | Package.SourceType.Root -> ConfigPath.localStore
+      in
+      let buildPath =
+        ConfigPath.(storePath / Config.storeBuildTree / id)
+      in
+      let buildInfoPath =
+        let name = id ^ ".info" in
+        ConfigPath.(storePath / Config.storeBuildTree / name)
+      in
+      let stagePath =
+        ConfigPath.(storePath / Config.storeStageTree / id)
+      in
+      let installPath =
+        ConfigPath.(storePath / Config.storeInstallTree / id)
+      in
+      let logPath =
+        let basename = id ^ ".log" in
+        ConfigPath.(storePath / Config.storeBuildTree / basename)
+      in
+      let rootPath =
+        match pkg.buildType, pkg.sourceType with
+        | InSource, _
+        | JBuilderLike, Immutable -> buildPath
+        | JBuilderLike, Development
+        | JBuilderLike, Root
+        | OutOfSource, _ -> pkg.sourcePath
+      in {
+        rootPath;
+        buildPath;
+        buildInfoPath;
+        stagePath;
+        installPath;
+        logPath;
+        sourcePath = pkg.sourcePath;
+      }
+    in
+
     (*
      * Scopes for #{...} syntax.
      *
@@ -314,32 +345,36 @@ let ofPackage
     let scopeForExportEnv, scopeForCommands =
       let bindings = StringMap.empty in
       let bindings =
-        let f bindings (dep, {pkg; _}) =
+        let f bindings (dep, {pkg; task;_}) =
           if includeDependency dep
-          then addPackageBindings ~scopeName:`PackageName pkg bindings
+          then addTaskBindings ~scopeName:`PackageName pkg task.paths bindings
           else bindings
         in
         ListLabels.fold_left ~f ~init:bindings dependencies
       in
       let bindingsForExportedEnv =
         bindings
-        |> addPackageBindings
+        |> addTaskBindings
             ~scopeName:`Self
             pkg
-        |> addPackageBindings
+            paths
+        |> addTaskBindings
             ~scopeName:`PackageName
             pkg
+            paths
       in
       let bindingsForCommands =
         bindings
-        |> addPackageBindings
+        |> addTaskBindings
             ~useStageDirectory:true
             ~scopeName:`Self
             pkg
-        |> addPackageBindings
+            paths
+        |> addTaskBindings
             ~useStageDirectory:true
             ~scopeName:`PackageName
             pkg
+            paths
       in
       let lookup bindings name =
         let name = String.concat "." name in
@@ -382,10 +417,6 @@ let ofPackage
         Ok globalEnv
     in
 
-    let buildPath = pkgBuildPath pkg in
-    let stagePath = pkgStagePath pkg in
-    let installPath = pkgInstallPath pkg in
-
     let buildEnv =
 
       (* All dependencies (transitive included contribute env exported to the
@@ -414,9 +445,9 @@ let ofPackage
       *)
       let path, manpath, ocamlpath =
         let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
-          let path = ConfigPath.(dep.installPath / "bin")::path in
-          let manpath = ConfigPath.(dep.installPath / "man")::manpath in
-          let ocamlpath = ConfigPath.(dep.installPath / "lib")::ocamlpath in
+          let path = ConfigPath.(dep.paths.installPath / "bin")::path in
+          let manpath = ConfigPath.(dep.paths.installPath / "man")::manpath in
+          let ocamlpath = ConfigPath.(dep.paths.installPath / "lib")::ocamlpath in
           path, manpath, ocamlpath
         in
         allDependencies
@@ -454,7 +485,7 @@ let ofPackage
       let ocamlfindDestdir = Environment.{
           origin = None;
           name = "OCAMLFIND_DESTDIR";
-          value = Value ConfigPath.(stagePath / "lib" |> toString);
+          value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
         } in
 
       let ocamlfindLdconf = Environment.{
@@ -526,7 +557,7 @@ let ofPackage
           ::ocamlfindDestdir
           ::ocamlfindLdconf
           ::ocamlfindCommands
-          ::(addPackageEnvBindings pkg (localEnv @ globalEnv @ localEnvOfDeps @
+          ::(addTaskEnvBindings pkg paths (localEnv @ globalEnv @ localEnvOfDeps @
                                         globalEnvOfAllDeps @ initEnv)))) |> List.rev
     in
 
@@ -547,35 +578,16 @@ let ofPackage
         (CommandList.render ~env ~scope:scopeForCommands pkg.installCommands)
     in
 
-    let dependencies =
-      let f (dep, {task; _}) = match dep with
-        | Package.DevDependency _ -> DevDependency task
-        | Package.BuildTimeDependency _ -> BuildTimeDependency task
-        | Package.Dependency _
-        | Package.PeerDependency _
-        | Package.OptDependency _
-        (* TODO: make sure we ignore InvalidDependency *)
-        | Package.InvalidDependency _ -> Dependency task
-      in
-      ListLabels.map ~f dependencies;
-    in
-
     let task: t = {
-      id = buildId pkg dependencies;
-
+      id;
       pkg;
       buildCommands;
       installCommands;
 
       env;
+      paths;
 
-      sourcePath = pkg.sourcePath;
-      buildPath;
-      stagePath;
-      installPath;
-      logPath = pkgLogPath pkg;
-
-      dependencies;
+      dependencies = taskDependencies;
     } in
 
     return { globalEnv; localEnv; pkg; task; }
@@ -693,7 +705,7 @@ let toBuildProtocol (task : task) =
       );
     build = task.buildCommands;
     install = task.installCommands;
-    sourcePath = ConfigPath.toString task.sourcePath;
+    sourcePath = ConfigPath.toString task.paths.sourcePath;
     env = Environment.Closed.value task.env;
   }
 

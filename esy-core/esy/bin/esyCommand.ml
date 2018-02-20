@@ -304,7 +304,7 @@ let makeExecCommand
 
   let%bind () = match prepare with
     | None -> return ()
-    | Some prepare -> prepare cfg info.sandbox.root
+    | Some prepare -> prepare cfg info.task
   in
 
   let%bind () =
@@ -339,12 +339,8 @@ let makeExecCommand
 
 let exec cfgRes =
   let open RunAsync.Syntax in
-  let prepare cfg (pkg : Package.t) =
-    let installPath =
-      pkg
-      |> Task.pkgInstallPath
-      |> Config.ConfigPath.toPath cfg
-    in
+  let prepare cfg (task : Task.t) =
+    let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
     if%bind Fs.exists installPath then
       return ()
     else
@@ -710,6 +706,26 @@ let () =
     Term.(ret (const cmd $ lib $ configTerm $ setupLogTerm)), info
   in
 
+  let dependenciesForExport (task : Task.t) =
+    let f deps dep = match dep with
+      | Task.Dependency ({
+          pkg = {sourceType = Package.SourceType.Immutable; _ };
+          _
+        } as task)
+      | Task.BuildTimeDependency ({
+          pkg = {sourceType = Package.SourceType.Immutable; _ };
+          _
+        } as task) ->
+        (task, dep)::deps
+      | Task.Dependency _
+      | Task.DevDependency _
+      | Task.BuildTimeDependency _ -> deps
+    in
+    task.dependencies
+    |> ListLabels.fold_left ~f ~init:[]
+    |> ListLabels.rev
+  in
+
   let exportDependenciesCommand =
     let doc = "Export sandbox dependendencies as prebuilt artifacts" in
     let info = Term.info "export-dependencies" ~version ~doc ~sdocs ~exits in
@@ -718,27 +734,26 @@ let () =
         let open RunAsync.Syntax in
 
         let%bind cfg = cfg in
-        let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
+        let%bind {SandboxInfo. sandbox; task; _} = SandboxInfo.ofConfig cfg in
 
         let env = esyEnvOverride cfg in
 
-        let pkgs =
-          let open Package in
-          sandbox.root
-          |> DependencyGraph.traverse ~traverse:traverseImmutableDependencies
-          |> List.filter (fun pkg -> not (pkg.id = sandbox.root.id))
+        let tasks =
+          task
+          |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
+          |> List.filter (fun (task : Task.t) -> not (task.id = sandbox.root.id))
         in
 
-        let exportBuild (pkg : Package.t) =
+        let exportBuild (task : Task.t) =
           match esyExportBuildCmd () with
           | Ok cmd ->
-            let installPath = Task.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
+            let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
             let cmd = Cmd.(cmd % p installPath) in
             ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
           | Error err -> Lwt.return (Error err)
         in
 
-        pkgs
+        tasks
         |> List.map exportBuild
         |> RunAsync.waitAll
       in
@@ -755,7 +770,7 @@ let () =
         let open RunAsync.Syntax in
 
         let%bind cfg = cfg in
-        let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
+        let%bind {SandboxInfo. sandbox; task; _} = SandboxInfo.ofConfig cfg in
 
         let fromPath = match fromPath with
           | Some fromPath -> fromPath
@@ -763,22 +778,42 @@ let () =
         in
 
         let pkgs =
-          let open Package in
-          sandbox.root
-          |> DependencyGraph.traverse ~traverse:traverseImmutableDependencies
-          |> List.filter (fun pkg -> not (pkg.id = sandbox.root.id))
+
+          let dependenciesForExport (task : Task.t) =
+            let f deps dep = match dep with
+              | Task.Dependency ({
+                  pkg = {sourceType = Package.SourceType.Immutable; _ };
+                  _
+                } as task)
+              | Task.BuildTimeDependency ({
+                  pkg = {sourceType = Package.SourceType.Immutable; _ };
+                  _
+                } as task) ->
+                (task, dep)::deps
+              | Task.Dependency _
+              | Task.DevDependency _
+              | Task.BuildTimeDependency _ -> deps
+            in
+            task.dependencies
+            |> ListLabels.fold_left ~f ~init:[]
+            |> ListLabels.rev
+          in
+
+          task
+          |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
+          |> List.filter (fun (task : Task.t) -> not (task.Task.pkg.id = sandbox.root.id))
         in
 
         let env = esyEnvOverride cfg in
 
-        let importBuild (pkg : Package.t) =
+        let importBuild (pkg : Task.t) =
           match esyImportBuildCmd () with
           | Ok cmd ->
             let importBuildFromPath path =
               let cmd = Cmd.(cmd % p path) in
               ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
             in
-            let installPath = Task.pkgInstallPath pkg |> Config.ConfigPath.toPath cfg in
+            let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
             if%bind Fs.exists installPath
             then return ()
             else (
