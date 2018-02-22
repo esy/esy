@@ -178,62 +178,62 @@ let addTaskEnvBindings
     value = Value pkg.name;
     origin = Some pkg;
   }::{
-      name = "cur__version";
-      value = Value pkg.version;
-      origin = Some pkg;
-    }::{
-      name = "cur__root";
-      value = Value (ConfigPath.toString paths.rootPath);
-      origin = Some pkg;
-    }::{
-      name = "cur__original_root";
-      value = Value (ConfigPath.toString pkg.sourcePath);
-      origin = Some pkg;
-    }::{
-      name = "cur__target_dir";
-      value = Value (ConfigPath.toString paths.buildPath);
-      origin = Some pkg;
-    }::{
-      name = "cur__install";
-      value = Value (ConfigPath.toString paths.stagePath);
-      origin = Some pkg;
-    }::{
-      name = "cur__bin";
-      value = Value ConfigPath.(paths.stagePath / "bin" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__sbin";
-      value = Value ConfigPath.(paths.stagePath / "sbin" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__lib";
-      value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__man";
-      value = Value ConfigPath.(paths.stagePath / "man" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__doc";
-      value = Value ConfigPath.(paths.stagePath / "doc" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__stublibs";
-      value = Value ConfigPath.(paths.stagePath / "stublibs" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__toplevel";
-      value = Value ConfigPath.(paths.stagePath / "toplevel" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__share";
-      value = Value ConfigPath.(paths.stagePath / "share" |> toString);
-      origin = Some pkg;
-    }::{
-      name = "cur__etc";
-      value = Value ConfigPath.(paths.stagePath / "etc" |> toString);
-      origin = Some pkg;
-    }::bindings
+    name = "cur__version";
+    value = Value pkg.version;
+    origin = Some pkg;
+  }::{
+    name = "cur__root";
+    value = Value (ConfigPath.toString paths.rootPath);
+    origin = Some pkg;
+  }::{
+    name = "cur__original_root";
+    value = Value (ConfigPath.toString pkg.sourcePath);
+    origin = Some pkg;
+  }::{
+    name = "cur__target_dir";
+    value = Value (ConfigPath.toString paths.buildPath);
+    origin = Some pkg;
+  }::{
+    name = "cur__install";
+    value = Value (ConfigPath.toString paths.stagePath);
+    origin = Some pkg;
+  }::{
+    name = "cur__bin";
+    value = Value ConfigPath.(paths.stagePath / "bin" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__sbin";
+    value = Value ConfigPath.(paths.stagePath / "sbin" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__lib";
+    value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__man";
+    value = Value ConfigPath.(paths.stagePath / "man" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__doc";
+    value = Value ConfigPath.(paths.stagePath / "doc" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__stublibs";
+    value = Value ConfigPath.(paths.stagePath / "stublibs" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__toplevel";
+    value = Value ConfigPath.(paths.stagePath / "toplevel" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__share";
+    value = Value ConfigPath.(paths.stagePath / "share" |> toString);
+    origin = Some pkg;
+  }::{
+    name = "cur__etc";
+    value = Value ConfigPath.(paths.stagePath / "etc" |> toString);
+    origin = Some pkg;
+  }::bindings
 
 let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
