@@ -124,6 +124,8 @@ module type ABSTRACT_PATH = sig
 
   val pp : Format.formatter -> t -> unit
   val to_yojson : t -> Yojson.Safe.json
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
 end
 
 (**
@@ -194,5 +196,7 @@ end = struct
 
   let pp = Path.pp
   let to_yojson = Path.to_yojson
+  let equal = Path.equal
+  let compare = Path.compare
 
 end

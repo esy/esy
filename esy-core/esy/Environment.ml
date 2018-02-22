@@ -1,12 +1,12 @@
 open Std
 
-type t = binding list
+type t = binding list [@@deriving (show, eq, ord)]
 
 and binding = {
   name : string;
   value : bindingValue;
   origin : Package.t option;
-} [@@deriving show]
+} [@@deriving (show, eq, ord)]
 
 (* TODO: Expand this variant to include
  *
@@ -27,6 +27,10 @@ let renderStringWithConfig (cfg : Config.t) value =
   | _ -> None
   in
   Run.liftOfBosError (EsyBuildPackage.PathSyntax.render lookup value)
+
+let bindingListPp = pp
+let bindingListEq = equal
+let bindingListCompare = compare
 
 (**
  * Render environment to a string.
@@ -96,7 +100,9 @@ module Value = struct
   (*
    * Environment with values with no references to other environment variables.
    *)
-  type t = string Astring.String.map
+  type t = string Astring.String.Map.t
+
+  let pp = Astring.String.Map.pp
 
   module M = Astring.String.Map
 
@@ -151,9 +157,17 @@ module Closed : sig
 
   val ofBindings : binding list -> t Run.t
 
+  val pp : Format.formatter -> t -> unit
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+
 end = struct
 
   type t = (Value.t * binding list)
+
+  let pp fmt (_, bindings) = bindingListPp fmt bindings
+  let equal (_, a) (_, b) = bindingListEq a b
+  let compare (_, a) (_, b) = bindingListCompare a b
 
   let bindings (_, bindings) = bindings
   let value (value, _) = value

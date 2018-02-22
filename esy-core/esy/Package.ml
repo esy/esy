@@ -11,7 +11,7 @@ module CommandList = struct
     type t =
       | Parsed of string list
       | Unparsed of string
-      [@@deriving show, to_yojson]
+      [@@deriving (show, to_yojson, eq, ord)]
 
     let of_yojson (json : Json.t) =
       match json with
@@ -27,7 +27,7 @@ module CommandList = struct
 
   type t =
     Command.t list option
-    [@@deriving show]
+    [@@deriving (show, eq, ord)]
 
   let of_yojson (json : Json.t) =
     let open Result in
@@ -60,7 +60,7 @@ module ExportedEnv = struct
   type scope =
     | Local
     | Global
-    [@@deriving show]
+    [@@deriving (show, eq, ord)]
 
   let scope_of_yojson = function
     | `String "global" -> Ok Global
@@ -82,11 +82,11 @@ module ExportedEnv = struct
     scope : scope;
     exclusive : bool;
   }
-  [@@deriving show]
+  [@@deriving (show, eq, ord)]
 
   type t =
     item list
-    [@@deriving show]
+    [@@deriving (show, eq, ord)]
 
   let of_yojson = function
     | `Assoc items ->
@@ -106,7 +106,7 @@ module BuildType = struct
     | InSource
     | OutOfSource
     | JBuilderLike
-    [@@deriving show]
+    [@@deriving (show, eq, ord)]
 
   let of_yojson = function
     | `String "_build" -> Ok JBuilderLike
@@ -121,7 +121,7 @@ module SourceType = struct
     | Immutable
     | Development
     | Root
-    [@@deriving show]
+    [@@deriving (show, eq, ord)]
 end
 
 module EsyManifest = struct
@@ -203,7 +203,7 @@ type t = {
   sourcePath : Config.ConfigPath.t;
   resolution : string option;
 }
-[@@deriving show]
+[@@deriving (show, eq, ord)]
 
 and dependencies =
   dependency list
@@ -219,7 +219,7 @@ and dependency =
     pkgName: string;
     reason: string;
   }
-  [@@deriving show]
+  [@@deriving (show, ord)]
 
 type pkg = t
 type pkg_dependency = dependency
@@ -228,7 +228,7 @@ module DependencyGraph = DependencyGraph.Make(struct
 
   type t = pkg
 
-  let compare a b = compare a b
+  let compare a b = Pervasives.compare a b
 
   module Dependency = struct
     type t = pkg_dependency
