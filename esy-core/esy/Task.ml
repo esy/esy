@@ -460,7 +460,7 @@ let ofPackage
       lookup bindingsForExportedEnv, lookup bindingsForCommands
     in
 
-    let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
+    let%bind globalEnv, localEnv =
       let f acc Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
         let context = Printf.sprintf "processing exportedEnv $%s" name in
@@ -476,21 +476,23 @@ let ofPackage
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
         )
       in
-      Run.foldLeft ~f ~init:(false, [], []) pkg.exportedEnv
-    in
-
-    let%bind globalEnv = if injectCamlLdLibraryPath then
-      let%bind value = CommandExpr.render
-        ~scope:scopeForExportEnv
-        "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
+      let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
+        Run.foldLeft ~f ~init:(false, [], []) pkg.exportedEnv
       in
-      Ok (Environment.{
-            name = "CAML_LD_LIBRARY_PATH";
-            value = Value value;
-            origin = Some pkg;
-          }::globalEnv)
-      else
-        Ok globalEnv
+      let%bind globalEnv = if injectCamlLdLibraryPath then
+        let%bind value = CommandExpr.render
+          ~scope:scopeForExportEnv
+          "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
+        in
+        Ok (Environment.{
+              name = "CAML_LD_LIBRARY_PATH";
+              value = Value value;
+              origin = Some pkg;
+            }::globalEnv)
+        else
+          Ok globalEnv
+      in
+      return (globalEnv, localEnv)
     in
 
     let buildEnv =
