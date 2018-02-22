@@ -499,8 +499,32 @@ let ofPackage
        * global scope (hence global)
       *)
       let globalEnvOfAllDeps =
+        let getGlobalEnvForTask task =
+          let path = Environment.{
+            origin = Some task.pkg;
+            name = "PATH";
+            value =
+              let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
+              Value (value ^ ":$PATH")
+          }
+          and manPath = Environment.{
+            origin = Some task.pkg;
+            name = "MAN_PATH";
+            value =
+              let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
+              Value (value ^ ":$MAN_PATH")
+          }
+          and ocamlpath = Environment.{
+            origin = Some task.pkg;
+            name = "OCAMLPATH";
+            value =
+              let value = ConfigPath.(task.paths.installPath / "lib" |> toString) in
+              Value (value ^ ":$OCAMLPATH")
+          } in
+          path::manPath::ocamlpath::task.globalEnv
+        in
         allDependenciesTasks
-        |> List.map (fun task -> task.globalEnv)
+        |> List.map getGlobalEnvForTask
         |> List.concat
         |> List.rev
       in
@@ -514,47 +538,9 @@ let ofPackage
         |> List.rev
       in
 
-      (* Now $PATH, $MAN_PATH and $OCAMLPATH are constructed by appending
-       * corresponding paths of all dependencies (transtive included).
-      *)
-      let path, manpath, ocamlpath =
-        let f (path, manpath, ocamlpath) task =
-          let path = ConfigPath.(task.paths.installPath / "bin")::path in
-          let manpath = ConfigPath.(task.paths.installPath / "man")::manpath in
-          let ocamlpath = ConfigPath.(task.paths.installPath / "lib")::ocamlpath in
-          path, manpath, ocamlpath
-        in
-        allDependenciesTasks
-        |> List.rev
-        |> ListLabels.fold_left ~f ~init:([], [], [])
-      in
-
-      let path = Environment.{
-          origin = None;
-          name = "PATH";
-          value = Value (
-              let v = List.map ConfigPath.toString path in
-              PathLike.make "PATH" v)
-        } in
-
-      let manPath = Environment.{
-          origin = None;
-          name = "MAN_PATH";
-          value = Value (
-              let v = List.map ConfigPath.toString manpath in
-              PathLike.make "MAN_PATH" v)
-        } in
-
       (* Configure environment for ocamlfind.
        * These vars can be used instead of having findlib.conf emitted.
       *)
-      let ocamlpath = Environment.{
-          origin = None;
-          name = "OCAMLPATH";
-          value = Value (
-              let v = List.map ConfigPath.toString ocamlpath in
-              PathLike.make "OCAMLPATH" v);
-        } in
 
       let ocamlfindDestdir = Environment.{
           origin = None;
@@ -625,10 +611,7 @@ let ofPackage
         ) in
 
       (finalEnv @ (
-          path
-          ::manPath
-          ::ocamlpath
-          ::ocamlfindDestdir
+          ocamlfindDestdir
           ::ocamlfindLdconf
           ::ocamlfindCommands
           ::(addTaskEnvBindings pkg paths (localEnv @ globalEnv @ localEnvOfDeps @
