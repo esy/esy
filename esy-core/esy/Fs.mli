@@ -15,6 +15,8 @@ val createDirectory : Path.t -> unit RunAsync.t
 
 val withTemporaryFile : string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
 
+val chmod : int -> Path.t -> unit RunAsync.t
+
 val fold :
   ?skipTraverse : (Path.t -> bool)
   -> f : ('a -> Path.t -> Unix.stats -> 'a Lwt.t)

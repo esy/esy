@@ -29,6 +29,11 @@ let exists (path : Path.t) =
   let%lwt exists = Lwt_unix.file_exists path in
   RunAsync.return exists
 
+let chmod permission (path : Path.t) =
+  let path = Path.to_string path in
+  let%lwt () = Lwt_unix.chmod path permission in
+  RunAsync.return ()
+
 let createDirectory (path : Path.t) =
   let rec create path =
     try%lwt (
