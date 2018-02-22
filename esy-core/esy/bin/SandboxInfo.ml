@@ -37,30 +37,43 @@ let writeCache (cfg : Config.t) (info : t) =
     in
 
     let%bind () =
-      let f oc =
-        let%bind commandEnv = RunAsync.liftOfRun(
-            let header =
-              let pkg = info.sandbox.root in
-              Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
-            in
-            info.commandEnv
-            |> Environment.renderToShellSource ~header cfg
-          ) in
-        let%lwt () = Lwt_io.write oc commandEnv in
-        let%lwt () = Lwt_io.flush oc in
-        return ()
+      let writeData filename data =
+        let f oc =
+          let%lwt () = Lwt_io.write oc data in
+          let%lwt () = Lwt_io.flush oc in
+          return ()
+        in
+        Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string filename) f
       in
-      let commandEnvPath = Path.(
+      let sandboxBin = Path.(
           cfg.sandboxPath
           / "node_modules"
           / ".cache"
           / "_esy"
           / "build"
           / "bin"
-          / "command-env"
+      ) in
+      let%bind () = Fs.createDirectory sandboxBin in
+
+      let%bind commandEnv = RunAsync.liftOfRun(
+          let header =
+            let pkg = info.sandbox.root in
+            Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
+          in
+          info.commandEnv
+          |> Environment.renderToShellSource ~header cfg
         ) in
-      let%bind () = Fs.createDirectory (Path.parent commandEnvPath) in
-      Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string commandEnvPath) f
+      let%bind () =
+        let filename = Path.(sandboxBin / "command-env") in
+        writeData filename commandEnv in
+      let%bind () =
+        let filename = Path.(sandboxBin / "command-exec") in
+        let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
+        let%bind () = writeData filename commandExec in
+        let%bind () = Fs.chmod 0o755 filename in
+        return ()
+      in return ()
+
     in
 
     return ()
