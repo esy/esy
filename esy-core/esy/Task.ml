@@ -9,12 +9,13 @@ open Std
 *)
 
 module StringMap = Map.Make(String)
+module StringSet = Set.Make(String)
 module ConfigPath = Config.ConfigPath
 
 module CommandList = struct
   type t =
     string list list
-    [@@deriving (show, eq)]
+    [@@deriving (show, eq, ord)]
 
   let render ~env ~scope (commands : Package.CommandList.t) =
     let open Run.Syntax in
@@ -56,6 +57,7 @@ type t = {
 
   dependencies : dependency list;
 }
+[@@deriving (show, eq, ord)]
 
 and paths = {
   rootPath : ConfigPath.t;
