@@ -734,14 +734,14 @@ let () =
         let open RunAsync.Syntax in
 
         let%bind cfg = cfg in
-        let%bind {SandboxInfo. sandbox; task; _} = SandboxInfo.ofConfig cfg in
+        let%bind {SandboxInfo. task = rootTask; _} = SandboxInfo.ofConfig cfg in
 
         let env = esyEnvOverride cfg in
 
         let tasks =
-          task
+          rootTask
           |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
-          |> List.filter (fun (task : Task.t) -> not (task.id = sandbox.root.id))
+          |> List.filter (fun (task : Task.t) -> not (task.id = rootTask.id))
         in
 
         let exportBuild (task : Task.t) =
@@ -770,7 +770,7 @@ let () =
         let open RunAsync.Syntax in
 
         let%bind cfg = cfg in
-        let%bind {SandboxInfo. sandbox; task; _} = SandboxInfo.ofConfig cfg in
+        let%bind {SandboxInfo. task = rootTask; _} = SandboxInfo.ofConfig cfg in
 
         let fromPath = match fromPath with
           | Some fromPath -> fromPath
@@ -778,35 +778,14 @@ let () =
         in
 
         let pkgs =
-
-          let dependenciesForExport (task : Task.t) =
-            let f deps dep = match dep with
-              | Task.Dependency ({
-                  pkg = {sourceType = Package.SourceType.Immutable; _ };
-                  _
-                } as task)
-              | Task.BuildTimeDependency ({
-                  pkg = {sourceType = Package.SourceType.Immutable; _ };
-                  _
-                } as task) ->
-                (task, dep)::deps
-              | Task.Dependency _
-              | Task.DevDependency _
-              | Task.BuildTimeDependency _ -> deps
-            in
-            task.dependencies
-            |> ListLabels.fold_left ~f ~init:[]
-            |> ListLabels.rev
-          in
-
-          task
+          rootTask
           |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
-          |> List.filter (fun (task : Task.t) -> not (task.Task.pkg.id = sandbox.root.id))
+          |> List.filter (fun (task : Task.t) -> not (task.Task.pkg.id = rootTask.id))
         in
 
         let env = esyEnvOverride cfg in
 
-        let importBuild (pkg : Task.t) =
+        let importBuild (task : Task.t) =
           match esyImportBuildCmd () with
           | Ok cmd ->
             let importBuildFromPath path =
@@ -817,15 +796,15 @@ let () =
             if%bind Fs.exists installPath
             then return ()
             else (
-              let pathDir = Path.(fromPath / pkg.id) in
-              let pathTgz = Path.(fromPath / (pkg.id ^ ".tar.gz")) in
+              let pathDir = Path.(fromPath / task.id) in
+              let pathTgz = Path.(fromPath / (task.id ^ ".tar.gz")) in
               if%bind Fs.exists pathDir
               then importBuildFromPath pathDir
               else if%bind Fs.exists pathTgz
               then importBuildFromPath pathTgz
               else
                 let%lwt () =
-                  Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" pkg.id)
+                  Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" task.id)
                 in return ()
             )
           | Error err -> Lwt.return (Error err)
