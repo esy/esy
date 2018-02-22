@@ -93,43 +93,39 @@ let ofDir = (cfg: Config.t) => {
     switch%bind (Package.Manifest.ofDir(path)) {
     | Some((manifest, manifestPath)) =>
       manifestInfo := PathSet.add(manifestPath, manifestInfo^);
-      let dependencies = [];
+      let (>>=) = Lwt.(>>=);
       let%lwt dependencies =
-        addDeps(
-          ~make=pkg => Package.Dependency(pkg),
-          manifest.Package.Manifest.dependencies,
-          dependencies,
+        Lwt.return([])
+        >>= addDeps(
+              ~make=pkg => Package.PeerDependency(pkg),
+              manifest.Package.Manifest.peerDependencies,
+            )
+        >>= addDeps(
+              ~make=pkg => Package.Dependency(pkg),
+              manifest.Package.Manifest.dependencies,
+            )
+        >>= addDeps(
+              ~make=pkg => Package.BuildTimeDependency(pkg),
+              manifest.Package.Manifest.buildTimeDependencies,
+            )
+        >>= addDeps(
+              ~skipUnresolved=true,
+              ~make=pkg => Package.OptDependency(pkg),
+              manifest.optDependencies,
+            )
+        >>= (
+          dependencies =>
+            if (Path.equal(cfg.sandboxPath, path)) {
+              addDeps(
+                ~skipUnresolved=true,
+                ~make=pkg => Package.DevDependency(pkg),
+                manifest.Package.Manifest.devDependencies,
+                dependencies,
+              );
+            } else {
+              Lwt.return(dependencies);
+            }
         );
-      let%lwt dependencies =
-        addDeps(
-          ~make=pkg => Package.BuildTimeDependency(pkg),
-          manifest.Package.Manifest.buildTimeDependencies,
-          dependencies,
-        );
-      let%lwt dependencies =
-        addDeps(
-          ~make=pkg => Package.PeerDependency(pkg),
-          manifest.peerDependencies,
-          dependencies,
-        );
-      let%lwt dependencies =
-        addDeps(
-          ~skipUnresolved=true,
-          ~make=pkg => Package.OptDependency(pkg),
-          manifest.optDependencies,
-          dependencies,
-        );
-      let%lwt dependencies =
-        if (Path.equal(cfg.sandboxPath, path)) {
-          addDeps(
-            ~skipUnresolved=true,
-            ~make=pkg => Package.DevDependency(pkg),
-            manifest.devDependencies,
-            dependencies,
-          );
-        } else {
-          Lwt.return(dependencies);
-        };
       let sourceType = {
         let isRootPath = path == cfg.sandboxPath;
         let hasDepWithSourceTypeDevelopment =
