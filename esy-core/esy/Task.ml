@@ -53,6 +53,8 @@ type t = {
   installCommands : CommandList.t;
 
   env : Environment.Closed.t;
+  globalEnv : Environment.binding list;
+  localEnv : Environment.binding list;
   paths : paths;
 
   dependencies : dependency list;
@@ -68,21 +70,27 @@ and paths = {
   installPath : ConfigPath.t;
   logPath : ConfigPath.t;
 }
+[@@deriving show]
 
 and dependency =
   | Dependency of t
   | DevDependency of t
   | BuildTimeDependency of t
+[@@deriving (show, eq, ord)]
 
 type task = t
 type task_dependency = dependency
 
-type foldstate = {
-  task : task;
-  pkg : Package.t;
-  globalEnv : Environment.binding list;
-  localEnv : Environment.binding list;
-}
+module DependencySet = Set.Make(struct
+  type t = dependency
+  let compare = compare_dependency
+end)
+
+let taskOf (dep : dependency) =
+  match dep with
+  | Dependency task -> task
+  | DevDependency task -> task
+  | BuildTimeDependency task -> task
 
 let safePackageName =
   let replaceAt = Str.regexp "@" in
@@ -243,51 +251,118 @@ let ofPackage
     (rootPkg : Package.t)
   =
 
+  let cache = Memoize.create ~size:200 in
+
   let term = Option.orDefault "" (getenv "TERM") in
 
   let open Run.Syntax in
 
-  let f ~allDependencies ~dependencies (pkg : Package.t) =
+  let rec collectDependency
+    ?(includeBuildTimeDependencies=true)
+    (seen, dependencies)
+    dep
+    =
+    match dep with
+    | Package.Dependency depPkg
+    | Package.PeerDependency depPkg
+    | Package.OptDependency depPkg ->
+      if Package.DependencySet.mem dep seen
+      then return (seen, dependencies)
+      else
+        let%bind task = taskOfPackageCached depPkg in
+        let dependencies = (Dependency task)::dependencies in
+        let seen = Package.DependencySet.add dep seen in
+        return (seen, dependencies)
+    | Package.BuildTimeDependency depPkg ->
+      if Package.DependencySet.mem dep seen
+      then return (seen, dependencies)
+      else
+        if includeBuildTimeDependencies
+        then
+          let%bind task = taskOfPackageCached depPkg in
+          let dependencies = (BuildTimeDependency task)::dependencies in
+          let seen = Package.DependencySet.add dep seen in
+          return (seen, dependencies)
+        else
+          return (seen, dependencies)
+    | Package.DevDependency depPkg ->
+      if Package.DependencySet.mem dep seen
+      then return (seen, dependencies)
+      else
+        let%bind task = taskOfPackageCached depPkg in
+        let dependencies = (DevDependency task)::dependencies in
+        let seen = Package.DependencySet.add dep seen in
+        return (seen, dependencies)
+    | Package.InvalidDependency _ ->
+      (** TODO: handle this *)
+      failwith "invalid dependency"
+
+  and directDependenciesOf (pkg : Package.t) =
+    let seen = Package.DependencySet.empty in
+    let%bind _, dependencies =
+      Result.listFoldLeft ~f:collectDependency ~init:(seen, []) pkg.dependencies
+    in return (List.rev dependencies)
+
+  and allDependenciesOf (pkg : Package.t) =
+    let rec aux ?(includeBuildTimeDependencies=true) _pkg acc dep =
+      match Package.packageOf dep with
+      | None -> return acc
+      | Some depPkg ->
+        let%bind acc = Result.listFoldLeft
+          ~f:(aux ~includeBuildTimeDependencies:false depPkg)
+          ~init:acc
+          depPkg.dependencies
+        in
+        collectDependency ~includeBuildTimeDependencies acc dep
+    in
+    let seen = Package.DependencySet.empty in
+    let%bind _, dependencies =
+      Result.listFoldLeft
+        ~f:(aux ~includeBuildTimeDependencies:true pkg)
+        ~init:(seen, [])
+        pkg.dependencies
+    in return (List.rev dependencies)
+
+  and uniqueTasksOfDependencies dependencies =
+    let f (seen, dependencies) dep =
+      let task = taskOf dep in
+      if StringSet.mem task.id seen
+      then (seen, dependencies)
+      else
+        let seen = StringSet.add task.id seen in
+        let dependencies = task::dependencies in
+        (seen, dependencies)
+    in
+    let _, dependencies =
+      ListLabels.fold_left ~f ~init:(StringSet.empty, []) dependencies
+    in
+    List.rev dependencies
+
+  and taskOfPackage (pkg : Package.t) =
 
     let isRoot = pkg.id = rootPkg.id in
 
-    let includeDependency = function
-      | Package.Dependency _pkg
-      | Package.PeerDependency _pkg
-      | Package.BuildTimeDependency _pkg
-      | Package.OptDependency _pkg -> true
-      | Package.DevDependency _pkg -> isRoot && includeRootDevDependenciesInEnv
-      | Package.InvalidDependency _ ->
-        (** TODO: need to fail gracefully here *)
-        failwith "invalid dependency"
+    let shouldIncludeDependencyInEnv = function
+      | Dependency _ -> true
+      | DevDependency _ -> isRoot && includeRootDevDependenciesInEnv
+      | BuildTimeDependency _ -> true
     in
 
-    let%bind allDependencies, dependencies =
-      let joinDependencies dependencies =
-        let f (id, dep) = let%bind dep = dep in Ok (id, dep) in
-        Result.listMap ~f dependencies
-      in
-      let%bind dependencies = joinDependencies dependencies in
-      let%bind allDependencies = joinDependencies allDependencies in
-      Ok (allDependencies, dependencies)
+    let%bind allDependencies = allDependenciesOf pkg in
+    let%bind dependencies = directDependenciesOf pkg in
+
+    let allDependenciesTasks =
+      allDependencies
+      |> List.filter shouldIncludeDependencyInEnv
+      |> uniqueTasksOfDependencies
+    in
+    let dependenciesTasks =
+      dependencies
+      |> List.filter shouldIncludeDependencyInEnv
+      |> uniqueTasksOfDependencies
     in
 
-    let taskDependencies =
-      let f (dep, {task; _}) = match dep with
-        | Package.DevDependency _ -> DevDependency task
-        | Package.BuildTimeDependency _ -> BuildTimeDependency task
-        | Package.Dependency _
-        | Package.PeerDependency _
-        | Package.OptDependency _
-        (* TODO: make sure we ignore InvalidDependency *)
-        | Package.InvalidDependency _ -> Dependency task
-      in
-      ListLabels.map ~f dependencies;
-    in
-
-    let id =
-      buildId pkg taskDependencies
-    in
+    let id = buildId pkg dependencies in
 
     let paths =
       let storePath = match pkg.sourceType with
@@ -347,12 +422,11 @@ let ofPackage
     let scopeForExportEnv, scopeForCommands =
       let bindings = StringMap.empty in
       let bindings =
-        let f bindings (dep, {pkg; task;_}) =
-          if includeDependency dep
-          then addTaskBindings ~scopeName:`PackageName pkg task.paths bindings
-          else bindings
+        let f bindings task =
+          addTaskBindings ~scopeName:`PackageName task.pkg task.paths bindings
         in
-        ListLabels.fold_left ~f ~init:bindings dependencies
+        dependenciesTasks
+        |> ListLabels.fold_left ~f ~init:bindings
       in
       let bindingsForExportedEnv =
         bindings
@@ -425,9 +499,8 @@ let ofPackage
        * global scope (hence global)
       *)
       let globalEnvOfAllDeps =
-        allDependencies
-        |> List.filter (fun (dep, _) -> includeDependency dep)
-        |> List.map (fun (_, {globalEnv; _}) -> globalEnv)
+        allDependenciesTasks
+        |> List.map (fun task -> task.globalEnv)
         |> List.concat
         |> List.rev
       in
@@ -435,9 +508,8 @@ let ofPackage
       (* Direct dependencies contribute only env exported to the local scope
       *)
       let localEnvOfDeps =
-        dependencies
-        |> List.filter (fun (dep, _) -> includeDependency dep)
-        |> List.map (fun (_, {localEnv; _}) -> localEnv)
+        dependenciesTasks
+        |> List.map (fun task -> task.localEnv)
         |> List.concat
         |> List.rev
       in
@@ -446,14 +518,14 @@ let ofPackage
        * corresponding paths of all dependencies (transtive included).
       *)
       let path, manpath, ocamlpath =
-        let f (path, manpath, ocamlpath) (_, {task = dep; _}) =
-          let path = ConfigPath.(dep.paths.installPath / "bin")::path in
-          let manpath = ConfigPath.(dep.paths.installPath / "man")::manpath in
-          let ocamlpath = ConfigPath.(dep.paths.installPath / "lib")::ocamlpath in
+        let f (path, manpath, ocamlpath) task =
+          let path = ConfigPath.(task.paths.installPath / "bin")::path in
+          let manpath = ConfigPath.(task.paths.installPath / "man")::manpath in
+          let ocamlpath = ConfigPath.(task.paths.installPath / "lib")::ocamlpath in
           path, manpath, ocamlpath
         in
-        allDependencies
-        |> ListLabels.filter ~f:(fun (dep, _) -> includeDependency dep)
+        allDependenciesTasks
+        |> List.rev
         |> ListLabels.fold_left ~f ~init:([], [], [])
       in
 
@@ -587,17 +659,17 @@ let ofPackage
       installCommands;
 
       env;
+      globalEnv;
+      localEnv;
       paths;
 
-      dependencies = taskDependencies;
+      dependencies;
     } in
 
-    return { globalEnv; localEnv; pkg; task; }
+    return task
 
-  in
-
-  let f ~allDependencies ~dependencies (pkg : Package.t) =
-    let v = f ~allDependencies ~dependencies pkg in
+  and taskOfPackageCached (pkg : Package.t) =
+    let v = cache pkg.id (fun () -> taskOfPackage pkg) in
     let context =
       Printf.sprintf
         "processing package: %s@%s"
@@ -605,24 +677,9 @@ let ofPackage
         pkg.version
     in
     Run.withContext context v
-
-  and traverse (pkg : Package.t) =
-    let f acc dep = match dep with
-      | Package.Dependency dpkg
-      | Package.OptDependency dpkg
-      | Package.PeerDependency dpkg
-      | Package.BuildTimeDependency dpkg
-      | Package.DevDependency dpkg -> (dpkg, dep)::acc
-      | Package.InvalidDependency _ -> acc
-    in
-    pkg.dependencies
-    |> ListLabels.fold_left ~f ~init:[]
-    |> ListLabels.rev
   in
 
-  match Package.DependencyGraph.foldWithAllDependencies ~traverse ~f rootPkg with
-  | Ok { task; _ } -> Ok task
-  | Error msg -> Error msg
+  taskOfPackageCached rootPkg
 
 let buildEnv pkg =
   let open Run.Syntax in
