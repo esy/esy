@@ -224,15 +224,23 @@ and dependency =
 type pkg = t
 type pkg_dependency = dependency
 
+let packageOf (dep : dependency) = match dep with
+| Dependency pkg
+| PeerDependency pkg
+| OptDependency pkg
+| DevDependency pkg
+| BuildTimeDependency pkg -> Some pkg
+| InvalidDependency _ -> None
+
 module DependencyGraph = DependencyGraph.Make(struct
 
   type t = pkg
 
-  let compare a b = Pervasives.compare a b
+  let compare a b = compare a b
 
   module Dependency = struct
     type t = pkg_dependency
-    let compare a b = compare a b
+    let compare a b = compare_dependency a b
   end
 
   let id (pkg : t) = pkg.id
@@ -250,4 +258,9 @@ module DependencyGraph = DependencyGraph.Make(struct
     |> ListLabels.fold_left ~f ~init:[]
     |> ListLabels.rev
 
+end)
+
+module DependencySet = Set.Make(struct
+  type t = dependency
+  let compare = compare_dependency
 end)
