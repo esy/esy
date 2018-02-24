@@ -156,19 +156,18 @@ let runCommandViaNode cfg name args =
     RunAsync.error "unable to find esy.js"
 
 let withBuildTaskByPath
-    ~(cfg : Config.t)
     ~(info : SandboxInfo.t)
     packagePath
     f =
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
+    let resolvedPath = Path.to_string packagePath in
     let findByPath (task : Task.t) =
-      let sourcePath = Config.ConfigPath.toPath cfg task.pkg.sourcePath in
-      Path.equal sourcePath packagePath
+      String.equal resolvedPath task.pkg.id
     in begin match Task.DependencyGraph.find ~f:findByPath info.task with
       | None ->
-        let msg = Printf.sprintf "No package found at %s" (Path.to_string packagePath) in
+        let msg = Printf.sprintf "No package found at %s" resolvedPath in
         error msg
       | Some pkg -> f pkg
     end
@@ -185,7 +184,7 @@ let buildPlan cfg packagePath =
       Task.toBuildProtocolString ~pretty:true task
       |> print_endline
     )
-  in withBuildTaskByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~info packagePath f
 
 let buildShell cfg packagePath =
   let open RunAsync.Syntax in
@@ -200,7 +199,7 @@ let buildShell cfg packagePath =
     | Unix.WEXITED n
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
-  in withBuildTaskByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~info packagePath f
 
 let buildPackage cfg packagePath =
   let open RunAsync.Syntax in
@@ -210,7 +209,7 @@ let buildPackage cfg packagePath =
 
   let f task =
     Build.build ~concurrency ~force:`ForRoot cfg task
-  in withBuildTaskByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~info packagePath f
 
 let build ?(buildOnly=true) cfg command =
   let open RunAsync.Syntax in
@@ -260,7 +259,7 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
       ) in
     let%lwt () = Lwt_io.print source in
     return ()
-  in withBuildTaskByPath ~cfg ~info packagePath f
+  in withBuildTaskByPath ~info packagePath f
 
 let buildEnv =
   let header (pkg : Package.t) =
@@ -457,10 +456,10 @@ let lsModules ~libs:only cfg =
       return [TermTree.Node { line=description; children=[]; }]
     else begin
       Path.of_string (meta.location ^ Path.dir_sep ^ meta.archive) |> function
-      | Ok archive -> 
-        if%bind Fs.exists archive then
+      | Ok archive ->
+        if%bind Fs.exists archive then begin
           let archive = Path.to_string archive in
-          let%bind lines = 
+          let%bind lines =
             SandboxTools.queryModules ~ocamlobjinfo archive
           in
 
@@ -472,7 +471,7 @@ let lsModules ~libs:only cfg =
           in
 
           return modules
-        else
+        end else
           return []
       | Error `Msg msg -> error msg
     end
@@ -506,7 +505,7 @@ let lsModules ~libs:only cfg =
           )
         |> List.map (fun lib ->
             let line = Chalk.yellow(lib) in
-            let%bind children = 
+            let%bind children =
               formatLibraryModules ~cfg ~task lib
             in
             return (TermTree.Node { line; children; })
@@ -699,7 +698,7 @@ let () =
     let cmd libs cfg () =
       runAsyncCommand info (lsModules ~libs cfg)
     in
-    let lib = 
+    let lib =
       let doc = "Output modules only for specified lib(s)" in
       Arg.(value & (pos_all string []) & info [] ~docv:"LIB" ~doc);
     in
