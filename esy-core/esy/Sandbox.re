@@ -168,7 +168,7 @@ let ofDir = (cfg: Config.t) => {
         let esy =
           Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
         Package.{
-          id: Path.to_string(sourcePath),
+          id: Path.to_string(path),
           name: manifest.name,
           version: manifest.version,
           dependencies,
