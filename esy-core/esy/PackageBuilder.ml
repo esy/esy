@@ -1,8 +1,5 @@
 let esyBuildPackage =
-  Cmd.resolveCmdRelativeToCurrentCmd "./esyBuildPackage.bc"
-
-let ocamlrun =
-  Cmd.resolveCmdRelativeToCurrentCmd "@esy-ocaml/ocamlrun/install/bin/ocamlrun"
+  Cmd.resolveCmdRelativeToCurrentCmd "./esyBuildPackage"
 
 let run
     ?(stdin=`Null)
@@ -22,11 +19,9 @@ let run
   let runProcess buildJsonFilename =
     let%bind command = RunAsync.liftOfRun (
       let open Run.Syntax in
-      let%bind ocamlrun = ocamlrun () in
       let%bind esyBuildPackage = esyBuildPackage () in
       return Cmd.(
-        ocamlrun
-        %% esyBuildPackage
+        esyBuildPackage
         % action
         % "--prefix-path" % p cfg.prefixPath
         % "--sandbox-path" % p cfg.sandboxPath

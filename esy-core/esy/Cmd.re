@@ -60,6 +60,35 @@ let resolveCmdInEnv = (env: Environment.Value.t, prg: string) => {
   Run.liftOfBosError(resolveCmd(path, prg));
 };
 
+let rec realpath = (p: Fpath.t) => {
+  module Let_syntax = Std.Result.Let_syntax;
+  let%bind p =
+    if (Fpath.is_abs(p)) {
+      Ok(p);
+    } else {
+      let%bind cwd = Bos.OS.Dir.current();
+      Ok(p |> Fpath.append(cwd) |> Fpath.normalize);
+    };
+  let isSymlinkAndExists = p =>
+    switch (Bos.OS.Path.symlink_stat(p)) {
+    | Ok({Unix.st_kind: Unix.S_LNK, _}) => Ok(true)
+    | _ => Ok(false)
+    };
+  if (Fpath.is_root(p)) {
+    Ok(p);
+  } else {
+    let%bind isSymlink = isSymlinkAndExists(p);
+    if (isSymlink) {
+      let%bind target = Bos.OS.Path.symlink_target(p);
+      realpath(target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize);
+    } else {
+      let parentPath = p |> Fpath.parent |> Fpath.rem_empty_seg;
+      let%bind parentPath = realpath(parentPath);
+      Ok(Path.(parentPath / Fpath.basename(p)));
+    };
+  };
+};
+
 let resolveCmdRelativeToCurrentCmd = req => {
   let cache = ref(None);
   let resolver = () =>
@@ -70,6 +99,7 @@ let resolveCmdRelativeToCurrentCmd = req => {
         Std.Result.(
           {
             let%bind currentFilename = Path.of_string(Sys.argv[0]);
+            let%bind currentFilename = realpath(currentFilename);
             let currentDirname = Path.parent(currentFilename);
             let cmd =
               switch (
