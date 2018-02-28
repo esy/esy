@@ -1,6 +1,6 @@
 TARGETS = \
-	esy-build-package/bin/esyBuildPackage \
-	esy/bin/esy
+	esy-build-package/bin/esyBuildPackageCommand.exe \
+	esy/bin/esyCommand.exe
 
 .DEFAULT: help
 

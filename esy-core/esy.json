@@ -5,12 +5,28 @@
   "license": "MIT",
   "esy": {
     "build": [
-      ["jbuilder", "build", "-j", "4"],
-      ["jbuilder", "build", "esy/bin/esy", "esy-build-package/bin/esyBuildPackage"]
+      [
+        "jbuilder",
+        "build",
+        "-j",
+        "4"
+      ],
+      [
+        "jbuilder",
+        "build",
+        "esy/bin/esyCommand.exe",
+        "esy-build-package/bin/esyBuildPackageCommand.exe"
+      ]
     ],
     "install": [
-      ["esy-installer", "./esy-build-package.install"],
-      ["esy-installer", "./esy.install"]
+      [
+        "esy-installer",
+        "./esy-build-package.install"
+      ],
+      [
+        "esy-installer",
+        "./esy.install"
+      ]
     ],
     "buildsInSource": "_build"
   },
