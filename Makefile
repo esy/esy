@@ -86,9 +86,11 @@ test::
 RELEASE_ROOT = dist
 RELEASE_FILES = \
 	bin/esy \
+	bin/esy-darwin \
+	bin/esyBuildPackage-darwin \
+	bin/esy-linux \
+	bin/esyBuildPackage-linux \
 	bin/esy.js \
-	bin/esyBuildPackage.bc \
-	bin/esy.bc \
 	bin/esyExportBuild \
 	bin/esyImportBuild \
 	bin/esyRuntime.sh \
@@ -105,8 +107,12 @@ endef
 export BIN_ESY
 
 build-release:
-	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -C esy-core build
+	@$(MAKE) -C linux-build build
+	@$(MAKE) build-release-copy-artifacts
+
+build-release-copy-artifacts:
+	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 
 $(RELEASE_ROOT)/package.json:
@@ -114,7 +120,23 @@ $(RELEASE_ROOT)/package.json:
 
 $(RELEASE_ROOT)/bin/esy:
 	@mkdir -p $(@D)
-	@echo "$$BIN_ESY" > $(@)
+	@echo 'echo "esy was not installed correctly, exiting..." && exit 1' > $(@)
+
+$(RELEASE_ROOT)/bin/esy-darwin:
+	@mkdir -p $(@D)
+	@cp esy-core/_build/default/esy/bin/esyCommand.exe $(@)
+
+$(RELEASE_ROOT)/bin/esy-linux:
+	@mkdir -p $(@D)
+	@cp linux-build/esy $(@)
+
+$(RELEASE_ROOT)/bin/esyBuildPackage-linux:
+	@mkdir -p $(@D)
+	@cp linux-build/esyBuildPackage $(@)
+
+$(RELEASE_ROOT)/bin/esyBuildPackage-darwin:
+	@mkdir -p $(@D)
+	@cp esy-core/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
 $(RELEASE_ROOT)/bin/esy.js:
 	@node ./scripts/build-webpack.js ./src/bin/esy.js $(@)
