@@ -23,9 +23,3 @@
               rresult
               ))
   ))
-
-(rule
-  ((targets (esyBuildPackage))
-   (deps    (esyBuildPackageCommand.bc))
-   (action  (chdir ${ROOT} (run ocamlstripdebug ${<} ${@})))
-   ))
