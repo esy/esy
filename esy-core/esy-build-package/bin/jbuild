@@ -4,7 +4,6 @@
  ((name esyBuildPackageCommand)
   (public_name esy-build-package)
   (package esy-build-package)
-  (modes (byte))
   (flags (:standard (-w -39)))
   (preprocess (pps (ppx_let)))
   (modules (esyBuildPackageCommand))

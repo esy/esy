@@ -4,7 +4,6 @@
  ((name esyCommand)
   (public_name esy)
   (package esy)
-  (modes (byte))
   (preprocess (pps (lwt_ppx ppx_let)))
   (libraries (
               lwt
