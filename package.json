@@ -4,8 +4,7 @@
   "description": "Esy sandboxes for compiled languages",
   "main": "lib/index.js",
   "scripts": {
-    "test": "make ci",
-    "postinstall": "bash ./scripts/postinstall.sh"
+    "test": "make ci"
   },
   "bin": {
     "esy": "./bin/esy"
@@ -69,7 +68,6 @@
   "dependencies": {
     "@esy-ocaml/esy-install": "link:./esy-install",
     "@esy-ocaml/esy-opam": "0.0.14",
-    "@esy-ocaml/ocamlrun": "4.6.6",
     "babel-polyfill": "^6.23.0",
     "cli-argparse": "^1.1.2",
     "debug": "^3.1.0",

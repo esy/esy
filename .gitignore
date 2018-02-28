@@ -4,8 +4,6 @@
 /dist
 /_esyInstallCache-*
 _export
-/bin/flock
-/bin/esy
 /bin/fastreplacestring.exe
 /bin/esyConfig.sh
 bin/esy
