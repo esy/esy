@@ -13,11 +13,10 @@ const releasePackageJson = {
   description: packageJson.description,
   dependencies: {
     '@esy-ocaml/esy-opam': packageJson.dependencies['@esy-ocaml/esy-opam'],
-    '@esy-ocaml/ocamlrun': packageJson.dependencies['@esy-ocaml/ocamlrun'],
     fastreplacestring: packageJson.dependencies['fastreplacestring'],
   },
   scripts: {
-    postinstall: packageJson.scripts.postinstall,
+    postinstall: 'bash ./scripts/postinstall.sh',
   },
   engines: packageJson.engines,
   repository: packageJson.repository,
