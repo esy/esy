@@ -44,8 +44,10 @@ bootstrap:
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
-	@make -C esy-core install build-dev
-	@yarn
+	@make -C esy-install bootstrap
+	@esy install
+	@make build-dev
+	@make -C test-e2e bootstrap
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
@@ -67,17 +69,13 @@ build-dev:
 
 JEST = $(BIN)/jest --runInBand
 
-test-unit:
+test-unit::
 	@esy b jbuilder build --dev @runtest
 
-test-e2e:
-	@$(JEST) \
-		--config jest-e2e.config.js \
-		./__tests__/build/*-test.sh \
-		./__tests__/export-import-build/*-test.sh \
-		./__tests__/common/*-test.sh
+test-e2e::
+	@make -C test-e2e test
 
-test-opam:
+test-opam::
 	$(MAKE) -C __tests__/opam
 
 ci::
