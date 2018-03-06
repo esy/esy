@@ -7,7 +7,7 @@ const path = require('path');
 const chalk = require('chalk');
 
 const RUNTIME = require.resolve('./runtime.sh');
-const ESYCOMMAND = require.resolve('../bin/esy');
+const ESYCOMMAND = require.resolve('../../bin/esy');
 
 module.exports = testRunner;
 
