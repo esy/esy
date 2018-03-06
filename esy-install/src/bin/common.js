@@ -255,18 +255,18 @@ export async function ejectRootBuild(
 
     emitFile({
       filename: ['bin/esyRuntime.sh'],
-      contents: fs.readFileSync(require.resolve('../../bin/esyRuntime.sh')),
+      contents: fs.readFileSync(require.resolve('../../../bin/esyRuntime.sh')),
     }),
 
     emitFile({
       filename: ['bin/realpath.sh'],
-      contents: fs.readFileSync(require.resolve('../../bin/realpath.sh')),
+      contents: fs.readFileSync(require.resolve('../../../bin/realpath.sh')),
     }),
 
-    emitFile({
-      filename: ['bin/esyConfig.sh'],
-      contents: fs.readFileSync(require.resolve('../../bin/esyConfig.sh')),
-    }),
+    //emitFile({
+    //  filename: ['bin/esyConfig.sh'],
+    //  contents: fs.readFileSync(require.resolve('../../../bin/esyConfig.sh')),
+    //}),
 
     emitFile({
       filename: ['bin/build-dependencies'],

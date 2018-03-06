@@ -21,5 +21,3 @@ esac
 
 chmod +x ./bin/esy
 chmod +x ./bin/esyBuildPackage
-
-(cd bin && node ./esy.js autoconf > ./esyConfig.sh)

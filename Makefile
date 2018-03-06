@@ -90,7 +90,7 @@ RELEASE_FILES = \
 	bin/esyBuildPackage-darwin \
 	bin/esy-linux \
 	bin/esyBuildPackage-linux \
-	bin/esy.js \
+	bin/esy-install.js \
 	bin/esyExportBuild \
 	bin/esyImportBuild \
 	bin/esyRuntime.sh \
@@ -138,8 +138,8 @@ $(RELEASE_ROOT)/bin/esyBuildPackage-darwin:
 	@mkdir -p $(@D)
 	@cp esy-core/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
-$(RELEASE_ROOT)/bin/esy.js:
-	@node ./scripts/build-webpack.js ./src/bin/esy.js $(@)
+$(RELEASE_ROOT)/bin/esy-install.js:
+	@$(MAKE) -C esy-install BUILD=../$(@) build
 
 $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)
