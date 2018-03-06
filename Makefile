@@ -1,3 +1,5 @@
+.DELETE_ON_ERROR:
+
 ESY_EXT := $(shell command -v esy 2> /dev/null)
 
 RELEASE_TAG ?= latest
@@ -90,7 +92,7 @@ test::
 # Release
 #
 
-RELEASE_ROOT = dist
+RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
 	bin/esy-install.js \
@@ -105,16 +107,8 @@ RELEASE_FILES = \
 	_build-linux/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build-linux/default/esy/bin/esyCommand.exe
 
-define BIN_ESY
-#!/bin/bash
-
->&2 echo "esy: installed incorrectly because of failed postinstall hook"
-exit 1
-endef
-export BIN_ESY
-
 build-release:
-	@$(MAKE) -C build
+	@$(MAKE) build
 	@$(MAKE) -C linux-build build
 	@$(MAKE) build-release-copy-artifacts
 
@@ -135,11 +129,11 @@ $(RELEASE_ROOT)/_build-darwin/default/esy-build-package/bin/esyBuildPackageComma
 
 $(RELEASE_ROOT)/_build-linux/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
-	@cp linux-build/esy $(@)
+	@cp linux-build/esyCommand.exe $(@)
 
 $(RELEASE_ROOT)/_build-linux/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
-	@cp linux-build/esyBuildPackage $(@)
+	@cp linux-build/esyBuildPackageCommand.exe $(@)
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build

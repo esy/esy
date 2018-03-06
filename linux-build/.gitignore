@@ -1,3 +1,3 @@
 docker-image-id
-esy
-esyBuildPackage
+esyBuildPackageCommand.exe
+esyCommand.exe
