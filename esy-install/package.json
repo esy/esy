@@ -24,19 +24,19 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/__tests__/fixtures/",
       "<rootDir>/__tests__/build/fixtures",
-      "<rootDir>/esy-install",
+      "<rootDir>/yarn-install",
       "<rootDir>/dist",
       "<rootDir>/esyInstallCache-3.x.x"
     ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
-      "<rootDir>/esy-install",
+      "<rootDir>/yarn",
       "<rootDir>/dist",
       "<rootDir>/esyInstallCache-3.x.x",
       "<rootDir>/lib"
     ],
     "transformIgnorePatterns": [
-      "<rootDir>/node_modules/(?!@esy-ocaml/esy-install)"
+      "<rootDir>/node_modules/(?!@esy-ocaml/yarn)"
     ]
   },
   "license": "MIT",
