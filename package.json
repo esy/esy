@@ -1,0 +1,26 @@
+{
+  "name": "esy",
+  "version": "0.1.7",
+  "license": "MIT",
+  "description": "Esy sandboxes for compiled languages",
+  "dependencies": {
+    "@esy-ocaml/esy-opam": "0.0.14",
+    "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4"
+  },
+  "scripts": {
+    "postinstall": "bash ./scripts/postinstall.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/esy/esy.git"
+  },
+  "bin": {
+    "esy": "./bin/esy"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "_build-linux/",
+    "_build-darwin/"
+  ]
+}

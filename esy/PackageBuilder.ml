@@ -1,5 +1,5 @@
 let esyBuildPackage =
-  Cmd.resolveCmdRelativeToCurrentCmd "./esyBuildPackage"
+  Cmd.resolveCmdRelativeToCurrentCmd "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
 let run
     ?(stdin=`Null)
