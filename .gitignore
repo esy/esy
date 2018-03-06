@@ -2,9 +2,12 @@
 /coverage
 /lib
 /dist
-/_esyInstallCache-*
-_export
+/_export
+/_build
+/_release
 /bin/fastreplacestring.exe
 /bin/esyConfig.sh
 bin/esy
-**/node_modules/.cache
+.merlin
+npm-debug.log
+yarn-error.log

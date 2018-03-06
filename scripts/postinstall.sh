@@ -6,18 +6,13 @@ set -o pipefail
 
 case $(uname) in
   Darwin*)
-    cp bin/esy-darwin bin/esy
-    cp bin/esyBuildPackage-darwin bin/esyBuildPackage
+    cp -rf _build-darwin _build
     ;;
   Linux*)
-    cp bin/esy-linux bin/esy
-    cp bin/esyBuildPackage-linux bin/esyBuildPackage
+    cp -rf _build-linux _build
     ;;
   *)
     echo "Unsupported operating system $(uname), exiting...";
     exit 1
     ;;
 esac
-
-chmod +x ./bin/esy
-chmod +x ./bin/esyBuildPackage

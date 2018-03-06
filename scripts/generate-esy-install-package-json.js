@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const packageJsonFilename = require.resolve('../package.json');
+const packageJsonFilename = require.resolve('../esy-install/package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonFilename, 'utf8'));
 
 const releasePackageJson = {

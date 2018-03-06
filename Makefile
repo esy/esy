@@ -52,6 +52,13 @@ clean:
 	@rm -rf lib/
 	@make -C esy-core clean
 
+build:
+	@esy b jbuilder build -j 4 $(TARGETS)
+
+build-dev:
+	@esy b jbuilder build -j 4 --dev $(TARGETS)
+
+
 #
 # Test
 #
@@ -59,7 +66,7 @@ clean:
 JEST = $(BIN)/jest --runInBand
 
 test-unit:
-	@$(MAKE) -C esy-core test
+	@esy b jbuilder build --dev @runtest
 
 test-e2e:
 	@$(JEST) \
@@ -86,17 +93,17 @@ test::
 RELEASE_ROOT = dist
 RELEASE_FILES = \
 	bin/esy \
-	bin/esy-darwin \
-	bin/esyBuildPackage-darwin \
-	bin/esy-linux \
-	bin/esyBuildPackage-linux \
 	bin/esy-install.js \
 	bin/esyExportBuild \
 	bin/esyImportBuild \
 	bin/esyRuntime.sh \
 	bin/realpath.sh \
 	scripts/postinstall.sh \
-	package.json
+	package.json \
+	_build-darwin/default/esy-build-package/bin/esyBuildPackageCommand.exe \
+	_build-darwin/default/esy/bin/esyCommand.exe \
+	_build-linux/default/esy-build-package/bin/esyBuildPackageCommand.exe \
+	_build-linux/default/esy/bin/esyCommand.exe
 
 define BIN_ESY
 #!/bin/bash
@@ -107,7 +114,7 @@ endef
 export BIN_ESY
 
 build-release:
-	@$(MAKE) -C esy-core build
+	@$(MAKE) -C build
 	@$(MAKE) -C linux-build build
 	@$(MAKE) build-release-copy-artifacts
 
@@ -118,25 +125,21 @@ build-release-copy-artifacts:
 $(RELEASE_ROOT)/package.json:
 	@node ./scripts/generate-esy-install-package-json.js > $(@)
 
-$(RELEASE_ROOT)/bin/esy:
+$(RELEASE_ROOT)/_build-darwin/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
-	@echo 'echo "esy was not installed correctly, exiting..." && exit 1' > $(@)
+	@cp _build/default/esy/bin/esyCommand.exe $(@)
 
-$(RELEASE_ROOT)/bin/esy-darwin:
+$(RELEASE_ROOT)/_build-darwin/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
-	@cp esy-core/_build/default/esy/bin/esyCommand.exe $(@)
+	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
-$(RELEASE_ROOT)/bin/esy-linux:
+$(RELEASE_ROOT)/_build-linux/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esy $(@)
 
-$(RELEASE_ROOT)/bin/esyBuildPackage-linux:
+$(RELEASE_ROOT)/_build-linux/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esyBuildPackage $(@)
-
-$(RELEASE_ROOT)/bin/esyBuildPackage-darwin:
-	@mkdir -p $(@D)
-	@cp esy-core/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build

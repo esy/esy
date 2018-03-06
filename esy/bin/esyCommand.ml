@@ -11,13 +11,13 @@ let version =
   with Not_found -> "dev"
 
 let esyExportBuildCmd =
-  Cmd.resolveCmdRelativeToCurrentCmd "./esyExportBuild"
+  Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esyExportBuild"
 
 let esyImportBuildCmd =
-  Cmd.resolveCmdRelativeToCurrentCmd "./esyImportBuild"
+  Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esyImportBuild"
 
 let esyJs =
-  Cmd.resolveCmdRelativeToCurrentCmd "./esy.js"
+  Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esy-install.js"
 
 let concurrency =
   (** TODO: handle more platforms, right now this is tested only on macOS and
@@ -153,7 +153,7 @@ let runCommandViaNode cfg name args =
     let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
     ChildProcess.run ~env cmd
   | Error _err ->
-    RunAsync.error "unable to find esy.js"
+    RunAsync.error "unable to find esy-install.js"
 
 let withBuildTaskByPath
     ~(info : SandboxInfo.t)
@@ -855,7 +855,7 @@ let () =
           let cmd = Cmd.(cmd %% Cmd.ofList args) in
           ChildProcess.run ~env:(esyEnvOverride cfg) cmd
         | Error _err ->
-          RunAsync.error "unable to find esy.js"
+          RunAsync.error "unable to find esy-install.js"
       in
       runAsyncCommand info f
     in
