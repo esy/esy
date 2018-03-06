@@ -1,13 +1,11 @@
 /node_modules
 /coverage
 /lib
-/dist
 /_export
 /_build
 /_release
 /bin/fastreplacestring.exe
 /bin/esyConfig.sh
-bin/esy
 .merlin
 npm-debug.log
 yarn-error.log
