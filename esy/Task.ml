@@ -50,7 +50,7 @@ type t = {
   pkg : Package.t;
 
   buildCommands : CommandList.t;
-  installCommands : CommandList.t option;
+  installCommands : CommandList.t;
 
   env : Environment.Closed.t;
   globalEnv : Environment.binding list;
@@ -631,16 +631,10 @@ let ofPackage
         "processing esy.build"
         (CommandList.render ~env ~scope:scopeForCommands pkg.buildCommands)
     in
-
-    let%bind installCommands = match pkg.installCommands with
-    | None -> Ok None
-    | commandList ->
-      let%bind installCommands =
-        Run.withContext
-          "processing esy.install"
-          (CommandList.render ~env ~scope:scopeForCommands commandList)
-      in
-      Ok (Some installCommands)
+    let%bind installCommands =
+      Run.withContext
+        "processing esy.install"
+        (CommandList.render ~env ~scope:scopeForCommands pkg.installCommands)
     in
 
     let task: t = {
@@ -754,10 +748,7 @@ let toBuildProtocol (task : task) =
         | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
       );
     build = task.buildCommands;
-    install = (match task.installCommands with
-        | Some commandList -> commandList
-        | None -> [["esy-installer"]]
-      );
+    install = task.installCommands;
     sourcePath = ConfigPath.toString task.paths.sourcePath;
     env = Environment.Closed.value task.env;
   }

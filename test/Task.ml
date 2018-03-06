@@ -76,12 +76,8 @@ module TestCommandExpr = struct
 
   let%test "#{self...} inside esy.install" =
     check (fun task ->
-      let installCommands = match task.installCommands with
-      | Some commandList -> commandList
-      | None -> []
-      in
       Task.CommandList.equal
-        installCommands
+        task.installCommands
         [["cp"; "./man"; "%store%/s/pkg-1.0.0-a96ad1bf/man"]]
     )
 
@@ -103,124 +99,4 @@ module TestCommandExpr = struct
       )
     )
 
-end
-
-module TestCommandUnspecifiedInstallExpr = struct
-  let dep = Package.{
-    id = "%dep%";
-    name = "dep";
-    version = "1.0.0";
-    dependencies = [];
-    buildCommands = None;
-    installCommands = None;
-    buildType = BuildType.InSource;
-    sourceType = SourceType.Immutable;
-    exportedEnv = [];
-    sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
-    resolution = Some "ok";
-  }
-
-  let pkg = Package.{
-    id = "%pkg%";
-    name = "pkg";
-    version = "1.0.0";
-    dependencies = [Dependency dep];
-    buildCommands = Some [
-      CommandList.Command.Unparsed "cp ./hello #{self.bin}";
-      CommandList.Command.Unparsed "cp ./hello2 #{pkg.bin}";
-    ];
-    installCommands = None;
-    buildType = BuildType.InSource;
-    sourceType = SourceType.Immutable;
-    exportedEnv = [];
-    sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
-    resolution = Some "ok";
-  }
-
-  let task = Task.ofPackage pkg
-
-  let check f =
-    match task with
-    | Ok task ->
-      f task
-    | Error err ->
-      print_endline (Run.formatError err);
-      false
-
-  let%test "default correctly resolved for unspecified esy.install" =
-    check (fun task ->
-      let protocol = Task.toBuildProtocol task in
-      Task.CommandList.equal
-        protocol.install
-        [["esy-installer"]]
-    )
-
-  let%test "unspecified esy.install is none" =
-    check (fun task ->
-      let isNone = match task.installCommands with
-      | Some _ -> false
-      | None -> true
-      in
-      isNone = true
-    )
-end
-
-module TestCommandEmptyInstallExpr = struct
-  let dep = Package.{
-    id = "%dep%";
-    name = "dep";
-    version = "1.0.0";
-    dependencies = [];
-    buildCommands = None;
-    installCommands = None;
-    buildType = BuildType.InSource;
-    sourceType = SourceType.Immutable;
-    exportedEnv = [];
-    sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
-    resolution = Some "ok";
-  }
-
-  let pkg = Package.{
-    id = "%pkg%";
-    name = "pkg";
-    version = "1.0.0";
-    dependencies = [Dependency dep];
-    buildCommands = Some [
-      CommandList.Command.Unparsed "cp ./hello #{self.bin}";
-      CommandList.Command.Unparsed "cp ./hello2 #{pkg.bin}";
-    ];
-    installCommands = Some [];
-    buildType = BuildType.InSource;
-    sourceType = SourceType.Immutable;
-    exportedEnv = [];
-    sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
-    resolution = Some "ok";
-  }
-
-  let task = Task.ofPackage pkg
-
-  let check f =
-    match task with
-    | Ok task ->
-      f task
-    | Error err ->
-      print_endline (Run.formatError err);
-      false
-
-  let%test "empty esy.install stays empty inside protocol" =
-    check (fun task ->
-      let protocol = Task.toBuildProtocol task in
-      Task.CommandList.equal
-        protocol.install
-        []
-    )
-
-  let%test "empty esy.install stays empty inside task" =
-    check (fun task ->
-      let isEmpty = match task.installCommands with
-      | Some [] -> true
-      | _ -> false
-      in
-      isEmpty = true
-    )
 end
