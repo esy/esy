@@ -23,3 +23,8 @@ val fold :
   -> init : 'a
   -> Path.t
   -> 'a RunAsync.t
+
+val copyFile : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
+val copyPath : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
+
+val rmPath : Path.t -> [`Removed | `NoSuchPath] RunAsync.t
