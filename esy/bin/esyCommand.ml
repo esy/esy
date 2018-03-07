@@ -3,21 +3,21 @@ open Esy
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
-let cwd = Sys.getcwd ()
+let cwd = Path.v (Sys.getcwd ())
 
 (** This is set by bash script wrapper currently *)
 let version =
   try Sys.getenv "ESY__VERSION"
   with Not_found -> "dev"
 
-let esyExportBuildCmd =
-  Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esyExportBuild"
-
 let esyImportBuildCmd =
   Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esyImportBuild"
 
 let esyJs =
   Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esy-install.js"
+
+let fastreplacestringCmd =
+  Cmd.resolveCmdRelativeToCurrentCmd "fastreplacestring/.bin/fastreplacestring.exe"
 
 let concurrency =
   (** TODO: handle more platforms, right now this is tested only on macOS and
@@ -52,7 +52,7 @@ let resolvedPathTerm =
       if Path.is_abs path then
         Ok path
       else
-        Ok Path.(v cwd // path |> normalize)
+        Ok Path.(cwd // path |> normalize)
     | err -> err
   in
   let print = Path.pp in
@@ -172,6 +172,33 @@ let withBuildTaskByPath
       | Some pkg -> f pkg
     end
   | None -> f info.task
+
+let rewritePrefix ~origPrefix ~destPrefix rootPath =
+  let open RunAsync.Syntax in
+  let%bind fastreplacestringCmd = RunAsync.liftOfRun (fastreplacestringCmd ()) in
+  let rewritePrefixInFile path =
+    let cmd = Bos.Cmd.(fastreplacestringCmd % p path % p origPrefix % p destPrefix) in
+    ChildProcess.run cmd
+  in
+  let rewriteTargetInSymlink path =
+    let%bind link = Fs.readlink path in
+    match Path.rem_prefix origPrefix link with
+    | Some basePath ->
+      let nextTargetPath = Path.append destPrefix basePath in
+      let%bind () = Fs.unlink path in
+      let%bind () = Fs.symlink ~source:nextTargetPath path in
+      return ()
+    | None -> return ()
+  in
+  let rewrite (path : Path.t) (stats : Unix.stats) =
+    match stats.st_kind with
+    | Unix.S_REG ->
+      rewritePrefixInFile path
+    | Unix.S_LNK ->
+      rewriteTargetInSymlink path
+    | _ -> return ()
+  in
+  Fs.traverse ~f:rewrite rootPath
 
 let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
@@ -725,6 +752,60 @@ let () =
     |> ListLabels.rev
   in
 
+  let exportBuild cfg buildPath =
+    let open RunAsync.Syntax in
+    let buildId = Path.basename buildPath in
+    let outputPath = Path.(cwd / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
+    let%bind origPrefix, destPrefix =
+      let%bind prevStorePrefix = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
+      let nextStorePrefix = String.make (String.length prevStorePrefix) '_' in
+      return (Path.v prevStorePrefix, Path.v nextStorePrefix)
+    in
+    let stagePath =
+      Path.(cfg.Config.storePath / "s" / buildId)
+    in
+    let%bind () =
+      let%bind _ = Fs.rmPath stagePath in
+      Fs.copyPath ~origPath:buildPath ~destPath:stagePath
+    in
+    let%bind () = rewritePrefix ~origPrefix ~destPrefix stagePath in
+    let%bind () = Fs.createDirectory (Path.parent outputPath) in
+    let%bind () =
+      ChildProcess.run Cmd.(
+        empty
+        % "tar"
+        % "-C" % p (Path.parent stagePath)
+        % "-cz"
+        % "-f" % p outputPath
+        % buildId
+      )
+    in
+    let%bind _ = Fs.rmPath stagePath in
+    return ()
+  in
+
+  let exportBuildCommand =
+    let doc = "Export build from the store" in
+    let info = Term.info "export-build" ~version ~doc ~sdocs ~exits in
+    let cmd cfg (buildPath : Path.t) () =
+      let open RunAsync.Syntax in
+      let f =
+        let%bind cfg = cfg in
+        exportBuild cfg buildPath
+      in
+      runAsyncCommand info f
+    in
+    let buildPathTerm =
+      let doc = "Path with builds." in
+      Arg.(
+        required
+        & pos 0  (some resolvedPathTerm) None
+        & info [] ~doc
+      )
+    in
+    Term.(ret (const cmd $ configTerm $ buildPathTerm $ setupLogTerm)), info
+  in
+
   let exportDependenciesCommand =
     let doc = "Export sandbox dependendencies as prebuilt artifacts" in
     let info = Term.info "export-dependencies" ~version ~doc ~sdocs ~exits in
@@ -735,21 +816,29 @@ let () =
         let%bind cfg = cfg in
         let%bind {SandboxInfo. task = rootTask; _} = SandboxInfo.ofConfig cfg in
 
-        let env = esyEnvOverride cfg in
-
         let tasks =
           rootTask
           |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
           |> List.filter (fun (task : Task.t) -> not (task.id = rootTask.id))
         in
 
+        let queue = LwtTaskQueue.create ~concurrency:8 () in
+
         let exportBuild (task : Task.t) =
-          match esyExportBuildCmd () with
-          | Ok cmd ->
-            let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
-            let cmd = Cmd.(cmd % p installPath) in
-            ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
-          | Error err -> Lwt.return (Error err)
+          let aux () =
+            let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" task.pkg.name task.pkg.version) in
+            let buildPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+            if%bind Fs.exists buildPath
+            then exportBuild cfg buildPath
+            else (
+              let msg =
+                Printf.sprintf
+                  "%s@%s was not built, run 'esy build' first"
+                  task.pkg.name
+                  task.pkg.version
+              in error msg
+            )
+          in LwtTaskQueue.submit queue aux
         in
 
         tasks
@@ -915,6 +1004,8 @@ let () =
     helpCommand;
     versionCommand;
 
+    exportBuildCommand;
+
     (* commands implemented via JS *)
     installCommand;
     makeCommandDelegatingToJsImpl
@@ -938,10 +1029,6 @@ let () =
       ~name:"import-build"
       ~doc:"Import build into the store"
       esyImportBuildCmd;
-    makeCommandDelegatingTo
-      ~name:"export-build"
-      ~doc:"Export build from the store"
-      esyExportBuildCmd;
 
     (* aliases *)
     makeAlias buildCommand "b";
