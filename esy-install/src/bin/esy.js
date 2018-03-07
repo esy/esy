@@ -145,7 +145,6 @@ type Command = {
 
 const commandsByName: {[name: string]: () => Command} = {
   init: () => require('./esyInit'),
-  build: () => require('./esyBuild'),
   release: () => require('./esyRelease'),
   config: () => require('./esyConfig'),
   install: () => require('./esyInstall'),
@@ -159,7 +158,6 @@ const commandsByName: {[name: string]: () => Command} = {
   'install-release': () => require('./esyInstallRelease'),
   'export-dependencies': () => require('./esyExportDependencies'),
   'import-dependencies': () => require('./esyImportDependencies'),
-  autoconf: () => require('./esyAutoconf'),
 };
 
 const options = {

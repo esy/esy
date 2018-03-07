@@ -41,13 +41,6 @@ export default async function esyRelease(
 
   const steps = createStepper(ctx);
 
-  steps.addStep('Building packages', async () => {
-    await Common.build(ctx, config, sandbox, {
-      buildRoot: !invocation.options.flags.dependenciesOnly,
-      buildDependencies: true,
-    });
-  });
-
   steps.addStep('Preparing release package', async () => {
     await fs.rmdir(releasePackagePath);
     await fs.mkdirp(releasePackagePath);
