@@ -9,6 +9,9 @@ val exists : Path.t -> bool RunAsync.t
 
 val unlink : Path.t -> unit RunAsync.t
 
+val readlink : Path.t -> Path.t RunAsync.t
+val symlink : source:Path.t -> Path.t -> unit RunAsync.t
+
 val stat : Path.t -> Unix.stats RunAsync.t
 
 val createDirectory : Path.t -> unit RunAsync.t
@@ -20,7 +23,13 @@ val fold :
   -> f : ('a -> Path.t -> Unix.stats -> 'a Lwt.t)
   -> init : 'a
   -> Path.t
-  -> 'a RunAsync.t
+  -> 'a Lwt.t
+
+val traverse :
+  ?skipTraverse : (Path.t -> bool)
+  -> f : (Path.t -> Lwt_unix.stats -> unit RunAsync.t)
+  -> Path.t
+  -> unit RunAsync.t
 
 val copyFile : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
 val copyPath : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
