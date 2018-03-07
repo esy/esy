@@ -71,6 +71,12 @@ let symlink ~source target =
   let%lwt () = Lwt_unix.symlink source target in
   RunAsync.return ()
 
+let rename ~source target =
+  let source = Path.to_string source in
+  let target = Path.to_string target in
+  let%lwt () = Lwt_unix.rename source target in
+  RunAsync.return ()
+
 let no _path = false
 
 let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =

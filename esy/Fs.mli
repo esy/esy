@@ -11,6 +11,7 @@ val unlink : Path.t -> unit RunAsync.t
 
 val readlink : Path.t -> Path.t RunAsync.t
 val symlink : source:Path.t -> Path.t -> unit RunAsync.t
+val rename : source:Path.t -> Path.t -> unit RunAsync.t
 
 val stat : Path.t -> Unix.stats RunAsync.t
 
