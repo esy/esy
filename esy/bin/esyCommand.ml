@@ -761,12 +761,11 @@ let () =
       let nextStorePrefix = String.make (String.length prevStorePrefix) '_' in
       return (Path.v prevStorePrefix, Path.v nextStorePrefix)
     in
-    let stagePath =
-      Path.(cfg.Config.storePath / "s" / buildId)
-    in
-    let%bind () =
-      let%bind _ = Fs.rmPath stagePath in
-      Fs.copyPath ~origPath:buildPath ~destPath:stagePath
+    let%bind stagePath =
+      let path = Path.(cfg.Config.storePath / "s" / buildId) in
+      let%bind _ = Fs.rmPath path in
+      let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
+      return path
     in
     let%bind () = rewritePrefix ~origPrefix ~destPrefix stagePath in
     let%bind () = Fs.createDirectory (Path.parent outputPath) in
@@ -848,6 +847,76 @@ let () =
       runAsyncCommand info f
     in
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+  in
+
+  let importBuild (cfg : Config.t) buildPath =
+    let open RunAsync.Syntax in
+    let buildId, kind =
+      if Path.has_ext "tar.gz" buildPath
+      then
+        (buildPath |> Path.rem_ext |> Path.rem_ext |> Path.basename, `Archive)
+      else
+        (buildPath |> Path.basename, `Dir)
+    in
+    let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
+    let outputPath = Path.(cfg.storePath / Config.storeInstallTree / buildId) in
+    if%bind Fs.exists outputPath
+    then (
+      let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
+      return ()
+    ) else
+      let importFromDir buildPath =
+        let%bind origPrefix =
+          let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
+          return (Path.v v)
+        in
+        let%bind () = rewritePrefix ~origPrefix ~destPrefix:cfg.storePath buildPath in
+        let%bind () = Fs.rename ~source:buildPath outputPath in
+        let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
+        return ()
+      in
+      match kind with
+      | `Dir ->
+        let%bind stagePath =
+          let path = Path.(cfg.Config.storePath / "s" / buildId) in
+          let%bind _ = Fs.rmPath path in
+          let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
+          return path
+        in
+        importFromDir stagePath
+      | `Archive ->
+        let stagePath = Path.(cfg.storePath / Config.storeStageTree / buildId) in
+        let%bind () =
+          let cmd = Cmd.(
+            empty
+            % "tar"
+            % "-C" % p (Path.parent stagePath)
+            % "-xz"
+            % "-f" % p buildPath
+          ) in
+          ChildProcess.run cmd
+        in
+        importFromDir stagePath
+  in
+
+  let importBuildCommand =
+    let doc = "Import build into the store" in
+    let info = Term.info "import-build" ~version ~doc ~sdocs ~exits in
+    let cmd cfg (buildPaths : Path.t list) () =
+      let open RunAsync.Syntax in
+      let f =
+        let%bind cfg = cfg in
+        let queue = LwtTaskQueue.create ~concurrency:8 () in
+        buildPaths
+        |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> importBuild cfg path))
+        |> RunAsync.waitAll
+      in
+      runAsyncCommand info f
+    in
+    let buildPathsTerm =
+      Arg.(non_empty & (pos_all resolvedPathTerm []) & (info [] ~docv:"BUILD"))
+    in
+    Term.(ret (const cmd $ configTerm $ buildPathsTerm $ setupLogTerm)), info
   in
 
   let importDependenciesCommand =
@@ -933,27 +1002,6 @@ let () =
     Term.(ret (const cmd $ const ())), info
   in
 
-  let makeCommandDelegatingTo ~name ~doc resolveCommand =
-    let info = Term.info name ~version ~doc ~sdocs ~exits in
-    let cmd args cfg () =
-      let f =
-        let open RunAsync.Syntax in
-        let%bind cfg = cfg in
-        match resolveCommand () with
-        | Ok cmd ->
-          let cmd = Cmd.(cmd %% Cmd.ofList args) in
-          ChildProcess.run ~env:(esyEnvOverride cfg) cmd
-        | Error _err ->
-          RunAsync.error "unable to find esy-install.js"
-      in
-      runAsyncCommand info f
-    in
-    let argTerm =
-      Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
-    in
-    Term.(ret (const cmd $ argTerm $ configTerm $ setupLogTerm)), info
-  in
-
   let makeCommandDelegatingToJsImpl ~name ~doc =
     let info = Term.info name ~version ~doc ~sdocs ~exits in
     let cmd args cfg () =
@@ -1005,6 +1053,7 @@ let () =
     versionCommand;
 
     exportBuildCommand;
+    importBuildCommand;
 
     (* commands implemented via JS *)
     installCommand;
@@ -1023,12 +1072,6 @@ let () =
     makeCommandDelegatingToJsImpl
       ~name:"import-opam"
       ~doc:"Produce esy package metadata from OPAM package metadata";
-
-    (* commands implemented via bash *)
-    makeCommandDelegatingTo
-      ~name:"import-build"
-      ~doc:"Import build into the store"
-      esyImportBuildCmd;
 
     (* aliases *)
     makeAlias buildCommand "b";
