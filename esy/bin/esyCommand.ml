@@ -181,7 +181,7 @@ let rewritePrefix ~origPrefix ~destPrefix rootPath =
     let%bind link = Fs.readlink path in
     match Path.rem_prefix origPrefix link with
     | Some basePath ->
-      let nextTargetPath = Path.append destPrefix basePath in
+      let nextTargetPath = Path.(destPrefix // basePath) in
       let%bind () = Fs.unlink path in
       let%bind () = Fs.symlink ~source:nextTargetPath path in
       return ()
@@ -901,10 +901,22 @@ let () =
   let importBuildCommand =
     let doc = "Import build into the store" in
     let info = Term.info "import-build" ~version ~doc ~sdocs ~exits in
-    let cmd cfg (buildPaths : Path.t list) () =
-      let open RunAsync.Syntax in
+    let cmd cfg fromPath (buildPaths : Path.t list) () =
       let f =
+        let open RunAsync.Syntax in
         let%bind cfg = cfg in
+        let%bind buildPaths = match fromPath with
+        | Some fromPath ->
+          let%bind lines = Fs.readFile fromPath in
+          return (
+            buildPaths @ (
+            lines
+            |> String.split_on_char '\n'
+            |> List.filter (fun line -> String.trim line <> "")
+            |> List.map (fun line -> Path.v line))
+          )
+        | None -> return buildPaths
+        in
         let queue = LwtTaskQueue.create ~concurrency:8 () in
         buildPaths
         |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> importBuild cfg path))
@@ -913,9 +925,16 @@ let () =
       runAsyncCommand info f
     in
     let buildPathsTerm =
-      Arg.(non_empty & (pos_all resolvedPathTerm []) & (info [] ~docv:"BUILD"))
+      Arg.(value & (pos_all resolvedPathTerm []) & (info [] ~docv:"BUILD"))
     in
-    Term.(ret (const cmd $ configTerm $ buildPathsTerm $ setupLogTerm)), info
+    let fromTerm =
+      Arg.(
+        value
+        & opt (some resolvedPathTerm) None
+        & info ["from"; "f"] ~docv:"FROM"
+      )
+    in
+    Term.(ret (const cmd $ configTerm $ fromTerm $ buildPathsTerm $ setupLogTerm)), info
   in
 
   let importDependenciesCommand =
@@ -1103,8 +1122,6 @@ let () =
    * (like --sandbox-path or --prefix-path) from working for these commands.
    * This should be fixed.
    *)
-  | Some "export-build"
-  | Some "import-build"
   | Some "init"
   | Some "release"
   | Some "import-opam"
