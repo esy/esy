@@ -60,22 +60,6 @@ let unlink (path : Path.t) =
   let%lwt () = Lwt_unix.unlink path in
   RunAsync.return ()
 
-let withTemporaryFile content f =
-  let path = Filename.temp_file "esy" "tmp" in
-
-  let%lwt () =
-    let writeContent oc =
-      let%lwt () = Lwt_io.write oc content in
-      let%lwt () = Lwt_io.flush oc in
-      Lwt.return ()
-    in
-    Lwt_io.with_file ~mode:Lwt_io.Output path writeContent
-  in
-
-  Lwt.finalize
-    (fun () -> f (Path.v path))
-    (fun () -> Lwt_unix.unlink path)
-
 let no _path = false
 
 let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
@@ -238,3 +222,29 @@ let rmPath path =
       RunAsync.return `NoSuchPath
     | Unix.Unix_error (error, _, _) ->
       RunAsync.error (Unix.error_message error)
+
+let withTempDir ?tempDir f =
+  let tempDir = match tempDir with
+  | Some tempDir -> tempDir
+  | None -> Filename.get_temp_dir_name ()
+  in
+  let path = Path.v (Filename.temp_file ~temp_dir:tempDir "esy" "tmp") in
+  Lwt.finalize
+    (fun () -> f path)
+    (fun () -> rmPathLwt path)
+
+let withTempFile content f =
+  let path = Filename.temp_file "esy" "tmp" in
+
+  let%lwt () =
+    let writeContent oc =
+      let%lwt () = Lwt_io.write oc content in
+      let%lwt () = Lwt_io.flush oc in
+      Lwt.return ()
+    in
+    Lwt_io.with_file ~mode:Lwt_io.Output path writeContent
+  in
+
+  Lwt.finalize
+    (fun () -> f (Path.v path))
+    (fun () -> Lwt_unix.unlink path)
