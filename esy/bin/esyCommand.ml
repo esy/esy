@@ -755,6 +755,7 @@ let () =
   let exportBuild cfg buildPath =
     let open RunAsync.Syntax in
     let buildId = Path.basename buildPath in
+    let%lwt () = Logs_lwt.app (fun m -> m "Export %s" buildId) in
     let outputPath = Path.(cwd / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
     let%bind origPrefix, destPrefix =
       let%bind prevStorePrefix = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
@@ -779,6 +780,7 @@ let () =
         % buildId
       )
     in
+    let%lwt () = Logs_lwt.app (fun m -> m "Export %s: done" buildId) in
     let%bind _ = Fs.rmPath stagePath in
     return ()
   in
