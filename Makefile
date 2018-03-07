@@ -94,10 +94,6 @@ RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
 	bin/esy-install.js \
-	bin/esyExportBuild \
-	bin/esyImportBuild \
-	bin/esyRuntime.sh \
-	bin/realpath.sh \
 	scripts/postinstall.sh \
 	package.json \
 	_build-darwin/default/esy-build-package/bin/esyBuildPackageCommand.exe \
