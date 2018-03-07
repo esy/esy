@@ -10,9 +10,6 @@ let version =
   try Sys.getenv "ESY__VERSION"
   with Not_found -> "dev"
 
-let esyImportBuildCmd =
-  Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esyImportBuild"
-
 let esyJs =
   Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esy-install.js"
 
@@ -939,18 +936,13 @@ let () =
         let pkgs =
           rootTask
           |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
-          |> List.filter (fun (task : Task.t) -> not (task.Task.pkg.id = rootTask.id))
+          |> List.filter (fun (task : Task.t) -> not (task.Task.id = rootTask.id))
         in
 
-        let env = esyEnvOverride cfg in
+        let queue = LwtTaskQueue.create ~concurrency:16 () in
 
         let importBuild (task : Task.t) =
-          match esyImportBuildCmd () with
-          | Ok cmd ->
-            let importBuildFromPath path =
-              let cmd = Cmd.(cmd % p path) in
-              ChildProcess.run ~env ~stdin:`Keep ~stdout:`Keep ~stderr:`Keep cmd
-            in
+          let aux () =
             let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
             if%bind Fs.exists installPath
             then return ()
@@ -958,15 +950,15 @@ let () =
               let pathDir = Path.(fromPath / task.id) in
               let pathTgz = Path.(fromPath / (task.id ^ ".tar.gz")) in
               if%bind Fs.exists pathDir
-              then importBuildFromPath pathDir
+              then importBuild cfg pathDir
               else if%bind Fs.exists pathTgz
-              then importBuildFromPath pathTgz
+              then importBuild cfg pathTgz
               else
                 let%lwt () =
                   Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" task.id)
                 in return ()
             )
-          | Error err -> Lwt.return (Error err)
+          in LwtTaskQueue.submit queue aux
         in
 
         pkgs
