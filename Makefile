@@ -110,9 +110,6 @@ build-release-copy-artifacts:
 	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 
-$(RELEASE_ROOT)/package.json:
-	@node ./scripts/generate-esy-install-package-json.js > $(@)
-
 $(RELEASE_ROOT)/_build-darwin/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy/bin/esyCommand.exe $(@)
