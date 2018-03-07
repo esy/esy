@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 0.1.8 @ preview
+
+  * Compile `esy` and `esy-build-package` commands using `ocamlopt`
+
+    This also solves the issues with freezes of esy invocation apparently.
+
+  * Reimplement `esy import-build` and `esy export-build` commands in OCaml.
+
+    This also allows to remove an entire bash runtime.
+
+  * Correctly resolve linked packages when running `esy build-shell` (and
+    others) command.
+
+  * Allow to augment `$PATH`, `$MAN_PATH` and `$OCAMLPATH` via
+    `"esy.exportedEnv"`.
+
+  * Add support for `"buildTimeDependencies"`.
+
+    Packages declared as `"buildTimeDependencies"` in `package.json` are only
+    added to the environment of their direct dependents. This allows to have
+    multiple package versions of the same package as buildTimeDependencies
+    within a single dependency graph.
+
+  * References `#{pkg-name.install}` now point to stage dir during build
+    (consistent with `#{self.install}`).
+
 ## 0.1.7 @ preview
 
   * `esy ls-libs` and `esy ls-modules` commands are implemented in Reason.
