@@ -78,7 +78,7 @@ let runTask
               else mtime
             )
           in
-          let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
+          let%lwt curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
           if curMtime > buildMtime
           then buildPackage ~buildOnly cfg task
           else return ()

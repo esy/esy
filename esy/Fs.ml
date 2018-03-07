@@ -60,6 +60,17 @@ let unlink (path : Path.t) =
   let%lwt () = Lwt_unix.unlink path in
   RunAsync.return ()
 
+let readlink (path : Path.t) =
+  let path = Path.to_string path in
+  let%lwt link = Lwt_unix.readlink path in
+  RunAsync.return (Path.v link)
+
+let symlink ~source target =
+  let source = Path.to_string source in
+  let target = Path.to_string target in
+  let%lwt () = Lwt_unix.symlink source target in
+  RunAsync.return ()
+
 let no _path = false
 
 let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
@@ -85,8 +96,11 @@ let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
       | _ -> f acc path stat
     )
   in
-  let%lwt v = visitPath init path
-  in RunAsync.return v
+  visitPath init path
+
+let traverse ?skipTraverse ~f path =
+  let f _ path stat = f path stat in
+  fold ?skipTraverse ~f ~init:(Run.return ()) path
 
 let copyStatLwt ~stat path =
   let path = Path.to_string path in
