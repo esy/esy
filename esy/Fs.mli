@@ -13,8 +13,6 @@ val stat : Path.t -> Unix.stats RunAsync.t
 
 val createDirectory : Path.t -> unit RunAsync.t
 
-val withTemporaryFile : string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
-
 val chmod : int -> Path.t -> unit RunAsync.t
 
 val fold :
@@ -28,3 +26,6 @@ val copyFile : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
 val copyPath : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
 
 val rmPath : Path.t -> [`Removed | `NoSuchPath] RunAsync.t
+
+val withTempDir : ?tempDir:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
+val withTempFile : string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
