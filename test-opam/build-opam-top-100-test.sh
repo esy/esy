@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export ESYCOMMAND="$PWD/../../bin/esy"
-source "./../../jest-bash-runner/runtime.sh"
+export ESYCOMMAND="$PWD/../bin/esy"
+source ../test-e2e/jest-bash-runner/runtime.sh
 
 doTest () {
   initFixture ./fixtures/opam-top-100
