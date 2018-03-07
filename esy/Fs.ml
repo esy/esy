@@ -92,7 +92,7 @@ let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
     then Lwt.return acc
     else (
       let spath = Path.to_string path in
-      let%lwt stat = Lwt_unix.stat spath in
+      let%lwt stat = Lwt_unix.lstat spath in
       match stat.Unix.st_kind with
       | Unix.S_DIR ->
         let%lwt dir = Lwt_unix.opendir spath in
