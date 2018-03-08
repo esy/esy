@@ -46,7 +46,7 @@
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/re": "^1.7.1",
-    "@esy-ocaml/reason": "^3.0.5",
+    "@esy-ocaml/reason": "^3.1.0",
     "fastreplacestring": "IwanKaramazow/FastReplaceString.git#0.0.4",
     "ocamlstripdebug": "andreypopp/ocamlstripdebug#de74dde"
   },
