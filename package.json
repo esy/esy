@@ -15,12 +15,11 @@
     "url": "git+https://github.com/esy/esy.git"
   },
   "bin": {
-    "esy": "./bin/esy"
+    "esy": "./_build/default/esy/bin/esyCommand.exe"
   },
   "files": [
     "bin/",
     "scripts/",
-    "_build-linux/",
-    "_build-darwin/"
+    "_build/"
   ]
 }

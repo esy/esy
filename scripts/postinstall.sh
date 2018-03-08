@@ -6,10 +6,14 @@ set -o pipefail
 
 case $(uname) in
   Darwin*)
-    cp -rf _build-darwin _build
+    (cd _build/default && \
+      mv esy/bin/esyCommand-darwin.exe esy/bin/esyCommand.exe && \
+      mv esy-build-package/bin/esyBuildPackageCommand-darwin.exe esy-build-package/bin/esyBuildPackageCommand.exe)
     ;;
   Linux*)
-    cp -rf _build-linux _build
+    (cd _build/default && \
+      mv esy/bin/esyCommand-linux.exe esy/bin/esyCommand.exe && \
+      mv esy-build-package/bin/esyBuildPackageCommand-linux.exe esy-build-package/bin/esyBuildPackageCommand.exe)
     ;;
   *)
     echo "Unsupported operating system $(uname), exiting...";

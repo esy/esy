@@ -98,10 +98,12 @@ RELEASE_FILES = \
 	bin/esy-install.js \
 	scripts/postinstall.sh \
 	package.json \
-	_build-darwin/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	_build-darwin/default/esy/bin/esyCommand.exe \
-	_build-linux/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	_build-linux/default/esy/bin/esyCommand.exe
+	_build/default/esy-build-package/bin/esyBuildPackageCommand-darwin.exe \
+	_build/default/esy/bin/esyCommand-darwin.exe \
+	_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe \
+	_build/default/esy/bin/esyCommand-linux.exe \
+	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
+	_build/default/esy/bin/esyCommand.exe
 
 build-release:
 	@$(MAKE) build
@@ -112,21 +114,29 @@ build-release-copy-artifacts:
 	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 
-$(RELEASE_ROOT)/_build-darwin/default/esy/bin/esyCommand.exe:
+$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand-darwin.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy/bin/esyCommand.exe $(@)
 
-$(RELEASE_ROOT)/_build-darwin/default/esy-build-package/bin/esyBuildPackageCommand.exe:
+$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-darwin.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
-$(RELEASE_ROOT)/_build-linux/default/esy/bin/esyCommand.exe:
+$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand-linux.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esyCommand.exe $(@)
 
-$(RELEASE_ROOT)/_build-linux/default/esy-build-package/bin/esyBuildPackageCommand.exe:
+$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esyBuildPackageCommand.exe $(@)
+
+$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
+	@mkdir -p $(@D)
+	@touch $(@)
+
+$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
+	@mkdir -p $(@D)
+	@touch $(@)
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
