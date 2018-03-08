@@ -98,7 +98,7 @@ let resolveCmdRelativeToCurrentCmd = req => {
       | None =>
         Std.Result.(
           {
-            let%bind currentFilename = Path.of_string(Sys.argv[0]);
+            let%bind currentFilename = Path.of_string(Sys.executable_name);
             let%bind currentFilename = realpath(currentFilename);
             let currentDirname = Path.parent(currentFilename);
             let cmd =
@@ -106,7 +106,14 @@ let resolveCmdRelativeToCurrentCmd = req => {
                 EsyBuildPackage.NodeResolution.resolve(req, currentDirname)
               ) {
               | Ok(Some(path)) => Ok(v(Path.to_string(path)))
-              | Ok(None) => Error(`Msg("unable to resolve " ++ req))
+              | Ok(None) =>
+                let msg =
+                  Printf.sprintf(
+                    "unable to resolve %s from %s",
+                    req,
+                    Path.to_string(currentDirname),
+                  );
+                Error(`Msg(msg));
               | Error(err) => Error(err)
               };
             cache := Some(cmd);
