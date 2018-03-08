@@ -62,6 +62,8 @@ build:
 build-dev:
 	@esy b jbuilder build -j 4 --dev $(TARGETS)
 
+refmt:
+	@find esy esy-build-package -name '*.re' | xargs -n1 esy refmt --in-place
 
 #
 # Test
