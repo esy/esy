@@ -4,7 +4,8 @@
  ((name esyCommand)
   (public_name esy)
   (package esy)
-  (preprocess (pps (lwt_ppx ppx_let)))
+  (preprocess (pps (lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std)))
+  (flags (:standard (-w -39)))
   (libraries (
               lwt
               lwt.unix
@@ -18,6 +19,7 @@
               fmt.tty
               str
               astring
+              ppx_deriving_yojson.runtime
               esy
               ))
   ))

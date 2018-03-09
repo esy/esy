@@ -3,51 +3,84 @@ open Esy
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
-let currentWorkingDir = Path.v (Sys.getcwd ())
-let currentExecutable = Path.v Sys.executable_name
+(**
+ * This module encapsulates info about esy runtime - its version, current
+ * working directory and so on.
+ *
+ * XXX: Probably needs to be merged with Config
+ *)
+module EsyRuntime = struct
 
-let resolveCmdRelativeToCurrentCmd req =
-  let open RunAsync.Syntax in
-  let%bind currentFilename = Fs.realpath currentExecutable in
-  let currentDirname = Path.parent currentFilename in
-  let%bind cmd =
-    match EsyBuildPackage.NodeResolution.resolve req currentDirname with
-    | Ok (Some path) -> return (Cmd.v (Path.to_string path))
-    | Ok (None) ->
+  let currentWorkingDir = Path.v (Sys.getcwd ())
+  let currentExecutable = Path.v Sys.executable_name
+
+  let resolve req =
+    let open RunAsync.Syntax in
+    let%bind currentFilename = Fs.realpath currentExecutable in
+    let currentDirname = Path.parent currentFilename in
+    let%bind cmd =
+      match EsyBuildPackage.NodeResolution.resolve req currentDirname with
+      | Ok (Some path) -> return path
+      | Ok (None) ->
+        let msg =
+          Printf.sprintf
+          "unable to resolve %s from %s"
+          req
+          (Path.to_string currentDirname)
+        in
+        RunAsync.error msg
+      | Error (`Msg err) -> RunAsync.error err
+    in return cmd
+
+  let resolveCommand req =
+    let open RunAsync.Syntax in
+    let%bind path = resolve req in
+    return (path |> Cmd.p |> Cmd.v)
+
+  let esyInstallJsCommand =
+    resolveCommand "../../../../bin/esy-install.js"
+
+  let fastreplacestringCommand =
+    resolveCommand "fastreplacestring/.bin/fastreplacestring.exe"
+
+  let esyBuildPackageCommand =
+    resolveCommand "../../esy-build-package/bin/esyBuildPackageCommand.exe"
+
+  module EsyPackageJson = struct
+    type t = {
+      version : string
+    } [@@deriving of_yojson { strict = false }]
+
+    let read () =
+      let pkgJson =
+        let open RunAsync.Syntax in
+        let%bind filename = resolve "../../../../package.json" in
+        let%bind data = Fs.readFile filename in
+        Lwt.return (Json.parseStringWith of_yojson data)
+      in Lwt_main.run pkgJson
+  end
+
+  (** This is set by bash script wrapper currently *)
+  let version =
+    match EsyPackageJson.read () with
+    | Ok pkgJson -> pkgJson.EsyPackageJson.version
+    | Error err ->
       let msg =
-        Printf.sprintf
-        "unable to resolve %s from %s"
-        req
-        (Path.to_string currentDirname)
-      in
-      RunAsync.error msg
-    | Error (`Msg err) -> RunAsync.error err
-  in return cmd
+        let err = Run.formatError err in
+        Printf.sprintf "invalid esy installation: cannot read package.json %s" err in
+      failwith msg
 
-(** This is set by bash script wrapper currently *)
-let version =
-  try Sys.getenv "ESY__VERSION"
-  with Not_found -> "dev"
-
-let esyInstallJsCommand =
-  resolveCmdRelativeToCurrentCmd "../../../../bin/esy-install.js"
-
-let fastreplacestringCommand =
-  resolveCmdRelativeToCurrentCmd "fastreplacestring/.bin/fastreplacestring.exe"
-
-let esyBuildPackageCommand =
-  resolveCmdRelativeToCurrentCmd "../../esy-build-package/bin/esyBuildPackageCommand.exe"
-
-let concurrency =
-  (** TODO: handle more platforms, right now this is tested only on macOS and
-   * Linux *)
-  let cmd = Bos.Cmd.(v "getconf" % "_NPROCESSORS_ONLN") in
-  match Bos.OS.Cmd.(run_out cmd |> to_string) with
-  | Ok out -> begin match out |> String.trim |> int_of_string_opt with
-      | Some n -> n
-      | None -> 1
-    end
-  | Error _ -> 1
+  let concurrency =
+    (** TODO: handle more platforms, right now this is tested only on macOS and
+    * Linux *)
+    let cmd = Bos.Cmd.(v "getconf" % "_NPROCESSORS_ONLN") in
+    match Bos.OS.Cmd.(run_out cmd |> to_string) with
+    | Ok out -> begin match out |> String.trim |> int_of_string_opt with
+        | Some n -> n
+        | None -> 1
+      end
+    | Error _ -> 1
+end
 
 let esyEnvOverride (cfg : Config.t) =
   let env = Astring.String.Map.(
@@ -71,7 +104,7 @@ let resolvedPathTerm =
       if Path.is_abs path then
         Ok path
       else
-        Ok Path.(currentWorkingDir // path |> normalize)
+        Ok Path.(EsyRuntime.currentWorkingDir // path |> normalize)
     | err -> err
   in
   let print = Path.pp in
@@ -120,14 +153,14 @@ let configTerm =
         let%bind rc = EsyRc.ofPath sandboxPath in
         return rc.EsyRc.prefixPath
     in
-    let%bind esyBuildPackageCommand = esyBuildPackageCommand in
-    let%bind fastreplacestringCommand = fastreplacestringCommand in
-    let%bind esyInstallJsCommand = esyInstallJsCommand in
+    let%bind esyBuildPackageCommand = EsyRuntime.esyBuildPackageCommand in
+    let%bind fastreplacestringCommand = EsyRuntime.fastreplacestringCommand in
+    let%bind esyInstallJsCommand = EsyRuntime.esyInstallJsCommand in
     Config.create
       ~esyInstallJsCommand
       ~esyBuildPackageCommand
       ~fastreplacestringCommand
-      ~esyVersion:version ~prefixPath sandboxPath
+      ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
@@ -174,7 +207,7 @@ let runCommandViaNode cfg name args =
   let open RunAsync.Syntax in
   let%bind cfg = cfg in
   let env = esyEnvOverride cfg in
-  match%lwt esyInstallJsCommand with
+  match%lwt EsyRuntime.esyInstallJsCommand with
   | Ok esyJs ->
     let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
     ChildProcess.run ~env cmd
@@ -245,7 +278,7 @@ let buildShell cfg packagePath =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
-    let%bind () = Build.buildDependencies ~concurrency cfg task in
+    let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
     match%bind PackageBuilder.buildShell cfg task with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
@@ -260,7 +293,7 @@ let buildPackage cfg packagePath =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
-    Build.build ~concurrency ~force:`ForRoot cfg task
+    Build.build ~concurrency:EsyRuntime.concurrency ~force:`ForRoot cfg task
   in withBuildTaskByPath ~info packagePath f
 
 let build ?(buildOnly=true) cfg command =
@@ -274,13 +307,13 @@ let build ?(buildOnly=true) cfg command =
   | [] ->
     let%bind () =
       Build.buildDependencies
-        ~concurrency
+        ~concurrency:EsyRuntime.concurrency
         ~force:`ForRoot
         cfg task
     in Build.buildPackage ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
   | command ->
-    let%bind () = Build.buildDependencies ~concurrency cfg task in
+    let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
     match%bind PackageBuilder.buildExec cfg task command with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
@@ -360,7 +393,7 @@ let makeExecCommand
 
   let%bind () =
     if checkIfDependenciesAreBuilt
-    then Build.buildDependencies ~concurrency cfg info.task
+    then Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg info.task
     else return ()
   in
 
@@ -591,8 +624,8 @@ let () =
     let work () =
       let%lwt () = match header with
         | `Standard -> begin match Cmdliner.Term.name info with
-            | "esy" -> Logs_lwt.app (fun m -> m "esy %s" version)
-            | name -> Logs_lwt.app (fun m -> m "esy %s %s" name version);
+            | "esy" -> Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version)
+            | name -> Logs_lwt.app (fun m -> m "esy %s %s" name EsyRuntime.version);
           end
         | `No -> Lwt.return ()
       in
@@ -605,7 +638,7 @@ let () =
 
   let defaultCommand =
     let doc = "package.json workflow for native development with Reason/OCaml" in
-    let info = Term.info "esy" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "esy" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg command () =
       runAsyncCommand ~header:`No info (devExec cfg command)
     in
@@ -617,7 +650,7 @@ let () =
 
   let buildPlanCommand =
     let doc = "Print build plan to stdout" in
-    let info = Term.info "build-plan" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "build-plan" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg packagePath () =
       runAsyncCommand ~header:`No info (buildPlan cfg packagePath)
     in
@@ -626,7 +659,7 @@ let () =
 
   let buildShellCommand =
     let doc = "Enter the build shell" in
-    let info = Term.info "build-shell" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "build-shell" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg packagePath () =
       runAsyncCommand info (buildShell cfg packagePath)
     in
@@ -635,7 +668,7 @@ let () =
 
   let buildPackageCommand =
     let doc = "Build specified package" in
-    let info = Term.info "build-package" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "build-package" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg packagePath () =
       runAsyncCommand info (buildPackage cfg packagePath)
     in
@@ -644,7 +677,7 @@ let () =
 
   let buildCommand =
     let doc = "Build entire sandbox" in
-    let info = Term.info "build" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "build" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg command () =
       let header = match command with
         | [] -> `Standard
@@ -660,7 +693,7 @@ let () =
 
   let buildEnvCommand =
     let doc = "Print build environment to stdout" in
-    let info = Term.info "build-env" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "build-env" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg asJson packagePath () =
       runAsyncCommand ~header:`No info (buildEnv cfg asJson packagePath)
     in
@@ -673,7 +706,7 @@ let () =
 
   let commandEnvCommand =
     let doc = "Print command environment to stdout" in
-    let info = Term.info "command-env" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "command-env" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg asJson packagePath () =
       runAsyncCommand ~header:`No info (commandEnv cfg asJson packagePath)
     in
@@ -686,7 +719,7 @@ let () =
 
   let sandboxEnvCommand =
     let doc = "Print install environment to stdout" in
-    let info = Term.info "sandbox-env" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "sandbox-env" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg asJson packagePath () =
       runAsyncCommand ~header:`No info (sandboxEnv cfg asJson packagePath)
     in
@@ -699,7 +732,7 @@ let () =
 
   let execCommand =
     let doc = "Execute command as if the package is installed" in
-    let info = Term.info "x" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "x" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg command () =
       runAsyncCommand ~header:`No info (exec cfg command)
     in
@@ -711,7 +744,7 @@ let () =
 
   let shellCommand =
     let doc = "Enter esy sandbox shell" in
-    let info = Term.info "shell" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "shell" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg () =
       runAsyncCommand ~header:`No info (devShell cfg)
     in
@@ -720,7 +753,7 @@ let () =
 
   let lsBuildsCommand =
     let doc = "Output a tree of packages in the sandbox along with their status" in
-    let info = Term.info "ls-builds" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "ls-builds" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd includeTransitive cfg () =
       runAsyncCommand info (lsBuilds ~includeTransitive cfg)
     in
@@ -733,7 +766,7 @@ let () =
 
   let lsLibsCommand =
     let doc = "Output a tree of packages along with the set of libraries made available by each package dependency." in
-    let info = Term.info "ls-libs" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "ls-libs" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd includeTransitive cfg () =
       runAsyncCommand info (lsLibs ~includeTransitive cfg)
     in
@@ -746,7 +779,7 @@ let () =
 
   let lsModulesCommand =
     let doc = "Output a tree of packages along with the set of libraries and modules made available by each package dependency." in
-    let info = Term.info "ls-modules" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "ls-modules" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd libs cfg () =
       runAsyncCommand info (lsModules ~libs cfg)
     in
@@ -781,7 +814,7 @@ let () =
     let open RunAsync.Syntax in
     let buildId = Path.basename buildPath in
     let%lwt () = Logs_lwt.app (fun m -> m "Export %s" buildId) in
-    let outputPath = Path.(currentWorkingDir / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
+    let outputPath = Path.(EsyRuntime.currentWorkingDir / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
     let%bind origPrefix, destPrefix =
       let%bind prevStorePrefix = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
       let nextStorePrefix = String.make (String.length prevStorePrefix) '_' in
@@ -812,7 +845,7 @@ let () =
 
   let exportBuildCommand =
     let doc = "Export build from the store" in
-    let info = Term.info "export-build" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "export-build" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg (buildPath : Path.t) () =
       let open RunAsync.Syntax in
       let f =
@@ -834,7 +867,7 @@ let () =
 
   let exportDependenciesCommand =
     let doc = "Export sandbox dependendencies as prebuilt artifacts" in
-    let info = Term.info "export-dependencies" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "export-dependencies" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg () =
       let f =
         let open RunAsync.Syntax in
@@ -928,7 +961,7 @@ let () =
 
   let importBuildCommand =
     let doc = "Import build into the store" in
-    let info = Term.info "import-build" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "import-build" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg fromPath (buildPaths : Path.t list) () =
       let f =
         let open RunAsync.Syntax in
@@ -967,7 +1000,7 @@ let () =
 
   let importDependenciesCommand =
     let doc = "Import sandbox dependencies" in
-    let info = Term.info "import-dependencies" ~version ~doc ~sdocs ~exits in
+    let info = Term.info "import-dependencies" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg fromPath () =
       let f =
         let open RunAsync.Syntax in
@@ -1027,7 +1060,7 @@ let () =
   in
 
   let helpCommand =
-    let info = Term.info "help" ~version ~doc:"Show this message and exit" ~sdocs ~exits in
+    let info = Term.info "help" ~version:EsyRuntime.version ~doc:"Show this message and exit" ~sdocs ~exits in
     let cmd () =
       `Help (`Auto, None)
     in
@@ -1035,16 +1068,16 @@ let () =
   in
 
   let versionCommand =
-    let info = Term.info "version" ~version ~doc:"Print esy version and exit" ~sdocs ~exits in
+    let info = Term.info "version" ~version:EsyRuntime.version ~doc:"Print esy version and exit" ~sdocs ~exits in
     let cmd () =
-      print_endline version;
+      print_endline EsyRuntime.version;
       `Ok ()
     in
     Term.(ret (const cmd $ const ())), info
   in
 
   let makeCommandDelegatingToJsImpl ~name ~doc =
-    let info = Term.info name ~version ~doc ~sdocs ~exits in
+    let info = Term.info name ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd args cfg () =
       let f = runCommandViaNode cfg name args in
       runAsyncCommand info f
@@ -1065,7 +1098,7 @@ let () =
     let term, info = command in
     let name = Term.name info in
     let doc = Printf.sprintf "An alias for $(b,%s) command" name in
-    term, Term.info alias ~version ~doc ~sdocs ~exits
+    term, Term.info alias ~version:EsyRuntime.version ~doc ~sdocs ~exits
   in
 
   let commands = [
