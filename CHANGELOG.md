@@ -10,6 +10,10 @@
 
     This also allows to remove an entire bash runtime.
 
+  * Fix an interminent deadlock resulted from an incorrect implementation of a
+    priority queue for lwt promises. The new implementation is based on
+    `Lwt_pool`.
+
   * Correctly resolve linked packages when running `esy build-shell` (and
     others) command.
 
