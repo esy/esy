@@ -4,7 +4,6 @@
  ((name Esy)
   (public_name esy)
   (preprocess (pps (lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std)))
-  (modules (:standard \ esyCommand))
   (flags (:standard (-w -39)))
   (libraries (
               lwt

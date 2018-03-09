@@ -214,10 +214,21 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/jbuilder@ >= 1.0.0-beta10", "@opam/jbuilder@ >= 1.0.0-beta12", "@opam/jbuilder@ >= 1.0.0-beta13", "@opam/jbuilder@ >= 1.0.0-beta7", "@opam/jbuilder@*", "@opam/jbuilder@^1.0.0-beta14", "@opam/jbuilder@^1.0.0-beta16":
+"@opam/jbuilder@ >= 1.0.0-beta10", "@opam/jbuilder@ >= 1.0.0-beta12", "@opam/jbuilder@ >= 1.0.0-beta7", "@opam/jbuilder@*", "@opam/jbuilder@^1.0.0-beta16":
   version "1.0.0-beta16"
   uid "851f0253157da21f055187b3f296fdae"
   resolved "@opam/jbuilder@1.0.0-beta16-268cea30119d82b294b8a8333019a3d6.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/ocamlfind" "*"
+  peerDependencies:
+    ocaml " >= 4.2.3000"
+
+"@opam/jbuilder@ >= 1.0.0-beta14", "@opam/jbuilder@^1.0.0-beta18":
+  version "1.0.0-beta18"
+  uid "281d8c71c86a42346d78ad4090b8b945"
+  resolved "@opam/jbuilder@1.0.0-beta18-281d8c71c86a42346d78ad4090b8b945.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
@@ -315,7 +326,7 @@
   peerDependencies:
     ocaml " >= 4.4.1000"
 
-"@opam/ocaml-migrate-parsetree@ >= 0.4.0", "@opam/ocaml-migrate-parsetree@*":
+"@opam/ocaml-migrate-parsetree@ >= 0.4.0", "@opam/ocaml-migrate-parsetree@ >= 1.0.0", "@opam/ocaml-migrate-parsetree@*":
   version "1.0.7"
   uid "8dd63da93ee2ed29313f5b50471c94ae"
   resolved "@opam/ocaml-migrate-parsetree@1.0.7-8dd63da93ee2ed29313f5b50471c94ae.tgz"

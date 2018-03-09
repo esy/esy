@@ -13,7 +13,6 @@
                     ppx_deriving.std
                     )
                ))
-  (modules (:standard \ esyBuildPackageCommand))
   (libraries (
               cmdliner
               yojson
