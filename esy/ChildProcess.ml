@@ -7,6 +7,15 @@ type env = [
   | `CustomEnv of Environment.Value.t
 ]
 
+let resolveCmdInEnv ~env prg =
+  let path =
+    let v = match Environment.Value.M.find_opt "PATH" env with
+      | Some v  -> v
+      | None -> ""
+    in
+    String.split_on_char ':' v
+  in Run.liftOfBosError (Cmd.resolveCmd path prg)
+
 let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
   let open RunAsync.Syntax in
 
@@ -31,7 +40,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
         let%bind prg =
           match resolveProgramInEnv, env with
           | true, Some env ->
-            Cmd.resolveCmdInEnv env prg
+            resolveCmdInEnv ~env prg
           | _ -> Ok prg
         in
         return (prg, Array.of_list (prg::args))
@@ -98,7 +107,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
         let%bind prg =
           match resolveProgramInEnv, env with
           | true, Some env ->
-            Cmd.resolveCmdInEnv env prg
+            resolveCmdInEnv ~env prg
           | _ -> Ok prg
         in
         return (prg, Array.of_list (prg::args))

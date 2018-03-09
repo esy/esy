@@ -55,6 +55,15 @@ let stat (path : Path.t) =
   let%lwt stats = Lwt_unix.stat path in
   RunAsync.return stats
 
+let lstat (path : Path.t) =
+  let path = Path.to_string path in
+  try%lwt
+    let%lwt stats = Lwt_unix.lstat path in
+    RunAsync.return stats
+  with
+  | Unix.Unix_error (error, _, _) ->
+    RunAsync.error (Unix.error_message error)
+
 let unlink (path : Path.t) =
   let path = Path.to_string path in
   let%lwt () = Lwt_unix.unlink path in
@@ -268,3 +277,30 @@ let withTempFile content f =
   Lwt.finalize
     (fun () -> f (Path.v path))
     (fun () -> Lwt_unix.unlink path)
+
+let rec realpath path =
+  let open RunAsync.Syntax in
+  let path =
+    if Fpath.is_abs path
+    then path
+    else
+      let cwd = Path.v (Sys.getcwd ()) in
+      path |> Fpath.append cwd  |> Fpath.normalize
+  in
+  let isSymlinkAndExists path =
+    match%lwt lstat path with
+    | Ok {Unix.st_kind = Unix.S_LNK; _} -> return true
+    | _ -> return false
+  in
+  if Fpath.is_root path
+  then return path
+  else
+    let%bind isSymlink = isSymlinkAndExists path in
+    if isSymlink
+    then
+      let%bind target = readlink path in
+      realpath (target |> Fpath.append(Fpath.parent(path)) |> Fpath.normalize)
+    else
+      let parentPath = path |> Fpath.parent |> Fpath.rem_empty_seg in
+      let%bind parentPath = realpath parentPath  in
+      return Path.(parentPath / Fpath.basename path)

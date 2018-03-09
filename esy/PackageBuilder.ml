@@ -1,5 +1,3 @@
-let esyBuildPackage =
-  Cmd.resolveCmdRelativeToCurrentCmd "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
 let run
     ?(stdin=`Null)
@@ -19,9 +17,8 @@ let run
   let runProcess buildJsonFilename =
     let%bind command = RunAsync.liftOfRun (
       let open Run.Syntax in
-      let%bind esyBuildPackage = esyBuildPackage () in
       return Cmd.(
-        esyBuildPackage
+        cfg.esyBuildPackageCommand
         % action
         % "--prefix-path" % p cfg.prefixPath
         % "--sandbox-path" % p cfg.sandboxPath

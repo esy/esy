@@ -13,6 +13,8 @@ val readlink : Path.t -> Path.t RunAsync.t
 val symlink : source:Path.t -> Path.t -> unit RunAsync.t
 val rename : source:Path.t -> Path.t -> unit RunAsync.t
 
+val realpath : Path.t -> Path.t RunAsync.t
+
 val stat : Path.t -> Unix.stats RunAsync.t
 
 val createDirectory : Path.t -> unit RunAsync.t

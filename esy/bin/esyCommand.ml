@@ -3,18 +3,40 @@ open Esy
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
-let cwd = Path.v (Sys.getcwd ())
+let currentWorkingDir = Path.v (Sys.getcwd ())
+let currentExecutable = Path.v Sys.executable_name
+
+let resolveCmdRelativeToCurrentCmd req =
+  let open RunAsync.Syntax in
+  let%bind currentFilename = Fs.realpath currentExecutable in
+  let currentDirname = Path.parent currentFilename in
+  let%bind cmd =
+    match EsyBuildPackage.NodeResolution.resolve req currentDirname with
+    | Ok (Some path) -> return (Cmd.v (Path.to_string path))
+    | Ok (None) ->
+      let msg =
+        Printf.sprintf
+        "unable to resolve %s from %s"
+        req
+        (Path.to_string currentDirname)
+      in
+      RunAsync.error msg
+    | Error (`Msg err) -> RunAsync.error err
+  in return cmd
 
 (** This is set by bash script wrapper currently *)
 let version =
   try Sys.getenv "ESY__VERSION"
   with Not_found -> "dev"
 
-let esyJs =
-  Cmd.resolveCmdRelativeToCurrentCmd "../../../../bin/esy-install.js"
+let esyInstallJsCommand =
+  resolveCmdRelativeToCurrentCmd "../../../../bin/esy-install.js"
 
-let fastreplacestringCmd =
-  Cmd.resolveCmdRelativeToCurrentCmd "fastreplacestring/.bin/fastreplacestring.exe"
+let fastreplacestringCommand =
+  resolveCmdRelativeToCurrentCmd "fastreplacestring/.bin/fastreplacestring.exe"
+
+let esyBuildPackageCommand =
+  resolveCmdRelativeToCurrentCmd "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
 let concurrency =
   (** TODO: handle more platforms, right now this is tested only on macOS and
@@ -49,7 +71,7 @@ let resolvedPathTerm =
       if Path.is_abs path then
         Ok path
       else
-        Ok Path.(cwd // path |> normalize)
+        Ok Path.(currentWorkingDir // path |> normalize)
     | err -> err
   in
   let print = Path.pp in
@@ -98,7 +120,14 @@ let configTerm =
         let%bind rc = EsyRc.ofPath sandboxPath in
         return rc.EsyRc.prefixPath
     in
-    Config.create ~esyVersion:version ~prefixPath sandboxPath
+    let%bind esyBuildPackageCommand = esyBuildPackageCommand in
+    let%bind fastreplacestringCommand = fastreplacestringCommand in
+    let%bind esyInstallJsCommand = esyInstallJsCommand in
+    Config.create
+      ~esyInstallJsCommand
+      ~esyBuildPackageCommand
+      ~fastreplacestringCommand
+      ~esyVersion:version ~prefixPath sandboxPath
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
@@ -145,7 +174,7 @@ let runCommandViaNode cfg name args =
   let open RunAsync.Syntax in
   let%bind cfg = cfg in
   let env = esyEnvOverride cfg in
-  match esyJs () with
+  match%lwt esyInstallJsCommand with
   | Ok esyJs ->
     let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
     ChildProcess.run ~env cmd
@@ -170,11 +199,10 @@ let withBuildTaskByPath
     end
   | None -> f info.task
 
-let rewritePrefix ~origPrefix ~destPrefix rootPath =
+let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
   let open RunAsync.Syntax in
-  let%bind fastreplacestringCmd = RunAsync.liftOfRun (fastreplacestringCmd ()) in
   let rewritePrefixInFile path =
-    let cmd = Bos.Cmd.(fastreplacestringCmd % p path % p origPrefix % p destPrefix) in
+    let cmd = Bos.Cmd.(cfg.fastreplacestringCommand % p path % p origPrefix % p destPrefix) in
     ChildProcess.run cmd
   in
   let rewriteTargetInSymlink path =
@@ -753,7 +781,7 @@ let () =
     let open RunAsync.Syntax in
     let buildId = Path.basename buildPath in
     let%lwt () = Logs_lwt.app (fun m -> m "Export %s" buildId) in
-    let outputPath = Path.(cwd / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
+    let outputPath = Path.(currentWorkingDir / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
     let%bind origPrefix, destPrefix =
       let%bind prevStorePrefix = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
       let nextStorePrefix = String.make (String.length prevStorePrefix) '_' in
@@ -765,7 +793,7 @@ let () =
       let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
       return path
     in
-    let%bind () = rewritePrefix ~origPrefix ~destPrefix stagePath in
+    let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
     let%bind () = Fs.createDirectory (Path.parent outputPath) in
     let%bind () =
       ChildProcess.run Cmd.(
@@ -869,7 +897,7 @@ let () =
           let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
           return (Path.v v)
         in
-        let%bind () = rewritePrefix ~origPrefix ~destPrefix:cfg.storePath buildPath in
+        let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.storePath buildPath in
         let%bind () = Fs.rename ~source:buildPath outputPath in
         let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
         return ()

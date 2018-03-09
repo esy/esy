@@ -9,6 +9,9 @@ type t = {
   prefixPath : Path.t;
   storePath : Path.t;
   localStorePath : Path.t;
+  fastreplacestringCommand : Cmd.t;
+  esyBuildPackageCommand : Cmd.t;
+  esyInstallJsCommand : Cmd.t;
 }
 
 type config = t
@@ -50,7 +53,12 @@ let initStore (path: Path.t) =
   let%bind _ = Bos.OS.Dir.create(Path.(path / "s")) in
   Ok ()
 
-let create ~esyVersion ~prefixPath (sandboxPath : Path.t) =
+let create
+  ~fastreplacestringCommand
+  ~esyBuildPackageCommand
+  ~esyInstallJsCommand
+  ~esyVersion
+  ~prefixPath (sandboxPath : Path.t) =
   let value =
     let module Let_syntax = Result.Let_syntax in
 
@@ -90,6 +98,9 @@ let create ~esyVersion ~prefixPath (sandboxPath : Path.t) =
       storePath;
       sandboxPath;
       localStorePath;
+      fastreplacestringCommand;
+      esyBuildPackageCommand;
+      esyInstallJsCommand;
     }
   in
   value |> Run.liftOfBosError |> RunAsync.liftOfRun
