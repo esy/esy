@@ -25,17 +25,16 @@ documentation refer to [esy.sh][] documentation site.
 
 ## Repository structure
 
-- `src` — source code for core esy
-- `bin` - bash executable wrappers and utilities
-    - `bin/esy` — the entry point of `esy` command
-- `esy-core/esy-build-package` — source code for `esy-build-package` command
-- `esy-core/esy` — source code for `esy` core commands
+- `esy-build-package` — source code for `esy-build-package` command
+- `esy` — source code for `esy` core commands
 - `esy-install` — source code for `esy install`, `esy add` and other yarn-based
-  command, this is a submodule which points to `esy/esy-install` repo, a fork of
-  `yarn`.
-- `merlin` — submodule which points to a development version of Merlin, this is
-  used by `esy-core` source code.
-- `__tests__` — integration tests for `esy`
+  command.
+  - `esy-install/esy-install` — this is a submodule which points to
+    `esy/esy-install` repo, a fork of `yarn`.
+- `test` — unit tests
+- `test-e2e` — integration tests for `esy`
+- `test-opam` — "OPAM top 100 packages" test suite
+- `linux-build` — Docker based macOS to Linux cross compilation infra
 
 ## Workflow
 
@@ -60,7 +59,7 @@ to see the description of development workflow.
 ```
 % make build-release
 % npm remove -g esy
-% npm install -g dist
+% npm install -g _release
 ```
 
 Now you may run `esy` commands using your local version of `esy`.
