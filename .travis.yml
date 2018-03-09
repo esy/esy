@@ -5,9 +5,8 @@ os:
 node_js:
   - "8"
   - "6"
-before_install:
-  - curl -o- -L https://yarnpkg.com/install.sh | bash
 install:
+  - travis_retry npm install -g yarn
   - travis_retry npm install -g esy@latest
   - travis_wait travis_retry make bootstrap
 script:
