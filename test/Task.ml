@@ -7,6 +7,9 @@ let cfg = {
   prefixPath = Path.v "/tmp/__prefix__";
   storePath = Path.v "/tmp/__store__";
   localStorePath = Path.v "/tmp/__local_store__";
+  fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
+  esyBuildPackageCommand = Cmd.v "esy-build-package";
+  esyInstallJsCommand = Cmd.v "esy-install.js";
 }
 
 module TestCommandExpr = struct
