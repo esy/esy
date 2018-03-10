@@ -293,9 +293,9 @@ let ofPackage
         let dependencies = (DevDependency task)::dependencies in
         let seen = Package.DependencySet.add dep seen in
         return (seen, dependencies)
-    | Package.InvalidDependency _ ->
-      (** TODO: handle this *)
-      failwith "invalid dependency"
+    | Package.InvalidDependency { pkgName; _ } ->
+      let msg = Printf.sprintf "missing dependency %s" pkgName in
+      Run.error msg
 
   and directDependenciesOf (pkg : Package.t) =
     let seen = Package.DependencySet.empty in
