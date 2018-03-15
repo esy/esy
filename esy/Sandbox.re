@@ -177,6 +177,7 @@ let ofDir = (cfg: Config.t) => {
           buildType: esy.buildsInSource,
           sourceType,
           exportedEnv: esy.exportedEnv,
+          sandboxEnv: esy.sandboxEnv,
           sourcePath: ConfigPath.ofPath(cfg, sourcePath),
           resolution: manifest._resolved,
         };
