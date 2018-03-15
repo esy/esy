@@ -53,6 +53,34 @@ module CommandList = struct
 end
 
 (**
+ * Environment for the entire sandbox as specified in "esy.sandboxEnv".
+ *)
+module SandboxEnv = struct
+
+  type item = {
+    name : string;
+    value : string;
+  }
+  [@@deriving (show, eq, ord)]
+
+  type t =
+    item list
+    [@@deriving (show, eq, ord)]
+
+  let of_yojson = function
+    | `Assoc items ->
+      let open Result in
+      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
+      | `String value ->
+        Ok ({name = k; value;}::items)
+      | _ -> Error "expected string"
+      in
+      let%bind items = listFoldLeft ~f ~init:[] items in
+      Ok (List.rev items)
+    | _ -> Error "expected an object"
+end
+
+(**
  * Environment exported from a package as specified in "esy.exportedEnv".
  *)
 module ExportedEnv = struct
@@ -132,6 +160,7 @@ module EsyManifest = struct
     install: (CommandList.t [@default None]);
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default []]);
+    sandboxEnv: (SandboxEnv.t [@default []]);
   } [@@deriving (show, of_yojson { strict = false })]
 
   let empty = {
@@ -139,6 +168,7 @@ module EsyManifest = struct
     install = None;
     buildsInSource = BuildType.OutOfSource;
     exportedEnv = [];
+    sandboxEnv = [];
   }
 end
 
@@ -200,6 +230,7 @@ type t = {
   buildType : BuildType.t;
   sourceType : SourceType.t;
   exportedEnv : ExportedEnv.t;
+  sandboxEnv : SandboxEnv.t;
   sourcePath : Config.ConfigPath.t;
   resolution : string option;
 }

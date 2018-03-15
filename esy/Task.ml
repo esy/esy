@@ -585,6 +585,14 @@ let ofPackage
           };
         ] in
 
+      let sandboxEnv = rootPkg.sandboxEnv |> ListLabels.map ~f:(fun (Package.SandboxEnv. {name; value;}) ->
+        Environment.{
+          name;
+          value = Value value;
+          origin = None;
+        }
+      ) in
+
       let finalEnv = Environment.(
           let v = [
             {
@@ -617,7 +625,7 @@ let ofPackage
           ::ocamlfindLdconf
           ::ocamlfindCommands
           ::(addTaskEnvBindings pkg paths (localEnv @ globalEnv @ localEnvOfDeps @
-                                        globalEnvOfAllDeps @ initEnv)))) |> List.rev
+                                        globalEnvOfAllDeps @ sandboxEnv @ initEnv)))) |> List.rev
     in
 
     let%bind env =
@@ -699,6 +707,7 @@ let sandboxEnv (pkg : Package.t) =
     buildType = Package.BuildType.OutOfSource;
     sourceType = Package.SourceType.Root;
     exportedEnv = [];
+    sandboxEnv = pkg.sandboxEnv;
     sourcePath = pkg.sourcePath;
     resolution = None;
   } in
