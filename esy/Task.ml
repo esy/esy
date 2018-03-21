@@ -109,6 +109,7 @@ let safePackageName =
   in make
 
 let buildId
+  (rootPkg : Package.t)
   (pkg : Package.t)
   (dependencies : dependency list) =
   let digest acc update = Digest.string (acc ^ "--" ^ update) in
@@ -119,6 +120,7 @@ let buildId
       Package.CommandList.show pkg.buildCommands;
       Package.CommandList.show pkg.installCommands;
       Package.BuildType.show pkg.buildType;
+      Package.SandboxEnv.show rootPkg.sandboxEnv;
       (match pkg.resolution with
        | Some resolved -> resolved
        | None -> "")
@@ -362,7 +364,7 @@ let ofPackage
       |> uniqueTasksOfDependencies
     in
 
-    let id = buildId pkg dependencies in
+    let id = buildId rootPkg pkg dependencies in
 
     let paths =
       let storePath = match pkg.sourceType with
