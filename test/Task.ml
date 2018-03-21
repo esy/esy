@@ -38,6 +38,7 @@ module TestCommandExpr = struct
         scope = Local;
       }
     ];
+    sandboxEnv = [];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
@@ -55,6 +56,7 @@ module TestCommandExpr = struct
     buildType = BuildType.InSource;
     sourceType = SourceType.Immutable;
     exportedEnv = [];
+    sandboxEnv = [];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
