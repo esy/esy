@@ -95,6 +95,14 @@ let current =
   |> Array.to_list
   |> List.filter filterFunctions
 
+let ofSandboxEnv =
+  let toEnvVar (Package.SandboxEnv. {name; value}) = {
+    name;
+    value = Value value;
+    origin = None;
+  } in
+  ListLabels.map ~f:toEnvVar
+
 module Value = struct
 
   (*

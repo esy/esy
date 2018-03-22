@@ -18,5 +18,11 @@
   },
   "dependencies": {
     "dep": "*"
+  },
+  "buildTimeDependencies": {
+    "dep2": "*"
+  },
+  "devDependencies": {
+    "dep3": "*"
   }
 }

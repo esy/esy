@@ -281,7 +281,7 @@ let ofPackage
       else
         if includeBuildTimeDependencies
         then
-          let%bind task = taskOfPackageCached depPkg in
+          let%bind task = taskOfPackageCached ~isRuntimeDep:false depPkg in
           let dependencies = (BuildTimeDependency task)::dependencies in
           let seen = Package.DependencySet.add dep seen in
           return (seen, dependencies)
@@ -291,7 +291,7 @@ let ofPackage
       if Package.DependencySet.mem dep seen
       then return (seen, dependencies)
       else
-        let%bind task = taskOfPackageCached depPkg in
+        let%bind task = taskOfPackageCached ~isRuntimeDep:false depPkg in
         let dependencies = (DevDependency task)::dependencies in
         let seen = Package.DependencySet.add dep seen in
         return (seen, dependencies)
@@ -340,7 +340,7 @@ let ofPackage
     in
     List.rev dependencies
 
-  and taskOfPackage (pkg : Package.t) =
+  and taskOfPackage ?(isRuntimeDep: bool = true) (pkg : Package.t) =
 
     let isRoot = pkg.id = rootPkg.id in
 
@@ -587,13 +587,11 @@ let ofPackage
           };
         ] in
 
-      let sandboxEnv = rootPkg.sandboxEnv |> ListLabels.map ~f:(fun (Package.SandboxEnv. {name; value;}) ->
-        Environment.{
-          name;
-          value = Value value;
-          origin = None;
-        }
-      ) in
+      let sandboxEnv =
+        if isRuntimeDep = true then
+          rootPkg.sandboxEnv |> Environment.ofSandboxEnv
+        else []
+      in
 
       let finalEnv = Environment.(
           let v = [
@@ -663,8 +661,8 @@ let ofPackage
 
     return task
 
-  and taskOfPackageCached (pkg : Package.t) =
-    let v = cache pkg.id (fun () -> taskOfPackage pkg) in
+  and taskOfPackageCached ?(isRuntimeDep: bool = true) (pkg : Package.t) =
+    let v = cache pkg.id (fun () -> taskOfPackage ~isRuntimeDep pkg) in
     let context =
       Printf.sprintf
         "processing package: %s@%s"
