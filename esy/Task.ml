@@ -57,6 +57,7 @@ type t = {
   localEnv : Environment.binding list;
   paths : paths;
 
+  toolchains : Toolchain.t list;
   dependencies : dependency list;
 }
 [@@deriving (show, eq, ord)]
@@ -542,28 +543,6 @@ let ofPackage
         |> List.rev
       in
 
-      (* Configure environment for ocamlfind.
-       * These vars can be used instead of having findlib.conf emitted.
-      *)
-
-      let ocamlfindDestdir = Environment.{
-          origin = None;
-          name = "OCAMLFIND_DESTDIR";
-          value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
-        } in
-
-      let ocamlfindLdconf = Environment.{
-          origin = None;
-          name = "OCAMLFIND_LDCONF";
-          value = Value "ignore";
-        } in
-
-      let ocamlfindCommands = Environment.{
-          origin = None;
-          name = "OCAMLFIND_COMMANDS";
-          value = Value "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
-        } in
-
       let initEnv = Environment.[
           {
             name = "TERM";
@@ -621,11 +600,11 @@ let ofPackage
         ) in
 
       (finalEnv @ (
-          ocamlfindDestdir
-          ::ocamlfindLdconf
-          ::ocamlfindCommands
-          ::(addTaskEnvBindings pkg paths (localEnv @ globalEnv @ localEnvOfDeps @
-                                        globalEnvOfAllDeps @ sandboxEnv @ initEnv)))) |> List.rev
+        (addTaskEnvBindings
+            pkg
+            paths
+            (localEnv @ globalEnv @ localEnvOfDeps @ globalEnvOfAllDeps @ sandboxEnv @ initEnv)
+        ))) |> List.rev
     in
 
     let%bind env =
@@ -645,6 +624,49 @@ let ofPackage
         (CommandList.render ~env ~scope:scopeForCommands pkg.installCommands)
     in
 
+    let findTask name = dependenciesTasks
+      |> List.find_opt (fun (dep_task: task) -> dep_task.pkg.name = name)
+    in
+
+    (* Configuring ocamlfind toolchains.
+     *
+     * TODO: Host and target compilers are temporarily
+     * hard-coded, we need a better way to collect toolchains.
+     *)
+    let toolchains = if Toolchain.isCompiler pkg then [] else begin
+      let host = (findTask "ocaml", findTask "@opam/ocamlfind") |> function
+      | Some ocaml, Some ocamlfind ->
+        let toolchain = Toolchain.(Ocamlfind (Native, {
+          path = ConfigPath.(ocamlfind.paths.installPath / "lib" |> toString);
+          destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
+          stdlib = ConfigPath.(ocaml.paths.installPath / "lib" / "ocaml" |> toString);
+          ldconf = "ignore";
+          commands = ConfigPath.(ocaml.paths.installPath / "bin") |> ocamlfindCommands;
+        }))
+        in
+        Some toolchain
+      | _ -> None
+      in
+
+      let target = (findTask "@esy-cross/ocaml-ios64") |> function
+      | Some ios ->
+        let sysroot = ConfigPath.(ios.paths.installPath / "ios-sysroot") in
+        let toolchain = Toolchain.(Ocamlfind (Target "ios", {
+          path = ConfigPath.(sysroot / "lib" |> toString);
+          destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
+          stdlib = ConfigPath.(sysroot / "lib" / "ocaml" |> toString);
+          ldconf = "ignore";
+          commands = ConfigPath.(sysroot / "bin") |> ocamlfindCommands;
+        }))
+        in
+        Some toolchain
+      | None -> None
+      in
+
+      List.filterNone [host; target]
+    end
+    in
+
     let task: t = {
       id;
       pkg;
@@ -656,6 +678,7 @@ let ofPackage
       localEnv;
       paths;
 
+      toolchains;
       dependencies;
     } in
 
