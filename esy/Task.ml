@@ -518,15 +518,8 @@ let ofPackage
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
               Value (value ^ ":$MAN_PATH")
-          }
-          and ocamlpath = Environment.{
-            origin = Some task.pkg;
-            name = "OCAMLPATH";
-            value =
-              let value = ConfigPath.(task.paths.installPath / "lib" |> toString) in
-              Value (value ^ ":$OCAMLPATH")
           } in
-          path::manPath::ocamlpath::task.globalEnv
+          path::manPath::task.globalEnv
         in
         allDependenciesTasks
         |> List.map getGlobalEnvForTask
@@ -628,27 +621,36 @@ let ofPackage
       |> List.find_opt (fun (dep_task: task) -> dep_task.pkg.name = name)
     in
 
+    let libPaths tasks =
+      let libPathForTask task = ConfigPath.(task.paths.installPath / "lib" |> toString) in
+      let sep = Environment.PathLike.sep "OCAMLPATH" in
+      tasks
+      |> List.map libPathForTask
+      |> String.concat sep
+    in
+
     (* Configuring ocamlfind toolchains.
      *
      * TODO: Host and target compilers are temporarily
      * hard-coded, we need a better way to collect toolchains.
      *)
     let toolchains = if Toolchain.isCompiler pkg then [] else begin
-      let host = (findTask "ocaml", findTask "@opam/ocamlfind") |> function
-      | Some ocaml, Some ocamlfind ->
+      let host = findTask "ocaml" |> function
+      | Some ocaml ->
+        let sysroot = ocaml.paths.installPath in
         let toolchain = Toolchain.(Ocamlfind (Native, {
-          path = ConfigPath.(ocamlfind.paths.installPath / "lib" |> toString);
+          path = libPaths allDependenciesTasks;
           destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
-          stdlib = ConfigPath.(ocaml.paths.installPath / "lib" / "ocaml" |> toString);
+          stdlib = ConfigPath.(sysroot / "lib" / "ocaml" |> toString);
           ldconf = "ignore";
-          commands = ConfigPath.(ocaml.paths.installPath / "bin") |> ocamlfindCommands;
+          commands = ConfigPath.(sysroot / "bin") |> ocamlfindCommands;
         }))
         in
         Some toolchain
-      | _ -> None
+      | None -> None
       in
 
-      let target = (findTask "@esy-cross/ocaml-ios64") |> function
+      let target = findTask "@esy-cross/ocaml-ios64" |> function
       | Some ios ->
         let sysroot = ConfigPath.(ios.paths.installPath / "ios-sysroot") in
         let toolchain = Toolchain.(Ocamlfind (Target "ios", {
