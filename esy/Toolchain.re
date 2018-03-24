@@ -37,3 +37,35 @@ let ocamlfindCommands = prefix =>
     "ocamllex",
   ]
   |> List.map(cmd => (cmd, ConfigPath.(prefix / cmd |> toString)));
+
+let toConfigVar = (toolchain, name, value) => {
+  let field =
+    switch (toolchain) {
+    | Native => name
+    | Target(target) => name ++ "(" ++ target ++ ")"
+    };
+  field ++ " = \"" ++ value ++ "\"";
+};
+
+let findlibFilename = (~prefix: ConfigPath.t) =>
+  fun
+  | Ocamlfind(Native, _) => ConfigPath.(prefix / "findlib.conf" |> toString)
+  | Ocamlfind(Target(target), _) =>
+    ConfigPath.(prefix / "findlib.conf.d" / (target ++ ".conf") |> toString);
+
+let findlibContents =
+  fun
+  | Ocamlfind(toolchain, findlib) =>
+    String.concat(
+      "\n",
+      [
+        toConfigVar(toolchain, "path", findlib.path),
+        toConfigVar(toolchain, "destdir", findlib.destdir),
+        toConfigVar(toolchain, "stdlib", findlib.stdlib),
+        toConfigVar(toolchain, "ldconf", findlib.ldconf),
+      ]
+      @ List.map(
+          ((name, cmd)) => toConfigVar(toolchain, name, cmd),
+          findlib.commands,
+        ),
+    );

@@ -498,6 +498,59 @@ let ofPackage
       return (globalEnv, localEnv)
     in
 
+    let findTask name = allDependenciesTasks
+      |> List.find_opt (fun (dep_task: task) -> dep_task.pkg.name = name)
+    in
+
+    (* TODO: Add only ocaml-based package paths *)
+    let libPaths tasks =
+      let libPathForTask task = ConfigPath.(task.paths.installPath / "lib" |> toString) in
+      let sep = Environment.PathLike.sep "OCAMLPATH" in
+      tasks
+      |> List.map libPathForTask
+      |> String.concat sep
+    in
+
+    (* Configuring ocamlfind toolchains.
+     *
+     * TODO: Host and target compilers are temporarily
+     * hard-coded, we need a better way to collect toolchains.
+     *)
+    let toolchains = if Toolchain.isCompiler pkg then [] else begin
+      let host = (findTask "ocaml", findTask "@opam/ocamlfind") |> function
+      | Some ocaml, Some ocamlfind ->
+        let sysroot = ocaml.paths.installPath in
+        let toolchain = Toolchain.(Ocamlfind (Native, {
+          path = libPaths allDependenciesTasks;
+          destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
+          stdlib = ConfigPath.(ocamlfind.paths.installPath / "lib" / "ocaml" |> toString);
+          ldconf = "ignore";
+          commands = ConfigPath.(sysroot / "bin") |> ocamlfindCommands;
+        }))
+        in
+        Some toolchain
+      | _ -> None
+      in
+
+      let target = findTask "ocaml-ios" |> function
+      | Some ios ->
+        let sysroot = ConfigPath.(ios.paths.installPath / "ios-sysroot") in
+        let toolchain = Toolchain.(Ocamlfind (Target "ios", {
+          path = ConfigPath.(sysroot / "lib" |> toString);
+          destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
+          stdlib = ConfigPath.(sysroot / "lib" / "ocaml" |> toString);
+          ldconf = "ignore";
+          commands = ConfigPath.(sysroot / "bin") |> ocamlfindCommands;
+        }))
+        in
+        Some toolchain
+      | None -> None
+      in
+
+      List.filterNone [host; target]
+    end
+    in
+
     let buildEnv =
 
       (* All dependencies (transitive included contribute env exported to the
@@ -580,8 +633,15 @@ let ofPackage
                                "$MAN_PATH"
                                finalManPath);
               origin = None;
-            }
+            };
           ] in
+          let v = if List.length toolchains = 0 then v else
+            {
+              name = "OCAMLFIND_CONF";
+              value = Value (ConfigPath.(paths.buildPath / "_esy" / "findlib.conf" |> toString));
+              origin = None;
+            } :: v
+          in
           if overrideShell then
             let shell = {
               name = "SHELL";
@@ -615,59 +675,6 @@ let ofPackage
       Run.withContext
         "processing esy.install"
         (CommandList.render ~env ~scope:scopeForCommands pkg.installCommands)
-    in
-
-    let findTask name = dependenciesTasks
-      |> List.find_opt (fun (dep_task: task) -> dep_task.pkg.name = name)
-    in
-
-    (* TODO: Add only ocaml-based package paths *)
-    let libPaths tasks =
-      let libPathForTask task = ConfigPath.(task.paths.installPath / "lib" |> toString) in
-      let sep = Environment.PathLike.sep "OCAMLPATH" in
-      tasks
-      |> List.map libPathForTask
-      |> String.concat sep
-    in
-
-    (* Configuring ocamlfind toolchains.
-     *
-     * TODO: Host and target compilers are temporarily
-     * hard-coded, we need a better way to collect toolchains.
-     *)
-    let toolchains = if Toolchain.isCompiler pkg then [] else begin
-      let host = findTask "ocaml" |> function
-      | Some ocaml ->
-        let sysroot = ocaml.paths.installPath in
-        let toolchain = Toolchain.(Ocamlfind (Native, {
-          path = libPaths allDependenciesTasks;
-          destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
-          stdlib = ConfigPath.(sysroot / "lib" / "ocaml" |> toString);
-          ldconf = "ignore";
-          commands = ConfigPath.(sysroot / "bin") |> ocamlfindCommands;
-        }))
-        in
-        Some toolchain
-      | None -> None
-      in
-
-      let target = findTask "ocaml-ios" |> function
-      | Some ios ->
-        let sysroot = ConfigPath.(ios.paths.installPath / "ios-sysroot") in
-        let toolchain = Toolchain.(Ocamlfind (Target "ios", {
-          path = ConfigPath.(sysroot / "lib" |> toString);
-          destdir = ConfigPath.(paths.stagePath / "lib" |> toString);
-          stdlib = ConfigPath.(sysroot / "lib" / "ocaml" |> toString);
-          ldconf = "ignore";
-          commands = ConfigPath.(sysroot / "bin") |> ocamlfindCommands;
-        }))
-        in
-        Some toolchain
-      | None -> None
-      in
-
-      List.filterNone [host; target]
-    end
     in
 
     let task: t = {
@@ -768,6 +775,7 @@ module DependencyGraph = DependencyGraph.Make(struct
   end)
 
 let toBuildProtocol (task : task) =
+  let prefix = ConfigPath.(task.paths.buildPath / "_esy") in
   EsyBuildPackage.BuildTask.ConfigFile.{
     id = task.id;
     name = task.pkg.name;
@@ -786,6 +794,11 @@ let toBuildProtocol (task : task) =
     install = task.installCommands;
     sourcePath = ConfigPath.toString task.paths.sourcePath;
     env = Environment.Closed.value task.env;
+    files = List.map (fun (toolchain: Toolchain.t) -> EsyBuildPackage.BuildTask.File. {
+      filename =
+        Toolchain.findlibFilename ~prefix toolchain;
+      contents = Toolchain.findlibContents toolchain;
+    }) task.toolchains;
   }
 
 let toBuildProtocolString ?(pretty=false) (task : task) =
