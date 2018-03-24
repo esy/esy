@@ -588,7 +588,7 @@ let ofPackage
         ] in
 
       let sandboxEnv =
-        if includeSandboxEnv = true then
+        if includeSandboxEnv then
           rootPkg.sandboxEnv |> Environment.ofSandboxEnv
         else []
       in
