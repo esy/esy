@@ -621,6 +621,7 @@ let ofPackage
       |> List.find_opt (fun (dep_task: task) -> dep_task.pkg.name = name)
     in
 
+    (* TODO: Add only ocaml-based package paths *)
     let libPaths tasks =
       let libPathForTask task = ConfigPath.(task.paths.installPath / "lib" |> toString) in
       let sep = Environment.PathLike.sep "OCAMLPATH" in
@@ -650,7 +651,7 @@ let ofPackage
       | None -> None
       in
 
-      let target = findTask "@esy-cross/ocaml-ios64" |> function
+      let target = findTask "ocaml-ios" |> function
       | Some ios ->
         let sysroot = ConfigPath.(ios.paths.installPath / "ios-sysroot") in
         let toolchain = Toolchain.(Ocamlfind (Target "ios", {

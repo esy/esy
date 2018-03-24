@@ -21,7 +21,7 @@ type findlib = {
 type t =
   | Ocamlfind(toolchain, findlib);
 
-let compilers = ["ocaml", "@esy-cross/ocaml-ios64"];
+let compilers = ["ocaml", "ocaml-ios"];
 
 let isCompiler = (pkg: Package.t) => List.mem(pkg.name, compilers);
 
