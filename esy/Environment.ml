@@ -188,11 +188,12 @@ end
 
 module PathLike = struct
 
+  let sep name = match System.host, name with
+    | System.Cygwin, "OCAMLPATH" -> ";"
+    | _ -> ":"
+
   let make (name : string) (value : string list) =
-    let sep = match System.host, name with
-      | System.Cygwin, "OCAMLPATH" -> ";"
-      | _ -> ":"
-    in
+    let sep = sep name in
     value |> String.concat sep
 
 end

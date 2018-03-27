@@ -268,6 +268,12 @@ let withBuildEnvUnlocked =
     | status => Error(`CommandError((cmd, status)))
     };
   };
+  let emitFile = (file: BuildTask.File.t) => {
+    let path = Path.v(file.name);
+    let%bind () = mkdir(Path.parent(path));
+    let%bind () = Bos.OS.File.write(path, file.content);
+    Ok();
+  };
   /*
    * Prepare build/install.
    */
@@ -296,6 +302,7 @@ let withBuildEnvUnlocked =
       };
     let%bind () = prepareRootPath(config, task);
     let%bind () = mkdir(buildPath / "_esy");
+    let%bind () = Result.listIter(~f=emitFile, task.files);
     ok;
   };
   /*

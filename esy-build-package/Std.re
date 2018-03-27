@@ -40,6 +40,20 @@ module Result = {
       };
     xs |> List.fold_left(f, Ok([])) |> map(List.rev);
   };
+  let listIter =
+      (~f: 'a => result(unit, 'err), xs: list('a))
+      : result(unit, 'err) => {
+    let f = (prev, x) =>
+      switch (prev) {
+      | Ok () =>
+        switch (f(x)) {
+        | Ok () => Ok()
+        | Error(err) => Error(err)
+        }
+      | Error(err) => Error(err)
+      };
+    xs |> List.fold_left(f, Ok());
+  };
   let listFoldLeft =
       (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
     let rec fold = (acc, xs) =>

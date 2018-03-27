@@ -81,6 +81,14 @@ module Env = {
   };
 };
 
+module File = {
+  [@deriving (show, yojson)]
+  type t = {
+    name: string,
+    content: string,
+  };
+};
+
 [@deriving show]
 type t = {
   id: string,
@@ -97,6 +105,7 @@ type t = {
   infoPath: Path.t,
   lockPath: Path.t,
   env: Env.t,
+  files: list(File.t),
 };
 
 type spec = t;
@@ -113,6 +122,7 @@ module ConfigFile = {
     install: list(list(string)),
     sourcePath: string,
     env: Env.t,
+    files: list(File.t),
   };
   let configure = (config: Config.t, specConfig: t) : Run.t(spec, 'a) => {
     open Result;
@@ -153,6 +163,16 @@ module ConfigFile = {
       };
     let%bind sourcePath = renderPath(specConfig.sourcePath);
     let%bind env = renderEnv(specConfig.env);
+    let%bind files =
+      Result.listMap(
+        ~f=
+          (file: File.t) => {
+            let%bind name = render(file.name);
+            let%bind content = render(file.content);
+            Ok(File.{name, content});
+          },
+        specConfig.files,
+      );
     let%bind install = renderCommands(specConfig.install);
     let%bind build = renderCommands(specConfig.build);
     Ok({
@@ -170,6 +190,7 @@ module ConfigFile = {
         Path.(storePath / Config.storeBuildTree / (specConfig.id ++ ".lock")),
       sourcePath,
       env,
+      files,
       install,
       build,
     });
