@@ -795,9 +795,9 @@ let toBuildProtocol (task : task) =
     sourcePath = ConfigPath.toString task.paths.sourcePath;
     env = Environment.Closed.value task.env;
     files = List.map (fun (toolchain: Toolchain.t) -> EsyBuildPackage.BuildTask.File. {
-      filename =
+      name =
         Toolchain.findlibFilename ~prefix toolchain;
-      contents = Toolchain.findlibContents toolchain;
+      content = Toolchain.findlibContent toolchain;
     }) task.toolchains;
   }
 

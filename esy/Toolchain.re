@@ -53,7 +53,7 @@ let findlibFilename = (~prefix: ConfigPath.t) =>
   | Ocamlfind(Target(target), _) =>
     ConfigPath.(prefix / "findlib.conf.d" / (target ++ ".conf") |> toString);
 
-let findlibContents =
+let findlibContent =
   fun
   | Ocamlfind(toolchain, findlib) =>
     String.concat(

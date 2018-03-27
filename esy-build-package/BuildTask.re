@@ -84,8 +84,8 @@ module Env = {
 module File = {
   [@deriving (show, yojson)]
   type t = {
-    filename: string,
-    contents: string,
+    name: string,
+    content: string,
   };
 };
 
@@ -167,9 +167,9 @@ module ConfigFile = {
       Result.listMap(
         ~f=
           (file: File.t) => {
-            let%bind filename = render(file.filename);
-            let%bind contents = render(file.contents);
-            Ok(File.{filename, contents});
+            let%bind name = render(file.name);
+            let%bind content = render(file.content);
+            Ok(File.{name, content});
           },
         specConfig.files,
       );

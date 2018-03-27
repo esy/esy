@@ -269,9 +269,9 @@ let withBuildEnvUnlocked =
     };
   };
   let emitFile = (file: BuildTask.File.t) => {
-    let path = Path.v(file.filename);
+    let path = Path.v(file.name);
     let%bind () = mkdir(Path.parent(path));
-    let%bind () = Bos.OS.File.write(path, file.contents);
+    let%bind () = Bos.OS.File.write(path, file.content);
     Ok();
   };
   /*
