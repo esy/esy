@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.1.9 @ preview
+
+  * Support for `"esy.sandboxEnv"` environment config.
+
+    This sets environment variables for regular dependency (all dependencies
+    excluding `"devDependencies"` and `"buildTimeDependencies"`).
+
+    (Implementation by @rauanmayemir)
+
+  * Minor fixes to error reporting
+
 ## 0.1.8 @ preview
 
   * Compile `esy` and `esy-build-package` commands using `ocamlopt`
