@@ -53,15 +53,29 @@ let ofDir = (cfg: Config.t) => {
   let packageCache = Memoize.create(~size=200);
   let rec loadPackage = (path: Path.t, stack: list(Path.t)) => {
     let addDeps =
-        (~skipUnresolved=false, ~make, dependencies, prevDependencies) => {
+        (
+          ~skipUnresolved=false,
+          ~ignoreCircularDep,
+          ~make,
+          dependencies,
+          prevDependencies,
+        ) => {
       let resolve = (pkgName: string) =>
         switch%lwt (resolvePackageCached(pkgName, path)) {
         | Ok(Some(depPackagePath)) =>
-          switch%lwt (loadPackageCached(depPackagePath, [path, ...stack])) {
-          | Ok(pkg) => Lwt.return_ok((pkgName, Some(pkg)))
-          | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
+          if (List.mem(depPackagePath, stack)) {
+            if (ignoreCircularDep) {
+              Lwt.return_ok((pkgName, `Ignored));
+            } else {
+              Lwt.return_error((pkgName, "circular dependency"));
+            };
+          } else {
+            switch%lwt (loadPackageCached(depPackagePath, [path, ...stack])) {
+            | Ok(result) => Lwt.return_ok((pkgName, result))
+            | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
+            };
           }
-        | Ok(None) => Lwt.return_ok((pkgName, None))
+        | Ok(None) => Lwt.return_ok((pkgName, `Unresolved))
         | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
         };
       let%lwt dependencies =
@@ -69,8 +83,11 @@ let ofDir = (cfg: Config.t) => {
         |> Lwt_list.map_s(((pkgName, _)) => resolve(pkgName));
       let f = dependencies =>
         fun
-        | Ok((_, Some(pkg))) => [make(pkg), ...dependencies]
-        | Ok((pkgName, None)) =>
+        | Ok((_, `EsyPkg(pkg))) => [make(pkg), ...dependencies]
+        | Ok((_, `NonEsyPkg(transitiveDependencies))) =>
+          transitiveDependencies @ dependencies
+        | Ok((_, `Ignored)) => dependencies
+        | Ok((pkgName, `Unresolved)) =>
           if (skipUnresolved) {
             dependencies;
           } else {
@@ -92,23 +109,29 @@ let ofDir = (cfg: Config.t) => {
     };
     switch%bind (Package.Manifest.ofDir(path)) {
     | Some((manifest, manifestPath)) =>
+      let ignoreCircularDep =
+        Std.Option.isNone(manifest.Package.Manifest.esy);
       manifestInfo := PathSet.add(manifestPath, manifestInfo^);
       let (>>=) = Lwt.(>>=);
       let%lwt dependencies =
         Lwt.return([])
         >>= addDeps(
+              ~ignoreCircularDep,
               ~make=pkg => Package.PeerDependency(pkg),
               manifest.Package.Manifest.peerDependencies,
             )
         >>= addDeps(
+              ~ignoreCircularDep,
               ~make=pkg => Package.Dependency(pkg),
               manifest.Package.Manifest.dependencies,
             )
         >>= addDeps(
+              ~ignoreCircularDep,
               ~make=pkg => Package.BuildTimeDependency(pkg),
               manifest.Package.Manifest.buildTimeDependencies,
             )
         >>= addDeps(
+              ~ignoreCircularDep,
               ~skipUnresolved=true,
               ~make=pkg => Package.OptDependency(pkg),
               manifest.optDependencies,
@@ -117,6 +140,7 @@ let ofDir = (cfg: Config.t) => {
           dependencies =>
             if (Path.equal(cfg.sandboxPath, path)) {
               addDeps(
+                ~ignoreCircularDep,
                 ~skipUnresolved=true,
                 ~make=pkg => Package.DevDependency(pkg),
                 manifest.Package.Manifest.devDependencies,
@@ -126,82 +150,83 @@ let ofDir = (cfg: Config.t) => {
               Lwt.return(dependencies);
             }
         );
-      let sourceType = {
-        let isRootPath = path == cfg.sandboxPath;
-        let hasDepWithSourceTypeDevelopment =
-          List.exists(
-            fun
-            | Package.Dependency(pkg)
-            | Package.PeerDependency(pkg)
-            | Package.BuildTimeDependency(pkg)
-            | Package.OptDependency(pkg) =>
-              pkg.sourceType == Package.SourceType.Development
-            | Package.DevDependency(_)
-            | Package.InvalidDependency(_) => false,
+      switch (manifest.Package.Manifest.esy) {
+      | None => return(`NonEsyPkg(dependencies))
+      | Some(esyManifest) =>
+        let sourceType = {
+          let isRootPath = path == cfg.sandboxPath;
+          let hasDepWithSourceTypeDevelopment =
+            List.exists(
+              fun
+              | Package.Dependency(pkg)
+              | Package.PeerDependency(pkg)
+              | Package.BuildTimeDependency(pkg)
+              | Package.OptDependency(pkg) =>
+                pkg.sourceType == Package.SourceType.Development
+              | Package.DevDependency(_)
+              | Package.InvalidDependency(_) => false,
+              dependencies,
+            );
+          switch (
+            isRootPath,
+            hasDepWithSourceTypeDevelopment,
+            manifest._resolved,
+          ) {
+          | (true, _, _) => Package.SourceType.Root
+          | (_, true, _) => Package.SourceType.Development
+          | (_, _, None) => Package.SourceType.Development
+          | (_, _, Some(_)) => Package.SourceType.Immutable
+          };
+        };
+        let%bind sourcePath = {
+          let linkPath = Path.(path / "_esylink");
+          if%bind (Fs.exists(linkPath)) {
+            let%bind path = Fs.readFile(linkPath);
+            path
+            |> String.trim
+            |> Path.of_string
+            |> Run.liftOfBosError
+            |> RunAsync.liftOfRun;
+          } else {
+            return(path);
+          };
+        };
+        let pkg =
+          Package.{
+            id: Path.to_string(path),
+            name: manifest.name,
+            version: manifest.version,
             dependencies,
-          );
-        switch (
-          isRootPath,
-          hasDepWithSourceTypeDevelopment,
-          manifest._resolved,
-        ) {
-        | (true, _, _) => Package.SourceType.Root
-        | (_, true, _) => Package.SourceType.Development
-        | (_, _, None) => Package.SourceType.Development
-        | (_, _, Some(_)) => Package.SourceType.Immutable
-        };
+            buildCommands: esyManifest.Package.EsyManifest.build,
+            installCommands: esyManifest.install,
+            buildType: esyManifest.buildsInSource,
+            sourceType,
+            exportedEnv: esyManifest.exportedEnv,
+            sandboxEnv: esyManifest.sandboxEnv,
+            sourcePath: ConfigPath.ofPath(cfg, sourcePath),
+            resolution: manifest._resolved,
+          };
+        return(`EsyPkg(pkg));
       };
-      let%bind sourcePath = {
-        let linkPath = Path.(path / "_esylink");
-        if%bind (Fs.exists(linkPath)) {
-          let%bind path = Fs.readFile(linkPath);
-          path
-          |> String.trim
-          |> Path.of_string
-          |> Run.liftOfBosError
-          |> RunAsync.liftOfRun;
-        } else {
-          return(path);
-        };
-      };
-      let pkg = {
-        let esy =
-          Std.Option.orDefault(Package.EsyManifest.empty, manifest.esy);
-        Package.{
-          id: Path.to_string(path),
-          name: manifest.name,
-          version: manifest.version,
-          dependencies,
-          buildCommands: esy.build,
-          installCommands: esy.install,
-          buildType: esy.buildsInSource,
-          sourceType,
-          exportedEnv: esy.exportedEnv,
-          sandboxEnv: esy.sandboxEnv,
-          sourcePath: ConfigPath.ofPath(cfg, sourcePath),
-          resolution: manifest._resolved,
-        };
-      };
-      return(pkg);
     | None => error("unable to find manifest")
     };
   }
-  and loadPackageCached = (path: Path.t, stack) =>
-    if (List.mem(path, stack)) {
-      error("circular dependency");
-    } else {
-      let compute = () => loadPackage(path, stack);
-      packageCache(path, compute);
-    };
-  let%bind root = loadPackageCached(cfg.sandboxPath, []);
-  let%bind manifestInfo =
-    manifestInfo^
-    |> PathSet.elements
-    |> List.map(path => {
-         let%bind stat = Fs.stat(path);
-         return((path, stat.Unix.st_mtime));
-       })
-    |> RunAsync.joinAll;
-  let sandbox = {root, manifestInfo};
-  return(sandbox);
+  and loadPackageCached = (path: Path.t, stack) => {
+    let compute = () => loadPackage(path, stack);
+    packageCache(path, compute);
+  };
+  switch%bind (loadPackageCached(cfg.sandboxPath, [])) {
+  | `EsyPkg(root) =>
+    let%bind manifestInfo =
+      manifestInfo^
+      |> PathSet.elements
+      |> List.map(path => {
+           let%bind stat = Fs.stat(path);
+           return((path, stat.Unix.st_mtime));
+         })
+      |> RunAsync.joinAll;
+    let sandbox = {root, manifestInfo};
+    return(sandbox);
+  | _ => error("root package missing esy config")
+  };
 };
