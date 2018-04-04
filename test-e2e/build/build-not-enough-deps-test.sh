@@ -7,6 +7,6 @@ doTest () {
   set -e
 
   # test that error output has relevant info
-  echo "$out" | grep "missing dependency dep"
+  echo "$out" | grep "invalid dependency dep: unable to resolve package"
   echo "$out" | grep "While processing package:"
 }
