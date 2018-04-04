@@ -1,52 +1,53 @@
 lib: [
   "_build/install/default/lib/esy-build-package/META" {"META"}
   "_build/install/default/lib/esy-build-package/opam" {"opam"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildInfo.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildInfo.cmt"
-  "_build/install/default/lib/esy-build-package/BuildInfo.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildTask.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildTask.cmt"
-  "_build/install/default/lib/esy-build-package/BuildTask.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmt"
-  "_build/install/default/lib/esy-build-package/Builder.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Cmd.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Cmd.cmt"
-  "_build/install/default/lib/esy-build-package/Cmd.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmt"
-  "_build/install/default/lib/esy-build-package/Config.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage.cmt"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage.ml-gen"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Json.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Json.cmt"
-  "_build/install/default/lib/esy-build-package/Json.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__NodeResolution.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__NodeResolution.cmt"
-  "_build/install/default/lib/esy-build-package/NodeResolution.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Path.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Path.cmt"
-  "_build/install/default/lib/esy-build-package/Path.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__PathSyntax.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__PathSyntax.cmt"
-  "_build/install/default/lib/esy-build-package/PathSyntax.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Run.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Run.cmt"
-  "_build/install/default/lib/esy-build-package/Run.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sandbox.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sandbox.cmt"
-  "_build/install/default/lib/esy-build-package/Sandbox.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sexp.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sexp.cmt"
-  "_build/install/default/lib/esy-build-package/Sexp.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Std.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Std.cmt"
-  "_build/install/default/lib/esy-build-package/Std.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Store.cmi"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Store.cmt"
-  "_build/install/default/lib/esy-build-package/Store.re"
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage.cma"
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildInfo.cmi" {"EsyBuildPackage__BuildInfo.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildInfo.cmt" {"EsyBuildPackage__BuildInfo.cmt"}
+  "_build/install/default/lib/esy-build-package/BuildInfo.re" {"BuildInfo.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildTask.cmi" {"EsyBuildPackage__BuildTask.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__BuildTask.cmt" {"EsyBuildPackage__BuildTask.cmt"}
+  "_build/install/default/lib/esy-build-package/BuildTask.re" {"BuildTask.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmi" {"EsyBuildPackage__Builder.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmt" {"EsyBuildPackage__Builder.cmt"}
+  "_build/install/default/lib/esy-build-package/Builder.re" {"Builder.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Cmd.cmi" {"EsyBuildPackage__Cmd.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Cmd.cmt" {"EsyBuildPackage__Cmd.cmt"}
+  "_build/install/default/lib/esy-build-package/Cmd.re" {"Cmd.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmi" {"EsyBuildPackage__Config.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmt" {"EsyBuildPackage__Config.cmt"}
+  "_build/install/default/lib/esy-build-package/Config.re" {"Config.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage.cmi" {"EsyBuildPackage.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage.cmt" {"EsyBuildPackage.cmt"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage.ml-gen" {"EsyBuildPackage.ml-gen"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Json.cmi" {"EsyBuildPackage__Json.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Json.cmt" {"EsyBuildPackage__Json.cmt"}
+  "_build/install/default/lib/esy-build-package/Json.re" {"Json.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__NodeResolution.cmi" {"EsyBuildPackage__NodeResolution.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__NodeResolution.cmt" {"EsyBuildPackage__NodeResolution.cmt"}
+  "_build/install/default/lib/esy-build-package/NodeResolution.re" {"NodeResolution.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Path.cmi" {"EsyBuildPackage__Path.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Path.cmt" {"EsyBuildPackage__Path.cmt"}
+  "_build/install/default/lib/esy-build-package/Path.re" {"Path.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__PathSyntax.cmi" {"EsyBuildPackage__PathSyntax.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__PathSyntax.cmt" {"EsyBuildPackage__PathSyntax.cmt"}
+  "_build/install/default/lib/esy-build-package/PathSyntax.re" {"PathSyntax.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Run.cmi" {"EsyBuildPackage__Run.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Run.cmt" {"EsyBuildPackage__Run.cmt"}
+  "_build/install/default/lib/esy-build-package/Run.re" {"Run.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sandbox.cmi" {"EsyBuildPackage__Sandbox.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sandbox.cmt" {"EsyBuildPackage__Sandbox.cmt"}
+  "_build/install/default/lib/esy-build-package/Sandbox.re" {"Sandbox.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sexp.cmi" {"EsyBuildPackage__Sexp.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sexp.cmt" {"EsyBuildPackage__Sexp.cmt"}
+  "_build/install/default/lib/esy-build-package/Sexp.re" {"Sexp.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Std.cmi" {"EsyBuildPackage__Std.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Std.cmt" {"EsyBuildPackage__Std.cmt"}
+  "_build/install/default/lib/esy-build-package/Std.re" {"Std.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Store.cmi" {"EsyBuildPackage__Store.cmi"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Store.cmt" {"EsyBuildPackage__Store.cmt"}
+  "_build/install/default/lib/esy-build-package/Store.re" {"Store.re"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage.cma" {"EsyBuildPackage.cma"}
+  "_build/install/default/lib/esy-build-package/esy-build-package.dune" {"esy-build-package.dune"}
 ]
 bin: [
   "_build/install/default/bin/esy-build-package" {"esy-build-package"}
