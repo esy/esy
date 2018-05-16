@@ -1,4 +1,3 @@
-
 [@deriving yojson]
 type range('inner) =
   | Or(range('inner), range('inner))
@@ -10,11 +9,10 @@ type range('inner) =
   | AtMost('inner)
   | Nothing
   | Any;
-  /* | UntilNextMajor('concrete) | UntilNextMinor('concrete); */
 
+/* | UntilNextMajor('concrete) | UntilNextMinor('concrete); */
 /** TODO want a way to exclude npm -alpha items when they don't apply */
-
-let rec matches = (compareInner, range, concrete) => {
+let rec matches = (compareInner, range, concrete) =>
   switch range {
   | Exactly(a) => compareInner(a, concrete) == 0
   | Any => true
@@ -23,12 +21,13 @@ let rec matches = (compareInner, range, concrete) => {
   | AtLeast(a) => compareInner(a, concrete) <= 0
   | LessThan(a) => compareInner(a, concrete) > 0
   | AtMost(a) => compareInner(a, concrete) >= 0
-  | And(a, b) => matches(compareInner, a, concrete) && matches(compareInner, b, concrete)
-  | Or(a, b) => matches(compareInner, a, concrete) || matches(compareInner, b, concrete)
-  }
-};
+  | And(a, b) =>
+    matches(compareInner, a, concrete) && matches(compareInner, b, concrete)
+  | Or(a, b) =>
+    matches(compareInner, a, concrete) || matches(compareInner, b, concrete)
+  };
 
-let rec isTooLarge = (compareInner, range, concrete) => {
+let rec isTooLarge = (compareInner, range, concrete) =>
   switch range {
   | Exactly(a) => compareInner(a, concrete) < 0
   | Any => false
@@ -37,12 +36,15 @@ let rec isTooLarge = (compareInner, range, concrete) => {
   | AtLeast(a) => false
   | LessThan(a) => compareInner(a, concrete) <= 0
   | AtMost(a) => compareInner(a, concrete) < 0
-  | And(a, b) => isTooLarge(compareInner, a, concrete) || isTooLarge(compareInner, b, concrete)
-  | Or(a, b) => isTooLarge(compareInner, a, concrete) && isTooLarge(compareInner, b, concrete)
-  }
-};
+  | And(a, b) =>
+    isTooLarge(compareInner, a, concrete)
+    || isTooLarge(compareInner, b, concrete)
+  | Or(a, b) =>
+    isTooLarge(compareInner, a, concrete)
+    && isTooLarge(compareInner, b, concrete)
+  };
 
-let rec view = (viewInner, range) => {
+let rec view = (viewInner, range) =>
   switch range {
   | Exactly(a) => viewInner(a)
   | Any => "*"
@@ -53,10 +55,9 @@ let rec view = (viewInner, range) => {
   | AtMost(a) => "<= " ++ viewInner(a)
   | And(a, b) => view(viewInner, a) ++ " && " ++ view(viewInner, b)
   | Or(a, b) => view(viewInner, a) ++ " || " ++ view(viewInner, b)
-  }
-};
+  };
 
-let rec map = (transform, range) => {
+let rec map = (transform, range) =>
   switch range {
   | Exactly(a) => Exactly(transform(a))
   | Any => Any
@@ -67,5 +68,4 @@ let rec map = (transform, range) => {
   | AtMost(a) => AtMost(transform(a))
   | And(a, b) => And(map(transform, a), map(transform, b))
   | Or(a, b) => Or(map(transform, a), map(transform, b))
-  }
-};
+  };

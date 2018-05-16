@@ -1,4 +1,10 @@
+SRC = $(shell find src -name '*.re')
+
+build:
+	@esy build
+
 refmt:
-	find src -name '*.re' | while read filename; do \
-		echo esy refmt --in-place --print-width 80 $$filename; \
-	done
+	@$(MAKE) -j 4 $(SRC:%.re=%.re.refmt)
+
+%.re.refmt: %.re
+	@esy refmt --in-place --print-width 80 $(<)

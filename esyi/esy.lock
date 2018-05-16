@@ -419,14 +419,14 @@
     ocaml "*"
 
 "@opam/mccs@*":
-  version "1.1.0-5"
-  uid "18e19eaa4e21f431ce046becb28d0054"
-  resolved "@opam/mccs@1.1.0-5-18e19eaa4e21f431ce046becb28d0054.tgz"
+  version "1.1.0-6"
+  uid e0bff1f726e96fd8ad66b60a35661adf
+  resolved "@opam/mccs@1.1.0-6-e0bff1f726e96fd8ad66b60a35661adf.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
     "@opam/cudf" " >= 0.7.0"
-    "@opam/jbuilder" " >= 1.0.0-beta14"
+    "@opam/jbuilder" "*"
   peerDependencies:
     ocaml "*"
 
@@ -511,7 +511,7 @@
   peerDependencies:
     ocaml " >= 4.3.0"
 
-"@opam/ocamlfind@", "@opam/ocamlfind@ >= 1.5.0", "@opam/ocamlfind@ >= 1.5.2", "@opam/ocamlfind@ >= 1.5.3", "@opam/ocamlfind@ >= 1.6.0", "@opam/ocamlfind@ >= 1.6.1", "@opam/ocamlfind@ >= 1.7.2", "@opam/ocamlfind@ >= 1.7.3", "@opam/ocamlfind@ >= 1.7.3--1", "@opam/ocamlfind@*":
+"@opam/ocamlfind@ >= 1.5.0", "@opam/ocamlfind@ >= 1.5.2", "@opam/ocamlfind@ >= 1.5.3", "@opam/ocamlfind@ >= 1.6.0", "@opam/ocamlfind@ >= 1.6.1", "@opam/ocamlfind@ >= 1.7.2", "@opam/ocamlfind@ >= 1.7.3", "@opam/ocamlfind@ >= 1.7.3--1", "@opam/ocamlfind@*":
   version "1.8.0"
   uid "525500c3041431ef23d0f7d1895c8b9a"
   resolved "@opam/ocamlfind@1.8.0-525500c3041431ef23d0f7d1895c8b9a.tgz"
@@ -752,9 +752,9 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/reason@3.0.4", "@opam/reason@^3.0.0", "@opam/reason@facebook/reason":
-  version "3.1.0"
-  resolved "https://codeload.github.com/facebook/reason/tar.gz/0401064b696d0e9384b7824fbd0c7d6638cb553c"
+"@opam/reason@3.0.4", "@opam/reason@^3.0.0":
+  version "3.0.4"
+  resolved "@opam/reason@3.0.4-679737717dd62f1873ec5f0bb1e3c293.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
@@ -764,12 +764,12 @@
     "@opam/ocaml-migrate-parsetree" "*"
     "@opam/ocamlbuild" "*"
     "@opam/ocamlfind" ""
-    "@opam/result" "*"
+    "@opam/result" "=1.2.0"
     "@opam/utop" " >= 1.17.0"
   peerDependencies:
     ocaml " >= 4.2.0  < 4.7.0"
 
-"@opam/result@*", "@opam/result@1.2.0":
+"@opam/result@*", "@opam/result@1.2.0", "@opam/result@=1.2.0":
   version "1.2.0"
   uid "5c62071e67f4a84e28ceeaac2969d1ae"
   resolved "@opam/result@1.2.0-5c62071e67f4a84e28ceeaac2969d1ae.tgz"

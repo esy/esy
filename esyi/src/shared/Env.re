@@ -1,4 +1,3 @@
-
 module Npm = {
   [@deriving yojson]
   type t('sourceType) = {
@@ -20,7 +19,7 @@ type fullPackage('sourceType) = {
   requested: Types.depsByKind,
   runtime: list(resolved),
   build: list(resolved),
-  npm: list((string, Npm.t('sourceType))),
+  npm: list((string, Npm.t('sourceType)))
 };
 
 [@deriving yojson]
@@ -30,7 +29,10 @@ type rootPackage('sourceType) = {
 };
 
 [@deriving yojson]
-type target = Default | Arch(string) | ArchSubArch(string, string);
+type target =
+  | Default
+  | Arch(string)
+  | ArchSubArch(string, string);
 
 [@deriving yojson]
 type t('sourceType) = {
@@ -39,7 +41,12 @@ type t('sourceType) = {
 };
 
 let mapSnd = (mapper, (a, b)) => (a, mapper(b));
-let mapOpt = (mapper, a) => switch a { | None => None | Some(x) => Some(mapper(x))};
+
+let mapOpt = (mapper, a) =>
+  switch a {
+  | None => None
+  | Some(x) => Some(mapper(x))
+  };
 
 let rec mapNpm = (mapper, npm) => {
   ...npm,
@@ -60,5 +67,5 @@ let mapRoot = (mapper, root) => {
 
 let map = (mapper, t) => {
   targets: List.map(mapSnd(mapRoot(mapper)), t.targets),
-  buildDependencies: List.map(mapRoot(mapper), t.buildDependencies),
+  buildDependencies: List.map(mapRoot(mapper), t.buildDependencies)
 };
