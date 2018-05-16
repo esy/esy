@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library
+ ((name solve)
+  (preprocess (pps (ppx_deriving_yojson testre-ppx ppx_driver)))
+  (libraries (shared opam npm str curl cudf yaml ppx_deriving_yojson.runtime mccs yojson opam-file-format))))
+
