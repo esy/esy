@@ -1,0 +1,64 @@
+{
+  "name": "esyi",
+  "version": "0.0.1",
+  "description": "Package installer for reason",
+  "author": "Jared Forsyth <jared@jaredforsyth.com>",
+  "license": "MIT",
+  "scripts": {
+    "watch": "esy b && esy jbuilder exec esyi ../testing",
+    "watcher": "watchexec -w lib -w bin npm run watch -- -s",
+    "run": "esy jbuilder build src/bin/esyi.exe && esy jbuilder exec esyi ../testing && (cd ../testing && npm start)",
+    "clean-run": "rm -rf ../testing/.esy-modules && npm run run",
+    "wall": "esy jbuilder build src/bin/esyi.exe && esy jbuilder exec esyi ../../games/reason-wall-demo",
+    "wall-install": "(cd ../../games/reason-wall-demo && esy b)",
+    "clean-wall": "rm -rf ../../game/reason-wall-demo/.esy-modules && npm run wall",
+    "solve-wall": "esy jbuilder exec esyi solve ../../games/reason-wall-demo/",
+    "self-install": "_build/install/default/bin/esyi .",
+    "self-solve": "_build/install/default/bin/esyi solve .",
+    "test": "esy jbuilder build test/Test.exe && esy jbuilder exec test/Test.exe"
+  },
+  "esy": {
+    "build": [
+      [
+        "jbuilder",
+        "build"
+      ]
+    ],
+    "install": [
+      "esy-installer"
+    ],
+    "buildsInSource": "_build"
+  },
+  "dependencies": {
+    "@opam/lambda-term": "^1.11.0",
+    "@opam/yojson": "*",
+    "@opam/cudf": "0.9",
+    "@opam/ocurl": "*",
+    "@opam/yaml": "*",
+    "@opam/ppx_deriving_yojson": "*",
+    "@opam/mccs": "*",
+    "lwt-node": "*",
+    "@jaredly/testre": "*",
+    "testre-ppx": "*",
+    "@opam/opam-file-format": "*",
+    "@opam/lwt": "^3.3.0",
+    "@opam/jbuilder": "*",
+    "@opam/merlin": "^3.0.5",
+    "@opam/alcotest": "*",
+    "ocaml": "~4.6.000",
+    "@opam/reason": "facebook/reason"
+  },
+  "// testre": "link:./../ppx_test/runtime",
+  "// testre-ppx": "link:./../ppx_test/ppx",
+  "buildDependencies": {},
+  "peerDependencies": {
+    "ocaml": "~4.6.000"
+  },
+  "devDependencies": {},
+  "resolutions": {
+    "**/@opam/result": "1.2.0",
+    "**/@opam/lwt": "3.3.0",
+    "**/@opam/reason": "facebook/reason"
+  },
+  "private": true
+}
