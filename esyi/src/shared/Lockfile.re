@@ -1,4 +1,3 @@
-
 [@deriving yojson]
 type realVersion = [
   | `Github(string, string, option(string))
@@ -8,19 +7,41 @@ type realVersion = [
   | `File(string)
 ];
 
-let viewRealVersion: realVersion => string = v => switch v {
-| `Github(user, repo, ref) => "github-" ++ user ++ "__" ++ repo ++ (switch ref { | Some(x) => "__" ++ x | None => ""})
-| `Git(s) => "git-" ++ s
-| `Npm(t) => "npm-" ++ Types.viewNpmConcrete(t)
-| `Opam(t) => "opam-" ++ Types.viewOpamConcrete(t)
-| `File(s) => "local-file"
-};
+let viewRealVersion: realVersion => string =
+  v =>
+    switch v {
+    | `Github(user, repo, ref) =>
+      "github-"
+      ++ user
+      ++ "__"
+      ++ repo
+      ++ (
+        switch ref {
+        | Some(x) => "__" ++ x
+        | None => ""
+        }
+      )
+    | `Git(s) => "git-" ++ s
+    | `Npm(t) => "npm-" ++ Types.viewNpmConcrete(t)
+    | `Opam(t) => "opam-" ++ Types.viewOpamConcrete(t)
+    | `File(s) => "local-file"
+    };
 
-let plainVersionNumber = v => switch v {
-| `Github(user, repo, ref) => user ++ "__" ++ repo ++ (switch ref { | Some(x) => "__" ++ x | None => ""})
-| `Git(s) => s
-| `Npm(t) => Types.viewNpmConcrete(t)
-| `Opam(t) => Types.viewOpamConcrete(t)
-/* TODO hash the file path or something */
-| `File(s) => "local-file-0000"
-};
+let plainVersionNumber = v =>
+  switch v {
+  | `Github(user, repo, ref) =>
+    user
+    ++ "__"
+    ++ repo
+    ++ (
+      switch ref {
+      | Some(x) => "__" ++ x
+      | None => ""
+      }
+    )
+  | `Git(s) => s
+  | `Npm(t) => Types.viewNpmConcrete(t)
+  | `Opam(t) => Types.viewOpamConcrete(t)
+  /* TODO hash the file path or something */
+  | `File(s) => "local-file-0000"
+  };

@@ -1,6 +1,4 @@
-
 /** TODO use lwt or something */
-
 /**
  * Get the output of a command, in lines.
  */
@@ -10,13 +8,12 @@ let execSync = (~cmd, ~onOut=?, ()) => {
     let rec loop = () =>
       switch (Pervasives.input_line(chan)) {
       | exception End_of_file => []
-      | line => {
+      | line =>
         switch onOut {
         | None => ()
         | Some(fn) => fn(line)
         };
-        [line, ...loop()]
-      }
+        [line, ...loop()];
       };
     let lines = loop();
     switch (Unix.close_process_in(chan)) {
@@ -24,8 +21,8 @@ let execSync = (~cmd, ~onOut=?, ()) => {
     | WEXITED(_)
     | WSIGNALED(_)
     | WSTOPPED(_) => (lines, false)
-    }
+    };
   } {
   | End_of_file => ([], false)
-  }
+  };
 };
