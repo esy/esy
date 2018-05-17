@@ -29,7 +29,7 @@ let getAvailableVersions = (cache, (name, source)) =>
     available
     |> List.sort(((va, _), (vb, _)) => NpmVersion.compare(va, vb))
     |> List.mapi((i, (v, j)) => (v, j, i))
-    |> List.filter(((version, json, i)) =>
+    |> List.filter(((version, _json, _i)) =>
          NpmVersion.matches(semver, version)
        )
     |> List.map(((version, json, i)) => `Npm((version, json, i)));
@@ -47,13 +47,13 @@ let getAvailableVersions = (cache, (name, source)) =>
       |> List.mapi((i, (v, j)) => (v, j, i));
     let matched =
       available
-      |> List.filter(((version, path, i)) =>
+      |> List.filter(((version, _path, _i)) =>
            OpamVersion.matches(semver, version)
          );
     let matched =
       if (matched == []) {
         available
-        |> List.filter(((version, path, i)) =>
+        |> List.filter(((version, _path, _i)) =>
              OpamVersion.matches(tryConvertingOpamFromNpm(semver), version)
            );
       } else {

@@ -29,9 +29,9 @@ let getRest = parts => parts == [] ? None : Some(String.concat(".", parts));
 let splitRest = value =>
   try (
     switch (String.split_on_char('-', value)) {
-    | [single] =>
+    | [_single] =>
       switch (String.split_on_char('+', value)) {
-      | [single] =>
+      | [_single] =>
         switch (String.split_on_char('~', value)) {
         | [single] => (int_of_string(single), None)
         | [single, ...rest] => (
@@ -104,10 +104,10 @@ let parsePartial = version => {
   let version = version.[0] == 'v' ? sliceToEnd(version, 1) : version;
   let parts = String.split_on_char('.', version);
   switch (parts) {
-  | ["*" | "x" | "X", ...rest] => `AllStar
-  | [major, "*" | "x" | "X", ...rest] when isint(major) =>
+  | ["*" | "x" | "X", ..._rest] => `AllStar
+  | [major, "*" | "x" | "X", ..._rest] when isint(major) =>
     `MajorStar(int_of_string(major))
-  | [major, minor, "*" | "x" | "X", ...rest]
+  | [major, minor, "*" | "x" | "X", ..._rest]
       when isint(major) && isint(minor) =>
     `MinorStar((int_of_string(major), int_of_string(minor)))
   | _ =>

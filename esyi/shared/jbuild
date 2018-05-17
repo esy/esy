@@ -2,6 +2,7 @@
 
 (library
  ((name shared)
+  (flags (:standard (-w -39)))
   (preprocess (pps (ppx_deriving_yojson testre-ppx ppx_driver)))
   (libraries (str curl cudf yaml ppx_deriving_yojson.runtime yojson opam-file-format))))
 

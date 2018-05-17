@@ -35,7 +35,7 @@ let rec parseRange = opamvalue =>
           ),
         );
         parseRange(contents);
-      | y =>
+      | _y =>
         print_endline(
           "Unexpected option -- pretending its any "
           ++ OpamPrinter.value(opamvalue),
@@ -112,6 +112,7 @@ let rec toDep = opamvalue =>
 
 let splitInTwo = (string, char) =>
   switch (String.split_on_char(char, string)) {
+  | [] => `Empty
   | [""] => `Empty
   | [one] => `Just(one)
   | [one, two] => `Two((one, two))
@@ -140,7 +141,7 @@ let compareWithTilde = (a, b) => {
     | (`Two(a, _), `Just(b)) when a == String.sub(b, 0, String.length(a)) => (-1)
     | (`Two(a, _), `Just(b)) =>
       compare(a, String.sub(b, 0, String.length(a)))
-    | (`Just(a), `Just(b)) => assert false
+    | (`Just(_a), `Just(_b)) => assert false
     | (`Just(a), `Two(b, _)) when String.sub(a, 0, String.length(b)) == b => (-1)
     | (`Just(a), `Two(b, _)) =>
       compare(String.sub(a, 0, String.length(b)), b)

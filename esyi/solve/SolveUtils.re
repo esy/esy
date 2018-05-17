@@ -16,7 +16,7 @@ let satisfies = (realVersion, req) =>
 
 let sortRealVersions = (a, b) =>
   switch (a, b) {
-  | (`Github(a), `Github(b)) => 0
+  | (`Github(_a), `Github(_b)) => 0
   | (`Npm(a), `Npm(b)) => NpmVersion.compare(a, b)
   | (`Opam(a), `Opam(b)) => OpamVersion.compare(a, b)
   | _ => 0
@@ -31,7 +31,7 @@ let toRealVersion = versionPlus =>
 
 /** TODO(jared): This is a HACK and will hopefully be removed once we stop the
  * pseudo-npm opam version stuff */
-let rec tryConvertingOpamFromNpm = version =>
+let tryConvertingOpamFromNpm = version =>
   Shared.Types.(
     version
     |> Shared.GenericVersion.map(opam =>
@@ -198,8 +198,8 @@ let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
       switch (versionPlus) {
       | `Github(user, repo, ref) => Github.getManifest(name, user, repo, ref)
       /* Registry.getGithubManifest(url) */
-      | `Npm(version, json, _) => `PackageJson(json)
-      | `Opam(version, path, _) =>
+      | `Npm(_version, json, _) => `PackageJson(json)
+      | `Opam(_version, path, _) =>
         `OpamFile(OpamFile.getManifest(opamOverrides, path))
       };
     let depsByKind = Manifest.getDeps(manifest);

@@ -3,7 +3,7 @@ open Shared.Env;
 let taggedName = (name, version) =>
   name ++ ":" ++ Shared.Lockfile.viewRealVersion(version);
 
-let taggedPackage = ({name, version}) => taggedName(name, version);
+let taggedPackage = ({name, version, _}) => taggedName(name, version);
 
 let findPackage = (packages, name) =>
   List.find(p => p.name == name, packages);
@@ -11,7 +11,7 @@ let findPackage = (packages, name) =>
 let rec depsForPackage = (package, runtimeBag) =>
   `Assoc(
     package.runtime
-    |> List.map(((name, _, version)) => {
+    |> List.map(((name, _, _version)) => {
          let found = findPackage(runtimeBag, name);
          (taggedPackage(found), depsForPackage(found, runtimeBag));
        }),
@@ -50,7 +50,7 @@ let fromEnv = (env, modulesCache) => {
     (
       "targets",
       env.targets
-      |> List.map(((target, root)) =>
+      |> List.map(((_target, root)) =>
            ("hello", depsForPackage(root.package, root.runtimeBag))
          )
       |> (x => `Assoc(x)),

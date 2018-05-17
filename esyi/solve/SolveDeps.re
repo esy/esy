@@ -1,7 +1,5 @@
 open Opam;
 
-open Npm;
-
 open Shared;
 
 open SolveUtils;
@@ -334,7 +332,7 @@ let solve = (~cache, ~requested) =>
 let crawlDeps = (requested, installed) => {
   let depsTable = Hashtbl.create(100);
   installed
-  |> List.iter(((name, version, _, deps)) =>
+  |> List.iter(((name, _version, _, deps)) =>
        Hashtbl.add(depsTable, name, deps)
      );
   let traversed = Hashtbl.create(100);
@@ -411,9 +409,9 @@ let solveLoose = (~cache, ~requested, ~current, ~deep) => {
   } else {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");
-    requested |> List.iter(((name, range)) => print_endline(name));
+    requested |> List.iter(((name, _range)) => print_endline(name));
     print_endline("Got");
-    installed |> List.iter(((name, version, _, _)) => print_endline(name));
+    installed |> List.iter(((name, _version, _, _)) => print_endline(name));
     let touched = Hashtbl.create(100);
     requested
     |> List.iter(((name, range)) => {

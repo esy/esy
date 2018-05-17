@@ -121,7 +121,7 @@ let findNextForTilde = version =>
 [@test.print
   (fmt, t) => Format.fprintf(fmt, "%s", Types.viewOpamConcrete(t))
 ]
-let rec findNextForCaret = (Alpha(t, n)) =>
+let findNextForCaret = (Alpha(t, n)) =>
   if (t == "." || t == "") {
     switch (n) {
     | None => failwith("No nonzero numbers")
@@ -131,7 +131,7 @@ let rec findNextForCaret = (Alpha(t, n)) =>
       | Some(rest) =>
         Alpha(t, Some(Num(0, Some(findNextForTilde(rest)))))
       }
-    | Some(Num(n, rest)) => Alpha(t, Some(Num(n + 1, None)))
+    | Some(Num(n, _rest)) => Alpha(t, Some(Num(n + 1, None)))
     };
   } else {
     failwith("No nonzero numbers");

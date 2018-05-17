@@ -27,7 +27,7 @@ let fetch = basedir => {
   let json = Yojson.Safe.from_file(basedir /+ "esyi.lock.json");
   let env =
     switch (Shared.Env.of_yojson(Shared.Types.Source.of_yojson, json)) {
-    | Error(a) => failwith("Bad lockfile")
+    | Error(_a) => failwith("Bad lockfile")
     | Ok(a) => a
     };
   Shared.Files.removeDeep(basedir /+ "node_modules");

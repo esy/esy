@@ -155,7 +155,7 @@ type depsByKind = {
 
 let viewReq = req =>
   switch (req) {
-  | Github(org, repo, ref) => "github: " ++ org ++ "/" ++ repo
+  | Github(org, repo, _ref) => "github: " ++ org ++ "/" ++ repo
   | Git(s) => "git: " ++ s
   | Npm(t) => "npm: " ++ GenericVersion.view(viewNpmConcrete, t)
   | Opam(t) => "opam: " ++ GenericVersion.view(viewOpamConcrete, t)
