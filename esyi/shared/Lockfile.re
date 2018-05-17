@@ -9,14 +9,14 @@ type realVersion = [
 
 let viewRealVersion: realVersion => string =
   v =>
-    switch v {
+    switch (v) {
     | `Github(user, repo, ref) =>
       "github-"
       ++ user
       ++ "__"
       ++ repo
       ++ (
-        switch ref {
+        switch (ref) {
         | Some(x) => "__" ++ x
         | None => ""
         }
@@ -28,13 +28,13 @@ let viewRealVersion: realVersion => string =
     };
 
 let plainVersionNumber = v =>
-  switch v {
+  switch (v) {
   | `Github(user, repo, ref) =>
     user
     ++ "__"
     ++ repo
     ++ (
-      switch ref {
+      switch (ref) {
       | Some(x) => "__" ++ x
       | None => ""
       }

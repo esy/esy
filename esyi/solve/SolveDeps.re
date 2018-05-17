@@ -17,12 +17,15 @@ module T = {
     opamPackages: Hashtbl.t(string, OpamFile.manifest),
     versions: VersionCache.t,
     manifests:
-      Hashtbl.t((string, Lockfile.realVersion), (manifest, Types.depsByKind))
+      Hashtbl.t(
+        (string, Lockfile.realVersion),
+        (manifest, Types.depsByKind),
+      ),
   };
   type state = {
     cache,
     /* universe: Cudf.universe, */
-    cudfVersions: CudfVersions.t
+    cudfVersions: CudfVersions.t,
   };
 };
 
@@ -32,12 +35,12 @@ let initCache = config => {
   versions: {
     availableNpmVersions: Hashtbl.create(100),
     availableOpamVersions: Hashtbl.create(100),
-    config
+    config,
   },
   opamOverrides: OpamOverrides.getOverrides(config.Types.esyOpamOverrides),
   npmPackages: Hashtbl.create(100),
   opamPackages: Hashtbl.create(100),
-  manifests: Hashtbl.create(100)
+  manifests: Hashtbl.create(100),
 };
 
 /**
@@ -60,23 +63,24 @@ let initCache = config => {
 let cudfDep = (owner, universe, cudfVersions, (name, source)) => {
   let available = Cudf.lookup_packages(universe, name);
   let matching =
-    available |> List.filter(CudfVersions.matchesSource(source, cudfVersions));
+    available
+    |> List.filter(CudfVersions.matchesSource(source, cudfVersions));
   let final =
     (
       if (matching == []) {
         let hack =
-          switch source {
+          switch (source) {
           | Opam(opamVersionRange) =>
             /* print_endline("Trying to convert from pseudo-npm"); */
             let nonNpm = tryConvertingOpamFromNpm(opamVersionRange);
             /* print_endline(Shared.GenericVersion.view(Shared.Types.viewOpamConcrete, nonNpm)); */
             available
             |> List.filter(
-                 CudfVersions.matchesSource(Opam(nonNpm), cudfVersions)
+                 CudfVersions.matchesSource(Opam(nonNpm), cudfVersions),
                );
           | _ => []
           };
-        switch hack {
+        switch (hack) {
         | [] =>
           /* We know there are packages that want versions of ocaml we don't support, it's ok */
           if (name == "ocaml") {
@@ -88,15 +92,15 @@ let cudfDep = (owner, universe, cudfVersions, (name, source)) => {
               ++ " wants "
               ++ name
               ++ " at version "
-              ++ Types.viewReq(source)
+              ++ Types.viewReq(source),
             );
             available
             |> List.iter(package =>
                  print_endline(
                    "  - "
                    ++ Lockfile.viewRealVersion(
-                        CudfVersions.getRealVersion(cudfVersions, package)
-                      )
+                        CudfVersions.getRealVersion(cudfVersions, package),
+                      ),
                  )
                );
             [];
@@ -203,18 +207,18 @@ let rec addPackage =
           depsByKind,
           state,
           universe,
-          manifest
+          manifest,
         ) => {
   CudfVersions.update(state.cudfVersions, name, realVersion, version);
   Hashtbl.replace(
     state.cache.manifests,
     (name, realVersion),
-    (manifest, depsByKind)
+    (manifest, depsByKind),
   );
   deep ?
     List.iter(
       addToUniverse(~unique, ~previouslyInstalled, ~deep, state, universe),
-      depsByKind.runtime
+      depsByKind.runtime,
     ) :
     ();
   let package = {
@@ -223,7 +227,7 @@ let rec addPackage =
     version,
     conflicts: unique ? [(name, None)] : [],
     installed:
-      switch previouslyInstalled {
+      switch (previouslyInstalled) {
       | None => false
       | Some(table) => Hashtbl.mem(table, (name, realVersion))
       },
@@ -236,11 +240,11 @@ let rec addPackage =
             ++ Shared.Lockfile.viewRealVersion(realVersion)
             ++ ")",
             universe,
-            state.cudfVersions
+            state.cudfVersions,
           ),
-          depsByKind.runtime
+          depsByKind.runtime,
         ) :
-        []
+        [],
   };
   Cudf.add_package(universe, package);
 }
@@ -249,7 +253,7 @@ and addToUniverse =
   VersionCache.getAvailableVersions(state.cache.versions, (name, source))
   |> List.iter(versionPlus => {
        let (realVersion, i) =
-         switch versionPlus {
+         switch (versionPlus) {
          | `Github(v) => (`Github(v), 1)
          | `Opam(v, _, i) => (`Opam(v), i)
          | `Npm(v, _, i) => (`Npm(v), i)
@@ -257,13 +261,13 @@ and addToUniverse =
        if (!
              Hashtbl.mem(
                state.cudfVersions.lookupIntVersion,
-               (name, realVersion)
+               (name, realVersion),
              )) {
          let (manifest, depsByKind) =
            getCachedManifest(
              state.cache.opamOverrides,
              state.cache.manifests,
-             (name, versionPlus)
+             (name, versionPlus),
            );
          addPackage(
            ~unique,
@@ -275,7 +279,7 @@ and addToUniverse =
            depsByKind,
            state,
            universe,
-           manifest
+           manifest,
          );
        };
      });
@@ -292,7 +296,7 @@ let solveDeps =
     /** This is where most of the work happens, file io, network requests, etc. */
     List.iter(
       addToUniverse(~unique, ~previouslyInstalled, ~deep, state, universe),
-      deps
+      deps,
     );
     /** Here we invoke the solver! Might also take a while, but probably won't */
     let cudfDeps =
@@ -323,7 +327,7 @@ let solve = (~cache, ~requested) =>
     ~strategy=Strategies.initial,
     ~deep=true,
     cache,
-    requested
+    requested,
   );
 
 /** TODO untested */
@@ -344,7 +348,8 @@ let crawlDeps = (requested, installed) => {
        );
   };
   requested |> List.iter(((name, _)) => loop(name));
-  installed |> List.filter(((name, _, _, _)) => Hashtbl.mem(traversed, name));
+  installed
+  |> List.filter(((name, _, _, _)) => Hashtbl.mem(traversed, name));
 };
 
 /** TODO untested */
@@ -361,7 +366,7 @@ let solveWithAsMuchOverlapAsPossible = (~cache, ~requested, ~current) => {
       ~previouslyInstalled,
       ~deep=true,
       cache,
-      requested
+      requested,
     );
   crawlDeps(requested, installed);
 };
@@ -399,11 +404,10 @@ let solveLoose = (~cache, ~requested, ~current, ~deep) => {
       ~previouslyInstalled,
       ~deep,
       cache,
-      requested
+      requested,
     );
   if (deep) {
-    assert
-      false /* TODO */;
+    assert false /* TODO */;
   } else {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");
@@ -416,8 +420,9 @@ let solveLoose = (~cache, ~requested, ~current, ~deep) => {
          let versions = Hashtbl.find(versionMap, name);
          let matching =
            versions |> List.filter(real => SolveUtils.satisfies(real, range));
-         switch matching {
-         | [] => failwith("Didn't actully install a matching dep for " ++ name)
+         switch (matching) {
+         | [] =>
+           failwith("Didn't actully install a matching dep for " ++ name)
          | [one, ..._] => Hashtbl.replace(touched, (name, one), true)
          };
        });

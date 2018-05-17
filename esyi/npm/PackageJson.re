@@ -22,7 +22,7 @@ let isGithub = value =>
   Str.string_match(
     Str.regexp("[a-zA-Z][a-zA-Z0-9-]+/[a-zA-Z0-9_-]+(#.+)?"),
     value,
-    0
+    0,
   );
 
 let startsWith = (value, needle) =>
@@ -35,11 +35,9 @@ let parseNpmSource = ((name, value)) =>
       name,
       switch (Shared.GithubVersion.parseGithubVersion(value)) {
       | Some(gh) => gh
-      | None =>
-        Opam
-          (OpamConcrete.parseNpmRange(value))
-          /* NpmVersion.parseRange(value) |> GenericVersion.map(Shared.Types.opamFromNpmConcrete) */
-      }
+      | None => Opam(OpamConcrete.parseNpmRange(value))
+      /* NpmVersion.parseRange(value) |> GenericVersion.map(Shared.Types.opamFromNpmConcrete) */
+      },
     )
   | None => (
       name,
@@ -51,15 +49,16 @@ let parseNpmSource = ((name, value)) =>
         } else {
           Npm(NpmVersion.parseRange(value));
         }
-      }
+      },
     )
   };
 
 let toDep = ((name, value)) => {
   let value =
-    switch value {
+    switch (value) {
     | `String(value) => value
-    | _ => failwith("Unexpected dep value: " ++ Yojson.Basic.to_string(value))
+    | _ =>
+      failwith("Unexpected dep value: " ++ Yojson.Basic.to_string(value))
     };
   parseNpmSource((name, value));
 };
@@ -77,7 +76,7 @@ let toDep = ((name, value)) => {
  */
 let process = parsed =>
   /* TODO detect npm dependencies */
-  switch parsed {
+  switch (parsed) {
   | `Assoc(items) =>
     let dependencies =
       switch (List.assoc("dependencies", items)) {
@@ -101,13 +100,13 @@ let process = parsed =>
       Types.runtime: dependencies |> List.map(toDep),
       build: buildDependencies |> List.map(toDep),
       dev: devDependencies |> List.map(toDep),
-      npm: []
+      npm: [],
     };
   | _ => failwith("Invalid package.json")
   };
 
 let getSource = json =>
-  switch json {
+  switch (json) {
   | `Assoc(items) =>
     switch (List.assoc("dist", items)) {
     | exception Not_found =>

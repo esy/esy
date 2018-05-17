@@ -25,20 +25,20 @@ type manifest = {
   available: bool,
   /* TODO optDependencies (depopts) */
   source: Types.PendingSource.t,
-  exportedEnv: list((string, (string, string)))
+  exportedEnv: list((string, (string, string))),
 };
 
 type thinManifest = (string, string, string, Shared.Types.opamConcrete);
 
 let rec findVariable = (name, items) =>
-  switch items {
+  switch (items) {
   | [] => None
   | [Variable(_, n, v), ..._] when n == name => Some(v)
   | [_, ...rest] => findVariable(name, rest)
   };
 
 let opName = op =>
-  switch op {
+  switch (op) {
   | `Leq => "<="
   | `Lt => "<"
   | `Neq => "!="
@@ -64,7 +64,7 @@ let toDep = opamvalue => {
 
 let processDeps = (fileName, deps) => {
   let deps =
-    switch deps {
+    switch (deps) {
     | None => []
     | Some(List(_, items)) => items
     | Some(Group(_, items)) => items
@@ -74,7 +74,7 @@ let processDeps = (fileName, deps) => {
         "Can't handle the dependencies "
         ++ fileName
         ++ " "
-        ++ OpamPrinter.value(contents)
+        ++ OpamPrinter.value(contents),
       )
     };
   List.fold_left(
@@ -86,14 +86,14 @@ let processDeps = (fileName, deps) => {
           print_endline(fileName);
           failwith("bad");
         };
-      switch typ {
+      switch (typ) {
       | `Link => ([(name, dep), ...deps], buildDeps, devDeps)
       | `Build => (deps, [(name, dep), ...buildDeps], devDeps)
       | `Test => (deps, buildDeps, [(name, dep), ...devDeps])
       };
     },
     ([], [], []),
-    deps
+    deps,
   );
 };
 
@@ -101,7 +101,7 @@ let filterMap = (fn, items) =>
   List.map(fn, items)
   |> List.filter(x => x != None)
   |> List.map(x =>
-       switch x {
+       switch (x) {
        | Some(x) => x
        | None => assert false
        }
@@ -120,7 +120,7 @@ let variables = ((name, version)) => [
   ("pinned", "false"),
   ("name", name),
   ("version", OpamVersion.viewAlpha(version)),
-  ("prefix", "$cur__install")
+  ("prefix", "$cur__install"),
 ];
 
 let cleanEnvName = Str.global_replace(Str.regexp("-"), "_");
@@ -128,24 +128,29 @@ let cleanEnvName = Str.global_replace(Str.regexp("-"), "_");
 [@test
   [
     ((Str.regexp("a\\(.\\)"), String.uppercase_ascii, "applae"), "PplE"),
-    ((Str.regexp("A\\(.\\)"), String.lowercase_ascii, "HANDS"), "HnDS")
+    ((Str.regexp("A\\(.\\)"), String.lowercase_ascii, "HANDS"), "HnDS"),
   ]
 ]
 let replaceGroupWithTransform = (rx, transform, string) =>
-  Str.global_substitute(rx, s => transform(Str.matched_group(1, s)), string);
+  Str.global_substitute(
+    rx,
+    s => transform(Str.matched_group(1, s)),
+    string,
+  );
 
 [@test
   [
     (
       (("awesome", Shared.Types.Alpha("", None)), "--%{fmt:enable}%-fmt"),
-      "--${fmt_enable:-disable}-fmt"
-    )
+      "--${fmt_enable:-disable}-fmt",
+    ),
   ]
 ]
 let replaceVariables = (info, string) => {
   let string =
     string
-    |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):installed}%"), name =>
+    |> replaceGroupWithTransform(
+         Str.regexp("%{\\([^}]+\\):installed}%"), name =>
          "${" ++ cleanEnvName(name) ++ "_installed:-false}"
        )
     |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):enable}%"), name =>
@@ -165,9 +170,13 @@ let replaceVariables = (info, string) => {
        );
   List.fold_left(
     (string, (name, res)) =>
-      Str.global_replace(Str.regexp_string("%{" ++ name ++ "}%"), res, string),
+      Str.global_replace(
+        Str.regexp_string("%{" ++ name ++ "}%"),
+        res,
+        string,
+      ),
     string,
-    variables(info)
+    variables(info),
   );
 };
 
@@ -180,7 +189,7 @@ let replaceVariables = (info, string) => {
 /*     ) */
 /* ] */
 let processCommandItem = (info, item) =>
-  switch item {
+  switch (item) {
   | String(_, name) => Some(replaceVariables(info, name))
   | Ident(_, ident) =>
     switch (List.assoc_opt(ident, variables(info))) {
@@ -207,21 +216,22 @@ let processCommand = (info, items) =>
 
 /** TODO handle optional build things */
 let processCommandList = (info, item) =>
-  switch item {
+  switch (item) {
   | None => []
   | Some(List(_, items))
   | Some(Group(_, items)) =>
-    switch items {
+    switch (items) {
     | [String(_) | Ident(_), ...rest] => [items |> processCommand(info)]
     | _ =>
       items
       |> filterMap(item =>
-           switch item {
+           switch (item) {
            | List(_, items) => Some(processCommand(info, items))
-           | Option(_, List(_, items), _) => Some(processCommand(info, items))
+           | Option(_, List(_, items), _) =>
+             Some(processCommand(info, items))
            | _ =>
              print_endline(
-               "Skipping a non-list build thing " ++ OpamPrinter.value(item)
+               "Skipping a non-list build thing " ++ OpamPrinter.value(item),
              );
              None;
            }
@@ -235,7 +245,9 @@ let processCommandList = (info, item) =>
       [];
     }
   | Some(item) =>
-    failwith("Unexpected type for a command list: " ++ OpamPrinter.value(item))
+    failwith(
+      "Unexpected type for a command list: " ++ OpamPrinter.value(item),
+    )
   };
 
 /** TODO handle "patch-ocsigen-lwt-101.diff" {os = "darwin"} correctly */
@@ -255,36 +267,42 @@ let processCommandList = (info, item) =>
 [@test.print (fmt, x) => Format.fprintf(fmt, "%s", String.concat(", ", x))]
 let processStringList = item => {
   let items =
-    switch item {
+    switch (item) {
     | None => []
     | Some(List(_, items))
     | Some(Group(_, items)) => items
     | Some(item) =>
       failwith(
-        "Unexpected type for a string list: " ++ OpamPrinter.value(item)
+        "Unexpected type for a string list: " ++ OpamPrinter.value(item),
       )
     };
   items
   |> filterMap(item =>
-       switch item {
+       switch (item) {
        | String(_, name) => Some(name)
        | Option(
            _,
            String(_, name),
-           [Relop(_, `Eq, Ident(_, "os"), String(_, "darwin"))]
+           [Relop(_, `Eq, Ident(_, "os"), String(_, "darwin"))],
          ) =>
          Some(name)
        | Option(
            _,
            String(_, name),
-           [Relop(_, `Eq, Ident(_, "os"), String(_, _))]
+           [Relop(_, `Eq, Ident(_, "os"), String(_, _))],
          ) =>
          None
        | Option(_, String(_, name), [Ident(_, "preinstalled")]) => None
-       | Option(_, String(_, name), [Pfxop(_, `Not, Ident(_, "preinstalled"))]) =>
+       | Option(
+           _,
+           String(_, name),
+           [Pfxop(_, `Not, Ident(_, "preinstalled"))],
+         ) =>
          Some(name)
        | _ =>
-         print_endline("Bad string list item arg " ++ OpamPrinter.value(item));
+         print_endline(
+           "Bad string list item arg " ++ OpamPrinter.value(item),
+         );
          None;
        }
      );
@@ -309,7 +327,10 @@ let parseUrlFile = ({file_contents, file_name}) =>
   | None =>
     switch (findVariable("git", file_contents)) {
     | Some(String(_, git)) =>
-      Types.PendingSource.GitSource(git, None /* TODO parse out commit info */)
+      Types.PendingSource.GitSource(
+        git,
+        None /* TODO parse out commit info */,
+      )
     | _ => failwith("Invalid url file - no archive: " ++ file_name)
     }
   | Some(archive) =>
@@ -329,7 +350,10 @@ let getOpamFiles = opam_name => {
     let collected = ref([]);
     Files.crawl(dir, (rel, full) =>
       collected :=
-        [(rel, Files.readFile(full) |! "opam file unreadable"), ...collected^]
+        [
+          (rel, Files.readFile(full) |! "opam file unreadable"),
+          ...collected^,
+        ]
     );
     collected^;
   } else {
@@ -339,18 +363,19 @@ let getOpamFiles = opam_name => {
 
 let getSubsts = opamvalue =>
   (
-    switch opamvalue {
+    switch (opamvalue) {
     | None => []
     | Some(List(_, items)) =>
       items
       |> List.map(item =>
-           switch item {
+           switch (item) {
            | String(_, text) => text
            | _ => failwith("Bad substs item")
            }
          )
     | Some(String(_, text)) => [text]
-    | Some(other) => failwith("Bad substs value " ++ OpamPrinter.value(other))
+    | Some(other) =>
+      failwith("Bad substs value " ++ OpamPrinter.value(other))
     }
   )
   |> List.map(filename => ["substs", filename ++ ".in"]);
@@ -377,7 +402,7 @@ let parseManifest = (info, {file_contents, file_name}) => {
       Shared.GenericVersion.isTooLarge(
         Npm.NpmVersion.compare,
         ocamlRequirement,
-        ourMinimumOcamlVersion
+        ourMinimumOcamlVersion,
       );
   let isAvailable =
     isAVersionWeSupport
@@ -391,7 +416,8 @@ let parseManifest = (info, {file_contents, file_name}) => {
       getSubsts(findVariable("substs", file_contents))
       @ processCommandList(info, findVariable("build", file_contents))
       @ [["sh", "-c", "(esy-installer || true)"]],
-    install: processCommandList(info, findVariable("install", file_contents)),
+    install:
+      processCommandList(info, findVariable("install", file_contents)),
     patches,
     files,
     deps:
@@ -405,10 +431,10 @@ let parseManifest = (info, {file_contents, file_name}) => {
           Npm(
             And(
               GenericVersion.AtLeast(ourMinimumOcamlVersion),
-              ocamlRequirement
-            )
-          )
-        )
+              ocamlRequirement,
+            ),
+          ),
+        ),
       ],
     buildDeps: [],
     /* buildDeps |> List.map(toDepSource), */
@@ -417,7 +443,7 @@ let parseManifest = (info, {file_contents, file_name}) => {
     optDependencies: depopts |> List.map(toDepSource),
     available: isAvailable, /* TODO */
     source: Types.PendingSource.NoSource,
-    exportedEnv: []
+    exportedEnv: [],
   };
 };
 
@@ -431,9 +457,10 @@ let assignAssoc = (target, override) => {
     List.fold_left(
       (set, (name, _)) => StrSet.add(name, set),
       StrSet.empty,
-      override
+      override,
     );
-  List.filter(((name, _)) => ! StrSet.mem(name, replacing), target) @ override;
+  List.filter(((name, _)) => ! StrSet.mem(name, replacing), target)
+  @ override;
 };
 
 module O = OpamOverrides;
@@ -447,16 +474,16 @@ let mergeOverride = (manifest, override) => {
     deps:
       assignAssoc(
         manifest.deps,
-        override.O.dependencies |> List.map(parseDepVersion)
+        override.O.dependencies |> List.map(parseDepVersion),
       ),
     peerDeps:
       assignAssoc(
         manifest.peerDeps,
-        override.O.peerDependencies |> List.map(parseDepVersion)
+        override.O.peerDependencies |> List.map(parseDepVersion),
       ),
     files: manifest.files @ (override.O.opam |?>> (o => o.O.files) |? []),
     source,
-    exportedEnv: override.O.exportedEnv
+    exportedEnv: override.O.exportedEnv,
   };
 };
 
@@ -465,7 +492,7 @@ let getManifest = (opamOverrides, (opam, url, name, version)) => {
     ...parseManifest((name, version), OpamParser.file(opam)),
     source:
       Files.exists(url) ?
-        parseUrlFile(OpamParser.file(url)) : Types.PendingSource.NoSource
+        parseUrlFile(OpamParser.file(url)) : Types.PendingSource.NoSource,
   };
   switch (OpamOverrides.findApplicableOverride(opamOverrides, name, version)) {
   | None =>
@@ -484,7 +511,7 @@ let process = ({deps, buildDeps, devDeps}) => {
   Types.runtime: deps @ buildDeps,
   build: [],
   dev: devDeps,
-  npm: []
+  npm: [],
   /* (deps, buildDeps, devDeps) */
 };
 
@@ -511,27 +538,30 @@ let toPackageJson = (manifest, name, version) => (
             [
               (
                 cleanEnvName(withoutScope(name)) ++ "_version",
-                (Lockfile.plainVersionNumber(version), "global")
+                (Lockfile.plainVersionNumber(version), "global"),
               ),
               (
                 cleanEnvName(withoutScope(name)) ++ "_installed",
-                ("true", "global")
+                ("true", "global"),
               ),
               (
                 cleanEnvName(withoutScope(name)) ++ "_enable",
-                ("enable", "global")
-              )
+                ("enable", "global"),
+              ),
             ]
             @ manifest.exportedEnv
             |> List.map(((name, (val_, scope))) =>
                  (
                    name,
-                   `Assoc([("val", `String(val_)), ("scope", `String(scope))])
+                   `Assoc([
+                     ("val", `String(val_)),
+                     ("scope", `String(scope)),
+                   ]),
                  )
-               )
-          )
-        )
-      ])
+               ),
+          ),
+        ),
+      ]),
       /* ("buildsInSource", "_build") */
     ),
     (
@@ -540,28 +570,33 @@ let toPackageJson = (manifest, name, version) => (
         Types.resolvedPrefix
         ++ name
         ++ "--"
-        ++ Lockfile.viewRealVersion(version)
-      )
+        ++ Lockfile.viewRealVersion(version),
+      ),
     ),
     (
       "peerDependencies",
-      `Assoc([("ocaml", `String("*")) /* HACK probably get this somewhere */])
+      `Assoc([
+        ("ocaml", `String("*")) /* HACK probably get this somewhere */,
+      ]),
     ),
     (
       "optDependencies",
       `Assoc(
         manifest.optDependencies
-        |> List.map(((name, _)) => (name, `String("*")))
-      )
+        |> List.map(((name, _)) => (name, `String("*"))),
+      ),
     ),
     (
       "dependencies",
       `Assoc(
         (manifest.deps |> List.map(((name, _)) => (name, `String("*"))))
-        @ (manifest.buildDeps |> List.map(((name, _)) => (name, `String("*"))))
-      )
-    )
+        @ (
+          manifest.buildDeps
+          |> List.map(((name, _)) => (name, `String("*")))
+        ),
+      ),
+    ),
   ]),
   manifest.files,
-  manifest.patches
+  manifest.patches,
 );

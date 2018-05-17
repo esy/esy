@@ -15,10 +15,12 @@ let sliceToEnd = (text, num) =>
   String.sub(text, num, String.length(text) - num);
 
 let isint = v =>
-  try {
-    ignore(int_of_string(v));
-    true;
-  } {
+  try (
+    {
+      ignore(int_of_string(v));
+      true;
+    }
+  ) {
   | _ => false
   };
 
@@ -34,19 +36,19 @@ let splitRest = value =>
         | [single] => (int_of_string(single), None)
         | [single, ...rest] => (
             int_of_string(single),
-            Some("~" ++ String.concat("~", rest))
+            Some("~" ++ String.concat("~", rest)),
           )
         | _ => (0, Some(value))
         }
       | [single, ...rest] => (
           int_of_string(single),
-          Some("+" ++ String.concat("+", rest))
+          Some("+" ++ String.concat("+", rest)),
         )
       | _ => (0, Some(value))
       }
     | [single, ...rest] => (
         int_of_string(single),
-        Some("-" ++ String.concat("-", rest))
+        Some("-" ++ String.concat("-", rest)),
       )
     | _ => (0, Some(value))
     }
@@ -55,13 +57,13 @@ let splitRest = value =>
   };
 
 let showOpt = n =>
-  switch n {
+  switch (n) {
   | None => "None"
   | Some(x) => Printf.sprintf("Some(%s)", x)
   };
 
 let showPartial = x =>
-  switch x {
+  switch (x) {
   | `AllStar => "AllStar"
   | `MajorStar(num) => Printf.sprintf("MajorStar %d", num)
   | `MinorStar(m, i) => Printf.sprintf("MinorStar %d %d", m, i)
@@ -73,7 +75,7 @@ let showPartial = x =>
   };
 
 let exactPartial = partial =>
-  switch partial {
+  switch (partial) {
   | `AllStar => failwith("* cannot be compared")
   | `MajorStar(num) => (num, 0, 0, None)
   | `MinorStar(m, i) => (m, i, 0, None)
@@ -94,23 +96,24 @@ let exactPartial = partial =>
     ("1.2-beta.2", `Minor((1, 2, Some("-beta.2")))),
     ("1.4.23-alpha1", `Patch((1, 4, 23, Some("-alpha1")))),
     ("1.2.3alpha2", `Patch((1, 2, 3, Some("alpha2")))),
-    ("what", `Raw("what"))
+    ("what", `Raw("what")),
   ]
 ]
 [@test.print (fmt, x) => Format.fprintf(fmt, "%s", showPartial(x))]
 let parsePartial = version => {
   let version = version.[0] == 'v' ? sliceToEnd(version, 1) : version;
   let parts = String.split_on_char('.', version);
-  switch parts {
+  switch (parts) {
   | ["*" | "x" | "X", ...rest] => `AllStar
   | [major, "*" | "x" | "X", ...rest] when isint(major) =>
     `MajorStar(int_of_string(major))
-  | [major, minor, "*" | "x" | "X", ...rest] when isint(major) && isint(minor) =>
+  | [major, minor, "*" | "x" | "X", ...rest]
+      when isint(major) && isint(minor) =>
     `MinorStar((int_of_string(major), int_of_string(minor)))
   | _ =>
     let rx =
       Str.regexp(
-        {|^\([0-9]+\)\(\.\([0-9]+\)\(\.\([0-9]+\)\)?\)?\(\([-+~][a-z0-9\.]+\)\)?|}
+        {|^\([0-9]+\)\(\.\([0-9]+\)\(\.\([0-9]+\)\)?\)?\(\([-+~][a-z0-9\.]+\)\)?|},
       );
     switch (Str.search_forward(rx, version, 0)) {
     | exception Not_found => `Raw(version)
@@ -143,18 +146,21 @@ let parsePartial = version => {
 open Shared.GenericVersion;
 
 [@test
-  [(">=2.3.1", AtLeast((2, 3, 1, None))), ("<2.4", LessThan((2, 4, 0, None)))]
+  [
+    (">=2.3.1", AtLeast((2, 3, 1, None))),
+    ("<2.4", LessThan((2, 4, 0, None))),
+  ]
 ]
 let parsePrimitive = item =>
-  switch item.[0] {
+  switch (item.[0]) {
   | '=' => Exactly(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
   | '>' =>
-    switch item.[1] {
+    switch (item.[1]) {
     | '=' => AtLeast(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
     | _ => GreaterThan(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
     }
   | '<' =>
-    switch item.[1] {
+    switch (item.[1]) {
     | '=' => AtMost(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
     | _ => LessThan(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
     }
@@ -162,7 +168,7 @@ let parsePrimitive = item =>
   };
 
 let parseSimple = item =>
-  switch item.[0] {
+  switch (item.[0]) {
   | '~' =>
     switch (parsePartial(sliceToEnd(item, 1))) {
     | `Major(num, q) =>
@@ -228,7 +234,7 @@ let parseSimples = (item, parseSimple) => {
     |> Str.global_replace(Str.regexp("< +"), "<");
   let items = String.split_on_char(' ', item);
   let rec loop = items =>
-    switch items {
+    switch (items) {
     | [item] => parseSimple(item)
     | [item, ...items] => And(parseSimple(item), loop(items))
     | [] => assert false
@@ -240,14 +246,20 @@ let parseSimples = (item, parseSimple) => {
   Shared.GenericVersion.[
     ("1.2.3", Exactly((1, 2, 3, None))),
     ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
-    ("1.2.3 - 2.3.4", And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None)))),
-    ("1.2.3 - 2.3", And(AtLeast((1, 2, 3, None)), LessThan((2, 4, 0, None))))
+    (
+      "1.2.3 - 2.3.4",
+      And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))),
+    ),
+    (
+      "1.2.3 - 2.3",
+      And(AtLeast((1, 2, 3, None)), LessThan((2, 4, 0, None))),
+    ),
   ]
 ]
 [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))]
 let parseNpmRange = simple => {
   let items = Str.split(Str.regexp(" +- +"), simple);
-  switch items {
+  switch (items) {
   | [item] => parseSimples(item, parseSimple)
   | [left, right] =>
     let left = AtLeast(parsePartial(left) |> exactPartial);
@@ -271,14 +283,17 @@ let parseNpmRange = simple => {
   Shared.GenericVersion.[
     ("1.2.3", Exactly((1, 2, 3, None))),
     ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
-    ("1.2.3 - 2.3.4", And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None)))),
+    (
+      "1.2.3 - 2.3.4",
+      And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))),
+    ),
     (
       "1.2.3 - 2.3 || 5.x",
       Or(
         And(AtLeast((1, 2, 3, None)), LessThan((2, 4, 0, None))),
-        And(AtLeast((5, 0, 0, None)), LessThan((6, 0, 0, None)))
-      )
-    )
+        And(AtLeast((5, 0, 0, None)), LessThan((6, 0, 0, None))),
+      ),
+    ),
   ]
 ]
 [@test.call parseOrs(parseNpmRange)]
@@ -289,7 +304,7 @@ let parseOrs = (parseRange, version) =>
   } else {
     let items = Str.split(Str.regexp(" +|| +"), version);
     let rec loop = items =>
-      switch items {
+      switch (items) {
       | [] => failwith("WAAAT " ++ version)
       | [item] => parseRange(item)
       | [item, ...items] => Or(parseRange(item), loop(items))

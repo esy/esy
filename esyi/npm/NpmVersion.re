@@ -4,7 +4,7 @@
 let viewConcrete = ((m, i, p, r)) =>
   ([m, i, p] |> List.map(string_of_int) |> String.concat("."))
   ++ (
-    switch r {
+    switch (r) {
     | None => ""
     | Some(a) => a
     }
@@ -35,7 +35,10 @@ let viewRange = Shared.GenericVersion.view(viewConcrete);
     ("~0", parseRange("0.x")),
     ("1.2.3", Exactly((1, 2, 3, None))),
     ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
-    ("1.2.3 - 2.3.4", And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))))
+    (
+      "1.2.3 - 2.3.4",
+      And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))),
+    ),
   ]
 ]
 [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))]
@@ -49,16 +52,18 @@ let parseRange = version =>
       "Invalid version! pretending its any: "
       ++ version
       ++ " "
-      ++ Printexc.to_string(e)
+      ++ Printexc.to_string(e),
     );
     Any;
   };
 
 let isint = v =>
-  try {
-    ignore(int_of_string(v));
-    true;
-  } {
+  try (
+    {
+      ignore(int_of_string(v));
+      true;
+    }
+  ) {
   | _ => false
   };
 
@@ -66,25 +71,25 @@ let getRest = parts => parts == [] ? None : Some(String.concat(".", parts));
 
 let parseConcrete = version => {
   let parts = String.split_on_char('.', version);
-  switch parts {
+  switch (parts) {
   | [major, minor, patch, ...rest]
       when isint(major) && isint(minor) && isint(patch) => (
       int_of_string(major),
       int_of_string(minor),
       int_of_string(patch),
-      getRest(rest)
+      getRest(rest),
     )
   | [major, minor, ...rest] when isint(major) && isint(minor) => (
       int_of_string(major),
       int_of_string(minor),
       0,
-      getRest(rest)
+      getRest(rest),
     )
   | [major, ...rest] when isint(major) => (
       int_of_string(major),
       0,
       0,
-      getRest(rest)
+      getRest(rest),
     )
   | rest => (0, 0, 0, getRest(rest))
   };

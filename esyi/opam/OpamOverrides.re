@@ -2,27 +2,27 @@ open Shared;
 
 module Infix = {
   let (|?>) = (a, b) =>
-    switch a {
+    switch (a) {
     | None => None
     | Some(x) => b(x)
     };
   let (|?>>) = (a, b) =>
-    switch a {
+    switch (a) {
     | None => None
     | Some(x) => Some(b(x))
     };
   let (|?) = (a, b) =>
-    switch a {
+    switch (a) {
     | None => b
     | Some(a) => a
     };
   let (|??) = (a, b) =>
-    switch a {
+    switch (a) {
     | None => b
     | Some(a) => Some(a)
     };
   let (|!) = (a, b) =>
-    switch a {
+    switch (a) {
     | None => failwith(b)
     | Some(a) => a
     };
@@ -42,17 +42,17 @@ type opamPackageOverride = {
   dependencies: list((string, string)),
   peerDependencies: list((string, string)),
   exportedEnv: list((string, (string, string))),
-  opam: option(opamSection)
+  opam: option(opamSection),
 };
 
 let expectResult = (message, res) =>
-  switch res {
+  switch (res) {
   | Rresult.Ok(x) => x
   | _ => failwith(message)
   };
 
 let rec yamlToJson = value =>
-  switch value {
+  switch (value) {
   | `A(items) => `List(List.map(yamlToJson, items))
   | `O(items) =>
     `Assoc(List.map(((name, value)) => (name, yamlToJson(value)), items))
@@ -64,17 +64,17 @@ let rec yamlToJson = value =>
 
 module ProcessJson = {
   let arr = json =>
-    switch json {
+    switch (json) {
     | `List(items) => Some(items)
     | _ => None
     };
   let obj = json =>
-    switch json {
+    switch (json) {
     | `Assoc(items) => Some(items)
     | _ => None
     };
   let str = json =>
-    switch json {
+    switch (json) {
     | `String(str) => Some(str)
     | _ => None
     };
@@ -87,14 +87,14 @@ module ProcessJson = {
     |?>> List.map(((name, value)) =>
            (
              name,
-             switch value {
+             switch (value) {
              | `String(s) => (s, "global")
              | `Assoc(items) => (
                  List.assoc_opt("val", items) |?> str |! "must have val",
-                 List.assoc_opt("scope", items) |?> str |? "global"
+                 List.assoc_opt("scope", items) |?> str |? "global",
                )
              | _ => failwith("env value should be a string or an object")
-             }
+             },
            )
          );
   let parseCommandList = json =>
@@ -131,7 +131,7 @@ module ProcessJson = {
                 url,
                 items
                 |> get("checksum")
-                |?>> (str |.! "checksum should be a string")
+                |?>> (str |.! "checksum should be a string"),
               )
           );
         let maybeGitSource =
@@ -162,9 +162,9 @@ module ProcessJson = {
                    items
                    |> get("content")
                    |?>> (str |.! "content must be a str")
-                   |! "content required for files"
+                   |! "content required for files",
                  )
-               )
+               ),
         };
       }
     );
@@ -177,7 +177,7 @@ module ProcessJson = {
       dependencies: attr("dependencies") |?>> parseDependencies |? [],
       peerDependencies: attr("peerDependencies") |?>> parseDependencies |? [],
       exportedEnv: parseExportedEnv(items) |? [],
-      opam: attr("opam") |?>> parseOpam
+      opam: attr("opam") |?>> parseOpam,
     };
   };
 };
@@ -201,7 +201,7 @@ module ParseName = {
   let prefixes = ["<=", ">=", "<", ">"];
   let prefix = name => {
     let rec loop = prefixes =>
-      switch prefixes {
+      switch (prefixes) {
       | [] => (None, name)
       | [one, ...rest] =>
         switch (stripPrefix(name, one)) {
@@ -229,23 +229,27 @@ module ParseName = {
           name,
           And(
             AtLeast(OpamVersion.triple(int_of_string(num), 0, 0)),
-            LessThan(OpamVersion.triple(int_of_string(num) + 1, 0, 0))
-          )
+            LessThan(OpamVersion.triple(int_of_string(num) + 1, 0, 0)),
+          ),
         )
       | [name, num, minor, "x" | "x-"] => (
           name,
           And(
             AtLeast(
-              OpamVersion.triple(int_of_string(num), int_of_string(minor), 0)
+              OpamVersion.triple(
+                int_of_string(num),
+                int_of_string(minor),
+                0,
+              ),
             ),
             LessThan(
               OpamVersion.triple(
                 int_of_string(num),
                 int_of_string(minor) + 1,
-                0
-              )
-            )
-          )
+                0,
+              ),
+            ),
+          ),
         )
       | [name, major, minor, patch] =>
         let (prefix, major) = prefix(major);
@@ -255,18 +259,18 @@ module ParseName = {
             int_of_string(major),
             int_of_string(minor),
             int_of_string(patch),
-            extra
+            extra,
           ));
         (
           name,
-          switch prefix {
+          switch (prefix) {
           | None => Exactly(version)
           | Some(">") => GreaterThan(version)
           | Some(">=") => AtLeast(version)
           | Some("<") => LessThan(version)
           | Some("<=") => AtMost(version)
           | _ => assert false
-          }
+          },
         );
       | _ => failwith("Bad override version " ++ name)
       }

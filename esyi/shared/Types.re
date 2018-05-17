@@ -8,12 +8,12 @@ and num =
 
 let alpha_to_yojson = (Alpha(text, num)) => {
   let rec lnum = num =>
-    switch num {
+    switch (num) {
     | None => []
     | Some(Num(n, a)) => [`Int(n), ...lalpha(a)]
     }
   and lalpha = alpha =>
-    switch alpha {
+    switch (alpha) {
     | None => []
     | Some(Alpha(a, n)) => [`String(a), ...lnum(n)]
     };
@@ -22,12 +22,12 @@ let alpha_to_yojson = (Alpha(text, num)) => {
 
 module ResultInfix = {
   let (|!>) = (item, fn) =>
-    switch item {
+    switch (item) {
     | Result.Ok(value) => fn(value)
     | Error(e) => Result.Error(e)
     };
   let (|!>>) = (item, fn) =>
-    switch item {
+    switch (item) {
     | Result.Ok(value) => Result.Ok(fn(value))
     | Error(e) => Result.Error(e)
     };
@@ -36,17 +36,17 @@ module ResultInfix = {
 };
 
 let alpha_of_yojson = json =>
-  switch json {
+  switch (json) {
   | `List(items) =>
     open ResultInfix;
     let rec lnum = items =>
-      switch items {
+      switch (items) {
       | [] => ok(None)
       | [`Int(n), ...rest] => lalpha(rest) |!>> (r => Some(Num(n, r)))
       | _ => fail("Num should be a number")
       }
     and lalpha = items =>
-      switch items {
+      switch (items) {
       | [] => ok(None)
       | [`String(n), ...rest] => lnum(rest) |!>> (r => Some(Alpha(n, r)))
       | _ => fail("Alpha should be string")
@@ -54,7 +54,7 @@ let alpha_of_yojson = json =>
     lalpha(items)
     |!> (
       v =>
-        switch v {
+        switch (v) {
         | None => fail("No alpha")
         | Some(v) => ok(v)
         }
@@ -74,21 +74,21 @@ type npmRange = GenericVersion.range(npmConcrete);
 let viewNpmConcrete = ((m, i, p, r)) =>
   ([m, i, p] |> List.map(string_of_int) |> String.concat("."))
   ++ (
-    switch r {
+    switch (r) {
     | None => ""
     | Some(a) => a
     }
   );
 
 let rec viewOpamConcrete = (Alpha(a, na)) =>
-  switch na {
+  switch (na) {
   | None => a
   | Some(b) => a ++ viewNum(b)
   }
 and viewNum = (Num(a, na)) =>
   string_of_int(a)
   ++ (
-    switch na {
+    switch (na) {
     | None => ""
     | Some(a) => viewOpamConcrete(a)
     }
@@ -149,12 +149,12 @@ type depsByKind = {
   dev: list(dep),
   build: list(dep),
   /* This is for npm deps of an esy package. npm deps of an npm package are classified as "runtime". */
-  npm: list(dep)
+  npm: list(dep),
   /* TODO targets or something */
 };
 
 let viewReq = req =>
-  switch req {
+  switch (req) {
   | Github(org, repo, ref) => "github: " ++ org ++ "/" ++ repo
   | Git(s) => "git: " ++ s
   | Npm(t) => "npm: " ++ GenericVersion.view(viewNpmConcrete, t)
@@ -164,7 +164,7 @@ let viewReq = req =>
 type config = {
   esyOpamOverrides: string,
   opamRepository: string,
-  baseDirectory: string
+  baseDirectory: string,
 };
 
 let opamFromNpmConcrete = ((major, minor, patch, rest)) =>
@@ -185,18 +185,18 @@ let opamFromNpmConcrete = ((major, minor, patch, rest)) =>
                     Some(
                       Num(
                         patch,
-                        switch rest {
+                        switch (rest) {
                         | None => None
                         | Some(rest) => Some(Alpha(rest, None))
-                        }
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
   );

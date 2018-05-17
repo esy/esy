@@ -12,11 +12,16 @@ let triple = (major, minor, patch) =>
   Shared.Types.opamFromNpmConcrete((major, minor, patch, None));
 
 [@test
-  [(("123abc", 0), 3), (("a123abc", 1), 4), (("abc", 1), 1), (("abc", 3), 3)]
+  [
+    (("123abc", 0), 3),
+    (("a123abc", 1), 4),
+    (("abc", 1), 1),
+    (("abc", 3), 3),
+  ]
 ]
 let rec getNums = (text, pos) =>
   if (pos < String.length(text)) {
-    switch text.[pos] {
+    switch (text.[pos]) {
     | '0'..'9' => getNums(text, pos + 1)
     | _ => pos
     };
@@ -26,7 +31,7 @@ let rec getNums = (text, pos) =>
 
 let rec getNonNums = (text, pos) =>
   if (pos < String.length(text)) {
-    switch text.[pos] {
+    switch (text.[pos]) {
     | '0'..'9' => pos
     | _ => getNonNums(text, pos + 1)
     };
@@ -39,8 +44,8 @@ let rec getNonNums = (text, pos) =>
     ("1.2.3", triple(1, 2, 3)),
     (
       "1.2.3~alpha",
-      Shared.Types.opamFromNpmConcrete((1, 2, 3, Some("~alpha")))
-    )
+      Shared.Types.opamFromNpmConcrete((1, 2, 3, Some("~alpha"))),
+    ),
   ]
 ]
 let parseConcrete = text => {
@@ -57,7 +62,7 @@ let parseConcrete = text => {
     if (pos >= len) {
       None;
     } else {
-      switch text.[pos] {
+      switch (text.[pos]) {
       | '0'..'9' => Some(Alpha("", getNum(pos)))
       | _ =>
         let tpos = getNonNums(text, pos);
@@ -73,10 +78,10 @@ let parseConcrete = text => {
 
 let rec findNextForTilde = (Alpha(t, n)) =>
   if (t == "." || t == "") {
-    switch n {
+    switch (n) {
     | None => `End
     | Some(Num(n, rest)) =>
-      switch rest {
+      switch (rest) {
       | None => `LastNum(Alpha(t, Some(Num(n + 1, None))))
       | Some(rest) =>
         switch (findNextForTilde(rest)) {
@@ -94,10 +99,12 @@ let rec findNextForTilde = (Alpha(t, n)) =>
   [
     (parseConcrete("1.2.3"), parseConcrete("1.3")),
     (parseConcrete("1.5.4-alpha6"), parseConcrete("1.6")),
-    (parseConcrete("1.2"), parseConcrete("2"))
+    (parseConcrete("1.2"), parseConcrete("2")),
   ]
 ]
-[@test.print (fmt, t) => Format.fprintf(fmt, "%s", Types.viewOpamConcrete(t))]
+[@test.print
+  (fmt, t) => Format.fprintf(fmt, "%s", Types.viewOpamConcrete(t))
+]
 let findNextForTilde = version =>
   switch (findNextForTilde(version)) {
   | `End => failwith("Cannot tilde a version with no numbers")
@@ -108,18 +115,21 @@ let findNextForTilde = version =>
 [@test
   [
     (parseConcrete("1.2.3"), parseConcrete("2")),
-    (parseConcrete("0.2.3"), parseConcrete("0.3"))
+    (parseConcrete("0.2.3"), parseConcrete("0.3")),
   ]
 ]
-[@test.print (fmt, t) => Format.fprintf(fmt, "%s", Types.viewOpamConcrete(t))]
+[@test.print
+  (fmt, t) => Format.fprintf(fmt, "%s", Types.viewOpamConcrete(t))
+]
 let rec findNextForCaret = (Alpha(t, n)) =>
   if (t == "." || t == "") {
-    switch n {
+    switch (n) {
     | None => failwith("No nonzero numbers")
     | Some(Num(0, rest)) =>
-      switch rest {
+      switch (rest) {
       | None => failwith("No nonzero numbers")
-      | Some(rest) => Alpha(t, Some(Num(0, Some(findNextForTilde(rest)))))
+      | Some(rest) =>
+        Alpha(t, Some(Num(0, Some(findNextForTilde(rest)))))
       }
     | Some(Num(n, rest)) => Alpha(t, Some(Num(n + 1, None)))
     };

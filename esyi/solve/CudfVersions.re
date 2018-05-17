@@ -2,12 +2,12 @@ open Shared;
 
 type t = {
   lookupRealVersion: Hashtbl.t((string, int), Lockfile.realVersion),
-  lookupIntVersion: Hashtbl.t((string, Lockfile.realVersion), int)
+  lookupIntVersion: Hashtbl.t((string, Lockfile.realVersion), int),
 };
 
 let init = () => {
   lookupRealVersion: Hashtbl.create(100),
-  lookupIntVersion: Hashtbl.create(100)
+  lookupIntVersion: Hashtbl.create(100),
 };
 
 let update = (t, name, realVersion, version) => {
@@ -19,7 +19,7 @@ let getRealVersion = (cudfVersions, package) =>
   switch (
     Hashtbl.find(
       cudfVersions.lookupRealVersion,
-      (package.Cudf.package, package.Cudf.version)
+      (package.Cudf.package, package.Cudf.version),
     )
   ) {
   | exception Not_found =>
@@ -27,7 +27,7 @@ let getRealVersion = (cudfVersions, package) =>
       "Tried to find a package that wasn't listed in the versioncache "
       ++ package.Cudf.package
       ++ " "
-      ++ string_of_int(package.Cudf.version)
+      ++ string_of_int(package.Cudf.version),
     )
   | version => version
   };

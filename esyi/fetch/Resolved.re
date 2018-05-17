@@ -5,7 +5,8 @@ let taggedName = (name, version) =>
 
 let taggedPackage = ({name, version}) => taggedName(name, version);
 
-let findPackage = (packages, name) => List.find(p => p.name == name, packages);
+let findPackage = (packages, name) =>
+  List.find(p => p.name == name, packages);
 
 let rec depsForPackage = (package, runtimeBag) =>
   `Assoc(
@@ -13,7 +14,7 @@ let rec depsForPackage = (package, runtimeBag) =>
     |> List.map(((name, _, version)) => {
          let found = findPackage(runtimeBag, name);
          (taggedPackage(found), depsForPackage(found, runtimeBag));
-       })
+       }),
   );
 
 /* let fromRootPackage = ({package, runtimeBag}) => depsForPackage */
@@ -24,7 +25,7 @@ let collectPackages = env =>
     env.targets
     |> List.map(((_, root)) => packagesForRoot(root))
     |> List.concat,
-    env.buildDependencies |> List.map(packagesForRoot) |> List.concat
+    env.buildDependencies |> List.map(packagesForRoot) |> List.concat,
   );
 
 let fromEnv = (env, modulesCache) => {
@@ -39,12 +40,12 @@ let fromEnv = (env, modulesCache) => {
              `String(
                Filename.concat(
                  modulesCache,
-                 FetchUtils.absname(package.name, package.version)
-               )
-             )
+                 FetchUtils.absname(package.name, package.version),
+               ),
+             ),
            )
          )
-      |> (x => `Assoc(x))
+      |> (x => `Assoc(x)),
     ),
     (
       "targets",
@@ -52,7 +53,7 @@ let fromEnv = (env, modulesCache) => {
       |> List.map(((target, root)) =>
            ("hello", depsForPackage(root.package, root.runtimeBag))
          )
-      |> (x => `Assoc(x))
+      |> (x => `Assoc(x)),
     ),
     (
       "buildPackages",
@@ -60,10 +61,10 @@ let fromEnv = (env, modulesCache) => {
       |> List.map(root =>
            (
              taggedPackage(root.package),
-             depsForPackage(root.package, root.runtimeBag)
+             depsForPackage(root.package, root.runtimeBag),
            )
          )
-      |> (x => `Assoc(x))
+      |> (x => `Assoc(x)),
     ),
     (
       "buildDependencies",
@@ -75,11 +76,11 @@ let fromEnv = (env, modulesCache) => {
                package.build
                |> List.map(((name, _, realVersion)) =>
                     `String(taggedName(name, realVersion))
-                  )
-             )
+                  ),
+             ),
            )
          )
-      |> (x => `Assoc(x))
-    )
+      |> (x => `Assoc(x)),
+    ),
   ]);
 };

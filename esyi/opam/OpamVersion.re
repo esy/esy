@@ -7,7 +7,7 @@ let triple = Npm.OpamConcrete.triple;
 let fromPrefix = (op, version) => {
   open Shared.GenericVersion;
   let v = parseConcrete(version);
-  switch op {
+  switch (op) {
   | `Eq => Exactly(v)
   | `Geq => AtLeast(v)
   | `Leq => AtMost(v)
@@ -20,21 +20,25 @@ let fromPrefix = (op, version) => {
 let rec parseRange = opamvalue =>
   OpamParserTypes.(
     Shared.GenericVersion.(
-      switch opamvalue {
+      switch (opamvalue) {
       | Prefix_relop(_, op, String(_, version)) => fromPrefix(op, version)
-      | Logop(_, `And, left, right) => And(parseRange(left), parseRange(right))
-      | Logop(_, `Or, left, right) => Or(parseRange(left), parseRange(right))
+      | Logop(_, `And, left, right) =>
+        And(parseRange(left), parseRange(right))
+      | Logop(_, `Or, left, right) =>
+        Or(parseRange(left), parseRange(right))
       | String(_, version) => Exactly(parseConcrete(version))
       | Option(_, contents, options) =>
         print_endline(
           "Ignoring option: "
-          ++ (options |> List.map(OpamPrinter.value) |> String.concat(" .. "))
+          ++ (
+            options |> List.map(OpamPrinter.value) |> String.concat(" .. ")
+          ),
         );
         parseRange(contents);
       | y =>
         print_endline(
           "Unexpected option -- pretending its any "
-          ++ OpamPrinter.value(opamvalue)
+          ++ OpamPrinter.value(opamvalue),
         );
         Any;
       }
@@ -44,23 +48,35 @@ let rec parseRange = opamvalue =>
 let rec toDep = opamvalue =>
   OpamParserTypes.(
     Shared.GenericVersion.(
-      switch opamvalue {
+      switch (opamvalue) {
       | String(_, name) => (name, Any, `Link)
-      | Option(_, String(_, name), [Ident(_, "build")]) => (name, Any, `Build)
+      | Option(_, String(_, name), [Ident(_, "build")]) => (
+          name,
+          Any,
+          `Build,
+        )
       | Option(
           _,
           String(_, name),
-          [Logop(_, `And, Ident(_, "build"), version)]
+          [Logop(_, `And, Ident(_, "build"), version)],
         ) => (
           name,
           parseRange(version),
-          `Build
+          `Build,
         )
-      | Option(_, String(_, name), [Ident(_, "test")]) => (name, Any, `Test)
-      | Option(_, String(_, name), [Logop(_, `And, Ident(_, "test"), version)]) => (
+      | Option(_, String(_, name), [Ident(_, "test")]) => (
+          name,
+          Any,
+          `Test,
+        )
+      | Option(
+          _,
+          String(_, name),
+          [Logop(_, `And, Ident(_, "test"), version)],
+        ) => (
           name,
           parseRange(version),
-          `Test
+          `Test,
         )
       | Group(_, [Logop(_, `Or, String(_, "base-no-ppx"), otherThing)]) =>
         /* yep we allow ppxs */
@@ -70,7 +86,7 @@ let rec toDep = opamvalue =>
           "Arbitrarily choosing the second of two options: "
           ++ one
           ++ " and "
-          ++ two
+          ++ two,
         );
         (two, Any, `Link);
       | Group(_, [Logop(_, `Or, first, second)]) =>
@@ -78,16 +94,18 @@ let rec toDep = opamvalue =>
           "Arbitrarily choosing the first of two options: "
           ++ OpamPrinter.value(first)
           ++ " and "
-          ++ OpamPrinter.value(second)
+          ++ OpamPrinter.value(second),
         );
         toDep(first);
       | Option(_, String(_, name), [option]) => (
           name,
           parseRange(option),
-          `Link
+          `Link,
         )
       | _ =>
-        failwith("Can't parse this opam dep " ++ OpamPrinter.value(opamvalue))
+        failwith(
+          "Can't parse this opam dep " ++ OpamPrinter.value(opamvalue),
+        )
       }
     )
   );
@@ -105,7 +123,7 @@ let splitInTwo = (string, char) =>
     (("a", "b"), (-1)),
     (("aa", "a"), 1),
     (("a~b", "a"), (-1)),
-    (("", "~beta1"), 1)
+    (("", "~beta1"), 1),
   ]
 ]
 let compareWithTilde = (a, b) => {
@@ -120,10 +138,12 @@ let compareWithTilde = (a, b) => {
     | (`Empty, _) => (-1)
     | (_, `Empty) => 1
     | (`Two(a, _), `Just(b)) when a == String.sub(b, 0, String.length(a)) => (-1)
-    | (`Two(a, _), `Just(b)) => compare(a, String.sub(b, 0, String.length(a)))
+    | (`Two(a, _), `Just(b)) =>
+      compare(a, String.sub(b, 0, String.length(a)))
     | (`Just(a), `Just(b)) => assert false
     | (`Just(a), `Two(b, _)) when String.sub(a, 0, String.length(b)) == b => (-1)
-    | (`Just(a), `Two(b, _)) => compare(String.sub(a, 0, String.length(b)), b)
+    | (`Just(a), `Two(b, _)) =>
+      compare(String.sub(a, 0, String.length(b)), b)
     | (`Two(a, aa), `Two(b, bb)) when a == b => compare(aa, bb)
     | (`Two(a, _), `Two(b, _)) => compare(a, b)
     };
@@ -137,7 +157,7 @@ let compareWithTilde = (a, b) => {
     ((parseConcrete("1.2.3"), parseConcrete("1.2.4")), (-1)),
     ((parseConcrete("1.2.4"), parseConcrete("1.2.4")), 0),
     ((parseConcrete("1.2~alpha1"), parseConcrete("1.2.0~beta3")), (-1)),
-    ((parseConcrete("1.2~alpha1"), parseConcrete("1.2")), (-1))
+    ((parseConcrete("1.2~alpha1"), parseConcrete("1.2")), (-1)),
   ]
 ]
 let rec compare = (Alpha(a, na), Alpha(b, nb)) =>
@@ -166,14 +186,14 @@ and compareNums = (Num(a, aa), Num(b, ab)) =>
   };
 
 let rec viewAlpha = (Alpha(a, na)) =>
-  switch na {
+  switch (na) {
   | None => a
   | Some(b) => a ++ viewNum(b)
   }
 and viewNum = (Num(a, na)) =>
   string_of_int(a)
   ++ (
-    switch na {
+    switch (na) {
     | None => ""
     | Some(a) => viewAlpha(a)
     }
