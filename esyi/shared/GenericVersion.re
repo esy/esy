@@ -13,7 +13,7 @@ type range('inner) =
 /* | UntilNextMajor('concrete) | UntilNextMinor('concrete); */
 /** TODO want a way to exclude npm -alpha items when they don't apply */
 let rec matches = (compareInner, range, concrete) =>
-  switch range {
+  switch (range) {
   | Exactly(a) => compareInner(a, concrete) == 0
   | Any => true
   | Nothing => false
@@ -28,7 +28,7 @@ let rec matches = (compareInner, range, concrete) =>
   };
 
 let rec isTooLarge = (compareInner, range, concrete) =>
-  switch range {
+  switch (range) {
   | Exactly(a) => compareInner(a, concrete) < 0
   | Any => false
   | Nothing => false
@@ -45,7 +45,7 @@ let rec isTooLarge = (compareInner, range, concrete) =>
   };
 
 let rec view = (viewInner, range) =>
-  switch range {
+  switch (range) {
   | Exactly(a) => viewInner(a)
   | Any => "*"
   | Nothing => "none"
@@ -58,7 +58,7 @@ let rec view = (viewInner, range) =>
   };
 
 let rec map = (transform, range) =>
-  switch range {
+  switch (range) {
   | Exactly(a) => Exactly(transform(a))
   | Any => Any
   | Nothing => Nothing

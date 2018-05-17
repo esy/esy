@@ -19,7 +19,10 @@ let addResolvedFieldToPackageJson = (filename, name, version) => {
     };
   let raw =
     Yojson.Basic.pretty_to_string(
-      `Assoc([("_resolved", `String(resolvedString(name, version))), ...json])
+      `Assoc([
+        ("_resolved", `String(resolvedString(name, version))),
+        ...json,
+      ]),
     );
   Files.writeFile(filename, raw)
   |> Files.expectSuccess("Could not write back package json");
@@ -37,7 +40,7 @@ let unpackArchive = (dest, cache, name, version, source) =>
   } else {
     Files.mkdirp(dest);
     let getSource = source =>
-      switch source {
+      switch (source) {
       | Types.Source.Archive(url, _checksum) =>
         let safe = Str.global_replace(Str.regexp("/"), "-", name);
         let withVersion = safe ++ Lockfile.viewRealVersion(version);
@@ -45,14 +48,14 @@ let unpackArchive = (dest, cache, name, version, source) =>
         if (! Files.isFile(tarball)) {
           ExecCommand.execSync(
             ~cmd="curl -L --output " ++ tarball ++ " " ++ url,
-            ()
+            (),
           )
           |> snd
           |> Files.expectSuccess("failed to fetch with curl");
         };
         ExecCommand.execSync(
           ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-          ()
+          (),
         )
         |> snd
         |> Files.expectSuccess("failed to untar");
@@ -62,7 +65,7 @@ let unpackArchive = (dest, cache, name, version, source) =>
           Str.global_replace(
             Str.regexp("/"),
             "-",
-            name ++ "__" ++ user ++ "__" ++ repo ++ "__" ++ ref
+            name ++ "__" ++ user ++ "__" ++ repo ++ "__" ++ ref,
           );
         let tarball = cache /+ safe ++ ".tarball";
         if (! Files.isFile(tarball)) {
@@ -75,14 +78,14 @@ let unpackArchive = (dest, cache, name, version, source) =>
             ++ ref;
           ExecCommand.execSync(
             ~cmd="curl -L --output " ++ tarball ++ " " ++ tarUrl,
-            ()
+            (),
           )
           |> snd
           |> Files.expectSuccess("failed to fetch with curl");
         };
         ExecCommand.execSync(
           ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-          ()
+          (),
         )
         |> snd
         |> Files.expectSuccess("failed to untar");
@@ -92,13 +95,13 @@ let unpackArchive = (dest, cache, name, version, source) =>
         let tarball = cache /+ withVersion ++ ".tarball";
         if (! Files.isFile(tarball)) {
           print_endline(
-            "[fetching git repo " ++ gitUrl ++ " at commit " ++ commit
+            "[fetching git repo " ++ gitUrl ++ " at commit " ++ commit,
           );
           let gitdest = cache /+ "git-" ++ withVersion;
           /** TODO we want to have the commit nailed down by this point tho */
           ExecCommand.execSync(
             ~cmd="git clone " ++ gitUrl ++ " " ++ gitdest,
-            ()
+            (),
           )
           |> snd
           |> Files.expectSuccess("Unable to clone git repo " ++ gitUrl);
@@ -109,15 +112,15 @@ let unpackArchive = (dest, cache, name, version, source) =>
               ++ " && git checkout "
               ++ commit
               ++ " && rm -rf .git",
-            ()
+            (),
           )
           |> snd
           |> Files.expectSuccess(
-               "Unable to checkout " ++ gitUrl ++ " at " ++ commit
+               "Unable to checkout " ++ gitUrl ++ " at " ++ commit,
              );
           ExecCommand.execSync(
             ~cmd="tar czf " ++ tarball ++ " " ++ gitdest,
-            ()
+            (),
           )
           |> snd
           |> Files.expectSuccess("Unable to tar up");
@@ -127,7 +130,7 @@ let unpackArchive = (dest, cache, name, version, source) =>
         } else {
           ExecCommand.execSync(
             ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-            ()
+            (),
           )
           |> snd
           |> Files.expectSuccess("failed to untar");
@@ -137,7 +140,7 @@ let unpackArchive = (dest, cache, name, version, source) =>
     let packageJson = dest /+ "package.json";
     let (source, maybeOpamFile) = source;
     getSource(source);
-    switch maybeOpamFile {
+    switch (maybeOpamFile) {
     | Some((packageJson, files, patches)) =>
       if (Files.exists(dest /+ "esy.json")) {
         Unix.unlink(dest /+ "esy.json");
@@ -159,9 +162,9 @@ let unpackArchive = (dest, cache, name, version, source) =>
                Printf.sprintf(
                  "sh -c 'cd %s && patch -p1 < %s'",
                  dest,
-                 abspath
+                 abspath,
                ),
-             ()
+             (),
            )
            |> snd
            |> Files.expectSuccess("Failed to patch")

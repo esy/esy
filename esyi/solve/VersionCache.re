@@ -11,18 +11,18 @@ type t = {
   availableNpmVersions:
     Hashtbl.t(string, list((Types.npmConcrete, Yojson.Basic.json))),
   availableOpamVersions:
-    Hashtbl.t(string, list((Types.opamConcrete, OpamFile.thinManifest)))
+    Hashtbl.t(string, list((Types.opamConcrete, OpamFile.thinManifest))),
 };
 
 let getAvailableVersions = (cache, (name, source)) =>
-  switch source {
+  switch (source) {
   | Types.Github(user, repo, ref) => [`Github((user, repo, ref))]
   | Npm(semver) =>
     if (! Hashtbl.mem(cache.availableNpmVersions, name)) {
       Hashtbl.replace(
         cache.availableNpmVersions,
         name,
-        Npm.Registry.getFromNpmRegistry(name)
+        Npm.Registry.getFromNpmRegistry(name),
       );
     };
     let available = Hashtbl.find(cache.availableNpmVersions, name);
@@ -38,7 +38,7 @@ let getAvailableVersions = (cache, (name, source)) =>
       Hashtbl.replace(
         cache.availableOpamVersions,
         name,
-        Opam.Registry.getFromOpamRegistry(cache.config, name)
+        Opam.Registry.getFromOpamRegistry(cache.config, name),
       );
     };
     let available =

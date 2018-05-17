@@ -5,7 +5,7 @@ let triple = Npm.OpamConcrete.triple;
 let fromPrefix = (op, version) => {
   open Shared.GenericVersion;
   let v = Npm.NpmVersion.parseConcrete(version);
-  switch op {
+  switch (op) {
   | `Eq => Exactly(v)
   | `Geq => AtLeast(v)
   | `Leq => AtMost(v)
@@ -19,7 +19,7 @@ let rec getOCamlVersion = opamvalue =>
   /* Shared.GenericVersion.Any */
   OpamParserTypes.(
     Shared.GenericVersion.(
-      switch opamvalue {
+      switch (opamvalue) {
       | Logop(_, `And, left, right) =>
         And(getOCamlVersion(left), getOCamlVersion(right))
       | Logop(_, `Or, left, right) =>
@@ -38,12 +38,14 @@ let rec getOCamlVersion = opamvalue =>
       | Option(_, contents, options) =>
         print_endline(
           "Ignoring option: "
-          ++ (options |> List.map(OpamPrinter.value) |> String.concat(" .. "))
+          ++ (
+            options |> List.map(OpamPrinter.value) |> String.concat(" .. ")
+          ),
         );
         getOCamlVersion(contents);
       | List(_, items) =>
         let rec loop = items =>
-          switch items {
+          switch (items) {
           | [] => Any
           | [item] => getOCamlVersion(item)
           | [item, ...rest] => And(getOCamlVersion(item), loop(rest))
@@ -51,7 +53,7 @@ let rec getOCamlVersion = opamvalue =>
         loop(items);
       | Group(_, items) =>
         let rec loop = items =>
-          switch items {
+          switch (items) {
           | [] => Any
           | [item] => getOCamlVersion(item)
           | [item, ...rest] => And(getOCamlVersion(item), loop(rest))
@@ -60,7 +62,7 @@ let rec getOCamlVersion = opamvalue =>
       | y =>
         print_endline(
           "Unexpected option -- pretending its any "
-          ++ OpamPrinter.value(opamvalue)
+          ++ OpamPrinter.value(opamvalue),
         );
         Any;
       }
@@ -70,7 +72,7 @@ let rec getOCamlVersion = opamvalue =>
 let rec getAvailability = opamvalue =>
   /* Shared.GenericVersion.Any */
   OpamParserTypes.(
-    switch opamvalue {
+    switch (opamvalue) {
     | Logop(_, `And, left, right) =>
       getAvailability(left) && getAvailability(right)
     | Logop(_, `Or, left, right) =>
@@ -92,12 +94,12 @@ let rec getAvailability = opamvalue =>
     | Option(_, contents, options) =>
       print_endline(
         "[[ AVAILABILITY ]] Ignoring option: "
-        ++ (options |> List.map(OpamPrinter.value) |> String.concat(" .. "))
+        ++ (options |> List.map(OpamPrinter.value) |> String.concat(" .. ")),
       );
       getAvailability(contents);
     | List(_, items) =>
       let rec loop = items =>
-        switch items {
+        switch (items) {
         | [] => true
         | [item] => getAvailability(item)
         | [item, ...rest] => getAvailability(item) && loop(rest)
@@ -105,7 +107,7 @@ let rec getAvailability = opamvalue =>
       loop(items);
     | Group(_, items) =>
       let rec loop = items =>
-        switch items {
+        switch (items) {
         | [] => true
         | [item] => getAvailability(item)
         | [item, ...rest] => getAvailability(item) && loop(rest)
@@ -114,7 +116,7 @@ let rec getAvailability = opamvalue =>
     | y =>
       print_endline(
         "Unexpected availability option -- pretending its fine "
-        ++ OpamPrinter.value(opamvalue)
+        ++ OpamPrinter.value(opamvalue),
       );
       true;
     }

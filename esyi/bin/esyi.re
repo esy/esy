@@ -14,7 +14,7 @@ let solve = basedir => {
   let config = {
     Shared.Types.esyOpamOverrides: homeDir /+ ".esyi/esy-opam-override",
     opamRepository: homeDir /+ ".esyi/opam-repository",
-    baseDirectory: basedir
+    baseDirectory: basedir,
   };
   let env = Solve.solve(config, `PackageJson(json));
   let json = Shared.Env.to_yojson(Shared.Types.Source.to_yojson, env);
@@ -36,7 +36,7 @@ let fetch = basedir => {
 
 Printexc.record_backtrace(true);
 
-switch Sys.argv {
+switch (Sys.argv) {
 | [|_, "solve", basedir|] => solve(basedir)
 | [|_, "fetch", basedir|] => fetch(basedir)
 | [|_, basedir|] =>

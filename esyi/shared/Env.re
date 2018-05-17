@@ -4,7 +4,7 @@ module Npm = {
     source: 'sourceType,
     resolved: Lockfile.realVersion,
     requested: Types.requestedDep,
-    dependencies: list((string, option(t('sourceType))))
+    dependencies: list((string, option(t('sourceType)))),
   };
 };
 
@@ -19,13 +19,13 @@ type fullPackage('sourceType) = {
   requested: Types.depsByKind,
   runtime: list(resolved),
   build: list(resolved),
-  npm: list((string, Npm.t('sourceType)))
+  npm: list((string, Npm.t('sourceType))),
 };
 
 [@deriving yojson]
 type rootPackage('sourceType) = {
   package: fullPackage('sourceType),
-  runtimeBag: list(fullPackage('sourceType))
+  runtimeBag: list(fullPackage('sourceType)),
 };
 
 [@deriving yojson]
@@ -37,13 +37,13 @@ type target =
 [@deriving yojson]
 type t('sourceType) = {
   targets: list((target, rootPackage('sourceType))),
-  buildDependencies: list(rootPackage('sourceType))
+  buildDependencies: list(rootPackage('sourceType)),
 };
 
 let mapSnd = (mapper, (a, b)) => (a, mapper(b));
 
 let mapOpt = (mapper, a) =>
-  switch a {
+  switch (a) {
   | None => None
   | Some(x) => Some(mapper(x))
   };
@@ -51,21 +51,22 @@ let mapOpt = (mapper, a) =>
 let rec mapNpm = (mapper, npm) => {
   ...npm,
   Npm.source: mapper(npm.Npm.source),
-  dependencies: List.map(mapSnd(mapOpt(mapNpm(mapper))), npm.Npm.dependencies)
+  dependencies:
+    List.map(mapSnd(mapOpt(mapNpm(mapper))), npm.Npm.dependencies),
 };
 
 let mapFull = (mapper, full) => {
   ...full,
   source: mapper(full.source),
-  npm: List.map(mapSnd(mapNpm(mapper)), full.npm)
+  npm: List.map(mapSnd(mapNpm(mapper)), full.npm),
 };
 
 let mapRoot = (mapper, root) => {
   package: mapFull(mapper, root.package),
-  runtimeBag: List.map(mapFull(mapper), root.runtimeBag)
+  runtimeBag: List.map(mapFull(mapper), root.runtimeBag),
 };
 
 let map = (mapper, t) => {
   targets: List.map(mapSnd(mapRoot(mapper)), t.targets),
-  buildDependencies: List.map(mapRoot(mapper), t.buildDependencies)
+  buildDependencies: List.map(mapRoot(mapper), t.buildDependencies),
 };

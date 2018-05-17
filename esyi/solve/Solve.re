@@ -16,7 +16,7 @@ module StringMap =
     {
       type t = string;
       let compare = compare;
-    }
+    },
   );
 
 let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
@@ -29,7 +29,7 @@ let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
     thisLevel
     |> List.fold_left(
          (map, (name, _, version)) => StringMap.add(name, version, map),
-         StringMap.empty
+         StringMap.empty,
        );
   let rec toNpm = (parentage, name, range, realVersion) => {
     let (manifest, deps) = Hashtbl.find(npmVersionMap, (name, realVersion));
@@ -40,7 +40,10 @@ let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
            | Some(v) when SolveUtils.satisfies(v, range) => (name, None)
            | _ => (
                name,
-               Some((range, findSatisfyingInMap(npmToVersions, name, range)))
+               Some((
+                 range,
+                 findSatisfyingInMap(npmToVersions, name, range),
+               )),
              )
            }
          );
@@ -48,11 +51,11 @@ let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
       thisLevel
       |> List.fold_left(
            (map, (name, maybe)) =>
-             switch maybe {
+             switch (maybe) {
              | None => map
              | Some((range, version)) => StringMap.add(name, version, map)
              },
-           parentage
+           parentage,
          );
     Env.Npm.{
       source: Manifest.getSource(manifest, name, realVersion),
@@ -61,14 +64,14 @@ let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
       dependencies:
         thisLevel
         |> List.map(((name, contents)) =>
-             switch contents {
+             switch (contents) {
              | None => (name, None)
              | Some((range, real)) => (
                  name,
-                 Some(toNpm(childMap, name, range, real))
+                 Some(toNpm(childMap, name, range, real)),
                )
              }
-           )
+           ),
     };
   };
   thisLevel
@@ -100,7 +103,7 @@ let makeFullPackage =
         |> List.map(((name, range)) =>
              (name, range, findSatisfyingInMap(buildToVersions, name, range))
            ),
-      npm: makeNpm(npmPair, deps.Types.npm)
+      npm: makeNpm(npmPair, deps.Types.npm),
     },
     runtimeBag:
       solvedDeps
@@ -121,12 +124,12 @@ let makeFullPackage =
                     (
                       name,
                       range,
-                      findSatisfyingInMap(buildToVersions, name, range)
+                      findSatisfyingInMap(buildToVersions, name, range),
                     )
                   ),
-             npm: []
+             npm: [],
            }
-         )
+         ),
   };
 };
 
@@ -150,7 +153,7 @@ let settleBuildDeps = (cache, solvedDeps, requestedBuildDeps) => {
           ~cache,
           ~requested=toAdd,
           ~current=nameToVersions,
-          ~deep=false
+          ~deep=false,
         );
       solved
       |> List.map(((name, version, manifest, deps)) =>
@@ -161,15 +164,15 @@ let settleBuildDeps = (cache, solvedDeps, requestedBuildDeps) => {
                [
                  version,
                  ...Hashtbl.mem(nameToVersions, name) ?
-                      Hashtbl.find(nameToVersions, name) : []
-               ]
+                      Hashtbl.find(nameToVersions, name) : [],
+               ],
              );
              let solvedDeps =
                SolveDeps.solve(~cache, ~requested=deps.Types.runtime);
              Hashtbl.replace(
                versionMap,
                (name, version),
-               (manifest, deps, solvedDeps)
+               (manifest, deps, solvedDeps),
              );
              let childBuilds =
                solvedDeps
@@ -203,8 +206,8 @@ let resolveNpm = (cache, npmRequests) => {
          [
            version,
            ...Hashtbl.mem(npmToVersions, name) ?
-                Hashtbl.find(npmToVersions, name) : []
-         ]
+                Hashtbl.find(npmToVersions, name) : [],
+         ],
        );
      });
   (npmVersionMap, npmToVersions);
@@ -243,9 +246,11 @@ let solve = (config, manifest) => {
         )
         @ result,
       buildVersionMap,
-      []
+      [],
     )
-    @ List.concat(List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps))
+    @ List.concat(
+        List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps),
+      )
     @ depsByKind.npm;
   let npmPair = resolveNpm(cache, allNpmRequests);
   let allBuildPackages =
@@ -258,12 +263,12 @@ let solve = (config, manifest) => {
           deps,
           solvedDeps,
           buildToVersions,
-          npmPair
+          npmPair,
         ),
-        ...result
+        ...result,
       ],
       buildVersionMap,
-      []
+      [],
     );
   let env = {
     Env.targets: [
@@ -276,11 +281,11 @@ let solve = (config, manifest) => {
           depsByKind,
           solvedDeps,
           buildToVersions,
-          npmPair
-        )
-      )
+          npmPair,
+        ),
+      ),
     ],
-    buildDependencies: allBuildPackages
+    buildDependencies: allBuildPackages,
   };
   Env.map(SolveUtils.lockDownSource, env);
 };

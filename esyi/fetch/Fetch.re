@@ -42,12 +42,12 @@ let fetch = (basedir, env) => {
       Shared.Files.mkdirp(Filename.dirname(nmDest));
       Shared.Files.symlink(dest, nmDest);
     },
-    packagesToFetch
+    packagesToFetch,
   );
   let resolved = Resolved.fromEnv(env, modcache);
   Shared.Files.writeFile(
     modcache /+ "esy.resolved",
-    Yojson.Basic.pretty_to_string(resolved)
+    Yojson.Basic.pretty_to_string(resolved),
   )
   |> ignore;
 };

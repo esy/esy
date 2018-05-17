@@ -11,7 +11,8 @@ let githubFileUrl = (user, repo, ref, file) =>
   ++ file;
 
 let getManifest = (name, user, repo, ref) => {
-  let getFile = name => Shared.Wget.get(githubFileUrl(user, repo, ref, name));
+  let getFile = name =>
+    Shared.Wget.get(githubFileUrl(user, repo, ref, name));
   switch (getFile("esy.json")) {
   | Some(text) => `PackageJson(Yojson.Basic.from_string(text))
   | None =>

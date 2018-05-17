@@ -23,7 +23,7 @@ let sortRealVersions = (a, b) =>
   };
 
 let toRealVersion = versionPlus =>
-  switch versionPlus {
+  switch (versionPlus) {
   | `Github(x) => `Github(x)
   | `Npm(x, _, _) => `Npm(x)
   | `Opam(x, _, _) => `Opam(x)
@@ -35,7 +35,7 @@ let rec tryConvertingOpamFromNpm = version =>
   Shared.Types.(
     version
     |> Shared.GenericVersion.map(opam =>
-         switch opam {
+         switch (opam) {
          /* yay jbuilder */
          | Alpha(
              "",
@@ -49,23 +49,31 @@ let rec tryConvertingOpamFromNpm = version =>
                        Num(
                          minor,
                          Some(
-                           Alpha(".", Some(Num(0, Some(Alpha("-beta", rest)))))
-                         )
-                       )
-                     )
-                   )
-                 )
-               )
-             )
+                           Alpha(
+                             ".",
+                             Some(Num(0, Some(Alpha("-beta", rest)))),
+                           ),
+                         ),
+                       ),
+                     ),
+                   ),
+                 ),
+               ),
+             ),
            ) =>
            Alpha(
              "",
              Some(
                Num(
                  major,
-                 Some(Alpha(".", Some(Num(minor, Some(Alpha("+beta", rest))))))
-               )
-             )
+                 Some(
+                   Alpha(
+                     ".",
+                     Some(Num(minor, Some(Alpha("+beta", rest)))),
+                   ),
+                 ),
+               ),
+             ),
            )
          | Alpha(
              "",
@@ -75,15 +83,17 @@ let rec tryConvertingOpamFromNpm = version =>
                  Some(
                    Alpha(
                      ".",
-                     Some(Num(minor, Some(Alpha(".", Some(Num(0, post))))))
-                   )
-                 )
-               )
-             )
+                     Some(
+                       Num(minor, Some(Alpha(".", Some(Num(0, post))))),
+                     ),
+                   ),
+                 ),
+               ),
+             ),
            ) =>
            Alpha(
              "",
-             Some(Num(major, Some(Alpha(".", Some(Num(minor, post))))))
+             Some(Num(major, Some(Alpha(".", Some(Num(minor, post)))))),
            )
          | _ => opam
          }
@@ -100,7 +110,10 @@ let expectSuccess = (msg, v) =>
 let ensureGitRepo = (source, dest) =>
   if (! Shared.Files.exists(dest)) {
     Shared.Files.mkdirp(Filename.dirname(dest));
-    Shared.ExecCommand.execSync(~cmd="git clone " ++ source ++ " " ++ dest, ())
+    Shared.ExecCommand.execSync(
+      ~cmd="git clone " ++ source ++ " " ++ dest,
+      (),
+    )
     |> snd
     |> expectSuccess("Unable to clone " ++ source);
   } else {
@@ -113,7 +126,7 @@ let lockDownRef = (url, ref) => {
   let cmd = "git ls-remote " ++ url ++ " " ++ ref;
   let (output, success) = Shared.ExecCommand.execSync(~cmd, ());
   if (success) {
-    switch output {
+    switch (output) {
     | [] => ref
     | [line, ..._] =>
       let ref = String.split_on_char('\t', line) |> List.hd;
@@ -126,7 +139,7 @@ let lockDownRef = (url, ref) => {
 };
 
 let rec lockDownSource = pendingSource =>
-  switch pendingSource {
+  switch (pendingSource) {
   | Types.PendingSource.NoSource => (Types.Source.NoSource, None)
   | WithOpamFile(source, opamFile) =>
     switch (lockDownSource(source)) {
@@ -136,9 +149,12 @@ let rec lockDownSource = pendingSource =>
   | Archive(url, None) => (
       /* print_endline("Pretending to get a checksum for " ++ url); */
       Types.Source.Archive(url, "fake checksum"),
-      None
+      None,
     )
-  | Archive(url, Some(checksum)) => (Types.Source.Archive(url, checksum), None)
+  | Archive(url, Some(checksum)) => (
+      Types.Source.Archive(url, checksum),
+      None,
+    )
   | GitSource(url, ref) =>
     let ref = Shared.Infix.(ref |? "master");
     /** TODO getting HEAD */
@@ -149,9 +165,12 @@ let rec lockDownSource = pendingSource =>
       Types.Source.GithubSource(
         user,
         name,
-        lockDownRef("git://github.com/" ++ user ++ "/" ++ name ++ ".git", ref)
+        lockDownRef(
+          "git://github.com/" ++ user ++ "/" ++ name ++ ".git",
+          ref,
+        ),
       ),
-      None
+      None,
     );
   | File(s) => (Types.Source.File(s), None)
   };
@@ -163,11 +182,11 @@ let rec lockDownSource = pendingSource =>
 let checkRepositories = config => {
   ensureGitRepo(
     "https://github.com/esy-ocaml/esy-opam-override",
-    config.Shared.Types.esyOpamOverrides
+    config.Shared.Types.esyOpamOverrides,
   );
   ensureGitRepo(
     "https://github.com/ocaml/opam-repository",
-    config.Shared.Types.opamRepository
+    config.Shared.Types.opamRepository,
   );
 };
 
@@ -176,7 +195,7 @@ let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
   switch (Hashtbl.find(cache, (name, realVersion))) {
   | exception Not_found =>
     let manifest =
-      switch versionPlus {
+      switch (versionPlus) {
       | `Github(user, repo, ref) => Github.getManifest(name, user, repo, ref)
       /* Registry.getGithubManifest(url) */
       | `Npm(version, json, _) => `PackageJson(json)
@@ -196,12 +215,12 @@ let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
     ...Cudf.default_package,
     package: rootName,
     version: 1,
-    depends: deps
+    depends: deps,
   };
   Cudf.add_package(universe, root);
   let request = {
     ...Cudf.default_request,
-    install: [(root.Cudf.package, Some((`Eq, root.Cudf.version)))]
+    install: [(root.Cudf.package, Some((`Eq, root.Cudf.version)))],
   };
   let preamble = Cudf.default_preamble;
   let solution =
@@ -209,9 +228,9 @@ let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
       ~verbose=false,
       ~timeout=5.,
       strategy,
-      (preamble, universe, request)
+      (preamble, universe, request),
     );
-  switch solution {
+  switch (solution) {
   | None => None
   | Some((_preamble, universe)) =>
     let packages = Cudf.get_packages(~filter=p => p.Cudf.installed, universe);
@@ -220,7 +239,7 @@ let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
 };
 
 let getOpamFile = (manifest, name, version) =>
-  switch manifest {
+  switch (manifest) {
   | `PackageJson(_) => None
   | `OpamFile(manifest) =>
     Some(OpamFile.toPackageJson(manifest, name, version))

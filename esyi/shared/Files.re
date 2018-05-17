@@ -16,7 +16,7 @@ let expectSuccess = (msg, v) =>
     (("/a/b/c", "/a/b/d"), "../d"),
     (("/a/b/c", "/a/b/d/e"), "../d/e"),
     (("/a/b/c", "/d/e/f"), "../../../d/e/f"),
-    (("/a/b/c", "/a/b/c/d/e"), "./d/e")
+    (("/a/b/c", "/a/b/c/d/e"), "./d/e"),
   ]
 ]
 let relpath = (base, path) => {
@@ -29,7 +29,7 @@ let relpath = (base, path) => {
     loop(String.split_on_char('/', base), String.split_on_char('/', path));
   String.concat(
     "/",
-    (base == [] ? ["."] : List.map((_) => "..", base)) @ path
+    (base == [] ? ["."] : List.map((_) => "..", base)) @ path,
   );
 };
 
@@ -58,12 +58,14 @@ let readFile = path =>
   };
 
 let writeFile = (path, contents) =>
-  try {
-    let out = open_out(path);
-    output_string(out, contents);
-    close_out(out);
-    true;
-  } {
+  try (
+    {
+      let out = open_out(path);
+      output_string(out, contents);
+      close_out(out);
+      true;
+    }
+  ) {
   | _ => false
   };
 
@@ -76,7 +78,7 @@ let copy = (~source, ~dest) =>
       Unix.openfile(
         dest,
         [Unix.O_WRONLY, Unix.O_CREAT, Unix.O_TRUNC],
-        st_perm
+        st_perm,
       );
     let buffer_size = 8192;
     let buffer = Bytes.create(buffer_size);
@@ -146,7 +148,7 @@ let rec copyDeep = (~source, ~dest) => {
     |> List.iter(name =>
          copyDeep(
            ~source=Filename.concat(source, name),
-           ~dest=Filename.concat(dest, name)
+           ~dest=Filename.concat(dest, name),
          )
        )
   | Some({Unix.st_kind: Unix.S_REG}) => copy(~source, ~dest) |> ignore
