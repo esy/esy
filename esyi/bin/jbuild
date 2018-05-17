@@ -2,5 +2,6 @@
 
 (executable
  ((name esyi)
+  (package esyi)
   (public_name esyi)
   (libraries (fetch solve))))

@@ -1,0 +1,12 @@
+lib: [
+  "_build/install/default/lib/esyi/META" {"META"}
+  "_build/install/default/lib/esyi/opam" {"opam"}
+]
+bin: [
+  "_build/install/default/bin/esyi" {"esyi"}
+]
+doc: [
+  "_build/install/default/doc/esyi/README.md"
+  "_build/install/default/doc/esyi/LICENSE"
+  "_build/install/default/doc/esyi/CHANGELOG.md"
+]

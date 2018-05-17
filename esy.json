@@ -38,17 +38,33 @@
     "@opam/fpath": "^0.7.2",
     "@opam/jbuilder": "^1.0.0-beta18",
     "@opam/logs": "^0.6.2",
+    "@opam/lambda-term": "^1.11.0",
     "@opam/lwt": "^3.3.0",
     "@opam/lwt_ppx": "^1.1.0",
+    "@opam/yojson": "*",
     "@opam/ppx_deriving": "^4.2.1",
     "@opam/ppx_deriving_yojson": "^3.1.0",
     "@opam/ppx_import": "^1.4.0",
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
+    "@opam/cudf": "0.9",
+    "@opam/mccs": "*",
+    "lwt-node": "*",
+    "@jaredly/testre": "*",
+    "testre-ppx": "*",
+    "@opam/opam-file-format": "*",
+    "@opam/ocurl": "*",
+    "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "^3.1.0",
+    "@opam/alcotest": "*",
     "fastreplacestring": "IwanKaramazow/FastReplaceString.git#0.0.4",
     "ocamlstripdebug": "andreypopp/ocamlstripdebug#de74dde"
+  },
+  "resolutions": {
+    "**/@opam/result": "1.2.0",
+    "**/@opam/lwt": "3.3.0",
+    "**/@opam/ocaml-migrate-parsetree": "1.0.10"
   },
   "peerDependencies": {
     "ocaml": "~4.6.0"
