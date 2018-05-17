@@ -20,10 +20,10 @@ let getManifest = (name, user, repo, ref) => {
     | Some(text) => `PackageJson(Yojson.Basic.from_string(text))
     | None =>
       switch (getFile(name ++ ".opam")) {
-      | Some(text) => failwith("No opam parsing yet for github repos")
+      | Some(_text) => failwith("No opam parsing yet for github repos")
       | None =>
         switch (getFile("opam")) {
-        | Some(text) => failwith("No opam parsing yet for github repos")
+        | Some(_text) => failwith("No opam parsing yet for github repos")
         | None => failwith("No manifest found in github repo")
         }
       }

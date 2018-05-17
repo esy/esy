@@ -24,7 +24,7 @@ let viewRealVersion: realVersion => string =
     | `Git(s) => "git-" ++ s
     | `Npm(t) => "npm-" ++ Types.viewNpmConcrete(t)
     | `Opam(t) => "opam-" ++ Types.viewOpamConcrete(t)
-    | `File(s) => "local-file"
+    | `File(_s) => "local-file"
     };
 
 let plainVersionNumber = v =>
@@ -43,5 +43,5 @@ let plainVersionNumber = v =>
   | `Npm(t) => Types.viewNpmConcrete(t)
   | `Opam(t) => Types.viewOpamConcrete(t)
   /* TODO hash the file path or something */
-  | `File(s) => "local-file-0000"
+  | `File(_s) => "local-file-0000"
   };

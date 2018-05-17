@@ -53,7 +53,7 @@ let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
            (map, (name, maybe)) =>
              switch (maybe) {
              | None => map
-             | Some((range, version)) => StringMap.add(name, version, map)
+             | Some((_range, version)) => StringMap.add(name, version, map)
              },
            parentage,
          );
@@ -238,7 +238,7 @@ let solve = (config, manifest) => {
   /* Ok, time for npm. */
   let allNpmRequests =
     Hashtbl.fold(
-      ((name, version), (manifest, deps, solvedDeps), result) =>
+      ((_name, _version), (_manifest, deps, solvedDeps), result) =>
         deps.Types.npm
         @ (
           List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps)

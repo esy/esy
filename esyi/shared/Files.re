@@ -38,7 +38,7 @@ let symlink = (source, dest) =>
 
 let readFile = path =>
   switch (maybeStat(path)) {
-  | Some({Unix.st_kind: Unix.S_REG}) =>
+  | Some({Unix.st_kind: Unix.S_REG, _}) =>
     let ic = open_in(path);
     let try_read = () =>
       switch (input_line(ic)) {
@@ -72,7 +72,7 @@ let writeFile = (path, contents) =>
 let copy = (~source, ~dest) =>
   switch (maybeStat(source)) {
   | None => false
-  | Some({Unix.st_perm}) =>
+  | Some({Unix.st_perm, _}) =>
     let fs = Unix.openfile(source, [Unix.O_RDONLY], st_perm);
     let fd =
       Unix.openfile(
@@ -103,13 +103,13 @@ let exists = path =>
 
 let isFile = path =>
   switch (maybeStat(path)) {
-  | Some({Unix.st_kind: Unix.S_REG}) => true
+  | Some({Unix.st_kind: Unix.S_REG, _}) => true
   | _ => false
   };
 
 let isDirectory = path =>
   switch (maybeStat(path)) {
-  | Some({Unix.st_kind: Unix.S_DIR}) => true
+  | Some({Unix.st_kind: Unix.S_DIR, _}) => true
   | _ => false
   };
 
@@ -143,7 +143,7 @@ let rec copyDeep = (~source, ~dest) => {
   mkdirp(Filename.dirname(dest));
   switch (maybeStat(source)) {
   | None => ()
-  | Some({Unix.st_kind: Unix.S_DIR}) =>
+  | Some({Unix.st_kind: Unix.S_DIR, _}) =>
     readDirectory(source)
     |> List.iter(name =>
          copyDeep(
@@ -151,7 +151,7 @@ let rec copyDeep = (~source, ~dest) => {
            ~dest=Filename.concat(dest, name),
          )
        )
-  | Some({Unix.st_kind: Unix.S_REG}) => copy(~source, ~dest) |> ignore
+  | Some({Unix.st_kind: Unix.S_REG, _}) => copy(~source, ~dest) |> ignore
   | _ => ()
   };
 };
@@ -159,8 +159,8 @@ let rec copyDeep = (~source, ~dest) => {
 let rec removeDeep = path =>
   switch (Unix.lstat(path)) {
   | exception (Unix.Unix_error(Unix.ENOENT, _, _)) => ()
-  | {Unix.st_kind: Unix.S_LNK} => Unix.unlink(path)
-  | {Unix.st_kind: Unix.S_DIR} =>
+  | {Unix.st_kind: Unix.S_LNK, _} => Unix.unlink(path)
+  | {Unix.st_kind: Unix.S_DIR, _} =>
     readDirectory(path)
     |> List.iter(name => removeDeep(Filename.concat(path, name)));
     Unix.rmdir(path);

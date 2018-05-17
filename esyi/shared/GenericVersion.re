@@ -32,8 +32,8 @@ let rec isTooLarge = (compareInner, range, concrete) =>
   | Exactly(a) => compareInner(a, concrete) < 0
   | Any => false
   | Nothing => false
-  | GreaterThan(a) => false
-  | AtLeast(a) => false
+  | GreaterThan(_a) => false
+  | AtLeast(_a) => false
   | LessThan(a) => compareInner(a, concrete) <= 0
   | AtMost(a) => compareInner(a, concrete) < 0
   | And(a, b) =>

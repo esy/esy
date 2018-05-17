@@ -200,7 +200,7 @@ let processCommandItem = (info, item) =>
     }
   | Option(_, _, [Ident(_, "preinstalled")]) =>
     /** Skipping preinstalled */ None
-  | Option(_, _, [String(_, something)]) =>
+  | Option(_, _, [String(_, _something)]) =>
     /* String options like "%{react:installed}%" are not currently supported */
     None
   | Option(_, String(_, name), [Pfxop(_, `Not, Ident(_, "preinstalled"))]) =>
@@ -221,7 +221,7 @@ let processCommandList = (info, item) =>
   | Some(List(_, items))
   | Some(Group(_, items)) =>
     switch (items) {
-    | [String(_) | Ident(_), ...rest] => [items |> processCommand(info)]
+    | [String(_) | Ident(_), ..._rest] => [items |> processCommand(info)]
     | _ =>
       items
       |> filterMap(item =>
@@ -288,11 +288,11 @@ let processStringList = item => {
          Some(name)
        | Option(
            _,
-           String(_, name),
+           String(_, _name),
            [Relop(_, `Eq, Ident(_, "os"), String(_, _))],
          ) =>
          None
-       | Option(_, String(_, name), [Ident(_, "preinstalled")]) => None
+       | Option(_, String(_, _name), [Ident(_, "preinstalled")]) => None
        | Option(
            _,
            String(_, name),
@@ -308,7 +308,7 @@ let processStringList = item => {
      );
 };
 
-let findArchive = (contents, file_name) =>
+let findArchive = (contents, _file_name) =>
   switch (findVariable("archive", contents)) {
   | Some(String(_, archive)) => Some(archive)
   | _ =>
@@ -505,9 +505,9 @@ let getManifest = (opamOverrides, (opam, url, name, version)) => {
   };
 };
 
-let getSource = ({source}) => source;
+let getSource = ({source, _}) => source;
 
-let process = ({deps, buildDeps, devDeps}) => {
+let process = ({deps, buildDeps, devDeps, _}) => {
   Types.runtime: deps @ buildDeps,
   build: [],
   dev: devDeps,
