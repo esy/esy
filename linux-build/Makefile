@@ -24,11 +24,12 @@ esy: prepare docker-image-id
 		-it $(shell cat docker-image-id) bash -c 'cd /src && make build-on-target'
 	@cp $(OUTPUT_DIR)/esyCommand.exe ./
 	@cp $(OUTPUT_DIR)/esyBuildPackageCommand.exe ./
+	@cp $(OUTPUT_DIR)/esyi.exe ./
 
 build: esy
 
 clean:
-	@rm -rf esyCommand.exe esyBuildPackageCommand.exe
+	@rm -rf esyCommand.exe esyBuildPackageCommand.exe esyi.exe
 
 build-on-target:
 	@tar -xzf src.tar.gz
@@ -36,3 +37,4 @@ build-on-target:
 	@esy build
 	@cp _build/default/esy/bin/esyCommand.exe /out/esyCommand.exe
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe /out/esyBuildPackageCommand.exe
+	@cp _build/default/esyi/bin/esyi.exe /out/esyi.exe
