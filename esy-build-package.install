@@ -54,6 +54,7 @@ bin: [
 ]
 doc: [
   "_build/install/default/doc/esy-build-package/README.md"
+  "_build/install/default/doc/esy-build-package/README.esyi.md"
   "_build/install/default/doc/esy-build-package/LICENSE"
   "_build/install/default/doc/esy-build-package/CHANGELOG.md"
 ]
