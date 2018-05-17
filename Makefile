@@ -4,6 +4,7 @@ ESY_EXT := $(shell command -v esy 2> /dev/null)
 
 RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
+PROJECTS = esy esy-build-package esyi
 
 #
 # Tools
@@ -31,6 +32,10 @@ define HELP
    bump-major-version  Bump major package version (commits & tags)
    bump-minor-version  Bump minor package version (commits & tags)
    bump-patch-version  Bump patch package version (commits & tags)
+
+ Other tasks:
+
+   refmt               Reformal all *.re source with refmt
 
 endef
 export HELP
@@ -61,9 +66,6 @@ build:
 
 build-dev:
 	@esy b jbuilder build -j 4 --dev $(TARGETS)
-
-refmt:
-	@find esy esy-build-package -name '*.re' | xargs -n1 esy refmt --in-place
 
 #
 # Test
@@ -157,3 +159,7 @@ bump-minor-version:
 
 bump-patch-version:
 	@npm version patch
+
+refmt::
+	@find $(PROJECTS) -name '*.re' \
+		| xargs -n1 esy refmt --in-place --print-width 80
