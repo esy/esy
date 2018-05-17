@@ -101,10 +101,13 @@ RELEASE_FILES = \
 	scripts/postinstall.sh \
 	package.json \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand-darwin.exe \
+	_build/default/esyi/bin/esyi-darwin.exe \
 	_build/default/esy/bin/esyCommand-darwin.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe \
+	_build/default/esyi/bin/esyi-linux.exe \
 	_build/default/esy/bin/esyCommand-linux.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
+	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy/bin/esyCommand.exe
 
 build-release:
@@ -124,6 +127,10 @@ $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-darw
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
+$(RELEASE_ROOT)/_build/default/esyi/bin/esyi-darwin.exe:
+	@mkdir -p $(@D)
+	@cp _build/default/esyi/bin/esyi.exe $(@)
+
 $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand-linux.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esyCommand.exe $(@)
@@ -132,11 +139,19 @@ $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-linu
 	@mkdir -p $(@D)
 	@cp linux-build/esyBuildPackageCommand.exe $(@)
 
+$(RELEASE_ROOT)/_build/default/esy/bin/esyi-linux.exe:
+	@mkdir -p $(@D)
+	@cp linux-build/esyi.exe $(@)
+
 $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
 	@touch $(@)
 
 $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
+	@mkdir -p $(@D)
+	@touch $(@)
+
+$(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
 	@mkdir -p $(@D)
 	@touch $(@)
 
