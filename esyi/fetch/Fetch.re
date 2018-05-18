@@ -7,7 +7,7 @@ let startsWith = (string, prefix) =>
   String.length(string) >= String.length(prefix)
   && String.sub(string, 0, String.length(prefix)) == prefix;
 
-let fetch = (config: Shared.Config.t, basedir, env) => {
+let fetch = (config: Config.t, env) => {
   open Shared.Env;
   let packagesToFetch = Hashtbl.create(100);
   let addPackage = ({name, version, source, _}) =>
@@ -21,7 +21,7 @@ let fetch = (config: Shared.Config.t, basedir, env) => {
        addPackage(package);
        List.iter(addPackage, runtimeBag);
      });
-  let nodeModules = basedir /+ "node_modules";
+  let nodeModules = Path.(config.basePath / "node_modules" |> to_string);
   /** OOh want to remove everything except for  */
   (
     /* Shared.Files.removeDeep(nodeModules); */
