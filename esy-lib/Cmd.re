@@ -7,6 +7,7 @@ let p = Bos.Cmd.p;
 let (%) = Bos.Cmd.(%);
 let (%%) = Bos.Cmd.(%%);
 let empty = Bos.Cmd.empty;
+let toString = Bos.Cmd.to_string;
 
 let isExecutable = (stats: Unix.stats) => {
   let userExecute = 0b001000000;
