@@ -1,7 +1,5 @@
-open Std
 module Path = EsyLib.Path
-module PackageBuilderConfig = struct
-end
+module Result = EsyLib.Result
 
 type t = {
   esyVersion : string;

@@ -18,7 +18,7 @@ let isExecutable = (stats: Unix.stats) => {
 };
 
 let resolveCmd = (path, cmd) => {
-  module Let_syntax = Std.Result.Let_syntax;
+  module Let_syntax = EsyLib.Result.Let_syntax;
   let find = p => {
     let p = Path.(v(p) / cmd);
     let%bind stats = Bos.OS.Path.stat(p);
@@ -45,7 +45,7 @@ let resolveCmd = (path, cmd) => {
 };
 
 let resolveInvocation = (path, cmd) => {
-  module Let_syntax = Std.Result.Let_syntax;
+  module Let_syntax = EsyLib.Result.Let_syntax;
   let cmd = Bos.Cmd.to_list(cmd);
   switch (cmd) {
   | [] => Error(`Msg("empty command"))
