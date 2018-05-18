@@ -1,7 +1,5 @@
 open Std
 
-module Result = EsyLib.Result
-
 include ShellParamExpansionParser
 
 let parse_exn v =

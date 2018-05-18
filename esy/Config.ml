@@ -1,7 +1,3 @@
-module Path = EsyLib.Path
-module Result = EsyLib.Result
-module Cmd = EsyLib.Cmd
-
 type t = {
   esyVersion : string;
   sandboxPath : Path.t;

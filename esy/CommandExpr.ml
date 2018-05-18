@@ -1,7 +1,5 @@
 open Std
 
-module Result = EsyLib.Result
-
 include CommandExprParser
 
 let parse_exn v =

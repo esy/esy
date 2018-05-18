@@ -1,7 +1,4 @@
 
-module Path = EsyLib.Path
-module Cmd = EsyLib.Cmd
-
 let run
     ?(stdin=`Null)
     ?(stderrout=`Log)

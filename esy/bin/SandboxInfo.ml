@@ -1,7 +1,5 @@
 open Esy
 
-module Path =EsyLib.Path
-
 type t = {
   sandbox : Sandbox.t;
   task : Task.t;
