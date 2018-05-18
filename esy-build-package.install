@@ -10,9 +10,6 @@ lib: [
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmi" {"EsyBuildPackage__Builder.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmt" {"EsyBuildPackage__Builder.cmt"}
   "_build/install/default/lib/esy-build-package/Builder.re" {"Builder.re"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Cmd.cmi" {"EsyBuildPackage__Cmd.cmi"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Cmd.cmt" {"EsyBuildPackage__Cmd.cmt"}
-  "_build/install/default/lib/esy-build-package/Cmd.re" {"Cmd.re"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmi" {"EsyBuildPackage__Config.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmt" {"EsyBuildPackage__Config.cmt"}
   "_build/install/default/lib/esy-build-package/Config.re" {"Config.re"}

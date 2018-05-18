@@ -14,7 +14,7 @@ val run :
   -> ?stdin:Lwt_process.redirection
   -> ?stdout:Lwt_process.redirection
   -> ?stderr:Lwt_process.redirection
-  -> Cmd.t
+  -> EsyLib.Cmd.t
   -> unit RunAsync.t
 
 val runOut :
@@ -22,7 +22,7 @@ val runOut :
   -> ?resolveProgramInEnv:bool
   -> ?stdin:Lwt_process.redirection
   -> ?stderr:Lwt_process.redirection
-  -> Cmd.t
+  -> EsyLib.Cmd.t
   -> string RunAsync.t
 
 val runToStatus :
@@ -31,7 +31,7 @@ val runToStatus :
   -> ?stdin:Lwt_process.redirection
   -> ?stdout:Lwt_process.redirection
   -> ?stderr:Lwt_process.redirection
-  -> Cmd.t
+  -> EsyLib.Cmd.t
   -> Unix.process_status RunAsync.t
 
 val withProcess :
@@ -40,6 +40,6 @@ val withProcess :
   -> ?stdin:Lwt_process.redirection
   -> ?stdout:Lwt_process.redirection
   -> ?stderr:Lwt_process.redirection
-  -> Cmd.t
+  -> EsyLib.Cmd.t
   -> (Lwt_process.process_none -> 'a RunAsync.t)
   -> 'a RunAsync.t

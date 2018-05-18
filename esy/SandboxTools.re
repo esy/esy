@@ -1,4 +1,5 @@
 module Path = EsyLib.Path;
+module Cmd = EsyLib.Cmd;
 module StringMap = Map.Make(String);
 module StringSet = Set.Make(String);
 module PathSet = Set.Make(Path);

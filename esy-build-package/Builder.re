@@ -1,5 +1,6 @@
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
+module Cmd = EsyLib.Cmd;
 
 open Std;
 

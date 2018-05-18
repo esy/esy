@@ -1,4 +1,12 @@
-module Path = EsyLib.Path;
+type t = Bos.Cmd.t;
+
+let ofList = Bos.Cmd.of_list;
+let toList = Bos.Cmd.to_list;
+let v = Bos.Cmd.v;
+let p = Bos.Cmd.p;
+let (%) = Bos.Cmd.(%);
+let (%%) = Bos.Cmd.(%%);
+let empty = Bos.Cmd.empty;
 
 let isExecutable = (stats: Unix.stats) => {
   let userExecute = 0b001000000;
@@ -8,9 +16,9 @@ let isExecutable = (stats: Unix.stats) => {
 };
 
 let resolveCmd = (path, cmd) => {
-  open Run;
+  module Let_syntax = Result.Let_syntax;
   let find = p => {
-    let p = v(p) / cmd;
+    let p = Path.(v(p) / cmd);
     let%bind stats = Bos.OS.Path.stat(p);
     switch (stats.Unix.st_kind, isExecutable(stats)) {
     | (Unix.S_REG, true) => Ok(Some(p))
@@ -35,7 +43,7 @@ let resolveCmd = (path, cmd) => {
 };
 
 let resolveInvocation = (path, cmd) => {
-  open Run;
+  module Let_syntax = Result.Let_syntax;
   let cmd = Bos.Cmd.to_list(cmd);
   switch (cmd) {
   | [] => Error(`Msg("empty command"))
