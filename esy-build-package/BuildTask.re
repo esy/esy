@@ -1,5 +1,7 @@
 open Std;
 
+module Path = EsyLib.Path;
+
 module SourceType = {
   [@deriving show]
   type t =

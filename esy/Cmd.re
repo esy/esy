@@ -1,17 +1,13 @@
+module Path = EsyLib.Path;
+
 type t = Bos.Cmd.t;
 
 let ofList = Bos.Cmd.of_list;
-
 let toList = Bos.Cmd.to_list;
-
 let v = Bos.Cmd.v;
-
 let p = Bos.Cmd.p;
-
 let (%) = Bos.Cmd.(%);
-
 let (%%) = Bos.Cmd.(%%);
-
 let empty = Bos.Cmd.empty;
 
 let isExecutable = (stats: Unix.stats) => {

@@ -1,3 +1,4 @@
+module Path = EsyLib.Path
 module P = LockfileParser
 
 type t =

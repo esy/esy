@@ -1,5 +1,7 @@
 open Std
 
+module Path = EsyLib.Path
+
 type t = binding list [@@deriving (show, eq, ord)]
 
 and binding = {

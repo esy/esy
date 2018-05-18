@@ -1,43 +1,43 @@
 
-val readFile : Path.t -> string RunAsync.t
+val readFile : EsyLib.Path.t -> string RunAsync.t
 
-val readJsonFile : Path.t -> Yojson.Safe.json RunAsync.t
+val readJsonFile : EsyLib.Path.t -> Yojson.Safe.json RunAsync.t
 
-val openFile : mode:Lwt_unix.open_flag list -> perm:int -> Path.t -> Lwt_unix.file_descr RunAsync.t
+val openFile : mode:Lwt_unix.open_flag list -> perm:int -> EsyLib.Path.t -> Lwt_unix.file_descr RunAsync.t
 
-val exists : Path.t -> bool RunAsync.t
+val exists : EsyLib.Path.t -> bool RunAsync.t
 
-val unlink : Path.t -> unit RunAsync.t
+val unlink : EsyLib.Path.t -> unit RunAsync.t
 
-val readlink : Path.t -> Path.t RunAsync.t
-val symlink : source:Path.t -> Path.t -> unit RunAsync.t
-val rename : source:Path.t -> Path.t -> unit RunAsync.t
+val readlink : EsyLib.Path.t -> EsyLib.Path.t RunAsync.t
+val symlink : source:EsyLib.Path.t -> EsyLib.Path.t -> unit RunAsync.t
+val rename : source:EsyLib.Path.t -> EsyLib.Path.t -> unit RunAsync.t
 
-val realpath : Path.t -> Path.t RunAsync.t
+val realpath : EsyLib.Path.t -> EsyLib.Path.t RunAsync.t
 
-val stat : Path.t -> Unix.stats RunAsync.t
+val stat : EsyLib.Path.t -> Unix.stats RunAsync.t
 
-val createDirectory : Path.t -> unit RunAsync.t
+val createDirectory : EsyLib.Path.t -> unit RunAsync.t
 
-val chmod : int -> Path.t -> unit RunAsync.t
+val chmod : int -> EsyLib.Path.t -> unit RunAsync.t
 
 val fold :
-  ?skipTraverse : (Path.t -> bool)
-  -> f : ('a -> Path.t -> Unix.stats -> 'a Lwt.t)
+  ?skipTraverse : (EsyLib.Path.t -> bool)
+  -> f : ('a -> EsyLib.Path.t -> Unix.stats -> 'a Lwt.t)
   -> init : 'a
-  -> Path.t
+  -> EsyLib.Path.t
   -> 'a Lwt.t
 
 val traverse :
-  ?skipTraverse : (Path.t -> bool)
-  -> f : (Path.t -> Lwt_unix.stats -> unit RunAsync.t)
-  -> Path.t
+  ?skipTraverse : (EsyLib.Path.t -> bool)
+  -> f : (EsyLib.Path.t -> Lwt_unix.stats -> unit RunAsync.t)
+  -> EsyLib.Path.t
   -> unit RunAsync.t
 
-val copyFile : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
-val copyPath : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
+val copyFile : origPath:EsyLib.Path.t -> destPath:EsyLib.Path.t -> unit RunAsync.t
+val copyPath : origPath:EsyLib.Path.t -> destPath:EsyLib.Path.t -> unit RunAsync.t
 
-val rmPath : Path.t -> [`Removed | `NoSuchPath] RunAsync.t
+val rmPath : EsyLib.Path.t -> [`Removed | `NoSuchPath] RunAsync.t
 
-val withTempDir : ?tempDir:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
-val withTempFile : string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
+val withTempDir : ?tempDir:string -> (EsyLib.Path.t -> 'a Lwt.t) -> 'a Lwt.t
+val withTempFile : string -> (EsyLib.Path.t -> 'a Lwt.t) -> 'a Lwt.t

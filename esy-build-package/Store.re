@@ -1,9 +1,11 @@
+module Path = EsyLib.Path;
+
 let init = (path: Path.t) =>
   Run.(
     {
-      let%bind () = mkdir(Fpath.(path / "i"));
-      let%bind () = mkdir(Fpath.(path / "b"));
-      let%bind () = mkdir(Fpath.(path / "s"));
+      let%bind () = mkdir(Path.(path / "i"));
+      let%bind () = mkdir(Path.(path / "b"));
+      let%bind () = mkdir(Path.(path / "s"));
       Ok();
     }
   );

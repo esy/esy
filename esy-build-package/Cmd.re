@@ -1,3 +1,5 @@
+module Path = EsyLib.Path;
+
 let isExecutable = (stats: Unix.stats) => {
   let userExecute = 0b001000000;
   let groupExecute = 0b000001000;

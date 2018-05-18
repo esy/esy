@@ -1,4 +1,6 @@
 open Std
+
+module Path = EsyLib.Path
 module StringMap = Map.Make(String)
 
 (**

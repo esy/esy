@@ -25,9 +25,6 @@ lib: [
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__NodeResolution.cmi" {"EsyBuildPackage__NodeResolution.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__NodeResolution.cmt" {"EsyBuildPackage__NodeResolution.cmt"}
   "_build/install/default/lib/esy-build-package/NodeResolution.re" {"NodeResolution.re"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Path.cmi" {"EsyBuildPackage__Path.cmi"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Path.cmt" {"EsyBuildPackage__Path.cmt"}
-  "_build/install/default/lib/esy-build-package/Path.re" {"Path.re"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__PathSyntax.cmi" {"EsyBuildPackage__PathSyntax.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__PathSyntax.cmt" {"EsyBuildPackage__PathSyntax.cmt"}
   "_build/install/default/lib/esy-build-package/PathSyntax.re" {"PathSyntax.re"}

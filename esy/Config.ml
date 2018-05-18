@@ -1,5 +1,5 @@
 open Std
-
+module Path = EsyLib.Path
 module PackageBuilderConfig = struct
 end
 

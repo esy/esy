@@ -1,5 +1,6 @@
 open Esy
 
+module Path = EsyLib.Path
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
