@@ -2,6 +2,7 @@ open Esy
 
 module Path = EsyLib.Path
 module Option = EsyLib.Option
+module Cmd = EsyLib.Cmd
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 

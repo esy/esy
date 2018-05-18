@@ -15,10 +15,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__ChildProcess.cmti" {"Esy__ChildProcess.cmti"}
   "_build/install/default/lib/esy/ChildProcess.mli" {"ChildProcess.mli"}
   "_build/install/default/lib/esy/ChildProcess.ml" {"ChildProcess.ml"}
-  "_build/install/default/lib/esy/Esy__Cmd.cmi" {"Esy__Cmd.cmi"}
-  "_build/install/default/lib/esy/Esy__Cmd.cmx" {"Esy__Cmd.cmx"}
-  "_build/install/default/lib/esy/Esy__Cmd.cmt" {"Esy__Cmd.cmt"}
-  "_build/install/default/lib/esy/Cmd.re" {"Cmd.re"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmi" {"Esy__CommandExpr.cmi"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmx" {"Esy__CommandExpr.cmx"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmt" {"Esy__CommandExpr.cmt"}

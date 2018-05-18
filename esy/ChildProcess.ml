@@ -1,4 +1,5 @@
 module Option = EsyLib.Option
+module Cmd = EsyLib.Cmd
 
 type env = [
   (* Use current env *)
