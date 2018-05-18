@@ -1,4 +1,5 @@
 module Path = EsyLib.Path;
+module Option = EsyLib.Option;
 module StringMap = Map.Make(String);
 module PathSet = Set.Make(Path);
 module ConfigPath = Config.ConfigPath;
@@ -108,8 +109,7 @@ let ofDir = (cfg: Config.t) => {
     };
     switch%bind (Package.Manifest.ofDir(path)) {
     | Some((manifest, manifestPath)) =>
-      let ignoreCircularDep =
-        Std.Option.isNone(manifest.Package.Manifest.esy);
+      let ignoreCircularDep = Option.isNone(manifest.Package.Manifest.esy);
       manifestInfo := PathSet.add(manifestPath, manifestInfo^);
       let (>>=) = Lwt.(>>=);
       let%lwt dependencies =

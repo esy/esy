@@ -1,9 +1,6 @@
-open EsyBuildPackage.Std;
-
+module Option = EsyLib.Option;
 module Run = EsyBuildPackage.Run;
-
 module File = Bos.OS.File;
-
 module Dir = Bos.OS.Dir;
 
 type verb =

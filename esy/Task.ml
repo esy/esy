@@ -1,4 +1,5 @@
 open Std
+module Option = EsyLib.Option
 
 (**
  * Build task.
@@ -597,14 +598,14 @@ let ofPackage
           let v = [
             {
               name = "PATH";
-              value = Value (Std.Option.orDefault
+              value = Value (Option.orDefault
                                "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
                                finalPath);
               origin = None;
             };
             {
               name = "MAN_PATH";
-              value = Value (Std.Option.orDefault
+              value = Value (Option.orDefault
                                "$MAN_PATH"
                                finalManPath);
               origin = None;
@@ -684,8 +685,8 @@ let commandEnv (pkg : Package.t) =
 
   let%bind task =
     ofPackage
-      ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
-      ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
+      ?finalPath:(getenv "PATH" |> Option.map ~f:(fun v -> "$PATH:" ^ v))
+      ?finalManPath:(getenv "MAN_PATH"|> Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
       ~overrideShell:false
       ~includeRootDevDependenciesInEnv:true pkg
   in Ok (Environment.Closed.bindings task.env)
@@ -712,8 +713,8 @@ let sandboxEnv (pkg : Package.t) =
     resolution = None;
   } in
   let%bind task = ofPackage
-      ?finalPath:(getenv "PATH" |> Std.Option.map ~f:(fun v -> "$PATH:" ^ v))
-      ?finalManPath:(getenv "MAN_PATH"|> Std.Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
+      ?finalPath:(getenv "PATH" |> Option.map ~f:(fun v -> "$PATH:" ^ v))
+      ?finalManPath:(getenv "MAN_PATH"|> Option.map ~f:(fun v -> "$MAN_PATH:" ^ v))
       ~overrideShell:false
       ~includeRootDevDependenciesInEnv:true
       synPkg

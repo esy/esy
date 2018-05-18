@@ -1,3 +1,5 @@
+module Option = EsyLib.Option
+
 type env = [
   (* Use current env *)
   | `CurrentEnv
@@ -46,7 +48,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
         return (prg, Array.of_list (prg::args))
     ) in
 
-  let env = Std.Option.map env ~f:(fun env -> env
+  let env = Option.map env ~f:(fun env -> env
                                               |> Environment.Value.M.bindings
                                               |> List.map (fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
@@ -113,7 +115,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
         return (prg, Array.of_list (prg::args))
     ) in
 
-  let env = Std.Option.map env ~f:(fun env -> env
+  let env = Option.map env ~f:(fun env -> env
                                               |> Environment.Value.M.bindings
                                               |> List.map (fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
