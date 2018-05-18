@@ -1,4 +1,5 @@
 module Path = EsyLib.Path
+module Result = EsyLib.Result
 module P = LockfileParser
 
 type t =
@@ -18,7 +19,7 @@ let ofPath path =
       let f acc item =
         match acc, item with
         | Ok { prefixPath = None }, ("esy-prefix-path", P.String value) ->
-          let open Std.Result in
+          let open Result in
           let%bind value = Path.of_string value in
           let value = if Path.is_abs value
             then value

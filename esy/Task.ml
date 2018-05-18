@@ -1,5 +1,7 @@
 open Std
+
 module Option = EsyLib.Option
+module Result = EsyLib.Result
 
 (**
  * Build task.
