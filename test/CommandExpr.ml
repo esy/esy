@@ -10,7 +10,7 @@ let expectParseOk s expectedTokens =
     ) else
       true
   | Error err ->
-    let msg = Printf.sprintf "parse error: %s" (Esy.Run.formatError err) in
+    let msg = Printf.sprintf "parse error: %s" (EsyLib.Run.formatError err) in
     print_endline msg;
     false
 
@@ -101,7 +101,7 @@ let expectRenderOk scope s expected =
     ) else
       true
   | Error err ->
-    let msg = Printf.sprintf "error: %s" (Esy.Run.formatError err) in
+    let msg = Printf.sprintf "error: %s" (EsyLib.Run.formatError err) in
     print_endline msg;
     false
 
@@ -109,7 +109,7 @@ let expectRenderError scope s expectedError =
   match render ~scope s with
   | Ok _ -> false
   | Error error ->
-    let error = Esy.Run.formatError error in
+    let error = EsyLib.Run.formatError error in
     if expectedError <> error then (
       Printf.printf "Expected: %s\n" expectedError;
       Printf.printf "     Got: %s\n" error;
