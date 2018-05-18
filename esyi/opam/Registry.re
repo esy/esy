@@ -1,4 +1,5 @@
 open Shared;
+module Path = EsyLib.Path;
 
 let filterNils = items =>
   items
@@ -13,7 +14,8 @@ let filterNils = items =>
 let getFromOpamRegistry = (config, fullName) => {
   let name = OpamFile.withoutScope(fullName);
   let (/+) = Filename.concat;
-  let base = config.Types.opamRepository /+ "packages" /+ name;
+  let base =
+    Path.(config.Config.opamRepositoryPath / "packages" / name |> to_string);
   switch (Files.readDirectory(base)) {
   | exception _ => failwith("Opam package not in registry: " ++ name)
   | entries =>

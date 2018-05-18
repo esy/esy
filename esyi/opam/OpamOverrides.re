@@ -1,4 +1,5 @@
 open Shared;
+module Path = EsyLib.Path;
 
 module Infix = {
   let (|?>) = (a, b) =>
@@ -308,7 +309,7 @@ let getContents = baseDir =>
   };
 
 let getOverrides = checkoutDir => {
-  let dir = Filename.concat(checkoutDir, "packages");
+  let dir = Path.(checkoutDir / "packages" |> to_string);
   Files.readDirectory(dir)
   |> List.map(name => {
        let (realName, semver) = ParseName.parseDirectoryName(name);

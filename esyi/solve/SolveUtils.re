@@ -1,8 +1,7 @@
 open Opam;
-
 open Npm;
-
 open Shared;
+module Path = EsyLib.Path;
 
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
@@ -107,7 +106,8 @@ let expectSuccess = (msg, v) =>
     failwith(msg);
   };
 
-let ensureGitRepo = (source, dest) =>
+let ensureGitRepo = (source, dest) => {
+  let dest = Path.to_string(dest);
   if (! Shared.Files.exists(dest)) {
     Shared.Files.mkdirp(Filename.dirname(dest));
     Shared.ExecCommand.execSync(
@@ -121,6 +121,7 @@ let ensureGitRepo = (source, dest) =>
     |> snd
     |> expectSuccess("Unable tp update " ++ dest);
   };
+};
 
 let lockDownRef = (url, ref) => {
   let cmd = "git ls-remote " ++ url ++ " " ++ ref;
@@ -182,11 +183,11 @@ let rec lockDownSource = pendingSource =>
 let checkRepositories = config => {
   ensureGitRepo(
     "https://github.com/esy-ocaml/esy-opam-override",
-    config.Shared.Types.esyOpamOverrides,
+    config.Config.esyOpamOverridePath,
   );
   ensureGitRepo(
     "https://github.com/ocaml/opam-repository",
-    config.Shared.Types.opamRepository,
+    config.Config.opamRepositoryPath,
   );
 };
 

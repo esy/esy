@@ -1,21 +1,9 @@
+module Path = EsyLib.Path;
+
 let (/+) = Filename.concat;
 
-let homeDir = () => {
-  let uid = Unix.getuid();
-  let home = Unix.getpwuid(uid).Unix.pw_dir;
-  /* TODO: fallback to $HOME here */
-  /* TODO: make it return resul (string, _) instead */
-  home;
-};
-
-let solve = basedir => {
-  let homeDir = homeDir();
+let solve = (config, basedir) => {
   let json = Yojson.Basic.from_file(basedir /+ "package.json");
-  let config = {
-    Shared.Types.esyOpamOverrides: homeDir /+ ".esyi/esy-opam-override",
-    opamRepository: homeDir /+ ".esyi/opam-repository",
-    baseDirectory: basedir,
-  };
   let env = Solve.solve(config, `PackageJson(json));
   let json = Shared.Env.to_yojson(Shared.Types.Source.to_yojson, env);
   let chan = open_out(basedir /+ "esyi.lock.json");
@@ -23,7 +11,7 @@ let solve = basedir => {
   close_out(chan);
 };
 
-let fetch = basedir => {
+let fetch = (config, basedir) => {
   let json = Yojson.Safe.from_file(basedir /+ "esyi.lock.json");
   let env =
     switch (Shared.Env.of_yojson(Shared.Types.Source.of_yojson, json)) {
@@ -31,16 +19,21 @@ let fetch = basedir => {
     | Ok(a) => a
     };
   Shared.Files.removeDeep(basedir /+ "node_modules");
-  Fetch.fetch(basedir, env);
+  Fetch.fetch(config, basedir, env);
 };
 
 Printexc.record_backtrace(true);
 
 switch (Sys.argv) {
-| [|_, "solve", basedir|] => solve(basedir)
-| [|_, "fetch", basedir|] => fetch(basedir)
+| [|_, "solve", basedir|] =>
+  let config = Shared.Config.make(Path.v(basedir));
+  solve(config, basedir);
+| [|_, "fetch", basedir|] =>
+  let config = Shared.Config.make(Path.v(basedir));
+  fetch(config, basedir);
 | [|_, basedir|] =>
-  solve(basedir);
-  fetch(basedir);
+  let config = Shared.Config.make(Path.v(basedir));
+  solve(config, basedir);
+  fetch(config, basedir);
 | _ => print_endline("Usage: esyi basedir")
 };

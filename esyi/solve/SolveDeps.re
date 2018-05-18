@@ -1,7 +1,5 @@
 open Opam;
-
 open Shared;
-
 open SolveUtils;
 
 module T = {
@@ -35,7 +33,8 @@ let initCache = config => {
     availableOpamVersions: Hashtbl.create(100),
     config,
   },
-  opamOverrides: OpamOverrides.getOverrides(config.Types.esyOpamOverrides),
+  opamOverrides:
+    OpamOverrides.getOverrides(config.Config.esyOpamOverridePath),
   npmPackages: Hashtbl.create(100),
   opamPackages: Hashtbl.create(100),
   manifests: Hashtbl.create(100),

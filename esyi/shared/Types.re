@@ -161,12 +161,6 @@ let viewReq = req =>
   | Opam(t) => "opam: " ++ GenericVersion.view(viewOpamConcrete, t)
   };
 
-type config = {
-  esyOpamOverrides: string,
-  opamRepository: string,
-  baseDirectory: string,
-};
-
 let opamFromNpmConcrete = ((major, minor, patch, rest)) =>
   Alpha(
     "",
