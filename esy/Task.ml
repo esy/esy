@@ -1,12 +1,9 @@
 open Std
 
-module Option = EsyLib.Option
-module Result = EsyLib.Result
-
 (**
  * Build task.
  *
- * TODO: Reconcile with EsyLib.BuildTask, right now we just reuse types & code
+ * TODO: Reconcile with BuildTask, right now we just reuse types & code
  * from there but it probably should live here instead. Fix that after we decide
  * on better package boundaries.
 *)

@@ -1,5 +1,3 @@
-module Path = EsyLib.Path
-module Result = EsyLib.Result
 module P = LockfileParser
 
 type t =
