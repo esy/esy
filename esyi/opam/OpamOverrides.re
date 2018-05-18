@@ -216,14 +216,14 @@ module ParseName = {
      also this one https://github.com/esy/esy-install/blob/master/src/resolvers/exotics/opam-resolver/opam-repository.js */
   let splitExtra = patch =>
     switch (String.split_on_char('-', patch)) {
-    | [] => assert false
+    | [] => assert(false)
     | [one] => (one, None)
     | [one, ...rest] => (one, Some(String.concat("-", rest)))
     };
   let parseDirectoryName = name =>
     Shared.GenericVersion.(
       switch (String.split_on_char('.', name)) {
-      | [] => assert false
+      | [] => assert(false)
       | [single] => (single, Any)
       | [name, num, "x", "x" | "x-"] => (
           name,
@@ -269,7 +269,7 @@ module ParseName = {
           | Some(">=") => AtLeast(version)
           | Some("<") => LessThan(version)
           | Some("<=") => AtMost(version)
-          | _ => assert false
+          | _ => assert(false)
           },
         );
       | _ => failwith("Bad override version " ++ name)

@@ -21,9 +21,9 @@
   peerDependencies:
     ocaml " >= 4.2.1  < 4.7.0"
 
-"@esy-ocaml/reason@^3.1.0":
+"@esy-ocaml/reason@facebook/reason#b0b43d":
   version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/reason/-/reason-3.1.0.tgz#9e77f50622c9268ef4a7cb079ca5150fc2d9140f"
+  resolved "https://codeload.github.com/facebook/reason/tar.gz/b0b43d53eb727a9523aaca44bc6ddcf7ea94abf3"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
@@ -31,8 +31,12 @@
     "@opam/menhir" " >= 20170418.0.0  <= 20171013.0.0"
     "@opam/merlin-extend" " >= 0.3.0"
     "@opam/ocaml-migrate-parsetree" "*"
+    "@opam/ocamlbuild" "*"
     "@opam/ocamlfind" ""
     "@opam/result" "*"
+    "@opam/utop" " >= 1.17.0"
+  peerDependencies:
+    ocaml " >= 4.2.0  < 4.7.0"
 
 "@esy-ocaml/substs@^0.0.1":
   version "0.0.1"

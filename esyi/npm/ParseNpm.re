@@ -237,7 +237,7 @@ let parseSimples = (item, parseSimple) => {
     switch (items) {
     | [item] => parseSimple(item)
     | [item, ...items] => And(parseSimple(item), loop(items))
-    | [] => assert false
+    | [] => assert(false)
     };
   loop(items);
 };

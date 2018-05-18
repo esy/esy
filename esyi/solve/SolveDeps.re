@@ -405,7 +405,7 @@ let solveLoose = (~cache, ~requested, ~current, ~deep) => {
       requested,
     );
   if (deep) {
-    assert false /* TODO */;
+    assert(false /* TODO */);
   } else {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");

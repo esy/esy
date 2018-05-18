@@ -5,20 +5,16 @@
  * Copyright 2004-present Facebook. All Rights Reserved.
  */
 module IntMap =
-  Map.Make(
-    {
-      type t = int;
-      let compare = compare;
-    },
-  );
+  Map.Make({
+    type t = int;
+    let compare = compare;
+  });
 
 module IntSet =
-  Set.Make(
-    {
-      type t = int;
-      let compare = compare;
-    },
-  );
+  Set.Make({
+    type t = int;
+    let compare = compare;
+  });
 
 module StringMap = Map.Make(String);
 

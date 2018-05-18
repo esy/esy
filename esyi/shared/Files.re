@@ -29,7 +29,7 @@ let relpath = (base, path) => {
     loop(String.split_on_char('/', base), String.split_on_char('/', path));
   String.concat(
     "/",
-    (base == [] ? ["."] : List.map((_) => "..", base)) @ path,
+    (base == [] ? ["."] : List.map(_ => "..", base)) @ path,
   );
 };
 

@@ -103,7 +103,7 @@ let filterMap = (fn, items) =>
   |> List.map(x =>
        switch (x) {
        | Some(x) => x
-       | None => assert false
+       | None => assert(false)
        }
      );
 

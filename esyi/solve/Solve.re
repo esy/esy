@@ -12,12 +12,10 @@ let findSatisfyingInMap = (map, name, range) =>
 let justDepsn = ((_, _, _, deps)) => deps;
 
 module StringMap =
-  Map.Make(
-    {
-      type t = string;
-      let compare = compare;
-    },
-  );
+  Map.Make({
+    type t = string;
+    let compare = compare;
+  });
 
 let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
   let thisLevel =
