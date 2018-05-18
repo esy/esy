@@ -4,8 +4,8 @@
 
 type env = [
   | `CurrentEnv
-  | `CurrentEnvOverride of Environment.Value.t
-  | `CustomEnv of Environment.Value.t
+  | `CurrentEnvOverride of string Astring.String.Map.t
+  | `CustomEnv of string Astring.String.Map.t
 ]
 
 val run :
