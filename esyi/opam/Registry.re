@@ -6,7 +6,7 @@ let filterNils = items =>
   |> List.map(item =>
        switch (item) {
        | Some(x) => x
-       | None => assert false
+       | None => assert(false)
        }
      );
 

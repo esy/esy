@@ -64,7 +64,6 @@ let resolve_path = path =>
           let%bind entry_point = package_entry_point(package_json_path);
           Ok(Some(entry_point));
         } else {
-
           /*** Check if directory contains index.js and return it if found */
           let index_js_path = Fpath.(path / "index.js");
           if%bind (exists(index_js_path)) {

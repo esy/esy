@@ -141,7 +141,7 @@ let compareWithTilde = (a, b) => {
     | (`Two(a, _), `Just(b)) when a == String.sub(b, 0, String.length(a)) => (-1)
     | (`Two(a, _), `Just(b)) =>
       compare(a, String.sub(b, 0, String.length(a)))
-    | (`Just(_a), `Just(_b)) => assert false
+    | (`Just(_a), `Just(_b)) => assert(false)
     | (`Just(a), `Two(b, _)) when String.sub(a, 0, String.length(b)) == b => (-1)
     | (`Just(a), `Two(b, _)) =>
       compare(String.sub(a, 0, String.length(b)), b)
