@@ -7,7 +7,7 @@ node_js:
   - "6"
 install:
   - travis_retry npm install -g yarn
-  - travis_retry npm install -g esy@latest
+  - travis_retry npm install -g esy@0.1.9
   - travis_wait travis_retry make bootstrap
 script:
   - travis_wait make ci
