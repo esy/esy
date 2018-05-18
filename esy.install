@@ -97,10 +97,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__ParseUtil.cmx" {"Esy__ParseUtil.cmx"}
   "_build/install/default/lib/esy/Esy__ParseUtil.cmt" {"Esy__ParseUtil.cmt"}
   "_build/install/default/lib/esy/ParseUtil.ml" {"ParseUtil.ml"}
-  "_build/install/default/lib/esy/Esy__Path.cmi" {"Esy__Path.cmi"}
-  "_build/install/default/lib/esy/Esy__Path.cmx" {"Esy__Path.cmx"}
-  "_build/install/default/lib/esy/Esy__Path.cmt" {"Esy__Path.cmt"}
-  "_build/install/default/lib/esy/Path.re" {"Path.re"}
   "_build/install/default/lib/esy/Esy__Perf.cmi" {"Esy__Perf.cmi"}
   "_build/install/default/lib/esy/Esy__Perf.cmx" {"Esy__Perf.cmx"}
   "_build/install/default/lib/esy/Esy__Perf.cmt" {"Esy__Perf.cmt"}

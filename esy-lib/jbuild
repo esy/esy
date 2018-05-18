@@ -1,12 +1,11 @@
 (jbuild_version 1)
 
 (library
- ((name Esy)
-  (public_name esy)
+ ((name EsyLib)
+  (public_name esy-lib)
   (preprocess (pps (lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std)))
   (flags (:standard (-w -39)))
   (libraries (
-              EsyLib
               lwt
               lwt.unix
               cmdliner
@@ -23,13 +22,5 @@
               ppx_deriving_yojson.runtime
               str
               astring
-              esy-build-package
               ))
   ))
-
-(ocamllex (
-           ShellParamExpansionParser
-           ShellSplit
-           CommandExprParser
-           LockfileLexer
-           ))

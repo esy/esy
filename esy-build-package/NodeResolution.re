@@ -1,3 +1,5 @@
+module Path = EsyLib.Path;
+
 module PackageJson = {
   type t = {
     name: string,

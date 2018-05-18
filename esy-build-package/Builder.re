@@ -1,3 +1,5 @@
+module Path = EsyLib.Path;
+
 open Std;
 
 let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {

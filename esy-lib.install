@@ -1,0 +1,23 @@
+lib: [
+  "_build/install/default/lib/esy-lib/META" {"META"}
+  "_build/install/default/lib/esy-lib/opam" {"opam"}
+  "_build/install/default/lib/esy-lib/EsyLib.cmi" {"EsyLib.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib.cmx" {"EsyLib.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib.cmt" {"EsyLib.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib.ml-gen" {"EsyLib.ml-gen"}
+  "_build/install/default/lib/esy-lib/EsyLib__Path.cmi" {"EsyLib__Path.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Path.cmx" {"EsyLib__Path.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Path.cmt" {"EsyLib__Path.cmt"}
+  "_build/install/default/lib/esy-lib/Path.re" {"Path.re"}
+  "_build/install/default/lib/esy-lib/EsyLib.cma" {"EsyLib.cma"}
+  "_build/install/default/lib/esy-lib/EsyLib.cmxa" {"EsyLib.cmxa"}
+  "_build/install/default/lib/esy-lib/EsyLib.a" {"EsyLib.a"}
+  "_build/install/default/lib/esy-lib/EsyLib.cmxs" {"EsyLib.cmxs"}
+  "_build/install/default/lib/esy-lib/esy-lib.dune" {"esy-lib.dune"}
+]
+doc: [
+  "_build/install/default/doc/esy-lib/README.md"
+  "_build/install/default/doc/esy-lib/README.esyi.md"
+  "_build/install/default/doc/esy-lib/LICENSE"
+  "_build/install/default/doc/esy-lib/CHANGELOG.md"
+]

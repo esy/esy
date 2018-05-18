@@ -1,3 +1,5 @@
+module Path = EsyLib.Path;
+
 type pattern =
   | Subpath(string)
   | Regex(string);

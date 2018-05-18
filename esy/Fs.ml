@@ -1,3 +1,5 @@
+module Path = EsyLib.Path
+
 let toRunAsync ?(desc="I/O failed") promise =
   let open RunAsync.Syntax in
   try%lwt

@@ -1,3 +1,5 @@
+module Path = EsyLib.Path
+
 let waitForDependencies dependencies =
   dependencies
   |> List.map (fun (_, dep) -> dep)
