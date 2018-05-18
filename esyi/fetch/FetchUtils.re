@@ -1,5 +1,7 @@
 open Shared;
 
+module Path = EsyLib.Path;
+
 let (/+) = Filename.concat;
 
 let resolvedString = (name, version) =>
@@ -31,6 +33,95 @@ let addResolvedFieldToPackageJson = (filename, name, version) => {
 let absname = (name, version) =>
   name ++ "__" ++ Lockfile.viewRealVersion(version);
 
+let getSource = (dest, cache, name, version, source) =>
+  switch (source) {
+  | Types.Source.Archive(url, _checksum) =>
+    let safe = Str.global_replace(Str.regexp("/"), "-", name);
+    let withVersion = safe ++ Lockfile.viewRealVersion(version);
+    let tarball = cache /+ withVersion ++ ".tarball";
+    if (! Files.isFile(tarball)) {
+      switch (Wget.get(~output=Path.v(tarball), url)) {
+      | Some(_) => ()
+      | None => failwith("failed to fetch with curl")
+      };
+    };
+    ExecCommand.execSync(
+      ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
+      (),
+    )
+    |> snd
+    |> Files.expectSuccess("failed to untar");
+  | Types.Source.NoSource => ()
+  | Types.Source.GithubSource(user, repo, ref) =>
+    let safe =
+      Str.global_replace(
+        Str.regexp("/"),
+        "-",
+        name ++ "__" ++ user ++ "__" ++ repo ++ "__" ++ ref,
+      );
+    let tarball = cache /+ safe ++ ".tarball";
+    if (! Files.isFile(tarball)) {
+      let tarUrl =
+        "https://api.github.com/repos/"
+        ++ user
+        ++ "/"
+        ++ repo
+        ++ "/tarball/"
+        ++ ref;
+      switch (Wget.get(~output=Path.v(tarball), tarUrl)) {
+      | Some(_) => ()
+      | None => failwith("failed to fetch with curl")
+      };
+    };
+    ExecCommand.execSync(
+      ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
+      (),
+    )
+    |> snd
+    |> Files.expectSuccess("failed to untar");
+  | Types.Source.GitSource(gitUrl, commit) =>
+    let safe = Str.global_replace(Str.regexp("/"), "-", name);
+    let withVersion = safe ++ Lockfile.viewRealVersion(version);
+    let tarball = cache /+ withVersion ++ ".tarball";
+    if (! Files.isFile(tarball)) {
+      print_endline(
+        "[fetching git repo " ++ gitUrl ++ " at commit " ++ commit,
+      );
+      let gitdest = cache /+ "git-" ++ withVersion;
+      /** TODO we want to have the commit nailed down by this point tho */
+      ExecCommand.execSync(~cmd="git clone " ++ gitUrl ++ " " ++ gitdest, ())
+      |> snd
+      |> Files.expectSuccess("Unable to clone git repo " ++ gitUrl);
+      ExecCommand.execSync(
+        ~cmd=
+          "cd "
+          ++ gitdest
+          ++ " && git checkout "
+          ++ commit
+          ++ " && rm -rf .git",
+        (),
+      )
+      |> snd
+      |> Files.expectSuccess(
+           "Unable to checkout " ++ gitUrl ++ " at " ++ commit,
+         );
+      ExecCommand.execSync(~cmd="tar czf " ++ tarball ++ " " ++ gitdest, ())
+      |> snd
+      |> Files.expectSuccess("Unable to tar up");
+      ExecCommand.execSync(~cmd="mv " ++ gitdest ++ " " ++ dest, ())
+      |> snd
+      |> Files.expectSuccess("Unable to move");
+    } else {
+      ExecCommand.execSync(
+        ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
+        (),
+      )
+      |> snd
+      |> Files.expectSuccess("failed to untar");
+    };
+  | File(_) => failwith("Cannot handle a file source yet")
+  };
+
 /**
  * Unpack an archive into place, and then for opam projects create a package.json & apply files / patches.
  */
@@ -39,107 +130,9 @@ let unpackArchive = (dest, cache, name, version, source) =>
     print_endline("Dependency exists -- assuming it is fine " ++ dest);
   } else {
     Files.mkdirp(dest);
-    let getSource = source =>
-      switch (source) {
-      | Types.Source.Archive(url, _checksum) =>
-        let safe = Str.global_replace(Str.regexp("/"), "-", name);
-        let withVersion = safe ++ Lockfile.viewRealVersion(version);
-        let tarball = cache /+ withVersion ++ ".tarball";
-        if (! Files.isFile(tarball)) {
-          ExecCommand.execSync(
-            ~cmd="curl -L --output " ++ tarball ++ " " ++ url,
-            (),
-          )
-          |> snd
-          |> Files.expectSuccess("failed to fetch with curl");
-        };
-        ExecCommand.execSync(
-          ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-          (),
-        )
-        |> snd
-        |> Files.expectSuccess("failed to untar");
-      | Types.Source.NoSource => ()
-      | Types.Source.GithubSource(user, repo, ref) =>
-        let safe =
-          Str.global_replace(
-            Str.regexp("/"),
-            "-",
-            name ++ "__" ++ user ++ "__" ++ repo ++ "__" ++ ref,
-          );
-        let tarball = cache /+ safe ++ ".tarball";
-        if (! Files.isFile(tarball)) {
-          let tarUrl =
-            "https://api.github.com/repos/"
-            ++ user
-            ++ "/"
-            ++ repo
-            ++ "/tarball/"
-            ++ ref;
-          ExecCommand.execSync(
-            ~cmd="curl -L --output " ++ tarball ++ " " ++ tarUrl,
-            (),
-          )
-          |> snd
-          |> Files.expectSuccess("failed to fetch with curl");
-        };
-        ExecCommand.execSync(
-          ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-          (),
-        )
-        |> snd
-        |> Files.expectSuccess("failed to untar");
-      | Types.Source.GitSource(gitUrl, commit) =>
-        let safe = Str.global_replace(Str.regexp("/"), "-", name);
-        let withVersion = safe ++ Lockfile.viewRealVersion(version);
-        let tarball = cache /+ withVersion ++ ".tarball";
-        if (! Files.isFile(tarball)) {
-          print_endline(
-            "[fetching git repo " ++ gitUrl ++ " at commit " ++ commit,
-          );
-          let gitdest = cache /+ "git-" ++ withVersion;
-          /** TODO we want to have the commit nailed down by this point tho */
-          ExecCommand.execSync(
-            ~cmd="git clone " ++ gitUrl ++ " " ++ gitdest,
-            (),
-          )
-          |> snd
-          |> Files.expectSuccess("Unable to clone git repo " ++ gitUrl);
-          ExecCommand.execSync(
-            ~cmd=
-              "cd "
-              ++ gitdest
-              ++ " && git checkout "
-              ++ commit
-              ++ " && rm -rf .git",
-            (),
-          )
-          |> snd
-          |> Files.expectSuccess(
-               "Unable to checkout " ++ gitUrl ++ " at " ++ commit,
-             );
-          ExecCommand.execSync(
-            ~cmd="tar czf " ++ tarball ++ " " ++ gitdest,
-            (),
-          )
-          |> snd
-          |> Files.expectSuccess("Unable to tar up");
-          ExecCommand.execSync(~cmd="mv " ++ gitdest ++ " " ++ dest, ())
-          |> snd
-          |> Files.expectSuccess("Unable to move");
-        } else {
-          ExecCommand.execSync(
-            ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-            (),
-          )
-          |> snd
-          |> Files.expectSuccess("failed to untar");
-        };
-      | File(_) => failwith("Cannot handle a file source yet")
-      };
     let packageJson = dest /+ "package.json";
     let (source, maybeOpamFile) = source;
-    getSource(source);
+    getSource(dest, cache, name, version, source);
     switch (maybeOpamFile) {
     | Some((packageJson, files, patches)) =>
       if (Files.exists(dest /+ "esy.json")) {
