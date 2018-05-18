@@ -9,12 +9,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__Chalk.cmx" {"Esy__Chalk.cmx"}
   "_build/install/default/lib/esy/Esy__Chalk.cmt" {"Esy__Chalk.cmt"}
   "_build/install/default/lib/esy/Chalk.re" {"Chalk.re"}
-  "_build/install/default/lib/esy/Esy__ChildProcess.cmi" {"Esy__ChildProcess.cmi"}
-  "_build/install/default/lib/esy/Esy__ChildProcess.cmx" {"Esy__ChildProcess.cmx"}
-  "_build/install/default/lib/esy/Esy__ChildProcess.cmt" {"Esy__ChildProcess.cmt"}
-  "_build/install/default/lib/esy/Esy__ChildProcess.cmti" {"Esy__ChildProcess.cmti"}
-  "_build/install/default/lib/esy/ChildProcess.mli" {"ChildProcess.mli"}
-  "_build/install/default/lib/esy/ChildProcess.ml" {"ChildProcess.ml"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmi" {"Esy__CommandExpr.cmi"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmx" {"Esy__CommandExpr.cmx"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmt" {"Esy__CommandExpr.cmt"}
@@ -103,12 +97,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__Queue.cmti" {"Esy__Queue.cmti"}
   "_build/install/default/lib/esy/Queue.mli" {"Queue.mli"}
   "_build/install/default/lib/esy/Queue.ml" {"Queue.ml"}
-  "_build/install/default/lib/esy/Esy__RunAsync.cmi" {"Esy__RunAsync.cmi"}
-  "_build/install/default/lib/esy/Esy__RunAsync.cmx" {"Esy__RunAsync.cmx"}
-  "_build/install/default/lib/esy/Esy__RunAsync.cmt" {"Esy__RunAsync.cmt"}
-  "_build/install/default/lib/esy/Esy__RunAsync.cmti" {"Esy__RunAsync.cmti"}
-  "_build/install/default/lib/esy/RunAsync.mli" {"RunAsync.mli"}
-  "_build/install/default/lib/esy/RunAsync.ml" {"RunAsync.ml"}
   "_build/install/default/lib/esy/Esy__Sandbox.cmi" {"Esy__Sandbox.cmi"}
   "_build/install/default/lib/esy/Esy__Sandbox.cmx" {"Esy__Sandbox.cmx"}
   "_build/install/default/lib/esy/Esy__Sandbox.cmt" {"Esy__Sandbox.cmt"}

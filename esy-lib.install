@@ -1,6 +1,12 @@
 lib: [
   "_build/install/default/lib/esy-lib/META" {"META"}
   "_build/install/default/lib/esy-lib/opam" {"opam"}
+  "_build/install/default/lib/esy-lib/EsyLib__ChildProcess.cmi" {"EsyLib__ChildProcess.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__ChildProcess.cmx" {"EsyLib__ChildProcess.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__ChildProcess.cmt" {"EsyLib__ChildProcess.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__ChildProcess.cmti" {"EsyLib__ChildProcess.cmti"}
+  "_build/install/default/lib/esy-lib/ChildProcess.mli" {"ChildProcess.mli"}
+  "_build/install/default/lib/esy-lib/ChildProcess.ml" {"ChildProcess.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmi" {"EsyLib__Cmd.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmx" {"EsyLib__Cmd.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmt" {"EsyLib__Cmd.cmt"}
@@ -27,6 +33,12 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Run.cmti" {"EsyLib__Run.cmti"}
   "_build/install/default/lib/esy-lib/Run.mli" {"Run.mli"}
   "_build/install/default/lib/esy-lib/Run.ml" {"Run.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__RunAsync.cmi" {"EsyLib__RunAsync.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__RunAsync.cmx" {"EsyLib__RunAsync.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__RunAsync.cmt" {"EsyLib__RunAsync.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__RunAsync.cmti" {"EsyLib__RunAsync.cmti"}
+  "_build/install/default/lib/esy-lib/RunAsync.mli" {"RunAsync.mli"}
+  "_build/install/default/lib/esy-lib/RunAsync.ml" {"RunAsync.ml"}
   "_build/install/default/lib/esy-lib/EsyLib.cma" {"EsyLib.cma"}
   "_build/install/default/lib/esy-lib/EsyLib.cmxa" {"EsyLib.cmxa"}
   "_build/install/default/lib/esy-lib/EsyLib.a" {"EsyLib.a"}

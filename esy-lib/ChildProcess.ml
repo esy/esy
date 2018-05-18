@@ -1,15 +1,43 @@
+module Map = Astring.String.Map
+
 type env = [
   (* Use current env *)
   | `CurrentEnv
   (* Use current env add some override on top *)
-  | `CurrentEnvOverride of Environment.Value.t
+  | `CurrentEnvOverride of string Map.t
   (* Use custom env *)
-  | `CustomEnv of Environment.Value.t
+  | `CustomEnv of string Map.t
 ]
+
+let currentEnv =
+  let parse item =
+    let idx = String.index item '=' in
+    let name = String.sub item 0 idx in
+    let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+    name, value
+  in
+  (* Filter bash function which are being exported in env *)
+  let filter (name, _value) =
+    let starting = "BASH_FUNC_" in
+    let ending = "%%" in
+    not (
+      String.length name > String.length starting
+      && Str.first_chars name (String.length starting) = starting
+      && Str.last_chars name (String.length ending) = ending
+    )
+  in
+  let build env (name, value) =
+    if filter (name, value)
+    then env
+    else Map.add name value env
+  in
+  Unix.environment ()
+  |> Array.map parse
+  |> Array.fold_left build Map.empty
 
 let resolveCmdInEnv ~env prg =
   let path =
-    let v = match Environment.Value.M.find_opt "PATH" env with
+    let v = match Map.find_opt "PATH" env with
       | Some v  -> v
       | None -> ""
     in
@@ -26,7 +54,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
         Astring.String.Map.fold
           Astring.String.Map.add
           env
-          Environment.Value.current
+          currentEnv
       in
       Some env
     | `CustomEnv env -> Some env
@@ -47,7 +75,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
     ) in
 
   let env = Option.map env ~f:(fun env -> env
-                                              |> Environment.Value.M.bindings
+                                              |> Map.bindings
                                               |> List.map (fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
   in
@@ -93,7 +121,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
         Astring.String.Map.fold
           Astring.String.Map.add
           env
-          Environment.Value.current
+          currentEnv
       in
       Some env
     | `CustomEnv env -> Some env
@@ -114,7 +142,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
     ) in
 
   let env = Option.map env ~f:(fun env -> env
-                                              |> Environment.Value.M.bindings
+                                              |> Map.bindings
                                               |> List.map (fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
   in
