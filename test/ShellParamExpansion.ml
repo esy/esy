@@ -10,7 +10,7 @@ let expectParseOk s expectedTokens =
     ) else
       true
   | Error err ->
-    let err = Esy.Run.formatError err in
+    let err = EsyLib.Run.formatError err in
     let msg = Printf.sprintf "Error: %s\nWhile parsing: %s" err s in
     print_endline msg;
     false
@@ -48,7 +48,7 @@ let expectRenderOk scope s expectedResult =
     ) else
       true
   | Error err ->
-    let err = Esy.Run.formatError err in
+    let err = EsyLib.Run.formatError err in
     let msg = Printf.sprintf "Error: %s\nWhile parsing: %s" err s in
     print_endline msg;
     false

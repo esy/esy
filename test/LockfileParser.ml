@@ -10,7 +10,7 @@ let expectParseOk s expectedTokens =
     ) else
       true
   | Error err ->
-    let msg = Printf.sprintf "parse error: %s" (Esy.Run.formatError err) in
+    let msg = Printf.sprintf "parse error: %s" (EsyLib.Run.formatError err) in
     print_endline msg;
     false
 

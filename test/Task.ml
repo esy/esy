@@ -1,6 +1,7 @@
 open Esy
 module Cmd = EsyLib.Cmd
 module Path = EsyLib.Path
+module Run = EsyLib.Run
 
 let cfg = {
   Config.
