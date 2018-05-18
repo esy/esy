@@ -1,10 +1,13 @@
+module Path = EsyLib.Path;
+module Config = Shared.Config;
+
 let (/+) = Filename.concat;
 
 let startsWith = (string, prefix) =>
   String.length(string) >= String.length(prefix)
   && String.sub(string, 0, String.length(prefix)) == prefix;
 
-let fetch = (basedir, env) => {
+let fetch = (config: Shared.Config.t, basedir, env) => {
   open Shared.Env;
   let packagesToFetch = Hashtbl.create(100);
   let addPackage = ({name, version, source, _}) =>
@@ -29,14 +32,18 @@ let fetch = (basedir, env) => {
     }
   );
   Shared.Files.mkdirp(nodeModules);
-  let cache = nodeModules /+ ".esy-cache-archives";
-  Shared.Files.mkdirp(cache);
-  let modcache = nodeModules /+ ".esy-unpacked";
-  Shared.Files.mkdirp(modcache);
   Hashtbl.iter(
     ((name, version), source) => {
-      let dest = modcache /+ FetchUtils.absname(name, version);
-      FetchUtils.unpackArchive(dest, cache, name, version, source);
+      let dest =
+        Path.to_string(config.Config.packageCachePath)
+        /+ FetchUtils.absname(name, version);
+      FetchUtils.unpackArchive(
+        dest,
+        Path.to_string(config.Config.tarballCachePath),
+        name,
+        version,
+        source,
+      );
       let nmDest = nodeModules /+ name;
       if (Shared.Files.exists(nmDest)) {
         failwith("Duplicate modules");
@@ -46,9 +53,22 @@ let fetch = (basedir, env) => {
     },
     packagesToFetch,
   );
-  let resolved = Resolved.fromEnv(env, modcache);
+  let resolved =
+    Resolved.fromEnv(env, Path.to_string(config.Config.packageCachePath));
+  Shared.Files.mkdirp(
+    Path.(
+      config.Config.basePath / "node_modules" / ".cache" / "_esy" |> to_string
+    ),
+  );
   Shared.Files.writeFile(
-    modcache /+ "esy.resolved",
+    Path.(
+      config.Config.basePath
+      / "node_modules"
+      / ".cache"
+      / "_esy"
+      / "esy.resolved"
+      |> to_string
+    ),
     Yojson.Basic.pretty_to_string(resolved),
   )
   |> ignore;

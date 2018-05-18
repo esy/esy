@@ -7,7 +7,7 @@ open Shared;
 open SolveUtils;
 
 type t = {
-  config: Types.config,
+  config: Config.t,
   availableNpmVersions:
     Hashtbl.t(string, list((Types.npmConcrete, Yojson.Basic.json))),
   availableOpamVersions:
