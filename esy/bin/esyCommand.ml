@@ -1,6 +1,7 @@
 open Esy
 
 module Path = EsyLib.Path
+module Option = EsyLib.Option
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
@@ -1198,7 +1199,7 @@ let () =
   in
 
   let commandName =
-    let open Std.Option in
+    let open Option in
     let%bind commandName =
       try Some Sys.argv.(1)
       with Invalid_argument _ -> None
