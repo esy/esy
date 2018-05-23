@@ -296,7 +296,7 @@ let buildPackage cfg packagePath =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
-    Build.build ~concurrency:EsyRuntime.concurrency ~force:`ForRoot cfg task
+    Build.buildAll ~concurrency:EsyRuntime.concurrency ~force:`ForRoot cfg task
   in withBuildTaskByPath ~info packagePath f
 
 let build ?(buildOnly=true) cfg command =
@@ -313,7 +313,7 @@ let build ?(buildOnly=true) cfg command =
         ~concurrency:EsyRuntime.concurrency
         ~force:`ForRoot
         cfg task
-    in Build.buildPackage ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
+    in Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
   | command ->
     let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
