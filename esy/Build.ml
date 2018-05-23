@@ -3,7 +3,7 @@ let waitForDependencies dependencies =
   |> List.map (fun (_, dep) -> dep)
   |> RunAsync.waitAll
 
-let buildPackage ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
+let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
   let f () =
     let open RunAsync.Syntax in
     let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
@@ -61,7 +61,7 @@ let runTask
           Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
         ) in
         begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with
-        | None -> buildPackage ~buildOnly cfg task
+        | None -> buildTask ~buildOnly cfg task
         | Some buildMtime ->
           let skipTraverse path = match Path.basename path with
           | "node_modules"
@@ -80,10 +80,10 @@ let runTask
           in
           let%lwt curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
           if curMtime > buildMtime
-          then buildPackage ~buildOnly cfg task
+          then buildTask ~buildOnly cfg task
           else return ()
         end
-      | Error _ -> buildPackage ~buildOnly cfg task
+      | Error _ -> buildTask ~buildOnly cfg task
     in
     let label = Printf.sprintf "checking mtime for %s" task.pkg.id in
     Perf.measureTime ~label f
@@ -91,18 +91,18 @@ let runTask
 
   let performBuildIfNeeded () =
     let f () =
-    match task.pkg.sourceType with
+    match task.sourceType with
     | Package.SourceType.Immutable ->
       if%bind Fs.exists installPath
       then return ()
-      else buildPackage ~buildOnly cfg task
+      else buildTask ~buildOnly cfg task
     | Package.SourceType.Development ->
       if Task.isRoot ~cfg task then
-        buildPackage ~buildOnly cfg task
+        buildTask ~buildOnly cfg task
       else (
         if%bind Fs.exists installPath
         then checkSourceModTime ()
-        else buildPackage ~buildOnly cfg task
+        else buildTask ~buildOnly cfg task
       )
     in LwtTaskQueue.submit queue f
   in
@@ -110,17 +110,17 @@ let runTask
   match force with
   | `ForRoot ->
     if isRoot
-    then buildPackage ~force:true ~buildOnly cfg task
+    then buildTask ~force:true ~buildOnly cfg task
     else performBuildIfNeeded ()
   | `No ->
     performBuildIfNeeded ()
   | `Yes ->
-    buildPackage ~force:true ~buildOnly cfg task
+    buildTask ~force:true ~buildOnly cfg task
 
 (**
  * Build task tree.
  *)
-let build
+let buildAll
     ?force
     ?buildOnly
     ~concurrency
