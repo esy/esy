@@ -58,8 +58,7 @@ doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
 
 clean:
-	@rm -rf lib/
-	@make -C esy-core clean
+	@esy jbuilder clean
 
 build:
 	@esy b jbuilder build -j 4 $(TARGETS)
