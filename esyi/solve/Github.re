@@ -12,19 +12,19 @@ let githubFileUrl = (user, repo, ref, file) =>
 
 let getManifest = (name, user, repo, ref) => {
   let getFile = name =>
-    Shared.Wget.get(githubFileUrl(user, repo, ref, name));
+    Lwt_main.run(Shared.Wget.get(githubFileUrl(user, repo, ref, name)));
   switch (getFile("esy.json")) {
-  | Some(text) => `PackageJson(Yojson.Basic.from_string(text))
-  | None =>
+  | Ok(text) => `PackageJson(Yojson.Basic.from_string(text))
+  | Error(_) =>
     switch (getFile("package.json")) {
-    | Some(text) => `PackageJson(Yojson.Basic.from_string(text))
-    | None =>
+    | Ok(text) => `PackageJson(Yojson.Basic.from_string(text))
+    | Error(_) =>
       switch (getFile(name ++ ".opam")) {
-      | Some(_text) => failwith("No opam parsing yet for github repos")
-      | None =>
+      | Ok(_text) => failwith("No opam parsing yet for github repos")
+      | Error(_) =>
         switch (getFile("opam")) {
-        | Some(_text) => failwith("No opam parsing yet for github repos")
-        | None => failwith("No manifest found in github repo")
+        | Ok(_text) => failwith("No opam parsing yet for github repos")
+        | Error(_) => failwith("No manifest found in github repo")
         }
       }
     }
