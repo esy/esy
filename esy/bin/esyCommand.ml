@@ -3,6 +3,22 @@ open Esy
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
+let done_ msg =
+  let line = Chalk.green("[INFO]") ^ " " ^ msg in
+  print_endline line
+
+let info msg =
+  let line = Chalk.blue("[INFO]") ^ " " ^ msg in
+  print_endline line
+
+let warn msg =
+  let line = Chalk.yellow("[WARN]") ^ " " ^ msg in
+  print_endline line
+
+let error msg =
+  let line = Chalk.red("[ERR]") ^ " " ^ msg in
+  print_endline line
+
 (**
  * This module encapsulates info about esy runtime - its version, current
  * working directory and so on.
@@ -989,6 +1005,32 @@ let () =
     Term.(ret (const cmd $ configTerm $ fromPathTerm $ setupLogTerm)), info
   in
 
+  let releaseCommand =
+    let doc = "Produce npm package with prebuilt artifacts" in
+    let info = Term.info "release" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
+    let cmd cfg () =
+      runAsyncCommand ~info (
+        let open RunAsync.Syntax in
+        let%bind cfg = cfg in
+        let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
+
+        let%bind outputPath =
+          let outputDir = "_release" in
+          let outputPath = Path.(cfg.Config.sandboxPath / outputDir) in
+          let%bind _ = Fs.rmPath outputPath in
+          return outputPath
+        in
+
+        NpmRelease.make
+          ~outputPath
+          ~concurrency:EsyRuntime.concurrency
+          ~cfg
+          ~sandbox
+      )
+    in
+    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+  in
+
   let helpCommand =
     let info = Term.info "help" ~version:EsyRuntime.version ~doc:"Show this message and exit" ~sdocs ~exits in
     let cmd () =
@@ -1059,6 +1101,8 @@ let () =
     exportBuildCommand;
     importBuildCommand;
 
+    releaseCommand;
+
     installNextCommand;
 
     (* commands implemented via JS *)
@@ -1072,9 +1116,6 @@ let () =
     makeCommandDelegatingToJsImpl
       ~name:"init"
       ~doc:"Initialize new project";
-    makeCommandDelegatingToJsImpl
-      ~name:"release"
-      ~doc:"Produce npm package with prebuilt artifacts";
     makeCommandDelegatingToJsImpl
       ~name:"import-opam"
       ~doc:"Produce esy package metadata from OPAM package metadata";
@@ -1116,7 +1157,6 @@ let () =
    * This should be fixed.
    *)
   | Some "init"
-  | Some "release"
   | Some "import-opam"
   | Some "install"
   | Some "add"
