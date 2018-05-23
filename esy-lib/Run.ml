@@ -66,10 +66,22 @@ let liftOfStringError v =
   | Ok v -> Ok v
   | Error line -> Error (line, [])
 
+let ofStringError = liftOfStringError
+
 let liftOfBosError v =
   match v with
   | Ok v -> Ok v
   | Error (`Msg line) -> Error (line, [])
+
+let ofBosError = liftOfBosError
+
+let ofOption ?err = function
+  | Some v -> return v
+  | None ->
+    let err = match err with
+    | Some err -> err
+    | None -> "not found"
+    in error err
 
 let foldLeft ~f ~init xs =
   let rec fold acc xs =  match acc, xs with

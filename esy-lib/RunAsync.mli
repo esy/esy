@@ -40,3 +40,5 @@ module Syntax : sig
 end
 
 val liftOfRun : 'a Run.t -> 'a t
+val ofRun : 'a Run.t -> 'a t
+val ofOption : ?err : string -> 'a option -> 'a t
