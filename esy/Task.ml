@@ -249,13 +249,19 @@ let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?finalPath
+    ?term
     ?finalManPath
     (rootPkg : Package.t)
   =
 
   let cache = Memoize.create ~size:200 in
 
-  let term = Option.orDefault "" (getenv "TERM") in
+  let term =
+    let term = match term with
+    | None -> getenv "TERM"
+    | Some term -> term
+    in Option.orDefault "" term
+  in
 
   let open Run.Syntax in
 
