@@ -26,6 +26,8 @@ val withContextOfLog : ?header:string -> string -> 'a t -> 'a t
 val waitAll : unit t list -> unit t
 val joinAll : 'a t list -> 'a list t
 
+val runExn : ?err : string -> 'a t -> 'a
+
 module Syntax : sig
 
   val return : 'a -> 'a t

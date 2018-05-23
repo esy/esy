@@ -27,6 +27,11 @@ val foldLeft : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
 
 val waitAll : unit t list -> unit t
 
+(**
+ * Run computation and throw on error.
+ *)
+val runExn : ?err : string -> 'a t -> 'a
+
 module Syntax : sig
 
   val return : 'a -> 'a t
