@@ -28,8 +28,8 @@ let currentEnv =
   in
   let build env (name, value) =
     if filter (name, value)
-    then env
-    else Map.add name value env
+    then Map.add name value env
+    else env
   in
   Unix.environment ()
   |> Array.map parse
