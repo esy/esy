@@ -1,6 +1,8 @@
 
 val readFile : Path.t -> string RunAsync.t
 
+val writeFile : data:string -> Path.t -> unit RunAsync.t
+
 val readJsonFile : Path.t -> Yojson.Safe.json RunAsync.t
 
 val openFile : mode:Lwt_unix.open_flag list -> perm:int -> Path.t -> Lwt_unix.file_descr RunAsync.t
