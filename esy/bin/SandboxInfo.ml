@@ -61,7 +61,11 @@ let writeCache (cfg : Config.t) (info : t) =
             Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
           in
           info.commandEnv
-          |> Environment.renderToShellSource ~header cfg
+          |> Environment.renderToShellSource
+            ~header
+            ~storePath:cfg.storePath
+            ~localStorePath:cfg.localStorePath
+            ~sandboxPath:cfg.sandboxPath
         ) in
       let%bind () =
         let filename = Path.(sandboxBin / "command-env") in
