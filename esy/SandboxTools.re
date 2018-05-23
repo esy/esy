@@ -161,7 +161,7 @@ let formatPackageInfo = (~built: bool, task: Task.t) => {
   let pkg = task.pkg;
   let version = Chalk.grey("@" ++ pkg.version);
   let status =
-    switch (pkg.sourceType, built) {
+    switch (task.sourceType, built) {
     | (Package.SourceType.Immutable, true) => Chalk.green("[built]")
     | (Package.SourceType.Immutable, false)
     | (_, _) => Chalk.blue("[build pending]")

@@ -830,12 +830,11 @@ let () =
   let dependenciesForExport (task : Task.t) =
     let f deps dep = match dep with
       | Task.Dependency ({
-          pkg = {sourceType = Package.SourceType.Immutable; _ };
+          sourceType = Package.SourceType.Immutable;
           _
         } as task)
       | Task.BuildTimeDependency ({
-          pkg = {sourceType = Package.SourceType.Immutable; _ };
-          _
+          sourceType = Package.SourceType.Immutable; _
         } as task) ->
         (task, dep)::deps
       | Task.Dependency _
