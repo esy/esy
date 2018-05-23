@@ -97,11 +97,13 @@ let runTask
       then return ()
       else buildPackage ~buildOnly cfg task
     | Package.SourceType.Development ->
-      if%bind Fs.exists installPath
-      then checkSourceModTime ()
-      else buildPackage ~buildOnly cfg task
-    | Package.SourceType.Root ->
-      buildPackage ~buildOnly cfg task
+      if Task.isRoot ~cfg task then
+        buildPackage ~buildOnly cfg task
+      else (
+        if%bind Fs.exists installPath
+        then checkSourceModTime ()
+        else buildPackage ~buildOnly cfg task
+      )
     in LwtTaskQueue.submit queue f
   in
 

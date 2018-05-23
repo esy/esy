@@ -186,7 +186,7 @@ let findSourceModTime = (task: BuildTask.t) => {
 let doNothing = (_config: Config.t, _spec: BuildTask.t) => Run.ok;
 
 /**
- * Execute `run` within the build environment for `task`.
+ * Execute `f` within the build environment for `task`.
  */
 let withBuildEnvUnlocked =
     (~commit=false, config: Config.t, task: BuildTask.t, f) => {
@@ -197,9 +197,12 @@ let withBuildEnvUnlocked =
     | (InSource, _) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Immutable) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Transient) =>
-      let (start, commit) = relocateBuildPath(config, task);
-      (sourcePath, start, commit);
-    | (JbuilderLike, Root) => (sourcePath, doNothing, doNothing)
+      if (BuildTask.isRoot(~config, task)) {
+        (sourcePath, doNothing, doNothing);
+      } else {
+        let (start, commit) = relocateBuildPath(config, task);
+        (sourcePath, start, commit);
+      }
     | (OutOfSource, _) => (sourcePath, doNothing, doNothing)
     };
   let%bind sandboxConfig = {
@@ -333,8 +336,7 @@ let withBuildEnv = (~commit=false, config: Config.t, task: BuildTask.t, f) =>
       let%bind () = Store.init(config.localStorePath);
       let perform = () => withBuildEnvUnlocked(~commit, config, task, f);
       switch (task.sourceType) {
-      | BuildTask.SourceType.Transient
-      | BuildTask.SourceType.Root => withLock(task.lockPath, perform)
+      | BuildTask.SourceType.Transient => withLock(task.lockPath, perform)
       | BuildTask.SourceType.Immutable => perform()
       };
     }
@@ -382,10 +384,13 @@ let build =
       let%bind sourceModTime =
         switch (sourceModTime, task.sourceType) {
         | (None, BuildTask.SourceType.Transient) =>
-          Logs.debug(m => m("computing build mtime"));
-          let%bind v = findSourceModTime(task);
-          Ok(Some(v));
-        | (None, BuildTask.SourceType.Root) => Ok(None)
+          if (BuildTask.isRoot(~config, task)) {
+            Ok(None);
+          } else {
+            Logs.debug(m => m("computing build mtime"));
+            let%bind v = findSourceModTime(task);
+            Ok(Some(v));
+          }
         | (v, _) => Ok(v)
         };
       Ok(
@@ -401,21 +406,24 @@ let build =
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);
-  | (false, BuildTask.SourceType.Root) => performBuild(None)
   | (false, BuildTask.SourceType.Transient) =>
-    Logs.debug(m => m("checking for staleness"));
-    let info = BuildInfo.read(task);
-    let prevSourceModTime =
-      Option.bind(~f=v => v.BuildInfo.sourceModTime, info);
-    let%bind sourceModTime = findSourceModTime(task);
-    switch (prevSourceModTime) {
-    | Some(prevSourceModTime) when sourceModTime > prevSourceModTime =>
-      performBuild(Some(sourceModTime))
-    | None => performBuild(Some(sourceModTime))
-    | Some(_) =>
-      Logs.debug(m => m("source code is not modified, skipping"));
-      ok;
-    };
+    if (BuildTask.isRoot(~config, task)) {
+      performBuild(None);
+    } else {
+      Logs.debug(m => m("checking for staleness"));
+      let info = BuildInfo.read(task);
+      let prevSourceModTime =
+        Option.bind(~f=v => v.BuildInfo.sourceModTime, info);
+      let%bind sourceModTime = findSourceModTime(task);
+      switch (prevSourceModTime) {
+      | Some(prevSourceModTime) when sourceModTime > prevSourceModTime =>
+        performBuild(Some(sourceModTime))
+      | None => performBuild(Some(sourceModTime))
+      | Some(_) =>
+        Logs.debug(m => m("source code is not modified, skipping"));
+        ok;
+      };
+    }
   | (false, BuildTask.SourceType.Immutable) =>
     let%bind installPathExists = exists(task.installPath);
     if (installPathExists) {

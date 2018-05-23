@@ -149,7 +149,6 @@ module SourceType = struct
   type t =
     | Immutable
     | Development
-    | Root
     [@@deriving (show, eq, ord)]
 end
 
