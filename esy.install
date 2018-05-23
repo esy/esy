@@ -4,6 +4,8 @@ lib: [
   "_build/install/default/lib/esy/Esy__Build.cmi" {"Esy__Build.cmi"}
   "_build/install/default/lib/esy/Esy__Build.cmx" {"Esy__Build.cmx"}
   "_build/install/default/lib/esy/Esy__Build.cmt" {"Esy__Build.cmt"}
+  "_build/install/default/lib/esy/Esy__Build.cmti" {"Esy__Build.cmti"}
+  "_build/install/default/lib/esy/Build.mli" {"Build.mli"}
   "_build/install/default/lib/esy/Build.ml" {"Build.ml"}
   "_build/install/default/lib/esy/Esy__Chalk.cmi" {"Esy__Chalk.cmi"}
   "_build/install/default/lib/esy/Esy__Chalk.cmx" {"Esy__Chalk.cmx"}
@@ -73,6 +75,12 @@ lib: [
   "_build/install/default/lib/esy/Esy__Memoize.cmx" {"Esy__Memoize.cmx"}
   "_build/install/default/lib/esy/Esy__Memoize.cmt" {"Esy__Memoize.cmt"}
   "_build/install/default/lib/esy/Memoize.re" {"Memoize.re"}
+  "_build/install/default/lib/esy/Esy__NpmRelease.cmi" {"Esy__NpmRelease.cmi"}
+  "_build/install/default/lib/esy/Esy__NpmRelease.cmx" {"Esy__NpmRelease.cmx"}
+  "_build/install/default/lib/esy/Esy__NpmRelease.cmt" {"Esy__NpmRelease.cmt"}
+  "_build/install/default/lib/esy/Esy__NpmRelease.cmti" {"Esy__NpmRelease.cmti"}
+  "_build/install/default/lib/esy/NpmRelease.mli" {"NpmRelease.mli"}
+  "_build/install/default/lib/esy/NpmRelease.ml" {"NpmRelease.ml"}
   "_build/install/default/lib/esy/Esy__Package.cmi" {"Esy__Package.cmi"}
   "_build/install/default/lib/esy/Esy__Package.cmx" {"Esy__Package.cmx"}
   "_build/install/default/lib/esy/Esy__Package.cmt" {"Esy__Package.cmt"}
