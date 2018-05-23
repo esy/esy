@@ -1,3 +1,5 @@
+module StringSet = Set.Make(String)
+
 let waitForDependencies dependencies =
   dependencies
   |> List.map (fun (_, dep) -> dep)
@@ -116,6 +118,10 @@ let runTask
     performBuildIfNeeded ()
   | `Yes ->
     buildTask ~force:true ~buildOnly cfg task
+  | `Select items ->
+    if StringSet.mem task.id items
+    then buildTask ~force:true ~buildOnly cfg task
+    else performBuildIfNeeded ()
 
 (**
  * Build task tree.
