@@ -152,8 +152,14 @@ module SourceType = struct
     [@@deriving (show, eq, ord)]
 end
 
-module EsyManifest = struct
+module EsyReleaseConfig = struct
+  type t = {
+    releasedBinaries: string list;
+    deleteFromBinaryRelease: (string list [@default []]);
+  } [@@deriving (show, of_yojson { strict = false })]
+end
 
+module EsyManifest = struct
 
   type t = {
     build: (CommandList.t [@default None]);
@@ -161,6 +167,7 @@ module EsyManifest = struct
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default []]);
     sandboxEnv: (SandboxEnv.t [@default []]);
+    release: (EsyReleaseConfig.t option [@default None]);
   } [@@deriving (show, of_yojson { strict = false })]
 
   let empty = {
@@ -169,6 +176,7 @@ module EsyManifest = struct
     buildsInSource = BuildType.OutOfSource;
     exportedEnv = [];
     sandboxEnv = [];
+    release = None;
   }
 end
 
@@ -189,6 +197,8 @@ module Manifest = struct
   type t = {
     name : string;
     version : string;
+    description : (string option [@default None]);
+    license : (string option [@default None]);
     dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
