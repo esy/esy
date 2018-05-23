@@ -15,6 +15,14 @@ let readFile (path : Path.t) =
     Lwt_io.with_file ~mode:Lwt_io.Input path f
   )
 
+let writeFile ~data (path : Path.t) =
+  let path = Path.to_string path in
+  let desc = Printf.sprintf "Unable to write file %s" path in
+  toRunAsync ~desc (fun () ->
+    let f oc = Lwt_io.write oc data in
+    Lwt_io.with_file ~mode:Lwt_io.Output path f
+  )
+
 let openFile ~mode ~perm path =
   toRunAsync (fun () ->
     Lwt_unix.openfile (Path.to_string path) mode perm)
