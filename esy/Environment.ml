@@ -19,11 +19,11 @@ and bindingValue =
   | Value of string
   | ExpandedValue of string
 
-let renderStringWithConfig (cfg : Config.t) value =
+let renderPath ~storePath ~localStorePath ~sandboxPath value =
   let lookup = function
-  | "store" -> Some (Path.to_string cfg.storePath)
-  | "localStore" -> Some (Path.to_string cfg.localStorePath)
-  | "sandbox" -> Some (Path.to_string cfg.sandboxPath)
+  | "store" -> Some (Path.to_string storePath)
+  | "localStore" -> Some (Path.to_string localStorePath)
+  | "sandbox" -> Some (Path.to_string sandboxPath)
   | _ -> None
   in
   Run.liftOfBosError (EsyBuildPackage.PathSyntax.render lookup value)
@@ -37,7 +37,9 @@ let bindingListCompare = compare
  *)
 let renderToShellSource
     ?(header="# Environment")
-    (cfg : Config.t)
+    ~storePath
+    ~localStorePath
+    ~sandboxPath
     (bindings : binding list) =
   let open Run.Syntax in
   let escapeDoubleQuote value =
@@ -63,7 +65,12 @@ let renderToShellSource
     in
     let%bind line = match value with
     | Value value ->
-      let%bind value = renderStringWithConfig cfg value in
+      let%bind value = renderPath
+        ~storePath
+        ~localStorePath
+        ~sandboxPath
+        value
+      in
       Ok (value |> escapeDoubleQuote |> Printf.sprintf "export %s=\"%s\"" name)
     | ExpandedValue value ->
       Ok (value |> escapeSingleQuote |> Printf.sprintf "export %s=\'%s\'" name)
@@ -129,11 +136,16 @@ module Value = struct
     in
     Result.listFoldLeft ~f ~init bindings
 
-  let bindToConfig cfg env =
-    let f k v = function
+  let bindToConfig (cfg : Config.t) env =
+    let f k value = function
       | Ok env ->
         let open Run.Syntax in
-        let%bind v = renderStringWithConfig cfg v in
+        let%bind v = renderPath
+          ~storePath:cfg.storePath
+          ~localStorePath:cfg.localStorePath
+          ~sandboxPath:cfg.sandboxPath
+          value
+        in
         Ok (M.add k v env)
       | err -> err
     in

@@ -343,7 +343,12 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
             |> Environment.Value.to_yojson
             |> Yojson.Safe.pretty_to_string)
         else
-          Environment.renderToShellSource ~header cfg env
+          Environment.renderToShellSource
+            ~header
+            ~sandboxPath:cfg.sandboxPath
+            ~storePath:cfg.storePath
+            ~localStorePath:cfg.localStorePath
+            env
       ) in
     let%lwt () = Lwt_io.print source in
     return ()
