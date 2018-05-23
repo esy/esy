@@ -623,7 +623,7 @@ let () =
       `Error (false, msg)
   in
 
-  let runAsyncCommand ?(header=`Standard) (info : Cmdliner.Term.info) (cmd : unit RunAsync.t) =
+  let runAsyncCommand ?(header=`Standard) ~info cmd =
     let work () =
       let%lwt () = match header with
         | `Standard -> begin match Cmdliner.Term.name info with
@@ -643,7 +643,7 @@ let () =
     let doc = "package.json workflow for native development with Reason/OCaml" in
     let info = Term.info "esy" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg command () =
-      runAsyncCommand ~header:`No info (devExec cfg command)
+      runAsyncCommand ~header:`No ~info (devExec cfg command)
     in
     let commandTerm =
       Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
@@ -655,7 +655,7 @@ let () =
     let doc = "Print build plan to stdout" in
     let info = Term.info "build-plan" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg packagePath () =
-      runAsyncCommand ~header:`No info (buildPlan cfg packagePath)
+      runAsyncCommand ~header:`No ~info (buildPlan cfg packagePath)
     in
     Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
   in
@@ -715,7 +715,7 @@ let () =
         | [] -> `Standard
         | _ -> `No
       in
-      runAsyncCommand ~header info (build cfg command)
+      runAsyncCommand ~header ~info (build cfg command)
     in
     let commandTerm =
       Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
@@ -727,7 +727,7 @@ let () =
     let doc = "Print build environment to stdout" in
     let info = Term.info "build-env" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg asJson packagePath () =
-      runAsyncCommand ~header:`No info (buildEnv cfg asJson packagePath)
+      runAsyncCommand ~header:`No ~info (buildEnv cfg asJson packagePath)
     in
     let json =
       let doc = "Format output as JSON" in
@@ -740,7 +740,7 @@ let () =
     let doc = "Print command environment to stdout" in
     let info = Term.info "command-env" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg asJson packagePath () =
-      runAsyncCommand ~header:`No info (commandEnv cfg asJson packagePath)
+      runAsyncCommand ~header:`No ~info (commandEnv cfg asJson packagePath)
     in
     let json =
       let doc = "Format output as JSON" in
@@ -753,7 +753,7 @@ let () =
     let doc = "Print install environment to stdout" in
     let info = Term.info "sandbox-env" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg asJson packagePath () =
-      runAsyncCommand ~header:`No info (sandboxEnv cfg asJson packagePath)
+      runAsyncCommand ~header:`No ~info (sandboxEnv cfg asJson packagePath)
     in
     let json =
       let doc = "Format output as JSON" in
@@ -766,7 +766,7 @@ let () =
     let doc = "Execute command as if the package is installed" in
     let info = Term.info "x" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg command () =
-      runAsyncCommand ~header:`No info (exec cfg command)
+      runAsyncCommand ~header:`No ~info (exec cfg command)
     in
     let commandTerm =
       Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
@@ -778,7 +778,7 @@ let () =
     let doc = "Enter esy sandbox shell" in
     let info = Term.info "shell" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg () =
-      runAsyncCommand ~header:`No info (devShell cfg)
+      runAsyncCommand ~header:`No ~info (devShell cfg)
     in
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
   in
