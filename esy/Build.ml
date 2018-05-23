@@ -8,7 +8,7 @@ let waitForDependencies dependencies =
 let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
   let f () =
     let open RunAsync.Syntax in
-    let context = Printf.sprintf "building %s@%s" task.pkg.name task.pkg.version in
+    let context = Printf.sprintf "Building %s@%s" task.pkg.name task.pkg.version in
     let%lwt () = if not quiet
       then Logs_lwt.app(fun m -> m "%s: starting" context)
       else Lwt.return ()
