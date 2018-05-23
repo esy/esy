@@ -369,8 +369,7 @@ let ofPackage
     let paths =
       let storePath = match pkg.sourceType with
         | Package.SourceType.Immutable -> ConfigPath.store
-        | Package.SourceType.Development
-        | Package.SourceType.Root -> ConfigPath.localStore
+        | Package.SourceType.Development -> ConfigPath.localStore
       in
       let buildPath =
         ConfigPath.(storePath / Config.storeBuildTree / id)
@@ -394,7 +393,6 @@ let ofPackage
         | InSource, _
         | JBuilderLike, Immutable -> buildPath
         | JBuilderLike, Development
-        | JBuilderLike, Root
         | OutOfSource, _ -> pkg.sourcePath
       in {
         rootPath;
@@ -705,7 +703,7 @@ let sandboxEnv (pkg : Package.t) =
     buildCommands = None;
     installCommands = None;
     buildType = Package.BuildType.OutOfSource;
-    sourceType = Package.SourceType.Root;
+    sourceType = Package.SourceType.Development;
     exportedEnv = [];
     sandboxEnv = pkg.sandboxEnv;
     sourcePath = pkg.sourcePath;
@@ -749,7 +747,6 @@ let toBuildProtocol (task : task) =
     sourceType = (match task.pkg.sourceType with
         | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
         | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
-        | Package.SourceType.Root -> EsyBuildPackage.BuildTask.SourceType.Root
       );
     buildType = (match task.pkg.buildType with
         | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
@@ -768,3 +765,8 @@ let toBuildProtocolString ?(pretty=false) (task : task) =
   if pretty
   then Yojson.Safe.pretty_to_string json
   else Yojson.Safe.to_string json
+
+(** Check if task is a root task with the current config. *)
+let isRoot ~cfg task =
+  let sourcePath = ConfigPath.toPath cfg task.paths.sourcePath in
+  Path.equal cfg.Config.sandboxPath sourcePath

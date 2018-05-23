@@ -151,7 +151,6 @@ let ofDir = (cfg: Config.t) => {
       | None => return(`NonEsyPkg(dependencies))
       | Some(esyManifest) =>
         let sourceType = {
-          let isRootPath = path == cfg.sandboxPath;
           let hasDepWithSourceTypeDevelopment =
             List.exists(
               fun
@@ -164,15 +163,10 @@ let ofDir = (cfg: Config.t) => {
               | Package.InvalidDependency(_) => false,
               dependencies,
             );
-          switch (
-            isRootPath,
-            hasDepWithSourceTypeDevelopment,
-            manifest._resolved,
-          ) {
-          | (true, _, _) => Package.SourceType.Root
-          | (_, true, _) => Package.SourceType.Development
-          | (_, _, None) => Package.SourceType.Development
-          | (_, _, Some(_)) => Package.SourceType.Immutable
+          switch (hasDepWithSourceTypeDevelopment, manifest._resolved) {
+          | (true, _) => Package.SourceType.Development
+          | (false, None) => Package.SourceType.Development
+          | (false, Some(_)) => Package.SourceType.Immutable
           };
         };
         let%bind sourcePath = {

@@ -6,20 +6,17 @@ module SourceType = {
   [@deriving show]
   type t =
     | Immutable
-    | Transient
-    | Root;
+    | Transient;
   let of_yojson = (json: Yojson.Safe.json) =>
     switch (json) {
     | `String("immutable") => Ok(Immutable)
     | `String("transient") => Ok(Transient)
-    | `String("root") => Ok(Root)
     | _ => Error("invalid buildType")
     };
   let to_yojson = (sourceType: t) =>
     switch (sourceType) {
     | Immutable => `String("immutable")
     | Transient => `String("transient")
-    | Root => `String("root")
     };
 };
 
@@ -150,8 +147,7 @@ module ConfigFile = {
     let storePath =
       switch (specConfig.sourceType) {
       | Immutable => config.storePath
-      | Transient
-      | Root => config.localStorePath
+      | Transient => config.localStorePath
       };
     let%bind sourcePath = renderPath(specConfig.sourcePath);
     let%bind env = renderEnv(specConfig.env);
@@ -187,3 +183,6 @@ let ofFile = (config: Config.t, path: Path.t) : Run.t(t, _) =>
       Ok(spec);
     }
   );
+
+let isRoot = (~config: Config.t, task: t) =>
+  Path.equal(config.sandboxPath, task.sourcePath);
