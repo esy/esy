@@ -57,6 +57,8 @@ type t = {
   localEnv : Environment.binding list;
   paths : paths;
 
+  sourceType : Package.SourceType.t;
+
   dependencies : dependency list;
 }
 [@@deriving (show, eq, ord)]
@@ -248,6 +250,7 @@ let addTaskEnvBindings
 let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
+    ?(forceImmutable=false)
     ?finalPath
     ?term
     ?finalManPath
@@ -372,8 +375,15 @@ let ofPackage
 
     let id = buildId rootPkg pkg dependencies in
 
+    let sourceType =
+      match forceImmutable, pkg.sourceType with
+      | true, _ -> Package.SourceType.Immutable
+      | false, sourceType -> sourceType
+    in
+
     let paths =
-      let storePath = match pkg.sourceType with
+      let storePath =
+        match sourceType with
         | Package.SourceType.Immutable -> ConfigPath.store
         | Package.SourceType.Development -> ConfigPath.localStore
       in
@@ -395,7 +405,7 @@ let ofPackage
         ConfigPath.(storePath / Config.storeBuildTree / basename)
       in
       let rootPath =
-        match pkg.buildType, pkg.sourceType with
+        match pkg.buildType, sourceType with
         | InSource, _
         | JBuilderLike, Immutable -> buildPath
         | JBuilderLike, Development
@@ -660,6 +670,8 @@ let ofPackage
       localEnv;
       paths;
 
+      sourceType;
+
       dependencies;
     } in
 
@@ -750,7 +762,7 @@ let toBuildProtocol (task : task) =
     id = task.id;
     name = task.pkg.name;
     version = task.pkg.version;
-    sourceType = (match task.pkg.sourceType with
+    sourceType = (match task.sourceType with
         | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
         | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
       );
