@@ -669,7 +669,7 @@ let () =
     let doc = "Enter the build shell" in
     let info = Term.info "build-shell" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg packagePath () =
-      runAsyncCommand info (buildShell cfg packagePath)
+      runAsyncCommand ~info (buildShell cfg packagePath)
     in
     Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
   in
@@ -678,7 +678,7 @@ let () =
     let doc = "Build specified package" in
     let info = Term.info "build-package" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd cfg packagePath () =
-      runAsyncCommand info (buildPackage cfg packagePath)
+      runAsyncCommand ~info (buildPackage cfg packagePath)
     in
     Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
   in
@@ -707,7 +707,7 @@ let () =
     in
 
     let cmd cfg () =
-      runAsyncCommand info (installNext cfg)
+      runAsyncCommand ~info (installNext cfg)
     in
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
   in
@@ -792,7 +792,7 @@ let () =
     let doc = "Output a tree of packages in the sandbox along with their status" in
     let info = Term.info "ls-builds" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd includeTransitive cfg () =
-      runAsyncCommand info (lsBuilds ~includeTransitive cfg)
+      runAsyncCommand ~info (lsBuilds ~includeTransitive cfg)
     in
     let includeTransitive =
       let doc = "Include transitive dependencies" in
@@ -805,7 +805,7 @@ let () =
     let doc = "Output a tree of packages along with the set of libraries made available by each package dependency." in
     let info = Term.info "ls-libs" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd includeTransitive cfg () =
-      runAsyncCommand info (lsLibs ~includeTransitive cfg)
+      runAsyncCommand ~info (lsLibs ~includeTransitive cfg)
     in
     let includeTransitive =
       let doc = "Include transitive dependencies" in
@@ -818,7 +818,7 @@ let () =
     let doc = "Output a tree of packages along with the set of libraries and modules made available by each package dependency." in
     let info = Term.info "ls-modules" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd libs cfg () =
-      runAsyncCommand info (lsModules ~libs cfg)
+      runAsyncCommand ~info (lsModules ~libs cfg)
     in
     let lib =
       let doc = "Output modules only for specified lib(s)" in
@@ -888,7 +888,7 @@ let () =
         let%bind cfg = cfg in
         exportBuild cfg buildPath
       in
-      runAsyncCommand info f
+      runAsyncCommand ~info f
     in
     let buildPathTerm =
       let doc = "Path with builds." in
@@ -940,7 +940,7 @@ let () =
         |> List.map exportBuild
         |> RunAsync.waitAll
       in
-      runAsyncCommand info f
+      runAsyncCommand ~info f
     in
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
   in
@@ -1019,7 +1019,7 @@ let () =
         |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> importBuild cfg path))
         |> RunAsync.waitAll
       in
-      runAsyncCommand info f
+      runAsyncCommand ~info f
     in
     let buildPathsTerm =
       Arg.(value & (pos_all resolvedPathTerm []) & (info [] ~docv:"BUILD"))
@@ -1081,7 +1081,7 @@ let () =
         |> List.map importBuild
         |> RunAsync.waitAll
       in
-      runAsyncCommand info f
+      runAsyncCommand ~info f
     in
     let fromPathTerm =
       let open Cmdliner in
@@ -1116,7 +1116,7 @@ let () =
     let info = Term.info name ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd args cfg () =
       let f = runCommandViaNode cfg name args in
-      runAsyncCommand info f
+      runAsyncCommand ~info f
     in
     let argTerm =
       Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
