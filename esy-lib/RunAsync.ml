@@ -49,6 +49,16 @@ module Syntax = struct
 end
 
 let liftOfRun = Lwt.return
+let ofRun = Lwt.return
+
+let ofOption ?err v =
+  match v with
+  | Some v -> return v
+  | None ->
+    let err = match err with
+    | Some err -> err
+    | None -> "not found"
+    in error err
 
 let runExn ?err v =
   let v = Lwt_main.run v in

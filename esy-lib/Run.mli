@@ -44,4 +44,8 @@ end
 
 
 val liftOfStringError : ('a, string) result -> 'a t
+val ofStringError : ('a, string) result -> 'a t
 val liftOfBosError : ('a, [< `Msg of string]) result -> 'a t
+val ofBosError : ('a, [< `Msg of string]) result -> 'a t
+
+val ofOption : ?err : string -> 'a option -> 'a t
