@@ -1,19 +1,20 @@
-module Cmd = EsyLib.Cmd;
+open EsyLib;
 
-let get = (~output=?, url) => {
-  let cmd = {
-    let cmd = Cmd.(v("curl") % "--silent" % "--fail" % "--location");
-    let cmd =
-      switch (output) {
-      | Some(output) => Cmd.(cmd % "--output" % p(output))
-      | None => cmd
-      };
-    Cmd.(cmd % url);
-  };
-  let (lines, good) = ExecCommand.execSync(~cmd=Cmd.toString(cmd), ());
-  if (good) {
-    Some(String.concat("\n", lines));
-  } else {
-    None;
-  };
+let get = url => {
+  let cmd = Cmd.(v("curl") % "--silent" % "--fail" % "--location" % url);
+  ChildProcess.runOut(cmd);
+};
+
+let download = (~output, url) => {
+  let cmd =
+    Cmd.(
+      v("curl")
+      % "--silent"
+      % "--fail"
+      % "--location"
+      % "--output"
+      % p(output)
+      % url
+    );
+  ChildProcess.run(cmd);
 };

@@ -1,6 +1,7 @@
 open Shared;
 
 module Path = EsyLib.Path;
+module RunAsync = EsyLib.RunAsync;
 
 let (/+) = Filename.concat;
 
@@ -40,10 +41,8 @@ let getSource = (dest, cache, name, version, source) =>
     let withVersion = safe ++ Lockfile.viewRealVersion(version);
     let tarball = cache /+ withVersion ++ ".tarball";
     if (! Files.isFile(tarball)) {
-      switch (Wget.get(~output=Path.v(tarball), url)) {
-      | Some(_) => ()
-      | None => failwith("failed to fetch with curl")
-      };
+      Wget.download(~output=Path.v(tarball), url)
+      |> RunAsync.runExn(~err="error downloading archive");
     };
     ExecCommand.execSync(
       ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
@@ -68,10 +67,8 @@ let getSource = (dest, cache, name, version, source) =>
         ++ repo
         ++ "/tarball/"
         ++ ref;
-      switch (Wget.get(~output=Path.v(tarball), tarUrl)) {
-      | Some(_) => ()
-      | None => failwith("failed to fetch with curl")
-      };
+      Wget.download(~output=Path.v(tarball), tarUrl)
+      |> RunAsync.runExn(~err="error downloading archive");
     };
     ExecCommand.execSync(
       ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
