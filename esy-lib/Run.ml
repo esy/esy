@@ -84,3 +84,12 @@ let rec waitAll = function
   | x::xs ->
     let f () = waitAll xs in
     bind ~f x
+
+let runExn ?err = function
+  | Ok v -> v
+  | Error (msg, ctx) ->
+    let msg = match err with
+    | Some err -> err ^ ": " ^ msg
+    | None -> msg
+    in
+    failwith (formatError (msg, ctx))

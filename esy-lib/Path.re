@@ -1,5 +1,8 @@
 include Fpath;
 
+let addExt = add_ext;
+let toString = to_string;
+
 let of_yojson = (json: Yojson.Safe.json) =>
   switch (json) {
   | `String(v) =>

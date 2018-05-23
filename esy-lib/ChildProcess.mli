@@ -8,6 +8,7 @@ type env = [
   | `CustomEnv of string Astring.String.Map.t
 ]
 
+(** Run command. *)
 val run :
   ?env:env
   -> ?resolveProgramInEnv:bool
@@ -17,6 +18,7 @@ val run :
   -> Cmd.t
   -> unit RunAsync.t
 
+(** Run command and collect stdout *)
 val runOut :
   ?env:env
   -> ?resolveProgramInEnv:bool
@@ -25,6 +27,7 @@ val runOut :
   -> Cmd.t
   -> string RunAsync.t
 
+(** Run command and return process exit status *)
 val runToStatus :
   ?env:env
   -> ?resolveProgramInEnv:bool

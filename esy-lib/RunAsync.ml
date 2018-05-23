@@ -49,3 +49,7 @@ module Syntax = struct
 end
 
 let liftOfRun = Lwt.return
+
+let runExn ?err v =
+  let v = Lwt_main.run v in
+  Run.runExn ?err v
