@@ -235,32 +235,6 @@ let withBuildTaskByPath
     end
   | None -> f info.task
 
-let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
-  let open RunAsync.Syntax in
-  let rewritePrefixInFile path =
-    let cmd = Bos.Cmd.(cfg.fastreplacestringCommand % p path % p origPrefix % p destPrefix) in
-    ChildProcess.run cmd
-  in
-  let rewriteTargetInSymlink path =
-    let%bind link = Fs.readlink path in
-    match Path.rem_prefix origPrefix link with
-    | Some basePath ->
-      let nextTargetPath = Path.(destPrefix // basePath) in
-      let%bind () = Fs.unlink path in
-      let%bind () = Fs.symlink ~source:nextTargetPath path in
-      return ()
-    | None -> return ()
-  in
-  let rewrite (path : Path.t) (stats : Unix.stats) =
-    match stats.st_kind with
-    | Unix.S_REG ->
-      rewritePrefixInFile path
-    | Unix.S_LNK ->
-      rewriteTargetInSymlink path
-    | _ -> return ()
-  in
-  Fs.traverse ~f:rewrite rootPath
-
 let buildPlan cfg packagePath =
   let open RunAsync.Syntax in
 
@@ -846,39 +820,6 @@ let () =
     |> ListLabels.rev
   in
 
-  let exportBuild cfg buildPath =
-    let open RunAsync.Syntax in
-    let buildId = Path.basename buildPath in
-    let%lwt () = Logs_lwt.app (fun m -> m "Export %s" buildId) in
-    let outputPath = Path.(EsyRuntime.currentWorkingDir / "_export" / Printf.sprintf "%s.tar.gz" buildId) in
-    let%bind origPrefix, destPrefix =
-      let%bind prevStorePrefix = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
-      let nextStorePrefix = String.make (String.length prevStorePrefix) '_' in
-      return (Path.v prevStorePrefix, Path.v nextStorePrefix)
-    in
-    let%bind stagePath =
-      let path = Path.(cfg.Config.storePath / "s" / buildId) in
-      let%bind _ = Fs.rmPath path in
-      let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
-      return path
-    in
-    let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
-    let%bind () = Fs.createDirectory (Path.parent outputPath) in
-    let%bind () =
-      ChildProcess.run Cmd.(
-        empty
-        % "tar"
-        % "-C" % p (Path.parent stagePath)
-        % "-cz"
-        % "-f" % p outputPath
-        % buildId
-      )
-    in
-    let%lwt () = Logs_lwt.app (fun m -> m "Export %s: done" buildId) in
-    let%bind _ = Fs.rmPath stagePath in
-    return ()
-  in
-
   let exportBuildCommand =
     let doc = "Export build from the store" in
     let info = Term.info "export-build" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
@@ -886,7 +827,8 @@ let () =
       let open RunAsync.Syntax in
       let f =
         let%bind cfg = cfg in
-        exportBuild cfg buildPath
+        let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
+        Task.exportBuild ~outputPrefixPath ~cfg buildPath
       in
       runAsyncCommand ~info f
     in
@@ -924,7 +866,9 @@ let () =
             let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" task.pkg.name task.pkg.version) in
             let buildPath = Config.ConfigPath.toPath cfg task.paths.installPath in
             if%bind Fs.exists buildPath
-            then exportBuild cfg buildPath
+            then
+              let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
+              Task.exportBuild ~outputPrefixPath ~cfg buildPath
             else (
               let msg =
                 Printf.sprintf
@@ -943,56 +887,6 @@ let () =
       runAsyncCommand ~info f
     in
     Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
-  in
-
-  let importBuild (cfg : Config.t) buildPath =
-    let open RunAsync.Syntax in
-    let buildId, kind =
-      if Path.has_ext "tar.gz" buildPath
-      then
-        (buildPath |> Path.rem_ext |> Path.rem_ext |> Path.basename, `Archive)
-      else
-        (buildPath |> Path.basename, `Dir)
-    in
-    let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
-    let outputPath = Path.(cfg.storePath / Config.storeInstallTree / buildId) in
-    if%bind Fs.exists outputPath
-    then (
-      let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
-      return ()
-    ) else
-      let importFromDir buildPath =
-        let%bind origPrefix =
-          let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
-          return (Path.v v)
-        in
-        let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.storePath buildPath in
-        let%bind () = Fs.rename ~source:buildPath outputPath in
-        let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
-        return ()
-      in
-      match kind with
-      | `Dir ->
-        let%bind stagePath =
-          let path = Path.(cfg.Config.storePath / "s" / buildId) in
-          let%bind _ = Fs.rmPath path in
-          let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
-          return path
-        in
-        importFromDir stagePath
-      | `Archive ->
-        let stagePath = Path.(cfg.storePath / Config.storeStageTree / buildId) in
-        let%bind () =
-          let cmd = Cmd.(
-            empty
-            % "tar"
-            % "-C" % p (Path.parent stagePath)
-            % "-xz"
-            % "-f" % p buildPath
-          ) in
-          ChildProcess.run cmd
-        in
-        importFromDir stagePath
   in
 
   let importBuildCommand =
@@ -1016,7 +910,7 @@ let () =
         in
         let queue = LwtTaskQueue.create ~concurrency:8 () in
         buildPaths
-        |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> importBuild cfg path))
+        |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> Task.importBuild cfg path))
         |> RunAsync.waitAll
       in
       runAsyncCommand ~info f
@@ -1066,9 +960,9 @@ let () =
               let pathDir = Path.(fromPath / task.id) in
               let pathTgz = Path.(fromPath / (task.id ^ ".tar.gz")) in
               if%bind Fs.exists pathDir
-              then importBuild cfg pathDir
+              then Task.importBuild cfg pathDir
               else if%bind Fs.exists pathTgz
-              then importBuild cfg pathTgz
+              then Task.importBuild cfg pathTgz
               else
                 let%lwt () =
                   Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" task.id)
