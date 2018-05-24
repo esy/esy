@@ -97,17 +97,18 @@ RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
 	bin/esy-install.js \
+	bin/esyInstallRelease.js \
 	scripts/postinstall.sh \
 	package.json \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand-darwin.exe \
 	_build/default/esyi/bin/esyi-darwin.exe \
 	_build/default/esy/bin/esyCommand-darwin.exe \
-	_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe \
-	_build/default/esyi/bin/esyi-linux.exe \
-	_build/default/esy/bin/esyCommand-linux.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy/bin/esyCommand.exe
+	_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe \
+	_build/default/esyi/bin/esyi-linux.exe \
+	_build/default/esy/bin/esyCommand-linux.exe \
 
 build-release:
 	@$(MAKE) build

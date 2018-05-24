@@ -224,7 +224,7 @@ let dependenciesForRelease (task : Task.t) =
   |> ListLabels.fold_left ~f ~init:[]
   |> ListLabels.rev
 
-let make ~outputPath ~concurrency ~cfg ~sandbox =
+let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
@@ -377,6 +377,10 @@ let make ~outputPath ~concurrency ~cfg ~sandbox =
       in
       let data = Yojson.Safe.pretty_to_string pkgJson in
       Fs.writeFile ~data Path.(outputPath / "package.json")
+    in
+
+    let%bind () =
+      Fs.copyFile ~origPath:esyInstallRelease ~destPath:Path.(outputPath / "esyInstallRelease.js")
     in
 
     return ()
