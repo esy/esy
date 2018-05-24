@@ -65,6 +65,9 @@ module EsyRuntime = struct
   let esyICommand =
     resolveCommand "../../esyi/bin/esyi.exe"
 
+  let esyInstallRelease =
+    resolve "../../../../bin/esyInstallRelease.js"
+
   module EsyPackageJson = struct
     type t = {
       version : string
@@ -1021,7 +1024,10 @@ let () =
           return outputPath
         in
 
+        let%bind esyInstallRelease = EsyRuntime.esyInstallRelease in
+
         NpmRelease.make
+          ~esyInstallRelease
           ~outputPath
           ~concurrency:EsyRuntime.concurrency
           ~cfg
