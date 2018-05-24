@@ -18,51 +18,25 @@ initFixture () {
   set +x
 
   local fixture="$1"
-  TEST_ROOT=$(mktemp -d)
+
+  TEST_ROOT=$(mktemp -d /tmp/esy.XXXX)
   TEST_PROJECT="$TEST_ROOT/project"
 
   export ESY__PREFIX="$TEST_ROOT/esy"
 
   cp -r "$fixture" "$TEST_PROJECT"
 
-  pushd "$TEST_PROJECT"
-  set -x
-}
-export -f initFixture
-
-initFixtureAsIfEsyReleased () {
-  set +x
-  local name
-  local releaseDir="$PWD/../dist"
-
-  name="$1"
-  TEST_ROOT=$(mktemp -d /tmp/esy.XXXX)
-  TEST_PROJECT="$TEST_ROOT/project"
+  # setup an isolated npm global env
   TEST_NPM_PREFIX="$TEST_ROOT/npm"
-
-  cp -r "fixtures/$name" "$TEST_PROJECT"
   mkdir -p "$TEST_NPM_PREFIX"
-
   function npmGlobal () {
     npm --prefix "$TEST_NPM_PREFIX" "$@"
   }
 
-  esy () {
-    "$TEST_NPM_PREFIX/bin/esy" "$@"
-  }
-
-  if [ ! -d "$releaseDir" ]; then
-    exit 1
-  else
-    (cd "$releaseDir" && npm pack && mv esy-*.tgz esy.tgz)
-  fi
-
-  npmGlobal install --global "$releaseDir/esy.tgz"
-
-  pushd "$TEST_PROJECT" > /dev/null
+  pushd "$TEST_PROJECT"
   set -x
 }
-export -f initFixtureAsIfEsyReleased
+export -f initFixture
 
 esy () {
   "$ESYCOMMAND" "$@"
