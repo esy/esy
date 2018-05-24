@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.1.10 @ preview
+
+  * New experimental installer esyi exposed as `esy install-next` command.
+    Thanks to @jaredly!
+
+  * Bring back npm releases (`esy release` command).
+
+  * 
+
 ## 0.1.9 @ preview
 
   * Support for `"esy.sandboxEnv"` environment config.
