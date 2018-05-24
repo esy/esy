@@ -3,7 +3,7 @@ module StringSet = Set.Make(String)
 let waitForDependencies dependencies =
   dependencies
   |> List.map (fun (_, dep) -> dep)
-  |> RunAsync.waitAll
+  |> RunAsync.List.waitAll
 
 let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
   let f () =
@@ -59,7 +59,7 @@ let runTask
       in
       match%lwt Fs.readFile infoPath with
       | Ok data ->
-        let%bind buildInfo = RunAsync.liftOfRun (
+        let%bind buildInfo = RunAsync.ofRun (
           Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
         ) in
         begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with

@@ -164,10 +164,10 @@ let configTerm =
   in
   let parse prefixPath sandboxPath =
     let open RunAsync.Syntax in
-    let%bind sandboxPath = RunAsync.liftOfRun(
+    let%bind sandboxPath = RunAsync.ofRun (
         match sandboxPath with
         | Some v -> Ok v
-        | None -> Run.liftOfBosError (Path.of_string (Unix.getcwd ()))
+        | None -> Run.ofBosError (Path.of_string (Unix.getcwd ()))
       ) in
     let%bind prefixPath = match prefixPath with
       | Some prefixPath -> return (Some prefixPath)
@@ -323,7 +323,7 @@ let makeEnvCommand ~computeEnv ~header cfg asJson packagePath =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f (task : Task.t) =
-    let%bind source = RunAsync.liftOfRun (
+    let%bind source = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind env = computeEnv task.pkg in
         let header = header task.pkg in
@@ -398,7 +398,7 @@ let makeExecCommand
     else return ()
   in
 
-  let%bind env = RunAsync.liftOfRun (
+  let%bind env = RunAsync.ofRun (
       let open Run.Syntax in
       let env = match env with
         | `CommandEnv -> info.commandEnv
@@ -467,7 +467,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
         else
           foldDependencies ()
           |> List.map (fun (_, v) -> v)
-          |> RunAsync.joinAll
+          |> RunAsync.List.joinAll
       in
       let children = children |> Std.List.filterNone in
       computeTermNode ~cfg task children
@@ -596,7 +596,7 @@ let lsModules ~libs:only cfg =
             in
             return (TermTree.Node { line; children; })
           )
-        |> RunAsync.joinAll
+        |> RunAsync.List.joinAll
       in
 
       return (Some (TermTree.Node { line; children = libs @ children; }))
@@ -901,7 +901,7 @@ let () =
 
         tasks
         |> List.map exportBuild
-        |> RunAsync.waitAll
+        |> RunAsync.List.waitAll
       in
       runAsyncCommand ~info f
     in
@@ -930,7 +930,7 @@ let () =
         let queue = LwtTaskQueue.create ~concurrency:8 () in
         buildPaths
         |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> Task.importBuild cfg path))
-        |> RunAsync.waitAll
+        |> RunAsync.List.waitAll
       in
       runAsyncCommand ~info f
     in
@@ -992,7 +992,7 @@ let () =
 
         pkgs
         |> List.map importBuild
-        |> RunAsync.waitAll
+        |> RunAsync.List.waitAll
       in
       runAsyncCommand ~info f
     in

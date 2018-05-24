@@ -55,7 +55,7 @@ let writeCache (cfg : Config.t) (info : t) =
       ) in
       let%bind () = Fs.createDirectory sandboxBin in
 
-      let%bind commandEnv = RunAsync.liftOfRun(
+      let%bind commandEnv = RunAsync.ofRun (
           let header =
             let pkg = info.sandbox.root in
             Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
@@ -97,7 +97,7 @@ let readCache (cfg : Config.t) =
         in
         info.sandbox.manifestInfo
         |> List.map checkMtime
-        |> RunAsync.joinAll
+        |> RunAsync.List.joinAll
       in
       if List.exists (fun x -> x) isStale
       then return None
@@ -112,7 +112,7 @@ let ofConfig (cfg : Config.t) =
   let makeInfo () =
     let f () =
       let%bind sandbox = Sandbox.ofDir cfg in
-      let%bind task, commandEnv, sandboxEnv = RunAsync.liftOfRun (
+      let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun (
           let open Run.Syntax in
           let%bind task = Task.ofPackage sandbox.root in
           let%bind commandEnv = Task.commandEnv sandbox.root in

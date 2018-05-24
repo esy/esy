@@ -11,7 +11,7 @@ let ofPath path =
 
   let ofFilename filename =
     let%bind data = Fs.readFile filename in
-    let%bind ast = RunAsync.liftOfRun (P.parse data) in
+    let%bind ast = RunAsync.ofRun (P.parse data) in
     match ast with
     | P.Mapping items ->
       let f acc item =
@@ -32,7 +32,7 @@ let ofPath path =
       begin
       match ListLabels.fold_left ~init:(Ok { prefixPath = None }) ~f items with
       | Ok esyRc -> return esyRc
-      | v -> v |> Run.liftOfBosError |> RunAsync.liftOfRun
+      | v -> v |> Run.ofBosError |> RunAsync.ofRun
       end
     | _ -> error "expected mapping"
   in

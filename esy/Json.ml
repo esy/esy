@@ -3,7 +3,7 @@ module StringMap = (Map.Make)(String)
 type t = Yojson.Safe.json
 
 let parseJsonWith parser json =
-  Run.liftOfStringError (parser json)
+  Run.ofStringError (parser json)
 
 let parseStringWith parser data =
   let json = Yojson.Safe.from_string data in

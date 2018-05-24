@@ -1,10 +1,17 @@
 (**
  * An async computation which might result in an error.
  *)
+
 type 'a t = 'a Run.t Lwt.t
 
+(**
+ * Computation which results in a value.
+ *)
 val return : 'a -> 'a t
 
+(**
+ * Computation which results in an error.
+ *)
 val error : string -> 'a t
 
 (**
@@ -21,13 +28,50 @@ val error : string -> 'a t
  *
  *)
 val withContext : string -> 'a t -> 'a t
+
+(**
+ * Same as with the [withContext] but will be formatted as differently, as a
+ * single block of text.
+ *)
 val withContextOfLog : ?header:string -> string -> 'a t -> 'a t
 
-val waitAll : unit t list -> unit t
-val joinAll : 'a t list -> 'a list t
-
+(**
+ * Run computation and throw an exception in case of a failure.
+ *
+ * Optional [err] will be used as error message.
+ *)
 val runExn : ?err : string -> 'a t -> 'a
 
+(**
+ * Convert [Run.t] into [t].
+ *)
+val ofRun : 'a Run.t -> 'a t
+
+(**
+ * Convert [option] into [t].
+ *
+ * [Some] will represent success and [None] a failure.
+ *
+ * An optional [err] will be used as an error message in case of failure.
+ *)
+val ofOption : ?err : string -> 'a option -> 'a t
+
+(**
+ * Convenience module which is designed to be openned locally with the
+ * code which heavily relies on RunAsync.t.
+ *
+ * This also brings Let_syntax module into scope and thus compatible with
+ * ppx_let.
+ *
+ * Example
+ *
+ *    let open RunAsync.Syntax in
+ *    let%bind v = fetchNumber ... in
+ *    if v > 10
+ *    then return (v + 1)
+ *    else error "Less than 10"
+ *
+ *)
 module Syntax : sig
 
   val return : 'a -> 'a t
@@ -39,6 +83,10 @@ module Syntax : sig
   end
 end
 
-val liftOfRun : 'a Run.t -> 'a t
-val ofRun : 'a Run.t -> 'a t
-val ofOption : ?err : string -> 'a option -> 'a t
+(**
+ * Work with lists of computations.
+ *)
+module List : sig
+  val waitAll : unit t list -> unit t
+  val joinAll : 'a t list -> 'a list t
+end

@@ -42,7 +42,7 @@ let resolveCmdInEnv ~env prg =
       | None -> ""
     in
     String.split_on_char ':' v
-  in Run.liftOfBosError (Cmd.resolveCmd path prg)
+  in Run.ofBosError (Cmd.resolveCmd path prg)
 
 let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
   let open RunAsync.Syntax in
@@ -60,7 +60,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
     | `CustomEnv env -> Some env
   in
 
-  let%bind cmd = RunAsync.liftOfRun (
+  let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
       match Bos.Cmd.to_list cmd with
       | [] -> error "empty command"
@@ -127,7 +127,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
     | `CustomEnv env -> Some env
   in
 
-  let%bind cmd = RunAsync.liftOfRun (
+  let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
       match Bos.Cmd.to_list cmd with
       | [] -> error "empty command"
