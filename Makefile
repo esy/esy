@@ -139,7 +139,7 @@ $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-linu
 	@mkdir -p $(@D)
 	@cp linux-build/esyBuildPackageCommand.exe $(@)
 
-$(RELEASE_ROOT)/_build/default/esy/bin/esyi-linux.exe:
+$(RELEASE_ROOT)/_build/default/esyi/bin/esyi-linux.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esyi.exe $(@)
 
