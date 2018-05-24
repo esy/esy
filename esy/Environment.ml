@@ -26,7 +26,7 @@ let renderPath ~storePath ~localStorePath ~sandboxPath value =
   | "sandbox" -> Some (Path.to_string sandboxPath)
   | _ -> None
   in
-  Run.liftOfBosError (EsyBuildPackage.PathSyntax.render lookup value)
+  Run.ofBosError (EsyBuildPackage.PathSyntax.render lookup value)
 
 let bindingListPp = pp
 let bindingListEq = equal
@@ -77,7 +77,7 @@ let renderToShellSource
     in
     Ok (line::lines, origin)
   in
-  let%bind lines, _ = Run.foldLeft ~f ~init:([], None) bindings in
+  let%bind lines, _ = Run.List.foldLeft ~f ~init:([], None) bindings in
   return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))
 
 let current =

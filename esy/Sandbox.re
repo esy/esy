@@ -176,8 +176,8 @@ let ofDir = (cfg: Config.t) => {
             path
             |> String.trim
             |> Path.of_string
-            |> Run.liftOfBosError
-            |> RunAsync.liftOfRun;
+            |> Run.ofBosError
+            |> RunAsync.ofRun;
           } else {
             return(path);
           };
@@ -215,7 +215,7 @@ let ofDir = (cfg: Config.t) => {
            let%bind stat = Fs.stat(path);
            return((path, stat.Unix.st_mtime));
          })
-      |> RunAsync.joinAll;
+      |> RunAsync.List.joinAll;
     let sandbox = {root, manifestInfo};
     return(sandbox);
   | _ => error("root package missing esy config")

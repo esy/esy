@@ -20,25 +20,6 @@ let bind ~f v =
   in
   Lwt.bind v waitForPromise
 
-let joinAll xs =
-  let rec _joinAll xs res = match xs with
-    | [] ->
-      return (List.rev res)
-    | x::xs ->
-      let f v = _joinAll xs (v::res) in
-      bind ~f x
-  in
-  _joinAll xs []
-
-let waitAll xs =
-  let rec _waitAll xs = match xs with
-    | [] -> return ()
-    | x::xs ->
-      let f () = _waitAll xs in
-      bind ~f x
-  in
-  _waitAll xs
-
 module Syntax = struct
   let return = return
   let error = error
@@ -48,7 +29,6 @@ module Syntax = struct
   end
 end
 
-let liftOfRun = Lwt.return
 let ofRun = Lwt.return
 
 let ofOption ?err v =
@@ -63,3 +43,24 @@ let ofOption ?err v =
 let runExn ?err v =
   let v = Lwt_main.run v in
   Run.runExn ?err v
+
+module List = struct
+  let joinAll xs =
+    let rec _joinAll xs res = match xs with
+      | [] ->
+        return (List.rev res)
+      | x::xs ->
+        let f v = _joinAll xs (v::res) in
+        bind ~f x
+    in
+    _joinAll xs []
+
+  let waitAll xs =
+    let rec _waitAll xs = match xs with
+      | [] -> return ()
+      | x::xs ->
+        let f () = _waitAll xs in
+        bind ~f x
+    in
+    _waitAll xs
+end

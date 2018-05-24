@@ -295,7 +295,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let outputPrefixPath = Path.(outputPath / "_export") in
         LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
     in
-    tasks |> ListLabels.map ~f |> RunAsync.waitAll
+    tasks |> ListLabels.map ~f |> RunAsync.List.waitAll
   in
 
   let%bind () =
@@ -315,7 +315,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       in
       releaseCfg.releasedBinaries
       |> List.map generateBinaryWrapper
-      |> RunAsync.waitAll
+      |> RunAsync.List.waitAll
     in
 
     let sandboxEntryBin = releaseCfg.name ^ "-sandbox" in

@@ -98,7 +98,7 @@ let create
       esyInstallJsCommand;
     }
   in
-  value |> Run.liftOfBosError |> RunAsync.liftOfRun
+  value |> Run.ofBosError |> RunAsync.ofRun
 
 module type ABSTRACT_PATH = sig
   (**

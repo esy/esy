@@ -61,19 +61,15 @@ let formatError (msg, context) =
   | [] -> Printf.sprintf "Error: %s" msg
   | context -> Printf.sprintf "Error: %s\n%s" msg (String.concat "\n" context)
 
-let liftOfStringError v =
+let ofStringError v =
   match v with
   | Ok v -> Ok v
   | Error line -> Error (line, [])
 
-let ofStringError = liftOfStringError
-
-let liftOfBosError v =
+let ofBosError v =
   match v with
   | Ok v -> Ok v
   | Error (`Msg line) -> Error (line, [])
-
-let ofBosError = liftOfBosError
 
 let ofOption ?err = function
   | Some v -> return v
@@ -83,20 +79,6 @@ let ofOption ?err = function
     | None -> "not found"
     in error err
 
-let foldLeft ~f ~init xs =
-  let rec fold acc xs =  match acc, xs with
-    | Error err, _ -> Error err
-    | Ok acc, [] -> Ok acc
-    | Ok acc, x::xs -> fold (f acc x) xs
-  in
-  fold (Ok init) xs
-
-let rec waitAll = function
-  | [] -> return ()
-  | x::xs ->
-    let f () = waitAll xs in
-    bind ~f x
-
 let runExn ?err = function
   | Ok v -> v
   | Error (msg, ctx) ->
@@ -105,3 +87,15 @@ let runExn ?err = function
     | None -> msg
     in
     failwith (formatError (msg, ctx))
+
+module List = struct
+
+  let foldLeft ~f ~init xs =
+    let rec fold acc xs =  match acc, xs with
+      | Error err, _ -> Error err
+      | Ok acc, [] -> Ok acc
+      | Ok acc, x::xs -> fold (f acc x) xs
+    in
+    fold (Ok init) xs
+
+end

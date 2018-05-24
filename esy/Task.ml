@@ -493,7 +493,7 @@ let ofPackage
         )
       in
       let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
-        Run.foldLeft ~f ~init:(false, [], []) pkg.exportedEnv
+        Run.List.foldLeft ~f ~init:(false, [], []) pkg.exportedEnv
       in
       let%bind globalEnv = if injectCamlLdLibraryPath then
         let%bind value = CommandExpr.render
