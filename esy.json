@@ -55,7 +55,7 @@
     "@opam/opam-file-format": "*",
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
-    "@esy-ocaml/reason": "facebook/reason#b0b43d",
+    "@esy-ocaml/reason": "^3.2.0",
     "@opam/alcotest": "*",
     "fastreplacestring": "IwanKaramazow/FastReplaceString.git#0.0.4",
     "ocamlstripdebug": "andreypopp/ocamlstripdebug#de74dde"
