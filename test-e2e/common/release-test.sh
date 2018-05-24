@@ -1,9 +1,7 @@
 #!/bin/bash
 
-skipTest "not implemented yet"
-
 doTest () {
-  initFixtureAsIfEsyReleased ./fixtures/release
+  initFixture ./fixtures/release
 
   run esy install
   run esy release
