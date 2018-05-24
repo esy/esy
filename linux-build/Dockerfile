@@ -5,4 +5,5 @@ RUN apt-get -y install npm
 RUN apt-get -y install git
 RUN apt-get -y install rsync
 RUN apt-get -y install m4
-RUN npm install -g esy@0.0.70
+RUN apt-get -y install pkg-config
+RUN npm install -g esy@0.1.9
