@@ -53,7 +53,6 @@
     "@jaredly/testre": "*",
     "testre-ppx": "*",
     "@opam/opam-file-format": "*",
-    "@opam/ocurl": "*",
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "facebook/reason#b0b43d",

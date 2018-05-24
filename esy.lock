@@ -236,17 +236,6 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/conf-libcurl@*":
-  version "1.0.0"
-  uid "5e2f27ddfe026ef1895563e23e2585e4"
-  resolved "@opam/conf-libcurl@1.0.0-5e2f27ddfe026ef1895563e23e2585e4.tgz"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/conf-pkg-config" "*"
-  peerDependencies:
-    ocaml "*"
-
 "@opam/conf-m4@*":
   version "1.0.0"
   uid "97f0966b2e2652d02c0d9125781c31df"
@@ -654,19 +643,6 @@
     "@opam/base-bytes" "*"
     "@opam/cmdliner" " >= 1.0.0"
     "@opam/ocp-build" " >= 1.99.6--beta"
-  peerDependencies:
-    ocaml "*"
-
-"@opam/ocurl@*":
-  version "0.8.1"
-  uid b6178de8cf25a67e7f153f915a48245f
-  resolved "@opam/ocurl@0.8.1-b6178de8cf25a67e7f153f915a48245f.tgz"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/base-unix" "*"
-    "@opam/conf-libcurl" "*"
-    "@opam/ocamlfind" "*"
   peerDependencies:
     ocaml "*"
 
