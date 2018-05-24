@@ -105,10 +105,10 @@ RELEASE_FILES = \
 	_build/default/esy/bin/esyCommand-darwin.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build/default/esyi/bin/esyi.exe \
-	_build/default/esy/bin/esyCommand.exe
+	_build/default/esy/bin/esyCommand.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe \
 	_build/default/esyi/bin/esyi-linux.exe \
-	_build/default/esy/bin/esyCommand-linux.exe \
+	_build/default/esy/bin/esyCommand-linux.exe
 
 build-release:
 	@$(MAKE) build
