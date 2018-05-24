@@ -9,6 +9,7 @@ type config = {
   license : string option;
   description : string option;
   releasedBinaries : string list;
+  deleteFromBinaryRelease : string list;
 }
 
 let shellSafe s =
@@ -204,6 +205,7 @@ let configure ~(cfg : Config.t) =
     license = manifest.Manifest.license;
     description = manifest.Manifest.description;
     releasedBinaries = releaseCfg.EsyReleaseConfig.releasedBinaries;
+    deleteFromBinaryRelease = releaseCfg.EsyReleaseConfig.deleteFromBinaryRelease;
   }
 
 let dependenciesForRelease (task : Task.t) =
@@ -240,6 +242,17 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
 
   let tasks = Task.DependencyGraph.traverse ~traverse:dependenciesForRelease task in
 
+  let shouldDeleteFromBinaryRelease =
+    let patterns =
+      let f pattern = pattern |> Re.Glob.glob |> Re.compile in
+      List.map f releaseCfg.deleteFromBinaryRelease
+    in
+    let filterOut id =
+      List.exists (fun pattern -> Re.execp pattern id) patterns
+    in
+    filterOut
+  in
+
   (*
     * Find all tasks which are originated from package in dev mode.
     * We need to force their build and then do a cleanup after release.
@@ -268,13 +281,19 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
 
   let%bind () = Fs.createDirectory outputPath in
 
+  (* Export builds *)
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let f (task : Task.t) =
-      let buildPath = Config.ConfigPath.toPath cfg task.paths.installPath in
-      let outputPrefixPath = Path.(outputPath / "_export") in
-      LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
+      if shouldDeleteFromBinaryRelease task.id
+      then
+        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
+        return ()
+      else
+        let buildPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+        let outputPrefixPath = Path.(outputPath / "_export") in
+        LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
     in
     tasks |> ListLabels.map ~f |> RunAsync.waitAll
   in
