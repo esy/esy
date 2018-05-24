@@ -162,13 +162,46 @@ let configTerm =
       & info ["sandbox-path"; "S"] ~env ~docs ~doc
     )
   in
+
+  let resolveSandoxPath () =
+    let open RunAsync.Syntax in
+
+    let isSandoxPath path =
+      if%bind Fs.exists Path.(path / "package.json")
+      then return true
+      else if%bind Fs.exists Path.(path / "esy.json")
+      then return true
+      else return false
+    in
+
+    let%bind currentPath = RunAsync.ofRun (Path.current ()) in
+
+    let rec climb path =
+      if%bind isSandoxPath path
+      then return path
+      else
+        let parent = Path.parent path in
+        if not (Path.equal path parent)
+        then climb (Path.parent path)
+        else
+          let%bind msg = RunAsync.ofRun (
+            let open Run.Syntax in
+            let%bind currentPath = Path.toPrettyString currentPath in
+            let msg = Printf.sprintf "No sandbox found (from %s and up)" currentPath in
+            return msg
+          ) in error msg
+    in
+
+    climb currentPath
+  in
+
   let parse prefixPath sandboxPath =
     let open RunAsync.Syntax in
-    let%bind sandboxPath = RunAsync.ofRun (
-        match sandboxPath with
-        | Some v -> Ok v
-        | None -> Run.ofBosError (Path.of_string (Unix.getcwd ()))
-      ) in
+    let%bind sandboxPath =
+      match sandboxPath with
+      | Some v -> return v
+      | None -> resolveSandoxPath ()
+    in
     let%bind prefixPath = match prefixPath with
       | Some prefixPath -> return (Some prefixPath)
       | None ->
