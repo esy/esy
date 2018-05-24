@@ -25,4 +25,11 @@ doTest() {
   expectStdout "1" checkExitCode esy bash -c 'exit 1'
   expectStdout "7" checkExitCode esy bash -c 'exit 7'
 
+  # Make sure we can run commands out of subdirectories
+  mkdir subdir
+  pushd subdir
+  touch X
+  expectStdout "X" esy ls -1
+  popd
+
 }
