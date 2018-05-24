@@ -2,6 +2,33 @@ include Fpath;
 
 let addExt = add_ext;
 let toString = to_string;
+let isPrefix = is_prefix;
+let remPrefix = rem_prefix;
+
+let user = () => Run.ofBosError(Bos.OS.Dir.user());
+let current = () => Run.ofBosError(Bos.OS.Dir.current());
+
+/**
+ * Convert a path to a string and replace a prefix to ~ if it's happened to be a
+ * a user home directory.
+ */
+let toPrettyString = p =>
+  Run.Syntax.(
+    {
+      let%bind path = {
+        let%bind user = user();
+        switch (remPrefix(user, p)) {
+        | Some(p) => return(append(v("~"), p))
+        | None => return(p)
+        };
+      };
+      return(toString(path));
+    }
+  );
+
+/*
+ * yojson protocol
+ */
 
 let of_yojson = (json: Yojson.Safe.json) =>
   switch (json) {
