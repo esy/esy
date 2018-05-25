@@ -164,22 +164,26 @@ let addTaskBindings
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
+  let addS k v s = add k (CommandExpr.Value.String v) s in
+  let addB k v s = add k (CommandExpr.Value.Bool v) s in
+  let addP k v s = add k (CommandExpr.Value.String (ConfigPath.toString v)) s in
   scope
-  |> add "name" pkg.name
-  |> add "version" pkg.version
-  |> add "root" (ConfigPath.toString paths.rootPath)
-  |> add "original_root" (ConfigPath.toString pkg.sourcePath)
-  |> add "target_dir" (ConfigPath.toString paths.buildPath)
-  |> add "install" (ConfigPath.toString installPath)
-  |> add "bin" ConfigPath.(installPath / "bin" |> toString)
-  |> add "sbin" ConfigPath.(installPath / "sbin" |> toString)
-  |> add "lib" ConfigPath.(installPath / "lib" |> toString)
-  |> add "man" ConfigPath.(installPath / "man" |> toString)
-  |> add "doc" ConfigPath.(installPath / "doc" |> toString)
-  |> add "stublibs" ConfigPath.(installPath / "stublibs" |> toString)
-  |> add "toplevel" ConfigPath.(installPath / "toplevel" |> toString)
-  |> add "share" ConfigPath.(installPath / "share" |> toString)
-  |> add "etc" ConfigPath.(installPath / "etc" |> toString)
+  |> addS "name" pkg.name
+  |> addS "version" pkg.version
+  |> addP "root" paths.rootPath
+  |> addP "original_root" pkg.sourcePath
+  |> addP "target_dir" paths.buildPath
+  |> addP "install" installPath
+  |> addP "bin" ConfigPath.(installPath / "bin")
+  |> addP "sbin" ConfigPath.(installPath / "sbin")
+  |> addP "lib" ConfigPath.(installPath / "lib")
+  |> addP "man" ConfigPath.(installPath / "man")
+  |> addP "doc" ConfigPath.(installPath / "doc")
+  |> addP "stublibs" ConfigPath.(installPath / "stublibs")
+  |> addP "toplevel" ConfigPath.(installPath / "toplevel")
+  |> addP "share" ConfigPath.(installPath / "share")
+  |> addP "etc" ConfigPath.(installPath / "etc")
+  |> addB "installed" true
 
 let addTaskEnvBindings
   (pkg : Package.t)
@@ -468,10 +472,17 @@ let ofPackage
             pkg
             paths
       in
-      let lookup bindings name =
-        let name = String.concat "." name in
-        try Some (CommandExpr.Value.String (StringMap.find name bindings))
-        with Not_found -> None
+      let lookup bindings (namespace, name) =
+        let key =
+          match namespace, name with
+          | Some namespace, name -> namespace ^ "." ^ name
+          | None, name -> name
+        in
+        try Some (StringMap.find key bindings)
+        with Not_found ->
+          match name with
+          | "installed" -> Some (CommandExpr.Value.Bool false)
+          | _ -> None
       in
       lookup bindingsForExportedEnv, lookup bindingsForCommands
     in
