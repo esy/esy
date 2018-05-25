@@ -1,13 +1,16 @@
 # CHANGELOG
 
+## 0.1.11 @ preview
+
+  * Make npm releases generated with `esy release` command compatible with Node
+    versions down 4.2.6.
+
 ## 0.1.10 @ preview
 
   * New experimental installer esyi exposed as `esy install-next` command.
     Thanks to @jaredly!
 
   * Bring back npm releases (`esy release` command).
-
-  * 
 
 ## 0.1.9 @ preview
 
