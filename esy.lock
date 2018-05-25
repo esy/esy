@@ -527,6 +527,18 @@
   peerDependencies:
     ocaml " >= 4.2.0"
 
+"@opam/menhir@*":
+  version "20171222.0.0"
+  uid b81a41f2c717acff8029cb6cef93f322
+  resolved "@opam/menhir@20171222.0.0-b81a41f2c717acff8029cb6cef93f322.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/ocamlbuild" "*"
+    "@opam/ocamlfind" "*"
+  peerDependencies:
+    ocaml " >= 4.2.0"
+
 "@opam/merlin-extend@ >= 0.3.0":
   version "0.3.0"
   uid d688ddc39d2c47f4c3083de2fa51bf7e

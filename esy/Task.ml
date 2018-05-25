@@ -470,7 +470,7 @@ let ofPackage
       in
       let lookup bindings name =
         let name = String.concat "." name in
-        try Some (StringMap.find name bindings)
+        try Some (CommandExpr.Value.String (StringMap.find name bindings))
         with Not_found -> None
       in
       lookup bindingsForExportedEnv, lookup bindingsForCommands

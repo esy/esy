@@ -1,6 +1,6 @@
 (jbuild_version 1)
 
-(copy_files CommandExpr/*.{ml,mli,mll})
+(copy_files CommandExpr/*.{ml,mli,mll,mly})
 
 (library
  ((name Esy)
@@ -32,6 +32,8 @@
 (ocamllex (
            ShellParamExpansionParser
            ShellSplit
-           CommandExprParser
+           CommandExprLexer
            LockfileLexer
            ))
+
+(menhir ((modules (CommandExprParser))))

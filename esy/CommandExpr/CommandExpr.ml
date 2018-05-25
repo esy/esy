@@ -1,57 +1,91 @@
-open Std
+include CommandExprTypes
 
-include CommandExprParser
+module V = Value
+module E = Expr
 
-let parse_exn v =
+let parseExn v =
+  let tokensStore = ref None in
+  let getToken lexbuf =
+    let tokens =
+      match !tokensStore with
+      | Some tokens -> tokens
+      | None -> CommandExprLexer.read [] lexbuf
+    in
+    match tokens with
+    | tok::rest ->
+      tokensStore := Some rest;
+      tok
+    | [] -> CommandExprParser.EOF
+  in
   let lexbuf = Lexing.from_string v in
-  read [] lexbuf
+  CommandExprParser.start getToken lexbuf
 
 let parse src =
-  try Ok (parse_exn src)
+  let open Run.Syntax in
+  try return (parseExn src)
   with
   | Failure v ->
     Run.error v
+  | CommandExprParser.Error ->
+    error "Syntax error"
   | UnmatchedChar (pos, chr) ->
     let cnum = pos.Lexing.pos_cnum - 1 in
     let msg = Printf.sprintf "unmatched character: %c" chr in
     let msg = ParseUtil.formatParseError ~src ~cnum msg in
-    Run.error msg
+    error msg
   | UnmatchedVarBrace (pos, ()) ->
     let cnum = pos.Lexing.pos_cnum - 1 in
     let msg = ParseUtil.formatParseError ~src ~cnum "unmatched brace: {" in
-    Run.error msg
+    error msg
 
-type scope = name -> value option
-and value = string
-
-let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
+let eval ~pathSep ~colon ~scope string =
   let open Run.Syntax in
+  let%bind expr = parse string in
 
-  let lookup name = match scope name with
-  | Some value -> Ok value
+  let lookupValue name = match scope name with
+  | Some value -> return value
   | None ->
     let name = String.concat "." name in
     let msg = Printf.sprintf "Undefined variable '%s'" name in
-    Run.error msg
+    error msg
   in
 
-  let renderExpr tokens =
-    let f segments = function
-    | Var name -> let%bind v = lookup name in Ok (v::segments)
-    | EnvVar name -> let v = "$" ^ name in Ok (v::segments)
-    | Literal v -> Ok (v::segments)
-    | Colon -> Ok (colon::segments)
-    | PathSep -> Ok (pathSep::segments)
-    in
-    let%bind segments = Result.listFoldLeft ~f ~init:[] tokens in
-    Ok (segments |> List.rev |> String.concat "")
-  in
+  let rec evalToString expr =
+    match%bind eval expr with
+    | V.String v -> return v
+    | V.Bool _ -> error "Expected string but got bool"
 
-  let%bind tokens = parse string in
-  let f segments (tok : token) =
-    match tok with
-    | String v -> Ok(v::segments)
-    | Expr tokens -> let%bind v = renderExpr tokens in Ok (v::segments)
+  and evalToBool expr =
+    match%bind eval expr with
+    | V.Bool v -> return v
+    | V.String _ -> error "Expected bool but got string"
+
+  and eval = function
+    | E.String s -> return (V.String s)
+    | E.PathSep -> return (V.String pathSep)
+    | E.Colon -> return (V.String colon)
+    | E.EnvVar name -> return (V.String ("$" ^ name))
+    | E.Var name -> lookupValue name
+    | E.Condition (cond, t, e) ->
+      if%bind evalToBool cond
+      then eval t
+      else eval e
+    | E.And (a, b) ->
+      let%bind a = evalToBool a in
+      let%bind b = evalToBool b in
+      return (V.Bool (a && b))
+    | E.Concat exprs ->
+      let f s expr =
+        let%bind v = evalToString expr in
+        return (s ^ v)
+      in
+      let%bind v = Run.List.foldLeft ~f ~init:"" exprs in
+      return (V.String v)
   in
-  let%bind segments = Result.listFoldLeft ~f ~init:[] tokens in
-  Ok (segments |> List.rev |> String.concat "")
+  eval expr
+
+let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
+  let open Run.Syntax in
+  match%bind eval ~pathSep ~colon ~scope string with
+  | V.String v -> return v
+  | V.Bool _ -> error "expected string"
