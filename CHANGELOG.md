@@ -5,6 +5,13 @@
   * Make npm releases generated with `esy release` command compatible with Node
     versions down 4.2.6.
 
+  * `esy` command now climbs up to the closest `package.json` from the current
+    cwd. This makes it possible to invoke `esy` from the subdirectories of your
+    esy projects.
+
+    Note that `esy build` and `esy build ANYCOMMAND` are still being invoked
+    from the source root.
+
 ## 0.1.10 @ preview
 
   * New experimental installer esyi exposed as `esy install-next` command.
