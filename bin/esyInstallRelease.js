@@ -130,13 +130,6 @@ var fsLstat = promisify(fs.lstat);
 var fsMkdir = promisify(fs.mkdir);
 var fsRename = promisify(fs.rename);
 
-var _fsMkdtemp = promisify(fs.mkdtemp);
-
-function fsMkdtemp(prefix) {
-  var root = os.tmpdir();
-  return _fsMkdtemp(path.join(root, prefix));
-}
-
 function fsWalk(dir, relativeDir) {
   var files = [];
 
@@ -285,16 +278,23 @@ var storePath = getStorePathForPrefix(releasePackagePath);
 
 function importBuild(filename, storePath) {
   var buildId = path.basename(filename).replace(/\.tar\.gz$/g, '');
+
   info("importing: " + buildId);
-  var stagePath = fsMkdtemp('release').then(function(stagePath) {
-    var buildPath = path.join(stagePath, buildId);
-    return childSpawn('tar', ['xzf', filename, '-C', stagePath], {
+
+  // We try to rewrite path prefix inside a stage path and then transactionally
+  // mv to the final path
+  var storeStagePath = path.join(storePath, STORE_STAGE_TREE);
+  var buildStagePath = path.join(storeStagePath, buildId);
+  var buildFinalPath = path.join(storePath, STORE_INSTALL_TREE, buildId);
+
+  return fsMkdir(buildStagePath).then(function() {
+    return childSpawn('tar', ['xzf', filename, '-C', storeStagePath], {
       stdio: 'inherit',
     }).then(function() {
-      return fsReadFile(path.join(buildPath, '_esy', 'storePrefix')).then(function(prevStorePrefix) {
+      return fsReadFile(path.join(buildStagePath, '_esy', 'storePrefix')).then(function(prevStorePrefix) {
         prevStorePrefix = prevStorePrefix.toString();
-        return rewritePaths(buildPath, prevStorePrefix, storePath).then(function() {
-          return fsRename(buildPath, path.join(storePath, STORE_INSTALL_TREE, buildId));
+        return rewritePaths(buildStagePath, prevStorePrefix, storePath).then(function() {
+          return fsRename(buildStagePath, buildFinalPath);
         });
       });
     });
