@@ -14,6 +14,8 @@ lib: [
   "_build/install/default/lib/esy/Esy__CommandExpr.cmi" {"Esy__CommandExpr.cmi"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmx" {"Esy__CommandExpr.cmx"}
   "_build/install/default/lib/esy/Esy__CommandExpr.cmt" {"Esy__CommandExpr.cmt"}
+  "_build/install/default/lib/esy/Esy__CommandExpr.cmti" {"Esy__CommandExpr.cmti"}
+  "_build/install/default/lib/esy/CommandExpr.mli" {"CommandExpr.mli"}
   "_build/install/default/lib/esy/CommandExpr.ml" {"CommandExpr.ml"}
   "_build/install/default/lib/esy/Esy__CommandExprParser.cmi" {"Esy__CommandExprParser.cmi"}
   "_build/install/default/lib/esy/Esy__CommandExprParser.cmx" {"Esy__CommandExprParser.cmx"}

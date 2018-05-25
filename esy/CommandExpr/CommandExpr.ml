@@ -21,7 +21,8 @@ let parse src =
     let msg = ParseUtil.formatParseError ~src ~cnum "unmatched brace: {" in
     Run.error msg
 
-type scope = name -> string option
+type scope = name -> value option
+and value = string
 
 let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
   let open Run.Syntax in
