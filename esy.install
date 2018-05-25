@@ -17,14 +17,20 @@ lib: [
   "_build/install/default/lib/esy/Esy__CommandExpr.cmti" {"Esy__CommandExpr.cmti"}
   "_build/install/default/lib/esy/CommandExpr.mli" {"CommandExpr.mli"}
   "_build/install/default/lib/esy/CommandExpr.ml" {"CommandExpr.ml"}
+  "_build/install/default/lib/esy/Esy__CommandExprLexer.cmi" {"Esy__CommandExprLexer.cmi"}
+  "_build/install/default/lib/esy/Esy__CommandExprLexer.cmx" {"Esy__CommandExprLexer.cmx"}
+  "_build/install/default/lib/esy/Esy__CommandExprLexer.cmt" {"Esy__CommandExprLexer.cmt"}
+  "_build/install/default/lib/esy/CommandExprLexer.ml" {"CommandExprLexer.ml"}
   "_build/install/default/lib/esy/Esy__CommandExprParser.cmi" {"Esy__CommandExprParser.cmi"}
   "_build/install/default/lib/esy/Esy__CommandExprParser.cmx" {"Esy__CommandExprParser.cmx"}
   "_build/install/default/lib/esy/Esy__CommandExprParser.cmt" {"Esy__CommandExprParser.cmt"}
+  "_build/install/default/lib/esy/Esy__CommandExprParser.cmti" {"Esy__CommandExprParser.cmti"}
+  "_build/install/default/lib/esy/CommandExprParser.mli" {"CommandExprParser.mli"}
   "_build/install/default/lib/esy/CommandExprParser.ml" {"CommandExprParser.ml"}
-  "_build/install/default/lib/esy/Esy__CommandExprParserSupport.cmi" {"Esy__CommandExprParserSupport.cmi"}
-  "_build/install/default/lib/esy/Esy__CommandExprParserSupport.cmx" {"Esy__CommandExprParserSupport.cmx"}
-  "_build/install/default/lib/esy/Esy__CommandExprParserSupport.cmt" {"Esy__CommandExprParserSupport.cmt"}
-  "_build/install/default/lib/esy/CommandExprParserSupport.ml" {"CommandExprParserSupport.ml"}
+  "_build/install/default/lib/esy/Esy__CommandExprTypes.cmi" {"Esy__CommandExprTypes.cmi"}
+  "_build/install/default/lib/esy/Esy__CommandExprTypes.cmx" {"Esy__CommandExprTypes.cmx"}
+  "_build/install/default/lib/esy/Esy__CommandExprTypes.cmt" {"Esy__CommandExprTypes.cmt"}
+  "_build/install/default/lib/esy/CommandExprTypes.ml" {"CommandExprTypes.ml"}
   "_build/install/default/lib/esy/Esy__Config.cmi" {"Esy__Config.cmi"}
   "_build/install/default/lib/esy/Esy__Config.cmx" {"Esy__Config.cmx"}
   "_build/install/default/lib/esy/Esy__Config.cmt" {"Esy__Config.cmt"}
