@@ -35,34 +35,34 @@ let%test "string with dquote" =
   expectParseOk "somet \"ok\"hing" (String "somet \"ok\"hing")
 
 let%test "parse simple var" =
-  expectParseOk "#{hi}" (Var ["hi"]) &&
-  expectParseOk "#{hi }" (Var ["hi"]) &&
-  expectParseOk "#{ hi}" (Var ["hi"])
+  expectParseOk "#{hi}" (Var (None, "hi")) &&
+  expectParseOk "#{hi }" (Var (None, "hi")) &&
+  expectParseOk "#{ hi}" (Var (None, "hi"))
 
 let%test "parse var+" =
   expectParseOk "#{hi}#{world}" (Concat [
-    Var ["hi"];
-    Var ["world"]
+    Var (None, "hi");
+    Var (None, "world")
     ])
 
 let%test "parse string + var" =
-  expectParseOk "hello #{world}" (Concat [String "hello "; Var ["world"]]) &&
-  expectParseOk " #{world}" (Concat [String " "; Var ["world"]]) &&
-  expectParseOk "#{world} " (Concat [Var ["world"]; String " "]) &&
-  expectParseOk "hello#{world}" (Concat [String "hello"; Var ["world"]]) &&
-  expectParseOk "#{hello} world" (Concat [Var ["hello"]; String " world"]) &&
-  expectParseOk "#{hello}world" (Concat [Var ["hello"]; String "world"])
+  expectParseOk "hello #{world}" (Concat [String "hello "; Var (None, "world")]) &&
+  expectParseOk " #{world}" (Concat [String " "; Var (None, "world")]) &&
+  expectParseOk "#{world} " (Concat [Var (None, "world"); String " "]) &&
+  expectParseOk "hello#{world}" (Concat [String "hello"; Var (None, "world")]) &&
+  expectParseOk "#{hello} world" (Concat [Var (None, "hello"); String " world"]) &&
+  expectParseOk "#{hello}world" (Concat [Var (None, "hello"); String "world"])
 
 let%test "parse complex var" =
-  expectParseOk "#{hi world}" (Concat [Var ["hi"]; Var ["world"]])
-  && expectParseOk "#{h-i world}" (Concat [Var ["h-i"]; Var ["world"]])
-  && expectParseOk "#{hi :}" (Concat [Var ["hi"]; Colon])
-  && expectParseOk "#{hi : world}" (Concat [Var ["hi"]; Colon; Var ["world"]])
-  && expectParseOk "#{hi /}" (Concat [Var ["hi"]; PathSep])
-  && expectParseOk "#{hi / world}" (Concat [Var ["hi"]; PathSep; Var ["world"]])
+  expectParseOk "#{hi world}" (Concat [Var (None, "hi"); Var (None, "world")])
+  && expectParseOk "#{h-i world}" (Concat [Var (None, "h-i"); Var (None, "world")])
+  && expectParseOk "#{hi :}" (Concat [Var (None, "hi"); Colon])
+  && expectParseOk "#{hi : world}" (Concat [Var (None, "hi"); Colon; Var (None, "world")])
+  && expectParseOk "#{hi /}" (Concat [Var (None, "hi"); PathSep])
+  && expectParseOk "#{hi / world}" (Concat [Var (None, "hi"); PathSep; Var (None, "world")])
 
 let%test "parse var with env vars" =
-  expectParseOk "#{hi / $world}" (Concat [Var ["hi"]; PathSep; EnvVar "world"])
+  expectParseOk "#{hi / $world}" (Concat [Var (None, "hi"); PathSep; EnvVar "world"])
 
 let%test "parse var with literals" =
   expectParseOk "#{'world'}" (String "world")
@@ -74,21 +74,19 @@ let%test "parse var with literals" =
   && expectParseOk "#{'world' :}" (Concat [String "world"; Colon])
   && expectParseOk "#{'world'/}" (Concat [String "world"; PathSep])
   && expectParseOk "#{'world':}" (Concat [String "world"; Colon])
-  && expectParseOk "#{hi'world'}" (Concat [Var ["hi"]; String "world"])
-  && expectParseOk "#{'world'hi}" (Concat [String "world"; Var ["hi"]])
-  && expectParseOk "#{hi / 'world'}" (Concat [Var ["hi"]; PathSep; String "world"])
+  && expectParseOk "#{hi'world'}" (Concat [Var (None, "hi"); String "world"])
+  && expectParseOk "#{'world'hi}" (Concat [String "world"; Var (None, "hi")])
+  && expectParseOk "#{hi / 'world'}" (Concat [Var (None, "hi"); PathSep; String "world"])
   && expectParseOk "#{'hi''world'}" (Concat [String "hi";  String "world"])
   && expectParseOk "#{'h\\'i'}" (String "h'i")
 
 let%test "parse namespace" =
-  expectParseOk "#{ns.hi}" (Var ["ns"; "hi"])
-  && expectParseOk "#{n-s.hi}" (Var ["n-s"; "hi"])
-  && expectParseOk "#{ns.hi.hey}" (Var ["ns"; "hi"; "hey"])
-  && expectParseOk "#{@scope/pkg.hi}" (Var ["@scope/pkg"; "hi"])
-  && expectParseOk "#{@s-cope/pkg.hi}" (Var ["@s-cope/pkg"; "hi"])
-  && expectParseOk "#{@scope/pkg.hi.hey}" (Var ["@scope/pkg"; "hi"; "hey"])
+  expectParseOk "#{ns.hi}" (Var (Some "ns", "hi"))
+  && expectParseOk "#{n-s.hi}" (Var (Some "n-s", "hi"))
+  && expectParseOk "#{@scope/pkg.hi}" (Var (Some "@scope/pkg", "hi"))
+  && expectParseOk "#{@s-cope/pkg.hi}" (Var (Some "@s-cope/pkg", "hi"))
   && expectParseOk "#{@scope/pkg.hi 'hey'}" (Concat [
-    Var ["@scope/pkg"; "hi"];
+    Var (Some "@scope/pkg", "hi");
     String ("hey");
   ])
 
@@ -96,7 +94,7 @@ let%test "parse conditionals (strings in then / else)" =
   expectParseOk
     "#{lwt.installed ? '--enable-lwt' : '--disable-lwt'}"
     (Condition (
-      (Var ["lwt"; "installed"]),
+      (Var (Some "lwt", "installed")),
       (String "--enable-lwt"),
       (String "--disable-lwt")
       ))
@@ -105,26 +103,26 @@ let%test "parse conditionals (vars in then / else)" =
   expectParseOk
     "#{lwt.installed ? then : else}"
     (Condition (
-      (Var ["lwt"; "installed"]),
-      (Var ["then"]),
-      (Var ["else"])
+      (Var (Some "lwt", "installed")),
+      (Var (None, "then")),
+      (Var (None, "else"))
       ))
 
 let%test "parse conditionals (lists in then / else)" =
   expectParseOk
     "#{lwt.installed ? (then : then) : (else : else)}"
     (Condition (
-      (Var ["lwt"; "installed"]),
-      (Concat [Var ["then"]; Colon; Var ["then"]]),
-      (Concat [Var ["else"]; Colon; Var ["else"]])
+      (Var (Some "lwt", "installed")),
+      (Concat [Var (None, "then"); Colon; Var (None, "then")]),
+      (Concat [Var (None, "else"); Colon; Var (None, "else")])
       ))
 
 let%test "parse conj" =
   expectParseOk
     "#{lwt.installed && async.installed}"
     (And (
-      (Var ["lwt"; "installed"]),
-      (Var ["async"; "installed"])
+      (Var (Some "lwt", "installed")),
+      (Var (Some "async", "installed"))
       ))
 
 let expectRenderOk scope s expected =
@@ -153,10 +151,10 @@ let expectRenderError scope s expectedError =
     ) else true
 
 let scope = function
-| "name"::[] -> Some (Value.String "pkg")
-| "isTrue"::[] -> Some (Value.Bool true)
-| "isFalse"::[] -> Some (Value.Bool false)
-| "self"::"lib"::[] -> Some (Value.String "store/lib")
+| None, "name" -> Some (Value.String "pkg")
+| None, "isTrue" -> Some (Value.Bool true)
+| None, "isFalse" -> Some (Value.Bool false)
+| Some "self", "lib" -> Some (Value.String "store/lib")
 | _ -> None
 
 let%test "render" =
