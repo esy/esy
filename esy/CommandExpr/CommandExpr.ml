@@ -38,6 +38,10 @@ let parse src =
     let msg = ParseUtil.formatParseError ~src ~cnum "unmatched brace: {" in
     error msg
 
+let formatName = function
+  | Some namespace, name -> namespace ^ "." ^ name
+  | None, name -> name
+
 let eval ~pathSep ~colon ~scope string =
   let open Run.Syntax in
   let%bind expr = parse string in
@@ -45,7 +49,7 @@ let eval ~pathSep ~colon ~scope string =
   let lookupValue name = match scope name with
   | Some value -> return value
   | None ->
-    let name = String.concat "." name in
+    let name = formatName name in
     let msg = Printf.sprintf "Undefined variable '%s'" name in
     error msg
   in

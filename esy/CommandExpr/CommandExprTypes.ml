@@ -12,7 +12,7 @@ module Expr = struct
     | PathSep
     [@@deriving (show, eq)]
 
-  and name = string list
+  and name = string option * string
     [@@deriving (show, eq)]
 end
 

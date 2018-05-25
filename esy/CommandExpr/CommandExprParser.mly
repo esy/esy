@@ -72,10 +72,10 @@ atomAnd:
   | e = id { E.Var e }
 
 id:
-    n = id_segment { [n] }
-  | n = id_segment; DOT; ns = id { (n::ns) }
+    id = ID { (None, id) }
+  | namespace = id_namespace; DOT; id = ID { (Some namespace, id) }
 
-id_segment:
+id_namespace:
     n = ID { n }
   | AT; s = ID; SLASH; n = ID { ("@" ^ s ^ "/" ^ n) }
 
