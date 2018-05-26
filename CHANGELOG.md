@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.1.12 @ preview
+
+  * Fix building opam packages with `%{pkg1+pkg2:var}` syntax constructs in its
+    opam files. Previously we didn't support such opam idiom but now with have
+    `#{cond ? then : else}` which handles that. Packages such as `@opam/tyxml`
+    are now buildable.
+
+  * Fix commands which operate on a single packages (like `esy build-shell`) to
+    correctly resolve a package by a paclage path specified with a trailing
+    slash. (Thanks @despairblue!)
+
 ## 0.1.11 @ preview
 
   * Make npm releases generated with `esy release` command compatible with Node
