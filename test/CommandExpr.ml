@@ -143,8 +143,8 @@ let expectRenderError scope s expectedError =
   match render ~scope s with
   | Ok _ -> false
   | Error error ->
-    let error = EsyLib.Run.formatError error in
-    if expectedError <> error then (
+    let error = error |> EsyLib.Run.formatError |> String.trim in
+    if (String.trim expectedError) <> error then (
       Printf.printf "Expected: %s\n" expectedError;
       Printf.printf "     Got: %s\n" error;
       false
@@ -161,8 +161,32 @@ let%test "render" =
 
   expectRenderOk scope "Hello, #{name}!" "Hello, pkg!"
   && expectRenderOk scope "#{self.lib / $NAME}" "store/lib/$NAME"
-  && expectRenderError scope "#{unknown}" "Error: Undefined variable 'unknown'"
-  && expectRenderError scope "#{ns.unknown}" "Error: Undefined variable 'ns.unknown'"
   && expectRenderOk scope "#{isTrue ? 'ok' : 'oops'}" "ok"
   && expectRenderOk scope "#{isFalse ? 'oops' : 'ok'}" "ok"
   && expectRenderOk scope "#{isFalse && isTrue ? 'oops' : 'ok'}" "ok"
+
+let%test "render errors" =
+  expectRenderError scope "#{unknown}" "Error: Undefined variable 'unknown'"
+  && expectRenderError scope "#{ns.unknown}" "Error: Undefined variable 'ns.unknown'"
+  && expectRenderError scope "#{ns.unknown" "Error: unexpected end of string:
+>
+> #{ns.unknown...
+>            ^"
+  && expectRenderError scope "#{'some" "Error: unexpected end of string:
+>
+> #{'some...
+>       ^"
+  && expectRenderError scope "#{'some}" "Error: unexpected end of string:
+>
+> #{'some}...
+>        ^"
+  && expectRenderError scope "#{cond ^}" "Error: unexpected token '^' found:
+>
+> #{cond ^}...
+>        ^"
+
+let%test "syntax errors" =
+  expectRenderError scope "#{cond &&}" "Error: Syntax error"
+  && expectRenderError scope "#{cond ?}" "Error: Syntax error"
+  && expectRenderError scope "#{cond ? then}" "Error: Syntax error"
+  && expectRenderError scope "#{cond ? then :}" "Error: Syntax error"

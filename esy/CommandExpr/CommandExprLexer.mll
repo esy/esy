@@ -1,7 +1,8 @@
 {
 
 open CommandExprParser
-open CommandExprTypes
+
+exception Error of Lexing.position * string
 
 let buf_from_str str =
   let buf = Buffer.create 16 in
@@ -20,7 +21,7 @@ rule read tokens = parse
  | '\\' '\\'     { uquote tokens (buf_from_str "\\") lexbuf }
  | '\\' ' '      { uquote tokens (buf_from_str " ") lexbuf }
  | _             { uquote tokens (buf_from_str (Lexing.lexeme lexbuf)) lexbuf }
- | eof { List.rev tokens }
+ | eof           { List.rev tokens }
 
 and expr tokens = parse
  | '&' '&'      { expr (AND::tokens) lexbuf }
@@ -39,6 +40,14 @@ and expr tokens = parse
    }
  | '''          { literal tokens (Buffer.create 16) lexbuf }
  | '}'          { read tokens lexbuf }
+ | _ as c       {
+     let msg = Printf.sprintf "unexpected token '%c' found" c in
+     raise (Error (lexbuf.lex_curr_p, msg))
+   }
+ | eof         {
+     let msg = Printf.sprintf "unexpected end of string" in
+     raise (Error (lexbuf.lex_curr_p, msg))
+   }
 
 and uquote tokens buf = parse
  | eof         {
@@ -69,5 +78,10 @@ and literal tokens buf = parse
      literal tokens buf lexbuf
    }
  | _ as c          {
-    raise (UnmatchedChar (lexbuf.lex_curr_p, c))
-  }
+     let msg = Printf.sprintf "unexpected token: %c" c in
+     raise (Error (lexbuf.lex_curr_p, msg))
+   }
+ | eof         {
+     let msg = Printf.sprintf "unexpected end of string" in
+     raise (Error (lexbuf.lex_curr_p, msg))
+   }
