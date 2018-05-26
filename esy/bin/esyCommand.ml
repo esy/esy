@@ -276,7 +276,7 @@ let withBuildTaskByPath
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
-    let resolvedPath = Path.to_string packagePath in
+    let resolvedPath = packagePath |> Path.rem_empty_seg |> Path.to_string in
     let findByPath (task : Task.t) =
       String.equal resolvedPath task.pkg.id
     in begin match Task.DependencyGraph.find ~f:findByPath info.task with
