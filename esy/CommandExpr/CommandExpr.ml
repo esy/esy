@@ -3,7 +3,7 @@ include CommandExprTypes
 module V = Value
 module E = Expr
 
-let parseExn v =
+let parse src =
   let tokensStore = ref None in
   let getToken lexbuf =
     let tokens =
@@ -17,25 +17,18 @@ let parseExn v =
       tok
     | [] -> CommandExprParser.EOF
   in
-  let lexbuf = Lexing.from_string v in
-  CommandExprParser.start getToken lexbuf
-
-let parse src =
+  let lexbuf = Lexing.from_string src in
   let open Run.Syntax in
-  try return (parseExn src)
+  try
+    return (CommandExprParser.start getToken lexbuf)
   with
   | Failure v ->
     Run.error v
   | CommandExprParser.Error ->
     error "Syntax error"
-  | UnmatchedChar (pos, chr) ->
+  | CommandExprLexer.Error (pos, msg) ->
     let cnum = pos.Lexing.pos_cnum - 1 in
-    let msg = Printf.sprintf "unmatched character: %c" chr in
     let msg = ParseUtil.formatParseError ~src ~cnum msg in
-    error msg
-  | UnmatchedVarBrace (pos, ()) ->
-    let cnum = pos.Lexing.pos_cnum - 1 in
-    let msg = ParseUtil.formatParseError ~src ~cnum "unmatched brace: {" in
     error msg
 
 let formatName = function

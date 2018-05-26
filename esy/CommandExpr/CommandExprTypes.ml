@@ -25,6 +25,3 @@ module Value = struct
 end
 
 type scope = Expr.name -> Value.t option
-
-exception UnmatchedChar of (Lexing.position * char)
-exception UnmatchedVarBrace of (Lexing.position * unit)

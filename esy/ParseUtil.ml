@@ -2,11 +2,14 @@ let formatParseError ?src ~cnum msg =
   match src with
   | None -> msg
   | Some src ->
-    let src = (String.sub src 0 (cnum + 5)) ^ "..." in
+    let ctx =
+      let cnum = min (String.length src) (cnum + 5) in
+      (String.sub src 0 cnum) ^ "..."
+    in
     let line =
       String.init
-        (String.length src)
+        (String.length ctx)
         (fun i -> if i = cnum then '^' else ' ')
     in
-    Printf.sprintf "%s:\n>\n> %s\n> %s" msg src line
+    Printf.sprintf "%s:\n>\n> %s\n> %s" msg ctx line
 

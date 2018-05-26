@@ -49,10 +49,6 @@ val render :
   -> string
   -> string Run.t
 
-val parseExn :
-  string
-  -> Expr.t
-
 val parse :
   string
   -> Expr.t Run.t
