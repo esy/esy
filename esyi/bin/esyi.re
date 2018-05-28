@@ -44,12 +44,6 @@ module CommandLineInterface = {
   let cwd = Path.v(Sys.getcwd());
   let version = "0.1.0";
 
-  let pathConv = {
-    let parse = Path.of_string;
-    let print = Path.pp;
-    Arg.conv(~docv="PATH", (parse, print));
-  };
-
   let setupLog = (style_renderer, level) => {
     Fmt_tty.setup_std_outputs(~style_renderer?, ());
     Logs.set_level(level);
@@ -59,6 +53,12 @@ module CommandLineInterface = {
 
   let setupLogTerm =
     Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
+
+  let pathConv = {
+    let parse = Path.of_string;
+    let print = Path.pp;
+    Arg.conv(~docv="PATH", (parse, print));
+  };
 
   let sandboxPathArg = {
     let doc = "Specifies esy sandbox path.";
@@ -91,7 +91,7 @@ module CommandLineInterface = {
   };
 
   let cfgTerm = {
-    let parse = (cachePath, sandboxPath, npmRegistry) => {
+    let parse = (cachePath, sandboxPath, npmRegistry, ()) => {
       let sandboxPath =
         switch (sandboxPath) {
         | Some(sandboxPath) => sandboxPath
@@ -99,49 +99,55 @@ module CommandLineInterface = {
         };
       Shared.Config.make(~cachePath?, ~npmRegistry?, sandboxPath);
     };
-    Term.(const(parse) $ cachePathArg $ sandboxPathArg $ npmRegistryArg);
+    Term.(
+      const(parse)
+      $ cachePathArg
+      $ sandboxPathArg
+      $ npmRegistryArg
+      $ setupLogTerm
+    );
   };
 
   let defaultCommand = {
     let doc = "Dependency installer";
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = (cfg, ()) => {
+    let cmd = cfg => {
       Api.solve(cfg);
       Api.fetch(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = (cfg, ()) => {
+    let cmd = cfg => {
       Api.solve(cfg);
       Api.fetch(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = (cfg, ()) => {
+    let cmd = cfg => {
       Api.solve(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
   let fetchCommand = {
     let doc = "Fetch dependencies using the solution in a lockfile";
     let info = Term.info("fetch", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = (cfg, ()) => {
+    let cmd = cfg => {
       Api.fetch(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
   let commands = [installCommand, solveCommand, fetchCommand];

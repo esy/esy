@@ -124,9 +124,7 @@ let ensureGitRepo = (~branch, source, dest) =>
       Cmd.(
         v("git") % "pull" % "--force" % "--depth" % "1" % source % branchSpec
       );
-    Shared.ExecCommand.execSync(~workingDir=dest, ~cmd, ())
-    |> snd
-    |> expectSuccess("Unable tp update: " ++ Path.toString(dest));
+    Shared.ExecCommand.execSyncOrFail(~workingDir=dest, ~cmd, ());
   };
 
 let lockDownRef = (url, ref) => {
@@ -187,13 +185,11 @@ let rec lockDownSource = pendingSource =>
    | _ => lockDownSource(pending)
    }; */
 let checkRepositories = config => {
-  Logs.debug(m => m("git: updating esy-ocaml/esy-opam-override"));
   ensureGitRepo(
     ~branch="4",
     "https://github.com/esy-ocaml/esy-opam-override",
     config.Config.esyOpamOverridePath,
   );
-  Logs.debug(m => m("git: updating ocaml/opam-repository"));
   ensureGitRepo(
     ~branch="master",
     "https://github.com/ocaml/opam-repository",
