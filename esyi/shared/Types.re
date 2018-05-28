@@ -1,3 +1,5 @@
+module Path = EsyLib.Path;
+
 [@deriving yojson]
 type npmConcrete = (int, int, int, option(string));
 
@@ -136,7 +138,8 @@ type requestedDep =
   | Npm(GenericVersion.range(npmConcrete))
   | Github(string, string, option(string)) /* user, repo, ref (branch/tag/commit) */
   | Opam(GenericVersion.range(opamConcrete)) /* opam allows a bunch of weird stuff. for now I'm just doing semver */
-  | Git(string);
+  | Git(string)
+  | LocalPath(EsyLib.Path.t);
 
 let resolvedPrefix = "esyi5-";
 
@@ -159,6 +162,7 @@ let viewReq = req =>
   | Git(s) => "git: " ++ s
   | Npm(t) => "npm: " ++ GenericVersion.view(viewNpmConcrete, t)
   | Opam(t) => "opam: " ++ GenericVersion.view(viewOpamConcrete, t)
+  | LocalPath(t) => "path: " ++ Path.toString(t)
   };
 
 let opamFromNpmConcrete = ((major, minor, patch, rest)) =>

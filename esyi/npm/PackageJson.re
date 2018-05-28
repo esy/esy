@@ -28,27 +28,31 @@ let startsWith = (value, needle) =>
   && String.sub(value, 0, String.length(needle)) == needle;
 
 let parseNpmSource = ((name, value)) =>
-  switch (getOpam(name)) {
-  | Some(name) => (
-      name,
-      switch (Shared.GithubVersion.parseGithubVersion(value)) {
-      | Some(gh) => gh
-      | None => Opam(OpamConcrete.parseNpmRange(value))
-      /* NpmVersion.parseRange(value) |> GenericVersion.map(Shared.Types.opamFromNpmConcrete) */
-      },
-    )
-  | None => (
-      name,
-      switch (Shared.GithubVersion.parseGithubVersion(value)) {
-      | Some(gh) => gh
-      | None =>
-        if (startsWith(value, "git+")) {
-          Git(value);
-        } else {
-          Npm(NpmVersion.parseRange(value));
-        }
-      },
-    )
+  if (startsWith(value, ".") || startsWith(value, "/")) {
+    (name, LocalPath(Path.v(value)));
+  } else {
+    switch (getOpam(name)) {
+    | Some(name) => (
+        name,
+        switch (Shared.GithubVersion.parseGithubVersion(value)) {
+        | Some(gh) => gh
+        | None => Opam(OpamConcrete.parseNpmRange(value))
+        /* NpmVersion.parseRange(value) |> GenericVersion.map(Shared.Types.opamFromNpmConcrete) */
+        },
+      )
+    | None => (
+        name,
+        switch (Shared.GithubVersion.parseGithubVersion(value)) {
+        | Some(gh) => gh
+        | None =>
+          if (startsWith(value, "git+")) {
+            Git(value);
+          } else {
+            Npm(NpmVersion.parseRange(value));
+          }
+        },
+      )
+    };
   };
 
 let toDep = ((name, value)) => {

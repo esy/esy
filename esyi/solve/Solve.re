@@ -1,4 +1,5 @@
 open Shared;
+module Path = EsyLib.Path;
 
 let unsatisfied = (map, (name, range)) =>
   switch (Hashtbl.find(map, name)) {
@@ -280,7 +281,7 @@ let solve = (config, manifest) => {
         Env.Default,
         makeFullPackage(
           "*root*",
-          `File("./"),
+          Lockfile.LocalPath(Path.v("./")),
           manifest,
           depsByKind,
           solvedDeps,

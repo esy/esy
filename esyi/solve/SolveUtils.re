@@ -5,27 +5,23 @@ module Path = EsyLib.Path;
 
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
-  | (Types.Github(user, repo, ref), `Github(user_, repo_, ref_))
+  | (Types.Github(user, repo, ref), Lockfile.Github(user_, repo_, ref_))
       when user == user_ && repo == repo_ && ref == ref_ =>
     true
-  | (Npm(semver), `Npm(s)) when NpmVersion.matches(semver, s) => true
-  | (Opam(semver), `Opam(s)) when OpamVersion.matches(semver, s) => true
+  | (Npm(semver), Lockfile.Npm(s)) when NpmVersion.matches(semver, s) =>
+    true
+  | (Opam(semver), Lockfile.Opam(s)) when OpamVersion.matches(semver, s) =>
+    true
+  | (LocalPath(p1), Lockfile.LocalPath(p2)) when Path.equal(p1, p2) => true
   | _ => false
-  };
-
-let sortRealVersions = (a, b) =>
-  switch (a, b) {
-  | (`Github(_a), `Github(_b)) => 0
-  | (`Npm(a), `Npm(b)) => NpmVersion.compare(a, b)
-  | (`Opam(a), `Opam(b)) => OpamVersion.compare(a, b)
-  | _ => 0
   };
 
 let toRealVersion = versionPlus =>
   switch (versionPlus) {
-  | `Github(x) => `Github(x)
-  | `Npm(x, _, _) => `Npm(x)
-  | `Opam(x, _, _) => `Opam(x)
+  | `Github(user, repo, ref) => Lockfile.Github(user, repo, ref)
+  | `Npm(x, _, _) => Lockfile.Npm(x)
+  | `Opam(x, _, _) => Lockfile.Opam(x)
+  | `LocalPath(p) => Lockfile.LocalPath(p)
   };
 
 /** TODO(jared): This is a HACK and will hopefully be removed once we stop the
@@ -200,6 +196,8 @@ let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
       | `Github(user, repo, ref) => Github.getManifest(name, user, repo, ref)
       /* Registry.getGithubManifest(url) */
       | `Npm(_version, json, _) => `PackageJson(json)
+      | `LocalPath(_p) =>
+        failwith("do not know how to get manifest from LocalPath")
       | `Opam(_version, path, _) =>
         `OpamFile(OpamFile.getManifest(opamOverrides, path))
       };

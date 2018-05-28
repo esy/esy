@@ -1,16 +1,17 @@
+module Path = EsyLib.Path;
+
 [@deriving yojson]
-type realVersion = [
-  | `Github(string, string, option(string))
-  | `Npm(Types.npmConcrete)
-  | `Opam(Types.opamConcrete)
-  | `Git(string)
-  | `File(string)
-];
+type realVersion =
+  | Github(string, string, option(string))
+  | Npm(Types.npmConcrete)
+  | Opam(Types.opamConcrete)
+  | Git(string)
+  | LocalPath(Path.t);
 
 let viewRealVersion: realVersion => string =
   v =>
     switch (v) {
-    | `Github(user, repo, ref) =>
+    | Github(user, repo, ref) =>
       "github-"
       ++ user
       ++ "__"
@@ -21,15 +22,15 @@ let viewRealVersion: realVersion => string =
         | None => ""
         }
       )
-    | `Git(s) => "git-" ++ s
-    | `Npm(t) => "npm-" ++ Types.viewNpmConcrete(t)
-    | `Opam(t) => "opam-" ++ Types.viewOpamConcrete(t)
-    | `File(_s) => "local-file"
+    | Git(s) => "git-" ++ s
+    | Npm(t) => "npm-" ++ Types.viewNpmConcrete(t)
+    | Opam(t) => "opam-" ++ Types.viewOpamConcrete(t)
+    | LocalPath(_s) => "local-file"
     };
 
 let plainVersionNumber = v =>
   switch (v) {
-  | `Github(user, repo, ref) =>
+  | Github(user, repo, ref) =>
     user
     ++ "__"
     ++ repo
@@ -39,9 +40,9 @@ let plainVersionNumber = v =>
       | None => ""
       }
     )
-  | `Git(s) => s
-  | `Npm(t) => Types.viewNpmConcrete(t)
-  | `Opam(t) => Types.viewOpamConcrete(t)
+  | Git(s) => s
+  | Npm(t) => Types.viewNpmConcrete(t)
+  | Opam(t) => Types.viewOpamConcrete(t)
   /* TODO hash the file path or something */
-  | `File(_s) => "local-file-0000"
+  | LocalPath(_s) => "local-file-0000"
   };
