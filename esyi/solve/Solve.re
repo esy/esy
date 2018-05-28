@@ -131,7 +131,7 @@ let makeFullPackage =
   };
 };
 
-let settleBuildDeps = (cache, solvedDeps, requestedBuildDeps) => {
+let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
     |> List.map(justDepsn)
@@ -148,6 +148,7 @@ let settleBuildDeps = (cache, solvedDeps, requestedBuildDeps) => {
     if (toAdd != []) {
       let solved =
         SolveDeps.solveLoose(
+          ~config,
           ~cache,
           ~requested=toAdd,
           ~current=nameToVersions,
@@ -166,7 +167,11 @@ let settleBuildDeps = (cache, solvedDeps, requestedBuildDeps) => {
                ],
              );
              let solvedDeps =
-               SolveDeps.solve(~cache, ~requested=deps.Types.runtime);
+               SolveDeps.solve(
+                 ~config,
+                 ~cache,
+                 ~requested=deps.Types.runtime,
+               );
              Hashtbl.replace(
                versionMap,
                (name, version),
@@ -190,9 +195,9 @@ let settleBuildDeps = (cache, solvedDeps, requestedBuildDeps) => {
   (versionMap, nameToVersions);
 };
 
-let resolveNpm = (cache, npmRequests) => {
+let resolveNpm = (~config, cache, npmRequests) => {
   /* Allow relaxing the constraint */
-  let solvedDeps = SolveDeps.solve(~cache, ~requested=npmRequests);
+  let solvedDeps = SolveDeps.solve(~config, ~cache, ~requested=npmRequests);
   let npmVersionMap = Hashtbl.create(100);
   let npmToVersions = Hashtbl.create(100);
   solvedDeps
@@ -215,7 +220,8 @@ let solve = (config, manifest) => {
   SolveUtils.checkRepositories(config);
   let cache = SolveDeps.initCache(config);
   let depsByKind = Manifest.getDeps(manifest);
-  let solvedDeps = SolveDeps.solve(~cache, ~requested=depsByKind.runtime);
+  let solvedDeps =
+    SolveDeps.solve(~config, ~cache, ~requested=depsByKind.runtime);
   /** TODO should targets be determined completely separately?
    * seems like we'll want to be able to ~fetch~  independently...
    * but maybe solve all at once?
@@ -232,7 +238,7 @@ let solve = (config, manifest) => {
    });
    */
   let (buildVersionMap, buildToVersions) =
-    settleBuildDeps(cache, solvedDeps, depsByKind.build);
+    settleBuildDeps(~config, cache, solvedDeps, depsByKind.build);
   /* Ok, time for npm. */
   let allNpmRequests =
     Hashtbl.fold(
@@ -250,7 +256,7 @@ let solve = (config, manifest) => {
         List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps),
       )
     @ depsByKind.npm;
-  let npmPair = resolveNpm(cache, allNpmRequests);
+  let npmPair = resolveNpm(~config, cache, allNpmRequests);
   let allBuildPackages =
     Hashtbl.fold(
       ((name, version), (manifest, deps, solvedDeps), result) => [

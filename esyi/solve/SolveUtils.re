@@ -111,7 +111,7 @@ let ensureGitRepo = (source, dest) => {
   if (! Shared.Files.exists(dest)) {
     Shared.Files.mkdirp(Filename.dirname(dest));
     Shared.ExecCommand.execSync(
-      ~cmd="git clone " ++ source ++ " " ++ dest,
+      ~cmd="git clone --depth 1 " ++ source ++ " " ++ dest,
       (),
     )
     |> snd

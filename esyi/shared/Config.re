@@ -9,6 +9,7 @@ type t = {
   packageCachePath: Path.t,
   esyOpamOverridePath: Path.t,
   opamRepositoryPath: Path.t,
+  npmRegistry: string,
 };
 
 let userDirectory = () => {
@@ -19,7 +20,7 @@ let userDirectory = () => {
   Path.v(home);
 };
 
-let make = (~cachePath=?, basePath) => {
+let make = (~npmRegistry=?, ~cachePath=?, basePath) => {
   let cachePath =
     Option.orDefault(Path.(userDirectory() / ".esy" / "esyi"), cachePath);
 
@@ -35,11 +36,15 @@ let make = (~cachePath=?, basePath) => {
   let opamRepositoryPath = Path.(cachePath / "opam-repository");
   let esyOpamOverridePath = Path.(cachePath / "esy-opam-override");
 
+  let npmRegistry =
+    Option.orDefault("http://registry.npmjs.org/", npmRegistry);
+
   {
     basePath,
     tarballCachePath,
     packageCachePath,
     opamRepositoryPath,
     esyOpamOverridePath,
+    npmRegistry,
   };
 };
