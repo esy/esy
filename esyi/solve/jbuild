@@ -2,6 +2,6 @@
 
 (library
  ((name solve)
-  (preprocess (pps (lwt.ppx ppx_let ppx_deriving_yojson testre-ppx ppx_driver)))
+  (preprocess (pps (ppx_deriving_yojson testre-ppx ppx_driver)))
   (libraries (shared opam npm str cudf yaml ppx_deriving_yojson.runtime mccs yojson opam-file-format))))
 

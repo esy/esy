@@ -2,7 +2,7 @@ open EsyLib;
 
 let get = url => {
   let cmd = Cmd.(v("curl") % "--silent" % "--fail" % "--location" % url);
-  Logs.debug(m => m("curl [get]: %s", url));
+  print_endline(Cmd.toString(cmd));
   ChildProcess.runOut(cmd);
 };
 
@@ -17,6 +17,5 @@ let download = (~output, url) => {
       % p(output)
       % url
     );
-  Logs.debug(m => m("curl [download]: %s", url));
   ChildProcess.run(cmd);
 };

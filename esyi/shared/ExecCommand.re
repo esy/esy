@@ -15,37 +15,41 @@ let withWorkingDir = (~dir, f) => {
   result;
 };
 
+let execStringSync = (~cmd, ~onOut=?, ()) => {
+  let chan = Unix.open_process_in(cmd);
+  try (
+    {
+      let rec loop = () =>
+        switch (Pervasives.input_line(chan)) {
+        | exception End_of_file => []
+        | line =>
+          switch (onOut) {
+          | None => ()
+          | Some(fn) => fn(line)
+          };
+          [line, ...loop()];
+        };
+      let lines = loop();
+      switch (Unix.close_process_in(chan)) {
+      | WEXITED(0) => (lines, true)
+      | WEXITED(_)
+      | WSIGNALED(_)
+      | WSTOPPED(_) => (lines, false)
+      };
+    }
+  ) {
+  | End_of_file => ([], false)
+  };
+};
+
+/** TODO use lwt or something */
 /**
  * Get the output of a command, in lines.
  */
-let execSync = (~cmd, ~workingDir=?, ~onOut=?, ()) => {
-  Logs.debug(m => m("exec: %s", Cmd.toString(cmd)));
+let execSync = (~cmd, ~workingDir=?, ()) => {
   let f = () => {
     let cmd = Cmd.toString(cmd);
-    let chan = Unix.open_process_in(cmd);
-    try (
-      {
-        let rec loop = () =>
-          switch (Pervasives.input_line(chan)) {
-          | exception End_of_file => []
-          | line =>
-            switch (onOut) {
-            | None => ()
-            | Some(fn) => fn(line)
-            };
-            [line, ...loop()];
-          };
-        let lines = loop();
-        switch (Unix.close_process_in(chan)) {
-        | WEXITED(0) => (lines, true)
-        | WEXITED(_)
-        | WSIGNALED(_)
-        | WSTOPPED(_) => (lines, false)
-        };
-      }
-    ) {
-    | End_of_file => ([], false)
-    };
+    execStringSync(~cmd, ());
   };
   switch (workingDir) {
   | Some(workingDir) => withWorkingDir(~dir=workingDir, f)
@@ -53,11 +57,7 @@ let execSync = (~cmd, ~workingDir=?, ~onOut=?, ()) => {
   };
 };
 
-let execSyncOrFail = (~err=?, ~cmd, ~workingDir=?, ()) => {
-  let err =
-    switch (err) {
-    | Some(err) => err
-    | None => Printf.sprintf("Unable to run command: %s", Cmd.toString(cmd))
-    };
-  execSync(~cmd, ~workingDir?, ()) |> snd |> Files.expectSuccess(err);
+let execSyncOrFail = (~cmd, ~workingDir=?, ()) => {
+  let msg = Printf.sprintf("error running %s", Cmd.toString(cmd));
+  execSync(~cmd, ~workingDir?, ()) |> snd |> Files.expectSuccess(msg);
 };

@@ -1,7 +1,6 @@
 open Shared;
 
 module Path = EsyLib.Path;
-module Cmd = EsyLib.Cmd;
 module RunAsync = EsyLib.RunAsync;
 
 let (/+) = Filename.concat;
@@ -35,17 +34,6 @@ let addResolvedFieldToPackageJson = (filename, name, version) => {
 let absname = (name, version) =>
   name ++ "__" ++ Lockfile.viewRealVersion(version);
 
-let unpack = (~dest, ~stripComponents=?, tarball) => {
-  let cmd = Cmd.(v("tar") % "xf" % tarball % "-C" % dest);
-  let cmd =
-    switch (stripComponents) {
-    | Some(stripComponents) =>
-      Cmd.(cmd % "--strip-components" % string_of_int(stripComponents))
-    | None => cmd
-    };
-  ExecCommand.execSyncOrFail(~cmd, ());
-};
-
 let getSource = (dest, cache, name, version, source) =>
   switch (source) {
   | Types.Source.Archive(url, _checksum) =>
@@ -56,7 +44,12 @@ let getSource = (dest, cache, name, version, source) =>
       Wget.download(~output=Path.v(tarball), url)
       |> RunAsync.runExn(~err="error downloading archive");
     };
-    unpack(~dest, ~stripComponents=1, tarball);
+    ExecCommand.execStringSync(
+      ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
+      (),
+    )
+    |> snd
+    |> Files.expectSuccess("failed to untar");
   | Types.Source.NoSource => ()
   | Types.Source.GithubSource(user, repo, ref) =>
     let safe =
@@ -77,7 +70,12 @@ let getSource = (dest, cache, name, version, source) =>
       Wget.download(~output=Path.v(tarball), tarUrl)
       |> RunAsync.runExn(~err="error downloading archive");
     };
-    unpack(~dest, ~stripComponents=1, tarball);
+    ExecCommand.execStringSync(
+      ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
+      (),
+    )
+    |> snd
+    |> Files.expectSuccess("failed to untar");
   | Types.Source.GitSource(gitUrl, commit) =>
     let safe = Str.global_replace(Str.regexp("/"), "-", name);
     let withVersion = safe ++ Lockfile.viewRealVersion(version);
@@ -88,24 +86,41 @@ let getSource = (dest, cache, name, version, source) =>
       );
       let gitdest = cache /+ "git-" ++ withVersion;
       /** TODO we want to have the commit nailed down by this point tho */
-      ExecCommand.execSyncOrFail(
-        ~cmd=Cmd.(v("git") % "clone" % gitUrl % gitdest),
+      ExecCommand.execStringSync(
+        ~cmd="git clone " ++ gitUrl ++ " " ++ gitdest,
         (),
-      );
-      ExecCommand.execSyncOrFail(
-        ~workingDir=Path.v(gitdest),
-        ~cmd=Cmd.(v("git") % "checkout" % commit),
+      )
+      |> snd
+      |> Files.expectSuccess("Unable to clone git repo " ++ gitUrl);
+      ExecCommand.execStringSync(
+        ~cmd=
+          "cd "
+          ++ gitdest
+          ++ " && git checkout "
+          ++ commit
+          ++ " && rm -rf .git",
         (),
-      );
-      ExecCommand.execSyncOrFail(
-        ~workingDir=Path.v(gitdest),
-        ~cmd=Cmd.(v("rm") % "-rf" % ".git"),
+      )
+      |> snd
+      |> Files.expectSuccess(
+           "Unable to checkout " ++ gitUrl ++ " at " ++ commit,
+         );
+      ExecCommand.execStringSync(
+        ~cmd="tar czf " ++ tarball ++ " " ++ gitdest,
         (),
-      );
-      unpack(~dest=gitdest, tarball);
-      ExecCommand.execSyncOrFail(~cmd=Cmd.(v("mv") % gitdest % dest), ());
+      )
+      |> snd
+      |> Files.expectSuccess("Unable to tar up");
+      ExecCommand.execStringSync(~cmd="mv " ++ gitdest ++ " " ++ dest, ())
+      |> snd
+      |> Files.expectSuccess("Unable to move");
     } else {
-      unpack(~dest, ~stripComponents=1, tarball);
+      ExecCommand.execStringSync(
+        ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
+        (),
+      )
+      |> snd
+      |> Files.expectSuccess("failed to untar");
     };
   | File(_) => failwith("Cannot handle a file source yet")
   };
@@ -137,12 +152,19 @@ let unpackArchive = (dest, cache, name, version, source) =>
            |> Files.expectSuccess("could not write file " ++ relpath);
          });
       patches
-      |> List.iter(abspath => {
-           let script =
-             Printf.sprintf("cd %s && patch -p1 < %s", dest, abspath);
-           let cmd = Cmd.(v("sh") % "-c" % script);
-           ExecCommand.execSyncOrFail(~cmd, ());
-         });
+      |> List.iter(abspath =>
+           ExecCommand.execStringSync(
+             ~cmd=
+               Printf.sprintf(
+                 "sh -c 'cd %s && patch -p1 < %s'",
+                 dest,
+                 abspath,
+               ),
+             (),
+           )
+           |> snd
+           |> Files.expectSuccess("Failed to patch")
+         );
     | None =>
       if (! Files.exists(packageJson)) {
         failwith("No opam file or package.json");

@@ -262,15 +262,12 @@ and addToUniverse =
       state,
       universe,
       (name, source),
-    ) => {
-  let items =
-    VersionCache.getAvailableVersions(
-      ~config,
-      ~cache=state.cache.versions,
-      (name, source),
-    )
-    |> EsyLib.RunAsync.runExn(~err="ss");
-  items
+    ) =>
+  VersionCache.getAvailableVersions(
+    ~config,
+    ~cache=state.cache.versions,
+    (name, source),
+  )
   |> List.iter(versionPlus => {
        let (realVersion, i) =
          switch (versionPlus) {
@@ -305,7 +302,6 @@ and addToUniverse =
          );
        };
      });
-};
 
 let rootName = "*root*";
 
