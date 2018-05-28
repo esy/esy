@@ -264,16 +264,17 @@ and addToUniverse =
       (name, source),
     ) =>
   VersionCache.getAvailableVersions(
-    config,
-    state.cache.versions,
+    ~config,
+    ~cache=state.cache.versions,
     (name, source),
   )
   |> List.iter(versionPlus => {
        let (realVersion, i) =
          switch (versionPlus) {
-         | `Github(v) => (`Github(v), 1)
-         | `Opam(v, _, i) => (`Opam(v), i)
-         | `Npm(v, _, i) => (`Npm(v), i)
+         | `Github(user, name, ref) => (Lockfile.Github(user, name, ref), 1)
+         | `Opam(v, _, i) => (Lockfile.Opam(v), i)
+         | `Npm(v, _, i) => (Lockfile.Npm(v), i)
+         | `LocalPath(p) => (Lockfile.LocalPath(p), 2)
          };
        if (!
              Hashtbl.mem(

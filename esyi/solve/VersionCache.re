@@ -1,9 +1,6 @@
 open Opam;
-
 open Npm;
-
 open Shared;
-
 open SolveUtils;
 
 type t = {
@@ -14,7 +11,7 @@ type t = {
     Hashtbl.t(string, list((Types.opamConcrete, OpamFile.thinManifest))),
 };
 
-let getAvailableVersions = (config: Config.t, cache, (name, source)) =>
+let getAvailableVersions = (~config: Config.t, ~cache: t, (name, source)) =>
   switch (source) {
   | Types.Github(user, repo, ref) => [`Github((user, repo, ref))]
   | Npm(semver) =>
@@ -60,5 +57,6 @@ let getAvailableVersions = (config: Config.t, cache, (name, source)) =>
         matched;
       };
     matched |> List.map(((version, path, i)) => `Opam((version, path, i)));
-  | _ => []
+  | Git(_) => failwith("git dependencies are not supported")
+  | LocalPath(p) => [`LocalPath(p)]
   };

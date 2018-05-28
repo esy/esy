@@ -1,6 +1,8 @@
 open Opam;
-
 open Npm;
+
+module Path = EsyLib.Path;
+module Lockfile = Shared.Lockfile;
 
 let getDeps = manifest => {
   let depsByKind =
@@ -13,9 +15,10 @@ let getDeps = manifest => {
 
 let getSource = (manifest, name, version) =>
   switch (version) {
-  | `Github(user, repo, ref) =>
+  | Lockfile.Github(user, repo, ref) =>
     Shared.Types.PendingSource.GithubSource(user, repo, ref)
-  | `File(path) => Shared.Types.PendingSource.File(path)
+  | Lockfile.LocalPath(path) =>
+    Shared.Types.PendingSource.File(Path.toString(path))
   | _ =>
     switch (manifest) {
     | `OpamFile(opam) =>
