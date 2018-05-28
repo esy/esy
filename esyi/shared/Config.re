@@ -30,7 +30,7 @@ let make = (~cachePath=?, basePath) => {
   Files.mkdirp(Path.to_string(packageCachePath));
 
   /* XXX: Those two shouldn't be created here as code in ensureGitRepo relies on
-   * their existent to perform either glone or update, consider refactoring it.
+   * their existence to perform either clone or update, consider refactoring it.
    */
   let opamRepositoryPath = Path.(cachePath / "opam-repository");
   let esyOpamOverridePath = Path.(cachePath / "esy-opam-override");
