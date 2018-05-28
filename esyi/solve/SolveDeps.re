@@ -195,6 +195,7 @@ let cudfDep = (owner, universe, cudfVersions, (name, source)) => {
  */
 let rec addPackage =
         (
+          ~config,
           ~unique,
           ~previouslyInstalled,
           ~deep,
@@ -214,7 +215,14 @@ let rec addPackage =
   );
   deep ?
     List.iter(
-      addToUniverse(~unique, ~previouslyInstalled, ~deep, state, universe),
+      addToUniverse(
+        ~config,
+        ~unique,
+        ~previouslyInstalled,
+        ~deep,
+        state,
+        universe,
+      ),
       depsByKind.runtime,
     ) :
     ();
@@ -246,8 +254,20 @@ let rec addPackage =
   Cudf.add_package(universe, package);
 }
 and addToUniverse =
-    (~unique, ~previouslyInstalled, ~deep, state, universe, (name, source)) =>
-  VersionCache.getAvailableVersions(state.cache.versions, (name, source))
+    (
+      ~config,
+      ~unique,
+      ~previouslyInstalled,
+      ~deep,
+      state,
+      universe,
+      (name, source),
+    ) =>
+  VersionCache.getAvailableVersions(
+    config,
+    state.cache.versions,
+    (name, source),
+  )
   |> List.iter(versionPlus => {
        let (realVersion, i) =
          switch (versionPlus) {
@@ -267,6 +287,7 @@ and addToUniverse =
              (name, versionPlus),
            );
          addPackage(
+           ~config,
            ~unique,
            ~previouslyInstalled,
            ~deep,
@@ -284,7 +305,15 @@ and addToUniverse =
 let rootName = "*root*";
 
 let solveDeps =
-    (~unique, ~strategy, ~previouslyInstalled=?, ~deep=true, cache, deps) =>
+    (
+      ~config,
+      ~unique,
+      ~strategy,
+      ~previouslyInstalled=?,
+      ~deep=true,
+      cache,
+      deps,
+    ) =>
   if (deps == []) {
     [];
   } else {
@@ -292,7 +321,14 @@ let solveDeps =
     let state = {cache, cudfVersions: CudfVersions.init()};
     /** This is where most of the work happens, file io, network requests, etc. */
     List.iter(
-      addToUniverse(~unique, ~previouslyInstalled, ~deep, state, universe),
+      addToUniverse(
+        ~config,
+        ~unique,
+        ~previouslyInstalled,
+        ~deep,
+        state,
+        universe,
+      ),
       deps,
     );
     /** Here we invoke the solver! Might also take a while, but probably won't */
@@ -350,7 +386,7 @@ let crawlDeps = (requested, installed) => {
 };
 
 /** TODO untested */
-let solveWithAsMuchOverlapAsPossible = (~cache, ~requested, ~current) => {
+let solveWithAsMuchOverlapAsPossible = (~config, ~cache, ~requested, ~current) => {
   let previouslyInstalled = Hashtbl.create(100);
   current
   |> List.iter(((name, version, _, _)) =>
@@ -358,6 +394,7 @@ let solveWithAsMuchOverlapAsPossible = (~cache, ~requested, ~current) => {
      );
   let installed =
     solveDeps(
+      ~config,
       ~unique=true,
       ~strategy=Strategies.greatestOverlap,
       ~previouslyInstalled,
@@ -384,7 +421,7 @@ let makeVersionMap = installed => {
  * - we provide a list of modules that are already installed
  * - if we want, we only go one level deep
  */
-let solveLoose = (~cache, ~requested, ~current, ~deep) => {
+let solveLoose = (~config, ~cache, ~requested, ~current, ~deep) => {
   let previouslyInstalled = Hashtbl.create(100);
   current
   |> Hashtbl.iter((name, versions) =>
@@ -396,6 +433,7 @@ let solveLoose = (~cache, ~requested, ~current, ~deep) => {
   /* current |> List.iter(({Lockfile.SolvedDep.name, version}) => Hashtbl.add(previouslyInstalled, (name, version), 1)); */
   let installed =
     solveDeps(
+      ~config,
       ~unique=true,
       ~strategy=Strategies.greatestOverlap,
       ~previouslyInstalled,

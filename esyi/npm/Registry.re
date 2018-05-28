@@ -1,10 +1,10 @@
 open EsyLib;
 
 /* TODO use lwt, maybe cache things */
-let getFromNpmRegistry = name => {
+let getFromNpmRegistry = (config: Shared.Config.t, name) => {
   let name = Str.global_replace(Str.regexp("/"), "%2f", name);
   let json =
-    Shared.Wget.get("http://registry.npmjs.org/" ++ name)
+    Shared.Wget.get(config.npmRegistry ++ "/" ++ name)
     |> RunAsync.runExn(~err="Unable to query registry for " ++ name)
     |> Yojson.Basic.from_string;
   switch (json) {

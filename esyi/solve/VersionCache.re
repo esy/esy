@@ -14,7 +14,7 @@ type t = {
     Hashtbl.t(string, list((Types.opamConcrete, OpamFile.thinManifest))),
 };
 
-let getAvailableVersions = (cache, (name, source)) =>
+let getAvailableVersions = (config: Config.t, cache, (name, source)) =>
   switch (source) {
   | Types.Github(user, repo, ref) => [`Github((user, repo, ref))]
   | Npm(semver) =>
@@ -22,7 +22,7 @@ let getAvailableVersions = (cache, (name, source)) =>
       Hashtbl.replace(
         cache.availableNpmVersions,
         name,
-        Npm.Registry.getFromNpmRegistry(name),
+        Npm.Registry.getFromNpmRegistry(config, name),
       );
     };
     let available = Hashtbl.find(cache.availableNpmVersions, name);
