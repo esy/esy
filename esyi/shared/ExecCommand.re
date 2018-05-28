@@ -19,6 +19,7 @@ let withWorkingDir = (~dir, f) => {
  * Get the output of a command, in lines.
  */
 let execSync = (~cmd, ~workingDir=?, ~onOut=?, ()) => {
+  Logs.debug(m => m("exec: %s", Cmd.toString(cmd)));
   let f = () => {
     let cmd = Cmd.toString(cmd);
     let chan = Unix.open_process_in(cmd);
