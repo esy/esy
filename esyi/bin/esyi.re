@@ -50,6 +50,16 @@ module CommandLineInterface = {
     Arg.conv(~docv="PATH", (parse, print));
   };
 
+  let setupLog = (style_renderer, level) => {
+    Fmt_tty.setup_std_outputs(~style_renderer?, ());
+    Logs.set_level(level);
+    Logs.set_reporter(Logs_fmt.reporter());
+    ();
+  };
+
+  let setupLogTerm =
+    Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
+
   let sandboxPathArg = {
     let doc = "Specifies esy sandbox path.";
     let env = Arg.env_var("ESYI__SANDBOX", ~doc);
@@ -95,43 +105,43 @@ module CommandLineInterface = {
   let defaultCommand = {
     let doc = "Dependency installer";
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
+    let cmd = (cfg, ()) => {
       Api.solve(cfg);
       Api.fetch(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
   };
 
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
+    let cmd = (cfg, ()) => {
       Api.solve(cfg);
       Api.fetch(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
   };
 
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
+    let cmd = (cfg, ()) => {
       Api.solve(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
   };
 
   let fetchCommand = {
     let doc = "Fetch dependencies using the solution in a lockfile";
     let info = Term.info("fetch", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
+    let cmd = (cfg, ()) => {
       Api.fetch(cfg);
       `Ok();
     };
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    (Term.(ret(const(cmd) $ cfgTerm $ setupLogTerm)), info);
   };
 
   let commands = [installCommand, solveCommand, fetchCommand];

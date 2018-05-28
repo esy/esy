@@ -2,6 +2,7 @@ open Opam;
 open Npm;
 open Shared;
 module Path = EsyLib.Path;
+module Cmd = EsyLib.Cmd;
 
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
@@ -102,25 +103,22 @@ let expectSuccess = (msg, v) =>
     failwith(msg);
   };
 
-let ensureGitRepo = (source, dest) => {
-  let dest = Path.to_string(dest);
-  if (! Shared.Files.exists(dest)) {
-    Shared.Files.mkdirp(Filename.dirname(dest));
-    Shared.ExecCommand.execSync(
-      ~cmd="git clone --depth 1 " ++ source ++ " " ++ dest,
-      (),
-    )
+let ensureGitRepo = (source, dest) =>
+  if (! Shared.Files.exists(Path.toString(dest))) {
+    Shared.Files.mkdirp(Filename.dirname(Path.toString(dest)));
+    let cmd = Cmd.(v("git") % "clone" % "--depth" % "1" % source % p(dest));
+    Shared.ExecCommand.execSync(~cmd, ())
     |> snd
     |> expectSuccess("Unable to clone " ++ source);
   } else {
-    Shared.ExecCommand.execSync(~cmd="cd " ++ dest ++ " && git pull", ())
+    let cmd = Cmd.(v("git") % "pull" % "--depth" % "1");
+    Shared.ExecCommand.execSync(~workingDir=dest, ~cmd, ())
     |> snd
-    |> expectSuccess("Unable tp update " ++ dest);
+    |> expectSuccess("Unable tp update: " ++ Path.toString(dest));
   };
-};
 
 let lockDownRef = (url, ref) => {
-  let cmd = "git ls-remote " ++ url ++ " " ++ ref;
+  let cmd = Cmd.(v("git") % "ls-remote" % url % ref);
   let (output, success) = Shared.ExecCommand.execSync(~cmd, ());
   if (success) {
     switch (output) {
@@ -130,7 +128,7 @@ let lockDownRef = (url, ref) => {
       ref;
     };
   } else {
-    print_endline("Failed to execute git ls-remote " ++ cmd);
+    print_endline("Failed to execute git ls-remote " ++ Cmd.toString(cmd));
     ref;
   };
 };
@@ -177,10 +175,12 @@ let rec lockDownSource = pendingSource =>
    | _ => lockDownSource(pending)
    }; */
 let checkRepositories = config => {
+  Logs.debug(m => m("git: updating esy-ocaml/esy-opam-override"));
   ensureGitRepo(
     "https://github.com/esy-ocaml/esy-opam-override",
     config.Config.esyOpamOverridePath,
   );
+  Logs.debug(m => m("git: updating ocaml/opam-repository"));
   ensureGitRepo(
     "https://github.com/ocaml/opam-repository",
     config.Config.opamRepositoryPath,
