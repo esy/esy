@@ -4,4 +4,4 @@
  ((name esyi)
   (package esyi)
   (public_name esyi)
-  (libraries (fetch solve cmdliner))))
+  (libraries (fetch solve cmdliner logs logs.cli))))
