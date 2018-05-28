@@ -103,15 +103,27 @@ let expectSuccess = (msg, v) =>
     failwith(msg);
   };
 
-let ensureGitRepo = (source, dest) =>
+let ensureGitRepo = (~branch, source, dest) =>
   if (! Shared.Files.exists(Path.toString(dest))) {
     Shared.Files.mkdirp(Filename.dirname(Path.toString(dest)));
-    let cmd = Cmd.(v("git") % "clone" % "--depth" % "1" % source % p(dest));
-    Shared.ExecCommand.execSync(~cmd, ())
-    |> snd
-    |> expectSuccess("Unable to clone " ++ source);
+    let cmd =
+      Cmd.(
+        v("git")
+        % "clone"
+        % "--branch"
+        % branch
+        % "--depth"
+        % "1"
+        % source
+        % p(dest)
+      );
+    Shared.ExecCommand.execSyncOrFail(~cmd, ());
   } else {
-    let cmd = Cmd.(v("git") % "pull" % "--depth" % "1");
+    let branchSpec = branch ++ ":" ++ branch;
+    let cmd =
+      Cmd.(
+        v("git") % "pull" % "--force" % "--depth" % "1" % source % branchSpec
+      );
     Shared.ExecCommand.execSync(~workingDir=dest, ~cmd, ())
     |> snd
     |> expectSuccess("Unable tp update: " ++ Path.toString(dest));
@@ -177,11 +189,13 @@ let rec lockDownSource = pendingSource =>
 let checkRepositories = config => {
   Logs.debug(m => m("git: updating esy-ocaml/esy-opam-override"));
   ensureGitRepo(
+    ~branch="4",
     "https://github.com/esy-ocaml/esy-opam-override",
     config.Config.esyOpamOverridePath,
   );
   Logs.debug(m => m("git: updating ocaml/opam-repository"));
   ensureGitRepo(
+    ~branch="master",
     "https://github.com/ocaml/opam-repository",
     config.Config.opamRepositoryPath,
   );
