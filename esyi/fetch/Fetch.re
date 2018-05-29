@@ -13,16 +13,6 @@ let fetch = (config: Config.t, env: Solution.t) => {
 
   let nodeModules = Path.(config.basePath / "node_modules");
 
-  let packageCachePath = (name, version) => {
-    let name = FetchUtils.absname(name, version);
-    let name = String.split_on_char('/', name);
-    ListLabels.fold_left(
-      ~f=Path.addSeg,
-      ~init=config.Config.packageCachePath,
-      name,
-    );
-  };
-
   let nodeModulesPath = name => {
     let name = String.split_on_char('/', name);
     ListLabels.fold_left(~f=Path.addSeg, ~init=nodeModules, name);
@@ -38,23 +28,14 @@ let fetch = (config: Config.t, env: Solution.t) => {
   Shared.Files.mkdirp(Path.toString(nodeModules));
   Hashtbl.iter(
     ((name, version), source) => {
-      let dest = packageCachePath(name, version);
+      let pkg =
+        Storage.fetch(~config, ~name, ~version, ~source)
+        |> RunAsync.runExn(~err="error fetching package");
 
-      FetchUtils.unpackArchive(
-        dest,
-        config.Config.tarballCachePath,
-        name,
-        version,
-        source,
-      )
-      |> RunAsync.runExn(~err="error fetching source");
+      let dst = nodeModulesPath(name);
 
-      let nmDest = nodeModulesPath(name);
-      if (Shared.Files.exists(Path.toString(nmDest))) {
-        failwith("Duplicate modules");
-      };
-      Shared.Files.mkdirp(Filename.dirname(Path.toString(nmDest)));
-      Shared.Files.symlink(Path.toString(dest), Path.toString(nmDest));
+      Storage.install(~config, ~dst, pkg)
+      |> RunAsync.runExn(~err="error installing package");
     },
     packagesToFetch,
   );
