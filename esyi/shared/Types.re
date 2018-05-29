@@ -1,8 +1,9 @@
 module Path = EsyLib.Path;
 
-[@deriving yojson]
+[@deriving (ord, yojson)]
 type npmConcrete = (int, int, int, option(string));
 
+[@deriving ord]
 type alpha =
   | Alpha(string, option(num))
 and num =
@@ -64,7 +65,7 @@ let alpha_of_yojson = json =>
   | _ => Result.Error("Alpha should be a list")
   };
 
-[@deriving yojson]
+[@deriving (ord, yojson)]
 type opamConcrete = alpha;
 
 [@deriving yojson]

@@ -1,6 +1,6 @@
 module Path = EsyLib.Path;
 
-[@deriving yojson]
+[@deriving (ord, yojson)]
 type realVersion =
   | Github(string, string, option(string))
   | Npm(Types.npmConcrete)
