@@ -15,6 +15,12 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib.cmx" {"EsyLib.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib.cmt" {"EsyLib.cmt"}
   "_build/install/default/lib/esy-lib/EsyLib.ml-gen" {"EsyLib.ml-gen"}
+  "_build/install/default/lib/esy-lib/EsyLib__Fs.cmi" {"EsyLib__Fs.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Fs.cmx" {"EsyLib__Fs.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Fs.cmt" {"EsyLib__Fs.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__Fs.cmti" {"EsyLib__Fs.cmti"}
+  "_build/install/default/lib/esy-lib/Fs.mli" {"Fs.mli"}
+  "_build/install/default/lib/esy-lib/Fs.ml" {"Fs.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmi" {"EsyLib__Option.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmx" {"EsyLib__Option.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmt" {"EsyLib__Option.cmt"}
