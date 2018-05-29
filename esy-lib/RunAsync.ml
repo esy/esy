@@ -63,4 +63,12 @@ module List = struct
         bind ~f x
     in
     _waitAll xs
+
+  let rec processSeq ~f =
+    let open Syntax in
+    function
+    | [] -> return ()
+    | x::xs ->
+      let%bind () = f x in
+      processSeq ~f xs
 end
