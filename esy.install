@@ -51,12 +51,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__EsyRc.cmx" {"Esy__EsyRc.cmx"}
   "_build/install/default/lib/esy/Esy__EsyRc.cmt" {"Esy__EsyRc.cmt"}
   "_build/install/default/lib/esy/EsyRc.ml" {"EsyRc.ml"}
-  "_build/install/default/lib/esy/Esy__Fs.cmi" {"Esy__Fs.cmi"}
-  "_build/install/default/lib/esy/Esy__Fs.cmx" {"Esy__Fs.cmx"}
-  "_build/install/default/lib/esy/Esy__Fs.cmt" {"Esy__Fs.cmt"}
-  "_build/install/default/lib/esy/Esy__Fs.cmti" {"Esy__Fs.cmti"}
-  "_build/install/default/lib/esy/Fs.mli" {"Fs.mli"}
-  "_build/install/default/lib/esy/Fs.ml" {"Fs.ml"}
   "_build/install/default/lib/esy/Esy__Json.cmi" {"Esy__Json.cmi"}
   "_build/install/default/lib/esy/Esy__Json.cmx" {"Esy__Json.cmx"}
   "_build/install/default/lib/esy/Esy__Json.cmt" {"Esy__Json.cmt"}
