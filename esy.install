@@ -67,12 +67,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__LockfileParser.cmx" {"Esy__LockfileParser.cmx"}
   "_build/install/default/lib/esy/Esy__LockfileParser.cmt" {"Esy__LockfileParser.cmt"}
   "_build/install/default/lib/esy/LockfileParser.ml" {"LockfileParser.ml"}
-  "_build/install/default/lib/esy/Esy__LwtTaskQueue.cmi" {"Esy__LwtTaskQueue.cmi"}
-  "_build/install/default/lib/esy/Esy__LwtTaskQueue.cmx" {"Esy__LwtTaskQueue.cmx"}
-  "_build/install/default/lib/esy/Esy__LwtTaskQueue.cmt" {"Esy__LwtTaskQueue.cmt"}
-  "_build/install/default/lib/esy/Esy__LwtTaskQueue.cmti" {"Esy__LwtTaskQueue.cmti"}
-  "_build/install/default/lib/esy/LwtTaskQueue.mli" {"LwtTaskQueue.mli"}
-  "_build/install/default/lib/esy/LwtTaskQueue.ml" {"LwtTaskQueue.ml"}
   "_build/install/default/lib/esy/Esy__Memoize.cmi" {"Esy__Memoize.cmi"}
   "_build/install/default/lib/esy/Esy__Memoize.cmx" {"Esy__Memoize.cmx"}
   "_build/install/default/lib/esy/Esy__Memoize.cmt" {"Esy__Memoize.cmt"}
