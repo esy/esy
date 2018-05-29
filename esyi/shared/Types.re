@@ -118,21 +118,6 @@ module PendingSource = {
     | NoSource;
 };
 
-/** Lock that down */
-module Source = {
-  [@deriving yojson]
-  type inner =
-    /* url & checksum */
-    | Archive(string, string)
-    /* url & commit */
-    | GitSource(string, string)
-    | GithubSource(string, string, string)
-    | File(string)
-    | NoSource;
-  [@deriving yojson]
-  type t = (inner, option(opamFile));
-};
-
 [@deriving yojson]
 type requestedDep =
   | Npm(GenericVersion.range(npmConcrete))
