@@ -89,4 +89,6 @@ end
 module List : sig
   val waitAll : unit t list -> unit t
   val joinAll : 'a t list -> 'a list t
+  val processSeq :
+    f:('a -> unit t) -> 'a list -> unit t
 end
