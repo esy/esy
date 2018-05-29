@@ -3,40 +3,47 @@ module RunAsync = EsyLib.RunAsync;
 module Config = Shared.Config;
 module Solution = Shared.Solution;
 
-let (/+) = Filename.concat;
+let fetch = (config: Config.t, solution: Solution.t) => {
+  open RunAsync.Syntax;
 
-let fetch = (config: Config.t, env: Solution.t) => {
-  let packagesToFetch = Hashtbl.create(100);
+  /* Collect packages which from the solution */
+  let packagesToFetch = {
+    let pkgs = Hashtbl.create(100);
 
-  let addPackage = ({name, version, source, _}: Solution.fullPackage) =>
-    Hashtbl.replace(packagesToFetch, (name, version), source);
+    let add = (pkg: Solution.pkg) =>
+      Hashtbl.replace(pkgs, (pkg.name, pkg.version), pkg);
 
-  let nodeModules = Path.(config.basePath / "node_modules");
+    List.iter(add, solution.root.bag);
 
-  let nodeModulesPath = name => {
-    let name = String.split_on_char('/', name);
-    ListLabels.fold_left(~f=Path.addSeg, ~init=nodeModules, name);
+    List.iter(
+      ({Solution.pkg, bag}) => {
+        add(pkg);
+        List.iter(add, bag);
+      },
+      solution.buildDependencies,
+    );
+
+    pkgs;
   };
 
-  env.root.runtimeBag |> List.iter(addPackage);
-  env.buildDependencies
-  |> List.iter(({Solution.package, runtimeBag}) => {
-       addPackage(package);
-       List.iter(addPackage, runtimeBag);
-     });
-  Shared.Files.removeDeep(Path.toString(nodeModules));
-  Shared.Files.mkdirp(Path.toString(nodeModules));
+  let nodeModulesPath = Path.(config.basePath / "node_modules");
+  let packageInstallPath = pkg =>
+    Path.(append(nodeModulesPath, v(pkg.Solution.name)));
+
+  let%bind _ = Fs.rmPath(nodeModulesPath);
+  let%bind () = Fs.createDirectory(nodeModulesPath);
+
   Hashtbl.iter(
-    ((name, version), source) => {
+    ((name, version), pkg) => {
+      let dst = packageInstallPath(pkg);
       let pkg =
-        Storage.fetch(~config, ~name, ~version, ~source)
+        Storage.fetch(~config, ~name, ~version, ~source=pkg.Solution.source)
         |> RunAsync.runExn(~err="error fetching package");
-
-      let dst = nodeModulesPath(name);
-
       Storage.install(~config, ~dst, pkg)
       |> RunAsync.runExn(~err="error installing package");
     },
     packagesToFetch,
   );
+
+  return();
 };

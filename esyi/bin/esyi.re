@@ -1,3 +1,4 @@
+module Run = EsyLib.Run;
 module Path = EsyLib.Path;
 module Config = Shared.Config;
 module Solution = Shared.Solution;
@@ -97,25 +98,35 @@ module CommandLineInterface = {
     );
   };
 
+  let run = v =>
+    switch (Lwt_main.run(v)) {
+    | Ok () => `Ok()
+    | Error(err) => `Error((false, Run.formatError(err)))
+    };
+
   let defaultCommand = {
     let doc = "Dependency installer";
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
-      Api.solve(cfg);
-      Api.fetch(cfg);
-      `Ok();
-    };
+    let cmd = cfg =>
+      run(
+        {
+          Api.solve(cfg);
+          Api.fetch(cfg);
+        },
+      );
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
-      Api.solve(cfg);
-      Api.fetch(cfg);
-      `Ok();
-    };
+    let cmd = cfg =>
+      run(
+        {
+          Api.solve(cfg);
+          Api.fetch(cfg);
+        },
+      );
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
@@ -132,10 +143,7 @@ module CommandLineInterface = {
   let fetchCommand = {
     let doc = "Fetch dependencies using the solution in a lockfile";
     let info = Term.info("fetch", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
-      Api.fetch(cfg);
-      `Ok();
-    };
+    let cmd = cfg => run(Api.fetch(cfg));
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
