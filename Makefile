@@ -63,6 +63,7 @@ clean:
 build:
 	@esy b jbuilder build -j 4 $(TARGETS)
 
+b: build-dev
 build-dev:
 	@esy b jbuilder build -j 4 --dev $(TARGETS)
 
