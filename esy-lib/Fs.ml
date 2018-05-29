@@ -264,12 +264,19 @@ let rmPath path =
     | Unix.Unix_error (error, _, _) ->
       RunAsync.error (Unix.error_message error)
 
+let randGen = lazy (Random.State.make_self_init ())
+
+let randPath dir pat =
+  let rand = Random.State.bits (Lazy.force randGen) land 0xFFFFFF in
+  Fpath.(dir / Astring.strf pat (Astring.strf "%06x" rand))
+
 let withTempDir ?tempDir f =
   let tempDir = match tempDir with
   | Some tempDir -> tempDir
   | None -> Filename.get_temp_dir_name ()
   in
-  let path = Path.v (Filename.temp_file ~temp_dir:tempDir "esy" "tmp") in
+  let path = randPath (Path.v tempDir) "esy-%s" in
+  let%lwt () = Lwt_unix.mkdir (Path.toString path) 0o700 in
   Lwt.finalize
     (fun () -> f path)
     (fun () -> rmPathLwt path)
