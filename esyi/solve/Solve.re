@@ -269,8 +269,8 @@ let solve = (config, manifest) => {
   };
 
   let lockdownRootPackage = root => {
-    Solution.package: lockdownFullPackage(root.Env.package),
-    runtimeBag: List.map(lockdownFullPackage, root.Env.runtimeBag),
+    Solution.pkg: lockdownFullPackage(root.Env.package),
+    bag: List.map(lockdownFullPackage, root.Env.runtimeBag),
   };
 
   let buildDependencies =

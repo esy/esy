@@ -26,10 +26,10 @@ type t = {
   buildDependencies: list(rootPackage),
 }
 and rootPackage = {
-  package: fullPackage,
-  runtimeBag: list(fullPackage),
+  pkg,
+  bag: list(pkg),
 }
-and fullPackage = {
+and pkg = {
   name: string,
   version: Lockfile.realVersion,
   source: Source.t,
