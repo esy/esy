@@ -3,6 +3,7 @@ module Option = EsyLib.Option;
 
 type t = {
   basePath: Path.t,
+  lockfilePath: Path.t,
   /* TODO: Figure out if we need to keep tarballs, maybe packageCacheDir will
    * suffice - at least yarn does only it. */
   tarballCachePath: Path.t,
@@ -41,6 +42,7 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) => {
 
   {
     basePath,
+    lockfilePath: Path.(basePath / "esyi.lock.json"),
     tarballCachePath,
     packageCachePath,
     opamRepositoryPath,

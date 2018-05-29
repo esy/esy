@@ -36,7 +36,7 @@ let absname = (name, version) =>
 
 let getSource = (dest, cache, name, version, source) =>
   switch (source) {
-  | Types.Source.Archive(url, _checksum) =>
+  | Solution.Source.Archive(url, _checksum) =>
     let safe = Str.global_replace(Str.regexp("/"), "-", name);
     let withVersion = safe ++ Lockfile.viewRealVersion(version);
     let tarball = cache /+ withVersion ++ ".tarball";
@@ -50,8 +50,8 @@ let getSource = (dest, cache, name, version, source) =>
     )
     |> snd
     |> Files.expectSuccess("failed to untar");
-  | Types.Source.NoSource => ()
-  | Types.Source.GithubSource(user, repo, ref) =>
+  | Solution.Source.NoSource => ()
+  | Solution.Source.GithubSource(user, repo, ref) =>
     let safe =
       Str.global_replace(
         Str.regexp("/"),
@@ -76,7 +76,7 @@ let getSource = (dest, cache, name, version, source) =>
     )
     |> snd
     |> Files.expectSuccess("failed to untar");
-  | Types.Source.GitSource(gitUrl, commit) =>
+  | Solution.Source.GitSource(gitUrl, commit) =>
     let safe = Str.global_replace(Str.regexp("/"), "-", name);
     let withVersion = safe ++ Lockfile.viewRealVersion(version);
     let tarball = cache /+ withVersion ++ ".tarball";

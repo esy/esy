@@ -145,7 +145,7 @@ let lockDownRef = (url, ref) => {
 
 let rec lockDownSource = pendingSource =>
   switch (pendingSource) {
-  | Types.PendingSource.NoSource => (Types.Source.NoSource, None)
+  | Types.PendingSource.NoSource => (Solution.Source.NoSource, None)
   | WithOpamFile(source, opamFile) =>
     switch (lockDownSource(source)) {
     | (s, None) => (s, Some(opamFile))
@@ -153,21 +153,21 @@ let rec lockDownSource = pendingSource =>
     }
   | Archive(url, None) => (
       /* print_endline("Pretending to get a checksum for " ++ url); */
-      Types.Source.Archive(url, "fake checksum"),
+      Solution.Source.Archive(url, "fake checksum"),
       None,
     )
   | Archive(url, Some(checksum)) => (
-      Types.Source.Archive(url, checksum),
+      Solution.Source.Archive(url, checksum),
       None,
     )
   | GitSource(url, ref) =>
     let ref = Shared.Infix.(ref |? "master");
     /** TODO getting HEAD */
-    (Types.Source.GitSource(url, lockDownRef(url, ref)), None);
+    (Solution.Source.GitSource(url, lockDownRef(url, ref)), None);
   | GithubSource(user, name, ref) =>
     let ref = Shared.Infix.(ref |? "master");
     (
-      Types.Source.GithubSource(
+      Solution.Source.GithubSource(
         user,
         name,
         lockDownRef(
@@ -177,7 +177,7 @@ let rec lockDownSource = pendingSource =>
       ),
       None,
     );
-  | File(s) => (Types.Source.File(s), None)
+  | File(s) => (Solution.Source.File(s), None)
   };
 
 /* let lockDownWithOpam = (pending, opam) => switch opam {

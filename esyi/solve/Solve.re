@@ -258,7 +258,22 @@ let solve = (config, manifest) => {
       )
     @ depsByKind.npm;
   let npmPair = resolveNpm(~config, cache, allNpmRequests);
-  let allBuildPackages =
+
+  let lockdownFullPackage = full => {
+    Solution.name: full.Env.name,
+    version: full.Env.version,
+    source: SolveUtils.lockDownSource(full.Env.source),
+    requested: full.Env.requested,
+    runtime: full.runtime,
+    build: full.Env.build,
+  };
+
+  let lockdownRootPackage = root => {
+    Solution.package: lockdownFullPackage(root.Env.package),
+    runtimeBag: List.map(lockdownFullPackage, root.Env.runtimeBag),
+  };
+
+  let buildDependencies =
     Hashtbl.fold(
       ((name, version), (manifest, deps, solvedDeps), result) => [
         makeFullPackage(
@@ -275,22 +290,18 @@ let solve = (config, manifest) => {
       buildVersionMap,
       [],
     );
-  let env = {
-    Env.targets: [
-      (
-        Env.Default,
-        makeFullPackage(
-          "*root*",
-          Lockfile.LocalPath(Path.v("./")),
-          manifest,
-          depsByKind,
-          solvedDeps,
-          buildToVersions,
-          npmPair,
-        ),
-      ),
-    ],
-    buildDependencies: allBuildPackages,
-  };
-  Env.map(SolveUtils.lockDownSource, env);
+  let root =
+    makeFullPackage(
+      "*root*",
+      Lockfile.LocalPath(Path.v("./")),
+      manifest,
+      depsByKind,
+      solvedDeps,
+      buildToVersions,
+      npmPair,
+    );
+  let root = lockdownRootPackage(root);
+  let buildDependencies = List.map(lockdownRootPackage, buildDependencies);
+  let env = {Solution.root, buildDependencies};
+  env;
 };
