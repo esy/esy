@@ -1,6 +1,7 @@
 include Fpath;
 
 let addExt = add_ext;
+let addSeg = add_seg;
 let toString = to_string;
 let isPrefix = is_prefix;
 let remPrefix = rem_prefix;
