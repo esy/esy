@@ -1,4 +1,5 @@
 module Path = EsyLib.Path;
+module RunAsync = EsyLib.RunAsync;
 module Config = Shared.Config;
 module Solution = Shared.Solution;
 
@@ -38,13 +39,16 @@ let fetch = (config: Config.t, env: Solution.t) => {
   Hashtbl.iter(
     ((name, version), source) => {
       let dest = packageCachePath(name, version);
+
       FetchUtils.unpackArchive(
-        Path.toString(dest),
+        dest,
         Path.toString(config.Config.tarballCachePath),
         name,
         version,
         source,
-      );
+      )
+      |> RunAsync.runExn(~err="error fetching source");
+
       let nmDest = nodeModulesPath(name);
       if (Shared.Files.exists(Path.toString(nmDest))) {
         failwith("Duplicate modules");

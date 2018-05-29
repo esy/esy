@@ -1,5 +1,6 @@
 open Shared;
 
+module Fs = EsyLib.Fs;
 module Path = EsyLib.Path;
 module RunAsync = EsyLib.RunAsync;
 
@@ -14,22 +15,20 @@ let resolveString = (name, version) =>
     "esyi4-" ++ name ++ "--" ++ Lockfile.viewRealVersion(version) :
     resolvedString(name, version);
 
-let addResolvedFieldToPackageJson = (filename, name, version) => {
-  let json =
-    switch (Yojson.Basic.from_file(filename)) {
-    | `Assoc(items) => items
-    | _ => failwith("bad json")
-    };
-  let raw =
-    Yojson.Basic.pretty_to_string(
-      `Assoc([
-        ("_resolved", `String(resolvedString(name, version))),
-        ...json,
-      ]),
-    );
-  Files.writeFile(filename, raw)
-  |> Files.expectSuccess("Could not write back package json");
-};
+let addResolvedFieldToPackageJson = (filename: Path.t, name, version) =>
+  RunAsync.Syntax.(
+    switch%bind (Fs.readJsonFile(filename)) {
+    | `Assoc(items) =>
+      let json =
+        `Assoc([
+          ("_resolved", `String(resolvedString(name, version))),
+          ...items,
+        ]);
+      let data = Yojson.Safe.pretty_to_string(json);
+      Fs.writeFile(~data, filename);
+    | _ => error("invalid package.json")
+    }
+  );
 
 let absname = (name, version) =>
   name ++ "__" ++ Lockfile.viewRealVersion(version);
@@ -128,36 +127,51 @@ let getSource = (dest, cache, name, version, source) =>
 /**
  * Unpack an archive into place, and then for opam projects create a package.json & apply files / patches.
  */
-let unpackArchive = (dest, cache, name, version, source) =>
-  if (Files.isDirectory(dest)) {
-    print_endline("Dependency exists -- assuming it is fine " ++ dest);
+let unpackArchive = (dest: Path.t, cache, name, version, source) => {
+  open RunAsync.Syntax;
+  let removeEsyJsonIfExists = () => {
+    let esyJson = Path.(dest / "esy.json");
+    switch%bind (Fs.exists(esyJson)) {
+    | true => Fs.unlink(esyJson)
+    | false => return()
+    };
+  };
+  if%bind (Fs.exists(dest)) {
+    print_endline(
+      "Dependency exists -- assuming it is fine " ++ Path.toString(dest),
+    );
+    return();
   } else {
-    Files.mkdirp(dest);
-    let packageJson = dest /+ "package.json";
+    let%bind () = Fs.createDirectory(dest);
     let (source, maybeOpamFile) = source;
-    getSource(dest, cache, name, version, source);
+    getSource(Path.toString(dest), cache, name, version, source);
     switch (maybeOpamFile) {
     | Some((packageJson, files, patches)) =>
-      if (Files.exists(dest /+ "esy.json")) {
-        Unix.unlink(dest /+ "esy.json");
-      };
-      let raw =
-        Yojson.Basic.pretty_to_string(Yojson.Safe.to_basic(packageJson));
-      Files.writeFile(dest /+ "package.json", raw)
-      |> Files.expectSuccess("could not write package.json");
-      files
-      |> List.iter(((relpath, contents)) => {
-           Files.mkdirp(Filename.dirname(dest /+ relpath));
-           Files.writeFile(dest /+ relpath, contents)
-           |> Files.expectSuccess("could not write file " ++ relpath);
-         });
+      let%bind () = removeEsyJsonIfExists();
+
+      let%bind () =
+        Fs.writeJsonFile(~json=packageJson, Path.(dest / "package.json"));
+
+      let%bind () =
+        List.map(
+          ((name, data)) => {
+            let name = Path.(dest / name);
+            let dirname = Path.parent(name);
+            let%bind () = Fs.createDirectory(dirname);
+            let%bind () = Fs.writeFile(~data, name);
+            return();
+          },
+          files,
+        )
+        |> RunAsync.List.waitAll;
+
       patches
       |> List.iter(abspath =>
            ExecCommand.execStringSync(
              ~cmd=
                Printf.sprintf(
                  "sh -c 'cd %s && patch -p1 < %s'",
-                 dest,
+                 Path.toString(dest),
                  abspath,
                ),
              (),
@@ -165,10 +179,15 @@ let unpackArchive = (dest, cache, name, version, source) =>
            |> snd
            |> Files.expectSuccess("Failed to patch")
          );
+      return();
+
     | None =>
-      if (! Files.exists(packageJson)) {
-        failwith("No opam file or package.json");
+      let packageJson = Path.(dest / "package.json");
+      if%bind (Fs.exists(packageJson)) {
+        addResolvedFieldToPackageJson(packageJson, name, version);
+      } else {
+        error("No opam file or package.json");
       };
-      addResolvedFieldToPackageJson(packageJson, name, version);
     };
   };
+};
