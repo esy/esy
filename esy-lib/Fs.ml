@@ -32,6 +32,10 @@ let readJsonFile (path : Path.t) =
   let%bind data = readFile path in
   return (Yojson.Safe.from_string data)
 
+let writeJsonFile ~json path =
+  let data = Yojson.Safe.pretty_to_string json in
+  writeFile ~data path
+
 let exists (path : Path.t) =
   let path = Path.to_string path in
   let%lwt exists = Lwt_unix.file_exists path in
