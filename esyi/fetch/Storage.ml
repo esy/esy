@@ -10,7 +10,7 @@ module Package = struct
     name : string;
     version : Lockfile.realVersion;
     source : Solution.Source.t;
-    path : Path.t;
+    tarballPath : Path.t;
   }
 end
 
@@ -23,80 +23,43 @@ let fetch ~(config : Config.t) ~name ~version ~source =
 
   let doFetch path =
     match info with
-    | Solution.Source.File _ -> failwith "NOT IMPLEMENTED"
+    | Solution.Source.File _ ->
+      failwith "NOT IMPLEMENTED"
+
     | Solution.Source.NoSource ->
-      let%bind () = Fs.createDirectory path in
       return ()
 
     | Solution.Source.Archive (url, _checksum)  ->
-      let safe = Str.global_replace (Str.regexp "/") "-" name in
-      let withVersion = safe ^ (Lockfile.viewRealVersion version) in
-      let tarball = Path.(config.Config.tarballCachePath / (withVersion ^ ".tarball")) in
-
-      if not (Files.isFile (Path.toString tarball)) then
-        Wget.download ~output:tarball url
-        |> RunAsync.runExn ~err:"error downloading archive"
-      ;
-
-      Tarball.unpack ~stripComponents:1 ~dst:path ~filename:tarball
-      |> RunAsync.runExn ~err:"error unpacking";
-
-      return ()
+      let f tempPath =
+        let%bind () = Fs.createDirectory tempPath in
+        let tarballPath = Path.(tempPath / "package.tgz") in
+        let%bind () = Wget.download ~output:tarballPath url in
+        let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
+        return ()
+      in
+      Fs.withTempDir f
 
     | Solution.Source.GithubSource (user, repo, ref) ->
-      let safe =
-        Str.global_replace
-          (Str.regexp "/")
-          "-"
-          (name ^ "__" ^ user ^ "__" ^ repo ^ "__" ^ ref)
-      in
-      let tarball = Path.(config.tarballCachePath / (safe ^ ".tarball")) in
-      if not (Files.isFile (Path.toString tarball)) then (
-        let tarUrl =
-          "https://api.github.com/repos/"
-          ^ user
-          ^ "/"
-          ^ repo
-          ^ "/tarball/"
-          ^ ref
+      let f tempPath =
+        let%bind () = Fs.createDirectory tempPath in
+        let tarballPath = Path.(tempPath / "package.tgz") in
+        let%bind () =
+          let url =
+            Printf.sprintf
+              "https://api.github.com/repos/%s/%s/tarball/%s"
+              user repo ref
+          in
+          Wget.download ~output:tarballPath url
         in
-        Wget.download ~output:tarball tarUrl
-        |> RunAsync.runExn ~err:"error downloading archive"
-      );
-
-      Tarball.unpack ~stripComponents:1 ~dst:path ~filename:tarball
-      |> RunAsync.runExn ~err:"error unpacking";
-
-      return ()
+        let%bind () =  Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
+        return ()
+      in
+      Fs.withTempDir f
 
     | Solution.Source.GitSource (gitUrl, commit) ->
-      let safe = Str.global_replace (Str.regexp "/") "-" name in
-      let withVersion = safe ^ (Lockfile.viewRealVersion version) in
-      let tarball = Path.(config.tarballCachePath / (withVersion ^ ".tarball")) in
-
-      if not (Files.isFile (Path.toString tarball)) then (
-        let gitdest = Path.(config.tarballCachePath / ("git-" ^ withVersion)) in
-
-        Git.clone ~dst:gitdest ~remote:gitUrl
-        |> RunAsync.runExn ~err:"error cloning repo";
-
-        Git.checkout ~ref:commit ~repo:gitdest
-        |> RunAsync.runExn ~err:"error checkouting ref";
-
-        ChildProcess.run Cmd.(v "rm" % "-rf" % p Path.(gitdest / ".git"))
-        |> RunAsync.runExn ~err:"error checkouting ref";
-
-        Tarball.create ~src:gitdest ~filename:tarball
-        |> RunAsync.runExn ~err:"error creating archive";
-
-        ChildProcess.run Cmd.(v "mv" % p gitdest % p path)
-        |> RunAsync.runExn ~err:"error moving directory";
-
-      ) else (
-        Tarball.unpack ~dst:path ~stripComponents:1 ~filename:tarball
-        |> RunAsync.runExn ~err:"error extracting archive"
-      );
-
+      let%bind () = Git.clone ~dst:path ~remote:gitUrl in
+      let%bind () = Git.checkout ~ref:commit ~repo:path in
+      let%bind () = ChildProcess.run Cmd.(v "rm" % "-rf" % p Path.(path / ".git")) in
       return ()
     in
 
@@ -168,24 +131,38 @@ let fetch ~(config : Config.t) ~name ~version ~source =
       Printf.sprintf "%s__%s" name version
     in
 
-    let stagePath = Path.(config.packageCachePath // v (key ^ "__stage")) in
-    let finalPath = Path.(config.packageCachePath // v key) in
+    let tarballPath = Path.(config.tarballCachePath // v (key ^ ".tgz")) in
 
-    let pkg = {Package. path = finalPath; name; version; source} in
+    let pkg = {Package. tarballPath; name; version; source} in
 
-    match%bind Fs.exists finalPath with
+    match%bind Fs.exists tarballPath with
     | true ->
       return pkg
     | false ->
-      let%bind () = Fs.createDirectory stagePath in
-      let%bind () = doFetch stagePath in
-      let%bind () = complete stagePath in
-      let%bind () = Fs.rename ~source:stagePath finalPath in
-      return pkg
+      Fs.withTempDir (fun sourcePath ->
+        let%bind () =
+          let%bind () = Fs.createDirectory sourcePath in
+          Logs.app (fun m -> m "Fetching %s" name);
+          let%bind () = doFetch sourcePath in
+          let%bind () = complete sourcePath in
+          Logs.app (fun m -> m "Fetching %s: done" name);
+          return ()
+        in
+
+        let%bind () =
+          let%bind () = Fs.createDirectory (Path.parent tarballPath) in
+          let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
+          let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
+          let%bind () = Fs.rename ~source:tempTarballPath tarballPath in
+          return ()
+        in
+
+        return pkg
+      )
 
 let install ~config:_ ~dst pkg =
   let open RunAsync.Syntax in
-  let {Package. path; _} = pkg in
-  let%bind () = Fs.createDirectory (Path.parent dst) in
-  let%bind () = Fs.symlink ~source:path dst in
+  let {Package. tarballPath; _} = pkg in
+  let%bind () = Fs.createDirectory dst in
+  let%bind () = Tarball.unpack ~dst tarballPath in
   return ()
