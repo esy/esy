@@ -1,5 +1,6 @@
 open Shared;
 
+module Cmd = EsyLib.Cmd;
 module Fs = EsyLib.Fs;
 module Path = EsyLib.Path;
 module RunAsync = EsyLib.RunAsync;
@@ -35,21 +36,20 @@ let absname = (name, version) =>
 
 let getSource = (dest, cache, name, version, source) =>
   switch (source) {
+  | Solution.Source.NoSource => ()
+  | Solution.Source.File(_) => failwith("Cannot handle a file source yet")
+
   | Solution.Source.Archive(url, _checksum) =>
     let safe = Str.global_replace(Str.regexp("/"), "-", name);
     let withVersion = safe ++ Lockfile.viewRealVersion(version);
-    let tarball = cache /+ withVersion ++ ".tarball";
-    if (! Files.isFile(tarball)) {
-      Wget.download(~output=Path.v(tarball), url)
+    let tarball = Path.(cache / (withVersion ++ ".tarball"));
+    if (! Files.isFile(Path.toString(tarball))) {
+      Wget.download(~output=tarball, url)
       |> RunAsync.runExn(~err="error downloading archive");
     };
-    ExecCommand.execStringSync(
-      ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-      (),
-    )
-    |> snd
-    |> Files.expectSuccess("failed to untar");
-  | Solution.Source.NoSource => ()
+    Tarball.unpack(~stripComponents=1, ~dst=dest, ~filename=tarball)
+    |> RunAsync.runExn(~err="error unpacking");
+
   | Solution.Source.GithubSource(user, repo, ref) =>
     let safe =
       Str.global_replace(
@@ -57,8 +57,8 @@ let getSource = (dest, cache, name, version, source) =>
         "-",
         name ++ "__" ++ user ++ "__" ++ repo ++ "__" ++ ref,
       );
-    let tarball = cache /+ safe ++ ".tarball";
-    if (! Files.isFile(tarball)) {
+    let tarball = Path.(cache / (safe ++ ".tarball"));
+    if (! Files.isFile(Path.toString(tarball))) {
       let tarUrl =
         "https://api.github.com/repos/"
         ++ user
@@ -66,62 +66,42 @@ let getSource = (dest, cache, name, version, source) =>
         ++ repo
         ++ "/tarball/"
         ++ ref;
-      Wget.download(~output=Path.v(tarball), tarUrl)
+      Wget.download(~output=tarball, tarUrl)
       |> RunAsync.runExn(~err="error downloading archive");
     };
-    ExecCommand.execStringSync(
-      ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-      (),
-    )
-    |> snd
-    |> Files.expectSuccess("failed to untar");
+
+    Tarball.unpack(~stripComponents=1, ~dst=dest, ~filename=tarball)
+    |> RunAsync.runExn(~err="error unpacking");
+
   | Solution.Source.GitSource(gitUrl, commit) =>
     let safe = Str.global_replace(Str.regexp("/"), "-", name);
     let withVersion = safe ++ Lockfile.viewRealVersion(version);
-    let tarball = cache /+ withVersion ++ ".tarball";
-    if (! Files.isFile(tarball)) {
+    let tarball = Path.(cache / (withVersion ++ ".tarball"));
+    if (! Files.isFile(Path.toString(tarball))) {
       print_endline(
         "[fetching git repo " ++ gitUrl ++ " at commit " ++ commit,
       );
-      let gitdest = cache /+ "git-" ++ withVersion;
+      let gitdest = Path.(cache / ("git-" ++ withVersion));
+
       /** TODO we want to have the commit nailed down by this point tho */
-      ExecCommand.execStringSync(
-        ~cmd="git clone " ++ gitUrl ++ " " ++ gitdest,
-        (),
-      )
-      |> snd
-      |> Files.expectSuccess("Unable to clone git repo " ++ gitUrl);
-      ExecCommand.execStringSync(
-        ~cmd=
-          "cd "
-          ++ gitdest
-          ++ " && git checkout "
-          ++ commit
-          ++ " && rm -rf .git",
-        (),
-      )
-      |> snd
-      |> Files.expectSuccess(
-           "Unable to checkout " ++ gitUrl ++ " at " ++ commit,
-         );
-      ExecCommand.execStringSync(
-        ~cmd="tar czf " ++ tarball ++ " " ++ gitdest,
-        (),
-      )
-      |> snd
-      |> Files.expectSuccess("Unable to tar up");
-      ExecCommand.execStringSync(~cmd="mv " ++ gitdest ++ " " ++ dest, ())
-      |> snd
-      |> Files.expectSuccess("Unable to move");
+      Git.clone(~dst=gitdest, ~remote=gitUrl)
+      |> RunAsync.runExn(~err="error cloning repo");
+
+      Git.checkout(~ref=commit, ~repo=gitdest)
+      |> RunAsync.runExn(~err="error checkouting ref");
+
+      ChildProcess.run(Cmd.(v("rm") % "-rf" % p(Path.(gitdest / ".git"))))
+      |> RunAsync.runExn(~err="error checkouting ref");
+
+      Tarball.create(~src=gitdest, ~filename=tarball)
+      |> RunAsync.runExn(~err="error creating archive");
+
+      ChildProcess.run(Cmd.(v("mv") % p(gitdest) % p(dest)))
+      |> RunAsync.runExn(~err="error moving directory");
     } else {
-      ExecCommand.execStringSync(
-        ~cmd="tar xf " ++ tarball ++ " --strip-components 1 -C " ++ dest,
-        (),
-      )
-      |> snd
-      |> Files.expectSuccess("failed to untar");
+      Tarball.unpack(~dst=dest, ~stripComponents=1, ~filename=tarball)
+      |> RunAsync.runExn(~err="error extracting archive");
     };
-  | File(_) => failwith("Cannot handle a file source yet")
   };
 
 /**
@@ -144,7 +124,7 @@ let unpackArchive = (dest: Path.t, cache, name, version, source) => {
   } else {
     let%bind () = Fs.createDirectory(dest);
     let (source, maybeOpamFile) = source;
-    getSource(Path.toString(dest), cache, name, version, source);
+    getSource(dest, cache, name, version, source);
     switch (maybeOpamFile) {
     | Some((packageJson, files, patches)) =>
       let%bind () = removeEsyJsonIfExists();
@@ -155,7 +135,7 @@ let unpackArchive = (dest: Path.t, cache, name, version, source) => {
       let%bind () =
         List.map(
           ((name, data)) => {
-            let name = Path.(dest / name);
+            let name = Path.append(dest, Path.v(name));
             let dirname = Path.parent(name);
             let%bind () = Fs.createDirectory(dirname);
             let%bind () = Fs.writeFile(~data, name);

@@ -42,7 +42,7 @@ let fetch = (config: Config.t, env: Solution.t) => {
 
       FetchUtils.unpackArchive(
         dest,
-        Path.toString(config.Config.tarballCachePath),
+        config.Config.tarballCachePath,
         name,
         version,
         source,
