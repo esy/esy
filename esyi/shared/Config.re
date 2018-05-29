@@ -7,7 +7,6 @@ type t = {
   /* TODO: Figure out if we need to keep tarballs, maybe packageCacheDir will
    * suffice - at least yarn does only it. */
   tarballCachePath: Path.t,
-  packageCachePath: Path.t,
   esyOpamOverridePath: Path.t,
   opamRepositoryPath: Path.t,
   npmRegistry: string,
@@ -25,11 +24,8 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) => {
   let cachePath =
     Option.orDefault(Path.(userDirectory() / ".esy" / "esyi"), cachePath);
 
-  let tarballCachePath = Path.(cachePath / "archives");
+  let tarballCachePath = Path.(cachePath / "tarballs");
   Files.mkdirp(Path.to_string(tarballCachePath));
-
-  let packageCachePath = Path.(cachePath / "packages");
-  Files.mkdirp(Path.to_string(packageCachePath));
 
   /* XXX: Those two shouldn't be created here as code in ensureGitRepo relies on
    * their existence to perform either clone or update, consider refactoring it.
@@ -44,7 +40,6 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) => {
     basePath,
     lockfilePath: Path.(basePath / "esyi.lock.json"),
     tarballCachePath,
-    packageCachePath,
     opamRepositoryPath,
     esyOpamOverridePath,
     npmRegistry,

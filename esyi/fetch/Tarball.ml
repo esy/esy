@@ -1,7 +1,7 @@
 module Cmd = EsyLib.Cmd
 module ChildProcess = EsyLib.ChildProcess
 
-let unpack ?stripComponents ~dst ~filename =
+let unpack ?stripComponents ~dst filename =
   let cmd =
     let cmd = Cmd.(v "tar" % "xf" % p filename) in
     let cmd =
@@ -15,6 +15,6 @@ let unpack ?stripComponents ~dst ~filename =
   in
   ChildProcess.run cmd
 
-let create ~src ~filename =
-  let cmd = Cmd.(v "tar" % "czf" % p filename % p src) in
+let create ~filename src =
+  let cmd = Cmd.(v "tar" % "czf" % p filename % "-C" % p src % ".") in
   ChildProcess.run cmd

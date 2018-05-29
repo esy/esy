@@ -10,13 +10,13 @@
 val unpack :
   ?stripComponents:int
   -> dst:Path.t
-  -> filename:Path.t
+  -> Path.t
   -> unit RunAsync.t
 
 (**
  * Create tarball [filename] by archiving [src] path.
  *)
 val create :
-  src:Path.t
-  -> filename:Path.t
+  filename:Path.t
+  -> Path.t
   -> unit RunAsync.t
