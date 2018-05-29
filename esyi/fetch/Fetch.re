@@ -1,5 +1,3 @@
-module Path = EsyLib.Path;
-module RunAsync = EsyLib.RunAsync;
 module Config = Shared.Config;
 module Solution = Shared.Solution;
 module Lockfile = Shared.Lockfile;
@@ -48,19 +46,23 @@ let fetch = (config: Config.t, solution: Solution.t) => {
 
   Logs.app(m => m("Checking if there are some packages to fetch..."));
 
-  let%bind packagesFetched =
+  let%bind packagesFetched = {
+    let queue = LwtTaskQueue.create(~concurrency=8, ());
     packagesToFetch
     |> List.map(pkg => {
          let%bind fetchedPkg =
-           Storage.fetch(
-             ~config,
-             ~name=pkg.Solution.name,
-             ~version=pkg.Solution.version,
-             ~source=pkg.Solution.source,
+           LwtTaskQueue.submit(queue, () =>
+             Storage.fetch(
+               ~config,
+               ~name=pkg.Solution.name,
+               ~version=pkg.Solution.version,
+               ~source=pkg.Solution.source,
+             )
            );
          return((pkg, fetchedPkg));
        })
     |> RunAsync.List.joinAll;
+  };
 
   Logs.app(m => m("Populating node_modules..."));
 
