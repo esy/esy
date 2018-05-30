@@ -51,6 +51,12 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmx" {"EsyLib__Option.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmt" {"EsyLib__Option.cmt"}
   "_build/install/default/lib/esy-lib/Option.re" {"Option.re"}
+  "_build/install/default/lib/esy-lib/EsyLib__Patch.cmi" {"EsyLib__Patch.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Patch.cmx" {"EsyLib__Patch.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Patch.cmt" {"EsyLib__Patch.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__Patch.cmti" {"EsyLib__Patch.cmti"}
+  "_build/install/default/lib/esy-lib/Patch.mli" {"Patch.mli"}
+  "_build/install/default/lib/esy-lib/Patch.ml" {"Patch.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Path.cmi" {"EsyLib__Path.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Path.cmx" {"EsyLib__Path.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Path.cmt" {"EsyLib__Path.cmt"}
