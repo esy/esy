@@ -1,12 +1,10 @@
-open Infix;
-
 let githubFileUrl = (user, repo, ref, file) =>
   "https://raw.githubusercontent.com/"
   ++ user
   ++ "/"
   ++ repo
   ++ "/"
-  ++ (ref |? "master")
+  ++ Option.orDefault("master", ref)
   ++ "/"
   ++ file;
 
