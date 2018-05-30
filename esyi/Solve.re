@@ -214,92 +214,104 @@ let resolveNpm = (~config, cache, npmRequests) => {
   (npmVersionMap, npmToVersions);
 };
 
-let solve = (config, manifest) => {
-  SolveUtils.checkRepositories(config)
-  |> RunAsync.runExn(~err="error updating repos");
-  let cache = SolveDeps.initCache(config);
-  let depsByKind = Manifest.getDeps(manifest);
-  let solvedDeps =
-    SolveDeps.solve(~config, ~cache, ~requested=depsByKind.runtime);
-  /** TODO should targets be determined completely separately?
-   * seems like we'll want to be able to ~fetch~  independently...
-   * but maybe solve all at once?
-   * yeah probably. makes things a little harder for me.
-   */
-  /*
-   let solvedTargets = targets |> List.map(target => {
-     let targetDeps = SolveDeps.solveWithAsMuchOverlapAsPossible(
-       ~cache,
-       ~requested=target.dependencies.runtime,
-       ~current=solvedDeps
-     );
-     (target, targetDeps)
-   });
-   */
-  let (buildVersionMap, buildToVersions) =
-    settleBuildDeps(~config, cache, solvedDeps, depsByKind.build);
-  /* Ok, time for npm. */
-  let allNpmRequests =
-    Hashtbl.fold(
-      ((_name, _version), (_manifest, deps, solvedDeps), result) =>
-        deps.Types.npm
-        @ (
-          List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps)
-          |> List.concat
+let solve = (config, manifest) =>
+  RunAsync.Syntax.(
+    {
+      let%bind () = SolveUtils.checkRepositories(config);
+      let cache = SolveDeps.initCache(config);
+      let depsByKind = Manifest.getDeps(manifest);
+      let solvedDeps =
+        SolveDeps.solve(~config, ~cache, ~requested=depsByKind.runtime);
+      /** TODO should targets be determined completely separately?
+        * seems like we'll want to be able to ~fetch~  independently...
+        * but maybe solve all at once?
+        * yeah probably. makes things a little harder for me.
+        */
+      /*
+       let solvedTargets = targets |> List.map(target => {
+         let targetDeps = SolveDeps.solveWithAsMuchOverlapAsPossible(
+           ~cache,
+           ~requested=target.dependencies.runtime,
+           ~current=solvedDeps
+         );
+         (target, targetDeps)
+       });
+       */
+      let (buildVersionMap, buildToVersions) =
+        settleBuildDeps(~config, cache, solvedDeps, depsByKind.build);
+      /* Ok, time for npm. */
+      let allNpmRequests =
+        Hashtbl.fold(
+          ((_name, _version), (_manifest, deps, solvedDeps), result) =>
+            deps.Types.npm
+            @ (
+              List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps)
+              |> List.concat
+            )
+            @ result,
+          buildVersionMap,
+          [],
         )
-        @ result,
-      buildVersionMap,
-      [],
-    )
-    @ List.concat(
-        List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps),
-      )
-    @ depsByKind.npm;
-  let npmPair = resolveNpm(~config, cache, allNpmRequests);
+        @ List.concat(
+            List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps),
+          )
+        @ depsByKind.npm;
+      let npmPair = resolveNpm(~config, cache, allNpmRequests);
 
-  let lockdownFullPackage = full => {
-    Solution.name: full.Env.name,
-    version: full.Env.version,
-    source: SolveUtils.lockDownSource(full.Env.source),
-    requested: full.Env.requested,
-    runtime: full.runtime,
-    build: full.Env.build,
-  };
+      let lockdownFullPackage = full => {
+        let%bind source = SolveUtils.lockDownSource(full.Env.source);
+        return({
+          Solution.name: full.Env.name,
+          version: full.Env.version,
+          source,
+          requested: full.Env.requested,
+          runtime: full.runtime,
+          build: full.Env.build,
+        });
+      };
 
-  let lockdownRootPackage = root => {
-    Solution.pkg: lockdownFullPackage(root.Env.package),
-    bag: List.map(lockdownFullPackage, root.Env.runtimeBag),
-  };
+      let lockdownRootPackage = root => {
+        let%bind pkg = lockdownFullPackage(root.Env.package);
+        let%bind bag =
+          root.Env.runtimeBag
+          |> List.map(lockdownFullPackage)
+          |> RunAsync.List.joinAll;
+        return({Solution.pkg, bag});
+      };
 
-  let buildDependencies =
-    Hashtbl.fold(
-      ((name, version), (manifest, deps, solvedDeps), result) => [
+      let buildDependencies =
+        Hashtbl.fold(
+          ((name, version), (manifest, deps, solvedDeps), result) => [
+            makeFullPackage(
+              name,
+              version,
+              manifest,
+              deps,
+              solvedDeps,
+              buildToVersions,
+              npmPair,
+            ),
+            ...result,
+          ],
+          buildVersionMap,
+          [],
+        );
+      let root =
         makeFullPackage(
-          name,
-          version,
+          "*root*",
+          Solution.Version.LocalPath(Path.v("./")),
           manifest,
-          deps,
+          depsByKind,
           solvedDeps,
           buildToVersions,
           npmPair,
-        ),
-        ...result,
-      ],
-      buildVersionMap,
-      [],
-    );
-  let root =
-    makeFullPackage(
-      "*root*",
-      Solution.Version.LocalPath(Path.v("./")),
-      manifest,
-      depsByKind,
-      solvedDeps,
-      buildToVersions,
-      npmPair,
-    );
-  let root = lockdownRootPackage(root);
-  let buildDependencies = List.map(lockdownRootPackage, buildDependencies);
-  let env = {Solution.root, buildDependencies};
-  env;
-};
+        );
+      let%bind root = lockdownRootPackage(root);
+      let%bind buildDependencies =
+        buildDependencies
+        |> List.map(lockdownRootPackage)
+        |> RunAsync.List.joinAll;
+      let env = {Solution.root, buildDependencies};
+      return(env);
+    }
+  );

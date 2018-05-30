@@ -106,63 +106,37 @@ let expectSuccess = (msg, v) =>
     failwith(msg);
   };
 
-let lockDownRef = (url, ref) => {
-  let cmd = Cmd.(v("git") % "ls-remote" % url % ref);
-  let (output, success) = ExecCommand.execSync(~cmd, ());
-  if (success) {
-    switch (output) {
-    | [] => ref
-    | [line, ..._] =>
-      let ref = String.split_on_char('\t', line) |> List.hd;
-      ref;
-    };
-  } else {
-    print_endline("Failed to execute git ls-remote " ++ Cmd.toString(cmd));
-    ref;
-  };
-};
-
 let rec lockDownSource = pendingSource =>
-  switch (pendingSource) {
-  | Types.PendingSource.NoSource => (Solution.Source.NoSource, None)
-  | WithOpamFile(source, opamFile) =>
-    switch (lockDownSource(source)) {
-    | (s, None) => (s, Some(opamFile))
-    | _ => failwith("can't nest withOpamFiles inside each other")
+  RunAsync.Syntax.(
+    switch (pendingSource) {
+    | Types.PendingSource.NoSource => return((Solution.Source.NoSource, None))
+    | WithOpamFile(source, opamFile) =>
+      switch%bind (lockDownSource(source)) {
+      | (s, None) => return((s, Some(opamFile)))
+      | _ => error("can't nest withOpamFiles inside each other")
+      }
+    | Archive(url, None) =>
+      return((
+        /* print_endline("Pretending to get a checksum for " ++ url); */
+        Solution.Source.Archive(url, "fake checksum"),
+        None,
+      ))
+    | Archive(url, Some(checksum)) =>
+      return((Solution.Source.Archive(url, checksum), None))
+    | GitSource(url, ref) =>
+      let ref = Option.orDefault("master", ref);
+      /** TODO getting HEAD */
+      let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
+      return((Solution.Source.GitSource(url, sha), None));
+    | GithubSource(user, name, ref) =>
+      let ref = Option.orDefault("master", ref);
+      let url = "git://github.com/" ++ user ++ "/" ++ name ++ ".git";
+      let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
+      return((Solution.Source.GithubSource(user, name, sha), None));
+    | File(s) => return((Solution.Source.File(s), None))
     }
-  | Archive(url, None) => (
-      /* print_endline("Pretending to get a checksum for " ++ url); */
-      Solution.Source.Archive(url, "fake checksum"),
-      None,
-    )
-  | Archive(url, Some(checksum)) => (
-      Solution.Source.Archive(url, checksum),
-      None,
-    )
-  | GitSource(url, ref) =>
-    let ref = Option.orDefault("master", ref);
-    /** TODO getting HEAD */
-    (Solution.Source.GitSource(url, lockDownRef(url, ref)), None);
-  | GithubSource(user, name, ref) =>
-    let ref = Option.orDefault("master", ref);
-    (
-      Solution.Source.GithubSource(
-        user,
-        name,
-        lockDownRef(
-          "git://github.com/" ++ user ++ "/" ++ name ++ ".git",
-          ref,
-        ),
-      ),
-      None,
-    );
-  | File(s) => (Solution.Source.File(s), None)
-  };
+  );
 
-/* let lockDownWithOpam = (pending, opam) => switch opam {
-   | Some(s) => lockDownSource(Types.PendingSource.WithOpamFile(pending, s))
-   | _ => lockDownSource(pending)
-   }; */
 let checkRepositories = config =>
   RunAsync.Syntax.(
     {

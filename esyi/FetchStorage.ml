@@ -99,17 +99,11 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
           List.map f files |> RunAsync.List.waitAll
         in
 
-        patches
-        |> List.iter(fun abspath ->
-            ExecCommand.execStringSync
-              ~cmd:(Printf.sprintf
-                  "sh -c 'cd %s && patch -p1 < %s'"
-                  (Path.toString path)
-                  abspath)
-              ()
-            |> snd
-            |> Files.expectSuccess("Failed to patch")
-        );
+        let%bind() =
+          let f patch =
+            Patch.apply ~strip:1 ~root:path ~patch:(Path.v patch) ()
+          in RunAsync.List.processSeq ~f patches
+        in
         return()
 
       | None ->
