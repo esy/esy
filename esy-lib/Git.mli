@@ -8,11 +8,23 @@ type ref = string
 
 type remote = string
 
-(** Clone repositoryu from [remote] into [dst] local path. *)
+(** Clone repository from [remote] into [dst] local path. *)
 val clone :
-  dst:Fpath.t
+  ?branch:string
+  -> ?depth:int
+  -> dst:Fpath.t
   -> remote:remote
   -> unit
+  -> unit RunAsync.t
+
+(** Pull into [repo] from [source] branch [branchSpec] *)
+val pull :
+  ?force:bool
+  -> ?depth:int
+  -> remote:remote
+  -> repo:Fpath.t
+  -> branchSpec:remote
+  -> unit 
   -> unit RunAsync.t
 
 (** Checkout the [ref] in the [repo] *)
@@ -29,3 +41,7 @@ val lsRemote :
   -> remote:remote
   -> unit
   -> string RunAsync.t
+
+module ShallowClone : sig
+  val update : branch:remote -> dst:Fpath.t -> remote -> unit RunAsync.t
+end
