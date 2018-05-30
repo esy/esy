@@ -112,12 +112,6 @@ let esyEnvOverride (cfg : Config.t) =
     ) in
   `CurrentEnvOverride env
 
-let pathTerm =
-  let open Cmdliner in
-  let parse = Path.of_string in
-  let print = Path.pp in
-  Arg.conv ~docv:"PATH" (parse, print)
-
 let resolvedPathTerm =
   let open Cmdliner in
   let parse v =
@@ -149,7 +143,7 @@ let configTerm =
     let env = Arg.env_var "ESY__PREFIX" ~doc in
     Arg.(
       value
-      & opt (some pathTerm) None
+      & opt (some Cli.pathConv) None
       & info ["prefix-path"; "P"] ~env ~docs ~doc
     )
   in
@@ -158,7 +152,7 @@ let configTerm =
     let env = Arg.env_var "ESY__SANDBOX" ~doc in
     Arg.(
       value
-      & opt (some pathTerm) None
+      & opt (some Cli.pathConv) None
       & info ["sandbox-path"; "S"] ~env ~docs ~doc
     )
   in
