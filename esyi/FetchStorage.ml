@@ -51,8 +51,8 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
       Fs.withTempDir f
 
     | Solution.Source.GitSource (gitUrl, commit) ->
-      let%bind () = Git.clone ~dst:path ~remote:gitUrl in
-      let%bind () = Git.checkout ~ref:commit ~repo:path in
+      let%bind () = Git.clone ~dst:path ~remote:gitUrl () in
+      let%bind () = Git.checkout ~ref:commit ~repo:path () in
       let%bind _ = Fs.rmPath Path.(path / ".git") in
       return ()
     in

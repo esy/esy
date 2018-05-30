@@ -37,6 +37,10 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Git.cmti" {"EsyLib__Git.cmti"}
   "_build/install/default/lib/esy-lib/Git.mli" {"Git.mli"}
   "_build/install/default/lib/esy-lib/Git.ml" {"Git.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__Json.cmi" {"EsyLib__Json.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Json.cmx" {"EsyLib__Json.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Json.cmt" {"EsyLib__Json.cmt"}
+  "_build/install/default/lib/esy-lib/Json.ml" {"Json.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmi" {"EsyLib__LwtTaskQueue.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmx" {"EsyLib__LwtTaskQueue.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmt" {"EsyLib__LwtTaskQueue.cmt"}
