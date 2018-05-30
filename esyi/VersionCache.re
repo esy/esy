@@ -3,7 +3,7 @@ open SolveUtils;
 type t = {
   config: Config.t,
   availableNpmVersions:
-    Hashtbl.t(string, list((Types.npmConcrete, Yojson.Basic.json))),
+    Hashtbl.t(string, list((NpmVersion.t, Yojson.Basic.json))),
   availableOpamVersions:
     Hashtbl.t(string, list((Types.opamConcrete, OpamFile.thinManifest))),
 };
