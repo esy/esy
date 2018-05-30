@@ -1,7 +1,6 @@
 module Config = Shared.Config
 module Solution = Shared.Solution
 module Files = Shared.Files
-module Wget = Shared.Wget
 module ExecCommand = Shared.ExecCommand
 
 module Package = struct
