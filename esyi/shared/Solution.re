@@ -88,19 +88,19 @@ and pkg = {
 }
 and resolution = (string, Types.requestedDep, Version.t);
 
-/* TODO: use RunAsync */
-let ofFile = (filename: Path.t) => {
-  let json = Yojson.Safe.from_file(Path.toString(filename));
-  switch (of_yojson(json)) {
-  | Error(_a) => failwith("Bad lockfile")
-  | Ok(a) => a
-  };
-};
+let ofFile = (filename: Path.t) =>
+  RunAsync.Syntax.(
+    {
+      let%bind json = Fs.readJsonFile(filename);
+      switch (of_yojson(json)) {
+      | Error(_a) => error("Bad lockfile")
+      | Ok(a) => return(a)
+      };
+    }
+  );
 
 /* TODO: use RunAsync */
 let toFile = (filename: Path.t, solution: t) => {
   let json = to_yojson(solution);
-  let chan = open_out(Path.toString(filename));
-  Yojson.Safe.pretty_to_channel(chan, json);
-  close_out(chan);
+  Fs.writeJsonFile(~json, filename);
 };

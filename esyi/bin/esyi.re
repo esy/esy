@@ -16,10 +16,11 @@ module Api = {
   };
 
   let fetch = (config: Config.t) => {
+    open EsyLib.RunAsync.Syntax;
     Shared.Files.removeDeep(
       Path.(config.basePath / "node_modules" |> to_string),
     );
-    let solution = Solution.ofFile(config.lockfilePath);
+    let%bind solution = Solution.ofFile(config.lockfilePath);
     Fetch.fetch(config, solution);
   };
 };
@@ -109,10 +110,12 @@ module CommandLineInterface = {
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
     let cmd = cfg =>
       run(
-        {
-          Api.solve(cfg);
-          Api.fetch(cfg);
-        },
+        RunAsync.Syntax.(
+          {
+            let%bind () = Api.solve(cfg);
+            Api.fetch(cfg);
+          }
+        ),
       );
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
@@ -122,10 +125,12 @@ module CommandLineInterface = {
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
     let cmd = cfg =>
       run(
-        {
-          Api.solve(cfg);
-          Api.fetch(cfg);
-        },
+        RunAsync.Syntax.(
+          {
+            let%bind () = Api.solve(cfg);
+            Api.fetch(cfg);
+          }
+        ),
       );
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
@@ -133,10 +138,7 @@ module CommandLineInterface = {
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => {
-      Api.solve(cfg);
-      `Ok();
-    };
+    let cmd = cfg => run(Api.solve(cfg));
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 

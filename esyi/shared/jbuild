@@ -2,7 +2,7 @@
 
 (library
  ((name shared)
-  (flags (:standard (-w -39)))
-  (preprocess (pps (ppx_deriving_yojson ppx_deriving.std testre-ppx ppx_driver)))
+  (flags (:standard (-w -39) "-open" "EsyLib"))
+  (preprocess (pps (lwt.ppx ppx_let ppx_deriving_yojson ppx_deriving.std testre-ppx ppx_driver)))
   (libraries (EsyLib str cudf yaml ppx_deriving_yojson.runtime yojson opam-file-format))))
 
