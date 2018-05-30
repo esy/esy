@@ -164,11 +164,11 @@ let rec lockDownSource = pendingSource =>
       None,
     )
   | GitSource(url, ref) =>
-    let ref = Infix.(ref |? "master");
+    let ref = Option.orDefault("master", ref);
     /** TODO getting HEAD */
     (Solution.Source.GitSource(url, lockDownRef(url, ref)), None);
   | GithubSource(user, name, ref) =>
-    let ref = Infix.(ref |? "master");
+    let ref = Option.orDefault("master", ref);
     (
       Solution.Source.GithubSource(
         user,
