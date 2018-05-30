@@ -12,7 +12,7 @@ let githubFileUrl = (user, repo, ref, file) =>
 
 let getManifest = (name, user, repo, ref) => {
   let getFile = name =>
-    Lwt_main.run(Shared.Wget.get(githubFileUrl(user, repo, ref, name)));
+    Lwt_main.run(Wget.get(githubFileUrl(user, repo, ref, name)));
   switch (getFile("esy.json")) {
   | Ok(text) => `PackageJson(Yojson.Basic.from_string(text))
   | Error(_) =>
