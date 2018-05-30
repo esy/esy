@@ -1,9 +1,23 @@
+[@deriving yojson]
 type t = {
   major: int,
   minor: int,
   patch: int,
   release: option(string),
 };
+
+let toString = ({major, minor, patch, release}) =>
+  string_of_int(major)
+  ++ "."
+  ++ string_of_int(minor)
+  ++ "."
+  ++ string_of_int(patch)
+  ++ (
+    switch (release) {
+    | None => ""
+    | Some(a) => a
+    }
+  );
 
 module Parser = {
   /**
@@ -17,7 +31,7 @@ module Parser = {
     | `Qualified(int, int, int, string)
   ];
 
-  let viewRange = GenericVersion.view(Types.viewNpmConcrete);
+  let viewRange = GenericVersion.view(toString);
 
   let sliceToEnd = (text, num) =>
     String.sub(text, num, String.length(text) - num);
@@ -86,29 +100,29 @@ module Parser = {
   let exactPartial = partial =>
     switch (partial) {
     | `AllStar => failwith("* cannot be compared")
-    | `MajorStar(num) => (num, 0, 0, None)
-    | `MinorStar(m, i) => (m, i, 0, None)
-    | `Major(m, q) => (m, 0, 0, q)
-    | `Minor(m, i, q) => (m, i, 0, q)
-    | `Patch(m, i, p, q) => (m, i, p, q)
-    | `Raw(text) => (0, 0, 0, Some(text))
+    | `MajorStar(num) => {major: num, minor: 0, patch: 0, release: None}
+    | `MinorStar(m, i) => {major: m, minor: i, patch: 0, release: None}
+    | `Major(m, q) => {major: m, minor: 0, patch: 0, release: q}
+    | `Minor(m, i, q) => {major: m, minor: i, patch: 0, release: q}
+    | `Patch(m, i, p, q) => {major: m, minor: i, patch: p, release: q}
+    | `Raw(text) => {major: 0, minor: 0, patch: 0, release: Some(text)}
     };
 
-  [@test
-    [
-      ("*", `AllStar),
-      ("2.x", `MajorStar(2)),
-      ("1.3.X", `MinorStar((1, 3))),
-      ("v1.3.*", `MinorStar((1, 3))),
-      ("1", `Major((1, None))),
-      ("1-beta.2", `Major((1, Some("-beta.2")))),
-      ("1.2-beta.2", `Minor((1, 2, Some("-beta.2")))),
-      ("1.4.23-alpha1", `Patch((1, 4, 23, Some("-alpha1")))),
-      ("1.2.3alpha2", `Patch((1, 2, 3, Some("alpha2")))),
-      ("what", `Raw("what")),
-    ]
-  ]
-  [@test.print (fmt, x) => Format.fprintf(fmt, "%s", showPartial(x))]
+  /* [@test */
+  /*   [ */
+  /*     ("*", `AllStar), */
+  /*     ("2.x", `MajorStar(2)), */
+  /*     ("1.3.X", `MinorStar((1, 3))), */
+  /*     ("v1.3.*", `MinorStar((1, 3))), */
+  /*     ("1", `Major((1, None))), */
+  /*     ("1-beta.2", `Major((1, Some("-beta.2")))), */
+  /*     ("1.2-beta.2", `Minor((1, 2, Some("-beta.2")))), */
+  /*     ("1.4.23-alpha1", `Patch((1, 4, 23, Some("-alpha1")))), */
+  /*     ("1.2.3alpha2", `Patch((1, 2, 3, Some("alpha2")))), */
+  /*     ("what", `Raw("what")), */
+  /*   ] */
+  /* ] */
+  /* [@test.print (fmt, x) => Format.fprintf(fmt, "%s", showPartial(x))] */
   let parsePartial = version => {
     let version = version.[0] == 'v' ? sliceToEnd(version, 1) : version;
     let parts = String.split_on_char('.', version);
@@ -154,12 +168,12 @@ module Parser = {
 
   open GenericVersion;
 
-  [@test
-    [
-      (">=2.3.1", AtLeast((2, 3, 1, None))),
-      ("<2.4", LessThan((2, 4, 0, None))),
-    ]
-  ]
+  /* [@test */
+  /*   [ */
+  /*     (">=2.3.1", AtLeast({major: 2, minor: 3, patch: 1, release: None})), */
+  /*     ("<2.4", LessThan({major: 2, minor: 4, patch: 0, release: None})), */
+  /*   ] */
+  /* ] */
   let parsePrimitive = item =>
     switch (item.[0]) {
     | '=' => Exactly(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
@@ -181,37 +195,76 @@ module Parser = {
     | '~' =>
       switch (parsePartial(sliceToEnd(item, 1))) {
       | `Major(num, q) =>
-        And(AtLeast((num, 0, 0, q)), LessThan((num + 1, 0, 0, None)))
+        And(
+          AtLeast({major: num, minor: 0, patch: 0, release: q}),
+          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        )
       | `Minor(m, i, q) =>
-        And(AtLeast((m, i, 0, q)), LessThan((m, i + 1, 0, None)))
+        And(
+          AtLeast({major: m, minor: i, patch: 0, release: q}),
+          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        )
       | `Patch(m, i, p, q) =>
-        And(AtLeast((m, i, p, q)), LessThan((m, i + 1, 0, None)))
+        And(
+          AtLeast({major: m, minor: i, patch: p, release: q}),
+          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        )
       | `AllStar => failwith("* cannot be tilded")
       | `MajorStar(num) =>
-        And(AtLeast((num, 0, 0, None)), LessThan((num + 1, 0, 0, None)))
+        And(
+          AtLeast({major: num, minor: 0, patch: 0, release: None}),
+          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        )
       | `MinorStar(m, i) =>
-        And(AtLeast((m, i, 0, None)), LessThan((m, i + 1, 0, None)))
+        And(
+          AtLeast({major: m, minor: i, patch: 0, release: None}),
+          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        )
       | `Raw(_) => failwith("Bad tilde")
       }
     | '^' =>
       switch (parsePartial(sliceToEnd(item, 1))) {
       | `Major(num, q) =>
-        And(AtLeast((num, 0, 0, q)), LessThan((num + 1, 0, 0, None)))
+        And(
+          AtLeast({major: num, minor: 0, patch: 0, release: q}),
+          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        )
       | `Minor(0, i, q) =>
-        And(AtLeast((0, i, 0, q)), LessThan((0, i + 1, 0, None)))
+        And(
+          AtLeast({major: 0, minor: i, patch: 0, release: q}),
+          LessThan({major: 0, minor: i + 1, patch: 0, release: None}),
+        )
       | `Minor(m, i, q) =>
-        And(AtLeast((m, i, 0, q)), LessThan((m + 1, 0, 0, None)))
+        And(
+          AtLeast({major: m, minor: i, patch: 0, release: q}),
+          LessThan({major: m + 1, minor: 0, patch: 0, release: None}),
+        )
       | `Patch(0, 0, p, q) =>
-        And(AtLeast((0, 0, p, q)), LessThan((0, 0, p + 1, None)))
+        And(
+          AtLeast({major: 0, minor: 0, patch: p, release: q}),
+          LessThan({major: 0, minor: 0, patch: p + 1, release: None}),
+        )
       | `Patch(0, i, p, q) =>
-        And(AtLeast((0, i, p, q)), LessThan((0, i + 1, 0, None)))
+        And(
+          AtLeast({major: 0, minor: i, patch: p, release: q}),
+          LessThan({major: 0, minor: i + 1, patch: 0, release: None}),
+        )
       | `Patch(m, i, p, q) =>
-        And(AtLeast((m, i, p, q)), LessThan((m + 1, 0, 0, None)))
+        And(
+          AtLeast({major: m, minor: i, patch: p, release: q}),
+          LessThan({major: m + 1, minor: 0, patch: 0, release: None}),
+        )
       | `AllStar => failwith("* cannot be careted")
       | `MajorStar(num) =>
-        And(AtLeast((num, 0, 0, None)), LessThan((num + 1, 0, 0, None)))
+        And(
+          AtLeast({major: num, minor: 0, patch: 0, release: None}),
+          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        )
       | `MinorStar(m, i) =>
-        And(AtLeast((m, i, 0, None)), LessThan((m + 1, i, 0, None)))
+        And(
+          AtLeast({major: m, minor: i, patch: 0, release: None}),
+          LessThan({major: m + 1, minor: i, patch: 0, release: None}),
+        )
       | `Raw(_) => failwith("Bad tilde")
       }
     | '>'
@@ -221,16 +274,26 @@ module Parser = {
       switch (parsePartial(item)) {
       | `AllStar => Any
       /* TODO maybe handle the qualifier */
-      | `Major(m, Some(x)) => Exactly((m, 0, 0, Some(x)))
+      | `Major(m, Some(x)) =>
+        Exactly({major: m, minor: 0, patch: 0, release: Some(x)})
       | `Major(m, None)
       | `MajorStar(m) =>
-        And(AtLeast((m, 0, 0, None)), LessThan((m + 1, 0, 0, None)))
-      | `Minor(m, i, Some(x)) => Exactly((m, i, 0, Some(x)))
+        And(
+          AtLeast({major: m, minor: 0, patch: 0, release: None}),
+          LessThan({major: m + 1, minor: 0, patch: 0, release: None}),
+        )
+      | `Minor(m, i, Some(x)) =>
+        Exactly({major: m, minor: i, patch: 0, release: Some(x)})
       | `Minor(m, i, None)
       | `MinorStar(m, i) =>
-        And(AtLeast((m, i, 0, None)), LessThan((m, i + 1, 0, None)))
-      | `Patch(m, i, p, q) => Exactly((m, i, p, q))
-      | `Raw(text) => Exactly((0, 0, 0, Some(text)))
+        And(
+          AtLeast({major: m, minor: i, patch: 0, release: None}),
+          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        )
+      | `Patch(m, i, p, q) =>
+        Exactly({major: m, minor: i, patch: p, release: q})
+      | `Raw(text) =>
+        Exactly({major: 0, minor: 0, patch: 0, release: Some(text)})
       }
     };
 
@@ -251,21 +314,30 @@ module Parser = {
     loop(items);
   };
 
-  [@test
-    GenericVersion.[
-      ("1.2.3", Exactly((1, 2, 3, None))),
-      ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
-      (
-        "1.2.3 - 2.3.4",
-        And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))),
-      ),
-      (
-        "1.2.3 - 2.3",
-        And(AtLeast((1, 2, 3, None)), LessThan((2, 4, 0, None))),
-      ),
-    ]
-  ]
-  [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))]
+  /* [@test */
+  /*   GenericVersion.[ */
+  /*     ("1.2.3", Exactly({major: 1, minor: 2, patch: 3, release: None})), */
+  /*     ( */
+  /*       "1.2.3-alpha2", */
+  /*       Exactly({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
+  /*     ), */
+  /*     ( */
+  /*       "1.2.3 - 2.3.4", */
+  /*       And( */
+  /*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
+  /*         AtMost({major: 2, minor: 3, patch: 4, release: None}), */
+  /*       ), */
+  /*     ), */
+  /*     ( */
+  /*       "1.2.3 - 2.3", */
+  /*       And( */
+  /*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
+  /*         LessThan({major: 2, minor: 4, patch: 0, release: None}), */
+  /*       ), */
+  /*     ), */
+  /*   ] */
+  /* ] */
+  /* [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))] */
   let parseNpmRange = simple => {
     let items = Str.split(Str.regexp(" +- +"), simple);
     switch (items) {
@@ -277,36 +349,52 @@ module Parser = {
         | `AllStar => Any
         /* TODO maybe handle the qualifier */
         | `Major(m, _)
-        | `MajorStar(m) => LessThan((m + 1, 0, 0, None))
+        | `MajorStar(m) =>
+          LessThan({major: m + 1, minor: 0, patch: 0, release: None})
         | `Minor(m, i, _)
-        | `MinorStar(m, i) => LessThan((m, i + 1, 0, None))
-        | `Patch(m, i, p, q) => AtMost((m, i, p, q))
-        | `Raw(text) => LessThan((0, 0, 0, Some(text)))
+        | `MinorStar(m, i) =>
+          LessThan({major: m, minor: i + 1, patch: 0, release: None})
+        | `Patch(m, i, p, q) =>
+          AtMost({major: m, minor: i, patch: p, release: q})
+        | `Raw(text) =>
+          LessThan({major: 0, minor: 0, patch: 0, release: Some(text)})
         };
       And(left, right);
     | _ => failwith("Invalid range")
     };
   };
 
-  [@test
-    GenericVersion.[
-      ("1.2.3", Exactly((1, 2, 3, None))),
-      ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
-      (
-        "1.2.3 - 2.3.4",
-        And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))),
-      ),
-      (
-        "1.2.3 - 2.3 || 5.x",
-        Or(
-          And(AtLeast((1, 2, 3, None)), LessThan((2, 4, 0, None))),
-          And(AtLeast((5, 0, 0, None)), LessThan((6, 0, 0, None))),
-        ),
-      ),
-    ]
-  ]
-  [@test.call parseOrs(parseNpmRange)]
-  [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))]
+  /* [@test */
+  /*   GenericVersion.[ */
+  /*     ("1.2.3", Exactly({major: 1, minor: 2, patch: 3, release: None})), */
+  /*     ( */
+  /*       "1.2.3-alpha2", */
+  /*       Exactly({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
+  /*     ), */
+  /*     ( */
+  /*       "1.2.3 - 2.3.4", */
+  /*       And( */
+  /*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
+  /*         AtMost({major: 2, minor: 3, patch: 4, release: None}), */
+  /*       ), */
+  /*     ), */
+  /*     ( */
+  /*       "1.2.3 - 2.3 || 5.x", */
+  /*       Or( */
+  /*         And( */
+  /*           AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
+  /*           LessThan({major: 2, minor: 4, patch: 0, release: None}), */
+  /*         ), */
+  /*         And( */
+  /*           AtLeast({major: 5, minor: 0, patch: 0, release: None}), */
+  /*           LessThan({major: 6, minor: 0, patch: 0, release: None}), */
+  /*         ), */
+  /*       ), */
+  /*     ), */
+  /*   ] */
+  /* ] */
+  /* [@test.call parseOrs(parseNpmRange)] */
+  /* [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))] */
   let parseOrs = (parseRange, version) =>
     if (version == "") {
       GenericVersion.Any;
@@ -350,24 +438,30 @@ let viewRange = GenericVersion.view(viewConcrete);
     ~0 := >=0.0.0 <(0+1).0.0 := >=0.0.0 <1.0.0 (Same as 0.x)
     ~1.2.3-beta.2 := >=1.2.3-beta.2 <1.3.0 Note that prereleases in the 1.2.3 version will be allowed, if they are greater than or equal to beta.2. So, 1.2.3-beta.4 would be allowed, but 1.2.4-beta.2 would not, because it is a prerelease of a different [major, minor, patch] tuple.
 */
-[@test
-  GenericVersion.[
-    ("~1.2.3", parseRange(">=1.2.3 <1.3.0")),
-    ("~1.2", parseRange(">=1.2.0 <1.3.0")),
-    ("~1.2", parseRange("1.2.x")),
-    ("~1", parseRange(">=1.0.0 <2.0.0")),
-    ("~1", parseRange("1.x")),
-    ("~0.2.3", parseRange(">=0.2.3 <0.3.0")),
-    ("~0", parseRange("0.x")),
-    ("1.2.3", Exactly((1, 2, 3, None))),
-    ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
-    (
-      "1.2.3 - 2.3.4",
-      And(AtLeast((1, 2, 3, None)), AtMost((2, 3, 4, None))),
-    ),
-  ]
-]
-[@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))]
+/* [@test */
+/*   GenericVersion.[ */
+/*     ("~1.2.3", parseRange(">=1.2.3 <1.3.0")), */
+/*     ("~1.2", parseRange(">=1.2.0 <1.3.0")), */
+/*     ("~1.2", parseRange("1.2.x")), */
+/*     ("~1", parseRange(">=1.0.0 <2.0.0")), */
+/*     ("~1", parseRange("1.x")), */
+/*     ("~0.2.3", parseRange(">=0.2.3 <0.3.0")), */
+/*     ("~0", parseRange("0.x")), */
+/*     ("1.2.3", Exactly({major: 1, minor: 2, patch: 3, release: None})), */
+/*     ( */
+/*       "1.2.3-alpha2", */
+/*       Exactly({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
+/*     ), */
+/*     ( */
+/*       "1.2.3 - 2.3.4", */
+/*       And( */
+/*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
+/*         AtMost({major: 2, minor: 3, patch: 4, release: None}), */
+/*       ), */
+/*     ), */
+/*   ] */
+/* ] */
+/* [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))] */
 let parseRange = version =>
   try (Parser.parse(version)) {
   | Failure(message) =>
@@ -399,25 +493,25 @@ let parseConcrete = version => {
   let parts = String.split_on_char('.', version);
   switch (parts) {
   | [major, minor, patch, ...rest]
-      when isint(major) && isint(minor) && isint(patch) => (
-      int_of_string(major),
-      int_of_string(minor),
-      int_of_string(patch),
-      getRest(rest),
-    )
-  | [major, minor, ...rest] when isint(major) && isint(minor) => (
-      int_of_string(major),
-      int_of_string(minor),
-      0,
-      getRest(rest),
-    )
-  | [major, ...rest] when isint(major) => (
-      int_of_string(major),
-      0,
-      0,
-      getRest(rest),
-    )
-  | rest => (0, 0, 0, getRest(rest))
+      when isint(major) && isint(minor) && isint(patch) => {
+      major: int_of_string(major),
+      minor: int_of_string(minor),
+      patch: int_of_string(patch),
+      release: getRest(rest),
+    }
+  | [major, minor, ...rest] when isint(major) && isint(minor) => {
+      major: int_of_string(major),
+      minor: int_of_string(minor),
+      patch: 0,
+      release: getRest(rest),
+    }
+  | [major, ...rest] when isint(major) => {
+      major: int_of_string(major),
+      minor: 0,
+      patch: 0,
+      release: getRest(rest),
+    }
+  | rest => {major: 0, minor: 0, patch: 0, release: getRest(rest)}
   };
 };
 
@@ -454,7 +548,11 @@ let compareExtra = (a, b) =>
   | _ => compare(a, b)
   };
 
-let compare = ((ma, ia, pa, ra), (mb, ib, pb, rb)) =>
+let compare =
+    (
+      {major: ma, minor: ia, patch: pa, release: ra},
+      {major: mb, minor: ib, patch: pb, release: rb},
+    ) =>
   ma != mb ?
     ma - mb : ia != ib ? ia - ib : pa != pb ? pa - pb : compareExtra(ra, rb);
 

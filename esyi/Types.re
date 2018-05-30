@@ -1,8 +1,5 @@
 module Path = EsyLib.Path;
 
-[@deriving (ord, yojson)]
-type npmConcrete = (int, int, int, option(string));
-
 [@deriving ord]
 type alpha =
   | Alpha(string, option(num))
@@ -72,16 +69,7 @@ type opamConcrete = alpha;
 type opamRange = GenericVersion.range(opamConcrete);
 
 [@deriving yojson]
-type npmRange = GenericVersion.range(npmConcrete);
-
-let viewNpmConcrete = ((m, i, p, r)) =>
-  ([m, i, p] |> List.map(string_of_int) |> String.concat("."))
-  ++ (
-    switch (r) {
-    | None => ""
-    | Some(a) => a
-    }
-  );
+type npmRange = GenericVersion.range(NpmVersion.t);
 
 let rec viewOpamConcrete = (Alpha(a, na)) =>
   switch (na) {
@@ -121,7 +109,7 @@ module PendingSource = {
 
 [@deriving yojson]
 type requestedDep =
-  | Npm(GenericVersion.range(npmConcrete))
+  | Npm(GenericVersion.range(NpmVersion.t))
   | Github(string, string, option(string)) /* user, repo, ref (branch/tag/commit) */
   | Opam(GenericVersion.range(opamConcrete)) /* opam allows a bunch of weird stuff. for now I'm just doing semver */
   | Git(string)
@@ -146,7 +134,7 @@ let viewReq = req =>
   switch (req) {
   | Github(org, repo, _ref) => "github: " ++ org ++ "/" ++ repo
   | Git(s) => "git: " ++ s
-  | Npm(t) => "npm: " ++ GenericVersion.view(viewNpmConcrete, t)
+  | Npm(t) => "npm: " ++ GenericVersion.view(NpmVersion.toString, t)
   | Opam(t) => "opam: " ++ GenericVersion.view(viewOpamConcrete, t)
   | LocalPath(t) => "path: " ++ Path.toString(t)
   };
