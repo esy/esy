@@ -1,28 +1,34 @@
-module Run = EsyLib.Run;
-module Path = EsyLib.Path;
 module Config = Shared.Config;
 module Solution = Shared.Solution;
 
 module Api = {
-  let (/+) = Filename.concat;
-
-  let solve = (config: Config.t) => {
+  let solve = (cfg: Config.t) => {
     let json =
       Yojson.Basic.from_file(
-        Path.(config.basePath / "package.json" |> to_string),
+        Path.(cfg.basePath / "package.json" |> to_string),
       );
-    let solution = Solve.solve(config, `PackageJson(json));
-    Solution.toFile(config.lockfilePath, solution);
+    let solution = Solve.solve(cfg, `PackageJson(json));
+    Solution.toFile(cfg.lockfilePath, solution);
   };
 
-  let fetch = (config: Config.t) => {
-    open EsyLib.RunAsync.Syntax;
-    Shared.Files.removeDeep(
-      Path.(config.basePath / "node_modules" |> to_string),
+  let fetch = (cfg: Config.t) =>
+    RunAsync.Syntax.(
+      {
+        let%bind _ = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
+        let%bind solution = Solution.ofFile(cfg.lockfilePath);
+        Fetch.fetch(cfg, solution);
+      }
     );
-    let%bind solution = Solution.ofFile(config.lockfilePath);
-    Fetch.fetch(config, solution);
-  };
+
+  let solveAndFetch = (cfg: Config.t) =>
+    RunAsync.Syntax.(
+      if%bind (Fs.exists(cfg.lockfilePath)) {
+        fetch(cfg);
+      } else {
+        let%bind () = solve(cfg);
+        fetch(cfg);
+      }
+    );
 };
 
 module CommandLineInterface = {
@@ -108,30 +114,14 @@ module CommandLineInterface = {
   let defaultCommand = {
     let doc = "Dependency installer";
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg =>
-      run(
-        RunAsync.Syntax.(
-          {
-            let%bind () = Api.solve(cfg);
-            Api.fetch(cfg);
-          }
-        ),
-      );
+    let cmd = cfg => run(Api.solveAndFetch(cfg));
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg =>
-      run(
-        RunAsync.Syntax.(
-          {
-            let%bind () = Api.solve(cfg);
-            Api.fetch(cfg);
-          }
-        ),
-      );
+    let cmd = cfg => run(Api.solveAndFetch(cfg));
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
