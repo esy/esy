@@ -140,32 +140,40 @@ module CommandLineInterface = {
     | Error(err) => `Error((false, Run.formatError(err)))
     };
 
+  let runWithConfig = (f, cfg) => {
+    let cfg = Lwt_main.run(cfg);
+    switch (cfg) {
+    | Ok(cfg) => run(f(cfg))
+    | Error(err) => `Error((false, Run.formatError(err)))
+    };
+  };
+
   let defaultCommand = {
     let doc = "Dependency installer";
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => run(Api.solveAndFetch(cfg));
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    let cmd = cfg => Api.solveAndFetch(cfg);
+    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
   };
 
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => run(Api.solveAndFetch(cfg));
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    let cmd = cfg => Api.solveAndFetch(cfg);
+    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
   };
 
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => run(Api.solve(cfg));
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    let cmd = cfg => Api.solve(cfg);
+    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
   };
 
   let fetchCommand = {
     let doc = "Fetch dependencies using the solution in a lockfile";
     let info = Term.info("fetch", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => run(Api.fetch(cfg));
-    (Term.(ret(const(cmd) $ cfgTerm)), info);
+    let cmd = cfg => Api.fetch(cfg);
+    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
   };
 
   let opamImportCommand = {
