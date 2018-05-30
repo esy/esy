@@ -26,6 +26,44 @@ module Api = {
         fetch(cfg);
       }
     );
+
+  let importOpam =
+      (~path: Path.t, ~name: option(string), ~version: option(string), _cfg) => {
+    open RunAsync.Syntax;
+    module OpamFile = EsyInstaller.OpamFile;
+    module OpamVersion = EsyInstaller.OpamVersion;
+    module Solution = EsyInstaller.Solution;
+
+    let version =
+      switch (version) {
+      | Some(version) => OpamVersion.parseConcrete(version)
+      | None => OpamVersion.parseConcrete("1.0.0")
+      };
+
+    let name =
+      switch (name) {
+      | Some(name) => "@opam/" ++ name
+      | None => "@opam/unknown-opam-package"
+      };
+
+    let manifest =
+      OpamFile.{
+        ...
+          parseManifest(
+            (name, version),
+            OpamParser.file(Path.toString(path)),
+          ),
+        source: EsyInstaller.Types.PendingSource.NoSource,
+      };
+    let (packageJson, _, _) =
+      EsyInstaller.OpamFile.toPackageJson(
+        manifest,
+        name,
+        Solution.Version.Opam(version),
+      );
+    print_endline(Yojson.Basic.pretty_to_string(packageJson));
+    return();
+  };
 };
 
 module CommandLineInterface = {
@@ -48,18 +86,12 @@ module CommandLineInterface = {
   let setupLogTerm =
     Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
 
-  let pathConv = {
-    let parse = Path.of_string;
-    let print = Path.pp;
-    Arg.conv(~docv="PATH", (parse, print));
-  };
-
   let sandboxPathArg = {
     let doc = "Specifies esy sandbox path.";
     let env = Arg.env_var("ESYI__SANDBOX", ~doc);
     Arg.(
       value
-      & opt(some(pathConv), None)
+      & opt(some(Cli.pathConv), None)
       & info(["sandbox-path", "S"], ~env, ~docs, ~doc)
     );
   };
@@ -69,7 +101,7 @@ module CommandLineInterface = {
     let env = Arg.env_var("ESYI__CACHE", ~doc);
     Arg.(
       value
-      & opt(some(pathConv), None)
+      & opt(some(Cli.pathConv), None)
       & info(["cache-path"], ~env, ~docs, ~doc)
     );
   };
@@ -136,7 +168,43 @@ module CommandLineInterface = {
     (Term.(ret(const(cmd) $ cfgTerm)), info);
   };
 
-  let commands = [installCommand, solveCommand, fetchCommand];
+  let opamImportCommand = {
+    let doc = "Import opam file";
+    let info = Term.info("import-opam", ~version, ~doc, ~sdocs, ~exits);
+    let cmd = (cfg, name, version, path) =>
+      run(Api.importOpam(~path, ~name, ~version, cfg));
+    let nameTerm = {
+      let doc = "Name of the opam package";
+      Arg.(
+        value & opt(some(string), None) & info(["opam-name"], ~docs, ~doc)
+      );
+    };
+    let versionTerm = {
+      let doc = "Version of the opam package";
+      Arg.(
+        value
+        & opt(some(string), None)
+        & info(["opam-version"], ~docs, ~doc)
+      );
+    };
+    let pathTerm = {
+      let doc = "Path to the opam file.";
+      Arg.(
+        required & pos(0, some(Cli.pathConv), None) & info([], ~docs, ~doc)
+      );
+    };
+    (
+      Term.(ret(const(cmd) $ cfgTerm $ nameTerm $ versionTerm $ pathTerm)),
+      info,
+    );
+  };
+
+  let commands = [
+    installCommand,
+    solveCommand,
+    fetchCommand,
+    opamImportCommand,
+  ];
 
   let run = () => {
     Printexc.record_backtrace(true);
