@@ -138,26 +138,38 @@ let parseOpamSimple = text =>
   } else if (text == "") {
     GenericVersion.Any;
   } else if (text.[0] == '^') {
-    let version = parseConcrete(ParseNpm.sliceToEnd(text, 1));
+    let version = parseConcrete(NpmVersion.Parser.sliceToEnd(text, 1));
     let next = findNextForCaret(version);
     GenericVersion.(And(AtLeast(version), LessThan(next)));
   } else if (text.[0] == '~') {
-    let version = parseConcrete(ParseNpm.sliceToEnd(text, 1));
+    let version = parseConcrete(NpmVersion.Parser.sliceToEnd(text, 1));
     let next = findNextForTilde(version);
     GenericVersion.(And(AtLeast(version), LessThan(next)));
   } else if (text.[0] == '=') {
-    GenericVersion.Exactly(parseConcrete(ParseNpm.sliceToEnd(text, 1)));
+    GenericVersion.Exactly(
+      parseConcrete(NpmVersion.Parser.sliceToEnd(text, 1)),
+    );
   } else if (text.[0] == '<' && text.[1] == '=') {
-    GenericVersion.AtMost(parseConcrete(ParseNpm.sliceToEnd(text, 2)));
+    GenericVersion.AtMost(
+      parseConcrete(NpmVersion.Parser.sliceToEnd(text, 2)),
+    );
   } else if (text.[0] == '<') {
-    GenericVersion.LessThan(parseConcrete(ParseNpm.sliceToEnd(text, 1)));
+    GenericVersion.LessThan(
+      parseConcrete(NpmVersion.Parser.sliceToEnd(text, 1)),
+    );
   } else if (text.[0] == '>' && text.[1] == '=') {
-    GenericVersion.AtLeast(parseConcrete(ParseNpm.sliceToEnd(text, 2)));
+    GenericVersion.AtLeast(
+      parseConcrete(NpmVersion.Parser.sliceToEnd(text, 2)),
+    );
   } else if (text.[0] == '>') {
-    GenericVersion.GreaterThan(parseConcrete(ParseNpm.sliceToEnd(text, 1)));
+    GenericVersion.GreaterThan(
+      parseConcrete(NpmVersion.Parser.sliceToEnd(text, 1)),
+    );
   } else {
     GenericVersion.Exactly(parseConcrete(text));
   };
 
 let parseNpmRange =
-  ParseNpm.parseOrs(text => ParseNpm.parseSimples(text, parseOpamSimple));
+  NpmVersion.Parser.parseOrs(text =>
+    NpmVersion.Parser.parseSimples(text, parseOpamSimple)
+  );
