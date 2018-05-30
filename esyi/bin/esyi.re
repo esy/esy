@@ -1,10 +1,11 @@
 module Api = {
   let solve = (cfg: EsyInstaller.Config.t) => {
+    open RunAsync.Syntax;
     let json =
       Yojson.Basic.from_file(
         Path.(cfg.basePath / "package.json" |> to_string),
       );
-    let solution = EsyInstaller.Solve.solve(cfg, `PackageJson(json));
+    let%bind solution = EsyInstaller.Solve.solve(cfg, `PackageJson(json));
     EsyInstaller.Solution.toFile(cfg.lockfilePath, solution);
   };
 
