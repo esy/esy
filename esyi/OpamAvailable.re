@@ -1,10 +1,10 @@
-let parseConcrete = Npm.OpamConcrete.parseConcrete;
+let parseConcrete = OpamConcrete.parseConcrete;
 
-let triple = Npm.OpamConcrete.triple;
+let triple = OpamConcrete.triple;
 
 let fromPrefix = (op, version) => {
-  open Shared.GenericVersion;
-  let v = Npm.NpmVersion.parseConcrete(version);
+  open GenericVersion;
+  let v = NpmVersion.parseConcrete(version);
   switch (op) {
   | `Eq => Exactly(v)
   | `Geq => AtLeast(v)
@@ -18,7 +18,7 @@ let fromPrefix = (op, version) => {
 let rec getOCamlVersion = opamvalue =>
   /* Shared.GenericVersion.Any */
   OpamParserTypes.(
-    Shared.GenericVersion.(
+    GenericVersion.(
       switch (opamvalue) {
       | Logop(_, `And, left, right) =>
         And(getOCamlVersion(left), getOCamlVersion(right))

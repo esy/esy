@@ -14,15 +14,15 @@ type pkg
  * return it.
  *)
 val fetch :
-  config : Shared.Config.t
-  -> Shared.Solution.pkg
+  config : Config.t
+  -> Solution.pkg
   -> pkg RunAsync.t
 
 (**
  * Install package from storage into destination.
  *)
 val install :
-  config : Shared.Config.t
+  config : Config.t
   -> dst : Path.t
   -> pkg
   -> unit RunAsync.t

@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library
+ ((name EsyInstaller)
+  (preprocess (pps (lwt.ppx ppx_let ppx_deriving.std ppx_deriving_yojson testre-ppx ppx_driver)))
+  (flags (:standard (-w -39) "-open" "EsyLib"))
+  (libraries (esy-lib str cudf yaml ppx_deriving_yojson.runtime mccs yojson opam-file-format))))

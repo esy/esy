@@ -1,5 +1,3 @@
-open Shared;
-
 type t = {
   lookupRealVersion: Hashtbl.t((string, int), Solution.Version.t),
   lookupIntVersion: Hashtbl.t((string, Solution.Version.t), int),

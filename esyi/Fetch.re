@@ -1,6 +1,3 @@
-module Config = Shared.Config;
-module Solution = Shared.Solution;
-
 module PackageSet =
   Set.Make({
     type t = Solution.pkg;
@@ -50,7 +47,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
     packagesToFetch
     |> List.map(pkg => {
          let%bind fetchedPkg =
-           LwtTaskQueue.submit(queue, () => Storage.fetch(~config, pkg));
+           LwtTaskQueue.submit(queue, () => FetchStorage.fetch(~config, pkg));
          return((pkg, fetchedPkg));
        })
     |> RunAsync.List.joinAll;
@@ -63,7 +60,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
       ~f=
         ((pkg, fetchedPkg)) => {
           let dst = packageInstallPath(pkg);
-          Storage.install(~config, ~dst, fetchedPkg);
+          FetchStorage.install(~config, ~dst, fetchedPkg);
         },
       packagesFetched,
     );

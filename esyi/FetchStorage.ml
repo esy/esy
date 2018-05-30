@@ -1,7 +1,3 @@
-module Config = Shared.Config
-module Solution = Shared.Solution
-module Files = Shared.Files
-module ExecCommand = Shared.ExecCommand
 
 module Package = struct
   type t = {
@@ -64,7 +60,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
     let complete path =
 
       let resolvedString name version =
-        Shared.Types.resolvedPrefix ^ name ^ "--" ^ Solution.Version.toString version
+        Types.resolvedPrefix ^ name ^ "--" ^ Solution.Version.toString version
       in
 
       let removeEsyJsonIfExists () =

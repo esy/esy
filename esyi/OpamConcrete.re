@@ -1,6 +1,4 @@
-open Shared.Types;
-
-open Shared;
+open Types;
 
 /**
  * This file is about parsing opam versions from `package.json` specifications.
@@ -9,7 +7,7 @@ open Shared;
  * So ^1.0+beta5 becomes >= 1.0-beta5 && < 2
  */
 let triple = (major, minor, patch) =>
-  Shared.Types.opamFromNpmConcrete((major, minor, patch, None));
+  Types.opamFromNpmConcrete((major, minor, patch, None));
 
 [@test
   [
@@ -42,10 +40,7 @@ let rec getNonNums = (text, pos) =>
 [@test
   [
     ("1.2.3", triple(1, 2, 3)),
-    (
-      "1.2.3~alpha",
-      Shared.Types.opamFromNpmConcrete((1, 2, 3, Some("~alpha"))),
-    ),
+    ("1.2.3~alpha", Types.opamFromNpmConcrete((1, 2, 3, Some("~alpha")))),
   ]
 ]
 let parseConcrete = text => {

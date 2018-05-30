@@ -1,4 +1,3 @@
-open Shared;
 module Path = EsyLib.Path;
 
 let filterNils = items =>

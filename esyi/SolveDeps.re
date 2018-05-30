@@ -1,5 +1,3 @@
-open Opam;
-open Shared;
 open SolveUtils;
 
 module T = {

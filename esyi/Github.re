@@ -1,4 +1,4 @@
-open Shared.Infix;
+open Infix;
 
 let githubFileUrl = (user, repo, ref, file) =>
   "https://raw.githubusercontent.com/"
