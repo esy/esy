@@ -14,7 +14,7 @@ end
 
 type pkg = Package.t
 
-let fetch ~(config : Config.t) ~name ~version ~source =
+let fetch ~(config : Config.t) {Solution. name; version; source; _} =
   let open RunAsync.Syntax in
 
   let info, opamFile = source in

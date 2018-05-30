@@ -15,9 +15,7 @@ type pkg
  *)
 val fetch :
   config : Shared.Config.t
-  -> name : string
-  -> version : Shared.Solution.Version.t
-  -> source : Shared.Solution.Source.t
+  -> Shared.Solution.pkg
   -> pkg RunAsync.t
 
 (**

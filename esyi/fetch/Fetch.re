@@ -50,14 +50,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
     packagesToFetch
     |> List.map(pkg => {
          let%bind fetchedPkg =
-           LwtTaskQueue.submit(queue, () =>
-             Storage.fetch(
-               ~config,
-               ~name=pkg.Solution.name,
-               ~version=pkg.Solution.version,
-               ~source=pkg.Solution.source,
-             )
-           );
+           LwtTaskQueue.submit(queue, () => Storage.fetch(~config, pkg));
          return((pkg, fetchedPkg));
        })
     |> RunAsync.List.joinAll;
