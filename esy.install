@@ -51,10 +51,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__EsyRc.cmx" {"Esy__EsyRc.cmx"}
   "_build/install/default/lib/esy/Esy__EsyRc.cmt" {"Esy__EsyRc.cmt"}
   "_build/install/default/lib/esy/EsyRc.ml" {"EsyRc.ml"}
-  "_build/install/default/lib/esy/Esy__Json.cmi" {"Esy__Json.cmi"}
-  "_build/install/default/lib/esy/Esy__Json.cmx" {"Esy__Json.cmx"}
-  "_build/install/default/lib/esy/Esy__Json.cmt" {"Esy__Json.cmt"}
-  "_build/install/default/lib/esy/Json.ml" {"Json.ml"}
   "_build/install/default/lib/esy/Esy__LockfileLexer.cmi" {"Esy__LockfileLexer.cmi"}
   "_build/install/default/lib/esy/Esy__LockfileLexer.cmx" {"Esy__LockfileLexer.cmx"}
   "_build/install/default/lib/esy/Esy__LockfileLexer.cmt" {"Esy__LockfileLexer.cmt"}
