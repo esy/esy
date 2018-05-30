@@ -215,7 +215,8 @@ let resolveNpm = (~config, cache, npmRequests) => {
 };
 
 let solve = (config, manifest) => {
-  SolveUtils.checkRepositories(config);
+  SolveUtils.checkRepositories(config)
+  |> RunAsync.runExn(~err="error updating repos");
   let cache = SolveDeps.initCache(config);
   let depsByKind = Manifest.getDeps(manifest);
   let solvedDeps =

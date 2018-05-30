@@ -106,30 +106,6 @@ let expectSuccess = (msg, v) =>
     failwith(msg);
   };
 
-let ensureGitRepo = (~branch, source, dest) =>
-  if (! Files.exists(Path.toString(dest))) {
-    Files.mkdirp(Filename.dirname(Path.toString(dest)));
-    let cmd =
-      Cmd.(
-        v("git")
-        % "clone"
-        % "--branch"
-        % branch
-        % "--depth"
-        % "1"
-        % source
-        % p(dest)
-      );
-    ExecCommand.execSyncOrFail(~cmd, ());
-  } else {
-    let branchSpec = branch ++ ":" ++ branch;
-    let cmd =
-      Cmd.(
-        v("git") % "pull" % "--force" % "--depth" % "1" % source % branchSpec
-      );
-    ExecCommand.execSyncOrFail(~workingDir=dest, ~cmd, ());
-  };
-
 let lockDownRef = (url, ref) => {
   let cmd = Cmd.(v("git") % "ls-remote" % url % ref);
   let (output, success) = ExecCommand.execSync(~cmd, ());
@@ -187,18 +163,24 @@ let rec lockDownSource = pendingSource =>
    | Some(s) => lockDownSource(Types.PendingSource.WithOpamFile(pending, s))
    | _ => lockDownSource(pending)
    }; */
-let checkRepositories = config => {
-  ensureGitRepo(
-    ~branch="4",
-    "https://github.com/esy-ocaml/esy-opam-override",
-    config.Config.esyOpamOverridePath,
+let checkRepositories = config =>
+  RunAsync.Syntax.(
+    {
+      let%bind () =
+        Git.ShallowClone.update(
+          ~branch="4",
+          ~dst=config.Config.esyOpamOverridePath,
+          "https://github.com/esy-ocaml/esy-opam-override",
+        );
+      let%bind () =
+        Git.ShallowClone.update(
+          ~branch="master",
+          ~dst=config.Config.opamRepositoryPath,
+          "https://github.com/ocaml/opam-repository",
+        );
+      return();
+    }
   );
-  ensureGitRepo(
-    ~branch="master",
-    "https://github.com/ocaml/opam-repository",
-    config.Config.opamRepositoryPath,
-  );
-};
 
 let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
   let realVersion = toRealVersion(versionPlus);
