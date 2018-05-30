@@ -21,6 +21,12 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Fs.cmti" {"EsyLib__Fs.cmti"}
   "_build/install/default/lib/esy-lib/Fs.mli" {"Fs.mli"}
   "_build/install/default/lib/esy-lib/Fs.ml" {"Fs.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__Git.cmi" {"EsyLib__Git.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Git.cmx" {"EsyLib__Git.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Git.cmt" {"EsyLib__Git.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__Git.cmti" {"EsyLib__Git.cmti"}
+  "_build/install/default/lib/esy-lib/Git.mli" {"Git.mli"}
+  "_build/install/default/lib/esy-lib/Git.ml" {"Git.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmi" {"EsyLib__LwtTaskQueue.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmx" {"EsyLib__LwtTaskQueue.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmt" {"EsyLib__LwtTaskQueue.cmt"}
@@ -51,6 +57,12 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__RunAsync.cmti" {"EsyLib__RunAsync.cmti"}
   "_build/install/default/lib/esy-lib/RunAsync.mli" {"RunAsync.mli"}
   "_build/install/default/lib/esy-lib/RunAsync.ml" {"RunAsync.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmi" {"EsyLib__Tarball.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmx" {"EsyLib__Tarball.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmt" {"EsyLib__Tarball.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmti" {"EsyLib__Tarball.cmti"}
+  "_build/install/default/lib/esy-lib/Tarball.mli" {"Tarball.mli"}
+  "_build/install/default/lib/esy-lib/Tarball.ml" {"Tarball.ml"}
   "_build/install/default/lib/esy-lib/EsyLib.cma" {"EsyLib.cma"}
   "_build/install/default/lib/esy-lib/EsyLib.cmxa" {"EsyLib.cmxa"}
   "_build/install/default/lib/esy-lib/EsyLib.a" {"EsyLib.a"}

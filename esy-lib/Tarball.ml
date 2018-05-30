@@ -1,6 +1,3 @@
-module Cmd = EsyLib.Cmd
-module ChildProcess = EsyLib.ChildProcess
-
 let unpack ?stripComponents ~dst filename =
   let cmd =
     let cmd = Cmd.(v "tar" % "xf" % p filename) in
