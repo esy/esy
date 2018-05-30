@@ -71,10 +71,10 @@ module Version = {
 
 [@deriving yojson]
 type t = {
-  root: rootPackage,
-  buildDependencies: list(rootPackage),
+  root,
+  buildDependencies: list(root),
 }
-and rootPackage = {
+and root = {
   pkg,
   bag: list(pkg),
 }
@@ -83,10 +83,10 @@ and pkg = {
   version: Version.t,
   source: Source.t,
   requested: Types.depsByKind,
-  runtime: list(resolved),
-  build: list(resolved),
+  runtime: list(resolution),
+  build: list(resolution),
 }
-and resolved = (string, Types.requestedDep, Version.t);
+and resolution = (string, Types.requestedDep, Version.t);
 
 /* TODO: use RunAsync */
 let ofFile = (filename: Path.t) => {
