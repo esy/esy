@@ -2,19 +2,19 @@ module Npm = {
   [@deriving yojson]
   type t('sourceType) = {
     source: 'sourceType,
-    resolved: Lockfile.realVersion,
+    resolved: Solution.Version.t,
     requested: Types.requestedDep,
     dependencies: list((string, option(t('sourceType)))),
   };
 };
 
 [@deriving yojson]
-type resolved = (string, Types.requestedDep, Lockfile.realVersion);
+type resolved = (string, Types.requestedDep, Solution.Version.t);
 
 [@deriving yojson]
 type fullPackage('sourceType) = {
   name: string,
-  version: Lockfile.realVersion,
+  version: Solution.Version.t,
   source: 'sourceType, /* pending until I need to lock it down */
   requested: Types.depsByKind,
   runtime: list(resolved),

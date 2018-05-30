@@ -20,6 +20,55 @@ module Source = {
     | NoSource;
 };
 
+module Version = {
+  [@deriving (ord, yojson)]
+  type t =
+    /* TODO: Github's ref shouldn't be optional */
+    | Github(string, string, option(string))
+    | Npm(Types.npmConcrete)
+    | Opam(Types.opamConcrete)
+    | Git(string)
+    | LocalPath(Path.t);
+
+  let toString = v =>
+    switch (v) {
+    | Github(user, repo, ref) =>
+      "github-"
+      ++ user
+      ++ "__"
+      ++ repo
+      ++ (
+        switch (ref) {
+        | Some(x) => "__" ++ x
+        | None => ""
+        }
+      )
+    | Git(s) => "git-" ++ s
+    | Npm(t) => "npm-" ++ Types.viewNpmConcrete(t)
+    | Opam(t) => "opam-" ++ Types.viewOpamConcrete(t)
+    | LocalPath(_s) => "local-file"
+    };
+
+  let toNpmVersion = v =>
+    switch (v) {
+    | Github(user, repo, ref) =>
+      user
+      ++ "__"
+      ++ repo
+      ++ (
+        switch (ref) {
+        | Some(x) => "__" ++ x
+        | None => ""
+        }
+      )
+    | Git(s) => s
+    | Npm(t) => Types.viewNpmConcrete(t)
+    | Opam(t) => Types.viewOpamConcrete(t)
+    /* TODO hash the file path or something */
+    | LocalPath(_s) => "local-file-0000"
+    };
+};
+
 [@deriving yojson]
 type t = {
   root: rootPackage,
@@ -31,13 +80,13 @@ and rootPackage = {
 }
 and pkg = {
   name: string,
-  version: Lockfile.realVersion,
+  version: Version.t,
   source: Source.t,
   requested: Types.depsByKind,
   runtime: list(resolved),
   build: list(resolved),
 }
-and resolved = (string, Types.requestedDep, Lockfile.realVersion);
+and resolved = (string, Types.requestedDep, Version.t);
 
 /* TODO: use RunAsync */
 let ofFile = (filename: Path.t) => {

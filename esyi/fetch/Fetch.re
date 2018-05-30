@@ -1,6 +1,5 @@
 module Config = Shared.Config;
 module Solution = Shared.Solution;
-module Lockfile = Shared.Lockfile;
 
 module PackageSet =
   Set.Make({
@@ -8,7 +7,7 @@ module PackageSet =
     let compare = (pkga, pkgb) => {
       let c = String.compare(pkga.Solution.name, pkgb.Solution.name);
       if (c == 0) {
-        Lockfile.compare_realVersion(pkga.version, pkga.version);
+        Solution.Version.compare(pkga.version, pkga.version);
       } else {
         c;
       };

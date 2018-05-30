@@ -13,10 +13,7 @@ module T = {
     opamPackages: Hashtbl.t(string, OpamFile.manifest),
     versions: VersionCache.t,
     manifests:
-      Hashtbl.t(
-        (string, Lockfile.realVersion),
-        (manifest, Types.depsByKind),
-      ),
+      Hashtbl.t((string, Solution.Version.t), (manifest, Types.depsByKind)),
   };
   type state = {
     cache,
@@ -95,7 +92,7 @@ let cudfDep = (owner, universe, cudfVersions, (name, source)) => {
             |> List.iter(package =>
                  print_endline(
                    "  - "
-                   ++ Lockfile.viewRealVersion(
+                   ++ Solution.Version.toString(
                         CudfVersions.getRealVersion(cudfVersions, package),
                       ),
                  )
@@ -240,10 +237,7 @@ let rec addPackage =
       deep ?
         List.map(
           cudfDep(
-            name
-            ++ " (at "
-            ++ Shared.Lockfile.viewRealVersion(realVersion)
-            ++ ")",
+            name ++ " (at " ++ Solution.Version.toString(realVersion) ++ ")",
             universe,
             state.cudfVersions,
           ),
@@ -271,10 +265,13 @@ and addToUniverse =
   |> List.iter(versionPlus => {
        let (realVersion, i) =
          switch (versionPlus) {
-         | `Github(user, name, ref) => (Lockfile.Github(user, name, ref), 1)
-         | `Opam(v, _, i) => (Lockfile.Opam(v), i)
-         | `Npm(v, _, i) => (Lockfile.Npm(v), i)
-         | `LocalPath(p) => (Lockfile.LocalPath(p), 2)
+         | `Github(user, name, ref) => (
+             Solution.Version.Github(user, name, ref),
+             1,
+           )
+         | `Opam(v, _, i) => (Solution.Version.Opam(v), i)
+         | `Npm(v, _, i) => (Solution.Version.Npm(v), i)
+         | `LocalPath(p) => (Solution.Version.LocalPath(p), 2)
          };
        if (!
              Hashtbl.mem(

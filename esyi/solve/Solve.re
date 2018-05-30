@@ -293,7 +293,7 @@ let solve = (config, manifest) => {
   let root =
     makeFullPackage(
       "*root*",
-      Lockfile.LocalPath(Path.v("./")),
+      Solution.Version.LocalPath(Path.v("./")),
       manifest,
       depsByKind,
       solvedDeps,

@@ -525,7 +525,7 @@ let toPackageJson = (manifest, name, version) => (
      })); */
   `Assoc([
     ("name", `String(name)),
-    ("version", `String(Lockfile.plainVersionNumber(version))),
+    ("version", `String(Solution.Version.toNpmVersion(version))),
     (
       "esy",
       `Assoc([
@@ -538,7 +538,7 @@ let toPackageJson = (manifest, name, version) => (
             [
               (
                 cleanEnvName(withoutScope(name)) ++ "_version",
-                (Lockfile.plainVersionNumber(version), "global"),
+                (Solution.Version.toNpmVersion(version), "global"),
               ),
               (
                 cleanEnvName(withoutScope(name)) ++ "_installed",
@@ -570,7 +570,7 @@ let toPackageJson = (manifest, name, version) => (
         Types.resolvedPrefix
         ++ name
         ++ "--"
-        ++ Lockfile.viewRealVersion(version),
+        ++ Solution.Version.toString(version),
       ),
     ),
     (

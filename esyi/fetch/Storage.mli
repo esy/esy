@@ -16,7 +16,7 @@ type pkg
 val fetch :
   config : Shared.Config.t
   -> name : string
-  -> version : Shared.Lockfile.realVersion
+  -> version : Shared.Solution.Version.t
   -> source : Shared.Solution.Source.t
   -> pkg RunAsync.t
 
