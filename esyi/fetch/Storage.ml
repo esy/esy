@@ -31,7 +31,7 @@ let fetch ~(config : Config.t) ~name ~version ~source =
       let f tempPath =
         let%bind () = Fs.createDirectory tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
-        let%bind () = Wget.download ~output:tarballPath url in
+        let%bind () = Curl.download ~output:tarballPath url in
         let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
         return ()
       in
@@ -47,7 +47,7 @@ let fetch ~(config : Config.t) ~name ~version ~source =
               "https://api.github.com/repos/%s/%s/tarball/%s"
               user repo ref
           in
-          Wget.download ~output:tarballPath url
+          Curl.download ~output:tarballPath url
         in
         let%bind () =  Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
         return ()
