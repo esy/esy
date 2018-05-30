@@ -1,6 +1,3 @@
-open Shared;
-module Path = EsyLib.Path;
-
 let unsatisfied = (map, (name, range)) =>
   switch (Hashtbl.find(map, name)) {
   | exception Not_found => true

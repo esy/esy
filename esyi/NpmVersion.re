@@ -10,7 +10,7 @@ let viewConcrete = ((m, i, p, r)) =>
     }
   );
 
-let viewRange = Shared.GenericVersion.view(viewConcrete);
+let viewRange = GenericVersion.view(viewConcrete);
 
 /**
  * Tilde:
@@ -25,7 +25,7 @@ let viewRange = Shared.GenericVersion.view(viewConcrete);
     ~1.2.3-beta.2 := >=1.2.3-beta.2 <1.3.0 Note that prereleases in the 1.2.3 version will be allowed, if they are greater than or equal to beta.2. So, 1.2.3-beta.4 would be allowed, but 1.2.4-beta.2 would not, because it is a prerelease of a different [major, minor, patch] tuple.
 */
 [@test
-  Shared.GenericVersion.[
+  GenericVersion.[
     ("~1.2.3", parseRange(">=1.2.3 <1.3.0")),
     ("~1.2", parseRange(">=1.2.0 <1.3.0")),
     ("~1.2", parseRange("1.2.x")),
@@ -132,4 +132,4 @@ let compare = ((ma, ia, pa, ra), (mb, ib, pb, rb)) =>
   ma != mb ?
     ma - mb : ia != ib ? ia - ib : pa != pb ? pa - pb : compareExtra(ra, rb);
 
-let matches = Shared.GenericVersion.matches(compare);
+let matches = GenericVersion.matches(compare);

@@ -1,7 +1,7 @@
 open EsyLib;
 
 /* TODO use lwt, maybe cache things */
-let getFromNpmRegistry = (config: Shared.Config.t, name) => {
+let getFromNpmRegistry = (config: Config.t, name) => {
   let name = Str.global_replace(Str.regexp("/"), "%2f", name);
   let json =
     Curl.get(config.npmRegistry ++ "/" ++ name)

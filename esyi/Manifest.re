@@ -1,9 +1,3 @@
-open Opam;
-open Npm;
-
-module Path = EsyLib.Path;
-module Solution = Shared.Solution;
-
 let getDeps = manifest => {
   let depsByKind =
     switch (manifest) {
@@ -16,13 +10,13 @@ let getDeps = manifest => {
 let getSource = (manifest, name, version) =>
   switch (version) {
   | Solution.Version.Github(user, repo, ref) =>
-    Shared.Types.PendingSource.GithubSource(user, repo, ref)
+    Types.PendingSource.GithubSource(user, repo, ref)
   | Solution.Version.LocalPath(path) =>
-    Shared.Types.PendingSource.File(Path.toString(path))
+    Types.PendingSource.File(Path.toString(path))
   | _ =>
     switch (manifest) {
     | `OpamFile(opam) =>
-      Shared.Types.PendingSource.WithOpamFile(
+      Types.PendingSource.WithOpamFile(
         OpamFile.getSource(opam),
         OpamFile.toPackageJson(opam, name, version),
       )

@@ -1,26 +1,23 @@
-module Config = Shared.Config;
-module Solution = Shared.Solution;
-
 module Api = {
-  let solve = (cfg: Config.t) => {
+  let solve = (cfg: EsyInstaller.Config.t) => {
     let json =
       Yojson.Basic.from_file(
         Path.(cfg.basePath / "package.json" |> to_string),
       );
-    let solution = Solve.solve(cfg, `PackageJson(json));
-    Solution.toFile(cfg.lockfilePath, solution);
+    let solution = EsyInstaller.Solve.solve(cfg, `PackageJson(json));
+    EsyInstaller.Solution.toFile(cfg.lockfilePath, solution);
   };
 
-  let fetch = (cfg: Config.t) =>
+  let fetch = (cfg: EsyInstaller.Config.t) =>
     RunAsync.Syntax.(
       {
         let%bind _ = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
-        let%bind solution = Solution.ofFile(cfg.lockfilePath);
-        Fetch.fetch(cfg, solution);
+        let%bind solution = EsyInstaller.Solution.ofFile(cfg.lockfilePath);
+        EsyInstaller.Fetch.fetch(cfg, solution);
       }
     );
 
-  let solveAndFetch = (cfg: Config.t) =>
+  let solveAndFetch = (cfg: EsyInstaller.Config.t) =>
     RunAsync.Syntax.(
       if%bind (Fs.exists(cfg.lockfilePath)) {
         fetch(cfg);
@@ -94,7 +91,7 @@ module CommandLineInterface = {
         | Some(sandboxPath) => sandboxPath
         | None => cwd
         };
-      Shared.Config.make(~cachePath?, ~npmRegistry?, sandboxPath);
+      EsyInstaller.Config.make(~cachePath?, ~npmRegistry?, sandboxPath);
     };
     Term.(
       const(parse)

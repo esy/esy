@@ -1,6 +1,3 @@
-open Opam;
-open Npm;
-open Shared;
 open SolveUtils;
 
 type t = {
@@ -19,7 +16,7 @@ let getAvailableVersions = (~config: Config.t, ~cache: t, (name, source)) =>
       Hashtbl.replace(
         cache.availableNpmVersions,
         name,
-        Npm.Registry.getFromNpmRegistry(config, name),
+        NpmRegistry.getFromNpmRegistry(config, name),
       );
     };
     let available = Hashtbl.find(cache.availableNpmVersions, name);
@@ -35,7 +32,7 @@ let getAvailableVersions = (~config: Config.t, ~cache: t, (name, source)) =>
       Hashtbl.replace(
         cache.availableOpamVersions,
         name,
-        Opam.Registry.getFromOpamRegistry(cache.config, name),
+        OpamRegistry.getFromOpamRegistry(cache.config, name),
       );
     };
     let available =

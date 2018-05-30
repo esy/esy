@@ -1,5 +1,3 @@
-open Shared;
-
 open Types;
 
 /*
@@ -34,7 +32,7 @@ let parseNpmSource = ((name, value)) =>
     switch (getOpam(name)) {
     | Some(name) => (
         name,
-        switch (Shared.GithubVersion.parseGithubVersion(value)) {
+        switch (GithubVersion.parseGithubVersion(value)) {
         | Some(gh) => gh
         | None => Opam(OpamConcrete.parseNpmRange(value))
         /* NpmVersion.parseRange(value) |> GenericVersion.map(Shared.Types.opamFromNpmConcrete) */
@@ -42,7 +40,7 @@ let parseNpmSource = ((name, value)) =>
       )
     | None => (
         name,
-        switch (Shared.GithubVersion.parseGithubVersion(value)) {
+        switch (GithubVersion.parseGithubVersion(value)) {
         | Some(gh) => gh
         | None =>
           if (startsWith(value, "git+")) {

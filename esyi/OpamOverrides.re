@@ -1,6 +1,3 @@
-open Shared;
-module Path = EsyLib.Path;
-
 module Infix = {
   let (|?>) = (a, b) =>
     switch (a) {
@@ -222,7 +219,7 @@ module ParseName = {
     | [one, ...rest] => (one, Some(String.concat("-", rest)))
     };
   let parseDirectoryName = name =>
-    Shared.GenericVersion.(
+    GenericVersion.(
       switch (String.split_on_char('.', name)) {
       | [] => assert(false)
       | [single] => (single, Any)
@@ -256,7 +253,7 @@ module ParseName = {
         let (prefix, major) = prefix(major);
         let (patch, extra) = splitExtra(patch);
         let version =
-          Shared.Types.opamFromNpmConcrete((
+          Types.opamFromNpmConcrete((
             int_of_string(major),
             int_of_string(minor),
             int_of_string(patch),

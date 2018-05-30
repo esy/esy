@@ -1,11 +1,11 @@
-open Shared.Types;
+open Types;
 
-let parseConcrete = Npm.OpamConcrete.parseConcrete;
+let parseConcrete = OpamConcrete.parseConcrete;
 
-let triple = Npm.OpamConcrete.triple;
+let triple = OpamConcrete.triple;
 
 let fromPrefix = (op, version) => {
-  open Shared.GenericVersion;
+  open GenericVersion;
   let v = parseConcrete(version);
   switch (op) {
   | `Eq => Exactly(v)
@@ -19,7 +19,7 @@ let fromPrefix = (op, version) => {
 
 let rec parseRange = opamvalue =>
   OpamParserTypes.(
-    Shared.GenericVersion.(
+    GenericVersion.(
       switch (opamvalue) {
       | Prefix_relop(_, op, String(_, version)) => fromPrefix(op, version)
       | Logop(_, `And, left, right) =>
@@ -47,7 +47,7 @@ let rec parseRange = opamvalue =>
 
 let rec toDep = opamvalue =>
   OpamParserTypes.(
-    Shared.GenericVersion.(
+    GenericVersion.(
       switch (opamvalue) {
       | String(_, name) => (name, Any, `Link)
       | Option(_, String(_, name), [Ident(_, "build")]) => (
@@ -200,6 +200,6 @@ and viewNum = (Num(a, na)) =>
     }
   );
 
-let matches = Shared.GenericVersion.matches(compare);
+let matches = GenericVersion.matches(compare);
 
-let viewRange = Shared.GenericVersion.view(viewAlpha);
+let viewRange = GenericVersion.view(viewAlpha);

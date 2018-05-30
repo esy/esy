@@ -1,6 +1,0 @@
-(jbuild_version 1)
-
-(library
- ((name opam)
-  (preprocess (pps (ppx_deriving_yojson ppx_driver)))
-  (libraries (npm shared lwt str cudf yaml ppx_deriving_yojson.runtime yojson opam-file-format))))

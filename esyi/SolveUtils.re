@@ -1,6 +1,3 @@
-open Opam;
-open Npm;
-open Shared;
 module Path = EsyLib.Path;
 module Cmd = EsyLib.Cmd;
 
@@ -34,9 +31,9 @@ let toRealVersion = versionPlus =>
 /** TODO(jared): This is a HACK and will hopefully be removed once we stop the
  * pseudo-npm opam version stuff */
 let tryConvertingOpamFromNpm = version =>
-  Shared.Types.(
+  Types.(
     version
-    |> Shared.GenericVersion.map(opam =>
+    |> GenericVersion.map(opam =>
          switch (opam) {
          /* yay jbuilder */
          | Alpha(
@@ -110,8 +107,8 @@ let expectSuccess = (msg, v) =>
   };
 
 let ensureGitRepo = (~branch, source, dest) =>
-  if (! Shared.Files.exists(Path.toString(dest))) {
-    Shared.Files.mkdirp(Filename.dirname(Path.toString(dest)));
+  if (! Files.exists(Path.toString(dest))) {
+    Files.mkdirp(Filename.dirname(Path.toString(dest)));
     let cmd =
       Cmd.(
         v("git")
@@ -123,19 +120,19 @@ let ensureGitRepo = (~branch, source, dest) =>
         % source
         % p(dest)
       );
-    Shared.ExecCommand.execSyncOrFail(~cmd, ());
+    ExecCommand.execSyncOrFail(~cmd, ());
   } else {
     let branchSpec = branch ++ ":" ++ branch;
     let cmd =
       Cmd.(
         v("git") % "pull" % "--force" % "--depth" % "1" % source % branchSpec
       );
-    Shared.ExecCommand.execSyncOrFail(~workingDir=dest, ~cmd, ());
+    ExecCommand.execSyncOrFail(~workingDir=dest, ~cmd, ());
   };
 
 let lockDownRef = (url, ref) => {
   let cmd = Cmd.(v("git") % "ls-remote" % url % ref);
-  let (output, success) = Shared.ExecCommand.execSync(~cmd, ());
+  let (output, success) = ExecCommand.execSync(~cmd, ());
   if (success) {
     switch (output) {
     | [] => ref
@@ -167,11 +164,11 @@ let rec lockDownSource = pendingSource =>
       None,
     )
   | GitSource(url, ref) =>
-    let ref = Shared.Infix.(ref |? "master");
+    let ref = Infix.(ref |? "master");
     /** TODO getting HEAD */
     (Solution.Source.GitSource(url, lockDownRef(url, ref)), None);
   | GithubSource(user, name, ref) =>
-    let ref = Shared.Infix.(ref |? "master");
+    let ref = Infix.(ref |? "master");
     (
       Solution.Source.GithubSource(
         user,

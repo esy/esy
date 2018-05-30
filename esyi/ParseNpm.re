@@ -9,7 +9,7 @@ type partial = [
   | `Qualified(int, int, int, string)
 ];
 
-let viewRange = Shared.GenericVersion.view(Shared.Types.viewNpmConcrete);
+let viewRange = GenericVersion.view(Types.viewNpmConcrete);
 
 let sliceToEnd = (text, num) =>
   String.sub(text, num, String.length(text) - num);
@@ -143,7 +143,7 @@ let parsePartial = version => {
   };
 };
 
-open Shared.GenericVersion;
+open GenericVersion;
 
 [@test
   [
@@ -243,7 +243,7 @@ let parseSimples = (item, parseSimple) => {
 };
 
 [@test
-  Shared.GenericVersion.[
+  GenericVersion.[
     ("1.2.3", Exactly((1, 2, 3, None))),
     ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
     (
@@ -280,7 +280,7 @@ let parseNpmRange = simple => {
 };
 
 [@test
-  Shared.GenericVersion.[
+  GenericVersion.[
     ("1.2.3", Exactly((1, 2, 3, None))),
     ("1.2.3-alpha2", Exactly((1, 2, 3, Some("-alpha2")))),
     (
@@ -300,7 +300,7 @@ let parseNpmRange = simple => {
 [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))]
 let parseOrs = (parseRange, version) =>
   if (version == "") {
-    Shared.GenericVersion.Any;
+    GenericVersion.Any;
   } else {
     let items = Str.split(Str.regexp(" +|| +"), version);
     let rec loop = items =>

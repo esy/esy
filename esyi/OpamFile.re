@@ -1,5 +1,3 @@
-open Shared;
-
 open OpamParserTypes;
 
 open OpamOverrides.Infix;
@@ -28,7 +26,7 @@ type manifest = {
   exportedEnv: list((string, (string, string))),
 };
 
-type thinManifest = (string, string, string, Shared.Types.opamConcrete);
+type thinManifest = (string, string, string, Types.opamConcrete);
 
 let rec findVariable = (name, items) =>
   switch (items) {
@@ -125,12 +123,12 @@ let variables = ((name, version)) => [
 
 let cleanEnvName = Str.global_replace(Str.regexp("-"), "_");
 
-[@test
-  [
-    ((Str.regexp("a\\(.\\)"), String.uppercase_ascii, "applae"), "PplE"),
-    ((Str.regexp("A\\(.\\)"), String.lowercase_ascii, "HANDS"), "HnDS"),
-  ]
-]
+/* [@test */
+/*   [ */
+/*     ((Str.regexp("a\\(.\\)"), String.uppercase_ascii, "applae"), "PplE"), */
+/*     ((Str.regexp("A\\(.\\)"), String.lowercase_ascii, "HANDS"), "HnDS"), */
+/*   ] */
+/* ] */
 let replaceGroupWithTransform = (rx, transform, string) =>
   Str.global_substitute(
     rx,
@@ -138,14 +136,14 @@ let replaceGroupWithTransform = (rx, transform, string) =>
     string,
   );
 
-[@test
-  [
-    (
-      (("awesome", Shared.Types.Alpha("", None)), "--%{fmt:enable}%-fmt"),
-      "--${fmt_enable:-disable}-fmt",
-    ),
-  ]
-]
+/* [@test */
+/*   [ */
+/*     ( */
+/*       (("awesome", Types.Alpha("", None)), "--%{fmt:enable}%-fmt"), */
+/*       "--${fmt_enable:-disable}-fmt", */
+/*     ), */
+/*   ] */
+/* ] */
 let replaceVariables = (info, string) => {
   let string =
     string
@@ -264,7 +262,7 @@ let processCommandList = (info, item) =>
 /*   string => */
 /*     processStringList(Some(OpamParser.value_from_string(string, "wat"))) */
 /* ] */
-[@test.print (fmt, x) => Format.fprintf(fmt, "%s", String.concat(", ", x))]
+/* [@test.print (fmt, x) => Format.fprintf(fmt, "%s", String.concat(", ", x))] */
 let processStringList = item => {
   let items =
     switch (item) {
@@ -396,11 +394,11 @@ let parseManifest = (info, {file_contents, file_name}) => {
     |?>> OpamAvailable.getOCamlVersion
     |? GenericVersion.Any;
   /* We just don't support anything before 4.2.3 */
-  let ourMinimumOcamlVersion = Npm.NpmVersion.parseConcrete("4.02.3");
+  let ourMinimumOcamlVersion = NpmVersion.parseConcrete("4.02.3");
   let isAVersionWeSupport =
     !
-      Shared.GenericVersion.isTooLarge(
-        Npm.NpmVersion.compare,
+      GenericVersion.isTooLarge(
+        NpmVersion.compare,
         ocamlRequirement,
         ourMinimumOcamlVersion,
       );
@@ -448,7 +446,7 @@ let parseManifest = (info, {file_contents, file_name}) => {
 };
 
 let parseDepVersion = ((name, version)) =>
-  Npm.PackageJson.parseNpmSource((name, version));
+  PackageJson.parseNpmSource((name, version));
 
 module StrSet = Set.Make(String);
 
