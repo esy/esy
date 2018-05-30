@@ -7,6 +7,10 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__ChildProcess.cmti" {"EsyLib__ChildProcess.cmti"}
   "_build/install/default/lib/esy-lib/ChildProcess.mli" {"ChildProcess.mli"}
   "_build/install/default/lib/esy-lib/ChildProcess.ml" {"ChildProcess.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__Cli.cmi" {"EsyLib__Cli.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Cli.cmx" {"EsyLib__Cli.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Cli.cmt" {"EsyLib__Cli.cmt"}
+  "_build/install/default/lib/esy-lib/Cli.ml" {"Cli.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmi" {"EsyLib__Cmd.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmx" {"EsyLib__Cmd.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmt" {"EsyLib__Cmd.cmt"}
