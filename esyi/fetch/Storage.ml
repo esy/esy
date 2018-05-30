@@ -58,7 +58,7 @@ let fetch ~(config : Config.t) ~name ~version ~source =
     | Solution.Source.GitSource (gitUrl, commit) ->
       let%bind () = Git.clone ~dst:path ~remote:gitUrl in
       let%bind () = Git.checkout ~ref:commit ~repo:path in
-      let%bind () = ChildProcess.run Cmd.(v "rm" % "-rf" % p Path.(path / ".git")) in
+      let%bind _ = Fs.rmPath Path.(path / ".git") in
       return ()
     in
 
