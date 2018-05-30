@@ -6,23 +6,29 @@ module Cmd = EsyLib.Cmd;
 
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
-  | (Types.Github(user, repo, ref), Lockfile.Github(user_, repo_, ref_))
+  | (
+      Types.Github(user, repo, ref),
+      Solution.Version.Github(user_, repo_, ref_),
+    )
       when user == user_ && repo == repo_ && ref == ref_ =>
     true
-  | (Npm(semver), Lockfile.Npm(s)) when NpmVersion.matches(semver, s) =>
+  | (Npm(semver), Solution.Version.Npm(s))
+      when NpmVersion.matches(semver, s) =>
     true
-  | (Opam(semver), Lockfile.Opam(s)) when OpamVersion.matches(semver, s) =>
+  | (Opam(semver), Solution.Version.Opam(s))
+      when OpamVersion.matches(semver, s) =>
     true
-  | (LocalPath(p1), Lockfile.LocalPath(p2)) when Path.equal(p1, p2) => true
+  | (LocalPath(p1), Solution.Version.LocalPath(p2)) when Path.equal(p1, p2) =>
+    true
   | _ => false
   };
 
 let toRealVersion = versionPlus =>
   switch (versionPlus) {
-  | `Github(user, repo, ref) => Lockfile.Github(user, repo, ref)
-  | `Npm(x, _, _) => Lockfile.Npm(x)
-  | `Opam(x, _, _) => Lockfile.Opam(x)
-  | `LocalPath(p) => Lockfile.LocalPath(p)
+  | `Github(user, repo, ref) => Solution.Version.Github(user, repo, ref)
+  | `Npm(x, _, _) => Solution.Version.Npm(x)
+  | `Opam(x, _, _) => Solution.Version.Opam(x)
+  | `LocalPath(p) => Solution.Version.LocalPath(p)
   };
 
 /** TODO(jared): This is a HACK and will hopefully be removed once we stop the

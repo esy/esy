@@ -1,8 +1,8 @@
 open Shared;
 
 type t = {
-  lookupRealVersion: Hashtbl.t((string, int), Lockfile.realVersion),
-  lookupIntVersion: Hashtbl.t((string, Lockfile.realVersion), int),
+  lookupRealVersion: Hashtbl.t((string, int), Solution.Version.t),
+  lookupIntVersion: Hashtbl.t((string, Solution.Version.t), int),
 };
 
 let init = () => {

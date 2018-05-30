@@ -1,6 +1,5 @@
 module Config = Shared.Config
 module Solution = Shared.Solution
-module Lockfile = Shared.Lockfile
 module Files = Shared.Files
 module Wget = Shared.Wget
 module ExecCommand = Shared.ExecCommand
@@ -8,7 +7,7 @@ module ExecCommand = Shared.ExecCommand
 module Package = struct
   type t = {
     name : string;
-    version : Lockfile.realVersion;
+    version : Solution.Version.t;
     source : Solution.Source.t;
     tarballPath : Path.t;
   }
@@ -66,7 +65,7 @@ let fetch ~(config : Config.t) ~name ~version ~source =
     let complete path =
 
       let resolvedString name version =
-        Shared.Types.resolvedPrefix ^ name ^ "--" ^ Lockfile.viewRealVersion version
+        Shared.Types.resolvedPrefix ^ name ^ "--" ^ Solution.Version.toString version
       in
 
       let removeEsyJsonIfExists () =
@@ -127,7 +126,7 @@ let fetch ~(config : Config.t) ~name ~version ~source =
     in
 
     let key =
-      let version = Lockfile.viewRealVersion version in
+      let version = Solution.Version.toString version in
       Printf.sprintf "%s__%s" name version
     in
 
