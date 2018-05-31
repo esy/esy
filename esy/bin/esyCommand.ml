@@ -422,6 +422,16 @@ let makeExecCommand
     else return ()
   in
 
+  let%bind command = RunAsync.ofRun (
+    let open Run.Syntax in
+    let%bind script = SandboxTools.findScript ~sandbox:info.sandbox command in
+    let command = script |> function
+      | Some script -> script
+      | None -> command
+    in
+    return command
+  ) in
+
   let%bind env = RunAsync.ofRun (
       let open Run.Syntax in
       let env = match env with

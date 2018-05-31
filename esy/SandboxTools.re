@@ -1,9 +1,23 @@
-module PathSet = Set.Make(Path);
 module ConfigPath = Config.ConfigPath;
 
 let find = (~name, task: Task.t) => {
   let f = (task: Task.t) => task.pkg.name == name;
   Task.DependencyGraph.find(~f, task);
+};
+
+let findScript = (~sandbox: Sandbox.t, command) => {
+  open Run.Syntax;
+  open Package.Scripts;
+  let key = List.hd(command);
+  let commandOptions = List.tl(command);
+  switch (
+    sandbox.scripts |> List.find_opt((script: script) => script.key == key)
+  ) {
+  | Some(script) =>
+    let%bind scriptCommand = ShellSplit.split(script.command);
+    return(Some(scriptCommand @ commandOptions));
+  | None => return(None)
+  };
 };
 
 let getOcamlfind = (~cfg: Config.t, task: Task.t) =>
