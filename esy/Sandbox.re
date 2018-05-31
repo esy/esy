@@ -4,6 +4,7 @@ module ConfigPath = Config.ConfigPath;
 [@deriving show]
 type t = {
   root: Package.t,
+  scripts: Package.Scripts.t,
   manifestInfo: list((Path.t, float)),
 };
 
@@ -80,8 +81,8 @@ let ofDir = (cfg: Config.t) => {
         |> Lwt_list.map_s(((pkgName, _)) => resolve(pkgName));
       let f = dependencies =>
         fun
-        | Ok((_, `EsyPkg(pkg))) => [make(pkg), ...dependencies]
-        | Ok((_, `NonEsyPkg(transitiveDependencies))) =>
+        | Ok((_, `EsyPkg(pkg, _))) => [make(pkg), ...dependencies]
+        | Ok((_, `NonEsyPkg(transitiveDependencies, _))) =>
           transitiveDependencies @ dependencies
         | Ok((_, `Ignored)) => dependencies
         | Ok((pkgName, `Unresolved)) =>
@@ -147,7 +148,7 @@ let ofDir = (cfg: Config.t) => {
             }
         );
       switch (manifest.Package.Manifest.esy) {
-      | None => return(`NonEsyPkg(dependencies))
+      | None => return(`NonEsyPkg((dependencies, manifest.scripts)))
       | Some(esyManifest) =>
         let sourceType = {
           let hasDepWithSourceTypeDevelopment =
@@ -196,7 +197,7 @@ let ofDir = (cfg: Config.t) => {
             sourcePath: ConfigPath.ofPath(cfg, sourcePath),
             resolution: manifest._resolved,
           };
-        return(`EsyPkg(pkg));
+        return(`EsyPkg((pkg, manifest.scripts)));
       };
     | None => error("unable to find manifest")
     };
@@ -206,7 +207,7 @@ let ofDir = (cfg: Config.t) => {
     packageCache(path, compute);
   };
   switch%bind (loadPackageCached(cfg.sandboxPath, [])) {
-  | `EsyPkg(root) =>
+  | `EsyPkg(root, scripts) =>
     let%bind manifestInfo =
       manifestInfo^
       |> PathSet.elements
@@ -215,7 +216,7 @@ let ofDir = (cfg: Config.t) => {
            return((path, stat.Unix.st_mtime));
          })
       |> RunAsync.List.joinAll;
-    let sandbox = {root, manifestInfo};
+    let sandbox = {root, scripts, manifestInfo};
     return(sandbox);
   | _ => error("root package missing esy config")
   };

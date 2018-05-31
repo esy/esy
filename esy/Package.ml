@@ -52,6 +52,34 @@ module CommandList = struct
 end
 
 (**
+ * Scripts with keys as specified in "scripts".
+ *)
+module Scripts = struct
+
+  type script = {
+    key : string;
+    command : string;
+  }
+  [@@deriving (show, eq, ord)]
+
+  type t =
+    script list
+    [@@deriving (show, eq, ord)]
+
+  let of_yojson = function
+    | `Assoc items ->
+      let open Result in
+      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
+      | `String command ->
+        Ok ({key = k; command;}::items)
+      | _ -> Error "expected string"
+      in
+      let%bind items = listFoldLeft ~f ~init:[] items in
+      Ok (List.rev items)
+    | _ -> Error "expected an object"
+end
+
+(**
  * Environment for the entire sandbox as specified in "esy.sandboxEnv".
  *)
 module SandboxEnv = struct
@@ -197,6 +225,7 @@ module Manifest = struct
     version : string;
     description : (string option [@default None]);
     license : (string option [@default None]);
+    scripts: (Scripts.t [@default []]);
     dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
