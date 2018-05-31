@@ -1,0 +1,14 @@
+{
+  "name": "simple-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cmd1": "echo \"cmd1_result\"",
+    "cmd2": "esy echo \"cmd2_result\"",
+    "cmd3": ["bash", "-c", "echo 'cmd_array_result'"]
+  },
+  "esy": {},
+  "author": "Andrey Popp <8mayday@gmail.com> (http://andreypopp.com/)",
+  "license": "MIT"
+}
