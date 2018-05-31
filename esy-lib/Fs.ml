@@ -131,6 +131,21 @@ let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
   in
   visitPath init path
 
+let listDir path =
+  match%lwt Lwt_unix.opendir (Path.toString path) with
+  | exception Unix.Unix_error (Unix.ENOENT, "opendir", _) ->
+    RunAsync.error "cannot read the directory"
+  | exception Unix.Unix_error (Unix.ENOTDIR, "opendir", _) ->
+    RunAsync.error "not a directory"
+  | dir ->
+    let rec readdir names () =
+      match%lwt Lwt_unix.readdir dir with
+      | exception End_of_file -> RunAsync.return names
+      | "." | ".." -> readdir names ()
+      | name -> readdir (name::names) ()
+    in
+    Lwt.finalize (readdir []) (fun () -> Lwt_unix.closedir dir)
+
 let traverse ?skipTraverse ~f path =
   let f _ path stat = f path stat in
   fold ?skipTraverse ~f ~init:(Run.return ()) path
