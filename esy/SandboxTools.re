@@ -1,14 +1,8 @@
-module StringMap = Map.Make(String);
 module ConfigPath = Config.ConfigPath;
 
 let find = (~name, task: Task.t) => {
   let f = (task: Task.t) => task.pkg.name == name;
   Task.DependencyGraph.find(~f, task);
-};
-
-let findScript = (~sandbox: Sandbox.t, argv: list(string)) => {
-  let key = List.hd(argv);
-  StringMap.find_opt(key, sandbox.scripts);
 };
 
 let getOcamlfind = (~cfg: Config.t, task: Task.t) =>
