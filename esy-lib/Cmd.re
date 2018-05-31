@@ -1,3 +1,4 @@
+[@deriving (show, eq, ord)]
 type t = Bos.Cmd.t;
 
 let ofList = Bos.Cmd.of_list;

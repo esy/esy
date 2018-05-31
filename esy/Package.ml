@@ -57,26 +57,29 @@ end
 module Scripts = struct
 
   type script = {
-    key : string;
-    command : string;
+    command : Cmd.t;
   }
   [@@deriving (show, eq, ord)]
 
   type t =
-    script list
-    [@@deriving (show, eq, ord)]
+    script StringMap.t
+    [@@deriving (eq, ord)]
 
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result in
-      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
-      | `String command ->
-        Ok ({key = k; command;}::items)
-      | _ -> Error "expected string"
-      in
-      let%bind items = listFoldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
+  let pp =
+    let open Fmt in
+    let ppBinding = hbox (pair (quote string) (quote pp_script)) in
+    vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
+
+  let of_yojson =
+    let open Json.Parse in
+    let errorMsg =
+      "A command in \"scripts\" expects a string or an array of strings"
+    in
+    let script (json: Json.t) = match cmd ~errorMsg json with
+      | Ok command -> Ok {command;}
+      | Error err -> Error err
+    in
+    stringMap script
 end
 
 (**
@@ -225,7 +228,7 @@ module Manifest = struct
     version : string;
     description : (string option [@default None]);
     license : (string option [@default None]);
-    scripts: (Scripts.t [@default []]);
+    scripts: (Scripts.t [@default StringMap.empty]);
     dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);

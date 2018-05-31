@@ -404,7 +404,7 @@ let makeExecCommand
     ?prepare
     ~env
     cfg
-    command
+    argv
   =
   let open RunAsync.Syntax in
 
@@ -422,15 +422,13 @@ let makeExecCommand
     else return ()
   in
 
-  let%bind command = RunAsync.ofRun (
-    let open Run.Syntax in
-    let%bind script = SandboxTools.findScript ~sandbox:info.sandbox command in
-    let command = script |> function
-      | Some script -> script
-      | None -> command
-    in
-    return command
-  ) in
+  let command =
+    match SandboxTools.findScript ~sandbox:info.sandbox argv with
+    | Some {command;} ->
+      let args = Cmd.ofList (List.tl argv) in
+      Cmd.(command %% args)
+    | None -> Cmd.ofList argv
+  in
 
   let%bind env = RunAsync.ofRun (
       let open Run.Syntax in
@@ -450,7 +448,7 @@ let makeExecCommand
     ~stderr:(`FD_copy Unix.stderr)
     ~stdout:(`FD_copy Unix.stdout)
     ~stdin:(`FD_copy Unix.stdin)
-    (Cmd.ofList command)
+    command
   in match status with
   | Unix.WEXITED n
   | Unix.WSTOPPED n
