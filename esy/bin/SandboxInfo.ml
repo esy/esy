@@ -32,7 +32,7 @@ let writeCache (cfg : Config.t) (info : t) =
         return ()
       in
       let cachePath = cachePath cfg in
-      let%bind () = Fs.createDirectory (Path.parent cachePath) in
+      let%bind () = Fs.createDir (Path.parent cachePath) in
       Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string cachePath) f
     in
 
@@ -53,7 +53,7 @@ let writeCache (cfg : Config.t) (info : t) =
           / "build"
           / "bin"
       ) in
-      let%bind () = Fs.createDirectory sandboxBin in
+      let%bind () = Fs.createDir sandboxBin in
 
       let%bind commandEnv = RunAsync.ofRun (
           let header =

@@ -279,7 +279,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       cfg task
   in
 
-  let%bind () = Fs.createDirectory outputPath in
+  let%bind () = Fs.createDir outputPath in
 
   (* Export builds *)
   let%bind () =
@@ -303,7 +303,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
 
     let binPath = Path.(outputPath / "bin") in
-    let%bind () = Fs.createDirectory binPath in
+    let%bind () = Fs.createDir binPath in
 
     (* Emit wrappers for released binaries *)
     let%bind () =

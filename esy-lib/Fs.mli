@@ -28,7 +28,7 @@ val stat : Path.t -> Unix.stats RunAsync.t
 (** List directory and return a list of names excluding . and .. *)
 val listDir : Path.t -> string list RunAsync.t
 
-val createDirectory : Path.t -> unit RunAsync.t
+val createDir : Path.t -> unit RunAsync.t
 
 val chmod : int -> Path.t -> unit RunAsync.t
 

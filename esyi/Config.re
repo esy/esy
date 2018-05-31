@@ -23,7 +23,7 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) =>
         );
 
       let tarballCachePath = Path.(cachePath / "tarballs");
-      let%bind () = Fs.createDirectory(tarballCachePath);
+      let%bind () = Fs.createDir(tarballCachePath);
 
       /* Those two shouldn't be created here as code in ensureGitRepo relies on
        * their existence to perform either clone or update, consider refactoring it.
