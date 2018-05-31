@@ -332,15 +332,7 @@ let build ?(buildOnly=true) cfg argv =
         cfg task
     in Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
-  | cmd :: args ->
-    let command =
-      match Package.Scripts.find cmd sandbox.scripts with
-      | Some {command;} ->
-        let command = Cmd.toList command in
-        command @ args
-      | None -> argv
-    in
-
+  | command ->
     let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
     match%bind PackageBuilder.buildExec cfg task command with
     | Unix.WEXITED 0 -> return ()
@@ -410,6 +402,7 @@ let sandboxEnv =
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
     ?prepare
+    ?(lookupScripts=false)
     ~env
     cfg
     argv
@@ -431,6 +424,7 @@ let makeExecCommand
   in
 
   let command =
+    if lookupScripts then begin
     match argv with
     | [] -> Cmd.ofList argv
     | cmd :: args ->
@@ -440,6 +434,8 @@ let makeExecCommand
         Cmd.(command %% args)
       | None -> Cmd.ofList argv
       end
+    end
+    else Cmd.ofList argv
   in
 
   let%bind env = RunAsync.ofRun (
@@ -482,6 +478,7 @@ let exec cfgRes =
 
 let devExec =
   makeExecCommand
+    ~lookupScripts:true
     ~checkIfDependenciesAreBuilt:true
     ~env:`CommandEnv
 
