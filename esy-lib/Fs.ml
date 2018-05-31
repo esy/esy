@@ -64,8 +64,12 @@ let createDirectory (path : Path.t) =
 
 let stat (path : Path.t) =
   let path = Path.to_string path in
-  let%lwt stats = Lwt_unix.stat path in
-  RunAsync.return stats
+  match%lwt Lwt_unix.stat path with
+  | stats -> RunAsync.return stats
+  | exception Unix.Unix_error (Unix.ENOTDIR, "stat", _) ->
+    RunAsync.error "unable to stat"
+  | exception Unix.Unix_error (Unix.ENOENT, "stat", _) ->
+    RunAsync.error "unable to stat"
 
 let lstat (path : Path.t) =
   let path = Path.to_string path in
