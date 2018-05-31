@@ -80,6 +80,8 @@ module Scripts = struct
       | Error err -> Error err
     in
     stringMap script
+
+  let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
 end
 
 (**

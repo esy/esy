@@ -332,12 +332,11 @@ let build ?(buildOnly=true) cfg argv =
         cfg task
     in Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
-  | argv ->
+  | cmd :: args ->
     let command =
-      match SandboxTools.findScript ~sandbox argv with
+      match Package.Scripts.find cmd sandbox.scripts with
       | Some {command;} ->
         let command = Cmd.toList command in
-        let args = List.tl argv in
         command @ args
       | None -> argv
     in
@@ -432,11 +431,15 @@ let makeExecCommand
   in
 
   let command =
-    match SandboxTools.findScript ~sandbox argv with
-    | Some {command;} ->
-      let args = Cmd.ofList (List.tl argv) in
-      Cmd.(command %% args)
-    | None -> Cmd.ofList argv
+    match argv with
+    | [] -> Cmd.ofList argv
+    | cmd :: args ->
+      begin match Package.Scripts.find cmd sandbox.scripts with
+      | Some {command;} ->
+        let args = Cmd.ofList args in
+        Cmd.(command %% args)
+      | None -> Cmd.ofList argv
+      end
   in
 
   let%bind env = RunAsync.ofRun (
