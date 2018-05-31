@@ -37,7 +37,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
   let packageInstallPath = pkg =>
     Path.(append(nodeModulesPath, v(pkg.Solution.name)));
 
-  let%bind _ = Fs.rmPath(nodeModulesPath);
+  let%bind () = Fs.rmPath(nodeModulesPath);
   let%bind () = Fs.createDir(nodeModulesPath);
 
   Logs.app(m => m("Checking if there are some packages to fetch..."));

@@ -812,7 +812,7 @@ let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
     | Some basePath ->
       let nextTargetPath = Path.(destPrefix // basePath) in
       let%bind () = Fs.unlink path in
-      let%bind () = Fs.symlink ~source:nextTargetPath path in
+      let%bind () = Fs.symlink ~src:nextTargetPath path in
       return ()
     | None -> return ()
   in
@@ -838,8 +838,8 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
   in
   let%bind stagePath =
     let path = Path.(cfg.Config.storePath / "s" / buildId) in
-    let%bind _ = Fs.rmPath path in
-    let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
+    let%bind () = Fs.rmPath path in
+    let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
     return path
   in
   let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
@@ -855,7 +855,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     )
   in
   let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s: done" buildId) in
-  let%bind _ = Fs.rmPath stagePath in
+  let%bind () = Fs.rmPath stagePath in
   return ()
 
 let importBuild (cfg : Config.t) buildPath =
@@ -880,7 +880,7 @@ let importBuild (cfg : Config.t) buildPath =
         return (Path.v v)
       in
       let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.storePath buildPath in
-      let%bind () = Fs.rename ~source:buildPath outputPath in
+      let%bind () = Fs.rename ~src:buildPath outputPath in
       let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
       return ()
     in
@@ -888,8 +888,8 @@ let importBuild (cfg : Config.t) buildPath =
     | `Dir ->
       let%bind stagePath =
         let path = Path.(cfg.Config.storePath / "s" / buildId) in
-        let%bind _ = Fs.rmPath path in
-        let%bind () = Fs.copyPath ~origPath:buildPath ~destPath:path in
+        let%bind () = Fs.rmPath path in
+        let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
         return path
       in
       importFromDir stagePath
