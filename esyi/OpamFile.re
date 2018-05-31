@@ -509,7 +509,6 @@ let process = ({deps, buildDeps, devDeps, _}) => {
   Types.runtime: deps @ buildDeps,
   build: [],
   dev: devDeps,
-  npm: [],
   /* (deps, buildDeps, devDeps) */
 };
 
