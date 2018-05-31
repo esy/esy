@@ -31,7 +31,7 @@ module CommandList = struct
     [@@deriving (show, eq, ord)]
 
   let of_yojson (json : Json.t) =
-    let open Result in
+    let open Result.Syntax in
     let commands =
       match json with
       | `Null -> Ok []
@@ -70,13 +70,13 @@ module SandboxEnv = struct
 
   let of_yojson = function
     | `Assoc items ->
-      let open Result in
+      let open Result.Syntax in
       let f items ((k, v): (string * Yojson.Safe.json)) = match v with
       | `String value ->
         Ok ({name = k; value;}::items)
       | _ -> Error "expected string"
       in
-      let%bind items = listFoldLeft ~f ~init:[] items in
+      let%bind items = Result.List.foldLeft ~f ~init:[] items in
       Ok (List.rev items)
     | _ -> Error "expected an object"
 end
@@ -119,12 +119,12 @@ module ExportedEnv = struct
 
   let of_yojson = function
     | `Assoc items ->
-      let open Result in
+      let open Result.Syntax in
       let f items (k, v) =
         let%bind {Item. value; scope; exclusive} = Item.of_yojson v in
         Ok ({name = k; value; scope; exclusive}::items)
       in
-      let%bind items = listFoldLeft ~f ~init:[] items in
+      let%bind items = Result.List.foldLeft ~f ~init:[] items in
       Ok (List.rev items)
     | _ -> Error "expected an object"
 

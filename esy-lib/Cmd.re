@@ -17,7 +17,7 @@ let isExecutable = (stats: Unix.stats) => {
 };
 
 let resolveCmd = (path, cmd) => {
-  module Let_syntax = Result.Let_syntax;
+  open Result.Syntax;
   let find = p => {
     let p = Path.(v(p) / cmd);
     let%bind stats = Bos.OS.Path.stat(p);
@@ -32,7 +32,7 @@ let resolveCmd = (path, cmd) => {
     | ["", ...xs] => resolve(xs)
     | [x, ...xs] =>
       switch (find(x)) {
-      | Ok(Some(x)) => Ok(Path.to_string(x))
+      | Ok(Some(x)) => Ok(Path.toString(x))
       | Ok(None)
       | Error(_) => resolve(xs)
       };
@@ -43,13 +43,12 @@ let resolveCmd = (path, cmd) => {
   };
 };
 
-let resolveInvocation = (path, cmd) => {
-  module Let_syntax = Result.Let_syntax;
-  let cmd = Bos.Cmd.to_list(cmd);
-  switch (cmd) {
-  | [] => Error(`Msg("empty command"))
-  | [cmd, ...args] =>
-    let%bind cmd = resolveCmd(path, cmd);
-    Ok(Bos.Cmd.of_list([cmd, ...args]));
-  };
-};
+let resolveInvocation = (path, cmd) =>
+  Result.Syntax.(
+    switch (toList(cmd)) {
+    | [] => Error(`Msg("empty command"))
+    | [cmd, ...args] =>
+      let%bind cmd = resolveCmd(path, cmd);
+      Ok(Bos.Cmd.of_list([cmd, ...args]));
+    }
+  );

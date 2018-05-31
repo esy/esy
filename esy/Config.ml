@@ -42,7 +42,7 @@ let maxStorePaddingLength =
     )
 
 let initStore (path: Path.t) =
-  let module Let_syntax = Result.Let_syntax in
+  let open Result.Syntax in
   let%bind _ = Bos.OS.Dir.create(Path.(path / "i")) in
   let%bind _ = Bos.OS.Dir.create(Path.(path / "b")) in
   let%bind _ = Bos.OS.Dir.create(Path.(path / "s")) in
@@ -55,7 +55,7 @@ let create
   ~esyVersion
   ~prefixPath (sandboxPath : Path.t) =
   let value =
-    let module Let_syntax = Result.Let_syntax in
+    let open Result.Syntax in
 
     let%bind prefixPath =
       match prefixPath with

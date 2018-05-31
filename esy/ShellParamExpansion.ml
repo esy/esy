@@ -33,5 +33,5 @@ let render ?(fallback=Some "") ~(scope : scope) v =
       | _, _, _ -> Run.error ("unable to resolve: $" ^ name)
       end
   in
-  let%bind segments = Result.listFoldLeft ~f ~init:[] tokens in
+  let%bind segments = Result.List.foldLeft ~f ~init:[] tokens in
   Ok (segments |> List.rev |> String.concat "")

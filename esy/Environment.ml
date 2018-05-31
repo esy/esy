@@ -134,7 +134,7 @@ module Value = struct
       | ExpandedValue value ->
         Ok (M.add binding.name value env)
     in
-    Result.listFoldLeft ~f ~init bindings
+    Result.List.foldLeft ~f ~init bindings
 
   let bindToConfig (cfg : Config.t) env =
     let f k value = function
