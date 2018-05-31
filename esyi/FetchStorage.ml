@@ -93,6 +93,12 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
             let name = Path.append path (Path.v name) in
             let dirname = Path.parent name in
             let%bind () = Fs.createDirectory dirname in
+            (* TODO: move this to the place we read data from *)
+            let data =
+              if String.get data (String.length data - 1) == '\n'
+              then data
+              else data ^ "\n"
+            in
             let%bind () = Fs.writeFile ~data name in
             return()
           in
@@ -101,7 +107,8 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
 
         let%bind() =
           let f patch =
-            Patch.apply ~strip:1 ~root:path ~patch:(Path.v patch) ()
+            let patch = Path.(path / patch) in
+            Patch.apply ~strip:1 ~root:path ~patch ()
           in RunAsync.List.processSeq ~f patches
         in
         return()
