@@ -11,6 +11,9 @@ val openFile : mode:Lwt_unix.open_flag list -> perm:int -> Path.t -> Lwt_unix.fi
 
 val exists : Path.t -> bool RunAsync.t
 
+(** Check if the path exists and is a directory *)
+val isDir : Path.t -> bool RunAsync.t
+
 val unlink : Path.t -> unit RunAsync.t
 
 val readlink : Path.t -> Path.t RunAsync.t

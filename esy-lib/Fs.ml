@@ -76,6 +76,12 @@ let lstat (path : Path.t) =
   | Unix.Unix_error (error, _, _) ->
     RunAsync.error (Unix.error_message error)
 
+let isDir (path : Path.t) =
+  match%lwt stat path with
+  | Ok { st_kind = Unix.S_DIR; _ } -> RunAsync.return true
+  | Ok { st_kind = _; _ } -> RunAsync.return false
+  | Error _ -> RunAsync.return false
+
 let unlink (path : Path.t) =
   let path = Path.to_string path in
   let%lwt () = Lwt_unix.unlink path in
