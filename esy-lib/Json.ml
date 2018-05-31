@@ -58,5 +58,18 @@ module Parse = struct
       in
       List.fold_left c (Ok StringMap.empty) items
     | _ -> Error errorMsg
-end
 
+  let cmd ?(errorMsg="expected a string or an array of strings") (json : t) =
+    match json with
+    | `List cmd ->
+      begin match list string (`List cmd) with
+      | Ok cmd -> Ok (Cmd.ofList cmd)
+      | Error _ -> Error errorMsg
+      end
+    | `String cmd ->
+      begin match ShellSplit.split cmd with
+      | Ok argv -> Ok (Cmd.ofList argv)
+      | Error _ -> Error errorMsg
+      end
+    | _ -> Error errorMsg
+end
