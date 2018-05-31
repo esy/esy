@@ -267,7 +267,7 @@ let ofPackage
     let term = match term with
     | None -> getenv "TERM"
     | Some term -> term
-    in Option.orDefault "" term
+    in Option.orDefault ~default:"" term
   in
 
   let open Run.Syntax in
@@ -623,14 +623,14 @@ let ofPackage
             {
               name = "PATH";
               value = Value (Option.orDefault
-                               "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+                               ~default:"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
                                finalPath);
               origin = None;
             };
             {
               name = "MAN_PATH";
               value = Value (Option.orDefault
-                               "$MAN_PATH"
+                               ~default:"$MAN_PATH"
                                finalManPath);
               origin = None;
             }

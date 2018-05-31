@@ -1,7 +1,12 @@
-let orDefault = default =>
+let orDefault = (~default) =>
   fun
   | None => default
   | Some(v) => v;
+
+let orOther = (~other) =>
+  fun
+  | None => other
+  | Some(v) => Some(v);
 
 let map = (~f) =>
   fun
