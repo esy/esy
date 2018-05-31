@@ -843,7 +843,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     return path
   in
   let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
-  let%bind () = Fs.createDirectory (Path.parent outputPath) in
+  let%bind () = Fs.createDir (Path.parent outputPath) in
   let%bind () =
     ChildProcess.run Cmd.(
       empty

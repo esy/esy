@@ -46,7 +46,7 @@ let chmod permission (path : Path.t) =
   let%lwt () = Lwt_unix.chmod path permission in
   RunAsync.return ()
 
-let createDirectory (path : Path.t) =
+let createDir (path : Path.t) =
   let rec create path =
     try%lwt (
       let path = Path.to_string path in
@@ -280,7 +280,7 @@ let copyFile ~origPath ~destPath =
 
 let copyPath ~origPath ~destPath =
   let open RunAsync.Syntax in
-  let%bind () = createDirectory (Path.parent destPath) in
+  let%bind () = createDir (Path.parent destPath) in
   try%lwt (
     let%lwt () = copyPathLwt ~origPath ~destPath in
     RunAsync.return ()

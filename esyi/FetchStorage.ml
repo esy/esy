@@ -25,7 +25,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
 
     | Solution.Source.Archive (url, _checksum)  ->
       let f tempPath =
-        let%bind () = Fs.createDirectory tempPath in
+        let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
         let%bind () = Curl.download ~output:tarballPath url in
         let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
@@ -35,7 +35,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
 
     | Solution.Source.GithubSource (user, repo, ref) ->
       let f tempPath =
-        let%bind () = Fs.createDirectory tempPath in
+        let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
         let%bind () =
           let url =
@@ -92,7 +92,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
           let f (relPath, data) =
             let name = Path.append path relPath in
             let dirname = Path.parent name in
-            let%bind () = Fs.createDirectory dirname in
+            let%bind () = Fs.createDir dirname in
             (* TODO: move this to the place we read data from *)
             let data =
               if String.get data (String.length data - 1) == '\n'
@@ -136,7 +136,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
     | false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
-          let%bind () = Fs.createDirectory sourcePath in
+          let%bind () = Fs.createDir sourcePath in
           Logs.app (fun m -> m "Fetching %s" name);
           let%bind () = doFetch sourcePath in
           let%bind () = complete sourcePath in
@@ -145,7 +145,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
         in
 
         let%bind () =
-          let%bind () = Fs.createDirectory (Path.parent tarballPath) in
+          let%bind () = Fs.createDir (Path.parent tarballPath) in
           let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
           let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
           let%bind () = Fs.rename ~source:tempTarballPath tarballPath in
@@ -158,6 +158,6 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
 let install ~config:_ ~dst pkg =
   let open RunAsync.Syntax in
   let {Package. tarballPath; _} = pkg in
-  let%bind () = Fs.createDirectory dst in
+  let%bind () = Fs.createDir dst in
   let%bind () = Tarball.unpack ~dst tarballPath in
   return ()

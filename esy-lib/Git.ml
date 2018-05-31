@@ -64,6 +64,6 @@ module ShallowClone = struct
         ~repo:dst
         ()
     else
-      let%bind () = Fs.createDirectory (Path.parent dst) in
+      let%bind () = Fs.createDir (Path.parent dst) in
       clone ~branch ~depth:1 ~remote:source ~dst ()
 end
