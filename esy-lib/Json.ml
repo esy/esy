@@ -2,6 +2,9 @@ module StringMap = (Map.Make)(String)
 
 type t = Yojson.Safe.json
 
+let to_yojson x = x
+let of_yojson x = Ok x
+
 let parseJsonWith parser json =
   Run.ofStringError (parser json)
 
