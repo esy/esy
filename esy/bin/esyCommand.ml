@@ -316,14 +316,14 @@ let buildPackage cfg packagePath =
     Build.buildAll ~concurrency:EsyRuntime.concurrency ~force:`ForRoot cfg task
   in withBuildTaskByPath ~info packagePath f
 
-let build ?(buildOnly=true) cfg command =
+let build ?(buildOnly=true) cfg argv =
   let open RunAsync.Syntax in
   let%bind cfg = cfg in
-  let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
+  let%bind {SandboxInfo. task; sandbox; _} = SandboxInfo.ofConfig cfg in
 
   (** TODO: figure out API to build devDeps in parallel with the root *)
 
-  match command with
+  match argv with
   | [] ->
     let%bind () =
       Build.buildDependencies
@@ -332,7 +332,16 @@ let build ?(buildOnly=true) cfg command =
         cfg task
     in Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
-  | command ->
+  | argv ->
+    let command =
+      match SandboxTools.findScript ~sandbox argv with
+      | Some {command;} ->
+        let command = Cmd.toList command in
+        let args = List.tl argv in
+        command @ args
+      | None -> argv
+    in
+
     let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
     match%bind PackageBuilder.buildExec cfg task command with
     | Unix.WEXITED 0 -> return ()
@@ -409,21 +418,21 @@ let makeExecCommand
   let open RunAsync.Syntax in
 
   let%bind cfg = cfg in
-  let%bind (info: SandboxInfo.t) = SandboxInfo.ofConfig cfg in
+  let%bind {SandboxInfo. task; sandbox; _} as info = SandboxInfo.ofConfig cfg in
 
   let%bind () = match prepare with
     | None -> return ()
-    | Some prepare -> prepare cfg info.task
+    | Some prepare -> prepare cfg task
   in
 
   let%bind () =
     if checkIfDependenciesAreBuilt
-    then Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg info.task
+    then Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task
     else return ()
   in
 
   let command =
-    match SandboxTools.findScript ~sandbox:info.sandbox argv with
+    match SandboxTools.findScript ~sandbox argv with
     | Some {command;} ->
       let args = Cmd.ofList (List.tl argv) in
       Cmd.(command %% args)
