@@ -6,9 +6,18 @@
   "scripts": {
     "cmd1": "echo \"cmd1_result\"",
     "cmd2": "esy echo \"cmd2_result\"",
-    "cmd3": ["bash", "-c", "echo 'cmd_array_result'"]
+    "cmd3": ["bash", "-c", "echo 'cmd_array_result'"],
+    "cmd4": "script",
+    "exec_cmd4": "esy x script",
+    "exec_cmd4_cmd": ["esy", "x", "script"]
   },
-  "esy": {},
+  "esy": {
+    "build": [
+      ["cp", "script.sh", "#{self.target_dir / 'script'}"],
+      "chmod +x $cur__target_dir/script"
+    ],
+    "install": ["cp $cur__target_dir/script $cur__bin/script"]
+  },
   "author": "Andrey Popp <8mayday@gmail.com> (http://andreypopp.com/)",
   "license": "MIT"
 }
