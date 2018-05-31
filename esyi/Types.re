@@ -92,7 +92,7 @@ let json_to_yojson = x => x;
 let json_of_yojson = x => Result.Ok(x);
 
 [@deriving yojson]
-type opamFile = (json, list((string, string)), list(string));
+type opamFile = (json, list((Path.t, string)), list(string));
 
 module PendingSource = {
   [@deriving yojson]

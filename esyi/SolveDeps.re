@@ -6,7 +6,7 @@ module T = {
     | `PackageJson(Yojson.Basic.json)
   ];
   type cache = {
-    opamOverrides: list((string, Types.opamRange, string)),
+    opamOverrides: list((string, Types.opamRange, Path.t)),
     npmPackages: Hashtbl.t(string, Yojson.Basic.json),
     opamPackages: Hashtbl.t(string, OpamFile.manifest),
     versions: VersionCache.t,
@@ -23,16 +23,20 @@ module T = {
 open T;
 
 let initCache = config => {
-  versions: {
-    availableNpmVersions: Hashtbl.create(100),
-    availableOpamVersions: Hashtbl.create(100),
-    config,
-  },
-  opamOverrides:
-    OpamOverrides.getOverrides(config.Config.esyOpamOverridePath),
-  npmPackages: Hashtbl.create(100),
-  opamPackages: Hashtbl.create(100),
-  manifests: Hashtbl.create(100),
+  let opamOverrides =
+    OpamOverrides.getOverrides(config.Config.esyOpamOverridePath)
+    |> RunAsync.runExn(~err="unable to read opam overrides");
+  {
+    versions: {
+      availableNpmVersions: Hashtbl.create(100),
+      availableOpamVersions: Hashtbl.create(100),
+      config,
+    },
+    opamOverrides,
+    npmPackages: Hashtbl.create(100),
+    opamPackages: Hashtbl.create(100),
+    manifests: Hashtbl.create(100),
+  };
 };
 
 /**
@@ -254,49 +258,54 @@ and addToUniverse =
       state,
       universe,
       (name, source),
-    ) =>
-  VersionCache.getAvailableVersions(
-    ~config,
-    ~cache=state.cache.versions,
-    (name, source),
-  )
-  |> List.iter(versionPlus => {
-       let (realVersion, i) =
-         switch (versionPlus) {
-         | `Github(user, name, ref) => (
-             Solution.Version.Github(user, name, ref),
-             1,
-           )
-         | `Opam(v, _, i) => (Solution.Version.Opam(v), i)
-         | `Npm(v, _, i) => (Solution.Version.Npm(v), i)
-         | `LocalPath(p) => (Solution.Version.LocalPath(p), 2)
-         };
-       if (!
-             Hashtbl.mem(
-               state.cudfVersions.lookupIntVersion,
-               (name, realVersion),
-             )) {
-         let (manifest, depsByKind) =
-           getCachedManifest(
-             state.cache.opamOverrides,
-             state.cache.manifests,
-             (name, versionPlus),
-           );
-         addPackage(
-           ~config,
-           ~unique,
-           ~previouslyInstalled,
-           ~deep,
-           name,
-           realVersion,
-           i,
-           depsByKind,
-           state,
-           universe,
-           manifest,
-         );
-       };
-     });
+    ) => {
+  let versions =
+    VersionCache.getAvailableVersions(
+      ~config,
+      ~cache=state.cache.versions,
+      (name, source),
+    );
+  List.iter(
+    versionPlus => {
+      let (realVersion, i) =
+        switch (versionPlus) {
+        | `Github(user, name, ref) => (
+            Solution.Version.Github(user, name, ref),
+            1,
+          )
+        | `Opam(v, _, i) => (Solution.Version.Opam(v), i)
+        | `Npm(v, _, i) => (Solution.Version.Npm(v), i)
+        | `LocalPath(p) => (Solution.Version.LocalPath(p), 2)
+        };
+      if (!
+            Hashtbl.mem(
+              state.cudfVersions.lookupIntVersion,
+              (name, realVersion),
+            )) {
+        let (manifest, depsByKind) =
+          getCachedManifest(
+            state.cache.opamOverrides,
+            state.cache.manifests,
+            (name, versionPlus),
+          );
+        addPackage(
+          ~config,
+          ~unique,
+          ~previouslyInstalled,
+          ~deep,
+          name,
+          realVersion,
+          i,
+          depsByKind,
+          state,
+          universe,
+          manifest,
+        );
+      };
+    },
+    versions,
+  );
+};
 
 let rootName = "*root*";
 

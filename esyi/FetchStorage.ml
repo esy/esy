@@ -89,8 +89,8 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
         in
 
         let%bind () =
-          let f (name, data) =
-            let name = Path.append path (Path.v name) in
+          let f (relPath, data) =
+            let name = Path.append path relPath in
             let dirname = Path.parent name in
             let%bind () = Fs.createDirectory dirname in
             (* TODO: move this to the place we read data from *)

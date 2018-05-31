@@ -11,13 +11,12 @@ let filterNils = items =>
      );
 
 let getFromOpamRegistry = (config, fullName) => {
+  open RunAsync.Syntax;
   let name = OpamFile.withoutScope(fullName);
-  let (/+) = Filename.concat;
-  let base =
-    Path.(config.Config.opamRepositoryPath / "packages" / name |> to_string);
-  switch (Files.readDirectory(base)) {
-  | exception _ => failwith("Opam package not in registry: " ++ name)
-  | entries =>
+  let packagesPath =
+    Path.(config.Config.opamRepositoryPath / "packages" / name);
+  let%bind entries = Fs.listDir(packagesPath);
+  return(
     List.map(
       entry => {
         let semver =
@@ -28,22 +27,26 @@ let getFromOpamRegistry = (config, fullName) => {
             OpamVersion.parseConcrete(String.concat(".", items))
           };
         /* PERF: we should cache this, instead of re-parsing it later again */
-        let manifest =
-          OpamFile.parseManifest(
-            (name, semver),
-            OpamParser.file(base /+ entry /+ "opam"),
-          );
+        let manifest = {
+          let path = Path.(packagesPath / entry / "opam" |> toString);
+          OpamFile.parseManifest((name, semver), OpamParser.file(path));
+        };
         if (! manifest.OpamFile.available) {
           None;
         } else {
-          Some((
-            semver,
-            (base /+ entry /+ "opam", base /+ entry /+ "url", name, semver),
-          ));
+          let opamFile = Path.(packagesPath / entry / "opam");
+          let urlFile = Path.(packagesPath / entry / "url");
+          let manifest = {
+            OpamFile.ThinManifest.name,
+            opamFile,
+            urlFile,
+            version: semver,
+          };
+          Some((semver, manifest));
         };
       },
       entries,
     )
-    |> filterNils
-  };
+    |> filterNils,
+  );
 };

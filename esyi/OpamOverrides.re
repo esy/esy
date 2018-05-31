@@ -30,7 +30,7 @@ open Infix;
 
 type opamSection = {
   source: option(Types.PendingSource.t),
-  files: list((string, string)) /* relpath, contents */
+  files: list((Path.t, string)) /* relpath, contents */
   /* patches: list((string, string)) relpath, abspath */
 };
 
@@ -156,6 +156,7 @@ module ProcessJson = {
                    items
                    |> get("name")
                    |?>> (str |.! "name must be a str")
+                   |?>> Path.v
                    |! "name required for files",
                    items
                    |> get("content")
@@ -282,45 +283,64 @@ let tee = (fn, value) =>
     None;
   };
 
-let getContents = baseDir =>
-  switch (tee(Files.isFile, Filename.concat(baseDir, "package.json"))) {
-  | Some(name) =>
-    try (ProcessJson.process(Yojson.Basic.from_file(name))) {
-    | Failure(message) => failwith("Bad json " ++ baseDir ++ " " ++ message)
-    }
-  | None =>
-    switch (Filename.concat(baseDir, "package.yaml") |> tee(Files.isFile)) {
-    | None =>
-      failwith("must have either package.json or package.yaml " ++ baseDir)
-    | Some(name) =>
+let getContents = baseDir => {
+  open RunAsync.Syntax;
+  let packageJson = Path.(baseDir / "package.json");
+  if%bind (Fs.exists(packageJson)) {
+    try (
+      return(
+        ProcessJson.process(
+          Yojson.Basic.from_file(Path.toString(packageJson)),
+        ),
+      )
+    ) {
+    | Failure(message) =>
+      error("Bad json " ++ Path.toString(baseDir) ++ " " ++ message)
+    };
+  } else {
+    let packageYaml = Path.(baseDir / "package.yaml");
+    if%bind (Fs.exists(packageYaml)) {
+      let%bind data = Fs.readFile(packageYaml);
       let json =
-        Yaml.of_string(Files.readFile(name) |! "unable to read yaml")
-        |> expectResult("Bad yaml file")
-        |> yamlToJson;
-      /* print_endline(Yojson.Basic.to_string(json)); */
-      try (ProcessJson.process(json)) {
+        Yaml.of_string(data) |> expectResult("Bad yaml file") |> yamlToJson;
+      try (return(ProcessJson.process(json))) {
       | Failure(message) =>
-        failwith("Bad yaml jsom " ++ baseDir ++ " " ++ message)
+        error("Bad yaml jsom " ++ Path.toString(baseDir) ++ " " ++ message)
       };
-    }
+    } else {
+      failwith(
+        "must have either package.json or package.yaml "
+        ++ Path.toString(baseDir),
+      );
+    };
   };
+};
 
 let getOverrides = checkoutDir => {
-  let dir = Path.(checkoutDir / "packages" |> to_string);
-  Files.readDirectory(dir)
-  |> List.map(name => {
-       let (realName, semver) = ParseName.parseDirectoryName(name);
-       (realName, semver, Filename.concat(dir, name));
-     });
+  open RunAsync.Syntax;
+  let packagesDir = Path.(checkoutDir / "packages");
+  let%bind names = Fs.listDir(packagesDir);
+  return(
+    List.map(
+      name => {
+        let (realName, semver) = ParseName.parseDirectoryName(name);
+        (realName, semver, Path.(packagesDir / name));
+      },
+      names,
+    ),
+  );
 };
 
 let findApplicableOverride = (overrides, name, version) => {
+  open RunAsync.Syntax;
   let rec loop =
     fun
-    | [] => None
+    | [] => return(None)
     | [(oname, semver, fullPath), ..._]
-        when name == oname && OpamVersion.matches(semver, version) =>
-      Some(getContents(fullPath))
+        when name == oname && OpamVersion.matches(semver, version) => {
+        let%bind override = getContents(fullPath);
+        return(Some(override));
+      }
     | [_, ...rest] => loop(rest);
   loop(overrides);
 };

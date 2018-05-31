@@ -5,7 +5,7 @@ type t = {
   availableNpmVersions:
     Hashtbl.t(string, list((NpmVersion.t, Yojson.Basic.json))),
   availableOpamVersions:
-    Hashtbl.t(string, list((Types.opamConcrete, OpamFile.thinManifest))),
+    Hashtbl.t(string, list((Types.opamConcrete, OpamFile.ThinManifest.t))),
 };
 
 let getAvailableVersions = (~config: Config.t, ~cache: t, (name, source)) =>
@@ -29,11 +29,10 @@ let getAvailableVersions = (~config: Config.t, ~cache: t, (name, source)) =>
     |> List.map(((version, json, i)) => `Npm((version, json, i)));
   | Opam(semver) =>
     if (! Hashtbl.mem(cache.availableOpamVersions, name)) {
-      Hashtbl.replace(
-        cache.availableOpamVersions,
-        name,
-        OpamRegistry.getFromOpamRegistry(cache.config, name),
-      );
+      let info =
+        OpamRegistry.getFromOpamRegistry(cache.config, name)
+        |> RunAsync.runExn(~err="unable to get info on opam package");
+      Hashtbl.replace(cache.availableOpamVersions, name, info);
     };
     let available =
       Hashtbl.find(cache.availableOpamVersions, name)

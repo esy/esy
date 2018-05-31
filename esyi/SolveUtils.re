@@ -168,7 +168,10 @@ let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
       | `LocalPath(_p) =>
         failwith("do not know how to get manifest from LocalPath")
       | `Opam(_version, path, _) =>
-        `OpamFile(OpamFile.getManifest(opamOverrides, path))
+        let manifest =
+          OpamFile.getManifest(opamOverrides, path)
+          |> RunAsync.runExn(~err="unable to read opam manifest");
+        `OpamFile(manifest);
       };
     let depsByKind = Manifest.getDeps(manifest);
     let res = (manifest, depsByKind);
