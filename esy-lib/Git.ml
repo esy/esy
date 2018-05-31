@@ -41,7 +41,7 @@ let checkout ~ref ~repo () =
 
 let lsRemote ?ref ~remote () =
   let open RunAsync.Syntax in
-  let ref = Option.orDefault "master" ref in
+  let ref = Option.orDefault ~default:"master" ref in
   let cmd = Cmd.(v "git"  % "ls-remote" % remote % ref) in
   let%bind out = ChildProcess.runOut cmd in
   match out |> String.trim |> String.split_on_char '\n' with

@@ -16,7 +16,7 @@ type commonOpts = {
 };
 
 let setupLog = (style_renderer, level) => {
-  let style_renderer = Option.orDefault(`None, style_renderer);
+  let style_renderer = Option.orDefault(~default=`None, style_renderer);
   Fmt_tty.setup_std_outputs(~style_renderer, ());
   Logs.set_level(level);
   Logs.set_reporter(Logs_fmt.reporter());
@@ -51,7 +51,7 @@ let createConfig = (copts: commonOpts) => {
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   open Run;
   let {buildPath, _} = copts;
-  let buildPath = Option.orDefault(v("build.json"), buildPath);
+  let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind config = createConfig(copts);
   let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
   let%bind () =
@@ -62,7 +62,7 @@ let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
 let shell = (copts: commonOpts) => {
   open Run;
   let {buildPath, _} = copts;
-  let buildPath = Option.orDefault(v("build.json"), buildPath);
+  let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind config = createConfig(copts);
   let runShell = (_run, runInteractive, ()) => {
     let%bind rcFilename =
@@ -92,7 +92,7 @@ let shell = (copts: commonOpts) => {
 let exec = (copts, command) => {
   open Run;
   let {buildPath, _} = copts;
-  let buildPath = Option.orDefault(v("build.json"), buildPath);
+  let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind config = createConfig(copts);
   let runCommand = (_run, runInteractive, ()) => {
     let cmd = Bos.Cmd.of_list(command);
