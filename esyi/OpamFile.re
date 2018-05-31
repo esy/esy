@@ -14,7 +14,7 @@ type manifest = {
   build: list(list(string)),
   install: list(list(string)),
   patches: list(string), /* these should be absolute */
-  files: list((string, string)), /* relname, sourcetext */
+  files: list((Path.t, string)), /* relname, sourcetext */
   deps: list(Types.dep),
   buildDeps: list(Types.dep),
   devDeps: list(Types.dep),
@@ -26,7 +26,14 @@ type manifest = {
   exportedEnv: list((string, (string, string))),
 };
 
-type thinManifest = (string, string, string, Types.opamConcrete);
+module ThinManifest = {
+  type t = {
+    name: string,
+    opamFile: Path.t,
+    urlFile: Path.t,
+    version: Types.opamConcrete,
+  };
+};
 
 let rec findVariable = (name, items) =>
   switch (items) {
@@ -342,20 +349,20 @@ let parseUrlFile = ({file_contents, file_name}) =>
 
 let toDepSource = ((name, semver)) => (name, Types.Opam(semver));
 
-let getOpamFiles = opam_name => {
-  let dir = Filename.concat(Filename.dirname(opam_name), "files");
-  if (Files.isDirectory(dir)) {
-    let collected = ref([]);
-    Files.crawl(dir, (rel, full) =>
-      collected :=
-        [
-          (rel, Files.readFile(full) |! "opam file unreadable"),
-          ...collected^,
-        ]
-    );
-    collected^;
+let getOpamFiles = (path: Path.t) => {
+  open RunAsync.Syntax;
+  let filesPath = Path.(path / "files");
+  if%bind (Fs.isDir(filesPath)) {
+    let collect = (files, filePath, _fileStats) =>
+      switch (Path.relativize(~root=filesPath, filePath)) {
+      | Some(relFilePath) =>
+        let%bind fileData = Fs.readFile(filePath);
+        return([(relFilePath, fileData), ...files]);
+      | None => return(files)
+      };
+    Fs.fold(~init=[], ~f=collect, filesPath);
   } else {
-    [];
+    return([]);
   };
 };
 
@@ -379,13 +386,13 @@ let getSubsts = opamvalue =>
   |> List.map(filename => ["substs", filename ++ ".in"]);
 
 let parseManifest = (info, {file_contents, file_name}) => {
-  /* let baseDir = Filename.dirname(file_name); */
-  /* NOTE: buildDeps are not actually buildDeps as we think of them, because they can also have runtime components. */
   let (deps, buildDeps, devDeps) =
     processDeps(file_name, findVariable("depends", file_contents));
   let (depopts, _, _) =
     processDeps(file_name, findVariable("depopts", file_contents));
-  let files = getOpamFiles(file_name);
+  let files =
+    getOpamFiles(Path.(v(file_name) |> parent))
+    |> RunAsync.runExn(~err="error crawling files");
   let patches = processStringList(findVariable("patches", file_contents));
   /** OPTIMIZE: only read the files when generating the lockfile */
   /* print_endline("Patches for " ++ file_name ++ " " ++ string_of_int(List.length(patches))); */
@@ -485,23 +492,37 @@ let mergeOverride = (manifest, override) => {
   };
 };
 
-let getManifest = (opamOverrides, (opam, url, name, version)) => {
-  let manifest = {
-    ...parseManifest((name, version), OpamParser.file(opam)),
-    source:
-      Files.exists(url) ?
-        parseUrlFile(OpamParser.file(url)) : Types.PendingSource.NoSource,
-  };
-  switch (OpamOverrides.findApplicableOverride(opamOverrides, name, version)) {
-  | None =>
-    /* print_endline("No override for " ++ name ++ " " ++ VersionNumber.viewVersionNumber(version)); */
-    manifest
-  | Some(override) =>
-    /* print_endline("!! Found override for " ++ name); */
-    let m = mergeOverride(manifest, override);
-    m;
-  };
-};
+let getManifest =
+    (opamOverrides, {ThinManifest.opamFile, urlFile, name, version}) =>
+  RunAsync.Syntax.(
+    {
+      let%bind source =
+        if%bind (Fs.exists(urlFile)) {
+          return(parseUrlFile(OpamParser.file(Path.toString(urlFile))));
+        } else {
+          return(Types.PendingSource.NoSource);
+        };
+      let manifest = {
+        ...
+          parseManifest(
+            (name, version),
+            OpamParser.file(Path.toString(opamFile)),
+          ),
+        source,
+      };
+      switch%bind (
+        OpamOverrides.findApplicableOverride(opamOverrides, name, version)
+      ) {
+      | None =>
+        /* print_endline("No override for " ++ name ++ " " ++ VersionNumber.viewVersionNumber(version)); */
+        return(manifest)
+      | Some(override) =>
+        /* print_endline("!! Found override for " ++ name); */
+        let m = mergeOverride(manifest, override);
+        return(m);
+      };
+    }
+  );
 
 let getSource = ({source, _}) => source;
 
