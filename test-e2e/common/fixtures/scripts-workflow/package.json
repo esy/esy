@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "cmd1": "echo \"cmd1_result\"",
-    "cmd2": "esy echo \"cmd2_result\"",
+    "cmd1": "bash -c 'echo 'cmd1_result''",
+    "cmd2": "esy bash -c 'echo 'cmd2_result''",
     "cmd3": ["bash", "-c", "echo 'cmd_array_result'"],
     "cmd4": "script",
     "exec_cmd4": "esy x script",
-    "exec_cmd4_cmd": ["esy", "x", "script"]
+    "exec_cmd4_cmd": ["esy", "x", "script"],
+    "build_cmd1": "bash -c 'echo 'build_cmd1_result''",
+    "build_cmd2": "esy bash -c 'echo 'build_cmd2_result''",
+    "build_cmd3": "esy b bash -c 'echo 'build_cmd3_result''"
   },
   "esy": {
     "build": [
