@@ -106,17 +106,25 @@ let rename ~source target =
 
 let no _path = false
 
-let fold ?(skipTraverse=no) ~f ~(init : 'a) (path : Path.t) =
+let fold
+  ?(skipTraverse=no)
+  ~(f : 'a -> Path.t -> Unix.stats -> 'a RunAsync.t)
+  ~(init : 'a)
+  (path : Path.t) =
+  let open RunAsync.Syntax in
   let rec visitPathItems acc path dir =
     match%lwt Lwt_unix.readdir dir with
-    | exception End_of_file -> Lwt.return acc
+    | exception End_of_file -> return acc
     | "." | ".." -> visitPathItems acc path dir
     | name ->
       let%lwt acc = visitPath acc Path.(path / name) in
-      visitPathItems acc path dir
+      begin match acc with
+      | Ok acc -> visitPathItems acc path dir
+      | Error _ -> Lwt.return acc
+      end
   and visitPath (acc : 'a) path =
     if skipTraverse path
-    then Lwt.return acc
+    then return acc
     else (
       let spath = Path.to_string path in
       let%lwt stat = Lwt_unix.lstat spath in
@@ -148,7 +156,7 @@ let listDir path =
 
 let traverse ?skipTraverse ~f path =
   let f _ path stat = f path stat in
-  fold ?skipTraverse ~f ~init:(Run.return ()) path
+  fold ?skipTraverse ~f ~init:() path
 
 let copyStatLwt ~stat path =
   let path = Path.to_string path in

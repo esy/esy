@@ -74,13 +74,13 @@ let runTask
           | _ -> false
           in
           let f mtime _path stat =
-            Lwt.return (
+            return (
               if stat.Unix.st_mtime > mtime
               then stat.Unix.st_mtime
               else mtime
             )
           in
-          let%lwt curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
+          let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
           if curMtime > buildMtime
           then buildTask ~buildOnly cfg task
           else return ()
