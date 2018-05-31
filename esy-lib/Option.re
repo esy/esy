@@ -18,7 +18,9 @@ let isNone =
   | None => true
   | _ => false;
 
-module Let_syntax = {
+module Syntax = {
   let return = v => Some(v);
-  let bind = bind;
+  module Let_syntax = {
+    let bind = bind;
+  };
 };
