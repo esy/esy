@@ -12,7 +12,7 @@ module Api = {
   let fetch = (cfg: EsyInstaller.Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind _ = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
+        let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
         let%bind solution = EsyInstaller.Solution.ofFile(cfg.lockfilePath);
         EsyInstaller.Fetch.fetch(cfg, solution);
       }

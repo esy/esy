@@ -53,7 +53,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
     | Solution.Source.GitSource (gitUrl, commit) ->
       let%bind () = Git.clone ~dst:path ~remote:gitUrl () in
       let%bind () = Git.checkout ~ref:commit ~repo:path () in
-      let%bind _ = Fs.rmPath Path.(path / ".git") in
+      let%bind () = Fs.rmPath Path.(path / ".git") in
       return ()
     in
 
@@ -148,7 +148,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
           let%bind () = Fs.createDir (Path.parent tarballPath) in
           let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
           let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
-          let%bind () = Fs.rename ~source:tempTarballPath tarballPath in
+          let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
           return ()
         in
 

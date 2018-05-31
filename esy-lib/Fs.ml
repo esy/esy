@@ -96,16 +96,16 @@ let readlink (path : Path.t) =
   let%lwt link = Lwt_unix.readlink path in
   RunAsync.return (Path.v link)
 
-let symlink ~source target =
-  let source = Path.to_string source in
+let symlink ~src target =
+  let src = Path.to_string src in
   let target = Path.to_string target in
-  let%lwt () = Lwt_unix.symlink source target in
+  let%lwt () = Lwt_unix.symlink src target in
   RunAsync.return ()
 
-let rename ~source target =
-  let source = Path.to_string source in
+let rename ~src target =
+  let src = Path.to_string src in
   let target = Path.to_string target in
-  let%lwt () = Lwt_unix.rename source target in
+  let%lwt () = Lwt_unix.rename src target in
   RunAsync.return ()
 
 let no _path = false
@@ -171,10 +171,10 @@ let copyStatLwt ~stat path =
     with Unix.Unix_error (Unix.EPERM, _, _) -> Lwt.return ()
   in Lwt.return ()
 
-let copyFileLwt ~origPath ~destPath =
+let copyFileLwt ~src ~dst =
 
-  let origPathS = Path.to_string origPath in
-  let destPathS = Path.to_string destPath in
+  let origPathS = Path.to_string src in
+  let destPathS = Path.to_string dst in
 
   let chunkSize = 1024 * 1024 (* 1mb *) in
 
@@ -205,17 +205,17 @@ let copyFileLwt ~origPath ~destPath =
           (copy ic))
   in
 
-  let%lwt () = copyStatLwt ~stat destPath in
+  let%lwt () = copyStatLwt ~stat dst in
   Lwt.return ()
 
-let rec copyPathLwt ~origPath ~destPath =
-  let origPathS = Path.to_string origPath in
-  let destPathS = Path.to_string destPath in
+let rec copyPathLwt ~src ~dst =
+  let origPathS = Path.to_string src in
+  let destPathS = Path.to_string dst in
   let%lwt stat = Lwt_unix.lstat origPathS in
   match stat.st_kind with
   | S_REG ->
-    let%lwt () = copyFileLwt ~origPath ~destPath in
-    let%lwt () = copyStatLwt ~stat destPath in
+    let%lwt () = copyFileLwt ~src ~dst in
+    let%lwt () = copyStatLwt ~stat dst in
     Lwt.return ()
   | S_LNK ->
     let%lwt link = Lwt_unix.readlink origPathS in
@@ -228,7 +228,7 @@ let rec copyPathLwt ~origPath ~destPath =
       | exception End_of_file -> Lwt.return ()
       | "." | ".." -> traverseDir dir
       | name ->
-        let%lwt () = copyPathLwt ~origPath:Path.(origPath / name) ~destPath:Path.(destPath / name) in
+        let%lwt () = copyPathLwt ~src:Path.(src / name) ~dst:Path.(dst / name) in
         traverseDir dir
     in
 
@@ -238,7 +238,7 @@ let rec copyPathLwt ~origPath ~destPath =
       (fun () -> Lwt_unix.closedir dir)
     in
 
-    let%lwt () = copyStatLwt ~stat destPath in
+    let%lwt () = copyStatLwt ~stat dst in
 
     Lwt.return ()
   | _ ->
@@ -269,20 +269,20 @@ let rec rmPathLwt path =
   | _ ->
     Lwt_unix.unlink pathS
 
-let copyFile ~origPath ~destPath =
+let copyFile ~src ~dst =
   try%lwt (
-    let%lwt () = copyFileLwt ~origPath ~destPath in
-    let%lwt stat = Lwt_unix.stat (Path.to_string origPath) in
-    let%lwt () = copyStatLwt ~stat destPath in
+    let%lwt () = copyFileLwt ~src ~dst in
+    let%lwt stat = Lwt_unix.stat (Path.to_string src) in
+    let%lwt () = copyStatLwt ~stat dst in
     RunAsync.return ()
   ) with Unix.Unix_error (error, _, _) ->
     RunAsync.error (Unix.error_message error)
 
-let copyPath ~origPath ~destPath =
+let copyPath ~src ~dst =
   let open RunAsync.Syntax in
-  let%bind () = createDir (Path.parent destPath) in
+  let%bind () = createDir (Path.parent dst) in
   try%lwt (
-    let%lwt () = copyPathLwt ~origPath ~destPath in
+    let%lwt () = copyPathLwt ~src ~dst in
     RunAsync.return ()
   ) with Unix.Unix_error (error, _, _) ->
     RunAsync.error (Unix.error_message error)
@@ -290,10 +290,10 @@ let copyPath ~origPath ~destPath =
 let rmPath path =
   try%lwt (
     let%lwt () = rmPathLwt path in
-    RunAsync.return `Removed
+    RunAsync.return ()
   ) with
     | Unix.Unix_error (Unix.ENOENT, _, _) ->
-      RunAsync.return `NoSuchPath
+      RunAsync.return ()
     | Unix.Unix_error (error, _, _) ->
       RunAsync.error (Unix.error_message error)
 
@@ -314,12 +314,12 @@ let withTempDir ?tempDir f =
     (fun () -> f path)
     (fun () -> rmPathLwt path)
 
-let withTempFile content f =
+let withTempFile ~data f =
   let path = Filename.temp_file "esy" "tmp" in
 
   let%lwt () =
     let writeContent oc =
-      let%lwt () = Lwt_io.write oc content in
+      let%lwt () = Lwt_io.write oc data in
       let%lwt () = Lwt_io.flush oc in
       Lwt.return ()
     in

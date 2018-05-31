@@ -399,7 +399,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     in
 
     let%bind () =
-      Fs.copyFile ~origPath:esyInstallRelease ~destPath:Path.(outputPath / "esyInstallRelease.js")
+      Fs.copyFile ~src:esyInstallRelease ~dst:Path.(outputPath / "esyInstallRelease.js")
     in
 
     return ()

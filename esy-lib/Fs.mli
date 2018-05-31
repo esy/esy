@@ -1,3 +1,6 @@
+(**
+ * Async filesystem API.
+ *)
 
 val readFile : Path.t -> string RunAsync.t
 
@@ -18,8 +21,8 @@ val isDir : Path.t -> bool RunAsync.t
 val unlink : Path.t -> unit RunAsync.t
 
 val readlink : Path.t -> Path.t RunAsync.t
-val symlink : source:Path.t -> Path.t -> unit RunAsync.t
-val rename : source:Path.t -> Path.t -> unit RunAsync.t
+val symlink : src:Path.t -> Path.t -> unit RunAsync.t
+val rename : src:Path.t -> Path.t -> unit RunAsync.t
 
 val realpath : Path.t -> Path.t RunAsync.t
 
@@ -45,10 +48,10 @@ val traverse :
   -> Path.t
   -> unit RunAsync.t
 
-val copyFile : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
-val copyPath : origPath:Path.t -> destPath:Path.t -> unit RunAsync.t
+val copyFile : src:Path.t -> dst:Path.t -> unit RunAsync.t
+val copyPath : src:Path.t -> dst:Path.t -> unit RunAsync.t
 
-val rmPath : Path.t -> [`Removed | `NoSuchPath] RunAsync.t
+val rmPath : Path.t -> unit RunAsync.t
 
 val withTempDir : ?tempDir:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
-val withTempFile : string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
+val withTempFile : data:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t

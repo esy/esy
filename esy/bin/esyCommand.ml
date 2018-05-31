@@ -1047,7 +1047,7 @@ let () =
         let%bind outputPath =
           let outputDir = "_release" in
           let outputPath = Path.(cfg.Config.sandboxPath / outputDir) in
-          let%bind _ = Fs.rmPath outputPath in
+          let%bind () = Fs.rmPath outputPath in
           return outputPath
         in
 

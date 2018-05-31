@@ -58,7 +58,7 @@ let run
   in
 
   let buildJson = Task.toBuildProtocolString task in
-  Fs.withTempFile buildJson runProcess
+  Fs.withTempFile ~data:buildJson runProcess
 
 let build
     ?(force=false)
