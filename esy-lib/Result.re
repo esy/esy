@@ -15,36 +15,45 @@ let (>>) = (a, b) =>
   | Ok () => b()
   | Error(msg) => Error(msg)
   };
-module Let_syntax = {
-  let bind = (~f, v) =>
-    switch (v) {
-    | Ok(v) => f(v)
-    | Error(e) => Error(e)
-    };
-  module Open_on_rhs = {
-    let return = v => Ok(v);
+
+module List = {
+  let map =
+      (~f: 'a => result('b, 'err), xs: list('a))
+      : result(list('b), 'err) => {
+    let f = (prev, x) =>
+      switch (prev) {
+      | Ok(xs) =>
+        switch (f(x)) {
+        | Ok(x) => Ok([x, ...xs])
+        | Error(err) => Error(err)
+        }
+      | error => error
+      };
+    xs |> List.fold_left(f, Ok([])) |> map(List.rev);
+  };
+  let foldLeft = (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
+    let rec fold = (acc, xs) =>
+      switch (acc, xs) {
+      | (Error(err), _) => Error(err)
+      | (Ok(acc), []) => Ok(acc)
+      | (Ok(acc), [x, ...xs]) => fold(f(acc, x), xs)
+      };
+    fold(Ok(init), xs);
   };
 };
-let listMap =
-    (~f: 'a => result('b, 'err), xs: list('a))
-    : result(list('b), 'err) => {
-  let f = (prev, x) =>
-    switch (prev) {
-    | Ok(xs) =>
-      switch (f(x)) {
-      | Ok(x) => Ok([x, ...xs])
-      | Error(err) => Error(err)
-      }
-    | error => error
+
+module Syntax = {
+  let return = v => Ok(v);
+  let error = err => Error(err);
+
+  module Let_syntax = {
+    let bind = (~f, v) =>
+      switch (v) {
+      | Ok(v) => f(v)
+      | Error(e) => Error(e)
+      };
+    module Open_on_rhs = {
+      let return = v => Ok(v);
     };
-  xs |> List.fold_left(f, Ok([])) |> map(List.rev);
-};
-let listFoldLeft = (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
-  let rec fold = (acc, xs) =>
-    switch (acc, xs) {
-    | (Error(err), _) => Error(err)
-    | (Ok(acc), []) => Ok(acc)
-    | (Ok(acc), [x, ...xs]) => fold(f(acc, x), xs)
-    };
-  fold(Ok(init), xs);
+  };
 };

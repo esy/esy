@@ -33,13 +33,13 @@ module CommandList = struct
         in
         function
         | Package.CommandList.Command.Parsed args ->
-          Result.listMap ~f:render args
+          Result.List.map ~f:render args
         | Package.CommandList.Command.Unparsed string ->
           let%bind string = render string in
           let%bind args = ShellSplit.split string in
           return args
       in
-      match Result.listMap ~f:renderCommand commands with
+      match Result.List.map ~f:renderCommand commands with
       | Ok commands -> Ok commands
       | Error err -> Error err
 
@@ -315,7 +315,7 @@ let ofPackage
   and directDependenciesOf (pkg : Package.t) =
     let seen = Package.DependencySet.empty in
     let%bind _, dependencies =
-      Result.listFoldLeft ~f:collectDependency ~init:(seen, []) pkg.dependencies
+      Result.List.foldLeft ~f:collectDependency ~init:(seen, []) pkg.dependencies
     in return (List.rev dependencies)
 
   and allDependenciesOf (pkg : Package.t) =
@@ -323,7 +323,7 @@ let ofPackage
       match Package.packageOf dep with
       | None -> return acc
       | Some depPkg ->
-        let%bind acc = Result.listFoldLeft
+        let%bind acc = Result.List.foldLeft
           ~f:(aux ~includeBuildTimeDependencies:false depPkg)
           ~init:acc
           depPkg.dependencies
@@ -332,7 +332,7 @@ let ofPackage
     in
     let seen = Package.DependencySet.empty in
     let%bind _, dependencies =
-      Result.listFoldLeft
+      Result.List.foldLeft
         ~f:(aux ~includeBuildTimeDependencies:true pkg)
         ~init:(seen, [])
         pkg.dependencies
