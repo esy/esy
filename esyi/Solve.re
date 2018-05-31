@@ -15,69 +15,8 @@ module StringMap =
     let compare = compare;
   });
 
-let makeNpm = ((npmVersionMap, npmToVersions), packages) => {
-  let thisLevel =
-    packages
-    |> List.map(((name, range)) =>
-         (name, range, findSatisfyingInMap(npmToVersions, name, range))
-       );
-  let parentMap =
-    thisLevel
-    |> List.fold_left(
-         (map, (name, _, version)) => StringMap.add(name, version, map),
-         StringMap.empty,
-       );
-  let rec toNpm = (parentage, name, range, realVersion) => {
-    let (manifest, deps) = Hashtbl.find(npmVersionMap, (name, realVersion));
-    let thisLevel =
-      deps.Types.npm
-      |> List.map(((name, range)) =>
-           switch (StringMap.find_opt(name, parentage)) {
-           | Some(v) when SolveUtils.satisfies(v, range) => (name, None)
-           | _ => (
-               name,
-               Some((
-                 range,
-                 findSatisfyingInMap(npmToVersions, name, range),
-               )),
-             )
-           }
-         );
-    let childMap =
-      thisLevel
-      |> List.fold_left(
-           (map, (name, maybe)) =>
-             switch (maybe) {
-             | None => map
-             | Some((_range, version)) => StringMap.add(name, version, map)
-             },
-           parentage,
-         );
-    Env.Npm.{
-      source: Manifest.getSource(manifest, name, realVersion),
-      resolved: realVersion,
-      requested: range,
-      dependencies:
-        thisLevel
-        |> List.map(((name, contents)) =>
-             switch (contents) {
-             | None => (name, None)
-             | Some((range, real)) => (
-                 name,
-                 Some(toNpm(childMap, name, range, real)),
-               )
-             }
-           ),
-    };
-  };
-  thisLevel
-  |> List.map(((name, range, real)) =>
-       (name, toNpm(parentMap, name, range, real))
-     );
-};
-
 let makeFullPackage =
-    (name, version, manifest, deps, solvedDeps, buildToVersions, npmPair) => {
+    (name, version, manifest, deps, solvedDeps, buildToVersions) => {
   let nameToVersion = Hashtbl.create(100);
   solvedDeps
   |> List.iter(((name, version, _, _)) =>
@@ -99,7 +38,6 @@ let makeFullPackage =
         |> List.map(((name, range)) =>
              (name, range, findSatisfyingInMap(buildToVersions, name, range))
            ),
-      npm: makeNpm(npmPair, deps.Types.npm),
     },
     runtimeBag:
       solvedDeps
@@ -123,7 +61,6 @@ let makeFullPackage =
                       findSatisfyingInMap(buildToVersions, name, range),
                     )
                   ),
-             npm: [],
            }
          ),
   };
@@ -193,27 +130,6 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
   (versionMap, nameToVersions);
 };
 
-let resolveNpm = (~config, cache, npmRequests) => {
-  /* Allow relaxing the constraint */
-  let solvedDeps = SolveDeps.solve(~config, ~cache, ~requested=npmRequests);
-  let npmVersionMap = Hashtbl.create(100);
-  let npmToVersions = Hashtbl.create(100);
-  solvedDeps
-  |> List.iter(((name, version, manifest, deps)) => {
-       Hashtbl.replace(npmVersionMap, (name, version), (manifest, deps));
-       Hashtbl.replace(
-         npmToVersions,
-         name,
-         [
-           version,
-           ...Hashtbl.mem(npmToVersions, name) ?
-                Hashtbl.find(npmToVersions, name) : [],
-         ],
-       );
-     });
-  (npmVersionMap, npmToVersions);
-};
-
 let solve = (config, manifest) =>
   RunAsync.Syntax.(
     {
@@ -222,41 +138,8 @@ let solve = (config, manifest) =>
       let depsByKind = Manifest.getDeps(manifest);
       let solvedDeps =
         SolveDeps.solve(~config, ~cache, ~requested=depsByKind.runtime);
-      /** TODO should targets be determined completely separately?
-        * seems like we'll want to be able to ~fetch~  independently...
-        * but maybe solve all at once?
-        * yeah probably. makes things a little harder for me.
-        */
-      /*
-       let solvedTargets = targets |> List.map(target => {
-         let targetDeps = SolveDeps.solveWithAsMuchOverlapAsPossible(
-           ~cache,
-           ~requested=target.dependencies.runtime,
-           ~current=solvedDeps
-         );
-         (target, targetDeps)
-       });
-       */
       let (buildVersionMap, buildToVersions) =
         settleBuildDeps(~config, cache, solvedDeps, depsByKind.build);
-      /* Ok, time for npm. */
-      let allNpmRequests =
-        Hashtbl.fold(
-          ((_name, _version), (_manifest, deps, solvedDeps), result) =>
-            deps.Types.npm
-            @ (
-              List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps)
-              |> List.concat
-            )
-            @ result,
-          buildVersionMap,
-          [],
-        )
-        @ List.concat(
-            List.map(((_, _, _, deps)) => deps.Types.npm, solvedDeps),
-          )
-        @ depsByKind.npm;
-      let npmPair = resolveNpm(~config, cache, allNpmRequests);
 
       let lockdownFullPackage = full => {
         let%bind source = SolveUtils.lockDownSource(full.Env.source);
@@ -289,7 +172,6 @@ let solve = (config, manifest) =>
               deps,
               solvedDeps,
               buildToVersions,
-              npmPair,
             ),
             ...result,
           ],
@@ -304,7 +186,6 @@ let solve = (config, manifest) =>
           depsByKind,
           solvedDeps,
           buildToVersions,
-          npmPair,
         );
       let%bind root = lockdownRootPackage(root);
       let%bind buildDependencies =

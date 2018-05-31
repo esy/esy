@@ -100,7 +100,6 @@ let process = parsed =>
       Types.runtime: dependencies |> List.map(toDep),
       build: buildDependencies |> List.map(toDep),
       dev: devDependencies |> List.map(toDep),
-      npm: [],
     };
   | _ => failwith("Invalid package.json")
   };

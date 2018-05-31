@@ -300,6 +300,25 @@ and addToUniverse =
 
 let rootName = "*root*";
 
+let createUniverse =
+    (~config, ~unique, ~previouslyInstalled=?, ~deep=true, cache, deps) => {
+  let universe = Cudf.empty_universe();
+  let state = {cache, cudfVersions: CudfVersions.init()};
+  /** This is where most of the work happens, file io, network requests, etc. */
+  List.iter(
+    addToUniverse(
+      ~config,
+      ~unique,
+      ~previouslyInstalled,
+      ~deep,
+      state,
+      universe,
+    ),
+    deps,
+  );
+  (universe, state.cudfVersions, state.cache.manifests);
+};
+
 let solveDeps =
     (
       ~config,
@@ -313,32 +332,26 @@ let solveDeps =
   if (deps == []) {
     [];
   } else {
-    let universe = Cudf.empty_universe();
-    let state = {cache, cudfVersions: CudfVersions.init()};
-    /** This is where most of the work happens, file io, network requests, etc. */
-    List.iter(
-      addToUniverse(
+    let (universe, cudfVersions, manifests) =
+      createUniverse(
         ~config,
         ~unique,
-        ~previouslyInstalled,
+        ~previouslyInstalled?,
         ~deep,
-        state,
-        universe,
-      ),
-      deps,
-    );
+        cache,
+        deps,
+      );
     /** Here we invoke the solver! Might also take a while, but probably won't */
-    let cudfDeps =
-      List.map(cudfDep(rootName, universe, state.cudfVersions), deps);
+    let cudfDeps = List.map(cudfDep(rootName, universe, cudfVersions), deps);
     switch (runSolver(~strategy, rootName, cudfDeps, universe)) {
     | None => failwith("Unable to resolve")
     | Some(packages) =>
       packages
       |> List.filter(p => p.Cudf.package != rootName)
       |> List.map(p => {
-           let version = CudfVersions.getRealVersion(state.cudfVersions, p);
+           let version = CudfVersions.getRealVersion(cudfVersions, p);
            let (manifest, depsByKind) =
-             Hashtbl.find(state.cache.manifests, (p.Cudf.package, version));
+             Hashtbl.find(manifests, (p.Cudf.package, version));
            (p.Cudf.package, version, manifest, depsByKind);
          })
     };
@@ -358,48 +371,6 @@ let solve = (~cache, ~requested) =>
     cache,
     requested,
   );
-
-/** TODO untested */
-let crawlDeps = (requested, installed) => {
-  let depsTable = Hashtbl.create(100);
-  installed
-  |> List.iter(((name, _version, _, deps)) =>
-       Hashtbl.add(depsTable, name, deps)
-     );
-  let traversed = Hashtbl.create(100);
-  let rec loop = name => {
-    Hashtbl.replace(traversed, name, true);
-    Hashtbl.find(depsTable, name).Types.runtime
-    |> List.iter(((child, _)) =>
-         if (! Hashtbl.mem(traversed, child)) {
-           loop(child);
-         }
-       );
-  };
-  requested |> List.iter(((name, _)) => loop(name));
-  installed
-  |> List.filter(((name, _, _, _)) => Hashtbl.mem(traversed, name));
-};
-
-/** TODO untested */
-let solveWithAsMuchOverlapAsPossible = (~config, ~cache, ~requested, ~current) => {
-  let previouslyInstalled = Hashtbl.create(100);
-  current
-  |> List.iter(((name, version, _, _)) =>
-       Hashtbl.add(previouslyInstalled, (name, version), 1)
-     );
-  let installed =
-    solveDeps(
-      ~config,
-      ~unique=true,
-      ~strategy=Strategies.greatestOverlap,
-      ~previouslyInstalled,
-      ~deep=true,
-      cache,
-      requested,
-    );
-  crawlDeps(requested, installed);
-};
 
 let makeVersionMap = installed => {
   let map = Hashtbl.create(100);

@@ -125,9 +125,6 @@ type depsByKind = {
   runtime: list(dep),
   dev: list(dep),
   build: list(dep),
-  /* This is for npm deps of an esy package. npm deps of an npm package are classified as "runtime". */
-  npm: list(dep),
-  /* TODO targets or something */
 };
 
 let viewReq = req =>
