@@ -1169,7 +1169,7 @@ let () =
   in
 
   let commandName =
-    let open Option in
+    let open Option.Syntax in
     let%bind commandName =
       try Some Sys.argv.(1)
       with Invalid_argument _ -> None

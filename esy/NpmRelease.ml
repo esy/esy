@@ -193,10 +193,11 @@ let configure ~(cfg : Config.t) =
   | None -> error "no manifest found"
   in
   let%bind releaseCfg =
-    RunAsync.ofOption ~err:"no release config found" Option.(
+    RunAsync.ofOption ~err:"no release config found" (
+      let open Option.Syntax in
       let%bind esyManifest = manifest.Manifest.esy in
       let%bind releaseCfg = esyManifest.EsyManifest.release in
-      Some releaseCfg
+      return releaseCfg
     )
   in
   return {
