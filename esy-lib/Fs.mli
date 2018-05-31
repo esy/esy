@@ -9,6 +9,7 @@ val writeJsonFile : json:Yojson.Safe.json -> Path.t -> unit RunAsync.t
 
 val openFile : mode:Lwt_unix.open_flag list -> perm:int -> Path.t -> Lwt_unix.file_descr RunAsync.t
 
+(** Check if the path exists *)
 val exists : Path.t -> bool RunAsync.t
 
 (** Check if the path exists and is a directory *)
@@ -33,10 +34,10 @@ val chmod : int -> Path.t -> unit RunAsync.t
 
 val fold :
   ?skipTraverse : (Path.t -> bool)
-  -> f : ('a -> Path.t -> Unix.stats -> 'a Lwt.t)
+  -> f : ('a -> Path.t -> Unix.stats -> 'a RunAsync.t)
   -> init : 'a
   -> Path.t
-  -> 'a Lwt.t
+  -> 'a RunAsync.t
 
 val traverse :
   ?skipTraverse : (Path.t -> bool)
