@@ -1,23 +1,13 @@
 module Infix = {
-  let (|?>) = (a, b) =>
-    switch (a) {
-    | None => None
-    | Some(x) => b(x)
-    };
   let (|?>>) = (a, b) =>
     switch (a) {
     | None => None
     | Some(x) => Some(b(x))
     };
-  let (|?) = (a, b) =>
+  let (|?>) = (a, b) =>
     switch (a) {
-    | None => b
-    | Some(a) => a
-    };
-  let (|??) = (a, b) =>
-    switch (a) {
-    | None => b
-    | Some(a) => Some(a)
+    | None => None
+    | Some(x) => b(x)
     };
   let (|!) = (a, b) =>
     switch (a) {
@@ -28,19 +18,120 @@ module Infix = {
 
 open Infix;
 
-type opamSection = {
-  source: option(Types.PendingSource.t),
-  files: list((Path.t, string)) /* relpath, contents */
-  /* patches: list((string, string)) relpath, abspath */
+module JsonParseUtil = {
+  let arr = json =>
+    switch (json) {
+    | `List(items) => Some(items)
+    | _ => None
+    };
+  let obj = json =>
+    switch (json) {
+    | `Assoc(items) => Some(items)
+    | _ => None
+    };
+  let str = json =>
+    switch (json) {
+    | `String(str) => Some(str)
+    | _ => None
+    };
+  let get = List.assoc_opt;
+  let (|.!) = (fn, message, opt) => fn(opt) |! message;
 };
 
-type opamPackageOverride = {
-  build: option(list(list(string))),
-  install: option(list(list(string))),
-  dependencies: list((string, string)),
-  peerDependencies: list((string, string)),
-  exportedEnv: list((string, (string, string))),
-  opam: option(opamSection),
+module OpamSection = {
+  include JsonParseUtil;
+  type t = {
+    source: option(Types.PendingSource.t),
+    files: list((Path.t, string)) /* relpath, contents */
+    /* patches: list((string, string)) relpath, abspath */
+  };
+
+  let of_yojson = (json: Json.t) =>
+    Ok(
+      json
+      |> (obj |.! "opam should be an object")
+      |> (
+        items => {
+          let maybeArchiveSource =
+            items
+            |> get("url")
+            |?>> (str |.! "url should be a string")
+            |?>> (
+              url =>
+                Types.PendingSource.Archive(
+                  url,
+                  items
+                  |> get("checksum")
+                  |?>> (str |.! "checksum should be a string"),
+                )
+            );
+          let maybeGitSource =
+            items
+            |> get("git")
+            |?>> (str |.! "git should be a string")
+            |?>> (
+              git =>
+                Types.PendingSource.GitSource(
+                  git,
+                  None /* TODO parse out commit if there */
+                )
+            );
+          {
+            source: Option.orOther(~other=maybeGitSource, maybeArchiveSource),
+            files:
+              Option.orDefault(
+                ~default=[],
+                items |> get("files") |?>> (arr |.! "files must be an array"),
+              )
+              |> List.map(obj |.! "files item must be an obj")
+              |> List.map(items =>
+                   (
+                     items
+                     |> get("name")
+                     |?>> (str |.! "name must be a str")
+                     |?>> Path.v
+                     |! "name required for files",
+                     items
+                     |> get("content")
+                     |?>> (str |.! "content must be a str")
+                     |! "content required for files",
+                   )
+                 ),
+          };
+        }
+      ),
+    );
+};
+
+module Command = {
+  type t = list(string);
+
+  let of_yojson = (json: Json.t) =>
+    switch (json) {
+    | `List(_) => Json.Parse.(list(string, json))
+    | `String(cmd) => Ok([cmd])
+    | _ => Error("expected either a list or a string")
+    };
+};
+
+module CommandList = {
+  [@deriving of_yojson]
+  type t = list(Command.t);
+};
+
+module Override = {
+  [@deriving of_yojson]
+  type t = {
+    build: [@default None] option(CommandList.t),
+    install: [@default None] option(CommandList.t),
+    dependencies:
+      [@default PackageJson.Dependencies.empty] PackageJson.Dependencies.t,
+    peerDependencies:
+      [@default PackageJson.Dependencies.empty] PackageJson.Dependencies.t,
+    exportedEnv:
+      [@default PackageJson.ExportedEnv.empty] PackageJson.ExportedEnv.t,
+    opam: [@default None] option(OpamSection.t),
+  };
 };
 
 let expectResult = (message, res) =>
@@ -59,127 +150,6 @@ let rec yamlToJson = value =>
   | `Bool(b) => `Bool(b)
   | `Null => `Null
   };
-
-module ProcessJson = {
-  let arr = json =>
-    switch (json) {
-    | `List(items) => Some(items)
-    | _ => None
-    };
-  let obj = json =>
-    switch (json) {
-    | `Assoc(items) => Some(items)
-    | _ => None
-    };
-  let str = json =>
-    switch (json) {
-    | `String(str) => Some(str)
-    | _ => None
-    };
-  let get = List.assoc_opt;
-  let (|.!) = (fn, message, opt) => fn(opt) |! message;
-  let parseExportedEnv = items =>
-    items
-    |> List.assoc_opt("exportedEnv")
-    |?>> (obj |.! "exportedEnv should be an object")
-    |?>> List.map(((name, value)) =>
-           (
-             name,
-             switch (value) {
-             | `String(s) => (s, "global")
-             | `Assoc(items) => (
-                 List.assoc_opt("val", items) |?> str |! "must have val",
-                 List.assoc_opt("scope", items) |?> str |? "global",
-               )
-             | _ => failwith("env value should be a string or an object")
-             },
-           )
-         );
-  let parseCommandList = json =>
-    json
-    |> (arr |.! "should be a list")
-    |> List.map(items =>
-         items
-         |> (
-           fun
-           | `String(s) => [`String(s)]
-           | `List(s) => s
-           | _ => failwith("must be a string or list of strings")
-         )
-         |> List.map(str |.! "command list item should be a string")
-       );
-  let parseDependencies = json =>
-    json
-    |> (obj |.! "dependencies should be an object")
-    |> List.map(((name, value)) =>
-         (name, value |> str |! "dep value must be a string")
-       );
-  let parseOpam = json =>
-    json
-    |> (obj |.! "opam should be an object")
-    |> (
-      items => {
-        let maybeArchiveSource =
-          items
-          |> get("url")
-          |?>> (str |.! "url should be a string")
-          |?>> (
-            url =>
-              Types.PendingSource.Archive(
-                url,
-                items
-                |> get("checksum")
-                |?>> (str |.! "checksum should be a string"),
-              )
-          );
-        let maybeGitSource =
-          items
-          |> get("git")
-          |?>> (str |.! "git should be a string")
-          |?>> (
-            git =>
-              Types.PendingSource.GitSource(
-                git,
-                None /* TODO parse out commit if there */
-              )
-          );
-        {
-          source: maybeArchiveSource |?? maybeGitSource,
-          files:
-            items
-            |> get("files")
-            |?>> (arr |.! "files must be an array")
-            |? []
-            |> List.map(obj |.! "files item must be an obj")
-            |> List.map(items =>
-                 (
-                   items
-                   |> get("name")
-                   |?>> (str |.! "name must be a str")
-                   |?>> Path.v
-                   |! "name required for files",
-                   items
-                   |> get("content")
-                   |?>> (str |.! "content must be a str")
-                   |! "content required for files",
-                 )
-               ),
-        };
-      }
-    );
-  let process = json => {
-    let items = json |> obj |! "Json must be an object";
-    let attr = name => items |> List.assoc_opt(name);
-    {
-      build: attr("build") |?>> parseCommandList,
-      install: attr("install") |?>> parseCommandList,
-      dependencies: attr("dependencies") |?>> parseDependencies |? [],
-      peerDependencies: attr("peerDependencies") |?>> parseDependencies |? [],
-      exportedEnv: parseExportedEnv(items) |? [],
-      opam: attr("opam") |?>> parseOpam,
-    };
-  };
-};
 
 module ParseName = {
   let stripDash = num =>
@@ -286,33 +256,30 @@ let tee = (fn, value) =>
 let getContents = baseDir => {
   open RunAsync.Syntax;
   let packageJson = Path.(baseDir / "package.json");
+  let packageYaml = Path.(baseDir / "package.yaml");
   if%bind (Fs.exists(packageJson)) {
-    try (
-      return(
-        ProcessJson.process(
-          Yojson.Basic.from_file(Path.toString(packageJson)),
-        ),
-      )
-    ) {
-    | Failure(message) =>
-      error("Bad json " ++ Path.toString(baseDir) ++ " " ++ message)
-    };
+    RunAsync.withContext(
+      "Reading " ++ Path.toString(packageJson),
+      {
+        let%bind json = Fs.readJsonFile(packageJson);
+        RunAsync.ofRun(Json.parseJsonWith(Override.of_yojson, json));
+      },
+    );
   } else {
-    let packageYaml = Path.(baseDir / "package.yaml");
-    if%bind (Fs.exists(packageYaml)) {
-      let%bind data = Fs.readFile(packageYaml);
-      let json =
-        Yaml.of_string(data) |> expectResult("Bad yaml file") |> yamlToJson;
-      try (return(ProcessJson.process(json))) {
-      | Failure(message) =>
-        error("Bad yaml jsom " ++ Path.toString(baseDir) ++ " " ++ message)
-      };
-    } else {
-      failwith(
-        "must have either package.json or package.yaml "
-        ++ Path.toString(baseDir),
-      );
-    };
+    RunAsync.withContext(
+      "Reading " ++ Path.toString(packageYaml),
+      if%bind (Fs.exists(packageYaml)) {
+        let%bind data = Fs.readFile(packageYaml);
+        let json =
+          Yaml.of_string(data) |> expectResult("Bad yaml file") |> yamlToJson;
+        RunAsync.ofRun(Json.parseJsonWith(Override.of_yojson, json));
+      } else {
+        error(
+          "must have either package.json or package.yaml "
+          ++ Path.toString(baseDir),
+        );
+      },
+    );
   };
 };
 
@@ -343,4 +310,36 @@ let findApplicableOverride = (overrides, name, version) => {
       }
     | [_, ...rest] => loop(rest);
   loop(overrides);
+};
+
+let applyOverride = (manifest: OpamFile.manifest, override: Override.t) => {
+  let source =
+    Option.orDefault(
+      ~default=manifest.source,
+      override.Override.opam |?> (opam => opam.OpamSection.source),
+    );
+  {
+    ...manifest,
+    build: Option.orDefault(~default=manifest.build, override.Override.build),
+    install:
+      Option.orDefault(~default=manifest.install, override.Override.install),
+    dependencies:
+      PackageJson.Dependencies.merge(
+        manifest.dependencies,
+        override.Override.dependencies,
+      ),
+    peerDependencies:
+      PackageJson.Dependencies.merge(
+        manifest.peerDependencies,
+        override.Override.peerDependencies,
+      ),
+    files:
+      manifest.files
+      @ Option.orDefault(
+          ~default=[],
+          override.Override.opam |?>> (o => o.OpamSection.files),
+        ),
+    source,
+    exportedEnv: override.Override.exportedEnv,
+  };
 };

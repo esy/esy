@@ -5,8 +5,6 @@
 
 
   */
-module Path = EsyLib.Path;
-
 module Source = {
   [@deriving yojson]
   type t = (info, option(Types.opamFile))
@@ -82,11 +80,7 @@ and pkg = {
   name: string,
   version: Version.t,
   source: Source.t,
-  requested: Types.depsByKind,
-  runtime: list(resolution),
-  build: list(resolution),
-}
-and resolution = (string, Types.requestedDep, Version.t);
+};
 
 let ofFile = (filename: Path.t) =>
   RunAsync.Syntax.(

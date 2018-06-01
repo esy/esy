@@ -4,7 +4,7 @@ module Cmd = EsyLib.Cmd;
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
   | (
-      Types.Github(user, repo, ref),
+      PackageJson.DependencyRequest.Github(user, repo, ref),
       Solution.Version.Github(user_, repo_, ref_),
     )
       when user == user_ && repo == repo_ && ref == ref_ =>
@@ -124,12 +124,12 @@ let rec lockDownSource = pendingSource =>
     | Archive(url, Some(checksum)) =>
       return((Solution.Source.Archive(url, checksum), None))
     | GitSource(url, ref) =>
-      let ref = Option.orDefault("master", ref);
+      let ref = Option.orDefault(~default="master", ref);
       /** TODO getting HEAD */
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
       return((Solution.Source.GitSource(url, sha), None));
     | GithubSource(user, name, ref) =>
-      let ref = Option.orDefault("master", ref);
+      let ref = Option.orDefault(~default="master", ref);
       let url = "git://github.com/" ++ user ++ "/" ++ name ++ ".git";
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
       return((Solution.Source.GithubSource(user, name, sha), None));
@@ -164,14 +164,14 @@ let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
       switch (versionPlus) {
       | `Github(user, repo, ref) => Github.getManifest(name, user, repo, ref)
       /* Registry.getGithubManifest(url) */
-      | `Npm(_version, json, _) => `PackageJson(json)
+      | `Npm(_version, json, _) => Manifest.PackageJson(json)
       | `LocalPath(_p) =>
         failwith("do not know how to get manifest from LocalPath")
       | `Opam(_version, path, _) =>
         let manifest =
-          OpamFile.getManifest(opamOverrides, path)
+          OpamRegistry.getManifest(opamOverrides, path)
           |> RunAsync.runExn(~err="unable to read opam manifest");
-        `OpamFile(manifest);
+        Manifest.Opam(manifest);
       };
     let depsByKind = Manifest.getDeps(manifest);
     let res = (manifest, depsByKind);
@@ -211,7 +211,7 @@ let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
 
 let getOpamFile = (manifest, name, version) =>
   switch (manifest) {
-  | `PackageJson(_) => None
-  | `OpamFile(manifest) =>
+  | Manifest.PackageJson(_) => None
+  | Manifest.Opam(manifest) =>
     Some(OpamFile.toPackageJson(manifest, name, version))
   };

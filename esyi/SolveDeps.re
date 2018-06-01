@@ -1,17 +1,16 @@
 open SolveUtils;
 
 module T = {
-  type manifest = [
-    | `OpamFile(OpamFile.manifest)
-    | `PackageJson(Yojson.Basic.json)
-  ];
   type cache = {
     opamOverrides: list((string, Types.opamRange, Path.t)),
-    npmPackages: Hashtbl.t(string, Yojson.Basic.json),
+    npmPackages: Hashtbl.t(string, Yojson.Safe.json),
     opamPackages: Hashtbl.t(string, OpamFile.manifest),
     versions: VersionCache.t,
     manifests:
-      Hashtbl.t((string, Solution.Version.t), (manifest, Types.depsByKind)),
+      Hashtbl.t(
+        (string, Solution.Version.t),
+        (Manifest.t, PackageJson.DependenciesInfo.t),
+      ),
   };
   type state = {
     cache,
@@ -56,16 +55,21 @@ let initCache = config => {
  * - when making the lockfile, for each build dep that a thing wants, find one that we've chosen, whichever is most recent probably
  *
  */
-let cudfDep = (owner, universe, cudfVersions, (name, source)) => {
+let cudfDep =
+    (
+      owner,
+      universe,
+      cudfVersions,
+      {PackageJson.DependencyRequest.name, req},
+    ) => {
   let available = Cudf.lookup_packages(universe, name);
   let matching =
-    available
-    |> List.filter(CudfVersions.matchesSource(source, cudfVersions));
+    available |> List.filter(CudfVersions.matchesSource(req, cudfVersions));
   let final =
     (
       if (matching == []) {
         let hack =
-          switch (source) {
+          switch (req) {
           | Opam(opamVersionRange) =>
             /* print_endline("Trying to convert from pseudo-npm"); */
             let nonNpm = tryConvertingOpamFromNpm(opamVersionRange);
@@ -88,7 +92,7 @@ let cudfDep = (owner, universe, cudfVersions, (name, source)) => {
               ++ " wants "
               ++ name
               ++ " at version "
-              ++ Types.viewReq(source),
+              ++ PackageJson.DependencyRequest.reqToString(req),
             );
             available
             |> List.iter(package =>
@@ -222,7 +226,7 @@ let rec addPackage =
         state,
         universe,
       ),
-      depsByKind.runtime,
+      depsByKind.dependencies,
     ) :
     ();
   let package = {
@@ -243,27 +247,19 @@ let rec addPackage =
             universe,
             state.cudfVersions,
           ),
-          depsByKind.runtime,
+          depsByKind.dependencies,
         ) :
         [],
   };
   Cudf.add_package(universe, package);
 }
 and addToUniverse =
-    (
-      ~config,
-      ~unique,
-      ~previouslyInstalled,
-      ~deep,
-      state,
-      universe,
-      (name, source),
-    ) => {
+    (~config, ~unique, ~previouslyInstalled, ~deep, state, universe, req) => {
   let versions =
     VersionCache.getAvailableVersions(
       ~config,
       ~cache=state.cache.versions,
-      (name, source),
+      req,
     );
   List.iter(
     versionPlus => {
@@ -280,20 +276,20 @@ and addToUniverse =
       if (!
             Hashtbl.mem(
               state.cudfVersions.lookupIntVersion,
-              (name, realVersion),
+              (req.name, realVersion),
             )) {
         let (manifest, depsByKind) =
           getCachedManifest(
             state.cache.opamOverrides,
             state.cache.manifests,
-            (name, versionPlus),
+            (req.name, versionPlus),
           );
         addPackage(
           ~config,
           ~unique,
           ~previouslyInstalled,
           ~deep,
-          name,
+          req.name,
           realVersion,
           i,
           depsByKind,
@@ -422,15 +418,18 @@ let solveLoose = (~config, ~cache, ~requested, ~current, ~deep) => {
   } else {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");
-    requested |> List.iter(((name, _range)) => print_endline(name));
+    requested
+    |> List.iter(({PackageJson.DependencyRequest.name, _}) =>
+         print_endline(name)
+       );
     print_endline("Got");
     installed |> List.iter(((name, _version, _, _)) => print_endline(name));
     let touched = Hashtbl.create(100);
     requested
-    |> List.iter(((name, range)) => {
+    |> List.iter(({PackageJson.DependencyRequest.name, req}) => {
          let versions = Hashtbl.find(versionMap, name);
          let matching =
-           versions |> List.filter(real => SolveUtils.satisfies(real, range));
+           versions |> List.filter(real => SolveUtils.satisfies(real, req));
          switch (matching) {
          | [] =>
            failwith("Didn't actully install a matching dep for " ++ name)
