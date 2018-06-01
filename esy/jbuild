@@ -31,7 +31,6 @@
 
 (ocamllex (
            ShellParamExpansionParser
-           ShellSplit
            CommandExprLexer
            LockfileLexer
            ))
