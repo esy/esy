@@ -334,6 +334,7 @@ let build ?(buildOnly=true) cfg argv =
 
   | command ->
     let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
+    let command = Cmd.ofList command in
     match%bind PackageBuilder.buildExec cfg task command with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
