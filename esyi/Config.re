@@ -32,7 +32,7 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) =>
       let esyOpamOverridePath = Path.(cachePath / "esy-opam-override");
 
       let npmRegistry =
-        Option.orDefault("http://registry.npmjs.org/", npmRegistry);
+        Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
       return({
         basePath,

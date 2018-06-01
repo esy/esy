@@ -1,8 +1,18 @@
+type t =
+  | Opam(OpamFile.manifest)
+  /* TODO: PackageJson should have parsed manifest instead */
+  | PackageJson(Json.t);
+
 let getDeps = manifest => {
   let depsByKind =
     switch (manifest) {
-    | `OpamFile(opam) => OpamFile.process(opam)
-    | `PackageJson(json) => PackageJson.process(json)
+    | Opam(opam) => OpamFile.getDependenciesInfo(opam)
+    | PackageJson(json) =>
+      /* TODO: refactor that away */
+      switch (PackageJson.DependenciesInfo.of_yojson(json)) {
+      | Ok(v) => v
+      | Error(err) => failwith(err)
+      }
     };
   depsByKind;
 };
@@ -15,11 +25,11 @@ let getSource = (manifest, name, version) =>
     Types.PendingSource.File(Path.toString(path))
   | _ =>
     switch (manifest) {
-    | `OpamFile(opam) =>
+    | Opam(opam) =>
       Types.PendingSource.WithOpamFile(
         OpamFile.getSource(opam),
         OpamFile.toPackageJson(opam, name, version),
       )
-    | `PackageJson(json) => PackageJson.getSource(json)
+    | PackageJson(json) => PackageJson.getSource(json)
     }
   };

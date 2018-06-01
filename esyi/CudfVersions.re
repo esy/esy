@@ -30,5 +30,5 @@ let getRealVersion = (cudfVersions, package) =>
   | version => version
   };
 
-let matchesSource = (source, cudfVersions, package) =>
-  SolveUtils.satisfies(getRealVersion(cudfVersions, package), source);
+let matchesSource = (req, cudfVersions, package) =>
+  SolveUtils.satisfies(getRealVersion(cudfVersions, package), req);

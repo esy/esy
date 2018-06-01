@@ -2,10 +2,11 @@ module Api = {
   let solve = (cfg: EsyInstaller.Config.t) => {
     open RunAsync.Syntax;
     let json =
-      Yojson.Basic.from_file(
+      Yojson.Safe.from_file(
         Path.(cfg.basePath / "package.json" |> to_string),
       );
-    let%bind solution = EsyInstaller.Solve.solve(cfg, `PackageJson(json));
+    let%bind solution =
+      EsyInstaller.Solve.solve(cfg, EsyInstaller.Manifest.PackageJson(json));
     EsyInstaller.Solution.toFile(cfg.lockfilePath, solution);
   };
 
@@ -62,7 +63,7 @@ module Api = {
         name,
         Solution.Version.Opam(version),
       );
-    print_endline(Yojson.Basic.pretty_to_string(packageJson));
+    print_endline(Yojson.Safe.pretty_to_string(packageJson));
     return();
   };
 };

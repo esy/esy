@@ -20,47 +20,34 @@ let alpha_to_yojson = (Alpha(text, num)) => {
   `List([`String(text), ...lnum(num)]);
 };
 
-module ResultInfix = {
-  let (|!>) = (item, fn) =>
-    switch (item) {
-    | Result.Ok(value) => fn(value)
-    | Error(e) => Result.Error(e)
-    };
-  let (|!>>) = (item, fn) =>
-    switch (item) {
-    | Result.Ok(value) => Result.Ok(fn(value))
-    | Error(e) => Result.Error(e)
-    };
-  let ok = v => Result.Ok(v);
-  let fail = v => Result.Error(v);
-};
-
 let alpha_of_yojson = json =>
-  switch (json) {
-  | `List(items) =>
-    open ResultInfix;
-    let rec lnum = items =>
-      switch (items) {
-      | [] => ok(None)
-      | [`Int(n), ...rest] => lalpha(rest) |!>> (r => Some(Num(n, r)))
-      | _ => fail("Num should be a number")
-      }
-    and lalpha = items =>
-      switch (items) {
-      | [] => ok(None)
-      | [`String(n), ...rest] => lnum(rest) |!>> (r => Some(Alpha(n, r)))
-      | _ => fail("Alpha should be string")
-      };
-    lalpha(items)
-    |!> (
-      v =>
-        switch (v) {
-        | None => fail("No alpha")
-        | Some(v) => ok(v)
+  Result.Syntax.(
+    switch (json) {
+    | `List(items) =>
+      let rec lnum = items =>
+        switch (items) {
+        | [] => Ok(None)
+        | [`Int(n), ...rest] =>
+          let%bind rest = lalpha(rest);
+          return(Some(Num(n, rest)));
+        | _ => Error("Num should be a number")
         }
-    );
-  | _ => Result.Error("Alpha should be a list")
-  };
+      and lalpha = items =>
+        switch (items) {
+        | [] => Ok(None)
+        | [`String(n), ...rest] =>
+          let%bind rest = lnum(rest);
+          return(Some(Alpha(n, rest)));
+        | _ => Error("Alpha should be string")
+        };
+      let%bind v = lalpha(items);
+      switch (v) {
+      | None => Error("No alpha")
+      | Some(v) => Ok(v)
+      };
+    | _ => Result.Error("Alpha should be a list")
+    }
+  );
 
 [@deriving (ord, yojson)]
 type opamConcrete = alpha;
@@ -85,14 +72,8 @@ and viewNum = (Num(a, na)) =>
     }
   );
 
-type json = Yojson.Safe.json;
-
-let json_to_yojson = x => x;
-
-let json_of_yojson = x => Result.Ok(x);
-
 [@deriving yojson]
-type opamFile = (json, list((Path.t, string)), list(string));
+type opamFile = (Json.t, list((Path.t, string)), list(string));
 
 module PendingSource = {
   [@deriving yojson]
@@ -107,34 +88,7 @@ module PendingSource = {
     | NoSource;
 };
 
-[@deriving yojson]
-type requestedDep =
-  | Npm(GenericVersion.range(NpmVersion.t))
-  | Github(string, string, option(string)) /* user, repo, ref (branch/tag/commit) */
-  | Opam(GenericVersion.range(opamConcrete)) /* opam allows a bunch of weird stuff. for now I'm just doing semver */
-  | Git(string)
-  | LocalPath(EsyLib.Path.t);
-
 let resolvedPrefix = "esyi5-";
-
-[@deriving yojson]
-type dep = (string, requestedDep);
-
-[@deriving yojson]
-type depsByKind = {
-  runtime: list(dep),
-  dev: list(dep),
-  build: list(dep),
-};
-
-let viewReq = req =>
-  switch (req) {
-  | Github(org, repo, _ref) => "github: " ++ org ++ "/" ++ repo
-  | Git(s) => "git: " ++ s
-  | Npm(t) => "npm: " ++ GenericVersion.view(NpmVersion.toString, t)
-  | Opam(t) => "opam: " ++ GenericVersion.view(viewOpamConcrete, t)
-  | LocalPath(t) => "path: " ++ Path.toString(t)
-  };
 
 let opamFromNpmConcrete = ((major, minor, patch, rest)) =>
   Alpha(

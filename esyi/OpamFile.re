@@ -1,29 +1,20 @@
 open OpamParserTypes;
 
-open OpamOverrides.Infix;
-
-let expectSuccess = (msg, v) =>
-  if (v) {
-    ();
-  } else {
-    failwith(msg);
-  };
-
 type manifest = {
   fileName: string,
   build: list(list(string)),
   install: list(list(string)),
   patches: list(string), /* these should be absolute */
   files: list((Path.t, string)), /* relname, sourcetext */
-  deps: list(Types.dep),
-  buildDeps: list(Types.dep),
-  devDeps: list(Types.dep),
-  peerDeps: list(Types.dep),
-  optDependencies: list(Types.dep),
+  dependencies: PackageJson.Dependencies.t,
+  buildDependencies: PackageJson.Dependencies.t,
+  devDependencies: PackageJson.Dependencies.t,
+  peerDependencies: PackageJson.Dependencies.t,
+  optDependencies: PackageJson.Dependencies.t,
   available: bool,
   /* TODO optDependencies (depopts) */
   source: Types.PendingSource.t,
-  exportedEnv: list((string, (string, string))),
+  exportedEnv: PackageJson.ExportedEnv.t,
 };
 
 module ThinManifest = {
@@ -347,7 +338,10 @@ let parseUrlFile = ({file_contents, file_name}) =>
     Types.PendingSource.Archive(archive, checksum);
   };
 
-let toDepSource = ((name, semver)) => (name, Types.Opam(semver));
+let toDepSource = ((name, semver)) => {
+  PackageJson.DependencyRequest.name,
+  req: PackageJson.DependencyRequest.Opam(semver),
+};
 
 let getOpamFiles = (path: Path.t) => {
   open RunAsync.Syntax;
@@ -396,10 +390,11 @@ let parseManifest = (info, {file_contents, file_name}) => {
   let patches = processStringList(findVariable("patches", file_contents));
   /** OPTIMIZE: only read the files when generating the lockfile */
   /* print_endline("Patches for " ++ file_name ++ " " ++ string_of_int(List.length(patches))); */
-  let ocamlRequirement =
-    findVariable("available", file_contents)
-    |?>> OpamAvailable.getOCamlVersion
-    |? GenericVersion.Any;
+  let ocamlRequirement = {
+    let req = findVariable("available", file_contents);
+    let req = Option.map(~f=OpamAvailable.getOCamlVersion, req);
+    Option.orDefault(~default=GenericVersion.Any, req);
+  };
   /* We just don't support anything before 4.2.3 */
   let ourMinimumOcamlVersion = NpmVersion.parseConcrete("4.02.3");
   let isAVersionWeSupport =
@@ -409,12 +404,35 @@ let parseManifest = (info, {file_contents, file_name}) => {
         ocamlRequirement,
         ourMinimumOcamlVersion,
       );
-  let isAvailable =
-    isAVersionWeSupport
-    && findVariable("available", file_contents)
-    |?>> OpamAvailable.getAvailability
-    |? true;
-  /* Npm.NpmVersion.matches(ocamlRequirement, ourMinimumOcamlVersion); */
+  let isAvailable = {
+    let isAvailable = {
+      let v = findVariable("available", file_contents);
+      let v = Option.map(~f=OpamAvailable.getAvailability, v);
+      Option.orDefault(~default=true, v);
+    };
+    isAVersionWeSupport && isAvailable;
+  };
+
+  let (ocamlDep, substDep, esyInstallerDep) = {
+    open PackageJson.DependencyRequest;
+    let ocamlDep = {
+      name: "ocaml",
+      req:
+        Npm(
+          And(
+            GenericVersion.AtLeast(ourMinimumOcamlVersion),
+            ocamlRequirement,
+          ),
+        ),
+    };
+    let substDep = {name: "@esy-ocaml/substs", req: Npm(GenericVersion.Any)};
+    let esyInstallerDep = {
+      name: "@esy-ocaml/esy-installer",
+      req: Npm(GenericVersion.Any),
+    };
+    (ocamlDep, substDep, esyInstallerDep);
+  };
+
   {
     fileName: file_name,
     build:
@@ -425,26 +443,13 @@ let parseManifest = (info, {file_contents, file_name}) => {
       processCommandList(info, findVariable("install", file_contents)),
     patches,
     files,
-    deps:
-      (deps @ buildDeps |> List.map(toDepSource))
-      @ [
-        /* HACK? Not sure where/when this should be specified */
-        ("@esy-ocaml/substs", Npm(GenericVersion.Any)),
-        ("@esy-ocaml/esy-installer", Npm(GenericVersion.Any)),
-        (
-          "ocaml",
-          Npm(
-            And(
-              GenericVersion.AtLeast(ourMinimumOcamlVersion),
-              ocamlRequirement,
-            ),
-          ),
-        ),
-      ],
-    buildDeps: [],
-    /* buildDeps |> List.map(toDepSource), */
-    devDeps: devDeps |> List.map(toDepSource),
-    peerDeps: [], /* TODO peer deps */
+    dependencies:
+      [ocamlDep, substDep, esyInstallerDep]
+      @ (deps |> List.map(toDepSource))
+      @ (buildDeps |> List.map(toDepSource)),
+    buildDependencies: PackageJson.Dependencies.empty,
+    devDependencies: devDeps |> List.map(toDepSource),
+    peerDependencies: [], /* TODO peer deps */
     optDependencies: depopts |> List.map(toDepSource),
     available: isAvailable, /* TODO */
     source: Types.PendingSource.NoSource,
@@ -452,169 +457,99 @@ let parseManifest = (info, {file_contents, file_name}) => {
   };
 };
 
-let parseDepVersion = ((name, version)) =>
-  PackageJson.parseNpmSource((name, version));
-
-module StrSet = Set.Make(String);
-
-let assignAssoc = (target, override) => {
-  let replacing =
-    List.fold_left(
-      (set, (name, _)) => StrSet.add(name, set),
-      StrSet.empty,
-      override,
-    );
-  List.filter(((name, _)) => ! StrSet.mem(name, replacing), target)
-  @ override;
-};
-
-module O = OpamOverrides;
-
-let mergeOverride = (manifest, override) => {
-  let source = override.O.opam |?> (opam => opam.O.source) |? manifest.source;
-  {
-    ...manifest,
-    build: override.O.build |? manifest.build,
-    install: override.O.install |? manifest.install,
-    deps:
-      assignAssoc(
-        manifest.deps,
-        override.O.dependencies |> List.map(parseDepVersion),
-      ),
-    peerDeps:
-      assignAssoc(
-        manifest.peerDeps,
-        override.O.peerDependencies |> List.map(parseDepVersion),
-      ),
-    files: manifest.files @ (override.O.opam |?>> (o => o.O.files) |? []),
-    source,
-    exportedEnv: override.O.exportedEnv,
-  };
-};
-
-let getManifest =
-    (opamOverrides, {ThinManifest.opamFile, urlFile, name, version}) =>
-  RunAsync.Syntax.(
-    {
-      let%bind source =
-        if%bind (Fs.exists(urlFile)) {
-          return(parseUrlFile(OpamParser.file(Path.toString(urlFile))));
-        } else {
-          return(Types.PendingSource.NoSource);
-        };
-      let manifest = {
-        ...
-          parseManifest(
-            (name, version),
-            OpamParser.file(Path.toString(opamFile)),
-          ),
-        source,
-      };
-      switch%bind (
-        OpamOverrides.findApplicableOverride(opamOverrides, name, version)
-      ) {
-      | None =>
-        /* print_endline("No override for " ++ name ++ " " ++ VersionNumber.viewVersionNumber(version)); */
-        return(manifest)
-      | Some(override) =>
-        /* print_endline("!! Found override for " ++ name); */
-        let m = mergeOverride(manifest, override);
-        return(m);
-      };
-    }
-  );
-
 let getSource = ({source, _}) => source;
-
-let process = ({deps, buildDeps, devDeps, _}) => {
-  Types.runtime: deps @ buildDeps,
-  build: [],
-  dev: devDeps,
-  /* (deps, buildDeps, devDeps) */
-};
 
 let commandListToJson = e =>
   e |> List.map(items => `List(List.map(item => `String(item), items)));
 
-let toPackageJson = (manifest, name, version) => (
-  /* let manifest = getManifest(opamOverrides, (filename, "", withoutScope(name), switch version {
-     | `Opam(t) => t
-     | _ => failwith("unexpected opam version")
-     })); */
-  `Assoc([
-    ("name", `String(name)),
-    ("version", `String(Solution.Version.toNpmVersion(version))),
-    (
-      "esy",
-      `Assoc([
-        ("build", `List(commandListToJson(manifest.build))),
-        ("install", `List(commandListToJson(manifest.install))),
-        ("buildsInSource", `Bool(true)),
-        (
-          "exportedEnv",
-          `Assoc(
-            [
-              (
-                cleanEnvName(withoutScope(name)) ++ "_version",
-                (Solution.Version.toNpmVersion(version), "global"),
-              ),
-              (
-                cleanEnvName(withoutScope(name)) ++ "_installed",
-                ("true", "global"),
-              ),
-              (
-                cleanEnvName(withoutScope(name)) ++ "_enable",
-                ("enable", "global"),
-              ),
-            ]
-            @ manifest.exportedEnv
-            |> List.map(((name, (val_, scope))) =>
-                 (
-                   name,
-                   `Assoc([
-                     ("val", `String(val_)),
-                     ("scope", `String(scope)),
-                   ]),
-                 )
-               ),
+let toPackageJson = (manifest, name, version) => {
+  let exportedEnv =
+    PackageJson.ExportedEnv.[
+      {
+        name: cleanEnvName(withoutScope(name)) ++ "_version",
+        value: Solution.Version.toNpmVersion(version),
+        scope: `Global,
+      },
+      {
+        name: cleanEnvName(withoutScope(name)) ++ "_installed",
+        value: "true",
+        scope: `Global,
+      },
+      {
+        name: cleanEnvName(withoutScope(name)) ++ "_enable",
+        value: "enable",
+        scope: `Global,
+      },
+      ...manifest.exportedEnv,
+    ];
+
+  (
+    /* let manifest = getManifest(opamOverrides, (filename, "", withoutScope(name), switch version {
+       | `Opam(t) => t
+       | _ => failwith("unexpected opam version")
+       })); */
+    `Assoc([
+      ("name", `String(name)),
+      ("version", `String(Solution.Version.toNpmVersion(version))),
+      (
+        "esy",
+        `Assoc([
+          ("build", `List(commandListToJson(manifest.build))),
+          ("install", `List(commandListToJson(manifest.install))),
+          ("buildsInSource", `Bool(true)),
+          ("exportedEnv", PackageJson.ExportedEnv.to_yojson(exportedEnv)),
+        ]),
+        /* ("buildsInSource", "_build") */
+      ),
+      (
+        "_resolved",
+        `String(
+          Types.resolvedPrefix
+          ++ name
+          ++ "--"
+          ++ Solution.Version.toString(version),
+        ),
+      ),
+      (
+        "peerDependencies",
+        `Assoc([
+          ("ocaml", `String("*")) /* HACK probably get this somewhere */,
+        ]),
+      ),
+      (
+        "optDependencies",
+        `Assoc(
+          manifest.optDependencies
+          |> List.map(({PackageJson.DependencyRequest.name, _}) =>
+               (name, `String("*"))
+             ),
+        ),
+      ),
+      (
+        "dependencies",
+        `Assoc(
+          (
+            manifest.dependencies
+            |> List.map(({PackageJson.DependencyRequest.name, _}) =>
+                 (name, `String("*"))
+               )
+          )
+          @ (
+            manifest.buildDependencies
+            |> List.map(({PackageJson.DependencyRequest.name, _}) =>
+                 (name, `String("*"))
+               )
           ),
         ),
-      ]),
-      /* ("buildsInSource", "_build") */
-    ),
-    (
-      "_resolved",
-      `String(
-        Types.resolvedPrefix
-        ++ name
-        ++ "--"
-        ++ Solution.Version.toString(version),
       ),
-    ),
-    (
-      "peerDependencies",
-      `Assoc([
-        ("ocaml", `String("*")) /* HACK probably get this somewhere */,
-      ]),
-    ),
-    (
-      "optDependencies",
-      `Assoc(
-        manifest.optDependencies
-        |> List.map(((name, _)) => (name, `String("*"))),
-      ),
-    ),
-    (
-      "dependencies",
-      `Assoc(
-        (manifest.deps |> List.map(((name, _)) => (name, `String("*"))))
-        @ (
-          manifest.buildDeps
-          |> List.map(((name, _)) => (name, `String("*")))
-        ),
-      ),
-    ),
-  ]),
-  manifest.files,
-  manifest.patches,
-);
+    ]),
+    manifest.files,
+    manifest.patches,
+  );
+};
+
+let getDependenciesInfo = manifest => {
+  PackageJson.DependenciesInfo.devDependencies: manifest.devDependencies,
+  buildDependencies: manifest.buildDependencies,
+  dependencies: manifest.dependencies,
+};

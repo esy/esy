@@ -1,19 +1,13 @@
-let unsatisfied = (map, (name, range)) =>
+let unsatisfied = (map, {PackageJson.DependencyRequest.name, req}) =>
   switch (Hashtbl.find(map, name)) {
   | exception Not_found => true
-  | versions => ! List.exists(v => SolveUtils.satisfies(v, range), versions)
+  | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
   };
 
 let findSatisfyingInMap = (map, name, range) =>
   List.find(v => SolveUtils.satisfies(v, range), Hashtbl.find(map, name));
 
 let justDepsn = ((_, _, _, deps)) => deps;
-
-module StringMap =
-  Map.Make({
-    type t = string;
-    let compare = compare;
-  });
 
 let makeFullPackage =
     (name, version, manifest, deps, solvedDeps, buildToVersions) => {
@@ -29,14 +23,14 @@ let makeFullPackage =
       source: Manifest.getSource(manifest, name, version),
       requested: deps,
       runtime:
-        deps.Types.runtime
-        |> List.map(((name, range)) =>
-             (name, range, Hashtbl.find(nameToVersion, name))
+        deps.PackageJson.DependenciesInfo.dependencies
+        |> List.map(({PackageJson.DependencyRequest.name, req}) =>
+             (name, req, Hashtbl.find(nameToVersion, name))
            ),
       build:
-        deps.Types.build
-        |> List.map(((name, range)) =>
-             (name, range, findSatisfyingInMap(buildToVersions, name, range))
+        deps.PackageJson.DependenciesInfo.buildDependencies
+        |> List.map(({PackageJson.DependencyRequest.name, req}) =>
+             (name, req, findSatisfyingInMap(buildToVersions, name, req))
            ),
     },
     runtimeBag:
@@ -48,17 +42,17 @@ let makeFullPackage =
              source: Manifest.getSource(manifest, name, version),
              requested: deps,
              runtime:
-               deps.Types.runtime
-               |> List.map(((name, range)) =>
-                    (name, range, Hashtbl.find(nameToVersion, name))
+               deps.PackageJson.DependenciesInfo.dependencies
+               |> List.map(({PackageJson.DependencyRequest.name, req}) =>
+                    (name, req, Hashtbl.find(nameToVersion, name))
                   ),
              build:
-               deps.Types.build
-               |> List.map(((name, range)) =>
+               deps.PackageJson.DependenciesInfo.buildDependencies
+               |> List.map(({PackageJson.DependencyRequest.name, req}) =>
                     (
                       name,
-                      range,
-                      findSatisfyingInMap(buildToVersions, name, range),
+                      req,
+                      findSatisfyingInMap(buildToVersions, name, req),
                     )
                   ),
            }
@@ -70,7 +64,7 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
     |> List.map(justDepsn)
-    |> List.map(deps => deps.Types.build)
+    |> List.map(deps => deps.PackageJson.DependenciesInfo.buildDependencies)
     |> List.concat;
   /* let allTransitiveBuildDeps = allNeededBuildDeps @ (
        solvedTargets |> List.map(((_, deps)) => getBuildDeps(deps)) |> List.concat |> List.concat
@@ -78,7 +72,7 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
   let buildDepsToInstall = allTransitiveBuildDeps @ requestedBuildDeps;
   let nameToVersions = Hashtbl.create(100);
   let versionMap = Hashtbl.create(100);
-  let rec loop = buildDeps => {
+  let rec loop = (buildDeps: PackageJson.Dependencies.t) => {
     let toAdd = buildDeps |> List.filter(unsatisfied(nameToVersions));
     if (toAdd != []) {
       let solved =
@@ -105,7 +99,7 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
                SolveDeps.solve(
                  ~config,
                  ~cache,
-                 ~requested=deps.Types.runtime,
+                 ~requested=deps.PackageJson.DependenciesInfo.dependencies,
                );
              Hashtbl.replace(
                versionMap,
@@ -115,9 +109,11 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
              let childBuilds =
                solvedDeps
                |> List.map(justDepsn)
-               |> List.map(deps => deps.Types.build)
+               |> List.map(deps =>
+                    deps.PackageJson.DependenciesInfo.buildDependencies
+                  )
                |> List.concat;
-             childBuilds @ deps.Types.build;
+             childBuilds @ deps.PackageJson.DependenciesInfo.buildDependencies;
            } else {
              [];
            }
@@ -137,9 +133,14 @@ let solve = (config, manifest) =>
       let cache = SolveDeps.initCache(config);
       let depsByKind = Manifest.getDeps(manifest);
       let solvedDeps =
-        SolveDeps.solve(~config, ~cache, ~requested=depsByKind.runtime);
+        SolveDeps.solve(~config, ~cache, ~requested=depsByKind.dependencies);
       let (buildVersionMap, buildToVersions) =
-        settleBuildDeps(~config, cache, solvedDeps, depsByKind.build);
+        settleBuildDeps(
+          ~config,
+          cache,
+          solvedDeps,
+          depsByKind.buildDependencies,
+        );
 
       let lockdownFullPackage = full => {
         let%bind source = SolveUtils.lockDownSource(full.Env.source);
@@ -147,9 +148,6 @@ let solve = (config, manifest) =>
           Solution.name: full.Env.name,
           version: full.Env.version,
           source,
-          requested: full.Env.requested,
-          runtime: full.runtime,
-          build: full.Env.build,
         });
       };
 

@@ -50,3 +50,37 @@ let getFromOpamRegistry = (config, fullName) => {
     |> filterNils,
   );
 };
+
+let getManifest =
+    (opamOverrides, {OpamFile.ThinManifest.opamFile, urlFile, name, version}) =>
+  RunAsync.Syntax.(
+    {
+      let%bind source =
+        if%bind (Fs.exists(urlFile)) {
+          return(
+            OpamFile.parseUrlFile(OpamParser.file(Path.toString(urlFile))),
+          );
+        } else {
+          return(Types.PendingSource.NoSource);
+        };
+      let manifest = {
+        ...
+          OpamFile.parseManifest(
+            (name, version),
+            OpamParser.file(Path.toString(opamFile)),
+          ),
+        source,
+      };
+      switch%bind (
+        OpamOverrides.findApplicableOverride(opamOverrides, name, version)
+      ) {
+      | None =>
+        /* print_endline("No override for " ++ name ++ " " ++ VersionNumber.viewVersionNumber(version)); */
+        return(manifest)
+      | Some(override) =>
+        /* print_endline("!! Found override for " ++ name); */
+        let m = OpamOverrides.applyOverride(manifest, override);
+        return(m);
+      };
+    }
+  );
