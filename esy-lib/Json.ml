@@ -1,5 +1,8 @@
 type t = Yojson.Safe.json
 
+type 'a encoder = 'a -> t
+type 'a decoder = t -> ('a, string) result
+
 let to_yojson x = x
 let of_yojson x = Ok x
 
