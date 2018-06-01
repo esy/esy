@@ -77,7 +77,7 @@ let solve = (~cfg, manifest) =>
     {
       let%bind () = SolveUtils.checkRepositories(cfg);
       let cache = SolveDeps.initCache(cfg);
-      let depsByKind = Manifest.getDeps(manifest);
+      let depsByKind = Manifest.dependencies(manifest);
       let solvedDeps =
         SolveDeps.solve(~cfg, ~cache, ~requested=depsByKind.dependencies);
       let (buildVersionMap, _buildToVersions) =
@@ -90,9 +90,8 @@ let solve = (~cfg, manifest) =>
 
       let makePkg = (manifest, name, version) => {
         let%bind source =
-          SolveUtils.lockDownSource(
-            Manifest.getSource(manifest, name, version),
-          );
+          RunAsync.ofRun(Manifest.source(manifest, name, version));
+        let%bind source = SolveUtils.lockDownSource(source);
         return({Solution.name, version, source});
       };
 

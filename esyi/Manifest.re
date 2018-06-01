@@ -1,35 +1,60 @@
 type t =
   | Opam(OpamFile.manifest)
-  /* TODO: PackageJson should have parsed manifest instead */
-  | PackageJson(Json.t);
+  | PackageJson(PackageJson.t);
 
-let getDeps = manifest => {
-  let depsByKind =
-    switch (manifest) {
-    | Opam(opam) => OpamFile.getDependenciesInfo(opam)
-    | PackageJson(json) =>
-      /* TODO: refactor that away */
-      switch (PackageJson.DependenciesInfo.of_yojson(json)) {
-      | Ok(v) => v
-      | Error(err) => failwith(err)
-      }
-    };
-  depsByKind;
-};
+let dependencies = manifest =>
+  switch (manifest) {
+  | Opam(manifest) => OpamFile.getDependenciesInfo(manifest)
+  | PackageJson(manifest) => PackageJson.dependencies(manifest)
+  };
 
-let getSource = (manifest, name, version) =>
+let source = (manifest, name, version) =>
   switch (version) {
   | Solution.Version.Github(user, repo, ref) =>
-    Types.PendingSource.GithubSource(user, repo, ref)
+    Run.return(Types.PendingSource.GithubSource(user, repo, ref))
   | Solution.Version.LocalPath(path) =>
-    Types.PendingSource.File(Path.toString(path))
+    Run.return(Types.PendingSource.File(Path.toString(path)))
   | _ =>
     switch (manifest) {
     | Opam(opam) =>
-      Types.PendingSource.WithOpamFile(
-        OpamFile.getSource(opam),
-        OpamFile.toPackageJson(opam, name, version),
+      Run.return(
+        Types.PendingSource.WithOpamFile(
+          OpamFile.getSource(opam),
+          OpamFile.toPackageJson(opam, name, version),
+        ),
       )
-    | PackageJson(json) => PackageJson.getSource(json)
+    | PackageJson(json) => PackageJson.source(json)
     }
   };
+
+module Github = {
+  let getManifest = (user, repo, ref) => {
+    open RunAsync.Syntax;
+    let fetchFile = name => {
+      let url =
+        "https://raw.githubusercontent.com/"
+        ++ user
+        ++ "/"
+        ++ repo
+        ++ "/"
+        ++ Option.orDefault(~default="master", ref)
+        ++ "/"
+        ++ name;
+      Curl.get(url);
+    };
+    switch%lwt (fetchFile("esy.json")) {
+    | Ok(data) =>
+      let%bind packageJson =
+        RunAsync.ofRun(Json.parseStringWith(PackageJson.of_yojson, data));
+      return(PackageJson(packageJson));
+    | Error(_) =>
+      switch%lwt (fetchFile("package.json")) {
+      | Ok(text) =>
+        let%bind packageJson =
+          RunAsync.ofRun(Json.parseStringWith(PackageJson.of_yojson, text));
+        return(PackageJson(packageJson));
+      | Error(_) => error("no manifest found")
+      }
+    };
+  };
+};

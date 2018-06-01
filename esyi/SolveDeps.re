@@ -256,7 +256,8 @@ let rec addPackage =
 and addToUniverse =
     (~cfg, ~unique, ~previouslyInstalled, ~deep, state, universe, req) => {
   let versions =
-    VersionCache.getAvailableVersions(~cfg, ~cache=state.cache.versions, req);
+    VersionCache.getAvailableVersions(~cfg, ~cache=state.cache.versions, req)
+    |> RunAsync.runExn(~err="error getting versions");
   List.iter(
     versionPlus => {
       let (realVersion, i) =
@@ -279,7 +280,8 @@ and addToUniverse =
             state.cache.opamOverrides,
             state.cache.manifests,
             (req.name, versionPlus),
-          );
+          )
+          |> RunAsync.runExn(~err="unable to get manifest");
         addPackage(
           ~cfg,
           ~unique,

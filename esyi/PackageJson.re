@@ -231,26 +231,38 @@ module ExportedEnv = {
   };
 };
 
-let getSource = json =>
-  switch (json) {
-  | `Assoc(items) =>
-    switch (List.assoc("dist", items)) {
-    | exception Not_found =>
-      print_endline(Yojson.Safe.pretty_to_string(json));
-      failwith("No dist");
-    | `Assoc(items) =>
-      let archive =
-        switch (List.assoc("tarball", items)) {
-        | `String(archive) => archive
-        | _ => failwith("Bad tarball")
-        };
-      let checksum =
-        switch (List.assoc("shasum", items)) {
-        | `String(checksum) => checksum
-        | _ => failwith("Bad checksum")
-        };
-      Types.PendingSource.Archive(archive, Some(checksum));
-    | _ => failwith("bad dist")
-    }
-  | _ => failwith("bad json manifest")
+[@deriving of_yojson({strict: false})]
+type t = {
+  name: string,
+  version: string,
+  dependencies: [@default Dependencies.empty] Dependencies.t,
+  devDependencies: [@default Dependencies.empty] Dependencies.t,
+  peerDependencies: [@default Dependencies.empty] Dependencies.t,
+  buildDependencies: [@default Dependencies.empty] Dependencies.t,
+  dist: [@default None] option(dist),
+}
+and dist = {
+  tarball: string,
+  shasum: string,
+};
+
+let source = manifest =>
+  switch (manifest.dist) {
+  | Some(dist) =>
+    Run.return(Types.PendingSource.Archive(dist.tarball, Some(dist.shasum)))
+  | None => Run.error("no dist")
   };
+
+let dependencies = (manifest: t) => {
+  DependenciesInfo.dependencies: manifest.dependencies,
+  buildDependencies: manifest.buildDependencies,
+  devDependencies: manifest.devDependencies,
+};
+
+let ofFile = (path: Path.t) =>
+  RunAsync.Syntax.(
+    {
+      let%bind data = Fs.readJsonFile(path);
+      RunAsync.ofRun(Json.parseJsonWith(of_yojson, data));
+    }
+  );

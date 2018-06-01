@@ -1,6 +1,3 @@
-module Path = EsyLib.Path;
-module Cmd = EsyLib.Cmd;
-
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
   | (
@@ -162,27 +159,27 @@ let checkRepositories = config =>
   );
 
 let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
+  open RunAsync.Syntax;
   let realVersion = toRealVersion(versionPlus);
   switch (Hashtbl.find(cache, (name, realVersion))) {
   | exception Not_found =>
-    let manifest =
+    let%bind manifest =
       switch (versionPlus) {
-      | `Github(user, repo, ref) => Github.getManifest(name, user, repo, ref)
+      | `Github(user, repo, ref) =>
+        Manifest.Github.getManifest(user, repo, ref)
       /* Registry.getGithubManifest(url) */
-      | `Npm(_version, json, _) => Manifest.PackageJson(json)
+      | `Npm(_version, json, _) => return(Manifest.PackageJson(json))
       | `LocalPath(_p) =>
-        failwith("do not know how to get manifest from LocalPath")
+        error("do not know how to get manifest from LocalPath")
       | `Opam(_version, path, _) =>
-        let manifest =
-          OpamRegistry.getManifest(opamOverrides, path)
-          |> RunAsync.runExn(~err="unable to read opam manifest");
-        Manifest.Opam(manifest);
+        let%bind manifest = OpamRegistry.getManifest(opamOverrides, path);
+        return(Manifest.Opam(manifest));
       };
-    let depsByKind = Manifest.getDeps(manifest);
+    let depsByKind = Manifest.dependencies(manifest);
     let res = (manifest, depsByKind);
     Hashtbl.replace(cache, (name, realVersion), res);
-    res;
-  | x => x
+    return(res);
+  | x => return(x)
   };
 };
 
