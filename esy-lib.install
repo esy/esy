@@ -77,6 +77,10 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__RunAsync.cmti" {"EsyLib__RunAsync.cmti"}
   "_build/install/default/lib/esy-lib/RunAsync.mli" {"RunAsync.mli"}
   "_build/install/default/lib/esy-lib/RunAsync.ml" {"RunAsync.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__ShellSplit.cmi" {"EsyLib__ShellSplit.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__ShellSplit.cmx" {"EsyLib__ShellSplit.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__ShellSplit.cmt" {"EsyLib__ShellSplit.cmt"}
+  "_build/install/default/lib/esy-lib/ShellSplit.ml" {"ShellSplit.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__StringMap.cmi" {"EsyLib__StringMap.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__StringMap.cmx" {"EsyLib__StringMap.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__StringMap.cmt" {"EsyLib__StringMap.cmt"}

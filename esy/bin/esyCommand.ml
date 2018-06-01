@@ -319,7 +319,7 @@ let buildPackage cfg packagePath =
 let build ?(buildOnly=true) cfg argv =
   let open RunAsync.Syntax in
   let%bind cfg = cfg in
-  let%bind {SandboxInfo. task; sandbox; _} = SandboxInfo.ofConfig cfg in
+  let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
 
   (** TODO: figure out API to build devDeps in parallel with the root *)
 

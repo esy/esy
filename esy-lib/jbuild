@@ -24,3 +24,6 @@
               astring
               ))
   ))
+
+(ocamllex (ShellSplit))
+
