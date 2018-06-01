@@ -7,8 +7,11 @@
   */
 module Source = {
   [@deriving yojson]
-  type t = (info, option(Types.opamFile))
-  and info =
+  type t = {
+    src,
+    opam: option(Types.opamFile),
+  }
+  and src =
     /* url & checksum */
     | Archive(string, string)
     /* url & commit */
