@@ -1,5 +1,3 @@
-module StringMap = Map.Make(String);
-module StringSet = Set.Make(String);
 module PathSet = Set.Make(Path);
 module ConfigPath = Config.ConfigPath;
 

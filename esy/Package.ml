@@ -1,7 +1,5 @@
 open Std
 
-module StringMap = Map.Make(String)
-
 (**
  * A list of commands as specified in "esy.build" and "esy.install".
  *)
