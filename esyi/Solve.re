@@ -4,63 +4,9 @@ let unsatisfied = (map, {PackageJson.DependencyRequest.name, req}) =>
   | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
   };
 
-let findSatisfyingInMap = (map, name, range) =>
-  List.find(v => SolveUtils.satisfies(v, range), Hashtbl.find(map, name));
-
 let justDepsn = ((_, _, _, deps)) => deps;
 
-let makeFullPackage =
-    (name, version, manifest, deps, solvedDeps, buildToVersions) => {
-  let nameToVersion = Hashtbl.create(100);
-  solvedDeps
-  |> List.iter(((name, version, _, _)) =>
-       Hashtbl.replace(nameToVersion, name, version)
-     );
-  Env.{
-    package: {
-      name,
-      version,
-      source: Manifest.getSource(manifest, name, version),
-      requested: deps,
-      runtime:
-        deps.PackageJson.DependenciesInfo.dependencies
-        |> List.map(({PackageJson.DependencyRequest.name, req}) =>
-             (name, req, Hashtbl.find(nameToVersion, name))
-           ),
-      build:
-        deps.PackageJson.DependenciesInfo.buildDependencies
-        |> List.map(({PackageJson.DependencyRequest.name, req}) =>
-             (name, req, findSatisfyingInMap(buildToVersions, name, req))
-           ),
-    },
-    runtimeBag:
-      solvedDeps
-      |> List.map(((name, version, manifest, deps)) =>
-           {
-             name,
-             version,
-             source: Manifest.getSource(manifest, name, version),
-             requested: deps,
-             runtime:
-               deps.PackageJson.DependenciesInfo.dependencies
-               |> List.map(({PackageJson.DependencyRequest.name, req}) =>
-                    (name, req, Hashtbl.find(nameToVersion, name))
-                  ),
-             build:
-               deps.PackageJson.DependenciesInfo.buildDependencies
-               |> List.map(({PackageJson.DependencyRequest.name, req}) =>
-                    (
-                      name,
-                      req,
-                      findSatisfyingInMap(buildToVersions, name, req),
-                    )
-                  ),
-           }
-         ),
-  };
-};
-
-let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
+let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
     |> List.map(justDepsn)
@@ -77,7 +23,7 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
     if (toAdd != []) {
       let solved =
         SolveDeps.solveLoose(
-          ~config,
+          ~cfg,
           ~cache,
           ~requested=toAdd,
           ~current=nameToVersions,
@@ -97,7 +43,7 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
              );
              let solvedDeps =
                SolveDeps.solve(
-                 ~config,
+                 ~cfg,
                  ~cache,
                  ~requested=deps.PackageJson.DependenciesInfo.dependencies,
                );
@@ -126,70 +72,65 @@ let settleBuildDeps = (~config, cache, solvedDeps, requestedBuildDeps) => {
   (versionMap, nameToVersions);
 };
 
-let solve = (config, manifest) =>
+let solve = (~cfg, manifest) =>
   RunAsync.Syntax.(
     {
-      let%bind () = SolveUtils.checkRepositories(config);
-      let cache = SolveDeps.initCache(config);
+      let%bind () = SolveUtils.checkRepositories(cfg);
+      let cache = SolveDeps.initCache(cfg);
       let depsByKind = Manifest.getDeps(manifest);
       let solvedDeps =
-        SolveDeps.solve(~config, ~cache, ~requested=depsByKind.dependencies);
-      let (buildVersionMap, buildToVersions) =
+        SolveDeps.solve(~cfg, ~cache, ~requested=depsByKind.dependencies);
+      let (buildVersionMap, _buildToVersions) =
         settleBuildDeps(
-          ~config,
+          ~cfg,
           cache,
           solvedDeps,
           depsByKind.buildDependencies,
         );
 
-      let lockdownFullPackage = full => {
-        let%bind source = SolveUtils.lockDownSource(full.Env.source);
-        return({
-          Solution.name: full.Env.name,
-          version: full.Env.version,
-          source,
-        });
+      let makePkg = (manifest, name, version) => {
+        let%bind source =
+          SolveUtils.lockDownSource(
+            Manifest.getSource(manifest, name, version),
+          );
+        return({Solution.name, version, source});
       };
 
-      let lockdownRootPackage = root => {
-        let%bind pkg = lockdownFullPackage(root.Env.package);
+      let makeRootPkg = (pkg, deps) => {
         let%bind bag =
-          root.Env.runtimeBag
-          |> List.map(lockdownFullPackage)
+          deps
+          |> List.map(((name, version, manifest, _deps)) =>
+               makePkg(manifest, name, version)
+             )
           |> RunAsync.List.joinAll;
         return({Solution.pkg, bag});
       };
 
-      let buildDependencies =
+      let%bind root = {
+        let%bind pkg =
+          makePkg(
+            manifest,
+            "*root",
+            Solution.Version.LocalPath(Path.v("./")),
+          );
+        makeRootPkg(pkg, solvedDeps);
+      };
+
+      let%bind buildDependencies =
         Hashtbl.fold(
-          ((name, version), (manifest, deps, solvedDeps), result) => [
-            makeFullPackage(
-              name,
-              version,
-              manifest,
-              deps,
-              solvedDeps,
-              buildToVersions,
-            ),
+          ((name, version), (manifest, _deps, solvedDeps), result) => [
+            (manifest, name, version, solvedDeps),
             ...result,
           ],
           buildVersionMap,
           [],
-        );
-      let root =
-        makeFullPackage(
-          "*root*",
-          Solution.Version.LocalPath(Path.v("./")),
-          manifest,
-          depsByKind,
-          solvedDeps,
-          buildToVersions,
-        );
-      let%bind root = lockdownRootPackage(root);
-      let%bind buildDependencies =
-        buildDependencies
-        |> List.map(lockdownRootPackage)
+        )
+        |> List.map(((manifest, name, version, deps)) => {
+             let%bind pkg = makePkg(manifest, name, version);
+             makeRootPkg(pkg, deps);
+           })
         |> RunAsync.List.joinAll;
+
       let env = {Solution.root, buildDependencies};
       return(env);
     }
