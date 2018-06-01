@@ -28,5 +28,5 @@ val buildShell :
 val buildExec :
   Config.t
   -> Task.t
-  -> string list
+  -> Cmd.t
   -> Unix.process_status RunAsync.t
