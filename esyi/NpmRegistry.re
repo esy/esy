@@ -1,26 +1,26 @@
-open EsyLib;
-
-/* TODO use lwt, maybe cache things */
-let getFromNpmRegistry = (config: Config.t, name) => {
-  let name = Str.global_replace(Str.regexp("/"), "%2f", name);
-  let json =
-    Curl.get(config.npmRegistry ++ "/" ++ name)
-    |> RunAsync.runExn(~err="Unable to query registry for " ++ name)
-    |> Yojson.Safe.from_string;
-  switch (json) {
-  | `Assoc(items) =>
-    switch (List.assoc("versions", items)) {
-    | exception Not_found =>
-      print_endline(Yojson.Safe.to_string(json));
-      failwith("No versions field in the registry result for " ++ name);
-    | `Assoc(items) =>
-      List.map(
-        ((name, json)) => (NpmVersion.parseConcrete(name), json),
-        items,
-      )
-    | _ =>
-      failwith("Invalid versions field for registry response to " ++ name)
-    }
-  | _ => failwith("Invalid registry response for " ++ name)
+module Packument = {
+  module Versions = {
+    type t = StringMap.t(PackageJson.t);
+    let of_yojson: Json.decoder(t) =
+      Json.Parse.stringMap(PackageJson.of_yojson);
   };
+
+  [@deriving of_yojson({strict: false})]
+  type t = {versions: Versions.t};
+};
+
+let resolve = (~cfg: Config.t, name) => {
+  open RunAsync.Syntax;
+  let name = Str.global_replace(Str.regexp("/"), "%2f", name);
+  let%bind data = Curl.get(cfg.npmRegistry ++ "/" ++ name);
+  let%bind packument =
+    RunAsync.ofRun(Json.parseStringWith(Packument.of_yojson, data));
+
+  return(
+    packument.Packument.versions
+    |> StringMap.bindings
+    |> List.map(((version, manifest)) =>
+         (NpmVersion.parseConcrete(version), manifest)
+       ),
+  );
 };
