@@ -1,12 +1,10 @@
-module Map = Astring.String.Map
-
 type env = [
   (* Use current env *)
   | `CurrentEnv
   (* Use current env add some override on top *)
-  | `CurrentEnvOverride of string Map.t
+  | `CurrentEnvOverride of string StringMap.t
   (* Use custom env *)
-  | `CustomEnv of string Map.t
+  | `CustomEnv of string StringMap.t
 ]
 
 let currentEnv =
@@ -28,16 +26,16 @@ let currentEnv =
   in
   let build env (name, value) =
     if filter (name, value)
-    then Map.add name value env
+    then StringMap.add name value env
     else env
   in
   Unix.environment ()
   |> Array.map parse
-  |> Array.fold_left build Map.empty
+  |> Array.fold_left build StringMap.empty
 
 let resolveCmdInEnv ~env prg =
   let path =
-    let v = match Map.find_opt "PATH" env with
+    let v = match StringMap.find_opt "PATH" env with
       | Some v  -> v
       | None -> ""
     in
@@ -75,7 +73,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
     ) in
 
   let env = Option.map env ~f:(fun env -> env
-                                              |> Map.bindings
+                                              |> StringMap.bindings
                                               |> List.map (fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
   in
@@ -145,7 +143,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
     ) in
 
   let env = Option.map env ~f:(fun env -> env
-                                              |> Map.bindings
+                                              |> StringMap.bindings
                                               |> List.map (fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
   in

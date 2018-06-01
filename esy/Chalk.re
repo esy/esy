@@ -16,10 +16,6 @@ module IntSet =
     let compare = compare;
   });
 
-module StringMap = Map.Make(String);
-
-module StringSet = Set.Make(String);
-
 module Ansi = {
   type style = {
     start: string,

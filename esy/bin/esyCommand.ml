@@ -1,8 +1,5 @@
 open Esy
 
-module StringMap = Map.Make(String)
-module StringSet = Set.Make(String)
-
 let done_ msg =
   let line = Chalk.green("[INFO]") ^ " " ^ msg in
   print_endline line

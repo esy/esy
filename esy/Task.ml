@@ -8,8 +8,6 @@ open Std
  * on better package boundaries.
 *)
 
-module StringMap = Map.Make(String)
-module StringSet = Set.Make(String)
 module ConfigPath = Config.ConfigPath
 
 module CommandList = struct
@@ -478,11 +476,13 @@ let ofPackage
           | Some namespace, name -> namespace ^ "." ^ name
           | None, name -> name
         in
-        try Some (StringMap.find key bindings)
-        with Not_found ->
-          match name with
+        match StringMap.find key bindings with
+        | Some v -> Some v
+        | None ->
+          begin match name with
           | "installed" -> Some (CommandExpr.Value.Bool false)
           | _ -> None
+          end
       in
       lookup bindingsForExportedEnv, lookup bindingsForCommands
     in

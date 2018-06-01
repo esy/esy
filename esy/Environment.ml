@@ -119,20 +119,18 @@ module Value = struct
 
   let pp = Astring.String.Map.pp
 
-  module M = Astring.String.Map
+  let find = StringMap.find_opt
 
-  let find = M.find_opt
-
-  let ofBindings ?(init : t = M.empty) (bindings : binding list) =
+  let ofBindings ?(init : t = StringMap.empty) (bindings : binding list) =
     let open Run.Syntax in
     let f env binding =
-      let scope name = M.find name env in
+      let scope name = StringMap.find name env in
       match binding.value with
       | Value value ->
         let%bind value = ShellParamExpansion.render ~scope value in
-        Ok (M.add binding.name value env)
+        Ok (StringMap.add binding.name value env)
       | ExpandedValue value ->
-        Ok (M.add binding.name value env)
+        Ok (StringMap.add binding.name value env)
     in
     Result.List.foldLeft ~f ~init bindings
 
@@ -146,14 +144,14 @@ module Value = struct
           ~sandboxPath:cfg.sandboxPath
           value
         in
-        Ok (M.add k v env)
+        Ok (StringMap.add k v env)
       | err -> err
     in
-    M.fold f env (Ok M.empty)
+    StringMap.fold f env (Ok StringMap.empty)
 
   let to_yojson env =
     let f k v items = (k, `String v)::items in
-    let items = M.fold f env [] in
+    let items = StringMap.fold f env [] in
     `Assoc items
 
   let current =
