@@ -21,8 +21,14 @@ initFixture () {
 
   TEST_ROOT=$(mktemp -d /tmp/esy.XXXX)
   TEST_PROJECT="$TEST_ROOT/project"
+  TEST_BIN="$TEST_ROOT/bin"
 
   export ESY__PREFIX="$TEST_ROOT/esy"
+  export PATH="$TEST_BIN:$PATH"
+
+  # init bin
+  mkdir -p "$TEST_BIN"
+  ln -s "$ESYCOMMAND" "$TEST_BIN/esy"
 
   cp -r "$fixture" "$TEST_PROJECT"
 
@@ -37,11 +43,6 @@ initFixture () {
   set -x
 }
 export -f initFixture
-
-esy () {
-  "$ESYCOMMAND" "$@"
-}
-export -f esy
 
 run () {
   echo "RUNNING:" "$@"
