@@ -13,10 +13,10 @@ type pkg = Package.t
 let fetch ~(config : Config.t) {Solution. name; version; source; _} =
   let open RunAsync.Syntax in
 
-  let info, opamFile = source in
+  let {Solution.Source. src; opam} = source in
 
   let doFetch path =
-    match info with
+    match src with
     | Solution.Source.File _ ->
       let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
       failwith msg
@@ -80,7 +80,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
         | _ -> error "invalid package.json"
       in
 
-      match opamFile with
+      match opam with
       | Some (packageJson, files, patches) ->
 
         let%bind () = removeEsyJsonIfExists() in

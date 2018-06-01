@@ -99,41 +99,46 @@ let tryConvertingOpamFromNpm = version =>
        )
   );
 
-let expectSuccess = (msg, v) =>
-  if (v) {
-    ();
-  } else {
-    failwith(msg);
-  };
-
 let rec lockDownSource = pendingSource =>
   RunAsync.Syntax.(
     switch (pendingSource) {
-    | Types.PendingSource.NoSource => return((Solution.Source.NoSource, None))
+    | Types.PendingSource.NoSource =>
+      return({Solution.Source.src: NoSource, opam: None})
     | WithOpamFile(source, opamFile) =>
       switch%bind (lockDownSource(source)) {
-      | (s, None) => return((s, Some(opamFile)))
+      | {Solution.Source.src, opam: None} =>
+        return({Solution.Source.src, opam: Some(opamFile)})
       | _ => error("can't nest withOpamFiles inside each other")
       }
     | Archive(url, None) =>
-      return((
-        /* print_endline("Pretending to get a checksum for " ++ url); */
-        Solution.Source.Archive(url, "fake checksum"),
-        None,
-      ))
+      return({
+        /* TODO: checksum */
+        Solution.Source.src: Solution.Source.Archive(url, "fake checksum"),
+        opam: None,
+      })
     | Archive(url, Some(checksum)) =>
-      return((Solution.Source.Archive(url, checksum), None))
+      return({
+        Solution.Source.src: Solution.Source.Archive(url, checksum),
+        opam: None,
+      })
     | GitSource(url, ref) =>
       let ref = Option.orDefault(~default="master", ref);
       /** TODO getting HEAD */
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return((Solution.Source.GitSource(url, sha), None));
+      return({
+        Solution.Source.src: Solution.Source.GitSource(url, sha),
+        opam: None,
+      });
     | GithubSource(user, name, ref) =>
       let ref = Option.orDefault(~default="master", ref);
       let url = "git://github.com/" ++ user ++ "/" ++ name ++ ".git";
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return((Solution.Source.GithubSource(user, name, sha), None));
-    | File(s) => return((Solution.Source.File(s), None))
+      return({
+        Solution.Source.src: Solution.Source.GithubSource(user, name, sha),
+        opam: None,
+      });
+    | File(s) =>
+      return({Solution.Source.src: Solution.Source.File(s), opam: None})
     }
   );
 
