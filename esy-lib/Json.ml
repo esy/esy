@@ -1,5 +1,3 @@
-module StringMap = (Map.Make)(String)
-
 type t = Yojson.Safe.json
 
 let to_yojson x = x
@@ -18,6 +16,20 @@ module Parse = struct
     match json with
     | `String v -> Ok v
     | _ -> Error "expected string"
+
+  let assoc (json : t) =
+    match json with
+    | `Assoc v -> Ok v
+    | _ -> Error "expected object"
+
+  let field ~name (json : t) =
+    match json with
+    | `Assoc items ->
+      begin match List.find_opt (fun (k, _v) -> k = name) items with
+      | Some (_, v) -> Ok v
+      | None -> Error ("no such field: " ^ name)
+      end
+    | _ -> Error "expected object"
 
   let list ?(errorMsg="expected an array") value (json : t) =
     match json with
