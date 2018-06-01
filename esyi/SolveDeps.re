@@ -198,7 +198,7 @@ let cudfDep =
  */
 let rec addPackage =
         (
-          ~config,
+          ~cfg,
           ~unique,
           ~previouslyInstalled,
           ~deep,
@@ -219,7 +219,7 @@ let rec addPackage =
   deep ?
     List.iter(
       addToUniverse(
-        ~config,
+        ~cfg,
         ~unique,
         ~previouslyInstalled,
         ~deep,
@@ -254,13 +254,9 @@ let rec addPackage =
   Cudf.add_package(universe, package);
 }
 and addToUniverse =
-    (~config, ~unique, ~previouslyInstalled, ~deep, state, universe, req) => {
+    (~cfg, ~unique, ~previouslyInstalled, ~deep, state, universe, req) => {
   let versions =
-    VersionCache.getAvailableVersions(
-      ~config,
-      ~cache=state.cache.versions,
-      req,
-    );
+    VersionCache.getAvailableVersions(~cfg, ~cache=state.cache.versions, req);
   List.iter(
     versionPlus => {
       let (realVersion, i) =
@@ -285,7 +281,7 @@ and addToUniverse =
             (req.name, versionPlus),
           );
         addPackage(
-          ~config,
+          ~cfg,
           ~unique,
           ~previouslyInstalled,
           ~deep,
@@ -306,13 +302,13 @@ and addToUniverse =
 let rootName = "*root*";
 
 let createUniverse =
-    (~config, ~unique, ~previouslyInstalled=?, ~deep=true, cache, deps) => {
+    (~cfg, ~unique, ~previouslyInstalled=?, ~deep=true, cache, deps) => {
   let universe = Cudf.empty_universe();
   let state = {cache, cudfVersions: CudfVersions.init()};
   /** This is where most of the work happens, file io, network requests, etc. */
   List.iter(
     addToUniverse(
-      ~config,
+      ~cfg,
       ~unique,
       ~previouslyInstalled,
       ~deep,
@@ -326,7 +322,7 @@ let createUniverse =
 
 let solveDeps =
     (
-      ~config,
+      ~cfg,
       ~unique,
       ~strategy,
       ~previouslyInstalled=?,
@@ -339,7 +335,7 @@ let solveDeps =
   } else {
     let (universe, cudfVersions, manifests) =
       createUniverse(
-        ~config,
+        ~cfg,
         ~unique,
         ~previouslyInstalled?,
         ~deep,
@@ -393,7 +389,7 @@ let makeVersionMap = installed => {
  * - we provide a list of modules that are already installed
  * - if we want, we only go one level deep
  */
-let solveLoose = (~config, ~cache, ~requested, ~current, ~deep) => {
+let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
   let previouslyInstalled = Hashtbl.create(100);
   current
   |> Hashtbl.iter((name, versions) =>
@@ -405,7 +401,7 @@ let solveLoose = (~config, ~cache, ~requested, ~current, ~deep) => {
   /* current |> List.iter(({Lockfile.SolvedDep.name, version}) => Hashtbl.add(previouslyInstalled, (name, version), 1)); */
   let installed =
     solveDeps(
-      ~config,
+      ~cfg,
       ~unique=true,
       ~strategy=Strategies.greatestOverlap,
       ~previouslyInstalled,

@@ -18,7 +18,8 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
   let doFetch path =
     match info with
     | Solution.Source.File _ ->
-      failwith "NOT IMPLEMENTED"
+      let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
+      failwith msg
 
     | Solution.Source.NoSource ->
       return ()

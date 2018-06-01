@@ -6,7 +6,10 @@ module Api = {
         Path.(cfg.basePath / "package.json" |> to_string),
       );
     let%bind solution =
-      EsyInstaller.Solve.solve(cfg, EsyInstaller.Manifest.PackageJson(json));
+      EsyInstaller.Solve.solve(
+        ~cfg,
+        EsyInstaller.Manifest.PackageJson(json),
+      );
     EsyInstaller.Solution.toFile(cfg.lockfilePath, solution);
   };
 

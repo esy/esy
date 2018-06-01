@@ -8,7 +8,7 @@ type t = {
     Hashtbl.t(string, list((Types.opamConcrete, OpamFile.ThinManifest.t))),
 };
 
-let getAvailableVersions = (~config: Config.t, ~cache: t, req) =>
+let getAvailableVersions = (~cfg: Config.t, ~cache: t, req) =>
   switch (req.PackageJson.DependencyRequest.req) {
   | PackageJson.DependencyRequest.Github(user, repo, ref) => [
       `Github((user, repo, ref)),
@@ -18,7 +18,7 @@ let getAvailableVersions = (~config: Config.t, ~cache: t, req) =>
       Hashtbl.replace(
         cache.availableNpmVersions,
         req.name,
-        NpmRegistry.getFromNpmRegistry(config, req.name),
+        NpmRegistry.getFromNpmRegistry(cfg, req.name),
       );
     };
     let available = Hashtbl.find(cache.availableNpmVersions, req.name);

@@ -12,13 +12,6 @@ let getOpam = name => {
   };
 };
 
-let isGithub = value =>
-  Str.string_match(
-    Str.regexp("[a-zA-Z][a-zA-Z0-9-]+/[a-zA-Z0-9_-]+(#.+)?"),
-    value,
-    0,
-  );
-
 let startsWith = (value, needle) =>
   String.length(value) > String.length(needle)
   && String.sub(value, 0, String.length(needle)) == needle;
