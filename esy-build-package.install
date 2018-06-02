@@ -9,6 +9,8 @@ lib: [
   "_build/install/default/lib/esy-build-package/BuildTask.re" {"BuildTask.re"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmi" {"EsyBuildPackage__Builder.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmt" {"EsyBuildPackage__Builder.cmt"}
+  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Builder.cmti" {"EsyBuildPackage__Builder.cmti"}
+  "_build/install/default/lib/esy-build-package/Builder.rei" {"Builder.rei"}
   "_build/install/default/lib/esy-build-package/Builder.re" {"Builder.re"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmi" {"EsyBuildPackage__Config.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Config.cmt" {"EsyBuildPackage__Config.cmt"}
