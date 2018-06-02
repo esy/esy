@@ -14,7 +14,9 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmi" {"EsyLib__Cmd.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmx" {"EsyLib__Cmd.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmt" {"EsyLib__Cmd.cmt"}
-  "_build/install/default/lib/esy-lib/Cmd.re" {"Cmd.re"}
+  "_build/install/default/lib/esy-lib/EsyLib__Cmd.cmti" {"EsyLib__Cmd.cmti"}
+  "_build/install/default/lib/esy-lib/Cmd.mli" {"Cmd.mli"}
+  "_build/install/default/lib/esy-lib/Cmd.ml" {"Cmd.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Curl.cmi" {"EsyLib__Curl.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Curl.cmx" {"EsyLib__Curl.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Curl.cmt" {"EsyLib__Curl.cmt"}
