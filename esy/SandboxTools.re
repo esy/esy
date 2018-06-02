@@ -73,7 +73,7 @@ let getPackageLibraries =
     };
   let env =
     `CustomEnv(Astring.String.Map.(empty |> add("OCAMLPATH", ocamlpath)));
-  let cmd = Cmd.ofList([ocamlfind, "list"]);
+  let cmd = Cmd.(v(ocamlfind) % "list");
   let%bind out = ChildProcess.runOut(~env, cmd);
   let libs =
     String.split_on_char('\n', out)
@@ -103,14 +103,14 @@ let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: Task.t, lib) => {
   let env =
     `CustomEnv(Astring.String.Map.(empty |> add("OCAMLPATH", ocamlpath)));
   let cmd =
-    Cmd.ofList([
-      ocamlfind,
-      "query",
-      "-predicates",
-      "byte,native",
-      "-long-format",
-      lib,
-    ]);
+    Cmd.(
+      v(ocamlfind)
+      % "query"
+      % "-predicates"
+      % "byte,native"
+      % "-long-format"
+      % lib
+    );
   let%bind out = ChildProcess.runOut(~env, cmd);
   let lines =
     String.split_on_char('\n', out)
@@ -134,7 +134,7 @@ let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: Task.t, lib) => {
 let queryModules = (~ocamlobjinfo: string, archive) => {
   open RunAsync.Syntax;
   let env = `CustomEnv(Astring.String.Map.(empty));
-  let cmd = Cmd.ofList([ocamlobjinfo, archive]);
+  let cmd = Cmd.(v(ocamlobjinfo) % archive);
   let%bind out = ChildProcess.runOut(~env, cmd);
   let startsWith = (s1, s2) => {
     let len1 = String.length(s1);

@@ -60,7 +60,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
 
   let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
-      match Bos.Cmd.to_list cmd with
+      match Cmd.toList cmd with
       | [] -> error "empty command"
       | prg::args ->
         let%bind prg =
@@ -130,7 +130,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
 
   let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
-      match Bos.Cmd.to_list cmd with
+      match Cmd.toList cmd with
       | [] -> error "empty command"
       | prg::args ->
         let%bind prg =

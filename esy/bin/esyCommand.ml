@@ -255,7 +255,7 @@ let runCommandViaNode cfg name args =
   let env = esyEnvOverride cfg in
   match%lwt EsyRuntime.esyInstallJsCommand with
   | Ok esyJs ->
-    let cmd = Cmd.(v "node" %% esyJs % name %% Cmd.ofList args) in
+    let cmd = Cmd.(v "node" %% esyJs % name |> addArgs args) in
     ChildProcess.run ~env cmd
   | Error _err ->
     RunAsync.error "unable to find esy-install.js"

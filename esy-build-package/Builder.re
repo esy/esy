@@ -1,6 +1,5 @@
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
-module Cmd = EsyLib.Cmd;
 
 open Std;
 
@@ -254,7 +253,9 @@ let withBuildEnvUnlocked =
     | None => []
     };
   let run = cmd => {
-    let%bind cmd = Cmd.resolveInvocation(path, cmd);
+    let cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+    let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind ((), (_runInfo, runStatus)) =
       Bos.OS.Cmd.(
         in_null |> exec(~err=Bos.OS.Cmd.err_run_out, ~env, cmd) |> out_stdout
@@ -265,7 +266,9 @@ let withBuildEnvUnlocked =
     };
   };
   let runInteractive = cmd => {
-    let%bind cmd = Cmd.resolveInvocation(path, cmd);
+    let cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+    let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind ((), (_runInfo, runStatus)) =
       Bos.OS.Cmd.(
         in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr, ~env, cmd) |> out_stdout
