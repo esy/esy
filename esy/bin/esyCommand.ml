@@ -316,15 +316,15 @@ let buildPackage cfg packagePath =
     Build.buildAll ~concurrency:EsyRuntime.concurrency ~force:`ForRoot cfg task
   in withBuildTaskByPath ~info packagePath f
 
-let build ?(buildOnly=true) cfg argv =
+let build ?(buildOnly=true) cfg cmd =
   let open RunAsync.Syntax in
   let%bind cfg = cfg in
   let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
 
   (** TODO: figure out API to build devDeps in parallel with the root *)
 
-  match argv with
-  | [] ->
+  match cmd with
+  | None ->
     let%bind () =
       Build.buildDependencies
         ~concurrency:EsyRuntime.concurrency
@@ -332,10 +332,9 @@ let build ?(buildOnly=true) cfg argv =
         cfg task
     in Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
 
-  | command ->
+  | Some cmd ->
     let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
-    let command = Cmd.ofList command in
-    match%bind PackageBuilder.buildExec cfg task command with
+    match%bind PackageBuilder.buildExec cfg task cmd with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
     | Unix.WSTOPPED n
@@ -470,7 +469,7 @@ let exec cfgRes =
     if%bind Fs.exists installPath then
       return ()
     else
-      build ~buildOnly:false cfgRes []
+      build ~buildOnly:false cfgRes None
   in
   makeExecCommand
     ~prepare
@@ -685,10 +684,12 @@ let () =
     let cmd cfg command () =
       runAsyncCommand ~header:`No ~info (devExec cfg command)
     in
-    let commandTerm =
-      Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    let cmdTerm =
+      Cli.cmdTerm
+        ~doc:"Command to execute within the sandbox environment."
+        ~docv:"COMMAND"
     in
-    Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ cmdTerm $ setupLogTerm)), info
   in
 
   let buildPlanCommand =
@@ -748,19 +749,22 @@ let () =
   in
 
   let buildCommand =
-    let doc = "Build entire sandbox" in
+    let doc = "Build the entire sandbox" in
     let info = Term.info "build" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
-    let cmd cfg command () =
-      let header = match command with
-        | [] -> `Standard
-        | _ -> `No
+    let cmd cfg cmd () =
+      let header =
+        match cmd with
+        | Some _ -> `Standard
+        | None -> `No
       in
-      runAsyncCommand ~header ~info (build cfg command)
+      runAsyncCommand ~header ~info (build cfg cmd)
     in
-    let commandTerm =
-      Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    let cmdTerm =
+      Cli.cmdOptionTerm
+        ~doc:"Command to execute within the build environment."
+        ~docv:"COMMAND"
     in
-    Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ cmdTerm $ setupLogTerm)), info
   in
 
   let buildEnvCommand =
@@ -808,10 +812,12 @@ let () =
     let cmd cfg command () =
       runAsyncCommand ~header:`No ~info (exec cfg command)
     in
-    let commandTerm =
-      Arg.(non_empty & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    let cmdTerm =
+      Cli.cmdTerm
+        ~doc:"Command to execute within the release environment."
+        ~docv:"COMMAND"
     in
-    Term.(ret (const cmd $ configTerm $ commandTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ cmdTerm $ setupLogTerm)), info
   in
 
   let shellCommand =
