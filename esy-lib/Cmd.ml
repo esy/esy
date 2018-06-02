@@ -9,10 +9,6 @@
 type t = string * string list
   [@@deriving (eq, ord)]
 
-let toList (tool, args) =
-  let args = List.rev args in
-  tool::args
-
 let v tool = tool, []
 let p = Path.toString
 

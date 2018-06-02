@@ -97,8 +97,9 @@ let buildShell cfg task =
   let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Shell cfg task in
   return status
 
-let buildExec cfg task command =
+let buildExec cfg task cmd =
   let open RunAsync.Syntax in
-  let args = "--"::(Cmd.toList command) in
+  let tool, args = Cmd.getToolAndArgs cmd in
+  let args = "--"::tool::args in
   let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Exec ~args cfg task in
   return status

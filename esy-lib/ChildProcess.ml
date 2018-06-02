@@ -60,16 +60,14 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
 
   let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
-      match Cmd.toList cmd with
-      | [] -> error "empty command"
-      | prg::args ->
-        let%bind prg =
-          match resolveProgramInEnv, env with
-          | true, Some env ->
-            resolveCmdInEnv ~env prg
-          | _ -> Ok prg
-        in
-        return (prg, Array.of_list (prg::args))
+      let prg, args = Cmd.getToolAndArgs cmd in
+      let%bind prg =
+        match resolveProgramInEnv, env with
+        | true, Some env ->
+          resolveCmdInEnv ~env prg
+        | _ -> Ok prg
+      in
+      return (prg, Array.of_list (prg::args))
     ) in
 
   let env = Option.map env ~f:(fun env -> env
@@ -130,16 +128,14 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
 
   let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
-      match Cmd.toList cmd with
-      | [] -> error "empty command"
-      | prg::args ->
-        let%bind prg =
-          match resolveProgramInEnv, env with
-          | true, Some env ->
-            resolveCmdInEnv ~env prg
-          | _ -> Ok prg
-        in
-        return (prg, Array.of_list (prg::args))
+      let prg, args = Cmd.getToolAndArgs cmd in
+      let%bind prg =
+        match resolveProgramInEnv, env with
+        | true, Some env ->
+          resolveCmdInEnv ~env prg
+        | _ -> Ok prg
+      in
+      return (prg, Array.of_list (prg::args))
     ) in
 
   let env = Option.map env ~f:(fun env -> env
