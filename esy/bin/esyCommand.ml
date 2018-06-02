@@ -754,8 +754,8 @@ let () =
     let cmd cfg cmd () =
       let header =
         match cmd with
-        | Some _ -> `Standard
-        | None -> `No
+        | None -> `Standard
+        | Some _ -> `No
       in
       runAsyncCommand ~header ~info (build cfg cmd)
     in
