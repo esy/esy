@@ -401,21 +401,13 @@ let sandboxEnv =
 
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
-    ?prepare
-    ?(lookupScripts=false)
     ~env
-    cfg
-    argv
+    ~cfg
+    ~info
+    cmd
   =
   let open RunAsync.Syntax in
-
-  let%bind cfg = cfg in
-  let%bind {SandboxInfo. task; sandbox; _} as info = SandboxInfo.ofConfig cfg in
-
-  let%bind () = match prepare with
-    | None -> return ()
-    | Some prepare -> prepare cfg task
-  in
+  let {SandboxInfo. task; commandEnv; sandboxEnv; _} = info in
 
   let%bind () =
     if checkIfDependenciesAreBuilt
@@ -423,26 +415,11 @@ let makeExecCommand
     else return ()
   in
 
-  let command =
-    if lookupScripts then begin
-    match argv with
-    | [] -> Cmd.ofList argv
-    | cmd :: args ->
-      begin match Package.Scripts.find cmd sandbox.scripts with
-      | Some {command;} ->
-        let args = Cmd.ofList args in
-        Cmd.(command %% args)
-      | None -> Cmd.ofList argv
-      end
-    end
-    else Cmd.ofList argv
-  in
-
   let%bind env = RunAsync.ofRun (
       let open Run.Syntax in
       let env = match env with
-        | `CommandEnv -> info.commandEnv
-        | `SandboxEnv -> info.sandboxEnv
+        | `CommandEnv -> commandEnv
+        | `SandboxEnv -> sandboxEnv
       in
       let env = Environment.current @ env in
       let%bind env = Environment.Value.ofBindings env in
@@ -456,41 +433,69 @@ let makeExecCommand
     ~stderr:(`FD_copy Unix.stderr)
     ~stdout:(`FD_copy Unix.stdout)
     ~stdin:(`FD_copy Unix.stdin)
-    command
+    cmd
   in match status with
   | Unix.WEXITED n
   | Unix.WSTOPPED n
   | Unix.WSIGNALED n -> exit n
 
-let exec cfgRes =
+let exec cfg cmd =
   let open RunAsync.Syntax in
-  let prepare cfg (task : Task.t) =
-    let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+  let%bind cfg = cfg in
+  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind () =
+    let installPath =
+      Config.ConfigPath.toPath
+        cfg
+        info.SandboxInfo.task.paths.installPath
+    in
     if%bind Fs.exists installPath then
       return ()
     else
-      build ~buildOnly:false cfgRes None
+      build ~buildOnly:false (RunAsync.return cfg) None
   in
   makeExecCommand
-    ~prepare
     ~env:`SandboxEnv
-    cfgRes
+    ~cfg
+    ~info
+    cmd
 
-let devExec =
+let devExec cfg cmd =
+  let open RunAsync.Syntax in
+  let%bind cfg = cfg in
+  let%bind info = SandboxInfo.ofConfig cfg in
+  let cmd =
+    let tool, args = Cmd.getToolAndArgs cmd in
+    let script =
+      Package.Scripts.find
+        tool
+        info.SandboxInfo.sandbox.scripts
+    in
+    match script with
+    | Some {command;} ->
+      Cmd.(command |> addArgs args)
+    | None -> cmd
+  in
   makeExecCommand
-    ~lookupScripts:true
     ~checkIfDependenciesAreBuilt:true
     ~env:`CommandEnv
+    ~cfg
+    ~info
+    cmd
 
 let devShell cfg =
+  let open RunAsync.Syntax in
   let shell =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
+  let%bind cfg = cfg in
+  let%bind info = SandboxInfo.ofConfig cfg in
   makeExecCommand
     ~env:`CommandEnv
-    cfg
-    [shell]
+    ~cfg
+    ~info
+    (Cmd.v shell)
 
 let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) =
   let open RunAsync.Syntax in
