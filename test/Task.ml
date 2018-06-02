@@ -12,7 +12,7 @@ let cfg = {
   localStorePath = Path.v "/tmp/__local_store__";
   fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
   esyBuildPackageCommand = Cmd.v "esy-build-package";
-  esyInstallJsCommand = Cmd.v "esy-install.js";
+  esyInstallJsCommand = "esy-install.js";
 }
 
 module TestCommandExpr = struct

@@ -48,7 +48,7 @@ module EsyRuntime = struct
   let resolveCommand req =
     let open RunAsync.Syntax in
     let%bind path = resolve req in
-    return (path |> Cmd.p |> Cmd.v)
+    return (path |> Cmd.p)
 
   let esyInstallJsCommand =
     resolveCommand "../../../../bin/esy-install.js"
@@ -199,8 +199,14 @@ let configTerm =
         let%bind rc = EsyRc.ofPath sandboxPath in
         return rc.EsyRc.prefixPath
     in
-    let%bind esyBuildPackageCommand = EsyRuntime.esyBuildPackageCommand in
-    let%bind fastreplacestringCommand = EsyRuntime.fastreplacestringCommand in
+    let%bind esyBuildPackageCommand =
+      let%bind cmd = EsyRuntime.esyBuildPackageCommand in
+      return (Cmd.v cmd)
+    in
+    let%bind fastreplacestringCommand =
+      let%bind cmd = EsyRuntime.fastreplacestringCommand in
+      return (Cmd.v cmd)
+    in
     let%bind esyInstallJsCommand = EsyRuntime.esyInstallJsCommand in
     Config.create
       ~esyInstallJsCommand
@@ -255,7 +261,7 @@ let runCommandViaNode cfg name args =
   let env = esyEnvOverride cfg in
   match%lwt EsyRuntime.esyInstallJsCommand with
   | Ok esyJs ->
-    let cmd = Cmd.(v "node" %% esyJs % name |> addArgs args) in
+    let cmd = Cmd.(v "node" % esyJs % name |> addArgs args) in
     ChildProcess.run ~env cmd
   | Error _err ->
     RunAsync.error "unable to find esy-install.js"
@@ -741,7 +747,7 @@ let () =
 
       match%lwt EsyRuntime.esyICommand with
       | Ok commandPath ->
-        let cmd = Cmd.(commandPath % p cfg.Config.sandboxPath) in
+        let cmd = Cmd.(v commandPath % p cfg.Config.sandboxPath) in
         ChildProcess.run cmd
       | Error _err ->
         RunAsync.error "unable to find esyi"
