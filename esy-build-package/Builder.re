@@ -253,7 +253,7 @@ let withBuildEnvUnlocked =
     | None => []
     };
   let run = cmd => {
-    let cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind ((), (_runInfo, runStatus)) =
@@ -266,7 +266,7 @@ let withBuildEnvUnlocked =
     };
   };
   let runInteractive = cmd => {
-    let cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind ((), (_runInfo, runStatus)) =

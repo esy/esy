@@ -6,7 +6,7 @@ type t = {
   localStorePath : Path.t;
   fastreplacestringCommand : Cmd.t;
   esyBuildPackageCommand : Cmd.t;
-  esyInstallJsCommand : Cmd.t;
+  esyInstallJsCommand : string;
 }
 
 type config = t
