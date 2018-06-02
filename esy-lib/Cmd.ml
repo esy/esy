@@ -1,36 +1,57 @@
-type t =
-  Bos.Cmd.t
-  [@@deriving (show, eq, ord)]
+(*
+ * Tool and a reversed list of args.
+ *
+ * We store args reversed so we allow an efficient append.
+ *
+ * XXX: It is important we do List.rev at the boundaries so we don't get a
+ * reversed argument order.
+ *)
+type t = string * string list
+  [@@deriving (eq, ord)]
 
-let toList = Bos.Cmd.to_list
+let toList (tool, args) =
+  let args = List.rev args in
+  tool::args
 
-let v = Bos.Cmd.v
-let p = Bos.Cmd.p
+let v tool = tool, []
+let p = Path.toString
 
-let add = Bos.Cmd.add_args
-let addArg arg cmd = Bos.Cmd.add_arg cmd arg
-let addArgs args cmd = Bos.Cmd.(cmd %% of_list args)
+let addArg arg (tool, args) =
+  let args = arg::args in
+  tool, args
 
-let (%) = Bos.Cmd.(%)
-let (%%) = Bos.Cmd.(%%)
+let addArgs nargs (tool, args) =
+  let args =
+    let f args arg = arg::args in
+    ListLabels.fold_left ~f ~init:args nargs
+  in
+  tool, args
 
-let getToolAndArgs cmd =
-  match Bos.Cmd.to_list cmd with
-  | tool::args -> tool, args
-  | [] -> assert false
+let (%) (tool, args) arg =
+  let args = arg::args in
+  tool, args
 
-let getTool cmd =
-  match Bos.Cmd.to_list cmd with
-  | tool::_ -> tool
-  | [] -> assert false
+let getToolAndArgs (tool, args) =
+  let args = List.rev args in
+  tool, args
 
-let getArgs cmd =
-  match Bos.Cmd.to_list cmd with
-  | _::args -> args
-  | [] -> assert false
+let getTool (tool, _args) = tool
 
-let toString = Bos.Cmd.to_string
-let pp = Bos.Cmd.pp
+let getArgs (_tool, args) = List.rev args
+
+let toString (tool, args) =
+  let tool = Filename.quote tool in
+  let args = List.rev_map Filename.quote args in
+  StringLabels.concat ~sep:" " (tool::args)
+
+let show = toString
+
+let pp ppf (tool, args) =
+  match args with
+  | [] -> Fmt.(pf ppf "%s" tool)
+  | args ->
+    let args = List.rev args in
+    Fmt.(pf ppf "@[<2>%s@ %a@]" tool (list ~sep:sp string) args)
 
 let isExecutable (stats : Unix.stats) =
   let userExecute = 0b001000000 in
@@ -65,14 +86,16 @@ let resolveCmd path cmd =
   | '/' -> Ok cmd
   | _ -> resolve path
 
-let resolveInvocation path cmd =
+let resolveInvocation path (tool, args) =
   let open Result.Syntax in
-  match toList cmd with
-  | [] ->
-    Error (`Msg ("empty command"))
-  | cmd::args ->
-    let%bind cmd = resolveCmd path cmd in
-    Ok (Bos.Cmd.of_list (cmd :: args))
+  let%bind tool = resolveCmd path tool in
+  return (tool, args)
 
-let toBosCmd cmd = cmd
-let ofBosCmd cmd = cmd
+let toBosCmd cmd =
+  let tool, args = getToolAndArgs cmd in
+  Bos.Cmd.of_list (tool::args)
+
+let ofBosCmd cmd =
+  match Bos.Cmd.to_list cmd with
+  | [] -> Error (`Msg "empty command")
+  | tool::args -> Ok (tool, List.rev args)
