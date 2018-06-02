@@ -1,7 +1,7 @@
 (**
  * Commands.
  *
- * Commands are non-empty lists of command line arguments.
+ * Command is a tool and a list of arguments.
  *)
 
 type t
@@ -37,7 +37,6 @@ val getArgs : t -> string list
 val pp : Format.formatter -> t -> unit
 val show : t -> string
 val toString : t -> string
-val toList : t -> string list
 
 val equal : t -> t -> bool
 val compare : t -> t -> int
