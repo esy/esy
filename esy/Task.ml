@@ -803,7 +803,7 @@ let isRoot ~cfg task =
 let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
   let open RunAsync.Syntax in
   let rewritePrefixInFile path =
-    let cmd = Bos.Cmd.(cfg.fastreplacestringCommand % p path % p origPrefix % p destPrefix) in
+    let cmd = Cmd.(cfg.fastreplacestringCommand % p path % p origPrefix % p destPrefix) in
     ChildProcess.run cmd
   in
   let rewriteTargetInSymlink path =
@@ -846,8 +846,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
   let%bind () = Fs.createDir (Path.parent outputPath) in
   let%bind () =
     ChildProcess.run Cmd.(
-      empty
-      % "tar"
+      v "tar"
       % "-C" % p (Path.parent stagePath)
       % "-cz"
       % "-f" % p outputPath
@@ -897,8 +896,7 @@ let importBuild (cfg : Config.t) buildPath =
       let stagePath = Path.(cfg.storePath / Config.storeStageTree / buildId) in
       let%bind () =
         let cmd = Cmd.(
-          empty
-          % "tar"
+          v "tar"
           % "-C" % p (Path.parent stagePath)
           % "-xz"
           % "-f" % p buildPath

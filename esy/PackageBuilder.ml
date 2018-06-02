@@ -24,7 +24,7 @@ let run
         % "--sandbox-path" % p cfg.sandboxPath
         % "--build"
         % Path.to_string buildJsonFilename
-        %% (Cmd.ofList args)
+        |> addArgs args
       )
     ) in
 
