@@ -1220,6 +1220,7 @@ let () =
   | Some "build" ->
     let argv =
       match Array.to_list Sys.argv with
+      | (_prg::_command::"--help"::[]) as argv -> argv
       | prg::command::rest -> prg::command::"--"::rest
       | argv -> argv
     in
