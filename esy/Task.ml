@@ -92,20 +92,31 @@ let taskOf (dep : dependency) =
   | DevDependency task -> task
   | BuildTimeDependency task -> task
 
-let safePackageName =
+let safeName =
   let replaceAt = Str.regexp "@" in
   let replaceUnderscore = Str.regexp "_+" in
   let replaceSlash = Str.regexp "\\/" in
   let replaceDot = Str.regexp "\\." in
   let replaceDash = Str.regexp "\\-" in
+  let replaceColon = Str.regexp ":" in
   let make (name : string) =
-  name
-  |> String.lowercase_ascii
-  |> Str.global_replace replaceAt ""
-  |> Str.global_replace replaceUnderscore "__"
-  |> Str.global_replace replaceSlash "__slash__"
-  |> Str.global_replace replaceDot "__dot__"
-  |> Str.global_replace replaceDash "_"
+    name
+    |> String.lowercase_ascii
+    |> Str.global_replace replaceAt ""
+    |> Str.global_replace replaceUnderscore "__"
+    |> Str.global_replace replaceSlash "__slash__"
+    |> Str.global_replace replaceDot "__dot__"
+    |> Str.global_replace replaceColon "__colon__"
+    |> Str.global_replace replaceDash "_"
+  in make
+
+let safePath =
+  let replaceSlash = Str.regexp "\\/" in
+  let replaceColon = Str.regexp ":" in
+  let make name =
+    name
+    |> Str.global_replace replaceSlash "__slash__"
+    |> Str.global_replace replaceColon "__colon__"
   in make
 
 let buildId
@@ -134,7 +145,7 @@ let buildId
   let id = ListLabels.fold_left ~f:updateWithDepId ~init:id dependencies in
   let hash = Digest.to_hex id in
   let hash = String.sub hash 0 8 in
-  (safePackageName pkg.name ^ "-" ^ pkg.version ^ "-" ^ hash)
+  (safeName pkg.name ^ "-" ^ safePath pkg.version ^ "-" ^ hash)
 
 let isBuilt ~cfg task =
   Fs.exists ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))
