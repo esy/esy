@@ -5,7 +5,7 @@ type t = {
   availableOpamVersions:
     Hashtbl.t(
       string,
-      list((OpamVersioning.Version.t, OpamFile.ThinManifest.t)),
+      list((OpamVersion.Version.t, OpamFile.ThinManifest.t)),
     ),
 };
 
@@ -49,19 +49,19 @@ let getAvailableVersions = (~cfg: Config.t, ~cache: t, req) =>
       let available =
         Hashtbl.find(cache.availableOpamVersions, req.name)
         |> List.sort(((va, _), (vb, _)) =>
-             OpamVersioning.Version.compare(va, vb)
+             OpamVersion.Version.compare(va, vb)
            )
         |> List.mapi((i, (v, j)) => (v, j, i));
       let matched =
         available
         |> List.filter(((version, _path, _i)) =>
-             OpamVersioning.Formula.matches(semver, version)
+             OpamVersion.Formula.matches(semver, version)
            );
       let matched =
         if (matched == []) {
           available
           |> List.filter(((version, _path, _i)) =>
-               OpamVersioning.Formula.matches(semver, version)
+               OpamVersion.Formula.matches(semver, version)
              );
         } else {
           matched;

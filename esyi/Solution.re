@@ -27,7 +27,7 @@ module Version = {
     /* TODO: Github's ref shouldn't be optional */
     | Github(string, string, option(string))
     | Npm(NpmVersion.Version.t)
-    | Opam(OpamVersioning.Version.t)
+    | Opam(OpamVersion.Version.t)
     | Git(string)
     | LocalPath(Path.t);
 
@@ -46,7 +46,7 @@ module Version = {
       )
     | Git(s) => "git-" ++ s
     | Npm(t) => "npm-" ++ NpmVersion.Version.toString(t)
-    | Opam(v) => "opam-" ++ OpamVersioning.Version.toString(v)
+    | Opam(v) => "opam-" ++ OpamVersion.Version.toString(v)
     | LocalPath(_s) => "local-file"
     };
 
@@ -64,7 +64,7 @@ module Version = {
       )
     | Git(s) => s
     | Npm(v) => NpmVersion.Version.toString(v)
-    | Opam(t) => OpamVersioning.Version.toString(t)
+    | Opam(t) => OpamVersion.Version.toString(t)
     /* TODO hash the file path or something */
     | LocalPath(_s) => "local-file-0000"
     };

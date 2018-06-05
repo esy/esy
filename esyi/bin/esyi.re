@@ -38,13 +38,13 @@ module Api = {
       (~path: Path.t, ~name: option(string), ~version: option(string), _cfg) => {
     open RunAsync.Syntax;
     module OpamFile = EsyInstaller.OpamFile;
-    module OpamVersioning = EsyInstaller.OpamVersioning;
+    module OpamVersion = EsyInstaller.OpamVersion;
     module Solution = EsyInstaller.Solution;
 
     let version =
       switch (version) {
-      | Some(version) => OpamVersioning.Version.parseExn(version)
-      | None => OpamVersioning.Version.parseExn("1.0.0")
+      | Some(version) => OpamVersion.Version.parseExn(version)
+      | None => OpamVersion.Version.parseExn("1.0.0")
       };
 
     let name =

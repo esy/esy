@@ -196,7 +196,7 @@ let getOverrides = checkoutDir => {
 
   let parseOverrideSpec = spec =>
     switch (String.cut(~sep=".", spec)) {
-    | None => (spec, OpamVersioning.Formula.ANY)
+    | None => (spec, OpamVersion.Formula.ANY)
     | Some((name, constr)) =>
       let constr =
         String.map(
@@ -205,7 +205,7 @@ let getOverrides = checkoutDir => {
           | c => c,
           constr,
         );
-      let constr = OpamVersioning.Formula.parse(constr);
+      let constr = OpamVersion.Formula.parse(constr);
       (name, constr);
     };
 
@@ -226,7 +226,7 @@ let findApplicableOverride = (overrides, name, version) => {
     fun
     | [] => return(None)
     | [(oname, semver, fullPath), ..._]
-        when name == oname && OpamVersioning.Formula.matches(semver, version) => {
+        when name == oname && OpamVersion.Formula.matches(semver, version) => {
         let%bind override = getContents(fullPath);
         return(Some(override));
       }

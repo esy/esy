@@ -10,7 +10,7 @@ let satisfies = (realVersion, req) =>
       when NpmVersion.Formula.matches(semver, s) =>
     true
   | (Opam(semver), Solution.Version.Opam(s))
-      when OpamVersioning.Formula.matches(semver, s) =>
+      when OpamVersion.Formula.matches(semver, s) =>
     true
   | (LocalPath(p1), Solution.Version.LocalPath(p2)) when Path.equal(p1, p2) =>
     true

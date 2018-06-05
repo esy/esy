@@ -22,9 +22,8 @@ let getFromOpamRegistry = (config, fullName) => {
       entry => {
         let semver =
           switch (String.cut(~sep=".", entry)) {
-          | None => OpamVersioning.Version.parseExn("")
-          | Some((_name, version)) =>
-            OpamVersioning.Version.parseExn(version)
+          | None => OpamVersion.Version.parseExn("")
+          | Some((_name, version)) => OpamVersion.Version.parseExn(version)
           };
         /* PERF: we should cache this, instead of re-parsing it later again */
         let manifest = {
