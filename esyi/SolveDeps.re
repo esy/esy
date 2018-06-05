@@ -2,7 +2,7 @@ open SolveUtils;
 
 module T = {
   type cache = {
-    opamOverrides: list((string, Types.opamRange, Path.t)),
+    opamOverrides: list((string, OpamVersioning.Formula.t, Path.t)),
     npmPackages: Hashtbl.t(string, Yojson.Safe.json),
     opamPackages: Hashtbl.t(string, OpamFile.manifest),
     versions: VersionCache.t,
@@ -71,13 +71,13 @@ let cudfDep =
         let hack =
           switch (req) {
           | Opam(opamVersionRange) =>
-            /* print_endline("Trying to convert from pseudo-npm"); */
-            let nonNpm = tryConvertingOpamFromNpm(opamVersionRange);
-            /* print_endline(Shared.GenericVersion.view(Shared.Types.viewOpamConcrete, nonNpm)); */
             available
             |> List.filter(
-                 CudfVersions.matchesSource(Opam(nonNpm), cudfVersions),
-               );
+                 CudfVersions.matchesSource(
+                   Opam(opamVersionRange),
+                   cudfVersions,
+                 ),
+               )
           | _ => []
           };
         switch (hack) {

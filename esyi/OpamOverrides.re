@@ -151,101 +151,6 @@ let rec yamlToJson = value =>
   | `Null => `Null
   };
 
-module ParseName = {
-  let stripDash = num =>
-    if (num.[0] == '-') {
-      String.sub(num, 1, String.length(num) - 1);
-    } else {
-      num;
-    };
-  let stripPrefix = (text, prefix) => {
-    let tl = String.length(text);
-    let pl = String.length(prefix);
-    if (tl > pl && String.sub(text, 0, pl) == prefix) {
-      Some(String.sub(text, pl, tl - pl));
-    } else {
-      None;
-    };
-  };
-  let prefixes = ["<=", ">=", "<", ">"];
-  let prefix = name => {
-    let rec loop = prefixes =>
-      switch (prefixes) {
-      | [] => (None, name)
-      | [one, ...rest] =>
-        switch (stripPrefix(name, one)) {
-        | None => loop(rest)
-        | Some(text) => (Some(one), text)
-        }
-      };
-    loop(prefixes);
-  };
-  /* yaml https://github.com/avsm/ocaml-yaml
-     this file https://github.com/esy/esy-install/blob/master/src/resolvers/exotics/opam-resolver/opam-repository-override.js
-     also this one https://github.com/esy/esy-install/blob/master/src/resolvers/exotics/opam-resolver/opam-repository.js */
-  let splitExtra = patch =>
-    switch (String.split_on_char('-', patch)) {
-    | [] => assert(false)
-    | [one] => (one, None)
-    | [one, ...rest] => (one, Some(String.concat("-", rest)))
-    };
-  let parseDirectoryName = name =>
-    GenericVersion.(
-      switch (String.split_on_char('.', name)) {
-      | [] => assert(false)
-      | [single] => (single, Any)
-      | [name, num, "x", "x" | "x-"] => (
-          name,
-          And(
-            AtLeast(OpamVersion.triple(int_of_string(num), 0, 0)),
-            LessThan(OpamVersion.triple(int_of_string(num) + 1, 0, 0)),
-          ),
-        )
-      | [name, num, minor, "x" | "x-"] => (
-          name,
-          And(
-            AtLeast(
-              OpamVersion.triple(
-                int_of_string(num),
-                int_of_string(minor),
-                0,
-              ),
-            ),
-            LessThan(
-              OpamVersion.triple(
-                int_of_string(num),
-                int_of_string(minor) + 1,
-                0,
-              ),
-            ),
-          ),
-        )
-      | [name, major, minor, patch] =>
-        let (prefix, major) = prefix(major);
-        let (patch, extra) = splitExtra(patch);
-        let version =
-          Types.opamFromNpmConcrete((
-            int_of_string(major),
-            int_of_string(minor),
-            int_of_string(patch),
-            extra,
-          ));
-        (
-          name,
-          switch (prefix) {
-          | None => Exactly(version)
-          | Some(">") => GreaterThan(version)
-          | Some(">=") => AtLeast(version)
-          | Some("<") => LessThan(version)
-          | Some("<=") => AtMost(version)
-          | _ => assert(false)
-          },
-        );
-      | _ => failwith("Bad override version " ++ name)
-      }
-    );
-};
-
 let tee = (fn, value) =>
   if (fn(value)) {
     Some(value);
@@ -287,10 +192,27 @@ let getOverrides = checkoutDir => {
   open RunAsync.Syntax;
   let packagesDir = Path.(checkoutDir / "packages");
   let%bind names = Fs.listDir(packagesDir);
+  module String = Astring.String;
+
+  let parseOverrideSpec = spec =>
+    switch (String.cut(~sep=".", spec)) {
+    | None => (spec, GenericVersion.Any)
+    | Some((name, constr)) =>
+      let constr =
+        String.map(
+          fun
+          | '_' => ' '
+          | c => c,
+          constr,
+        );
+      let constr = OpamVersioning.Formula.parse(constr);
+      (name, constr);
+    };
+
   return(
     List.map(
       name => {
-        let (realName, semver) = ParseName.parseDirectoryName(name);
+        let (realName, semver) = parseOverrideSpec(name);
         (realName, semver, Path.(packagesDir / name));
       },
       names,
@@ -304,7 +226,7 @@ let findApplicableOverride = (overrides, name, version) => {
     fun
     | [] => return(None)
     | [(oname, semver, fullPath), ..._]
-        when name == oname && OpamVersion.matches(semver, version) => {
+        when name == oname && OpamVersioning.Formula.matches(semver, version) => {
         let%bind override = getContents(fullPath);
         return(Some(override));
       }
