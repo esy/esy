@@ -170,22 +170,22 @@ module Parser = {
 
   /* [@test */
   /*   [ */
-  /*     (">=2.3.1", AtLeast({major: 2, minor: 3, patch: 1, release: None})), */
-  /*     ("<2.4", LessThan({major: 2, minor: 4, patch: 0, release: None})), */
+  /*     (">=2.3.1", GTE({major: 2, minor: 3, patch: 1, release: None})), */
+  /*     ("<2.4", LT({major: 2, minor: 4, patch: 0, release: None})), */
   /*   ] */
   /* ] */
   let parsePrimitive = item =>
     switch (item.[0]) {
-    | '=' => Exactly(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
+    | '=' => EQ(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
     | '>' =>
       switch (item.[1]) {
-      | '=' => AtLeast(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
-      | _ => GreaterThan(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
+      | '=' => GTE(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
+      | _ => GT(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
       }
     | '<' =>
       switch (item.[1]) {
-      | '=' => AtMost(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
-      | _ => LessThan(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
+      | '=' => LTE(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
+      | _ => LT(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
       }
     | _ => failwith("Bad primitive")
     };
@@ -195,75 +195,75 @@ module Parser = {
     | '~' =>
       switch (parsePartial(sliceToEnd(item, 1))) {
       | `Major(num, q) =>
-        And(
-          AtLeast({major: num, minor: 0, patch: 0, release: q}),
-          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: num, minor: 0, patch: 0, release: q}),
+          LT({major: num + 1, minor: 0, patch: 0, release: None}),
         )
       | `Minor(m, i, q) =>
-        And(
-          AtLeast({major: m, minor: i, patch: 0, release: q}),
-          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: 0, release: q}),
+          LT({major: m, minor: i + 1, patch: 0, release: None}),
         )
       | `Patch(m, i, p, q) =>
-        And(
-          AtLeast({major: m, minor: i, patch: p, release: q}),
-          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: p, release: q}),
+          LT({major: m, minor: i + 1, patch: 0, release: None}),
         )
       | `AllStar => failwith("* cannot be tilded")
       | `MajorStar(num) =>
-        And(
-          AtLeast({major: num, minor: 0, patch: 0, release: None}),
-          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: num, minor: 0, patch: 0, release: None}),
+          LT({major: num + 1, minor: 0, patch: 0, release: None}),
         )
       | `MinorStar(m, i) =>
-        And(
-          AtLeast({major: m, minor: i, patch: 0, release: None}),
-          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: 0, release: None}),
+          LT({major: m, minor: i + 1, patch: 0, release: None}),
         )
       | `Raw(_) => failwith("Bad tilde")
       }
     | '^' =>
       switch (parsePartial(sliceToEnd(item, 1))) {
       | `Major(num, q) =>
-        And(
-          AtLeast({major: num, minor: 0, patch: 0, release: q}),
-          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: num, minor: 0, patch: 0, release: q}),
+          LT({major: num + 1, minor: 0, patch: 0, release: None}),
         )
       | `Minor(0, i, q) =>
-        And(
-          AtLeast({major: 0, minor: i, patch: 0, release: q}),
-          LessThan({major: 0, minor: i + 1, patch: 0, release: None}),
+        AND(
+          GTE({major: 0, minor: i, patch: 0, release: q}),
+          LT({major: 0, minor: i + 1, patch: 0, release: None}),
         )
       | `Minor(m, i, q) =>
-        And(
-          AtLeast({major: m, minor: i, patch: 0, release: q}),
-          LessThan({major: m + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: 0, release: q}),
+          LT({major: m + 1, minor: 0, patch: 0, release: None}),
         )
       | `Patch(0, 0, p, q) =>
-        And(
-          AtLeast({major: 0, minor: 0, patch: p, release: q}),
-          LessThan({major: 0, minor: 0, patch: p + 1, release: None}),
+        AND(
+          GTE({major: 0, minor: 0, patch: p, release: q}),
+          LT({major: 0, minor: 0, patch: p + 1, release: None}),
         )
       | `Patch(0, i, p, q) =>
-        And(
-          AtLeast({major: 0, minor: i, patch: p, release: q}),
-          LessThan({major: 0, minor: i + 1, patch: 0, release: None}),
+        AND(
+          GTE({major: 0, minor: i, patch: p, release: q}),
+          LT({major: 0, minor: i + 1, patch: 0, release: None}),
         )
       | `Patch(m, i, p, q) =>
-        And(
-          AtLeast({major: m, minor: i, patch: p, release: q}),
-          LessThan({major: m + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: p, release: q}),
+          LT({major: m + 1, minor: 0, patch: 0, release: None}),
         )
       | `AllStar => failwith("* cannot be careted")
       | `MajorStar(num) =>
-        And(
-          AtLeast({major: num, minor: 0, patch: 0, release: None}),
-          LessThan({major: num + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: num, minor: 0, patch: 0, release: None}),
+          LT({major: num + 1, minor: 0, patch: 0, release: None}),
         )
       | `MinorStar(m, i) =>
-        And(
-          AtLeast({major: m, minor: i, patch: 0, release: None}),
-          LessThan({major: m + 1, minor: i, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: 0, release: None}),
+          LT({major: m + 1, minor: i, patch: 0, release: None}),
         )
       | `Raw(_) => failwith("Bad tilde")
       }
@@ -272,28 +272,27 @@ module Parser = {
     | '=' => parsePrimitive(item)
     | _ =>
       switch (parsePartial(item)) {
-      | `AllStar => Any
+      | `AllStar => ANY
       /* TODO maybe handle the qualifier */
       | `Major(m, Some(x)) =>
-        Exactly({major: m, minor: 0, patch: 0, release: Some(x)})
+        EQ({major: m, minor: 0, patch: 0, release: Some(x)})
       | `Major(m, None)
       | `MajorStar(m) =>
-        And(
-          AtLeast({major: m, minor: 0, patch: 0, release: None}),
-          LessThan({major: m + 1, minor: 0, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: 0, patch: 0, release: None}),
+          LT({major: m + 1, minor: 0, patch: 0, release: None}),
         )
       | `Minor(m, i, Some(x)) =>
-        Exactly({major: m, minor: i, patch: 0, release: Some(x)})
+        EQ({major: m, minor: i, patch: 0, release: Some(x)})
       | `Minor(m, i, None)
       | `MinorStar(m, i) =>
-        And(
-          AtLeast({major: m, minor: i, patch: 0, release: None}),
-          LessThan({major: m, minor: i + 1, patch: 0, release: None}),
+        AND(
+          GTE({major: m, minor: i, patch: 0, release: None}),
+          LT({major: m, minor: i + 1, patch: 0, release: None}),
         )
-      | `Patch(m, i, p, q) =>
-        Exactly({major: m, minor: i, patch: p, release: q})
+      | `Patch(m, i, p, q) => EQ({major: m, minor: i, patch: p, release: q})
       | `Raw(text) =>
-        Exactly({major: 0, minor: 0, patch: 0, release: Some(text)})
+        EQ({major: 0, minor: 0, patch: 0, release: Some(text)})
       }
     };
 
@@ -308,7 +307,7 @@ module Parser = {
     let rec loop = items =>
       switch (items) {
       | [item] => parseSimple(item)
-      | [item, ...items] => And(parseSimple(item), loop(items))
+      | [item, ...items] => AND(parseSimple(item), loop(items))
       | [] => assert(false)
       };
     loop(items);
@@ -316,23 +315,23 @@ module Parser = {
 
   /* [@test */
   /*   GenericVersion.[ */
-  /*     ("1.2.3", Exactly({major: 1, minor: 2, patch: 3, release: None})), */
+  /*     ("1.2.3", EQ({major: 1, minor: 2, patch: 3, release: None})), */
   /*     ( */
   /*       "1.2.3-alpha2", */
-  /*       Exactly({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
+  /*       EQ({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
   /*     ), */
   /*     ( */
   /*       "1.2.3 - 2.3.4", */
-  /*       And( */
-  /*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
-  /*         AtMost({major: 2, minor: 3, patch: 4, release: None}), */
+  /*       AND( */
+  /*         GTE({major: 1, minor: 2, patch: 3, release: None}), */
+  /*         LTE({major: 2, minor: 3, patch: 4, release: None}), */
   /*       ), */
   /*     ), */
   /*     ( */
   /*       "1.2.3 - 2.3", */
-  /*       And( */
-  /*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
-  /*         LessThan({major: 2, minor: 4, patch: 0, release: None}), */
+  /*       AND( */
+  /*         GTE({major: 1, minor: 2, patch: 3, release: None}), */
+  /*         LT({major: 2, minor: 4, patch: 0, release: None}), */
   /*       ), */
   /*     ), */
   /*   ] */
@@ -343,51 +342,51 @@ module Parser = {
     switch (items) {
     | [item] => parseSimples(item, parseSimple)
     | [left, right] =>
-      let left = AtLeast(parsePartial(left) |> exactPartial);
+      let left = GTE(parsePartial(left) |> exactPartial);
       let right =
         switch (parsePartial(right)) {
-        | `AllStar => Any
+        | `AllStar => ANY
         /* TODO maybe handle the qualifier */
         | `Major(m, _)
         | `MajorStar(m) =>
-          LessThan({major: m + 1, minor: 0, patch: 0, release: None})
+          LT({major: m + 1, minor: 0, patch: 0, release: None})
         | `Minor(m, i, _)
         | `MinorStar(m, i) =>
-          LessThan({major: m, minor: i + 1, patch: 0, release: None})
+          LT({major: m, minor: i + 1, patch: 0, release: None})
         | `Patch(m, i, p, q) =>
-          AtMost({major: m, minor: i, patch: p, release: q})
+          LTE({major: m, minor: i, patch: p, release: q})
         | `Raw(text) =>
-          LessThan({major: 0, minor: 0, patch: 0, release: Some(text)})
+          LT({major: 0, minor: 0, patch: 0, release: Some(text)})
         };
-      And(left, right);
+      AND(left, right);
     | _ => failwith("Invalid range")
     };
   };
 
   /* [@test */
   /*   GenericVersion.[ */
-  /*     ("1.2.3", Exactly({major: 1, minor: 2, patch: 3, release: None})), */
+  /*     ("1.2.3", EQ({major: 1, minor: 2, patch: 3, release: None})), */
   /*     ( */
   /*       "1.2.3-alpha2", */
-  /*       Exactly({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
+  /*       EQ({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
   /*     ), */
   /*     ( */
   /*       "1.2.3 - 2.3.4", */
-  /*       And( */
-  /*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
-  /*         AtMost({major: 2, minor: 3, patch: 4, release: None}), */
+  /*       AND( */
+  /*         GTE({major: 1, minor: 2, patch: 3, release: None}), */
+  /*         LTE({major: 2, minor: 3, patch: 4, release: None}), */
   /*       ), */
   /*     ), */
   /*     ( */
   /*       "1.2.3 - 2.3 || 5.x", */
-  /*       Or( */
-  /*         And( */
-  /*           AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
-  /*           LessThan({major: 2, minor: 4, patch: 0, release: None}), */
+  /*       OR( */
+  /*         AND( */
+  /*           GTE({major: 1, minor: 2, patch: 3, release: None}), */
+  /*           LT({major: 2, minor: 4, patch: 0, release: None}), */
   /*         ), */
-  /*         And( */
-  /*           AtLeast({major: 5, minor: 0, patch: 0, release: None}), */
-  /*           LessThan({major: 6, minor: 0, patch: 0, release: None}), */
+  /*         AND( */
+  /*           GTE({major: 5, minor: 0, patch: 0, release: None}), */
+  /*           LT({major: 6, minor: 0, patch: 0, release: None}), */
   /*         ), */
   /*       ), */
   /*     ), */
@@ -397,14 +396,14 @@ module Parser = {
   /* [@test.print (fmt, v) => Format.fprintf(fmt, "%s", viewRange(v))] */
   let parseOrs = (parseRange, version) =>
     if (version == "") {
-      GenericVersion.Any;
+      GenericVersion.ANY;
     } else {
       let items = Str.split(Str.regexp(" +|| +"), version);
       let rec loop = items =>
         switch (items) {
         | [] => failwith("WAAAT " ++ version)
         | [item] => parseRange(item)
-        | [item, ...items] => Or(parseRange(item), loop(items))
+        | [item, ...items] => OR(parseRange(item), loop(items))
         };
       loop(items);
     };
@@ -447,16 +446,16 @@ let viewRange = GenericVersion.view(viewConcrete);
 /*     ("~1", parseRange("1.x")), */
 /*     ("~0.2.3", parseRange(">=0.2.3 <0.3.0")), */
 /*     ("~0", parseRange("0.x")), */
-/*     ("1.2.3", Exactly({major: 1, minor: 2, patch: 3, release: None})), */
+/*     ("1.2.3", EQ({major: 1, minor: 2, patch: 3, release: None})), */
 /*     ( */
 /*       "1.2.3-alpha2", */
-/*       Exactly({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
+/*       EQ({major: 1, minor: 2, patch: 3, release: Some("-alpha2")}), */
 /*     ), */
 /*     ( */
 /*       "1.2.3 - 2.3.4", */
-/*       And( */
-/*         AtLeast({major: 1, minor: 2, patch: 3, release: None}), */
-/*         AtMost({major: 2, minor: 3, patch: 4, release: None}), */
+/*       AND( */
+/*         GTE({major: 1, minor: 2, patch: 3, release: None}), */
+/*         LTE({major: 2, minor: 3, patch: 4, release: None}), */
 /*       ), */
 /*     ), */
 /*   ] */
@@ -466,7 +465,7 @@ let parseRange = version =>
   try (Parser.parse(version)) {
   | Failure(message) =>
     print_endline("Failed with message: " ++ message ++ " : " ++ version);
-    Any;
+    ANY;
   | e =>
     print_endline(
       "Invalid version! pretending its any: "
@@ -474,7 +473,7 @@ let parseRange = version =>
       ++ " "
       ++ Printexc.to_string(e),
     );
-    Any;
+    ANY;
   };
 
 let isint = v =>

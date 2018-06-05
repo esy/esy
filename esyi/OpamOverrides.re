@@ -196,7 +196,7 @@ let getOverrides = checkoutDir => {
 
   let parseOverrideSpec = spec =>
     switch (String.cut(~sep=".", spec)) {
-    | None => (spec, GenericVersion.Any)
+    | None => (spec, GenericVersion.ANY)
     | Some((name, constr)) =>
       let constr =
         String.map(

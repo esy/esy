@@ -1,71 +1,71 @@
 [@deriving yojson]
 type range('inner) =
-  | Or(range('inner), range('inner))
-  | And(range('inner), range('inner))
-  | Exactly('inner)
-  | GreaterThan('inner)
-  | AtLeast('inner)
-  | LessThan('inner)
-  | AtMost('inner)
-  | Nothing
-  | Any;
+  | OR(range('inner), range('inner))
+  | AND(range('inner), range('inner))
+  | EQ('inner)
+  | GT('inner)
+  | GTE('inner)
+  | LT('inner)
+  | LTE('inner)
+  | NONE
+  | ANY;
 
 /* | UntilNextMajor('concrete) | UntilNextMinor('concrete); */
 /** TODO want a way to exclude npm -alpha items when they don't apply */
 let rec matches = (compareInner, range, concrete) =>
   switch (range) {
-  | Exactly(a) => compareInner(a, concrete) == 0
-  | Any => true
-  | Nothing => false
-  | GreaterThan(a) => compareInner(a, concrete) < 0
-  | AtLeast(a) => compareInner(a, concrete) <= 0
-  | LessThan(a) => compareInner(a, concrete) > 0
-  | AtMost(a) => compareInner(a, concrete) >= 0
-  | And(a, b) =>
+  | EQ(a) => compareInner(a, concrete) == 0
+  | ANY => true
+  | NONE => false
+  | GT(a) => compareInner(a, concrete) < 0
+  | GTE(a) => compareInner(a, concrete) <= 0
+  | LT(a) => compareInner(a, concrete) > 0
+  | LTE(a) => compareInner(a, concrete) >= 0
+  | AND(a, b) =>
     matches(compareInner, a, concrete) && matches(compareInner, b, concrete)
-  | Or(a, b) =>
+  | OR(a, b) =>
     matches(compareInner, a, concrete) || matches(compareInner, b, concrete)
   };
 
 let rec isTooLarge = (compareInner, range, concrete) =>
   switch (range) {
-  | Exactly(a) => compareInner(a, concrete) < 0
-  | Any => false
-  | Nothing => false
-  | GreaterThan(_a) => false
-  | AtLeast(_a) => false
-  | LessThan(a) => compareInner(a, concrete) <= 0
-  | AtMost(a) => compareInner(a, concrete) < 0
-  | And(a, b) =>
+  | EQ(a) => compareInner(a, concrete) < 0
+  | ANY => false
+  | NONE => false
+  | GT(_a) => false
+  | GTE(_a) => false
+  | LT(a) => compareInner(a, concrete) <= 0
+  | LTE(a) => compareInner(a, concrete) < 0
+  | AND(a, b) =>
     isTooLarge(compareInner, a, concrete)
     || isTooLarge(compareInner, b, concrete)
-  | Or(a, b) =>
+  | OR(a, b) =>
     isTooLarge(compareInner, a, concrete)
     && isTooLarge(compareInner, b, concrete)
   };
 
 let rec view = (viewInner, range) =>
   switch (range) {
-  | Exactly(a) => viewInner(a)
-  | Any => "*"
-  | Nothing => "none"
-  | GreaterThan(a) => "> " ++ viewInner(a)
-  | AtLeast(a) => ">= " ++ viewInner(a)
-  | LessThan(a) => "< " ++ viewInner(a)
-  | AtMost(a) => "<= " ++ viewInner(a)
-  | And(a, b) => view(viewInner, a) ++ " && " ++ view(viewInner, b)
-  | Or(a, b) => view(viewInner, a) ++ " || " ++ view(viewInner, b)
+  | EQ(a) => viewInner(a)
+  | ANY => "*"
+  | NONE => "none"
+  | GT(a) => "> " ++ viewInner(a)
+  | GTE(a) => ">= " ++ viewInner(a)
+  | LT(a) => "< " ++ viewInner(a)
+  | LTE(a) => "<= " ++ viewInner(a)
+  | AND(a, b) => view(viewInner, a) ++ " && " ++ view(viewInner, b)
+  | OR(a, b) => view(viewInner, a) ++ " || " ++ view(viewInner, b)
   };
 
 let rec map = (transform, range) =>
   switch (range) {
-  | Exactly(a) => Exactly(transform(a))
-  | Any => Any
-  | Nothing => Nothing
-  | GreaterThan(a) => GreaterThan(transform(a))
-  | AtLeast(a) => AtLeast(transform(a))
-  | LessThan(a) => LessThan(transform(a))
-  | AtMost(a) => AtMost(transform(a))
-  | And(a, b) => And(map(transform, a), map(transform, b))
-  | Or(a, b) => Or(map(transform, a), map(transform, b))
+  | EQ(a) => EQ(transform(a))
+  | ANY => ANY
+  | NONE => NONE
+  | GT(a) => GT(transform(a))
+  | GTE(a) => GTE(transform(a))
+  | LT(a) => LT(transform(a))
+  | LTE(a) => LTE(transform(a))
+  | AND(a, b) => AND(map(transform, a), map(transform, b))
+  | OR(a, b) => OR(map(transform, a), map(transform, b))
   };

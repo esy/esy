@@ -2,11 +2,11 @@ let fromPrefix = (op, version) => {
   open GenericVersion;
   let v = OpamVersioning.Version.parseExn(version);
   switch (op) {
-  | `Eq => Exactly(v)
-  | `Geq => AtLeast(v)
-  | `Leq => AtMost(v)
-  | `Lt => LessThan(v)
-  | `Gt => GreaterThan(v)
+  | `Eq => EQ(v)
+  | `Geq => GTE(v)
+  | `Leq => LTE(v)
+  | `Lt => LT(v)
+  | `Gt => GT(v)
   | `Neq => failwith("Can't do neq in opam version constraints")
   };
 };
@@ -17,11 +17,10 @@ let rec parseRange = opamvalue =>
       switch (opamvalue) {
       | Prefix_relop(_, op, String(_, version)) => fromPrefix(op, version)
       | Logop(_, `And, left, right) =>
-        And(parseRange(left), parseRange(right))
+        AND(parseRange(left), parseRange(right))
       | Logop(_, `Or, left, right) =>
-        Or(parseRange(left), parseRange(right))
-      | String(_, version) =>
-        Exactly(OpamVersioning.Version.parseExn(version))
+        OR(parseRange(left), parseRange(right))
+      | String(_, version) => EQ(OpamVersioning.Version.parseExn(version))
       | Option(_, contents, options) =>
         print_endline(
           "Ignoring option: "
@@ -35,7 +34,7 @@ let rec parseRange = opamvalue =>
           "Unexpected option -- pretending its any "
           ++ OpamPrinter.value(opamvalue),
         );
-        Any;
+        ANY;
       }
     )
   );
@@ -44,10 +43,10 @@ let rec toDep = opamvalue =>
   OpamParserTypes.(
     GenericVersion.(
       switch (opamvalue) {
-      | String(_, name) => (name, Any, `Link)
+      | String(_, name) => (name, ANY, `Link)
       | Option(_, String(_, name), [Ident(_, "build")]) => (
           name,
-          Any,
+          ANY,
           `Build,
         )
       | Option(
@@ -61,7 +60,7 @@ let rec toDep = opamvalue =>
         )
       | Option(_, String(_, name), [Ident(_, "test")]) => (
           name,
-          Any,
+          ANY,
           `Test,
         )
       | Option(
@@ -83,7 +82,7 @@ let rec toDep = opamvalue =>
           ++ " and "
           ++ two,
         );
-        (two, Any, `Link);
+        (two, ANY, `Link);
       | Group(_, [Logop(_, `Or, first, second)]) =>
         print_endline(
           "Arbitrarily choosing the first of two options: "
