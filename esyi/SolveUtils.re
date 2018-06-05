@@ -10,7 +10,7 @@ let satisfies = (realVersion, req) =>
       when NpmVersion.matches(semver, s) =>
     true
   | (Opam(semver), Solution.Version.Opam(s))
-      when OpamVersion.matches(semver, s) =>
+      when OpamVersioning.Formula.matches(semver, s) =>
     true
   | (LocalPath(p1), Solution.Version.LocalPath(p2)) when Path.equal(p1, p2) =>
     true
@@ -24,77 +24,6 @@ let toRealVersion = versionPlus =>
   | `Opam(x, _, _) => Solution.Version.Opam(x)
   | `LocalPath(p) => Solution.Version.LocalPath(p)
   };
-
-/** TODO(jared): This is a HACK and will hopefully be removed once we stop the
- * pseudo-npm opam version stuff */
-let tryConvertingOpamFromNpm = version =>
-  Types.(
-    version
-    |> GenericVersion.map(opam =>
-         switch (opam) {
-         /* yay jbuilder */
-         | Alpha(
-             "",
-             Some(
-               Num(
-                 major,
-                 Some(
-                   Alpha(
-                     ".",
-                     Some(
-                       Num(
-                         minor,
-                         Some(
-                           Alpha(
-                             ".",
-                             Some(Num(0, Some(Alpha("-beta", rest)))),
-                           ),
-                         ),
-                       ),
-                     ),
-                   ),
-                 ),
-               ),
-             ),
-           ) =>
-           Alpha(
-             "",
-             Some(
-               Num(
-                 major,
-                 Some(
-                   Alpha(
-                     ".",
-                     Some(Num(minor, Some(Alpha("+beta", rest)))),
-                   ),
-                 ),
-               ),
-             ),
-           )
-         | Alpha(
-             "",
-             Some(
-               Num(
-                 major,
-                 Some(
-                   Alpha(
-                     ".",
-                     Some(
-                       Num(minor, Some(Alpha(".", Some(Num(0, post))))),
-                     ),
-                   ),
-                 ),
-               ),
-             ),
-           ) =>
-           Alpha(
-             "",
-             Some(Num(major, Some(Alpha(".", Some(Num(minor, post)))))),
-           )
-         | _ => opam
-         }
-       )
-  );
 
 let rec lockDownSource = pendingSource =>
   RunAsync.Syntax.(

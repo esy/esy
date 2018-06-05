@@ -1,12 +1,6 @@
-open Types;
-
-let parseConcrete = OpamConcrete.parseConcrete;
-
-let triple = OpamConcrete.triple;
-
 let fromPrefix = (op, version) => {
   open GenericVersion;
-  let v = parseConcrete(version);
+  let v = OpamVersioning.Version.parseExn(version);
   switch (op) {
   | `Eq => Exactly(v)
   | `Geq => AtLeast(v)
@@ -26,7 +20,8 @@ let rec parseRange = opamvalue =>
         And(parseRange(left), parseRange(right))
       | Logop(_, `Or, left, right) =>
         Or(parseRange(left), parseRange(right))
-      | String(_, version) => Exactly(parseConcrete(version))
+      | String(_, version) =>
+        Exactly(OpamVersioning.Version.parseExn(version))
       | Option(_, contents, options) =>
         print_endline(
           "Ignoring option: "
@@ -109,97 +104,3 @@ let rec toDep = opamvalue =>
       }
     )
   );
-
-let splitInTwo = (string, char) =>
-  switch (String.split_on_char(char, string)) {
-  | [] => `Empty
-  | [""] => `Empty
-  | [one] => `Just(one)
-  | [one, two] => `Two((one, two))
-  | [one, ...rest] => `Two((one, String.concat("~", rest)))
-  };
-
-[@test
-  [
-    (("a", "b"), (-1)),
-    (("aa", "a"), 1),
-    (("a~b", "a"), (-1)),
-    (("", "~beta1"), 1),
-  ]
-]
-let compareWithTilde = (a, b) => {
-  let atilde = String.contains(a, '~');
-  let btilde = String.contains(b, '~');
-  if (a == b) {
-    0;
-  } else if (atilde || btilde) {
-    switch (splitInTwo(a, '~'), splitInTwo(b, '~')) {
-    | (`Empty, `Two("", _)) => 1
-    | (`Two("", _), `Empty) => (-1)
-    | (`Empty, _) => (-1)
-    | (_, `Empty) => 1
-    | (`Two(a, _), `Just(b)) when a == String.sub(b, 0, String.length(a)) => (-1)
-    | (`Two(a, _), `Just(b)) =>
-      compare(a, String.sub(b, 0, String.length(a)))
-    | (`Just(_a), `Just(_b)) => assert(false)
-    | (`Just(a), `Two(b, _)) when String.sub(a, 0, String.length(b)) == b => (-1)
-    | (`Just(a), `Two(b, _)) =>
-      compare(String.sub(a, 0, String.length(b)), b)
-    | (`Two(a, aa), `Two(b, bb)) when a == b => compare(aa, bb)
-    | (`Two(a, _), `Two(b, _)) => compare(a, b)
-    };
-  } else {
-    compare(a, b);
-  };
-};
-
-[@test
-  [
-    ((parseConcrete("1.2.3"), parseConcrete("1.2.4")), (-1)),
-    ((parseConcrete("1.2.4"), parseConcrete("1.2.4")), 0),
-    ((parseConcrete("1.2~alpha1"), parseConcrete("1.2.0~beta3")), (-1)),
-    ((parseConcrete("1.2~alpha1"), parseConcrete("1.2")), (-1)),
-  ]
-]
-let rec compare = (Alpha(a, na), Alpha(b, nb)) =>
-  if (a == b) {
-    switch (na, nb) {
-    | (None, None) => 0
-    | (None, _) => (-1)
-    | (_, None) => 1
-    | (Some(na), Some(nb)) => compareNums(na, nb)
-    };
-  } else {
-    compareWithTilde(a, b);
-  }
-and compareNums = (Num(a, aa), Num(b, ab)) =>
-  if (a == b) {
-    switch (aa, ab) {
-    | (None, None) => 0
-    | (None, Some(Alpha(a, _))) when a != "" && a.[0] == '~' => 1
-    | (Some(Alpha(a, _)), None) when a != "" && a.[0] == '~' => (-1)
-    | (None, _) => (-1)
-    | (_, None) => 1
-    | (Some(aa), Some(ab)) => compare(aa, ab)
-    };
-  } else {
-    a - b;
-  };
-
-let rec viewAlpha = (Alpha(a, na)) =>
-  switch (na) {
-  | None => a
-  | Some(b) => a ++ viewNum(b)
-  }
-and viewNum = (Num(a, na)) =>
-  string_of_int(a)
-  ++ (
-    switch (na) {
-    | None => ""
-    | Some(a) => viewAlpha(a)
-    }
-  );
-
-let matches = GenericVersion.matches(compare);
-
-let viewRange = GenericVersion.view(viewAlpha);

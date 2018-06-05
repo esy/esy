@@ -1,7 +1,3 @@
-let parseConcrete = OpamConcrete.parseConcrete;
-
-let triple = OpamConcrete.triple;
-
 let fromPrefix = (op, version) => {
   open GenericVersion;
   let v = NpmVersion.parseConcrete(version);

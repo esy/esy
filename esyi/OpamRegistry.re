@@ -16,15 +16,15 @@ let getFromOpamRegistry = (config, fullName) => {
   let packagesPath =
     Path.(config.Config.opamRepositoryPath / "packages" / name);
   let%bind entries = Fs.listDir(packagesPath);
+  module String = Astring.String;
   return(
     List.map(
       entry => {
         let semver =
-          switch (String.split_on_char('.', entry)) {
-          | []
-          | [_] => Types.Alpha("", None)
-          | [_name, ...items] =>
-            OpamVersion.parseConcrete(String.concat(".", items))
+          switch (String.cut(~sep=".", entry)) {
+          | None => OpamVersioning.Version.parseExn("")
+          | Some((_name, version)) =>
+            OpamVersioning.Version.parseExn(version)
           };
         /* PERF: we should cache this, instead of re-parsing it later again */
         let manifest = {

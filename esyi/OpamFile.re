@@ -22,7 +22,7 @@ module ThinManifest = {
     name: string,
     opamFile: Path.t,
     urlFile: Path.t,
-    version: Types.opamConcrete,
+    version: OpamVersioning.Version.t,
   };
 };
 
@@ -115,7 +115,7 @@ let variables = ((name, version)) => [
   ("share", "$cur__install/share"),
   ("pinned", "false"),
   ("name", name),
-  ("version", OpamVersion.viewAlpha(version)),
+  ("version", OpamVersioning.Version.toString(version)),
   ("prefix", "$cur__install"),
 ];
 

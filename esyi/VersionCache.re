@@ -3,7 +3,10 @@ type t = {
   availableNpmVersions:
     Hashtbl.t(string, list((NpmVersion.t, PackageJson.t))),
   availableOpamVersions:
-    Hashtbl.t(string, list((Types.opamConcrete, OpamFile.ThinManifest.t))),
+    Hashtbl.t(
+      string,
+      list((OpamVersioning.Version.t, OpamFile.ThinManifest.t)),
+    ),
 };
 
 let getAvailableVersions = (~cfg: Config.t, ~cache: t, req) =>
@@ -43,21 +46,20 @@ let getAvailableVersions = (~cfg: Config.t, ~cache: t, req) =>
         };
       let available =
         Hashtbl.find(cache.availableOpamVersions, req.name)
-        |> List.sort(((va, _), (vb, _)) => OpamVersion.compare(va, vb))
+        |> List.sort(((va, _), (vb, _)) =>
+             OpamVersioning.Version.compare(va, vb)
+           )
         |> List.mapi((i, (v, j)) => (v, j, i));
       let matched =
         available
         |> List.filter(((version, _path, _i)) =>
-             OpamVersion.matches(semver, version)
+             OpamVersioning.Formula.matches(semver, version)
            );
       let matched =
         if (matched == []) {
           available
           |> List.filter(((version, _path, _i)) =>
-               OpamVersion.matches(
-                 SolveUtils.tryConvertingOpamFromNpm(semver),
-                 version,
-               )
+               OpamVersioning.Formula.matches(semver, version)
              );
         } else {
           matched;
