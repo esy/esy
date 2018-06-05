@@ -92,7 +92,6 @@ module DependencyRequest = {
             switch (parseGithubVersion(value)) {
             | Some(gh) => gh
             | None => Opam(OpamVersioning.Formula.parse(value))
-            /* NpmVersion.parseRange(value) |> GenericVersion.map(Shared.Types.opamFromNpmConcrete) */
             },
         }
       | None => {
