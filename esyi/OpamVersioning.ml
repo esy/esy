@@ -59,7 +59,7 @@ module Formula = struct
     match String.trim text with
     | "*"  | "" -> return GenericVersion.Any
     | text ->
-      begin match text.[0], text.[0] with
+      begin match text.[0], text.[1] with
       | '^', _ ->
         let text = NpmVersion.Parser.sliceToEnd text 1 in
         let%bind v = Version.parse text in
