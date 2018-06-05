@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
-    "@opam/bos": "^0.1.6",
+    "@opam/bos": "^0.2.0",
     "@opam/cmdliner": "^1.0.2",
     "@opam/fmt": "^0.8.4",
     "@opam/fpath": "^0.7.2",
@@ -50,18 +50,14 @@
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/cudf": "0.9",
     "@opam/mccs": "*",
-    "lwt-node": "*",
-    "@jaredly/testre": "*",
-    "testre-ppx": "*",
     "@opam/opam-file-format": "*",
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "^3.2.0",
-    "@opam/alcotest": "*",
-    "fastreplacestring": "IwanKaramazow/FastReplaceString.git#0.0.4",
-    "ocamlstripdebug": "andreypopp/ocamlstripdebug#de74dde"
+    "fastreplacestring": "IwanKaramazow/FastReplaceString.git#0.0.4"
   },
   "resolutions": {
+    "**/@opam/sexplib0": "100000000.11.0",
     "**/@opam/result": "1.2.0",
     "**/@opam/lwt": "3.3.0",
     "**/@opam/ocaml-migrate-parsetree": "1.0.10"

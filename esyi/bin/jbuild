@@ -5,5 +5,5 @@
   (package esyi)
   (public_name esyi)
   (flags (:standard "-open" "EsyLib"))
-  (preprocess (pps (lwt.ppx ppx_let ppx_driver)))
+  (preprocess (pps (lwt.ppx ppx_let ppxlib)))
   (libraries (EsyInstaller cmdliner))))
