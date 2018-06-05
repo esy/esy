@@ -393,7 +393,7 @@ let parseManifest = (info, {file_contents, file_name}) => {
   let ocamlRequirement = {
     let req = findVariable("available", file_contents);
     let req = Option.map(~f=OpamAvailable.getOCamlVersion, req);
-    Option.orDefault(~default=GenericVersion.Any, req);
+    Option.orDefault(~default=GenericVersion.ANY, req);
   };
   /* We just don't support anything before 4.2.3 */
   let ourMinimumOcamlVersion = NpmVersion.parseConcrete("4.02.3");
@@ -419,16 +419,13 @@ let parseManifest = (info, {file_contents, file_name}) => {
       name: "ocaml",
       req:
         Npm(
-          And(
-            GenericVersion.AtLeast(ourMinimumOcamlVersion),
-            ocamlRequirement,
-          ),
+          AND(GenericVersion.GTE(ourMinimumOcamlVersion), ocamlRequirement),
         ),
     };
-    let substDep = {name: "@esy-ocaml/substs", req: Npm(GenericVersion.Any)};
+    let substDep = {name: "@esy-ocaml/substs", req: Npm(GenericVersion.ANY)};
     let esyInstallerDep = {
       name: "@esy-ocaml/esy-installer",
-      req: Npm(GenericVersion.Any),
+      req: Npm(GenericVersion.ANY),
     };
     (ocamlDep, substDep, esyInstallerDep);
   };

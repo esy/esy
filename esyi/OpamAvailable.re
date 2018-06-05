@@ -2,35 +2,35 @@ let fromPrefix = (op, version) => {
   open GenericVersion;
   let v = NpmVersion.parseConcrete(version);
   switch (op) {
-  | `Eq => Exactly(v)
-  | `Geq => AtLeast(v)
-  | `Leq => AtMost(v)
-  | `Lt => LessThan(v)
-  | `Gt => GreaterThan(v)
-  | `Neq => Or(GreaterThan(v), LessThan(v))
+  | `Eq => EQ(v)
+  | `Geq => GTE(v)
+  | `Leq => LTE(v)
+  | `Lt => LT(v)
+  | `Gt => GT(v)
+  | `Neq => OR(GT(v), LT(v))
   };
 };
 
 let rec getOCamlVersion = opamvalue =>
-  /* Shared.GenericVersion.Any */
+  /* Shared.GenericVersion.ANY */
   OpamParserTypes.(
     GenericVersion.(
       switch (opamvalue) {
       | Logop(_, `And, left, right) =>
-        And(getOCamlVersion(left), getOCamlVersion(right))
+        AND(getOCamlVersion(left), getOCamlVersion(right))
       | Logop(_, `Or, left, right) =>
-        Or(getOCamlVersion(left), getOCamlVersion(right))
+        OR(getOCamlVersion(left), getOCamlVersion(right))
       | Relop(_, rel, Ident(_, "ocaml-version"), String(_, version)) =>
         fromPrefix(rel, version)
       /* We don't support pre-4.02.3 anyway */
-      | Relop(_, `Neq, Ident(_, "compiler"), String(_, "4.02.1+BER")) => Any
-      | Relop(_, `Eq, Ident(_, "compiler"), String(_, _)) => Any
-      | Relop(_, _rel, Ident(_, "opam-version"), _) => Any /* TODO should I care about this? */
-      | Relop(_, _rel, Ident(_, "os"), String(_, _version)) => Any
-      | Pfxop(_, `Not, Ident(_, "preinstalled")) => Any
-      | Ident(_, "preinstalled" | "false") => Any
-      | Bool(_, true) => Any
-      | Bool(_, false) => Nothing
+      | Relop(_, `Neq, Ident(_, "compiler"), String(_, "4.02.1+BER")) => ANY
+      | Relop(_, `Eq, Ident(_, "compiler"), String(_, _)) => ANY
+      | Relop(_, _rel, Ident(_, "opam-version"), _) => ANY /* TODO should I care about this? */
+      | Relop(_, _rel, Ident(_, "os"), String(_, _version)) => ANY
+      | Pfxop(_, `Not, Ident(_, "preinstalled")) => ANY
+      | Ident(_, "preinstalled" | "false") => ANY
+      | Bool(_, true) => ANY
+      | Bool(_, false) => NONE
       | Option(_, contents, options) =>
         print_endline(
           "Ignoring option: "
@@ -42,17 +42,17 @@ let rec getOCamlVersion = opamvalue =>
       | List(_, items) =>
         let rec loop = items =>
           switch (items) {
-          | [] => Any
+          | [] => ANY
           | [item] => getOCamlVersion(item)
-          | [item, ...rest] => And(getOCamlVersion(item), loop(rest))
+          | [item, ...rest] => AND(getOCamlVersion(item), loop(rest))
           };
         loop(items);
       | Group(_, items) =>
         let rec loop = items =>
           switch (items) {
-          | [] => Any
+          | [] => ANY
           | [item] => getOCamlVersion(item)
-          | [item, ...rest] => And(getOCamlVersion(item), loop(rest))
+          | [item, ...rest] => AND(getOCamlVersion(item), loop(rest))
           };
         loop(items);
       | _y =>
@@ -60,13 +60,13 @@ let rec getOCamlVersion = opamvalue =>
           "Unexpected option -- pretending its any "
           ++ OpamPrinter.value(opamvalue),
         );
-        Any;
+        ANY;
       }
     )
   );
 
 let rec getAvailability = opamvalue =>
-  /* Shared.GenericVersion.Any */
+  /* Shared.GenericVersion.ANY */
   OpamParserTypes.(
     switch (opamvalue) {
     | Logop(_, `And, left, right) =>

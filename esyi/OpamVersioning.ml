@@ -57,42 +57,42 @@ module Formula = struct
   let parseRel text =
     let open Result.Syntax in
     match String.trim text with
-    | "*"  | "" -> return GenericVersion.Any
+    | "*"  | "" -> return GenericVersion.ANY
     | text ->
       begin match text.[0], text.[1] with
       | '^', _ ->
         let text = NpmVersion.Parser.sliceToEnd text 1 in
         let%bind v = Version.parse text in
         let%bind next = nextForCaret v in
-        return GenericVersion.(And ((AtLeast v), (LessThan next)))
+        return GenericVersion.(AND ((GTE v), (LT next)))
       | '~', _ ->
         let text = NpmVersion.Parser.sliceToEnd text 1 in
         let%bind v = Version.parse text in
         let%bind next = nextForTilde v in
-        return GenericVersion.(And ((AtLeast v), (LessThan next)))
+        return GenericVersion.(AND ((GTE v), (LT next)))
       | '=', _ ->
         let text = NpmVersion.Parser.sliceToEnd text 1 in
         let%bind v = Version.parse text in
-        return (GenericVersion.Exactly v)
+        return (GenericVersion.EQ v)
       | '<', '=' ->
         let text = NpmVersion.Parser.sliceToEnd text 2 in
         let%bind v = Version.parse text in
-        return (GenericVersion.AtMost v)
+        return (GenericVersion.LTE v)
       | '<', _ ->
         let text = NpmVersion.Parser.sliceToEnd text 1 in
         let%bind v = Version.parse text in
-        return (GenericVersion.LessThan v)
+        return (GenericVersion.LT v)
       | '>', '=' ->
         let text = NpmVersion.Parser.sliceToEnd text 2 in
         let%bind v = Version.parse text in
-        return (GenericVersion.AtLeast v)
+        return (GenericVersion.GTE v)
       | '>', _ ->
         let text = NpmVersion.Parser.sliceToEnd text 1 in
         let%bind v = Version.parse text in
-        return (GenericVersion.GreaterThan v)
+        return (GenericVersion.GT v)
       | _, _ ->
         let%bind v = Version.parse text in
-        return (GenericVersion.Exactly v)
+        return (GenericVersion.EQ v)
       end
 
   (* TODO: do not use failwith here *)

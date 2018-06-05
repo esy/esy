@@ -75,10 +75,20 @@ let getManifest =
         OpamOverrides.findApplicableOverride(opamOverrides, name, version)
       ) {
       | None =>
-        /* print_endline("No override for " ++ name ++ " " ++ VersionNumber.viewVersionNumber(version)); */
-        return(manifest)
+        print_endline(
+          "No override for "
+          ++ name
+          ++ " "
+          ++ OpamVersioning.Version.toString(version),
+        );
+        return(manifest);
       | Some(override) =>
-        /* print_endline("!! Found override for " ++ name); */
+        print_endline(
+          "!! Found override for "
+          ++ name
+          ++ " "
+          ++ OpamVersioning.Version.toString(version),
+        );
         let m = OpamOverrides.applyOverride(manifest, override);
         return(m);
       };
