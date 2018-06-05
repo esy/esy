@@ -1,4 +1,6 @@
 open OpamParserTypes;
+module Version = OpamVersioning.Version;
+module Formula = OpamVersioning.Formula;
 
 type manifest = {
   fileName: string,
@@ -22,7 +24,7 @@ module ThinManifest = {
     name: string,
     opamFile: Path.t,
     urlFile: Path.t,
-    version: OpamVersioning.Version.t,
+    version: Version.t,
   };
 };
 
@@ -115,7 +117,7 @@ let variables = ((name, version)) => [
   ("share", "$cur__install/share"),
   ("pinned", "false"),
   ("name", name),
-  ("version", OpamVersioning.Version.toString(version)),
+  ("version", Version.toString(version)),
   ("prefix", "$cur__install"),
 ];
 
@@ -393,17 +395,12 @@ let parseManifest = (info, {file_contents, file_name}) => {
   let ocamlRequirement = {
     let req = findVariable("available", file_contents);
     let req = Option.map(~f=OpamAvailable.getOCamlVersion, req);
-    Option.orDefault(~default=GenericVersion.ANY, req);
+    Option.orDefault(~default=NpmVersion.Formula.ANY, req);
   };
   /* We just don't support anything before 4.2.3 */
-  let ourMinimumOcamlVersion = NpmVersion.parseConcrete("4.02.3");
+  let ourMinimumOcamlVersion = NpmVersion.Version.parseExn("4.2.3");
   let isAVersionWeSupport =
-    !
-      GenericVersion.isTooLarge(
-        NpmVersion.compare,
-        ocamlRequirement,
-        ourMinimumOcamlVersion,
-      );
+    ! NpmVersion.Formula.isTooLarge(ocamlRequirement, ourMinimumOcamlVersion);
   let isAvailable = {
     let isAvailable = {
       let v = findVariable("available", file_contents);
@@ -419,13 +416,19 @@ let parseManifest = (info, {file_contents, file_name}) => {
       name: "ocaml",
       req:
         Npm(
-          AND(GenericVersion.GTE(ourMinimumOcamlVersion), ocamlRequirement),
+          NpmVersion.Formula.AND(
+            NpmVersion.Formula.GTE(ourMinimumOcamlVersion),
+            ocamlRequirement,
+          ),
         ),
     };
-    let substDep = {name: "@esy-ocaml/substs", req: Npm(GenericVersion.ANY)};
+    let substDep = {
+      name: "@esy-ocaml/substs",
+      req: Npm(NpmVersion.Formula.ANY),
+    };
     let esyInstallerDep = {
       name: "@esy-ocaml/esy-installer",
-      req: Npm(GenericVersion.ANY),
+      req: Npm(NpmVersion.Formula.ANY),
     };
     (ocamlDep, substDep, esyInstallerDep);
   };

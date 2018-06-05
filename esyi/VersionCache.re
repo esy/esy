@@ -1,7 +1,7 @@
 type t = {
   config: Config.t,
   availableNpmVersions:
-    Hashtbl.t(string, list((NpmVersion.t, PackageJson.t))),
+    Hashtbl.t(string, list((NpmVersion.Version.t, PackageJson.t))),
   availableOpamVersions:
     Hashtbl.t(
       string,
@@ -26,10 +26,12 @@ let getAvailableVersions = (~cfg: Config.t, ~cache: t, req) =>
       let available = Hashtbl.find(cache.availableNpmVersions, req.name);
       return(
         available
-        |> List.sort(((va, _), (vb, _)) => NpmVersion.compare(va, vb))
+        |> List.sort(((va, _), (vb, _)) =>
+             NpmVersion.Version.compare(va, vb)
+           )
         |> List.mapi((i, (v, j)) => (v, j, i))
         |> List.filter(((version, _json, _i)) =>
-             NpmVersion.matches(semver, version)
+             NpmVersion.Formula.matches(semver, version)
            )
         |> List.map(((version, json, i)) => `Npm((version, json, i))),
       );

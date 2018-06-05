@@ -25,9 +25,7 @@ module Version = DebianVersion
  *)
 module Formula = struct
 
-  type t =
-    Version.t GenericVersion.range
-    [@@deriving to_yojson]
+  include VersionFormula.Make(Version)
 
   let nextForCaret v =
     let next =
@@ -55,44 +53,45 @@ module Formula = struct
       Error msg
 
   let parseRel text =
+    let module String = Astring.String in
     let open Result.Syntax in
     match String.trim text with
-    | "*"  | "" -> return GenericVersion.ANY
+    | "*"  | "" -> return ANY
     | text ->
       begin match text.[0], text.[1] with
       | '^', _ ->
-        let text = NpmVersion.Parser.sliceToEnd text 1 in
+        let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         let%bind next = nextForCaret v in
-        return GenericVersion.(AND ((GTE v), (LT next)))
+        return (AND ((GTE v), (LT next)))
       | '~', _ ->
-        let text = NpmVersion.Parser.sliceToEnd text 1 in
+        let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         let%bind next = nextForTilde v in
-        return GenericVersion.(AND ((GTE v), (LT next)))
+        return (AND ((GTE v), (LT next)))
       | '=', _ ->
-        let text = NpmVersion.Parser.sliceToEnd text 1 in
+        let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
-        return (GenericVersion.EQ v)
+        return (EQ v)
       | '<', '=' ->
-        let text = NpmVersion.Parser.sliceToEnd text 2 in
+        let text = String.Sub.(text |> v ~start:2 |> to_string) in
         let%bind v = Version.parse text in
-        return (GenericVersion.LTE v)
+        return (LTE v)
       | '<', _ ->
-        let text = NpmVersion.Parser.sliceToEnd text 1 in
+        let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
-        return (GenericVersion.LT v)
+        return (LT v)
       | '>', '=' ->
-        let text = NpmVersion.Parser.sliceToEnd text 2 in
+        let text = String.Sub.(text |> v ~start:2 |> to_string) in
         let%bind v = Version.parse text in
-        return (GenericVersion.GTE v)
+        return (GTE v)
       | '>', _ ->
-        let text = NpmVersion.Parser.sliceToEnd text 1 in
+        let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
-        return (GenericVersion.GT v)
+        return (GT v)
       | _, _ ->
         let%bind v = Version.parse text in
-        return (GenericVersion.EQ v)
+        return (EQ v)
       end
 
   (* TODO: do not use failwith here *)
@@ -103,12 +102,17 @@ module Formula = struct
         | Ok v -> v
         | Error err -> failwith err
         in
-      NpmVersion.Parser.parseSimples v parse
+      Parse.conjunction parse v
     in
-    NpmVersion.Parser.parseOrs parseSimple v
+    Parse.disjunction parseSimple v
 
-  let matches = GenericVersion.matches Version.compare
+  let%test_module "matches" = (module struct
+    let v = Version.parseExn
+    let f = parse
 
-  let toString v = GenericVersion.view Version.toString v
+    let%test _ =
+      matches (f ">=1.7.0") (v "1.8.0")
+
+  end)
 
 end

@@ -7,7 +7,7 @@ let satisfies = (realVersion, req) =>
       when user == user_ && repo == repo_ && ref == ref_ =>
     true
   | (Npm(semver), Solution.Version.Npm(s))
-      when NpmVersion.matches(semver, s) =>
+      when NpmVersion.Formula.matches(semver, s) =>
     true
   | (Opam(semver), Solution.Version.Opam(s))
       when OpamVersioning.Formula.matches(semver, s) =>

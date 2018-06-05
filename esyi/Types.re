@@ -1,9 +1,6 @@
 module Path = EsyLib.Path;
 
 [@deriving yojson]
-type npmRange = GenericVersion.range(NpmVersion.t);
-
-[@deriving yojson]
 type opamFile = (Json.t, list((Path.t, string)), list(string));
 
 module PendingSource = {

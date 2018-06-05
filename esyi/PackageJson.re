@@ -22,7 +22,7 @@ module DependencyRequest = {
     req,
   }
   and req =
-    | Npm(GenericVersion.range(NpmVersion.t))
+    | Npm(NpmVersion.Formula.t)
     | Github(string, string, option(string)) /* user, repo, ref (branch/tag/commit) */
     | Opam(OpamVersioning.Formula.t) /* opam allows a bunch of weird stuff. for now I'm just doing semver */
     | Git(string)
@@ -62,23 +62,18 @@ module DependencyRequest = {
 
   let to_yojson = ({name: _, req}) =>
     switch (req) {
-    | Npm(version) =>
-      GenericVersion.range_to_yojson(NpmVersion.to_yojson, version)
+    | Npm(version) => NpmVersion.Formula.to_yojson(version)
     | Github(name, repo, Some(ref)) =>
       `String(name ++ "/" ++ repo ++ "#" ++ ref)
     | Github(name, repo, None) => `String(name ++ "/" ++ repo)
     | Git(url) => `String(url)
     | LocalPath(path) => `String(Path.toString(path))
-    | Opam(version) =>
-      GenericVersion.range_to_yojson(
-        OpamVersioning.Version.to_yojson,
-        version,
-      )
+    | Opam(version) => OpamVersioning.Formula.to_yojson(version)
     };
 
   let reqToString = req =>
     switch (req) {
-    | Npm(version) => GenericVersion.view(NpmVersion.toString, version)
+    | Npm(version) => NpmVersion.Formula.toString(version)
     | Github(name, repo, Some(ref)) => name ++ "/" ++ repo ++ "#" ++ ref
     | Github(name, repo, None) => name ++ "/" ++ repo
     | Git(url) => url
@@ -109,7 +104,7 @@ module DependencyRequest = {
               if (startsWith(value, "git+")) {
                 Git(value);
               } else {
-                Npm(NpmVersion.parseRange(value));
+                Npm(NpmVersion.Formula.parse(value));
               }
             },
         }
