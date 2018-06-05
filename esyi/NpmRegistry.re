@@ -20,7 +20,7 @@ let resolve = (~cfg: Config.t, name) => {
     packument.Packument.versions
     |> StringMap.bindings
     |> List.map(((version, manifest)) =>
-         (NpmVersion.parseConcrete(version), manifest)
+         (NpmVersion.Version.parseExn(version), manifest)
        ),
   );
 };
