@@ -17,12 +17,3 @@ module PendingSource = {
 };
 
 let resolvedPrefix = "esyi5-";
-
-let opamFromNpmConcrete = ((major, minor, patch, rest)) => {
-  let v =
-    switch (rest) {
-    | Some(rest) => Printf.sprintf("%i.%i.%i%s", major, minor, patch, rest)
-    | None => Printf.sprintf("%i.%i.%i", major, minor, patch)
-    };
-  OpamVersioning.Version.parseExn(v);
-};
