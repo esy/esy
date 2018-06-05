@@ -24,7 +24,7 @@ module DependencyRequest = {
   and req =
     | Npm(NpmVersion.Formula.t)
     | Github(string, string, option(string)) /* user, repo, ref (branch/tag/commit) */
-    | Opam(OpamVersioning.Formula.t) /* opam allows a bunch of weird stuff. for now I'm just doing semver */
+    | Opam(OpamVersion.Formula.t) /* opam allows a bunch of weird stuff. for now I'm just doing semver */
     | Git(string)
     | LocalPath(EsyLib.Path.t);
 
@@ -68,7 +68,7 @@ module DependencyRequest = {
     | Github(name, repo, None) => `String(name ++ "/" ++ repo)
     | Git(url) => `String(url)
     | LocalPath(path) => `String(Path.toString(path))
-    | Opam(version) => OpamVersioning.Formula.to_yojson(version)
+    | Opam(version) => OpamVersion.Formula.to_yojson(version)
     };
 
   let reqToString = req =>
@@ -78,7 +78,7 @@ module DependencyRequest = {
     | Github(name, repo, None) => name ++ "/" ++ repo
     | Git(url) => url
     | LocalPath(path) => Path.toString(path)
-    | Opam(version) => OpamVersioning.Formula.toString(version)
+    | Opam(version) => OpamVersion.Formula.toString(version)
     };
 
   let make = (name, value) =>
@@ -91,7 +91,7 @@ module DependencyRequest = {
           req:
             switch (parseGithubVersion(value)) {
             | Some(gh) => gh
-            | None => Opam(OpamVersioning.Formula.parse(value))
+            | None => Opam(OpamVersion.Formula.parse(value))
             },
         }
       | None => {

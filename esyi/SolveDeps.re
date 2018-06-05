@@ -2,7 +2,7 @@ open SolveUtils;
 
 module T = {
   type cache = {
-    opamOverrides: list((string, OpamVersioning.Formula.t, Path.t)),
+    opamOverrides: list((string, OpamVersion.Formula.t, Path.t)),
     npmPackages: Hashtbl.t(string, Yojson.Safe.json),
     opamPackages: Hashtbl.t(string, OpamFile.manifest),
     versions: VersionCache.t,
