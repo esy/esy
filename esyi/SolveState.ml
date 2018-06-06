@@ -3,8 +3,18 @@ module Cache = struct
     opamOverrides: (string * OpamVersion.Formula.t * Path.t) list;
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
-    versions: VersionCache.t;
+    versions: versions;
     manifests: ( (string * Solution.Version.t), Package.t) Hashtbl.t;
+  }
+
+  and versions = {
+    availableNpmVersions:
+      (string, (NpmVersion.Version.t * PackageJson.t) list) Hashtbl.t;
+    availableOpamVersions:
+      (
+        string,
+        (OpamVersion.Version.t * OpamFile.ThinManifest.t) list
+      ) Hashtbl.t;
   }
 
   let make ~cfg () =
@@ -16,7 +26,6 @@ module Cache = struct
       versions = {
         availableNpmVersions = Hashtbl.create(100);
         availableOpamVersions = Hashtbl.create(100);
-        config = cfg;
       };
       opamOverrides;
       npmPackages = Hashtbl.create(100);
@@ -25,8 +34,17 @@ module Cache = struct
     }
 end
 
-
 type t = {
+  cfg: Config.t;
   cache: Cache.t;
   cudfVersions: CudfVersions.t;
 }
+
+let make ?cache ~cfg () =
+  let open RunAsync.Syntax in
+  let%bind cache =
+    match cache with
+    | Some cache -> return cache
+    | None -> return (Cache.make ~cfg ())
+  in
+  return {cfg; cache; cudfVersions = CudfVersions.init ()}

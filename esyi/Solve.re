@@ -4,7 +4,7 @@ let unsatisfied = (map, {PackageJson.DependencyRequest.name, req}) =>
   | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
   };
 
-let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
+let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
     |> List.map(pkg => pkg.Package.dependencies)
@@ -26,7 +26,8 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
           ~requested=toAdd,
           ~current=nameToVersions,
           ~deep=false,
-        );
+        )
+        |> RunAsync.runExn(~err="error solving deps");
       solved
       |> List.map((pkg: Package.t) =>
            if (! Hashtbl.mem(versionMap, (pkg.name, pkg.version))) {
@@ -44,7 +45,8 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
                  ~cfg,
                  ~cache,
                  ~requested=pkg.dependencies.dependencies,
-               );
+               )
+               |> RunAsync.runExn(~err="error solving deps");
              Hashtbl.replace(
                versionMap,
                (pkg.name, pkg.version),
@@ -70,56 +72,52 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
   (versionMap, nameToVersions);
 };
 
-let solve = (~cfg, pkg: Package.t) =>
-  RunAsync.Syntax.(
-    {
-      let%bind () = SolveUtils.checkRepositories(cfg);
-      let cache = SolveState.Cache.make(~cfg, ());
-      let solvedDeps =
-        SolveDeps.solve(
-          ~cfg,
-          ~cache,
-          ~requested=pkg.dependencies.dependencies,
-        );
-      let (buildVersionMap, _buildToVersions) =
-        settleBuildDeps(
-          ~cfg,
-          cache,
-          solvedDeps,
-          pkg.dependencies.buildDependencies,
-        );
+let solve = (~cfg, pkg: Package.t) => {
+  open RunAsync.Syntax;
 
-      let makePkg = (pkg: Package.t) => {
-        let%bind source = SolveUtils.lockDownSource(pkg.source);
-        return({Solution.name: pkg.name, version: pkg.version, source});
-      };
+  let cache = SolveState.Cache.make(~cfg, ());
+  let%bind () = SolveUtils.checkRepositories(cfg);
+  let solvedDeps =
+    SolveDeps.solve(~cfg, ~cache, ~requested=pkg.dependencies.dependencies)
+    |> RunAsync.runExn(~err="error solving deps");
+  let (buildVersionMap, _buildToVersions) =
+    settleBuildDeps(
+      ~cfg,
+      ~cache,
+      solvedDeps,
+      pkg.dependencies.buildDependencies,
+    );
 
-      let makeRootPkg = (pkg, deps) => {
-        let%bind bag =
-          deps
-          |> List.map((pkg: Package.t) => makePkg(pkg))
-          |> RunAsync.List.joinAll;
-        return({Solution.pkg, bag});
-      };
+  let makePkg = (pkg: Package.t) => {
+    let%bind source = SolveUtils.lockDownSource(pkg.source);
+    return({Solution.name: pkg.name, version: pkg.version, source});
+  };
 
-      let%bind root = {
-        let%bind pkg = makePkg(pkg);
-        makeRootPkg(pkg, solvedDeps);
-      };
+  let makeRootPkg = (pkg, deps) => {
+    let%bind bag =
+      deps
+      |> List.map((pkg: Package.t) => makePkg(pkg))
+      |> RunAsync.List.joinAll;
+    return({Solution.pkg, bag});
+  };
 
-      let%bind buildDependencies =
-        Hashtbl.fold(
-          (_key, (pkg, deps), result) => [(pkg, deps), ...result],
-          buildVersionMap,
-          [],
-        )
-        |> List.map(((pkg, deps)) => {
-             let%bind pkg = makePkg(pkg);
-             makeRootPkg(pkg, deps);
-           })
-        |> RunAsync.List.joinAll;
+  let%bind root = {
+    let%bind pkg = makePkg(pkg);
+    makeRootPkg(pkg, solvedDeps);
+  };
 
-      let env = {Solution.root, buildDependencies};
-      return(env);
-    }
-  );
+  let%bind buildDependencies =
+    Hashtbl.fold(
+      (_key, (pkg, deps), result) => [(pkg, deps), ...result],
+      buildVersionMap,
+      [],
+    )
+    |> List.map(((pkg, deps)) => {
+         let%bind pkg = makePkg(pkg);
+         makeRootPkg(pkg, deps);
+       })
+    |> RunAsync.List.joinAll;
+
+  let env = {Solution.root, buildDependencies};
+  return(env);
+};

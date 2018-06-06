@@ -10,11 +10,10 @@ let filterNils = items =>
        }
      );
 
-let getFromOpamRegistry = (config, fullName) => {
+let getFromOpamRegistry = (~cfg, fullName) => {
   open RunAsync.Syntax;
   let name = OpamFile.withoutScope(fullName);
-  let packagesPath =
-    Path.(config.Config.opamRepositoryPath / "packages" / name);
+  let packagesPath = Path.(cfg.Config.opamRepositoryPath / "packages" / name);
   let%bind entries = Fs.listDir(packagesPath);
   module String = Astring.String;
   return(
