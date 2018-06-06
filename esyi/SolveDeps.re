@@ -167,10 +167,9 @@ let rec addPackage =
           name,
           realVersion,
           version,
-          depsByKind,
+          pkg,
           state,
           universe,
-          manifest,
         ) => {
   CudfVersions.update(
     state.SolveState.cudfVersions,
@@ -178,11 +177,7 @@ let rec addPackage =
     realVersion,
     version,
   );
-  Hashtbl.replace(
-    state.cache.manifests,
-    (name, realVersion),
-    (manifest, depsByKind),
-  );
+  Hashtbl.replace(state.cache.manifests, (name, realVersion), pkg);
   deep ?
     List.iter(
       addToUniverse(
@@ -193,7 +188,7 @@ let rec addPackage =
         state,
         universe,
       ),
-      depsByKind.dependencies,
+      pkg.dependencies.dependencies,
     ) :
     ();
   let package = {
@@ -214,7 +209,7 @@ let rec addPackage =
             universe,
             state.cudfVersions,
           ),
-          depsByKind.dependencies,
+          pkg.dependencies.dependencies,
         ) :
         [],
   };
@@ -242,7 +237,7 @@ and addToUniverse =
               state.cudfVersions.lookupIntVersion,
               (req.name, realVersion),
             )) {
-        let (manifest, depsByKind) =
+        let pkg =
           getCachedManifest(
             state.cache.opamOverrides,
             state.cache.manifests,
@@ -257,10 +252,9 @@ and addToUniverse =
           req.name,
           realVersion,
           i,
-          depsByKind,
+          pkg,
           state,
           universe,
-          manifest,
         );
       };
     },
@@ -320,9 +314,8 @@ let solveDeps =
       |> List.filter(p => p.Cudf.package != rootName)
       |> List.map(p => {
            let version = CudfVersions.getRealVersion(cudfVersions, p);
-           let (manifest, depsByKind) =
-             Hashtbl.find(manifests, (p.Cudf.package, version));
-           (version, manifest, depsByKind);
+           let pkg = Hashtbl.find(manifests, (p.Cudf.package, version));
+           pkg;
          })
     };
   };
@@ -345,10 +338,10 @@ let solve = (~cache, ~requested) =>
 let makeVersionMap = installed => {
   let map = Hashtbl.create(100);
   installed
-  |> List.iter(((version, manifest, _)) => {
-       let name = Manifest.name(manifest);
-       let current = Hashtbl.mem(map, name) ? Hashtbl.find(map, name) : [];
-       Hashtbl.replace(map, name, [version, ...current]);
+  |> List.iter((pkg: Package.t) => {
+       let current =
+         Hashtbl.mem(map, pkg.name) ? Hashtbl.find(map, pkg.name) : [];
+       Hashtbl.replace(map, pkg.name, [pkg.version, ...current]);
      });
   /* TODO sort the entries... so we get the latest when possible */
   map;
@@ -389,10 +382,7 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
          print_endline(name)
        );
     print_endline("Got");
-    installed
-    |> List.iter(((_version, manifest, _)) =>
-         print_endline(Manifest.name(manifest))
-       );
+    installed |> List.iter((pkg: Package.t) => print_endline(pkg.name));
     let touched = Hashtbl.create(100);
     requested
     |> List.iter(({PackageJson.DependencyRequest.name, req}) => {
@@ -406,9 +396,8 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
          };
        });
     installed
-    |> List.filter(((version, manifest, _)) => {
-         let name = Manifest.name(manifest);
-         Hashtbl.mem(touched, (name, version));
-       });
+    |> List.filter((pkg: Package.t) =>
+         Hashtbl.mem(touched, (pkg.name, pkg.version))
+       );
   };
 };

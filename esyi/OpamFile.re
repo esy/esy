@@ -542,7 +542,7 @@ let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
 
   let (name, version) = info;
   {
-    name,
+    name: withScope(name),
     version,
     fileName: file_name,
     build:

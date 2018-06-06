@@ -1,30 +1,33 @@
+open EsyInstaller;
+
 module Api = {
-  let solve = (cfg: EsyInstaller.Config.t) =>
+  let solve = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
         let%bind manifest =
-          EsyInstaller.PackageJson.ofFile(
-            Path.(cfg.basePath / "package.json"),
+          PackageJson.ofFile(Path.(cfg.basePath / "package.json"));
+        let%bind pkg =
+          RunAsync.ofRun(
+            Package.make(
+              ~version=Solution.Version.LocalPath(cfg.basePath),
+              Package.PackageJson(manifest),
+            ),
           );
-        let%bind solution =
-          EsyInstaller.Solve.solve(
-            ~cfg,
-            EsyInstaller.Manifest.PackageJson(manifest),
-          );
-        EsyInstaller.Solution.toFile(cfg.lockfilePath, solution);
+        let%bind solution = Solve.solve(~cfg, pkg);
+        Solution.toFile(cfg.lockfilePath, solution);
       }
     );
 
-  let fetch = (cfg: EsyInstaller.Config.t) =>
+  let fetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
         let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
-        let%bind solution = EsyInstaller.Solution.ofFile(cfg.lockfilePath);
-        EsyInstaller.Fetch.fetch(cfg, solution);
+        let%bind solution = Solution.ofFile(cfg.lockfilePath);
+        Fetch.fetch(cfg, solution);
       }
     );
 
-  let solveAndFetch = (cfg: EsyInstaller.Config.t) =>
+  let solveAndFetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       if%bind (Fs.exists(cfg.lockfilePath)) {
         fetch(cfg);
@@ -37,9 +40,6 @@ module Api = {
   let importOpam =
       (~path: Path.t, ~name: option(string), ~version: option(string), _cfg) => {
     open RunAsync.Syntax;
-    module OpamFile = EsyInstaller.OpamFile;
-    module OpamVersion = EsyInstaller.OpamVersion;
-    module Solution = EsyInstaller.Solution;
 
     let version =
       switch (version) {
@@ -59,16 +59,10 @@ module Api = {
           (name, version),
           OpamParser.file(Path.toString(path)),
         );
-      OpamFile.{
-        ...manifest,
-        source: EsyInstaller.Types.PendingSource.NoSource,
-      };
+      OpamFile.{...manifest, source: Types.PendingSource.NoSource};
     };
     let (packageJson, _, _) =
-      EsyInstaller.OpamFile.toPackageJson(
-        manifest,
-        Solution.Version.Opam(version),
-      );
+      OpamFile.toPackageJson(manifest, Solution.Version.Opam(version));
     print_endline(Yojson.Safe.pretty_to_string(packageJson));
     return();
   };
@@ -131,7 +125,7 @@ module CommandLineInterface = {
         | Some(sandboxPath) => sandboxPath
         | None => cwd
         };
-      EsyInstaller.Config.make(~cachePath?, ~npmRegistry?, sandboxPath);
+      Config.make(~cachePath?, ~npmRegistry?, sandboxPath);
     };
     Term.(
       const(parse)
