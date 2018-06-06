@@ -3,6 +3,8 @@ module Version = OpamVersion.Version;
 module Formula = OpamVersion.Formula;
 
 type manifest = {
+  name: string,
+  version: Version.t,
   fileName: string,
   build: list(list(string)),
   install: list(list(string)),
@@ -486,7 +488,7 @@ let getSubsts = opamvalue =>
   )
   |> List.map(filename => ["substs", filename ++ ".in"]);
 
-let parseManifest = (info, {file_contents, file_name}) => {
+let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
   let (deps, buildDeps, devDeps) =
     processDeps(file_name, findVariable("depends", file_contents));
   let (depopts, _, _) =
@@ -538,7 +540,10 @@ let parseManifest = (info, {file_contents, file_name}) => {
     (ocamlDep, substDep, esyInstallerDep);
   };
 
+  let (name, version) = info;
   {
+    name,
+    version,
     fileName: file_name,
     build:
       getSubsts(findVariable("substs", file_contents))
@@ -567,7 +572,8 @@ let source = ({source, _}) => source;
 let commandListToJson = e =>
   e |> List.map(items => `List(List.map(item => `String(item), items)));
 
-let toPackageJson = (manifest, name, version) => {
+let toPackageJson = (manifest, version) => {
+  let name = manifest.name;
   let exportedEnv =
     PackageJson.ExportedEnv.[
       {
@@ -653,7 +659,10 @@ let toPackageJson = (manifest, name, version) => {
   );
 };
 
-let getDependenciesInfo = manifest => {
+let name = manifest => manifest.name;
+let version = manifest => manifest.version;
+
+let dependencies = manifest => {
   PackageJson.DependenciesInfo.devDependencies: manifest.devDependencies,
   buildDependencies: manifest.buildDependencies,
   dependencies: manifest.dependencies,
