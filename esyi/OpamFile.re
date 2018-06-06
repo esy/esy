@@ -562,7 +562,7 @@ let parseManifest = (info, {file_contents, file_name}) => {
   };
 };
 
-let getSource = ({source, _}) => source;
+let source = ({source, _}) => source;
 
 let commandListToJson = e =>
   e |> List.map(items => `List(List.map(item => `String(item), items)));
