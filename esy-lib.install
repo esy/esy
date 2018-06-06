@@ -49,6 +49,12 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__LwtTaskQueue.cmti" {"EsyLib__LwtTaskQueue.cmti"}
   "_build/install/default/lib/esy-lib/LwtTaskQueue.mli" {"LwtTaskQueue.mli"}
   "_build/install/default/lib/esy-lib/LwtTaskQueue.ml" {"LwtTaskQueue.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__Memoize.cmi" {"EsyLib__Memoize.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__Memoize.cmx" {"EsyLib__Memoize.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__Memoize.cmt" {"EsyLib__Memoize.cmt"}
+  "_build/install/default/lib/esy-lib/EsyLib__Memoize.cmti" {"EsyLib__Memoize.cmti"}
+  "_build/install/default/lib/esy-lib/Memoize.mli" {"Memoize.mli"}
+  "_build/install/default/lib/esy-lib/Memoize.ml" {"Memoize.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmi" {"EsyLib__Option.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmx" {"EsyLib__Option.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmt" {"EsyLib__Option.cmt"}

@@ -42,13 +42,13 @@ let rec resolvePackage = (pkgName: string, basedir: Path.t) => {
 let ofDir = (cfg: Config.t) => {
   open RunAsync.Syntax;
   let manifestInfo = ref(PathSet.empty);
-  let resolutionCache = Memoize.create(~size=200);
+  let resolutionCache = Memoize.make(~size=200, ());
   let resolvePackageCached = (pkgName, basedir) => {
     let key = (pkgName, basedir);
-    let compute = () => resolvePackage(pkgName, basedir);
-    resolutionCache(key, compute);
+    let compute = _ => resolvePackage(pkgName, basedir);
+    Memoize.compute(resolutionCache, key, compute);
   };
-  let packageCache = Memoize.create(~size=200);
+  let packageCache = Memoize.make(~size=200, ());
   let rec loadPackage = (path: Path.t, stack: list(Path.t)) => {
     let addDeps =
         (
@@ -203,8 +203,8 @@ let ofDir = (cfg: Config.t) => {
     };
   }
   and loadPackageCached = (path: Path.t, stack) => {
-    let compute = () => loadPackage(path, stack);
-    packageCache(path, compute);
+    let compute = _ => loadPackage(path, stack);
+    Memoize.compute(packageCache, path, compute);
   };
   switch%bind (loadPackageCached(cfg.sandboxPath, [])) {
   | `EsyPkg(root, scripts) =>
