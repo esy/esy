@@ -75,6 +75,9 @@ module DependencyRequest = struct
     | Opam version ->
       OpamVersion.Formula.toString version
 
+  let toString {name; req} =
+    name ^ "@" ^ (reqToString req)
+
   let make name value =
     if startsWith value "." || startsWith value "/"
     then {name; req = LocalPath (Path.v value);}
