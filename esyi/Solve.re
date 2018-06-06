@@ -4,7 +4,7 @@ let unsatisfied = (map, {PackageJson.DependencyRequest.name, req}) =>
   | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
   };
 
-let justDepsn = ((_, _, _, deps)) => deps;
+let justDepsn = ((_, _, deps)) => deps;
 
 let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
@@ -30,7 +30,8 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
           ~deep=false,
         );
       solved
-      |> List.map(((name, version, manifest, deps)) =>
+      |> List.map(((version, manifest, deps)) => {
+           let name = Manifest.name(manifest);
            if (! Hashtbl.mem(versionMap, (name, version))) {
              Hashtbl.replace(
                nameToVersions,
@@ -62,8 +63,8 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
              childBuilds @ deps.PackageJson.DependenciesInfo.buildDependencies;
            } else {
              [];
-           }
-         )
+           };
+         })
       |> List.concat
       |> (buildDeps => loop(buildDeps));
     };
@@ -88,7 +89,8 @@ let solve = (~cfg, manifest) =>
           depsByKind.buildDependencies,
         );
 
-      let makePkg = (manifest, name, version) => {
+      let makePkg = (manifest, version) => {
+        let name = Manifest.name(manifest);
         let%bind source = RunAsync.ofRun(Manifest.source(manifest, version));
         let%bind source = SolveUtils.lockDownSource(source);
         return({Solution.name, version, source});
@@ -97,8 +99,8 @@ let solve = (~cfg, manifest) =>
       let makeRootPkg = (pkg, deps) => {
         let%bind bag =
           deps
-          |> List.map(((name, version, manifest, _deps)) =>
-               makePkg(manifest, name, version)
+          |> List.map(((version, manifest, _deps)) =>
+               makePkg(manifest, version)
              )
           |> RunAsync.List.joinAll;
         return({Solution.pkg, bag});
@@ -106,25 +108,21 @@ let solve = (~cfg, manifest) =>
 
       let%bind root = {
         let%bind pkg =
-          makePkg(
-            manifest,
-            "*root",
-            Solution.Version.LocalPath(Path.v("./")),
-          );
+          makePkg(manifest, Solution.Version.LocalPath(Path.v("./")));
         makeRootPkg(pkg, solvedDeps);
       };
 
       let%bind buildDependencies =
         Hashtbl.fold(
-          ((name, version), (manifest, _deps, solvedDeps), result) => [
-            (manifest, name, version, solvedDeps),
+          ((_name, version), (manifest, _deps, solvedDeps), result) => [
+            (manifest, version, solvedDeps),
             ...result,
           ],
           buildVersionMap,
           [],
         )
-        |> List.map(((manifest, name, version, deps)) => {
-             let%bind pkg = makePkg(manifest, name, version);
+        |> List.map(((manifest, version, deps)) => {
+             let%bind pkg = makePkg(manifest, version);
              makeRootPkg(pkg, deps);
            })
         |> RunAsync.List.joinAll;

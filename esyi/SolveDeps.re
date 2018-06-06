@@ -355,7 +355,7 @@ let solveDeps =
            let version = CudfVersions.getRealVersion(cudfVersions, p);
            let (manifest, depsByKind) =
              Hashtbl.find(manifests, (p.Cudf.package, version));
-           (p.Cudf.package, version, manifest, depsByKind);
+           (version, manifest, depsByKind);
          })
     };
   };
@@ -378,7 +378,8 @@ let solve = (~cache, ~requested) =>
 let makeVersionMap = installed => {
   let map = Hashtbl.create(100);
   installed
-  |> List.iter(((name, version, _, _)) => {
+  |> List.iter(((version, manifest, _)) => {
+       let name = Manifest.name(manifest);
        let current = Hashtbl.mem(map, name) ? Hashtbl.find(map, name) : [];
        Hashtbl.replace(map, name, [version, ...current]);
      });
@@ -421,7 +422,10 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
          print_endline(name)
        );
     print_endline("Got");
-    installed |> List.iter(((name, _version, _, _)) => print_endline(name));
+    installed
+    |> List.iter(((_version, manifest, _)) =>
+         print_endline(Manifest.name(manifest))
+       );
     let touched = Hashtbl.create(100);
     requested
     |> List.iter(({PackageJson.DependencyRequest.name, req}) => {
@@ -435,8 +439,9 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
          };
        });
     installed
-    |> List.filter(((name, version, _, _)) =>
-         Hashtbl.mem(touched, (name, version))
-       );
+    |> List.filter(((version, manifest, _)) => {
+         let name = Manifest.name(manifest);
+         Hashtbl.mem(touched, (name, version));
+       });
   };
 };
