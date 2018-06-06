@@ -1,13 +1,10 @@
 module Cache = struct
+
   type t = {
     opamOverrides: (string * OpamVersion.Formula.t * Path.t) list;
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
-    versions: versions;
-    manifests: ( (string * Solution.Version.t), Package.t) Hashtbl.t;
-  }
-
-  and versions = {
+    pkgs: ( (string * Solution.Version.t), Package.t RunAsync.t) Hashtbl.t;
     availableNpmVersions:
       (string, (NpmVersion.Version.t * PackageJson.t) list) Hashtbl.t;
     availableOpamVersions:
@@ -23,15 +20,14 @@ module Cache = struct
       |> RunAsync.runExn ~err:"unable to read opam overrides"
     in
     {
-      versions = {
-        availableNpmVersions = Hashtbl.create(100);
-        availableOpamVersions = Hashtbl.create(100);
-      };
+      availableNpmVersions = Hashtbl.create(100);
+      availableOpamVersions = Hashtbl.create(100);
       opamOverrides;
       npmPackages = Hashtbl.create(100);
       opamPackages = Hashtbl.create(100);
-      manifests = Hashtbl.create(100);
+      pkgs = Hashtbl.create(100);
     }
+
 end
 
 type t = {

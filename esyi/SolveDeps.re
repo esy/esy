@@ -82,6 +82,43 @@ let cudfDep =
     [("**not-a-packge%%%", Some((`Eq, 10000000000)))] : final;
 };
 
+let toRealVersion = versionPlus =>
+  switch (versionPlus) {
+  | `Github(user, repo, ref) => Solution.Version.Github(user, repo, ref)
+  | `Npm(x, _, _) => Solution.Version.Npm(x)
+  | `Opam(x, _, _) => Solution.Version.Opam(x)
+  | `LocalPath(p) => Solution.Version.LocalPath(p)
+  };
+
+let getPackageCached = (~state: SolveState.t, (name, versionPlus)) => {
+  open RunAsync.Syntax;
+  let realVersion = toRealVersion(versionPlus);
+  switch (Hashtbl.find(state.cache.pkgs, (name, realVersion))) {
+  | exception Not_found =>
+    let promise = {
+      let%bind manifest =
+        switch (versionPlus) {
+        | `Github(user, repo, ref) =>
+          Package.Github.getManifest(user, repo, ref)
+        /* Registry.getGithubManifest(url) */
+        | `Npm(_version, json, _) => return(Package.PackageJson(json))
+        | `LocalPath(_p) =>
+          error("do not know how to get manifest from LocalPath")
+        | `Opam(_version, path, _) =>
+          let%bind manifest =
+            OpamRegistry.getManifest(state.cache.opamOverrides, path);
+          return(Package.Opam(manifest));
+        };
+      let%bind pkg =
+        RunAsync.ofRun(Package.make(~version=realVersion, manifest));
+      return(pkg);
+    };
+    Hashtbl.replace(state.cache.pkgs, (name, realVersion), promise);
+    promise;
+  | promise => promise
+  };
+};
+
 let getAvailableVersions = (~state: SolveState.t, req) => {
   open RunAsync.Syntax;
   let cache = state.cache;
@@ -90,19 +127,14 @@ let getAvailableVersions = (~state: SolveState.t, req) => {
     return([`Github((user, repo, ref))])
   | Npm(semver) =>
     let%bind () =
-      if (! Hashtbl.mem(cache.versions.availableNpmVersions, req.name)) {
+      if (! Hashtbl.mem(cache.availableNpmVersions, req.name)) {
         let%bind versions = NpmRegistry.resolve(~cfg=state.cfg, req.name);
-        Hashtbl.replace(
-          cache.versions.availableNpmVersions,
-          req.name,
-          versions,
-        );
+        Hashtbl.replace(cache.availableNpmVersions, req.name, versions);
         return();
       } else {
         return();
       };
-    let available =
-      Hashtbl.find(cache.versions.availableNpmVersions, req.name);
+    let available = Hashtbl.find(cache.availableNpmVersions, req.name);
     return(
       available
       |> List.sort(((va, _), (vb, _)) =>
@@ -116,17 +148,17 @@ let getAvailableVersions = (~state: SolveState.t, req) => {
     );
   | Opam(semver) =>
     let%bind () =
-      if (! Hashtbl.mem(cache.versions.availableOpamVersions, req.name)) {
+      if (! Hashtbl.mem(cache.availableOpamVersions, req.name)) {
         let info =
           OpamRegistry.getFromOpamRegistry(~cfg=state.cfg, req.name)
           |> RunAsync.runExn(~err="unable to get info on opam package");
-        Hashtbl.replace(cache.versions.availableOpamVersions, req.name, info);
+        Hashtbl.replace(cache.availableOpamVersions, req.name, info);
         return();
       } else {
         return();
       };
     let available =
-      Hashtbl.find(cache.versions.availableOpamVersions, req.name)
+      Hashtbl.find(cache.availableOpamVersions, req.name)
       |> List.sort(((va, _), (vb, _)) =>
            OpamVersion.Version.compare(va, vb)
          )
@@ -238,7 +270,7 @@ let rec addPackage =
           name,
           realVersion,
           version,
-          pkg,
+          pkg: Package.t,
           universe,
         ) => {
   CudfVersions.update(
@@ -247,7 +279,11 @@ let rec addPackage =
     realVersion,
     version,
   );
-  Hashtbl.replace(state.cache.manifests, (name, realVersion), pkg);
+  Hashtbl.replace(
+    state.cache.pkgs,
+    (name, realVersion),
+    RunAsync.return(pkg),
+  );
   deep ?
     List.iter(
       addToUniverse(~state, ~unique, ~previouslyInstalled, ~deep, universe),
@@ -308,11 +344,7 @@ and addToUniverse =
               (req.name, realVersion),
             )) {
         let pkg =
-          getCachedManifest(
-            state.cache.opamOverrides,
-            state.cache.manifests,
-            (req.name, versionPlus),
-          )
+          getPackageCached(~state, (req.name, versionPlus))
           |> RunAsync.runExn(~err="unable to get manifest");
         addPackage(
           ~state,
@@ -343,7 +375,7 @@ let createUniverse =
     addToUniverse(~state, ~unique, ~previouslyInstalled, ~deep, universe),
     deps,
   );
-  return((universe, state.cudfVersions, state.cache.manifests));
+  return((universe, state.cudfVersions, state.cache.pkgs));
 };
 
 let solveDeps =
@@ -375,15 +407,14 @@ let solveDeps =
       switch (runSolver(~strategy, rootName, cudfDeps, universe)) {
       | None => error("Unable to resolve")
       | Some(packages) =>
-        return(
-          packages
-          |> List.filter(p => p.Cudf.package != rootName)
-          |> List.map(p => {
-               let version = CudfVersions.getRealVersion(cudfVersions, p);
-               let pkg = Hashtbl.find(manifests, (p.Cudf.package, version));
-               pkg;
-             }),
-        )
+        packages
+        |> List.filter(p => p.Cudf.package != rootName)
+        |> List.map(p => {
+             let version = CudfVersions.getRealVersion(cudfVersions, p);
+             let pkg = Hashtbl.find(manifests, (p.Cudf.package, version));
+             pkg;
+           })
+        |> RunAsync.List.joinAll
       };
     }
   );
