@@ -89,8 +89,7 @@ let solve = (~cfg, manifest) =>
         );
 
       let makePkg = (manifest, name, version) => {
-        let%bind source =
-          RunAsync.ofRun(Manifest.source(manifest, name, version));
+        let%bind source = RunAsync.ofRun(Manifest.source(manifest, version));
         let%bind source = SolveUtils.lockDownSource(source);
         return({Solution.name, version, source});
       };

@@ -1,3 +1,5 @@
+module Version = NpmVersion.Version;
+
 /*
  * Get dependencies data out of a package.json
  */
@@ -231,7 +233,7 @@ module ExportedEnv = {
 [@deriving of_yojson({strict: false})]
 type t = {
   name: string,
-  version: string,
+  version: Version.t,
   dependencies: [@default Dependencies.empty] Dependencies.t,
   devDependencies: [@default Dependencies.empty] Dependencies.t,
   peerDependencies: [@default Dependencies.empty] Dependencies.t,
@@ -242,6 +244,9 @@ and dist = {
   tarball: string,
   shasum: string,
 };
+
+let name = manifest => manifest.name;
+let version = manifest => manifest.version;
 
 let source = manifest =>
   switch (manifest.dist) {

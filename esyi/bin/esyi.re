@@ -53,19 +53,20 @@ module Api = {
       | None => "@opam/unknown-opam-package"
       };
 
-    let manifest =
+    let manifest = {
+      let manifest =
+        OpamFile.parseManifest(
+          (name, version),
+          OpamParser.file(Path.toString(path)),
+        );
       OpamFile.{
-        ...
-          parseManifest(
-            (name, version),
-            OpamParser.file(Path.toString(path)),
-          ),
+        ...manifest,
         source: EsyInstaller.Types.PendingSource.NoSource,
       };
+    };
     let (packageJson, _, _) =
       EsyInstaller.OpamFile.toPackageJson(
         manifest,
-        name,
         Solution.Version.Opam(version),
       );
     print_endline(Yojson.Safe.pretty_to_string(packageJson));

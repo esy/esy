@@ -139,10 +139,3 @@ let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
     Some(packages);
   };
 };
-
-let getOpamFile = (manifest, name, version) =>
-  switch (manifest) {
-  | Manifest.PackageJson(_) => None
-  | Manifest.Opam(manifest) =>
-    Some(OpamFile.toPackageJson(manifest, name, version))
-  };
