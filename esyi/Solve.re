@@ -77,7 +77,7 @@ let solve = (~cfg, manifest) =>
   RunAsync.Syntax.(
     {
       let%bind () = SolveUtils.checkRepositories(cfg);
-      let cache = SolveDeps.initCache(cfg);
+      let cache = SolveState.Cache.make(~cfg, ());
       let depsByKind = Manifest.dependencies(manifest);
       let solvedDeps =
         SolveDeps.solve(~cfg, ~cache, ~requested=depsByKind.dependencies);

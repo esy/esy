@@ -1,43 +1,5 @@
 open SolveUtils;
 
-module T = {
-  type cache = {
-    opamOverrides: list((string, OpamVersion.Formula.t, Path.t)),
-    npmPackages: Hashtbl.t(string, Yojson.Safe.json),
-    opamPackages: Hashtbl.t(string, OpamFile.manifest),
-    versions: VersionCache.t,
-    manifests:
-      Hashtbl.t(
-        (string, Solution.Version.t),
-        (Manifest.t, PackageJson.DependenciesInfo.t),
-      ),
-  };
-  type state = {
-    cache,
-    /* universe: Cudf.universe, */
-    cudfVersions: CudfVersions.t,
-  };
-};
-
-open T;
-
-let initCache = config => {
-  let opamOverrides =
-    OpamOverrides.getOverrides(config.Config.esyOpamOverridePath)
-    |> RunAsync.runExn(~err="unable to read opam overrides");
-  {
-    versions: {
-      availableNpmVersions: Hashtbl.create(100),
-      availableOpamVersions: Hashtbl.create(100),
-      config,
-    },
-    opamOverrides,
-    npmPackages: Hashtbl.create(100),
-    opamPackages: Hashtbl.create(100),
-    manifests: Hashtbl.create(100),
-  };
-};
-
 /**
  *
  * Order of operations:
@@ -210,7 +172,12 @@ let rec addPackage =
           universe,
           manifest,
         ) => {
-  CudfVersions.update(state.cudfVersions, name, realVersion, version);
+  CudfVersions.update(
+    state.SolveState.cudfVersions,
+    name,
+    realVersion,
+    version,
+  );
   Hashtbl.replace(
     state.cache.manifests,
     (name, realVersion),
@@ -306,7 +273,7 @@ let rootName = "*root*";
 let createUniverse =
     (~cfg, ~unique, ~previouslyInstalled=?, ~deep=true, cache, deps) => {
   let universe = Cudf.empty_universe();
-  let state = {cache, cudfVersions: CudfVersions.init()};
+  let state = {SolveState.cache, cudfVersions: CudfVersions.init()};
   /** This is where most of the work happens, file io, network requests, etc. */
   List.iter(
     addToUniverse(
