@@ -7,19 +7,14 @@
   */
 module Source = {
   [@deriving yojson]
-  type t = {
-    src,
-    opam: option(opamFile),
-  }
-  and src =
+  type t =
     /* url & checksum */
     | Archive(string, string)
     /* url & commit */
     | GitSource(string, string)
     | GithubSource(string, string, string)
     | File(string)
-    | NoSource
-  and opamFile = (Json.t, list((Path.t, string)), list(string));
+    | NoSource;
 };
 
 module Version = {
@@ -84,6 +79,7 @@ and pkg = {
   name: string,
   version: Version.t,
   source: Source.t,
+  opam: [@default None] option(PackageInfo.OpamInfo.t),
 };
 
 let ofFile = (filename: Path.t) =>
