@@ -270,7 +270,7 @@ let ofPackage
     (rootPkg : Package.t)
   =
 
-  let cache = Memoize.create ~size:200 in
+  let cache = Memoize.make ~size:200 () in
 
   let term =
     let term = match term with
@@ -700,7 +700,7 @@ let ofPackage
     return task
 
   and taskOfPackageCached ~(includeSandboxEnv: bool) (pkg : Package.t) =
-    let v = cache pkg.id (fun () -> taskOfPackage ~includeSandboxEnv pkg) in
+    let v = Memoize.compute cache pkg.id (fun _ -> taskOfPackage ~includeSandboxEnv pkg) in
     let context =
       Printf.sprintf
         "processing package: %s@%s"

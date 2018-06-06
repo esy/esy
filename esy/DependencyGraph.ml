@@ -91,12 +91,21 @@ module Make (Kernel : Kernel) : DependencyGraph
 
   let foldWithAllDependencies ?(traverse=Kernel.traverse) ~(f: 'a folder) (node : node) =
 
-    let fCache = Memoize.create ~size:200 in
-    let f ~allDependencies ~dependencies node =
-      fCache (Kernel.id node) (fun () -> f ~allDependencies ~dependencies node)
+    let fCached =
+      Memoize.make
+        ~size:200
+        ()
     in
 
-    let visitCache = Memoize.create ~size:200 in
+    let f ~allDependencies ~dependencies node =
+      Memoize.compute
+        fCached
+        (Kernel.id node)
+        (fun _ -> f ~allDependencies ~dependencies node)
+    in
+
+
+    let visitCache = Memoize.make ~size:200 () in
 
     let rec visit node =
 
@@ -142,7 +151,7 @@ module Make (Kernel : Kernel) : DependencyGraph
       allDependencies, dependencies, value
 
     and visitCached node =
-      visitCache (Kernel.id node) (fun () -> visit node)
+      Memoize.compute visitCache (Kernel.id node) (fun _ -> visit node)
     in
 
     let _, _, (value : 'a) = visitCached node in value
