@@ -1,17 +1,27 @@
 module Cache = struct
+  module Packages = Memoize.Make(struct
+    type key = (string * Solution.Version.t)
+    type value = Package.t RunAsync.t
+  end)
+
+  module NpmPackages = Memoize.Make(struct
+    type key = string
+    type value = (NpmVersion.Version.t * PackageJson.t) list RunAsync.t
+  end)
+
+  module OpamPackages = Memoize.Make(struct
+    type key = string
+    type value = (OpamVersion.Version.t * OpamFile.ThinManifest.t) list RunAsync.t
+  end)
 
   type t = {
-    opamOverrides: (string * OpamVersion.Formula.t * Path.t) list;
+    opamOverrides: OpamOverrides.t;
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
-    pkgs: ( (string * Solution.Version.t), Package.t RunAsync.t) Hashtbl.t;
-    availableNpmVersions:
-      (string, (NpmVersion.Version.t * PackageJson.t) list) Hashtbl.t;
-    availableOpamVersions:
-      (
-        string,
-        (OpamVersion.Version.t * OpamFile.ThinManifest.t) list
-      ) Hashtbl.t;
+
+    pkgs: Packages.t;
+    availableNpmVersions: NpmPackages.t;
+    availableOpamVersions: OpamPackages.t;
   }
 
   let make ~cfg () =
@@ -20,12 +30,12 @@ module Cache = struct
       |> RunAsync.runExn ~err:"unable to read opam overrides"
     in
     {
-      availableNpmVersions = Hashtbl.create(100);
-      availableOpamVersions = Hashtbl.create(100);
+      availableNpmVersions = NpmPackages.make ();
+      availableOpamVersions = OpamPackages.make ();
       opamOverrides;
       npmPackages = Hashtbl.create(100);
       opamPackages = Hashtbl.create(100);
-      pkgs = Hashtbl.create(100);
+      pkgs = Packages.make ();
     }
 
 end

@@ -127,6 +127,10 @@ let%test_module "parse" = (module struct
     "1~beta"
     (A ("", Some (N (1, Some (A ("~beta", None))))))
 
+  let%test "4.02+7" = expectParse
+    "4.02+7"
+    (A ("", Some (N (4, Some (A (".", Some (N (2, Some (A ("+", Some (N (7, None))))))))))))
+
   let%test "~~" = expectParse
     "~~"
     (A ("~~", None))

@@ -1,3 +1,5 @@
+type t = list((string, OpamFile.Formula.t, Fpath.t));
+
 module Infix = {
   let (|?>>) = (a, b) =>
     switch (a) {
