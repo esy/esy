@@ -17,14 +17,6 @@ let satisfies = (realVersion, req) =>
   | _ => false
   };
 
-let toRealVersion = versionPlus =>
-  switch (versionPlus) {
-  | `Github(user, repo, ref) => Solution.Version.Github(user, repo, ref)
-  | `Npm(x, _, _) => Solution.Version.Npm(x)
-  | `Opam(x, _, _) => Solution.Version.Opam(x)
-  | `LocalPath(p) => Solution.Version.LocalPath(p)
-  };
-
 let rec lockDownSource = pendingSource =>
   RunAsync.Syntax.(
     switch (pendingSource) {
@@ -86,31 +78,6 @@ let checkRepositories = config =>
       return();
     }
   );
-
-let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
-  open RunAsync.Syntax;
-  let realVersion = toRealVersion(versionPlus);
-  switch (Hashtbl.find(cache, (name, realVersion))) {
-  | exception Not_found =>
-    let%bind manifest =
-      switch (versionPlus) {
-      | `Github(user, repo, ref) =>
-        Package.Github.getManifest(user, repo, ref)
-      /* Registry.getGithubManifest(url) */
-      | `Npm(_version, json, _) => return(Package.PackageJson(json))
-      | `LocalPath(_p) =>
-        error("do not know how to get manifest from LocalPath")
-      | `Opam(_version, path, _) =>
-        let%bind manifest = OpamRegistry.getManifest(opamOverrides, path);
-        return(Package.Opam(manifest));
-      };
-    let%bind pkg =
-      RunAsync.ofRun(Package.make(~version=realVersion, manifest));
-    Hashtbl.replace(cache, (name, realVersion), pkg);
-    return(pkg);
-  | x => return(x)
-  };
-};
 
 let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
   let root = {
