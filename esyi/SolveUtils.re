@@ -1,7 +1,7 @@
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
   | (
-      PackageJson.DependencyRequest.Github(user, repo, ref),
+      PackageInfo.DependencyRequest.Github(user, repo, ref),
       Solution.Version.Github(user_, repo_, ref_),
     )
       when user == user_ && repo == repo_ && ref == ref_ =>
@@ -20,7 +20,7 @@ let satisfies = (realVersion, req) =>
 let rec lockDownSource = pendingSource =>
   RunAsync.Syntax.(
     switch (pendingSource) {
-    | Types.PendingSource.NoSource =>
+    | PackageInfo.Source.NoSource =>
       return({Solution.Source.src: NoSource, opam: None})
     | WithOpamFile(source, opamFile) =>
       switch%bind (lockDownSource(source)) {

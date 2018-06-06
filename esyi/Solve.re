@@ -1,4 +1,4 @@
-let unsatisfied = (map, {PackageJson.DependencyRequest.name, req}) =>
+let unsatisfied = (map, {PackageInfo.DependencyRequest.name, req}) =>
   switch (Hashtbl.find(map, name)) {
   | exception Not_found => true
   | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
@@ -8,7 +8,7 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
     |> List.map(pkg => pkg.Package.dependencies)
-    |> List.map(deps => deps.PackageJson.DependenciesInfo.buildDependencies)
+    |> List.map(deps => deps.PackageInfo.DependenciesInfo.buildDependencies)
     |> List.concat;
   /* let allTransitiveBuildDeps = allNeededBuildDeps @ (
        solvedTargets |> List.map(((_, deps)) => getBuildDeps(deps)) |> List.concat |> List.concat
@@ -16,7 +16,7 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
   let buildDepsToInstall = allTransitiveBuildDeps @ requestedBuildDeps;
   let nameToVersions = Hashtbl.create(100);
   let versionMap = Hashtbl.create(100);
-  let rec loop = (buildDeps: PackageJson.Dependencies.t) => {
+  let rec loop = (buildDeps: PackageInfo.Dependencies.t) => {
     let toAdd = buildDeps |> List.filter(unsatisfied(nameToVersions));
     if (toAdd != []) {
       let solved =
@@ -56,7 +56,7 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
                solvedDeps
                |> List.map(pkg => pkg.Package.dependencies)
                |> List.map(deps =>
-                    deps.PackageJson.DependenciesInfo.buildDependencies
+                    deps.PackageInfo.DependenciesInfo.buildDependencies
                   )
                |> List.concat;
              childBuilds @ pkg.dependencies.buildDependencies;

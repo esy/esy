@@ -9,7 +9,7 @@ module Source = {
   [@deriving yojson]
   type t = {
     src,
-    opam: option(Types.opamFile),
+    opam: option(opamFile),
   }
   and src =
     /* url & checksum */
@@ -18,7 +18,8 @@ module Source = {
     | GitSource(string, string)
     | GithubSource(string, string, string)
     | File(string)
-    | NoSource;
+    | NoSource
+  and opamFile = (Json.t, list((Path.t, string)), list(string));
 };
 
 module Version = {

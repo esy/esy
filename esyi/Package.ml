@@ -1,8 +1,8 @@
 type t = {
   name : string;
   version : Solution.Version.t;
-  source : Types.PendingSource.t;
-  dependencies: PackageJson.DependenciesInfo.t;
+  source : PackageInfo.Source.t;
+  dependencies: PackageInfo.DependenciesInfo.t;
 }
 
 and manifest =
@@ -19,14 +19,14 @@ let make ~version manifest =
   let%bind source =
     match version with
     | Solution.Version.Github (user, repo, ref) ->
-      Run.return (Types.PendingSource.GithubSource (user, repo, ref))
+      Run.return (PackageInfo.Source.GithubSource (user, repo, ref))
     | Solution.Version.LocalPath path  ->
-      Run.return (Types.PendingSource.File (Path.toString path))
+      Run.return (PackageInfo.Source.File (Path.toString path))
     | _ -> begin
       match manifest with
       | Opam manifest ->
         Run.return(
-          Types.PendingSource.WithOpamFile (
+          PackageInfo.Source.WithOpamFile (
             OpamFile.source manifest,
             OpamFile.toPackageJson manifest version
           )

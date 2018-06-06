@@ -22,7 +22,7 @@ let cudfDep =
       owner,
       universe,
       cudfVersions,
-      {PackageJson.DependencyRequest.name, req},
+      {PackageInfo.DependencyRequest.name, req},
     ) => {
   let available = Cudf.lookup_packages(universe, name);
   let matching =
@@ -54,7 +54,7 @@ let cudfDep =
               ++ " wants "
               ++ name
               ++ " at version "
-              ++ PackageJson.DependencyRequest.reqToString(req),
+              ++ PackageInfo.DependencyRequest.reqToString(req),
             );
             available
             |> List.iter(package =>
@@ -122,8 +122,8 @@ let getPackageCached = (~state: SolveState.t, (name, versionPlus)) => {
 let getAvailableVersions = (~state: SolveState.t, req) => {
   open RunAsync.Syntax;
   let cache = state.cache;
-  switch (req.PackageJson.DependencyRequest.req) {
-  | PackageJson.DependencyRequest.Github(user, repo, ref) =>
+  switch (req.PackageInfo.DependencyRequest.req) {
+  | PackageInfo.DependencyRequest.Github(user, repo, ref) =>
     return([`Github((user, repo, ref))])
   | Npm(semver) =>
     let%bind () =
@@ -478,14 +478,14 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");
     requested
-    |> List.iter(({PackageJson.DependencyRequest.name, _}) =>
+    |> List.iter(({PackageInfo.DependencyRequest.name, _}) =>
          print_endline(name)
        );
     print_endline("Got");
     installed |> List.iter((pkg: Package.t) => print_endline(pkg.name));
     let touched = Hashtbl.create(100);
     requested
-    |> List.iter(({PackageJson.DependencyRequest.name, req}) => {
+    |> List.iter(({PackageInfo.DependencyRequest.name, req}) => {
          let versions = Hashtbl.find(versionMap, name);
          let matching =
            versions |> List.filter(real => SolveUtils.satisfies(real, req));

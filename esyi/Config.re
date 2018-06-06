@@ -7,6 +7,8 @@ type t = {
   npmRegistry: string,
 };
 
+let resolvedPrefix = "esyi5-";
+
 let make = (~npmRegistry=?, ~cachePath=?, basePath) =>
   RunAsync.Syntax.(
     {

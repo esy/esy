@@ -10,3 +10,5 @@ type t = {
 };
 
 let make : (~npmRegistry: string=?, ~cachePath: Fpath.t=?, Fpath.t) => RunAsync.t(t)
+
+let resolvedPrefix : string;

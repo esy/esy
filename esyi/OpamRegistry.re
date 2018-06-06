@@ -59,7 +59,7 @@ let getManifest =
             OpamFile.parseUrlFile(OpamParser.file(Path.toString(urlFile))),
           );
         } else {
-          return(Types.PendingSource.NoSource);
+          return(PackageInfo.Source.NoSource);
         };
       let manifest = {
         ...

@@ -61,7 +61,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; _} =
     let complete path =
 
       let resolvedString name version =
-        Types.resolvedPrefix ^ name ^ "--" ^ Solution.Version.toString version
+        Config.resolvedPrefix ^ name ^ "--" ^ Solution.Version.toString version
       in
 
       let removeEsyJsonIfExists () =
