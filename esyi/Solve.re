@@ -103,16 +103,7 @@ let solve = (~cfg, pkg: Package.t) =>
       };
 
       let%bind root = {
-        let%bind pkg = {
-          let%bind pkg =
-            RunAsync.ofRun(
-              Package.make(
-                ~version=Solution.Version.LocalPath(Path.v("./")),
-                pkg.manifest,
-              ),
-            );
-          makePkg(pkg);
-        };
+        let%bind pkg = makePkg(pkg);
         makeRootPkg(pkg, solvedDeps);
       };
 
