@@ -1,14 +1,11 @@
 module Source = struct
   type t =
-    | WithOpamFile of t * opamFile
     | Archive of string * string option
     | GitSource of string * string option
     | GithubSource of string * string * string option
     | File of string
     | NoSource
     [@@deriving yojson]
-
-  and opamFile = Json.t * (Path.t * string) list * string list
 end
 
 let startsWith value needle =
@@ -145,4 +142,9 @@ module DependenciesInfo = struct
     devDependencies: (Dependencies.t [@default Dependencies.empty]);
   }
   [@@deriving yojson { strict = false }]
+end
+
+module OpamInfo = struct
+  type t = Json.t * (Path.t * string) list * string list
+  [@@deriving yojson]
 end

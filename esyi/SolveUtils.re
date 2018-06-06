@@ -20,43 +20,23 @@ let satisfies = (realVersion, req) =>
 let rec lockDownSource = pendingSource =>
   RunAsync.Syntax.(
     switch (pendingSource) {
-    | PackageInfo.Source.NoSource =>
-      return({Solution.Source.src: NoSource, opam: None})
-    | WithOpamFile(source, opamFile) =>
-      switch%bind (lockDownSource(source)) {
-      | {Solution.Source.src, opam: None} =>
-        return({Solution.Source.src, opam: Some(opamFile)})
-      | _ => error("can't nest withOpamFiles inside each other")
-      }
+    | PackageInfo.Source.NoSource => return(Solution.Source.NoSource)
     | Archive(url, None) =>
-      return({
-        /* TODO: checksum */
-        Solution.Source.src: Solution.Source.Archive(url, "fake checksum"),
-        opam: None,
-      })
+      /* TODO: checksum */
+      return(Solution.Source.Archive(url, "fake checksum"))
     | Archive(url, Some(checksum)) =>
-      return({
-        Solution.Source.src: Solution.Source.Archive(url, checksum),
-        opam: None,
-      })
+      return(Solution.Source.Archive(url, checksum))
     | GitSource(url, ref) =>
       let ref = Option.orDefault(~default="master", ref);
       /** TODO getting HEAD */
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return({
-        Solution.Source.src: Solution.Source.GitSource(url, sha),
-        opam: None,
-      });
+      return(Solution.Source.GitSource(url, sha));
     | GithubSource(user, name, ref) =>
       let ref = Option.orDefault(~default="master", ref);
       let url = "git://github.com/" ++ user ++ "/" ++ name ++ ".git";
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return({
-        Solution.Source.src: Solution.Source.GithubSource(user, name, sha),
-        opam: None,
-      });
-    | File(s) =>
-      return({Solution.Source.src: Solution.Source.File(s), opam: None})
+      return(Solution.Source.GithubSource(user, name, sha));
+    | File(s) => return(Solution.Source.File(s))
     }
   );
 

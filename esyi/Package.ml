@@ -3,6 +3,7 @@ type t = {
   version : Solution.Version.t;
   source : PackageInfo.Source.t;
   dependencies: PackageInfo.DependenciesInfo.t;
+  opam : PackageInfo.OpamInfo.t option;
 }
 
 and manifest =
@@ -11,7 +12,7 @@ and manifest =
 
 let make ~version manifest =
   let open Run.Syntax in
-  let dependencies = 
+  let dependencies =
     match manifest with
     | Opam manifest -> OpamFile.dependencies manifest
     | PackageJson manifest -> PackageJson.dependencies manifest
@@ -24,13 +25,7 @@ let make ~version manifest =
       Run.return (PackageInfo.Source.File (Path.toString path))
     | _ -> begin
       match manifest with
-      | Opam manifest ->
-        Run.return(
-          PackageInfo.Source.WithOpamFile (
-            OpamFile.source manifest,
-            OpamFile.toPackageJson manifest version
-          )
-        )
+      | Opam manifest -> return (OpamFile.source manifest)
       | PackageJson json -> PackageJson.source json
     end
   in
@@ -39,11 +34,18 @@ let make ~version manifest =
     | Opam manifest -> OpamFile.name manifest
     | PackageJson manifest  -> PackageJson.name manifest
   in
+  let opam =
+    match manifest with
+    | Opam manifest ->
+      Some (OpamFile.toPackageJson manifest version)
+    | PackageJson _ -> None
+  in
   return {
     name;
     version;
     dependencies;
     source;
+    opam;
   }
 
 module Github = struct

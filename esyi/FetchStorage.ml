@@ -10,13 +10,11 @@ end
 
 type pkg = Package.t
 
-let fetch ~(config : Config.t) {Solution. name; version; source; _} =
+let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
   let open RunAsync.Syntax in
 
-  let {Solution.Source. src; opam} = source in
-
   let doFetch path =
-    match src with
+    match source with
     | Solution.Source.File _ ->
       let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
       failwith msg
