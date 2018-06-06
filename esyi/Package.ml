@@ -3,7 +3,6 @@ type t = {
   version : Solution.Version.t;
   source : Types.PendingSource.t;
   dependencies: PackageJson.DependenciesInfo.t;
-  manifest : manifest;
 }
 
 and manifest =
@@ -43,7 +42,6 @@ let make ~version manifest =
   return {
     name;
     version;
-    manifest;
     dependencies;
     source;
   }
