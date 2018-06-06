@@ -41,7 +41,7 @@ module JsonParseUtil = {
 module OpamSection = {
   include JsonParseUtil;
   type t = {
-    source: option(Types.PendingSource.t),
+    source: option(PackageInfo.Source.t),
     files: list((Path.t, string)) /* relpath, contents */
     /* patches: list((string, string)) relpath, abspath */
   };
@@ -58,7 +58,7 @@ module OpamSection = {
             |?>> (str |.! "url should be a string")
             |?>> (
               url =>
-                Types.PendingSource.Archive(
+                PackageInfo.Source.Archive(
                   url,
                   items
                   |> get("checksum")
@@ -71,7 +71,7 @@ module OpamSection = {
             |?>> (str |.! "git should be a string")
             |?>> (
               git =>
-                Types.PendingSource.GitSource(
+                PackageInfo.Source.GitSource(
                   git,
                   None /* TODO parse out commit if there */
                 )
@@ -125,9 +125,9 @@ module Override = {
     build: [@default None] option(CommandList.t),
     install: [@default None] option(CommandList.t),
     dependencies:
-      [@default PackageJson.Dependencies.empty] PackageJson.Dependencies.t,
+      [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
     peerDependencies:
-      [@default PackageJson.Dependencies.empty] PackageJson.Dependencies.t,
+      [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
     exportedEnv:
       [@default PackageJson.ExportedEnv.empty] PackageJson.ExportedEnv.t,
     opam: [@default None] option(OpamSection.t),
@@ -246,12 +246,12 @@ let applyOverride = (manifest: OpamFile.manifest, override: Override.t) => {
     install:
       Option.orDefault(~default=manifest.install, override.Override.install),
     dependencies:
-      PackageJson.Dependencies.merge(
+      PackageInfo.Dependencies.merge(
         manifest.dependencies,
         override.Override.dependencies,
       ),
     peerDependencies:
-      PackageJson.Dependencies.merge(
+      PackageInfo.Dependencies.merge(
         manifest.peerDependencies,
         override.Override.peerDependencies,
       ),

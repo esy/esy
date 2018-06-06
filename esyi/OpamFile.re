@@ -10,14 +10,14 @@ type manifest = {
   install: list(list(string)),
   patches: list(string), /* these should be absolute */
   files: list((Path.t, string)), /* relname, sourcetext */
-  dependencies: PackageJson.Dependencies.t,
-  buildDependencies: PackageJson.Dependencies.t,
-  devDependencies: PackageJson.Dependencies.t,
-  peerDependencies: PackageJson.Dependencies.t,
-  optDependencies: PackageJson.Dependencies.t,
+  dependencies: PackageInfo.Dependencies.t,
+  buildDependencies: PackageInfo.Dependencies.t,
+  devDependencies: PackageInfo.Dependencies.t,
+  peerDependencies: PackageInfo.Dependencies.t,
+  optDependencies: PackageInfo.Dependencies.t,
   available: bool,
   /* TODO optDependencies (depopts) */
-  source: Types.PendingSource.t,
+  source: PackageInfo.Source.t,
   exportedEnv: PackageJson.ExportedEnv.t,
 };
 
@@ -432,10 +432,7 @@ let parseUrlFile = ({file_contents, file_name}) =>
   | None =>
     switch (findVariable("git", file_contents)) {
     | Some(String(_, git)) =>
-      Types.PendingSource.GitSource(
-        git,
-        None /* TODO parse out commit info */,
-      )
+      PackageInfo.Source.GitSource(git, None /* TODO parse out commit info */)
     | _ => failwith("Invalid url file - no archive: " ++ file_name)
     }
   | Some(archive) =>
@@ -444,12 +441,12 @@ let parseUrlFile = ({file_contents, file_name}) =>
       | Some(String(_, checksum)) => Some(checksum)
       | _ => None
       };
-    Types.PendingSource.Archive(archive, checksum);
+    PackageInfo.Source.Archive(archive, checksum);
   };
 
 let toDepSource = ((name, semver)) => {
-  PackageJson.DependencyRequest.name,
-  req: PackageJson.DependencyRequest.Opam(semver),
+  PackageInfo.DependencyRequest.name,
+  req: PackageInfo.DependencyRequest.Opam(semver),
 };
 
 let getOpamFiles = (path: Path.t) => {
@@ -518,7 +515,7 @@ let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
   };
 
   let (ocamlDep, substDep, esyInstallerDep) = {
-    open PackageJson.DependencyRequest;
+    open PackageInfo.DependencyRequest;
     let ocamlDep = {
       name: "ocaml",
       req:
@@ -557,12 +554,12 @@ let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
       [ocamlDep, substDep, esyInstallerDep]
       @ (deps |> List.map(toDepSource))
       @ (buildDeps |> List.map(toDepSource)),
-    buildDependencies: PackageJson.Dependencies.empty,
+    buildDependencies: PackageInfo.Dependencies.empty,
     devDependencies: devDeps |> List.map(toDepSource),
     peerDependencies: [], /* TODO peer deps */
     optDependencies: depopts |> List.map(toDepSource),
     available: isAvailable, /* TODO */
-    source: Types.PendingSource.NoSource,
+    source: PackageInfo.Source.NoSource,
     exportedEnv: [],
   };
 };
@@ -615,7 +612,7 @@ let toPackageJson = (manifest, version) => {
       (
         "_resolved",
         `String(
-          Types.resolvedPrefix
+          Config.resolvedPrefix
           ++ name
           ++ "--"
           ++ Solution.Version.toString(version),
@@ -631,7 +628,7 @@ let toPackageJson = (manifest, version) => {
         "optDependencies",
         `Assoc(
           manifest.optDependencies
-          |> List.map(({PackageJson.DependencyRequest.name, _}) =>
+          |> List.map(({PackageInfo.DependencyRequest.name, _}) =>
                (name, `String("*"))
              ),
         ),
@@ -641,13 +638,13 @@ let toPackageJson = (manifest, version) => {
         `Assoc(
           (
             manifest.dependencies
-            |> List.map(({PackageJson.DependencyRequest.name, _}) =>
+            |> List.map(({PackageInfo.DependencyRequest.name, _}) =>
                  (name, `String("*"))
                )
           )
           @ (
             manifest.buildDependencies
-            |> List.map(({PackageJson.DependencyRequest.name, _}) =>
+            |> List.map(({PackageInfo.DependencyRequest.name, _}) =>
                  (name, `String("*"))
                )
           ),
@@ -663,7 +660,7 @@ let name = manifest => manifest.name;
 let version = manifest => manifest.version;
 
 let dependencies = manifest => {
-  PackageJson.DependenciesInfo.devDependencies: manifest.devDependencies,
+  PackageInfo.DependenciesInfo.devDependencies: manifest.devDependencies,
   buildDependencies: manifest.buildDependencies,
   dependencies: manifest.dependencies,
 };
