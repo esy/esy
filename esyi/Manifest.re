@@ -19,7 +19,7 @@ let source = (manifest, name, version) =>
     | Opam(opam) =>
       Run.return(
         Types.PendingSource.WithOpamFile(
-          OpamFile.getSource(opam),
+          OpamFile.source(opam),
           OpamFile.toPackageJson(opam, name, version),
         ),
       )
