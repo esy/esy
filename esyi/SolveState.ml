@@ -4,11 +4,7 @@ module Cache = struct
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
     versions: VersionCache.t;
-    manifests:
-      (
-        (string * Solution.Version.t),
-        (Manifest.t * PackageJson.DependenciesInfo.t)
-      ) Hashtbl.t;
+    manifests: ( (string * Solution.Version.t), Package.t) Hashtbl.t;
   }
 
   let make ~cfg () =

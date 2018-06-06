@@ -4,12 +4,10 @@ let unsatisfied = (map, {PackageJson.DependencyRequest.name, req}) =>
   | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
   };
 
-let justDepsn = ((_, _, deps)) => deps;
-
 let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
-    |> List.map(justDepsn)
+    |> List.map(pkg => pkg.Package.dependencies)
     |> List.map(deps => deps.PackageJson.DependenciesInfo.buildDependencies)
     |> List.concat;
   /* let allTransitiveBuildDeps = allNeededBuildDeps @ (
@@ -30,41 +28,40 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
           ~deep=false,
         );
       solved
-      |> List.map(((version, manifest, deps)) => {
-           let name = Manifest.name(manifest);
-           if (! Hashtbl.mem(versionMap, (name, version))) {
+      |> List.map((pkg: Package.t) =>
+           if (! Hashtbl.mem(versionMap, (pkg.name, pkg.version))) {
              Hashtbl.replace(
                nameToVersions,
-               name,
+               pkg.name,
                [
-                 version,
-                 ...Hashtbl.mem(nameToVersions, name) ?
-                      Hashtbl.find(nameToVersions, name) : [],
+                 pkg.version,
+                 ...Hashtbl.mem(nameToVersions, pkg.name) ?
+                      Hashtbl.find(nameToVersions, pkg.name) : [],
                ],
              );
              let solvedDeps =
                SolveDeps.solve(
                  ~cfg,
                  ~cache,
-                 ~requested=deps.PackageJson.DependenciesInfo.dependencies,
+                 ~requested=pkg.dependencies.dependencies,
                );
              Hashtbl.replace(
                versionMap,
-               (name, version),
-               (manifest, deps, solvedDeps),
+               (pkg.name, pkg.version),
+               (pkg, solvedDeps),
              );
              let childBuilds =
                solvedDeps
-               |> List.map(justDepsn)
+               |> List.map(pkg => pkg.Package.dependencies)
                |> List.map(deps =>
                     deps.PackageJson.DependenciesInfo.buildDependencies
                   )
                |> List.concat;
-             childBuilds @ deps.PackageJson.DependenciesInfo.buildDependencies;
+             childBuilds @ pkg.dependencies.buildDependencies;
            } else {
              [];
-           };
-         })
+           }
+         )
       |> List.concat
       |> (buildDeps => loop(buildDeps));
     };
@@ -73,56 +70,60 @@ let settleBuildDeps = (~cfg, cache, solvedDeps, requestedBuildDeps) => {
   (versionMap, nameToVersions);
 };
 
-let solve = (~cfg, manifest) =>
+let solve = (~cfg, pkg: Package.t) =>
   RunAsync.Syntax.(
     {
       let%bind () = SolveUtils.checkRepositories(cfg);
       let cache = SolveState.Cache.make(~cfg, ());
-      let depsByKind = Manifest.dependencies(manifest);
       let solvedDeps =
-        SolveDeps.solve(~cfg, ~cache, ~requested=depsByKind.dependencies);
+        SolveDeps.solve(
+          ~cfg,
+          ~cache,
+          ~requested=pkg.dependencies.dependencies,
+        );
       let (buildVersionMap, _buildToVersions) =
         settleBuildDeps(
           ~cfg,
           cache,
           solvedDeps,
-          depsByKind.buildDependencies,
+          pkg.dependencies.buildDependencies,
         );
 
-      let makePkg = (manifest, version) => {
-        let name = Manifest.name(manifest);
-        let%bind source = RunAsync.ofRun(Manifest.source(manifest, version));
-        let%bind source = SolveUtils.lockDownSource(source);
-        return({Solution.name, version, source});
+      let makePkg = (pkg: Package.t) => {
+        let%bind source = SolveUtils.lockDownSource(pkg.source);
+        return({Solution.name: pkg.name, version: pkg.version, source});
       };
 
       let makeRootPkg = (pkg, deps) => {
         let%bind bag =
           deps
-          |> List.map(((version, manifest, _deps)) =>
-               makePkg(manifest, version)
-             )
+          |> List.map((pkg: Package.t) => makePkg(pkg))
           |> RunAsync.List.joinAll;
         return({Solution.pkg, bag});
       };
 
       let%bind root = {
-        let%bind pkg =
-          makePkg(manifest, Solution.Version.LocalPath(Path.v("./")));
+        let%bind pkg = {
+          let%bind pkg =
+            RunAsync.ofRun(
+              Package.make(
+                ~version=Solution.Version.LocalPath(Path.v("./")),
+                pkg.manifest,
+              ),
+            );
+          makePkg(pkg);
+        };
         makeRootPkg(pkg, solvedDeps);
       };
 
       let%bind buildDependencies =
         Hashtbl.fold(
-          ((_name, version), (manifest, _deps, solvedDeps), result) => [
-            (manifest, version, solvedDeps),
-            ...result,
-          ],
+          (_key, (pkg, deps), result) => [(pkg, deps), ...result],
           buildVersionMap,
           [],
         )
-        |> List.map(((manifest, version, deps)) => {
-             let%bind pkg = makePkg(manifest, version);
+        |> List.map(((pkg, deps)) => {
+             let%bind pkg = makePkg(pkg);
              makeRootPkg(pkg, deps);
            })
         |> RunAsync.List.joinAll;

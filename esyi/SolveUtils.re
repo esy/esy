@@ -95,19 +95,19 @@ let getCachedManifest = (opamOverrides, cache, (name, versionPlus)) => {
     let%bind manifest =
       switch (versionPlus) {
       | `Github(user, repo, ref) =>
-        Manifest.Github.getManifest(user, repo, ref)
+        Package.Github.getManifest(user, repo, ref)
       /* Registry.getGithubManifest(url) */
-      | `Npm(_version, json, _) => return(Manifest.PackageJson(json))
+      | `Npm(_version, json, _) => return(Package.PackageJson(json))
       | `LocalPath(_p) =>
         error("do not know how to get manifest from LocalPath")
       | `Opam(_version, path, _) =>
         let%bind manifest = OpamRegistry.getManifest(opamOverrides, path);
-        return(Manifest.Opam(manifest));
+        return(Package.Opam(manifest));
       };
-    let depsByKind = Manifest.dependencies(manifest);
-    let res = (manifest, depsByKind);
-    Hashtbl.replace(cache, (name, realVersion), res);
-    return(res);
+    let%bind pkg =
+      RunAsync.ofRun(Package.make(~version=realVersion, manifest));
+    Hashtbl.replace(cache, (name, realVersion), pkg);
+    return(pkg);
   | x => return(x)
   };
 };

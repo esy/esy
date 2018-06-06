@@ -233,7 +233,7 @@ module ExportedEnv = {
 [@deriving of_yojson({strict: false})]
 type t = {
   name: string,
-  version: Version.t,
+  version: string,
   dependencies: [@default Dependencies.empty] Dependencies.t,
   devDependencies: [@default Dependencies.empty] Dependencies.t,
   peerDependencies: [@default Dependencies.empty] Dependencies.t,
@@ -246,13 +246,20 @@ and dist = {
 };
 
 let name = manifest => manifest.name;
-let version = manifest => manifest.version;
+let version = manifest => Version.parseExn(manifest.version);
 
 let source = manifest =>
   switch (manifest.dist) {
   | Some(dist) =>
     Run.return(Types.PendingSource.Archive(dist.tarball, Some(dist.shasum)))
-  | None => Run.error("no dist")
+  | None =>
+    let msg =
+      Printf.sprintf(
+        "source cannot be found for %s@%s",
+        manifest.name,
+        manifest.version,
+      );
+    Run.error(msg);
   };
 
 let dependencies = (manifest: t) => {
