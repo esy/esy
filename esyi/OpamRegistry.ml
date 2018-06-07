@@ -10,7 +10,7 @@ end)
 
 
 type t = {
-  checkoutPath : Path.t;
+  repoPath : Path.t;
   overrides : OpamOverrides.t;
   pathsCache : OpamPathsByVersion.t;
   
@@ -18,13 +18,17 @@ type t = {
 
 let init ~cfg () =
   let open RunAsync.Syntax in
-  let%bind () = Git.ShallowClone.update
-    ~branch:"master"
-    ~dst:cfg.Config.opamRepositoryCheckoutPath
-    "https://github.com/ocaml/opam-repository"
+  let%bind repoPath = 
+    match cfg.Config.opamRepository with
+    | Config.Local local -> return local
+    | Config.Remote (remote, local) ->
+      let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
+      return local
+
   and overrides = OpamOverrides.init ~cfg () in
+
   return {
-    checkoutPath = cfg.Config.opamRepositoryCheckoutPath;
+    repoPath;
     pathsCache = OpamPathsByVersion.make ();
     overrides;
   }
@@ -41,7 +45,7 @@ let getVersionIndex registry ~(name : PackageName.t) =
   let f name =
     let open RunAsync.Syntax in
     let path = Path.(
-      registry.checkoutPath
+      registry.repoPath
       / "packages"
       / PackageName.toString name
     ) in

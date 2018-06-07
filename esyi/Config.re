@@ -2,19 +2,34 @@ type t = {
   basePath: Path.t,
   lockfilePath: Path.t,
   tarballCachePath: Path.t,
-  esyOpamOverrideCheckoutPath: Path.t,
-  opamRepositoryCheckoutPath: Path.t,
+  esyOpamOverride: checkout,
+  opamRepository: checkout,
   npmRegistry: string,
-};
+}
+and checkout =
+  | Local(Path.t)
+  | Remote(string, Path.t)
+and checkoutCfg = [
+  | `Local(Path.t)
+  | `Remote(string)
+  | `RemoteLocal(string, Path.t)
+];
 
 let resolvedPrefix = "esyi5-";
+
+let configureCheckout = (~defaultRemote, ~defaultLocal) =>
+  fun
+  | Some(`RemoteLocal(remote, local)) => Remote(remote, local)
+  | Some(`Remote(remote)) => Remote(remote, defaultLocal)
+  | Some(`Local(local)) => Local(local)
+  | None => Remote(defaultRemote, defaultLocal);
 
 let make =
     (
       ~npmRegistry=?,
       ~cachePath=?,
-      ~opamRepositoryCheckoutPath=?,
-      ~esyOpamOverrideCheckoutPath=?,
+      ~opamRepository=?,
+      ~esyOpamOverride=?,
       basePath,
     ) =>
   RunAsync.Syntax.(
@@ -34,19 +49,17 @@ let make =
       let tarballCachePath = Path.(cachePath / "tarballs");
       let%bind () = Fs.createDir(tarballCachePath);
 
-      /* Those two shouldn't be created here as code in ensureGitRepo relies on
-       * their existence to perform either clone or update, consider refactoring it.
-       */
-      let opamRepositoryCheckoutPath =
-        switch (opamRepositoryCheckoutPath) {
-        | Some(opamRepositoryCheckoutPath) => opamRepositoryCheckoutPath
-        | None => Path.(cachePath / "opam-repository")
-        };
-      let esyOpamOverrideCheckoutPath =
-        switch (esyOpamOverrideCheckoutPath) {
-        | Some(esyOpamOverrideCheckoutPath) => esyOpamOverrideCheckoutPath
-        | None => Path.(cachePath / "esy-opam-override")
-        };
+      let opamRepository = {
+        let defaultRemote = "https://github.com/ocaml/opam-repository";
+        let defaultLocal = Path.(cachePath / "opam-repository");
+        configureCheckout(~defaultLocal, ~defaultRemote, opamRepository);
+      };
+
+      let esyOpamOverride = {
+        let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
+        let defaultLocal = Path.(cachePath / "esy-opam-override");
+        configureCheckout(~defaultLocal, ~defaultRemote, esyOpamOverride);
+      };
 
       let npmRegistry =
         Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
@@ -55,8 +68,8 @@ let make =
         basePath,
         lockfilePath: Path.(basePath / "esyi.lock.json"),
         tarballCachePath,
-        opamRepositoryCheckoutPath,
-        esyOpamOverrideCheckoutPath,
+        opamRepository,
+        esyOpamOverride,
         npmRegistry,
       });
     }
