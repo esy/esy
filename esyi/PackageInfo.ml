@@ -153,10 +153,6 @@ module Req = struct
     `String (toString req)
 
   let make ~name ~spec =
-    print_endline "making req";
-    print_endline ("      name: " ^ name);
-    print_endline ("      spec: " ^ spec);
-
     let parseGitHubSpec text =
       let parts = Str.split (Str.regexp_string "/") text in
       match parts with
@@ -195,9 +191,6 @@ module Req = struct
         in {name; spec;}
 
   let ofSpec ~name ~spec =
-    print_endline "making req";
-    print_endline ("      name: " ^ name);
-    print_endline ("      spec: " ^ VersionSpec.toString spec);
     {name; spec}
 
   let name req = req.name
