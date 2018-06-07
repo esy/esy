@@ -64,7 +64,7 @@ module Api = {
           (name, version),
           OpamParser.file(Path.toString(path)),
         );
-      OpamFile.{...manifest, source: PackageInfo.SourceSpec.NoSource};
+      OpamFile.{...manifest, source: PackageInfo.Source.NoSource};
     };
     let (packageJson, _, _) =
       OpamFile.toPackageJson(manifest, PackageInfo.Version.Opam(version));

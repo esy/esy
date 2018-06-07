@@ -90,9 +90,7 @@ let version = manifest => Version.parseExn(manifest.version);
 let source = manifest =>
   switch (manifest.dist) {
   | Some(dist) =>
-    Run.return(
-      PackageInfo.SourceSpec.Archive(dist.tarball, Some(dist.shasum)),
-    )
+    Run.return(PackageInfo.Source.Archive(dist.tarball, dist.shasum))
   | None =>
     let msg =
       Printf.sprintf(

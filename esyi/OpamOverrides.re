@@ -1,108 +1,22 @@
 type t = list((OpamFile.PackageName.t, OpamFile.Formula.t, Fpath.t));
 
-module Infix = {
-  let (|?>>) = (a, b) =>
-    switch (a) {
-    | None => None
-    | Some(x) => Some(b(x))
-    };
-  let (|?>) = (a, b) =>
-    switch (a) {
-    | None => None
-    | Some(x) => b(x)
-    };
-  let (|!) = (a, b) =>
-    switch (a) {
-    | None => failwith(b)
-    | Some(a) => a
-    };
-};
-
-open Infix;
-
-module JsonParseUtil = {
-  let arr = json =>
-    switch (json) {
-    | `List(items) => Some(items)
-    | _ => None
-    };
-  let obj = json =>
-    switch (json) {
-    | `Assoc(items) => Some(items)
-    | _ => None
-    };
-  let str = json =>
-    switch (json) {
-    | `String(str) => Some(str)
-    | _ => None
-    };
-  let get = List.assoc_opt;
-  let (|.!) = (fn, message, opt) => fn(opt) |! message;
-};
-
-module OpamSection = {
-  include JsonParseUtil;
+module Opam = {
+  [@deriving of_yojson]
   type t = {
-    source: option(PackageInfo.SourceSpec.t),
-    files: list((Path.t, string)) /* relpath, contents */
-    /* patches: list((string, string)) relpath, abspath */
+    source: [@default None] option(source),
+    files,
+  }
+  and source = {
+    url: string,
+    checksum: string,
+  }
+  and files = list(file)
+  and file = {
+    name: Path.t,
+    content: string,
   };
 
-  let of_yojson = (json: Json.t) =>
-    Ok(
-      json
-      |> (obj |.! "opam should be an object")
-      |> (
-        items => {
-          let maybeArchiveSource =
-            items
-            |> get("url")
-            |?>> (str |.! "url should be a string")
-            |?>> (
-              url =>
-                PackageInfo.SourceSpec.Archive(
-                  url,
-                  items
-                  |> get("checksum")
-                  |?>> (str |.! "checksum should be a string"),
-                )
-            );
-          let maybeGitSource =
-            items
-            |> get("git")
-            |?>> (str |.! "git should be a string")
-            |?>> (
-              git =>
-                PackageInfo.SourceSpec.Git(
-                  git,
-                  None /* TODO parse out commit if there */
-                )
-            );
-          {
-            source: Option.orOther(~other=maybeGitSource, maybeArchiveSource),
-            files:
-              Option.orDefault(
-                ~default=[],
-                items |> get("files") |?>> (arr |.! "files must be an array"),
-              )
-              |> List.map(obj |.! "files item must be an obj")
-              |> List.map(items =>
-                   (
-                     items
-                     |> get("name")
-                     |?>> (str |.! "name must be a str")
-                     |?>> Path.v
-                     |! "name required for files",
-                     items
-                     |> get("content")
-                     |?>> (str |.! "content must be a str")
-                     |! "content required for files",
-                   )
-                 ),
-          };
-        }
-      ),
-    );
+  let empty = {source: None, files: []};
 };
 
 module Command = {
@@ -116,23 +30,18 @@ module Command = {
     };
 };
 
-module CommandList = {
-  [@deriving of_yojson]
-  type t = list(Command.t);
-};
-
 module Override = {
   [@deriving of_yojson]
   type t = {
-    build: [@default None] option(CommandList.t),
-    install: [@default None] option(CommandList.t),
+    build: [@default None] option(list(Command.t)),
+    install: [@default None] option(list(Command.t)),
     dependencies:
       [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
     peerDependencies:
       [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
     exportedEnv:
       [@default PackageJson.ExportedEnv.empty] PackageJson.ExportedEnv.t,
-    opam: [@default None] option(OpamSection.t),
+    opam: [@default Opam.empty] Opam.t,
   };
 };
 
@@ -234,10 +143,14 @@ let findApplicableOverride =
 
 let applyOverride = (manifest: OpamFile.manifest, override: Override.t) => {
   let source =
-    Option.orDefault(
-      ~default=manifest.source,
-      override.Override.opam |?> (opam => opam.OpamSection.source),
-    );
+    switch (override.opam.Opam.source) {
+    | Some(source) => PackageInfo.Source.Archive(source.url, source.checksum)
+    | None => manifest.source
+    };
+
+  let files =
+    manifest.files
+    @ List.map(f => Opam.(f.name, f.content), override.opam.files);
   {
     ...manifest,
     build: Option.orDefault(~default=manifest.build, override.Override.build),
@@ -253,12 +166,7 @@ let applyOverride = (manifest: OpamFile.manifest, override: Override.t) => {
         manifest.peerDependencies,
         override.Override.peerDependencies,
       ),
-    files:
-      manifest.files
-      @ Option.orDefault(
-          ~default=[],
-          override.Override.opam |?>> (o => o.OpamSection.files),
-        ),
+    files,
     source,
     exportedEnv: override.Override.exportedEnv,
   };
