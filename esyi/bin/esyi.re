@@ -93,6 +93,26 @@ module CommandLineInterface = {
   let setupLogTerm =
     Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
 
+  let opamRepositoryCheckoutPathArg = {
+    let doc = "Specifies path to a local opam repository checkout.";
+    let env = Arg.env_var("ESYI__OPAM_REPOSITORY_CHECKOUT", ~doc);
+    Arg.(
+      value
+      & opt(some(Cli.pathConv), None)
+      & info(["opam-repository-checkout"], ~env, ~docs, ~doc)
+    );
+  };
+
+  let esyOpamOverrideCheckoutPathArg = {
+    let doc = "Specifies path to a local opam repository checkout.";
+    let env = Arg.env_var("ESYI__ESY_OPAM_OVERRIDE_CHECKOUT", ~doc);
+    Arg.(
+      value
+      & opt(some(Cli.pathConv), None)
+      & info(["esy-opam-override-checkout"], ~env, ~docs, ~doc)
+    );
+  };
+
   let sandboxPathArg = {
     let doc = "Specifies esy sandbox path.";
     let env = Arg.env_var("ESYI__SANDBOX", ~doc);
@@ -124,18 +144,34 @@ module CommandLineInterface = {
   };
 
   let cfgTerm = {
-    let parse = (cachePath, sandboxPath, npmRegistry, ()) => {
+    let parse =
+        (
+          cachePath,
+          sandboxPath,
+          opamRepositoryCheckoutPath,
+          esyOpamOverrideCheckoutPath,
+          npmRegistry,
+          (),
+        ) => {
       let sandboxPath =
         switch (sandboxPath) {
         | Some(sandboxPath) => sandboxPath
         | None => cwd
         };
-      Config.make(~cachePath?, ~npmRegistry?, sandboxPath);
+      Config.make(
+        ~cachePath?,
+        ~npmRegistry?,
+        ~opamRepositoryCheckoutPath?,
+        ~esyOpamOverrideCheckoutPath?,
+        sandboxPath,
+      );
     };
     Term.(
       const(parse)
       $ cachePathArg
       $ sandboxPathArg
+      $ opamRepositoryCheckoutPathArg
+      $ esyOpamOverrideCheckoutPathArg
       $ npmRegistryArg
       $ setupLogTerm
     );

@@ -15,7 +15,7 @@ module Cache = struct
   end)
 
   type t = {
-    opamOverrides: OpamOverrides.t;
+    opamRegistry: OpamRegistry.t;
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
 
@@ -25,14 +25,12 @@ module Cache = struct
   }
 
   let make ~cfg () =
-    let opamOverrides =
-      OpamOverrides.getOverrides(cfg.Config.esyOpamOverridePath)
-      |> RunAsync.runExn ~err:"unable to read opam overrides"
-    in
-    {
+    let open RunAsync.Syntax in
+    let%bind opamRegistry = OpamRegistry.init ~cfg () in
+    return {
       availableNpmVersions = NpmPackages.make ();
       availableOpamVersions = OpamPackages.make ();
-      opamOverrides;
+      opamRegistry;
       npmPackages = Hashtbl.create(100);
       opamPackages = Hashtbl.create(100);
       pkgs = Packages.make ();
@@ -51,6 +49,6 @@ let make ?cache ~cfg () =
   let%bind cache =
     match cache with
     | Some cache -> return cache
-    | None -> return (Cache.make ~cfg ())
+    | None -> Cache.make ~cfg ()
   in
   return {cfg; cache; cudfVersions = CudfVersions.init ()}

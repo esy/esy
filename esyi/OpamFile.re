@@ -12,6 +12,9 @@ module PackageName: {
 
   let toString: t => string;
   let ofString: string => t;
+
+  let compare: (t, t) => int;
+  let equal: (t, t) => bool;
 } = {
   module String = Astring.String;
 
@@ -34,6 +37,9 @@ module PackageName: {
     | Ok(name) => name
     | Error(err) => raise(Invalid_argument(err))
     };
+
+  let compare = String.compare;
+  let equal = String.equal;
 };
 
 type manifest = {

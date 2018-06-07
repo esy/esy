@@ -1,6 +1,63 @@
-open SolveUtils;
 module Cache = SolveState.Cache;
+module Source = PackageInfo.Source;
+module Version = PackageInfo.Version;
+module SourceSpec = PackageInfo.SourceSpec;
+module VersionSpec = PackageInfo.VersionSpec;
 module Req = PackageInfo.Req;
+
+let satisfies = (realVersion, req) =>
+  switch (req, realVersion) {
+  | (
+      VersionSpec.Source(SourceSpec.Github(user, repo, Some(ref))),
+      Version.Source(Source.Github(user_, repo_, ref_)),
+    )
+      when user == user_ && repo == repo_ && ref == ref_ =>
+    true
+  | (VersionSpec.Npm(semver), Version.Npm(s))
+      when NpmVersion.Formula.matches(semver, s) =>
+    true
+  | (VersionSpec.Opam(semver), Version.Opam(s))
+      when OpamVersion.Formula.matches(semver, s) =>
+    true
+  | (
+      VersionSpec.Source(SourceSpec.LocalPath(p1)),
+      Version.Source(Source.LocalPath(p2)),
+    )
+      when Path.equal(p1, p2) =>
+    true
+  | _ => false
+  };
+
+let matchesSource = (req, cudfVersions, package) =>
+  satisfies(CudfVersions.getRealVersion(cudfVersions, package), req);
+
+let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
+  let root = {
+    ...Cudf.default_package,
+    package: rootName,
+    version: 1,
+    depends: deps,
+  };
+  Cudf.add_package(universe, root);
+  let request = {
+    ...Cudf.default_request,
+    install: [(root.Cudf.package, Some((`Eq, root.Cudf.version)))],
+  };
+  let preamble = Cudf.default_preamble;
+  let solution =
+    Mccs.resolve_cudf(
+      ~verbose=false,
+      ~timeout=5.,
+      strategy,
+      (preamble, universe, request),
+    );
+  switch (solution) {
+  | None => None
+  | Some((_preamble, universe)) =>
+    let packages = Cudf.get_packages(~filter=p => p.Cudf.installed, universe);
+    Some(packages);
+  };
+};
 
 /**
  *
@@ -23,8 +80,7 @@ let cudfDep = (owner, universe, cudfVersions, req) => {
   let name = Req.name(req);
   let spec = Req.spec(req);
   let available = Cudf.lookup_packages(universe, name);
-  let matching =
-    available |> List.filter(CudfVersions.matchesSource(spec, cudfVersions));
+  let matching = available |> List.filter(matchesSource(spec, cudfVersions));
   let final =
     (
       if (matching == []) {
@@ -33,10 +89,7 @@ let cudfDep = (owner, universe, cudfVersions, req) => {
           | Opam(opamVersionRange) =>
             available
             |> List.filter(
-                 CudfVersions.matchesSource(
-                   Opam(opamVersionRange),
-                   cudfVersions,
-                 ),
+                 matchesSource(Opam(opamVersionRange), cudfVersions),
                )
           | _ => []
           };
@@ -105,12 +158,7 @@ let getPackageCached =
         | Version.Opam(version) =>
           let name = OpamFile.PackageName.ofNpmExn(name);
           switch%bind (
-            OpamRegistry.version(
-              ~cfg=state.cfg,
-              ~opamOverrides=state.cache.opamOverrides,
-              name,
-              version,
-            )
+            OpamRegistry.version(state.cache.opamRegistry, ~name, ~version)
           ) {
           | Some(manifest) => return(Package.Opam(manifest))
           | None =>
@@ -175,7 +223,8 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
         name,
         name => {
           let%bind name = RunAsync.ofRun(OpamFile.PackageName.ofNpm(name));
-          let%bind info = OpamRegistry.versions(~cfg=state.cfg, name);
+          let%bind info =
+            OpamRegistry.versions(state.cache.opamRegistry, ~name);
           return(info);
         },
       );
@@ -498,8 +547,7 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
     |> List.iter(req => {
          let versions = Hashtbl.find(versionMap, Req.name(req));
          let matching =
-           versions
-           |> List.filter(real => SolveUtils.satisfies(real, Req.spec(req)));
+           versions |> List.filter(real => satisfies(real, Req.spec(req)));
          switch (matching) {
          | [] =>
            failwith(

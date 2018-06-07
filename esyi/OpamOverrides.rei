@@ -2,10 +2,10 @@ type t
 
 type override
 
-let getOverrides : Fpath.t => RunAsync.t(t);
+let init : (~cfg: Config.t, unit) => RunAsync.t(t);
 
-let findApplicableOverride :
+let get :
   (t, OpamFile.PackageName.t, OpamVersion.Version.t)
   => RunAsync.t(option(override))
 
-let applyOverride : (OpamFile.manifest, override) => OpamFile.manifest;
+let apply : (OpamFile.manifest, override) => OpamFile.manifest;

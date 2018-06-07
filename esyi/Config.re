@@ -2,14 +2,21 @@ type t = {
   basePath: Path.t,
   lockfilePath: Path.t,
   tarballCachePath: Path.t,
-  esyOpamOverridePath: Path.t,
-  opamRepositoryPath: Path.t,
+  esyOpamOverrideCheckoutPath: Path.t,
+  opamRepositoryCheckoutPath: Path.t,
   npmRegistry: string,
 };
 
 let resolvedPrefix = "esyi5-";
 
-let make = (~npmRegistry=?, ~cachePath=?, basePath) =>
+let make =
+    (
+      ~npmRegistry=?,
+      ~cachePath=?,
+      ~opamRepositoryCheckoutPath=?,
+      ~esyOpamOverrideCheckoutPath=?,
+      basePath,
+    ) =>
   RunAsync.Syntax.(
     {
       let%bind cachePath =
@@ -30,8 +37,16 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) =>
       /* Those two shouldn't be created here as code in ensureGitRepo relies on
        * their existence to perform either clone or update, consider refactoring it.
        */
-      let opamRepositoryPath = Path.(cachePath / "opam-repository");
-      let esyOpamOverridePath = Path.(cachePath / "esy-opam-override");
+      let opamRepositoryCheckoutPath =
+        switch (opamRepositoryCheckoutPath) {
+        | Some(opamRepositoryCheckoutPath) => opamRepositoryCheckoutPath
+        | None => Path.(cachePath / "opam-repository")
+        };
+      let esyOpamOverrideCheckoutPath =
+        switch (esyOpamOverrideCheckoutPath) {
+        | Some(esyOpamOverrideCheckoutPath) => esyOpamOverrideCheckoutPath
+        | None => Path.(cachePath / "esy-opam-override")
+        };
 
       let npmRegistry =
         Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
@@ -40,8 +55,8 @@ let make = (~npmRegistry=?, ~cachePath=?, basePath) =>
         basePath,
         lockfilePath: Path.(basePath / "esyi.lock.json"),
         tarballCachePath,
-        opamRepositoryPath,
-        esyOpamOverridePath,
+        opamRepositoryCheckoutPath,
+        esyOpamOverrideCheckoutPath,
         npmRegistry,
       });
     }
