@@ -1,7 +1,12 @@
-let unsatisfied = (map, {PackageInfo.DependencyRequest.name, req}) =>
-  switch (Hashtbl.find(map, name)) {
+let unsatisfied = (map, req) =>
+  switch (Hashtbl.find(map, PackageInfo.Req.name(req))) {
   | exception Not_found => true
-  | versions => ! List.exists(v => SolveUtils.satisfies(v, req), versions)
+  | versions =>
+    !
+      List.exists(
+        v => SolveUtils.satisfies(v, PackageInfo.Req.spec(req)),
+        versions,
+      )
   };
 
 let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {

@@ -1,6 +1,6 @@
 module Cache = struct
   module Packages = Memoize.Make(struct
-    type key = (string * Solution.Version.t)
+    type key = (string * PackageInfo.Version.t)
     type value = Package.t RunAsync.t
   end)
 
