@@ -52,17 +52,25 @@ let lsRemote ?ref ~remote () =
     return (line |> String.split_on_char '\t' |> List.hd)
 
 module ShallowClone = struct
+
   let update ~branch ~dst source =
     let open RunAsync.Syntax in
     if%bind Fs.exists dst then
-      let branchSpec = branch ^ ":" ^ branch in
-      pull
-        ~branchSpec
-        ~depth:1
-        ~force:true
-        ~remote:source
-        ~repo:dst
-        ()
+
+      let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
+      and localCommit = lsRemote ~ref:branch ~remote:source () in
+
+      if remoteCommit = localCommit
+      then return ()
+      else
+        let branchSpec = branch ^ ":" ^ branch in
+        pull
+          ~branchSpec
+          ~depth:1
+          ~force:true
+          ~remote:source
+          ~repo:dst
+          ()
     else
       let%bind () = Fs.createDir (Path.parent dst) in
       clone ~branch ~depth:1 ~remote:source ~dst ()
