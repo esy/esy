@@ -34,6 +34,26 @@ module Parse = struct
       end
     | _ -> Error "expected object"
 
+  let fieldOpt ~name (json : t) =
+    match json with
+    | `Assoc items ->
+      begin match List.find_opt (fun (k, _v) -> k = name) items with
+      | Some (_, v) -> Ok (Some v)
+      | None -> Ok None
+      end
+    | _ -> Error "expected object"
+
+  let fieldWith ~name parse json =
+    match field ~name json with
+    | Ok v -> parse v
+    | Error err -> Error err
+
+  let fieldOptWith ~name parse json =
+    match fieldOpt ~name json with
+    | Ok (Some v) -> parse v
+    | Ok None -> Ok None
+    | Error err -> Error err
+
   let list ?(errorMsg="expected an array") value (json : t) =
     match json with
     | `List (items : t list) ->
