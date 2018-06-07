@@ -4,7 +4,7 @@ module PackageSet =
     let compare = (pkga, pkgb) => {
       let c = String.compare(pkga.Solution.name, pkgb.Solution.name);
       if (c == 0) {
-        Solution.Version.compare(pkga.version, pkga.version);
+        PackageInfo.Version.compare(pkga.version, pkga.version);
       } else {
         c;
       };

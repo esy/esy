@@ -5,67 +5,6 @@
 
 
   */
-module Source = {
-  [@deriving yojson]
-  type t =
-    /* url & checksum */
-    | Archive(string, string)
-    /* url & commit */
-    | GitSource(string, string)
-    | GithubSource(string, string, string)
-    | File(string)
-    | NoSource;
-};
-
-module Version = {
-  [@deriving (ord, yojson)]
-  type t =
-    /* TODO: Github's ref shouldn't be optional */
-    | Github(string, string, option(string))
-    | Npm(NpmVersion.Version.t)
-    | Opam(OpamVersion.Version.t)
-    | Git(string)
-    | LocalPath(Path.t);
-
-  let toString = v =>
-    switch (v) {
-    | Github(user, repo, ref) =>
-      "github-"
-      ++ user
-      ++ "__"
-      ++ repo
-      ++ (
-        switch (ref) {
-        | Some(x) => "__" ++ x
-        | None => ""
-        }
-      )
-    | Git(s) => "git-" ++ s
-    | Npm(t) => "npm-" ++ NpmVersion.Version.toString(t)
-    | Opam(v) => "opam-" ++ OpamVersion.Version.toString(v)
-    | LocalPath(_s) => "local-file"
-    };
-
-  let toNpmVersion = v =>
-    switch (v) {
-    | Github(user, repo, ref) =>
-      user
-      ++ "__"
-      ++ repo
-      ++ (
-        switch (ref) {
-        | Some(x) => "__" ++ x
-        | None => ""
-        }
-      )
-    | Git(s) => s
-    | Npm(v) => NpmVersion.Version.toString(v)
-    | Opam(t) => OpamVersion.Version.toString(t)
-    /* TODO hash the file path or something */
-    | LocalPath(_s) => "local-file-0000"
-    };
-};
-
 [@deriving yojson]
 type t = {
   root,
@@ -77,8 +16,8 @@ and root = {
 }
 and pkg = {
   name: string,
-  version: Version.t,
-  source: Source.t,
+  version: PackageInfo.Version.t,
+  source: PackageInfo.Source.t,
   opam: [@default None] option(PackageInfo.OpamInfo.t),
 };
 
@@ -87,7 +26,9 @@ let ofFile = (filename: Path.t) =>
     {
       let%bind json = Fs.readJsonFile(filename);
       switch (of_yojson(json)) {
-      | Error(_a) => error("Bad lockfile")
+      | Error(err) =>
+        let msg = Printf.sprintf("Invalid lockfile: %s", err);
+        error(msg);
       | Ok(a) => return(a)
       };
     }

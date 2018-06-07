@@ -2,8 +2,8 @@
 module Package = struct
   type t = {
     name : string;
-    version : Solution.Version.t;
-    source : Solution.Source.t;
+    version : PackageInfo.Version.t;
+    source : PackageInfo.Source.t;
     tarballPath : Path.t;
   }
 end
@@ -15,14 +15,14 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
 
   let doFetch path =
     match source with
-    | Solution.Source.File _ ->
+    | PackageInfo.Source.LocalPath _ ->
       let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
       failwith msg
 
-    | Solution.Source.NoSource ->
+    | PackageInfo.Source.NoSource ->
       return ()
 
-    | Solution.Source.Archive (url, _checksum)  ->
+    | PackageInfo.Source.Archive (url, _checksum)  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -32,7 +32,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
       in
       Fs.withTempDir f
 
-    | Solution.Source.GithubSource (user, repo, ref) ->
+    | PackageInfo.Source.Github (user, repo, ref) ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -49,7 +49,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
       in
       Fs.withTempDir f
 
-    | Solution.Source.GitSource (gitUrl, commit) ->
+    | PackageInfo.Source.Git (gitUrl, commit) ->
       let%bind () = Git.clone ~dst:path ~remote:gitUrl () in
       let%bind () = Git.checkout ~ref:commit ~repo:path () in
       let%bind () = Fs.rmPath Path.(path / ".git") in
@@ -59,7 +59,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
     let complete path =
 
       let resolvedString name version =
-        Config.resolvedPrefix ^ name ^ "--" ^ Solution.Version.toString version
+        Config.resolvedPrefix ^ name ^ "--" ^ PackageInfo.Version.toString version
       in
 
       let removeEsyJsonIfExists () =
@@ -121,7 +121,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
     in
 
     let key =
-      let version = Solution.Version.toString version in
+      let version = PackageInfo.Version.toString version in
       Printf.sprintf "%s__%s" name version
     in
 

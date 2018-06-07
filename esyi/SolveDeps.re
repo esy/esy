@@ -1,5 +1,6 @@
 open SolveUtils;
 module Cache = SolveState.Cache;
+module Req = PackageInfo.Req;
 
 /**
  *
@@ -18,21 +19,17 @@ module Cache = SolveState.Cache;
  * - when making the lockfile, for each build dep that a thing wants, find one that we've chosen, whichever is most recent probably
  *
  */
-let cudfDep =
-    (
-      owner,
-      universe,
-      cudfVersions,
-      {PackageInfo.DependencyRequest.name, req},
-    ) => {
+let cudfDep = (owner, universe, cudfVersions, req) => {
+  let name = Req.name(req);
+  let spec = Req.spec(req);
   let available = Cudf.lookup_packages(universe, name);
   let matching =
-    available |> List.filter(CudfVersions.matchesSource(req, cudfVersions));
+    available |> List.filter(CudfVersions.matchesSource(spec, cudfVersions));
   let final =
     (
       if (matching == []) {
         let hack =
-          switch (req) {
+          switch (spec) {
           | Opam(opamVersionRange) =>
             available
             |> List.filter(
@@ -55,13 +52,13 @@ let cudfDep =
               ++ " wants "
               ++ name
               ++ " at version "
-              ++ PackageInfo.DependencyRequest.reqToString(req),
+              ++ PackageInfo.VersionSpec.toString(spec),
             );
             available
             |> List.iter(package =>
                  print_endline(
                    "  - "
-                   ++ Solution.Version.toString(
+                   ++ PackageInfo.Version.toString(
                         CudfVersions.getRealVersion(cudfVersions, package),
                       ),
                  )
@@ -84,7 +81,7 @@ let cudfDep =
 };
 
 let getPackageCached =
-    (~state: SolveState.t, name: string, version: Solution.Version.t) => {
+    (~state: SolveState.t, name: string, version: PackageInfo.Version.t) => {
   open RunAsync.Syntax;
   let key = (name, version);
   Cache.Packages.compute(
@@ -93,17 +90,20 @@ let getPackageCached =
     _ => {
       let%bind manifest =
         switch (version) {
-        | Solution.Version.LocalPath(_) => error("not implemented")
-        | Solution.Version.Git(_) => error("not implemented")
-        | Solution.Version.Github(user, name, ref) =>
-          Package.Github.getManifest(user, name, ref)
+        | Version.Source(Source.LocalPath(_)) => error("not implemented")
+        | Version.Source(Git(_)) => error("not implemented")
+        | Version.Source(Github(user, name, ref)) =>
+          Package.Github.getManifest(user, name, Some(ref))
+        | Version.Source(Source.NoSource) => error("no source")
+        | Version.Source(Source.Archive(_)) => error("not implemented")
 
-        | Solution.Version.Npm(version) =>
+        | Version.Npm(version) =>
           let%bind manifest =
             NpmRegistry.version(~cfg=state.cfg, name, version);
           return(Package.PackageJson(manifest));
 
-        | Solution.Version.Opam(version) =>
+        | Version.Opam(version) =>
+          let name = OpamFile.PackageName.ofNpmExn(name);
           switch%bind (
             OpamRegistry.version(
               ~cfg=state.cfg,
@@ -113,8 +113,11 @@ let getPackageCached =
             )
           ) {
           | Some(manifest) => return(Package.Opam(manifest))
-          | None => error("no such opam package: " ++ name)
-          }
+          | None =>
+            error(
+              "no such opam package: " ++ OpamFile.PackageName.toString(name),
+            )
+          };
         };
       let%bind pkg = RunAsync.ofRun(Package.make(~version, manifest));
       return(pkg);
@@ -122,27 +125,23 @@ let getPackageCached =
   );
 };
 
-let getAvailableVersions =
-    (~state: SolveState.t, req: PackageInfo.DependencyRequest.t) => {
+let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
   open RunAsync.Syntax;
   let cache = state.cache;
+  let name = Req.name(req);
+  let spec = Req.spec(req);
 
-  switch (req.req) {
-  | PackageInfo.DependencyRequest.Github(user, name, ref) =>
-    let version = Solution.Version.Github(user, name, ref);
-    let%bind pkg = getPackageCached(~state, req.name, version);
-    return([(pkg, 1)]);
-
-  | Npm(formula) =>
+  switch (spec) {
+  | VersionSpec.Npm(formula) =>
     let%bind available =
       Cache.NpmPackages.compute(
         cache.availableNpmVersions,
-        req.name,
+        name,
         name => {
           let%bind versions = NpmRegistry.versions(~cfg=state.cfg, name);
           let () = {
             let cacheManifest = ((version, manifest)) => {
-              let version = Solution.Version.Npm(version);
+              let version = PackageInfo.Version.Npm(version);
               let key = (name, version);
               Cache.Packages.ensureComputed(cache.pkgs, key, _ =>
                 Lwt.return(
@@ -163,19 +162,20 @@ let getAvailableVersions =
          NpmVersion.Formula.matches(formula, version)
        )
     |> List.map(((version, _json, i)) => {
-         let version = Solution.Version.Npm(version);
-         let%bind pkg = getPackageCached(~state, req.name, version);
+         let version = PackageInfo.Version.Npm(version);
+         let%bind pkg = getPackageCached(~state, name, version);
          return((pkg, i));
        })
     |> RunAsync.List.joinAll;
 
-  | Opam(semver) =>
+  | VersionSpec.Opam(semver) =>
     let%bind available =
       Cache.OpamPackages.compute(
         cache.availableOpamVersions,
-        req.name,
-        _ => {
-          let%bind info = OpamRegistry.versions(~cfg=state.cfg, req.name);
+        name,
+        name => {
+          let%bind name = RunAsync.ofRun(OpamFile.PackageName.ofNpm(name));
+          let%bind info = OpamRegistry.versions(~cfg=state.cfg, name);
           return(info);
         },
       );
@@ -205,15 +205,32 @@ let getAvailableVersions =
 
     matched
     |> List.map(((version, _path, i)) => {
-         let version = Solution.Version.Opam(version);
-         let%bind pkg = getPackageCached(~state, req.name, version);
+         let version = PackageInfo.Version.Opam(version);
+         let%bind pkg = getPackageCached(~state, name, version);
          return((pkg, i));
        })
     |> RunAsync.List.joinAll;
-  | Git(_) => error("git dependencies are not supported")
-  | LocalPath(p) =>
-    let version = Solution.Version.LocalPath(p);
-    let%bind pkg = getPackageCached(~state, req.name, version);
+
+  | VersionSpec.Source(SourceSpec.Github(user, name, Some(ref))) =>
+    let version = Version.Source(Source.Github(user, name, ref));
+    let%bind pkg = getPackageCached(~state, name, version);
+    return([(pkg, 1)]);
+
+  | VersionSpec.Source(SourceSpec.Github(_, _, None)) =>
+    error("githunb dependencies without commit are not supported")
+
+  | VersionSpec.Source(SourceSpec.Git(_)) =>
+    error("git dependencies are not supported")
+
+  | VersionSpec.Source(SourceSpec.NoSource) =>
+    error("no source dependencies are not supported")
+
+  | VersionSpec.Source(SourceSpec.Archive(_)) =>
+    error("archive dependencies are not supported")
+
+  | VersionSpec.Source(SourceSpec.LocalPath(p)) =>
+    let version = Version.Source(Source.LocalPath(p));
+    let%bind pkg = getPackageCached(~state, name, version);
     return([(pkg, 2)]);
   };
 };
@@ -336,7 +353,7 @@ let rec addPackage =
           cudfDep(
             pkg.name
             ++ " (at "
-            ++ Solution.Version.toString(pkg.version)
+            ++ PackageInfo.Version.toString(pkg.version)
             ++ ")",
             universe,
             state.cudfVersions,
@@ -351,6 +368,7 @@ and addToUniverse =
     (~state: SolveState.t, ~previouslyInstalled, ~deep, universe, req) => {
   let versions =
     getAvailableVersions(~state, req)
+    |> RunAsync.withContext("processing request: " ++ Req.toString(req))
     |> RunAsync.runExn(~err="error getting versions");
   List.iter(
     ((pkg: Package.t, cudfVersion)) =>
@@ -472,22 +490,23 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
   } else {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");
-    requested
-    |> List.iter(({PackageInfo.DependencyRequest.name, _}) =>
-         print_endline(name)
-       );
+    requested |> List.iter(req => print_endline(Req.name(req)));
     print_endline("Got");
     installed |> List.iter((pkg: Package.t) => print_endline(pkg.name));
     let touched = Hashtbl.create(100);
     requested
-    |> List.iter(({PackageInfo.DependencyRequest.name, req}) => {
-         let versions = Hashtbl.find(versionMap, name);
+    |> List.iter(req => {
+         let versions = Hashtbl.find(versionMap, Req.name(req));
          let matching =
-           versions |> List.filter(real => SolveUtils.satisfies(real, req));
+           versions
+           |> List.filter(real => SolveUtils.satisfies(real, Req.spec(req)));
          switch (matching) {
          | [] =>
-           failwith("Didn't actully install a matching dep for " ++ name)
-         | [one, ..._] => Hashtbl.replace(touched, (name, one), true)
+           failwith(
+             "Didn't actully install a matching dep for " ++ Req.name(req),
+           )
+         | [one, ..._] =>
+           Hashtbl.replace(touched, (Req.name(req), one), true)
          };
        });
     return(

@@ -1,3 +1,4 @@
+module PackageName = OpamFile.PackageName
 module Version = OpamVersion.Version
 module VersionMap = Map.Make(Version)
 module String = Astring.String
@@ -11,18 +12,21 @@ let filterNone items =
   List.rev (aux [] items)
 
 module OpamPathsByVersion = Memoize.Make(struct
-  type key = string
+  type key = OpamFile.PackageName.t
   type value = Path.t VersionMap.t RunAsync.t
 end)
 
 let versionIndexCache =
   OpamPathsByVersion.make ()
 
-let getVersionIndex ~cfg name =
+let getVersionIndex ~cfg (name : PackageName.t) =
   let f name =
     let open RunAsync.Syntax in
-    let opamName = OpamFile.withoutScope name in
-    let path = Path.(cfg.Config.opamRepositoryPath / "packages" / opamName) in
+    let path = Path.(
+      cfg.Config.opamRepositoryPath
+      / "packages"
+      / PackageName.toString name
+    ) in
     let%bind entries = Fs.listDir path in
     let f index entry =
       let version = match String.cut ~sep:"." entry with
@@ -35,7 +39,7 @@ let getVersionIndex ~cfg name =
   in
   OpamPathsByVersion.compute versionIndexCache name f
 
-let getThinManifest ~cfg name (version : Version.t) =
+let getThinManifest ~cfg (name : PackageName.t) (version : Version.t) =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex ~cfg name in
   match VersionMap.find_opt version index with
@@ -44,8 +48,7 @@ let getThinManifest ~cfg name (version : Version.t) =
     let manifest =
       let path = Path.(packagePath / "opam") in
       let opamFile = OpamParser.file (Path.toString path) in
-      let opamName = OpamFile.withoutScope name in
-      OpamFile.parseManifest (opamName, version) opamFile
+      OpamFile.parseManifest (name, version) opamFile
     in
     if not manifest.OpamFile.available
     then return None
@@ -54,14 +57,14 @@ let getThinManifest ~cfg name (version : Version.t) =
       let urlFile = Path.(packagePath / "url") in
       let manifest = {
         OpamFile.ThinManifest.
-        name = name;
+        name;
         opamFile;
         urlFile;
         version
       } in
     return (Some manifest)
 
-let versions ~cfg name =
+let versions ~cfg (name : PackageName.t) =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex ~cfg name in
   let%bind items =
@@ -76,7 +79,7 @@ let versions ~cfg name =
     |> List.map (fun manifest -> (manifest.OpamFile.ThinManifest.version, manifest))
   )
 
-let version ~cfg ~opamOverrides name version =
+let version ~cfg ~opamOverrides (name : PackageName.t) version =
   let open RunAsync.Syntax in
   match%bind getThinManifest ~cfg name version with
   | None -> return None
@@ -84,16 +87,15 @@ let version ~cfg ~opamOverrides name version =
     let%bind source =
       if%bind Fs.exists urlFile
       then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString urlFile)))
-      else return PackageInfo.Source.NoSource
+      else return PackageInfo.SourceSpec.NoSource
     in
-    let opamName = OpamFile.withoutScope name in
     let manifest =
       let manifest =
-        OpamFile.parseManifest (opamName, version) (OpamParser.file (Path.toString opamFile))
+        OpamFile.parseManifest (name, version) (OpamParser.file (Path.toString opamFile))
       in
       {manifest with source}
     in
-    begin match%bind OpamOverrides.findApplicableOverride opamOverrides opamName version with
+    begin match%bind OpamOverrides.findApplicableOverride opamOverrides name version with
       | None ->
         return (Some manifest)
       | Some override ->

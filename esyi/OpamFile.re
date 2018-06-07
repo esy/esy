@@ -1,9 +1,43 @@
 open OpamParserTypes;
+
 module Version = OpamVersion.Version;
 module Formula = OpamVersion.Formula;
 
+module PackageName: {
+  type t;
+
+  let toNpm: t => string;
+  let ofNpm: string => Run.t(t);
+  let ofNpmExn: string => t;
+
+  let toString: t => string;
+  let ofString: string => t;
+} = {
+  module String = Astring.String;
+
+  type t = string;
+
+  let toString = name => name;
+  let ofString = name => name;
+
+  let toNpm = name => "@opam/" ++ name;
+  let ofNpm = name =>
+    switch (String.cut(~sep="/", name)) {
+    | Some(("@opam", name)) => Ok(name)
+    | Some(_)
+    | None =>
+      let msg = Printf.sprintf("%s: missing @opam/ prefix", name);
+      Run.error(msg);
+    };
+  let ofNpmExn = name =>
+    switch (Run.toResult(ofNpm(name))) {
+    | Ok(name) => name
+    | Error(err) => raise(Invalid_argument(err))
+    };
+};
+
 type manifest = {
-  name: string,
+  name: PackageName.t,
   version: Version.t,
   fileName: string,
   build: list(list(string)),
@@ -17,13 +51,13 @@ type manifest = {
   optDependencies: PackageInfo.Dependencies.t,
   available: bool,
   /* TODO optDependencies (depopts) */
-  source: PackageInfo.Source.t,
+  source: PackageInfo.SourceSpec.t,
   exportedEnv: PackageJson.ExportedEnv.t,
 };
 
 module ThinManifest = {
   type t = {
-    name: string,
+    name: PackageName.t,
     opamFile: Path.t,
     urlFile: Path.t,
     version: Version.t,
@@ -46,16 +80,6 @@ let opName = op =>
   | `Geq => ">="
   | `Gt => ">"
   };
-
-let withScope = name => "@opam/" ++ name;
-
-let withoutScope = fullName => {
-  let ln = 6;
-  if (String.sub(fullName, 0, ln) != "@opam/") {
-    failwith("Opam name not prefixed: " ++ fullName);
-  };
-  String.sub(fullName, ln, String.length(fullName) - ln);
-};
 
 module ParseDeps = {
   open OpamVersion;
@@ -163,7 +187,7 @@ module ParseDeps = {
 
   let parse = opamvalue => {
     let (name, s, typ) = toDep(opamvalue);
-    (withScope(name), s, typ);
+    (name, s, typ);
   };
 };
 
@@ -192,9 +216,21 @@ let processDeps = (fileName, deps) => {
           failwith("bad");
         };
       switch (typ) {
-      | `Link => ([(name, dep), ...deps], buildDeps, devDeps)
-      | `Build => (deps, [(name, dep), ...buildDeps], devDeps)
-      | `Test => (deps, buildDeps, [(name, dep), ...devDeps])
+      | `Link => (
+          [(PackageName.ofString(name), dep), ...deps],
+          buildDeps,
+          devDeps,
+        )
+      | `Build => (
+          deps,
+          [(PackageName.ofString(name), dep), ...buildDeps],
+          devDeps,
+        )
+      | `Test => (
+          deps,
+          buildDeps,
+          [(PackageName.ofString(name), dep), ...devDeps],
+        )
       };
     },
     ([], [], []),
@@ -213,7 +249,7 @@ let filterMap = (fn, items) =>
      );
 
 /** TODO handle more variables */
-let variables = ((name, version)) => [
+let variables = ((name: PackageName.t, version)) => [
   ("jobs", "4"),
   ("make", "make"),
   ("ocaml-native", "true"),
@@ -223,7 +259,7 @@ let variables = ((name, version)) => [
   ("man", "$cur__install/man"),
   ("share", "$cur__install/share"),
   ("pinned", "false"),
-  ("name", name),
+  ("name", PackageName.toString(name)),
   ("version", Version.toString(version)),
   ("prefix", "$cur__install"),
 ];
@@ -432,7 +468,8 @@ let parseUrlFile = ({file_contents, file_name}) =>
   | None =>
     switch (findVariable("git", file_contents)) {
     | Some(String(_, git)) =>
-      PackageInfo.Source.GitSource(git, None /* TODO parse out commit info */)
+      /* TODO parse out commit info */
+      PackageInfo.SourceSpec.Git(git, None)
     | _ => failwith("Invalid url file - no archive: " ++ file_name)
     }
   | Some(archive) =>
@@ -441,12 +478,12 @@ let parseUrlFile = ({file_contents, file_name}) =>
       | Some(String(_, checksum)) => Some(checksum)
       | _ => None
       };
-    PackageInfo.Source.Archive(archive, checksum);
+    PackageInfo.SourceSpec.Archive(archive, checksum);
   };
 
-let toDepSource = ((name, semver)) => {
-  PackageInfo.DependencyRequest.name,
-  req: PackageInfo.DependencyRequest.Opam(semver),
+let toDepSource = ((name, formula)) => {
+  let name = PackageName.toNpm(name);
+  PackageInfo.Req.ofSpec(~name, ~spec=PackageInfo.VersionSpec.Opam(formula));
 };
 
 let getOpamFiles = (path: Path.t) => {
@@ -485,7 +522,8 @@ let getSubsts = opamvalue =>
   )
   |> List.map(filename => ["substs", filename ++ ".in"]);
 
-let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
+let parseManifest =
+    (info: (PackageName.t, Version.t), {file_contents, file_name}) => {
   let (deps, buildDeps, devDeps) =
     processDeps(file_name, findVariable("depends", file_contents));
   let (depopts, _, _) =
@@ -515,31 +553,33 @@ let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
   };
 
   let (ocamlDep, substDep, esyInstallerDep) = {
-    open PackageInfo.DependencyRequest;
-    let ocamlDep = {
-      name: "ocaml",
-      req:
-        Npm(
-          NpmVersion.Formula.AND(
-            NpmVersion.Formula.GTE(ourMinimumOcamlVersion),
-            ocamlRequirement,
+    let ocamlDep =
+      PackageInfo.Req.ofSpec(
+        ~name="ocaml",
+        ~spec=
+          Npm(
+            NpmVersion.Formula.AND(
+              NpmVersion.Formula.GTE(ourMinimumOcamlVersion),
+              ocamlRequirement,
+            ),
           ),
-        ),
-    };
-    let substDep = {
-      name: "@esy-ocaml/substs",
-      req: Npm(NpmVersion.Formula.ANY),
-    };
-    let esyInstallerDep = {
-      name: "@esy-ocaml/esy-installer",
-      req: Npm(NpmVersion.Formula.ANY),
-    };
+      );
+    let substDep =
+      PackageInfo.Req.ofSpec(
+        ~name="@esy-ocaml/substs",
+        ~spec=Npm(NpmVersion.Formula.ANY),
+      );
+    let esyInstallerDep =
+      PackageInfo.Req.ofSpec(
+        ~name="@esy-ocaml/esy-installer",
+        ~spec=Npm(NpmVersion.Formula.ANY),
+      );
     (ocamlDep, substDep, esyInstallerDep);
   };
 
   let (name, version) = info;
   {
-    name: withScope(name),
+    name,
     version,
     fileName: file_name,
     build:
@@ -559,7 +599,7 @@ let parseManifest = (info: (string, Version.t), {file_contents, file_name}) => {
     peerDependencies: [], /* TODO peer deps */
     optDependencies: depopts |> List.map(toDepSource),
     available: isAvailable, /* TODO */
-    source: PackageInfo.Source.NoSource,
+    source: PackageInfo.SourceSpec.NoSource,
     exportedEnv: [],
   };
 };
@@ -570,21 +610,22 @@ let commandListToJson = e =>
   e |> List.map(items => `List(List.map(item => `String(item), items)));
 
 let toPackageJson = (manifest, version) => {
-  let name = manifest.name;
+  let npmName = PackageName.toNpm(manifest.name);
+  let opamName = PackageName.toString(manifest.name);
   let exportedEnv =
     PackageJson.ExportedEnv.[
       {
-        name: cleanEnvName(withoutScope(name)) ++ "_version",
-        value: Solution.Version.toNpmVersion(version),
+        name: cleanEnvName(opamName) ++ "_version",
+        value: PackageInfo.Version.toNpmVersion(version),
         scope: `Global,
       },
       {
-        name: cleanEnvName(withoutScope(name)) ++ "_installed",
+        name: cleanEnvName(opamName) ++ "_installed",
         value: "true",
         scope: `Global,
       },
       {
-        name: cleanEnvName(withoutScope(name)) ++ "_enable",
+        name: cleanEnvName(opamName) ++ "_enable",
         value: "enable",
         scope: `Global,
       },
@@ -597,8 +638,8 @@ let toPackageJson = (manifest, version) => {
        | _ => failwith("unexpected opam version")
        })); */
     `Assoc([
-      ("name", `String(name)),
-      ("version", `String(Solution.Version.toNpmVersion(version))),
+      ("name", `String(npmName)),
+      ("version", `String(PackageInfo.Version.toNpmVersion(version))),
       (
         "esy",
         `Assoc([
@@ -613,9 +654,9 @@ let toPackageJson = (manifest, version) => {
         "_resolved",
         `String(
           Config.resolvedPrefix
-          ++ name
+          ++ npmName
           ++ "--"
-          ++ Solution.Version.toString(version),
+          ++ PackageInfo.Version.toString(version),
         ),
       ),
       (
@@ -628,9 +669,7 @@ let toPackageJson = (manifest, version) => {
         "optDependencies",
         `Assoc(
           manifest.optDependencies
-          |> List.map(({PackageInfo.DependencyRequest.name, _}) =>
-               (name, `String("*"))
-             ),
+          |> List.map(req => (PackageInfo.Req.name(req), `String("*"))),
         ),
       ),
       (
@@ -638,15 +677,11 @@ let toPackageJson = (manifest, version) => {
         `Assoc(
           (
             manifest.dependencies
-            |> List.map(({PackageInfo.DependencyRequest.name, _}) =>
-                 (name, `String("*"))
-               )
+            |> List.map(req => (PackageInfo.Req.name(req), `String("*")))
           )
           @ (
             manifest.buildDependencies
-            |> List.map(({PackageInfo.DependencyRequest.name, _}) =>
-                 (name, `String("*"))
-               )
+            |> List.map(req => (PackageInfo.Req.name(req), `String("*")))
           ),
         ),
       ),
@@ -656,7 +691,7 @@ let toPackageJson = (manifest, version) => {
   );
 };
 
-let name = manifest => manifest.name;
+let name = manifest => PackageName.toNpm(manifest.name);
 let version = manifest => manifest.version;
 
 let dependencies = manifest => {

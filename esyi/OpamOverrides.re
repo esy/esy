@@ -1,4 +1,4 @@
-type t = list((string, OpamFile.Formula.t, Fpath.t));
+type t = list((OpamFile.PackageName.t, OpamFile.Formula.t, Fpath.t));
 
 module Infix = {
   let (|?>>) = (a, b) =>
@@ -43,7 +43,7 @@ module JsonParseUtil = {
 module OpamSection = {
   include JsonParseUtil;
   type t = {
-    source: option(PackageInfo.Source.t),
+    source: option(PackageInfo.SourceSpec.t),
     files: list((Path.t, string)) /* relpath, contents */
     /* patches: list((string, string)) relpath, abspath */
   };
@@ -60,7 +60,7 @@ module OpamSection = {
             |?>> (str |.! "url should be a string")
             |?>> (
               url =>
-                PackageInfo.Source.Archive(
+                PackageInfo.SourceSpec.Archive(
                   url,
                   items
                   |> get("checksum")
@@ -73,7 +73,7 @@ module OpamSection = {
             |?>> (str |.! "git should be a string")
             |?>> (
               git =>
-                PackageInfo.Source.GitSource(
+                PackageInfo.SourceSpec.Git(
                   git,
                   None /* TODO parse out commit if there */
                 )
@@ -136,6 +136,8 @@ module Override = {
   };
 };
 
+type override = Override.t;
+
 let expectResult = (message, res) =>
   switch (res) {
   | Rresult.Ok(x) => x
@@ -151,13 +153,6 @@ let rec yamlToJson = value =>
   | `Float(s) => `Float(s)
   | `Bool(b) => `Bool(b)
   | `Null => `Null
-  };
-
-let tee = (fn, value) =>
-  if (fn(value)) {
-    Some(value);
-  } else {
-    None;
   };
 
 let getContents = baseDir => {
@@ -198,7 +193,7 @@ let getOverrides = checkoutDir => {
 
   let parseOverrideSpec = spec =>
     switch (String.cut(~sep=".", spec)) {
-    | None => (spec, OpamVersion.Formula.ANY)
+    | None => (OpamFile.PackageName.ofString(spec), OpamVersion.Formula.ANY)
     | Some((name, constr)) =>
       let constr =
         String.map(
@@ -208,7 +203,7 @@ let getOverrides = checkoutDir => {
           constr,
         );
       let constr = OpamVersion.Formula.parse(constr);
-      (name, constr);
+      (OpamFile.PackageName.ofString(name), constr);
     };
 
   return(
@@ -222,7 +217,8 @@ let getOverrides = checkoutDir => {
   );
 };
 
-let findApplicableOverride = (overrides, name, version) => {
+let findApplicableOverride =
+    (overrides, name: OpamFile.PackageName.t, version) => {
   open RunAsync.Syntax;
   let rec loop =
     fun

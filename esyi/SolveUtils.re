@@ -1,18 +1,28 @@
+module VersionSpec = PackageInfo.VersionSpec;
+module SourceSpec = PackageInfo.SourceSpec;
+
+module Version = PackageInfo.Version;
+module Source = PackageInfo.Source;
+
 let satisfies = (realVersion, req) =>
   switch (req, realVersion) {
   | (
-      PackageInfo.DependencyRequest.Github(user, repo, ref),
-      Solution.Version.Github(user_, repo_, ref_),
+      VersionSpec.Source(SourceSpec.Github(user, repo, Some(ref))),
+      Version.Source(Source.Github(user_, repo_, ref_)),
     )
       when user == user_ && repo == repo_ && ref == ref_ =>
     true
-  | (Npm(semver), Solution.Version.Npm(s))
+  | (VersionSpec.Npm(semver), Version.Npm(s))
       when NpmVersion.Formula.matches(semver, s) =>
     true
-  | (Opam(semver), Solution.Version.Opam(s))
+  | (VersionSpec.Opam(semver), Version.Opam(s))
       when OpamVersion.Formula.matches(semver, s) =>
     true
-  | (LocalPath(p1), Solution.Version.LocalPath(p2)) when Path.equal(p1, p2) =>
+  | (
+      VersionSpec.Source(SourceSpec.LocalPath(p1)),
+      Version.Source(Source.LocalPath(p2)),
+    )
+      when Path.equal(p1, p2) =>
     true
   | _ => false
   };
@@ -20,23 +30,23 @@ let satisfies = (realVersion, req) =>
 let rec lockDownSource = pendingSource =>
   RunAsync.Syntax.(
     switch (pendingSource) {
-    | PackageInfo.Source.NoSource => return(Solution.Source.NoSource)
-    | Archive(url, None) =>
+    | SourceSpec.NoSource => return(Source.NoSource)
+    | SourceSpec.Archive(url, None) =>
       /* TODO: checksum */
-      return(Solution.Source.Archive(url, "fake checksum"))
-    | Archive(url, Some(checksum)) =>
-      return(Solution.Source.Archive(url, checksum))
-    | GitSource(url, ref) =>
+      return(Source.Archive(url, "fake checksum"))
+    | SourceSpec.Archive(url, Some(checksum)) =>
+      return(PackageInfo.Source.Archive(url, checksum))
+    | SourceSpec.Git(url, ref) =>
       let ref = Option.orDefault(~default="master", ref);
       /** TODO getting HEAD */
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return(Solution.Source.GitSource(url, sha));
-    | GithubSource(user, name, ref) =>
+      return(Source.Git(url, sha));
+    | SourceSpec.Github(user, name, ref) =>
       let ref = Option.orDefault(~default="master", ref);
       let url = "git://github.com/" ++ user ++ "/" ++ name ++ ".git";
       let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return(Solution.Source.GithubSource(user, name, sha));
-    | File(s) => return(Solution.Source.File(s))
+      return(Source.Github(user, name, sha));
+    | SourceSpec.LocalPath(s) => return(PackageInfo.Source.LocalPath(s))
     }
   );
 

@@ -1,6 +1,6 @@
 type t = {
-  lookupRealVersion: Hashtbl.t((string, int), Solution.Version.t),
-  lookupIntVersion: Hashtbl.t((string, Solution.Version.t), int),
+  lookupRealVersion: Hashtbl.t((string, int), PackageInfo.Version.t),
+  lookupIntVersion: Hashtbl.t((string, PackageInfo.Version.t), int),
 };
 
 let init = () => {
