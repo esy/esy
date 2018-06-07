@@ -36,6 +36,8 @@ val ofBosError : ('a, [< `Msg of string]) result -> 'a t
 
 val ofOption : ?err : string -> 'a option -> 'a t
 
+val toResult : 'a t -> ('a, string) result
+
 (**
  * Convenience module which is designed to be openned locally with the
  * code which heavily relies on Run.t.
