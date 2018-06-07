@@ -79,6 +79,10 @@ let ofOption ?err = function
     | None -> "not found"
     in error err
 
+let toResult = function
+  | Ok v -> Ok v
+  | Error err -> Error (formatError err)
+
 let runExn ?err = function
   | Ok v -> v
   | Error (msg, ctx) ->
