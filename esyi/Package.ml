@@ -4,7 +4,7 @@ module Source = PackageInfo.Source
 type t = {
   name : string;
   version : PackageInfo.Version.t;
-  source : PackageInfo.SourceSpec.t;
+  source : PackageInfo.Source.t;
   dependencies: PackageInfo.DependenciesInfo.t;
   opam : PackageInfo.OpamInfo.t option;
 }
@@ -23,9 +23,9 @@ let make ~version manifest =
   let%bind source =
     match version with
     | Version.Source (Source.Github (user, name, ref)) ->
-      Run.return (PackageInfo.SourceSpec.Github (user, name, Some ref))
+      Run.return (PackageInfo.Source.Github (user, name, ref))
     | Version.Source (Source.LocalPath path)  ->
-      Run.return (PackageInfo.SourceSpec.LocalPath path)
+      Run.return (PackageInfo.Source.LocalPath path)
     | _ -> begin
       match manifest with
       | Opam manifest -> return (OpamFile.source manifest)

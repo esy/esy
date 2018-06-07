@@ -79,16 +79,41 @@ let versions ~cfg (name : PackageName.t) =
     |> List.map (fun manifest -> (manifest.OpamFile.ThinManifest.version, manifest))
   )
 
+let resolveSourceSpec srcSpec =
+  let open RunAsync.Syntax in
+  match srcSpec with
+  | PackageInfo.SourceSpec.NoSource ->
+    return PackageInfo.Source.NoSource
+
+  | PackageInfo.SourceSpec.Archive (url, Some checksum) ->
+    return (PackageInfo.Source.Archive (url, checksum))
+  | PackageInfo.SourceSpec.Archive (url, None) ->
+    return (PackageInfo.Source.Archive (url, "fake-checksum-fix-me"))
+
+  | PackageInfo.SourceSpec.Git (remote, ref) ->
+    let%bind commit = Git.lsRemote ?ref ~remote () in
+    return (PackageInfo.Source.Git (remote, commit))
+
+  | PackageInfo.SourceSpec.Github (user, name, ref) ->
+    let remote = Printf.sprintf "https://github.com/%s/%s.git" user name in
+    let%bind commit = Git.lsRemote ?ref ~remote () in
+    return (PackageInfo.Source.Github (user, name, commit))
+
+  | PackageInfo.SourceSpec.LocalPath path ->
+    return (PackageInfo.Source.LocalPath path)
+
+
 let version ~cfg ~opamOverrides (name : PackageName.t) version =
   let open RunAsync.Syntax in
   match%bind getThinManifest ~cfg name version with
   | None -> return None
   | Some { OpamFile.ThinManifest. opamFile; urlFile; name; version } ->
-    let%bind source =
+    let%bind sourceSpec =
       if%bind Fs.exists urlFile
       then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString urlFile)))
       else return PackageInfo.SourceSpec.NoSource
     in
+    let%bind source = resolveSourceSpec sourceSpec in
     let manifest =
       let manifest =
         OpamFile.parseManifest (name, version) (OpamParser.file (Path.toString opamFile))

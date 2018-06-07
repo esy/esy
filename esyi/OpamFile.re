@@ -51,7 +51,7 @@ type manifest = {
   optDependencies: PackageInfo.Dependencies.t,
   available: bool,
   /* TODO optDependencies (depopts) */
-  source: PackageInfo.SourceSpec.t,
+  source: PackageInfo.Source.t,
   exportedEnv: PackageJson.ExportedEnv.t,
 };
 
@@ -599,7 +599,7 @@ let parseManifest =
     peerDependencies: [], /* TODO peer deps */
     optDependencies: depopts |> List.map(toDepSource),
     available: isAvailable, /* TODO */
-    source: PackageInfo.SourceSpec.NoSource,
+    source: PackageInfo.Source.NoSource,
     exportedEnv: [],
   };
 };

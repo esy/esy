@@ -97,15 +97,13 @@ let solve = (~cfg, pkg: Package.t) =>
           pkg.dependencies.buildDependencies,
         );
 
-      let makePkg = (pkg: Package.t) => {
-        let%bind source = SolveUtils.lockDownSource(pkg.source);
+      let makePkg = (pkg: Package.t) =>
         return({
           Solution.name: pkg.name,
           version: pkg.version,
-          source,
+          source: pkg.source,
           opam: pkg.opam,
         });
-      };
 
       let makeRootPkg = (pkg, deps) => {
         let%bind bag =

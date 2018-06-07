@@ -27,29 +27,6 @@ let satisfies = (realVersion, req) =>
   | _ => false
   };
 
-let rec lockDownSource = pendingSource =>
-  RunAsync.Syntax.(
-    switch (pendingSource) {
-    | SourceSpec.NoSource => return(Source.NoSource)
-    | SourceSpec.Archive(url, None) =>
-      /* TODO: checksum */
-      return(Source.Archive(url, "fake checksum"))
-    | SourceSpec.Archive(url, Some(checksum)) =>
-      return(PackageInfo.Source.Archive(url, checksum))
-    | SourceSpec.Git(url, ref) =>
-      let ref = Option.orDefault(~default="master", ref);
-      /** TODO getting HEAD */
-      let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return(Source.Git(url, sha));
-    | SourceSpec.Github(user, name, ref) =>
-      let ref = Option.orDefault(~default="master", ref);
-      let url = "git://github.com/" ++ user ++ "/" ++ name ++ ".git";
-      let%bind sha = Git.lsRemote(~remote=url, ~ref, ());
-      return(Source.Github(user, name, sha));
-    | SourceSpec.LocalPath(s) => return(PackageInfo.Source.LocalPath(s))
-    }
-  );
-
 let checkRepositories = config =>
   RunAsync.Syntax.(
     {
@@ -58,8 +35,8 @@ let checkRepositories = config =>
           ~branch="4",
           ~dst=config.Config.esyOpamOverridePath,
           "https://github.com/esy-ocaml/esy-opam-override",
-        );
-      let%bind () =
+        )
+      and () =
         Git.ShallowClone.update(
           ~branch="master",
           ~dst=config.Config.opamRepositoryPath,
