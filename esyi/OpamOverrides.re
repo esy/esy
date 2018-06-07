@@ -60,55 +60,60 @@ let rec yamlToJson = value =>
   | `Null => `Null
   };
 
-let init = (~cfg, ()) : RunAsync.t(t) => {
-  open RunAsync.Syntax;
-
-  let packagesDir = Path.(cfg.Config.esyOpamOverrideCheckoutPath / "packages");
-
-  let%bind () =
-    Git.ShallowClone.update(
-      ~branch="4",
-      ~dst=cfg.Config.esyOpamOverrideCheckoutPath,
-      "https://github.com/esy-ocaml/esy-opam-override",
-    );
-
-  let%bind names = Fs.listDir(packagesDir);
-  module String = Astring.String;
-
-  let parseOverrideSpec = spec =>
-    switch (String.cut(~sep=".", spec)) {
-    | None => (OpamFile.PackageName.ofString(spec), OpamVersion.Formula.ANY)
-    | Some((name, constr)) =>
-      let constr =
-        String.map(
-          fun
-          | '_' => ' '
-          | c => c,
-          constr,
-        );
-      let constr = OpamVersion.Formula.parse(constr);
-      (OpamFile.PackageName.ofString(name), constr);
-    };
-
-  let overrides = {
-    let f = (overrides, dirName) => {
-      let (name, formula) = parseOverrideSpec(dirName);
-      let items =
-        switch (PackageNameMap.find_opt(name, overrides)) {
-        | Some(items) => items
-        | None => []
+let init = (~cfg, ()) : RunAsync.t(t) =>
+  RunAsync.Syntax.(
+    {
+      let%bind repoPath =
+        switch (cfg.Config.esyOpamOverride) {
+        | Config.Local(path) => return(path)
+        | Config.Remote(remote, local) =>
+          let%bind () =
+            Git.ShallowClone.update(~branch="4", ~dst=local, remote);
+          return(local);
         };
-      PackageNameMap.add(
-        name,
-        [(formula, Path.(packagesDir / dirName)), ...items],
-        overrides,
-      );
-    };
-    ListLabels.fold_left(~f, ~init=PackageNameMap.empty, names);
-  };
+      let packagesDir = Path.(repoPath / "packages");
 
-  return(overrides);
-};
+      let%bind names = Fs.listDir(packagesDir);
+      module String = Astring.String;
+
+      let parseOverrideSpec = spec =>
+        switch (String.cut(~sep=".", spec)) {
+        | None => (
+            OpamFile.PackageName.ofString(spec),
+            OpamVersion.Formula.ANY,
+          )
+        | Some((name, constr)) =>
+          let constr =
+            String.map(
+              fun
+              | '_' => ' '
+              | c => c,
+              constr,
+            );
+          let constr = OpamVersion.Formula.parse(constr);
+          (OpamFile.PackageName.ofString(name), constr);
+        };
+
+      let overrides = {
+        let f = (overrides, dirName) => {
+          let (name, formula) = parseOverrideSpec(dirName);
+          let items =
+            switch (PackageNameMap.find_opt(name, overrides)) {
+            | Some(items) => items
+            | None => []
+            };
+          PackageNameMap.add(
+            name,
+            [(formula, Path.(packagesDir / dirName)), ...items],
+            overrides,
+          );
+        };
+        ListLabels.fold_left(~f, ~init=PackageNameMap.empty, names);
+      };
+
+      return(overrides);
+    }
+  );
 
 let load = baseDir => {
   open RunAsync.Syntax;

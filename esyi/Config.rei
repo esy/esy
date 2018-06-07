@@ -4,16 +4,28 @@ type t = {
   basePath: Path.t,
   lockfilePath: Path.t,
   tarballCachePath: Path.t,
-  esyOpamOverrideCheckoutPath: Path.t,
-  opamRepositoryCheckoutPath: Path.t,
+
+  esyOpamOverride: checkout,
+  opamRepository: checkout,
   npmRegistry: string,
-};
+}
+
+/** This described how a reposoitory should be used */
+and checkout =
+  | Local(Path.t)
+  | Remote(string, Path.t)
+
+and checkoutCfg = [
+  | `Local(Path.t)
+  | `Remote(string)
+  | `RemoteLocal(string, Path.t)
+  ];
 
 let make : (
     ~npmRegistry: string=?,
     ~cachePath: Fpath.t=?,
-    ~opamRepositoryCheckoutPath: Fpath.t=?,
-    ~esyOpamOverrideCheckoutPath: Fpath.t=?,
+    ~opamRepository: checkoutCfg=?,
+    ~esyOpamOverride: checkoutCfg=?,
     Fpath.t
   ) => RunAsync.t(t)
 

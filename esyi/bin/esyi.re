@@ -1,4 +1,5 @@
 open EsyInstaller;
+module String = Astring.String;
 
 module Api = {
   let solve = (cfg: Config.t) =>
@@ -93,23 +94,43 @@ module CommandLineInterface = {
   let setupLogTerm =
     Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
 
-  let opamRepositoryCheckoutPathArg = {
-    let doc = "Specifies path to a local opam repository checkout.";
-    let env = Arg.env_var("ESYI__OPAM_REPOSITORY_CHECKOUT", ~doc);
+  let checkoutConv = {
+    let parse = v =>
+      switch (String.cut(~sep=":", v)) {
+      | Some((remote, "")) => Ok(`Remote(remote))
+      | Some(("", local)) => Ok(`Local(Path.v(local)))
+      | Some((remote, local)) => Ok(`RemoteLocal((remote, Path.v(local))))
+      | None => Ok(`Remote(v))
+      };
+    let print = (fmt: Format.formatter, v) =>
+      switch (v) {
+      | `RemoteLocal(remote, local) =>
+        Fmt.pf(fmt, "%s:%s", remote, Path.toString(local))
+      | `Local(local) => Fmt.pf(fmt, ":%s", Path.toString(local))
+      | `Remote(remote) => Fmt.pf(fmt, "%s", remote)
+      };
+    Arg.conv(~docv="VAL", (parse, print));
+  };
+
+  let opamRepositoryArg = {
+    let doc = "Specifies an opam repository to use.";
+    let docv = "REMOTE[:LOCAL]";
+    let env = Arg.env_var("ESYI__OPAM_REPOSITORY", ~doc);
     Arg.(
       value
-      & opt(some(Cli.pathConv), None)
-      & info(["opam-repository-checkout"], ~env, ~docs, ~doc)
+      & opt(some(checkoutConv), None)
+      & info(["opam-repository"], ~env, ~docs, ~doc, ~docv)
     );
   };
 
-  let esyOpamOverrideCheckoutPathArg = {
-    let doc = "Specifies path to a local opam repository checkout.";
-    let env = Arg.env_var("ESYI__ESY_OPAM_OVERRIDE_CHECKOUT", ~doc);
+  let esyOpamOverrideArg = {
+    let doc = "Specifies an opam override repository to use.";
+    let docv = "REMOTE[:LOCAL]";
+    let env = Arg.env_var("ESYI__OPAM_OVERRIDE", ~doc);
     Arg.(
       value
-      & opt(some(Cli.pathConv), None)
-      & info(["esy-opam-override-checkout"], ~env, ~docs, ~doc)
+      & opt(some(checkoutConv), None)
+      & info(["opam-override-repository"], ~env, ~docs, ~doc, ~docv)
     );
   };
 
@@ -148,8 +169,8 @@ module CommandLineInterface = {
         (
           cachePath,
           sandboxPath,
-          opamRepositoryCheckoutPath,
-          esyOpamOverrideCheckoutPath,
+          opamRepository,
+          esyOpamOverride,
           npmRegistry,
           (),
         ) => {
@@ -161,8 +182,8 @@ module CommandLineInterface = {
       Config.make(
         ~cachePath?,
         ~npmRegistry?,
-        ~opamRepositoryCheckoutPath?,
-        ~esyOpamOverrideCheckoutPath?,
+        ~opamRepository?,
+        ~esyOpamOverride?,
         sandboxPath,
       );
     };
@@ -170,8 +191,8 @@ module CommandLineInterface = {
       const(parse)
       $ cachePathArg
       $ sandboxPathArg
-      $ opamRepositoryCheckoutPathArg
-      $ esyOpamOverrideCheckoutPathArg
+      $ opamRepositoryArg
+      $ esyOpamOverrideArg
       $ npmRegistryArg
       $ setupLogTerm
     );
