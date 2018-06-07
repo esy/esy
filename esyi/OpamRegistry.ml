@@ -3,6 +3,32 @@ module Version = OpamVersion.Version
 module VersionMap = Map.Make(Version)
 module String = Astring.String
 
+module OpamPathsByVersion = Memoize.Make(struct
+  type key = OpamFile.PackageName.t
+  type value = Path.t VersionMap.t RunAsync.t
+end)
+
+
+type t = {
+  checkoutPath : Path.t;
+  overrides : OpamOverrides.t;
+  pathsCache : OpamPathsByVersion.t;
+  
+}
+
+let init ~cfg () =
+  let open RunAsync.Syntax in
+  let%bind () = Git.ShallowClone.update
+    ~branch:"master"
+    ~dst:cfg.Config.opamRepositoryCheckoutPath
+    "https://github.com/ocaml/opam-repository"
+  and overrides = OpamOverrides.init ~cfg () in
+  return {
+    checkoutPath = cfg.Config.opamRepositoryCheckoutPath;
+    pathsCache = OpamPathsByVersion.make ();
+    overrides;
+  }
+
 let filterNone items =
   let rec aux items = function
     | [] -> items
@@ -11,19 +37,11 @@ let filterNone items =
   in
   List.rev (aux [] items)
 
-module OpamPathsByVersion = Memoize.Make(struct
-  type key = OpamFile.PackageName.t
-  type value = Path.t VersionMap.t RunAsync.t
-end)
-
-let versionIndexCache =
-  OpamPathsByVersion.make ()
-
-let getVersionIndex ~cfg (name : PackageName.t) =
+let getVersionIndex registry ~(name : PackageName.t) =
   let f name =
     let open RunAsync.Syntax in
     let path = Path.(
-      cfg.Config.opamRepositoryPath
+      registry.checkoutPath
       / "packages"
       / PackageName.toString name
     ) in
@@ -37,11 +55,11 @@ let getVersionIndex ~cfg (name : PackageName.t) =
     in
     return (ListLabels.fold_left ~init:VersionMap.empty ~f entries)
   in
-  OpamPathsByVersion.compute versionIndexCache name f
+  OpamPathsByVersion.compute registry.pathsCache name f
 
-let getThinManifest ~cfg (name : PackageName.t) (version : Version.t) =
+let getThinManifest registry ~(name : PackageName.t) ~(version : Version.t) =
   let open RunAsync.Syntax in
-  let%bind index = getVersionIndex ~cfg name in
+  let%bind index = getVersionIndex registry ~name in
   match VersionMap.find_opt version index with
   | None -> return None
   | Some packagePath ->
@@ -64,13 +82,13 @@ let getThinManifest ~cfg (name : PackageName.t) (version : Version.t) =
       } in
     return (Some manifest)
 
-let versions ~cfg (name : PackageName.t) =
+let versions registry ~(name : PackageName.t) =
   let open RunAsync.Syntax in
-  let%bind index = getVersionIndex ~cfg name in
+  let%bind index = getVersionIndex registry ~name in
   let%bind items =
     index
     |> VersionMap.bindings
-    |> List.map (fun (version, _path) -> getThinManifest ~cfg name version)
+    |> List.map (fun (version, _path) -> getThinManifest registry ~name ~version)
     |> RunAsync.List.joinAll
   in
   return (
@@ -103,9 +121,9 @@ let resolveSourceSpec srcSpec =
     return (PackageInfo.Source.LocalPath path)
 
 
-let version ~cfg ~opamOverrides (name : PackageName.t) version =
+let version registry ~(name : PackageName.t) ~version =
   let open RunAsync.Syntax in
-  match%bind getThinManifest ~cfg name version with
+  match%bind getThinManifest registry ~name ~version with
   | None -> return None
   | Some { OpamFile.ThinManifest. opamFile; urlFile; name; version } ->
     let%bind sourceSpec =
@@ -120,10 +138,10 @@ let version ~cfg ~opamOverrides (name : PackageName.t) version =
       in
       {manifest with source}
     in
-    begin match%bind OpamOverrides.findApplicableOverride opamOverrides name version with
+    begin match%bind OpamOverrides.get registry.overrides name version with
       | None ->
         return (Some manifest)
       | Some override ->
-        let manifest = OpamOverrides.applyOverride manifest override in
+        let manifest = OpamOverrides.apply manifest override in
         return (Some manifest)
     end

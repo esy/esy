@@ -1,11 +1,14 @@
+type t
+
+val init : cfg:Config.t -> unit -> t RunAsync.t
+
 val versions :
-  cfg:Config.t
-  -> OpamFile.PackageName.t
+  t
+  -> name : OpamFile.PackageName.t
   -> (OpamVersion.Version.t * OpamFile.ThinManifest.t) list RunAsync.t
 
 val version :
-    cfg:Config.t
-    -> opamOverrides:OpamOverrides.t
-    -> OpamFile.PackageName.t
-    -> OpamVersion.Version.t
+    t
+    -> name : OpamFile.PackageName.t
+    -> version : OpamVersion.Version.t
     -> OpamFile.manifest option RunAsync.t

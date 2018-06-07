@@ -4,7 +4,7 @@ let unsatisfied = (map, req) =>
   | versions =>
     !
       List.exists(
-        v => SolveUtils.satisfies(v, PackageInfo.Req.spec(req)),
+        v => SolveDeps.satisfies(v, PackageInfo.Req.spec(req)),
         versions,
       )
   };
@@ -80,8 +80,7 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
 let solve = (~cfg, pkg: Package.t) =>
   RunAsync.Syntax.(
     {
-      let%bind () = SolveUtils.checkRepositories(cfg);
-      let cache = SolveState.Cache.make(~cfg, ());
+      let%bind cache = SolveState.Cache.make(~cfg, ());
       let solvedDeps =
         SolveDeps.solve(
           ~cfg,
