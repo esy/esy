@@ -20,12 +20,23 @@ let bind ~f v =
   in
   Lwt.bind v waitForPromise
 
+let both a b =
+  let%lwt a = a and b = b in
+  Lwt.return (
+    match a, b with
+    | Ok a, Ok b -> Ok (a, b)
+    | Ok _, Error err -> Error err
+    | Error err, Ok _ -> Error err
+    | Error err, Error _ -> Error err
+  )
+
 module Syntax = struct
   let return = return
   let error = error
 
   module Let_syntax = struct
     let bind = bind
+    let both = both
   end
 end
 
