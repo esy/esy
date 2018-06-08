@@ -6,36 +6,14 @@ module SourceSpec = PackageInfo.SourceSpec;
 module VersionSpec = PackageInfo.VersionSpec;
 module Req = PackageInfo.Req;
 
-let satisfies = (realVersion, req) =>
-  switch (req, realVersion) {
-  | (
-      VersionSpec.Source(SourceSpec.Github(user, repo, Some(ref))),
-      Version.Source(Source.Github(user_, repo_, ref_)),
-    )
-      when user == user_ && repo == repo_ && ref == ref_ =>
-    true
-  | (VersionSpec.Npm(semver), Version.Npm(s))
-      when NpmVersion.Formula.matches(semver, s) =>
-    true
-  | (VersionSpec.Opam(semver), Version.Opam(s))
-      when OpamVersion.Formula.matches(semver, s) =>
-    true
-  | (
-      VersionSpec.Source(SourceSpec.LocalPath(p1)),
-      Version.Source(Source.LocalPath(p2)),
-    )
-      when Path.equal(p1, p2) =>
-    true
-  | _ => false
-  };
-
 let matchesSource = (req, cudfVersions, package) =>
-  satisfies(
-    VersionMap.findVersionExn(
-      cudfVersions,
-      ~name=package.Cudf.package,
-      ~cudfVersion=package.Cudf.version,
-    ),
+  VersionSpec.satisfies(
+    ~version=
+      VersionMap.findVersionExn(
+        cudfVersions,
+        ~name=package.Cudf.package,
+        ~cudfVersion=package.Cudf.version,
+      ),
     req,
   );
 
@@ -566,7 +544,10 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
     |> List.iter(req => {
          let versions = Hashtbl.find(versionMap, Req.name(req));
          let matching =
-           versions |> List.filter(real => satisfies(real, Req.spec(req)));
+           versions
+           |> List.filter(version =>
+                VersionSpec.satisfies(~version, Req.spec(req))
+              );
          switch (matching) {
          | [] =>
            failwith(

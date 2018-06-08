@@ -1,10 +1,13 @@
+module VersionSpec = PackageInfo.VersionSpec;
+
 let unsatisfied = (map, req) =>
   switch (Hashtbl.find(map, PackageInfo.Req.name(req))) {
   | exception Not_found => true
   | versions =>
     !
       List.exists(
-        v => SolveDeps.satisfies(v, PackageInfo.Req.spec(req)),
+        version =>
+          VersionSpec.satisfies(~version, PackageInfo.Req.spec(req)),
         versions,
       )
   };

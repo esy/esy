@@ -138,6 +138,19 @@ module VersionSpec = struct
     | Source src -> SourceSpec.toString src
 
   let to_yojson src = `String (toString src)
+
+  let satisfies ~version spec =
+    match spec, version with
+    | Source (SourceSpec.Github (user, repo, Some ref)),
+      Version.Source (Source.Github (user_, repo_, ref_)) ->
+      user = user_ && repo = repo_ && ref = ref_
+    | Npm formula, Version.Npm s ->
+      NpmVersion.Formula.matches formula s
+    | Opam formula, Version.Opam s ->
+      OpamVersion.Formula.matches formula s
+    | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
+      Path.equal p1 p2
+    | _ -> false
 end
 
 module Req = struct
