@@ -23,6 +23,11 @@ let isNone =
   | None => true
   | _ => false;
 
+let isSome =
+  fun
+  | Some(_) => true
+  | _ => false;
+
 module Syntax = {
   let return = v => Some(v);
   module Let_syntax = {
