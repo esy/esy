@@ -60,6 +60,8 @@ module VersionSpec : sig
     | Source of SourceSpec.t
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
+
+  val satisfies : version:Version.t -> t -> bool
 end
 
 module Req : sig
