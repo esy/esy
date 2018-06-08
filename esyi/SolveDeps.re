@@ -66,61 +66,66 @@ let cudfDep = (owner, universe, cudfVersions, req) => {
   let name = Req.name(req);
   let spec = Req.spec(req);
   let available = Cudf.lookup_packages(universe, name);
-  let matching = available |> List.filter(matchesSource(spec, cudfVersions));
+  let matching = List.filter(matchesSource(spec, cudfVersions), available);
   let final =
-    (
-      if (matching == []) {
-        let hack =
-          switch (spec) {
-          | Opam(opamVersionRange) =>
-            available
-            |> List.filter(
-                 matchesSource(Opam(opamVersionRange), cudfVersions),
-               )
-          | _ => []
-          };
-        switch (hack) {
-        | [] =>
-          /* We know there are packages that want versions of ocaml we don't support, it's ok */
-          if (name == "ocaml") {
-            [];
-          } else {
-            print_endline(
-              "\240\159\155\145 \240\159\155\145 \240\159\155\145  Requirement unsatisfiable "
-              ++ owner
-              ++ " wants "
-              ++ name
-              ++ " at version "
-              ++ PackageInfo.VersionSpec.toString(spec),
-            );
-            available
-            |> List.iter(package =>
-                 print_endline(
-                   "  - "
-                   ++ PackageInfo.Version.toString(
-                        VersionMap.findVersionExn(
-                          cudfVersions,
-                          ~name=package.Cudf.package,
-                          ~cudfVersion=package.Cudf.version,
-                        ),
-                      ),
-                 )
-               );
-            [];
-          }
-        | matching => matching
+    if (matching == []) {
+      let hack =
+        switch (spec) {
+        | Opam(opamVersionRange) =>
+          available
+          |> List.filter(
+               matchesSource(Opam(opamVersionRange), cudfVersions),
+             )
+        | _ => []
         };
-      } else {
-        matching;
-      }
-    )
-    |> List.map(package =>
-         (package.Cudf.package, Some((`Eq, package.Cudf.version)))
-       );
-  /** If no matching packages, make a requirement for a package that doesn't exist. */
-  final
-  == [] ?
-    [("**not-a-packge%%%", Some((`Eq, 10000000000)))] : final;
+      switch (hack) {
+      | [] =>
+        /* We know there are packages that want versions of ocaml we don't support, it's ok */
+        if (name == "ocaml") {
+          [];
+        } else {
+          print_endline(
+            "\240\159\155\145 \240\159\155\145 \240\159\155\145  Requirement unsatisfiable "
+            ++ owner
+            ++ " wants "
+            ++ name
+            ++ " at version "
+            ++ PackageInfo.VersionSpec.toString(spec),
+          );
+          available
+          |> List.iter(package =>
+               print_endline(
+                 "  - "
+                 ++ PackageInfo.Version.toString(
+                      VersionMap.findVersionExn(
+                        cudfVersions,
+                        ~name=package.Cudf.package,
+                        ~cudfVersion=package.Cudf.version,
+                      ),
+                    ),
+               )
+             );
+          [];
+        }
+      | matching => matching
+      };
+    } else {
+      matching;
+    };
+
+  let final =
+    List.map(
+      package => (package.Cudf.package, Some((`Eq, package.Cudf.version))),
+      final,
+    );
+
+  /* If no matching packages, make a requirement for a package that doesn't exist. */
+  switch (final) {
+  | [] =>
+    let name = "**not-a-package**";
+    [(name, Some((`Eq, 10000000000)))];
+  | final => final
+  };
 };
 
 let getPackageCached =
@@ -351,14 +356,7 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
  *
  */
 let rec addPackage =
-        (
-          ~state,
-          ~previouslyInstalled,
-          ~deep,
-          pkg: Package.t,
-          version,
-          universe,
-        ) => {
+        (~state, ~previouslyInstalled, ~deep, pkg: Package.t, version) => {
   VersionMap.update(
     state.SolveState.versionMap,
     pkg.name,
@@ -372,7 +370,7 @@ let rec addPackage =
   );
   deep ?
     List.iter(
-      addToUniverse(~state, ~previouslyInstalled, ~deep, universe),
+      addToUniverse(~state, ~previouslyInstalled, ~deep),
       pkg.dependencies.dependencies,
     ) :
     ();
@@ -388,62 +386,46 @@ let rec addPackage =
       },
     depends:
       deep ?
-        List.map(
-          cudfDep(
-            pkg.name
-            ++ " (at "
-            ++ PackageInfo.Version.toString(pkg.version)
-            ++ ")",
-            universe,
-            state.versionMap,
-          ),
-          pkg.dependencies.dependencies,
-        ) :
+        {
+          let from =
+            Printf.sprintf(
+              "%s (at %s)",
+              pkg.name,
+              PackageInfo.Version.toString(pkg.version),
+            );
+          List.map(
+            cudfDep(from, state.universe, state.versionMap),
+            pkg.dependencies.dependencies,
+          );
+        } :
         [],
   };
-  Cudf.add_package(universe, package);
+  Cudf.add_package(state.universe, package);
 }
-and addToUniverse =
-    (~state: SolveState.t, ~previouslyInstalled, ~deep, universe, req) => {
+and addToUniverse = (~state: SolveState.t, ~previouslyInstalled, ~deep, req) => {
   let versions =
     getAvailableVersions(~state, req)
     |> RunAsync.withContext("processing request: " ++ Req.toString(req))
     |> RunAsync.runExn(~err="error getting versions");
   List.iter(
-    ((pkg: Package.t, cudfVersion)) =>
-      if (Option.isNone(
-            VersionMap.findCudfVersion(
-              state.versionMap,
-              ~name=pkg.name,
-              ~version=pkg.version,
-            ),
-          )) {
-        addPackage(
-          ~state,
-          ~previouslyInstalled,
-          ~deep,
-          pkg,
-          cudfVersion,
-          universe,
+    ((pkg: Package.t, cudfVersion)) => {
+      let seen =
+        Option.isSome(
+          VersionMap.findCudfVersion(
+            state.versionMap,
+            ~name=pkg.name,
+            ~version=pkg.version,
+          ),
         );
-      },
+      if (! seen) {
+        addPackage(~state, ~previouslyInstalled, ~deep, pkg, cudfVersion);
+      };
+    },
     versions,
   );
 };
 
 let rootName = "*root*";
-
-let createUniverse = (~cfg, ~cache, ~previouslyInstalled=?, ~deep=true, deps) => {
-  open RunAsync.Syntax;
-  let universe = Cudf.empty_universe();
-  let%bind state = SolveState.make(~cache, ~cfg, ());
-  /** This is where most of the work happens, file io, network requests, etc. */
-  List.iter(
-    addToUniverse(~state, ~previouslyInstalled, ~deep, universe),
-    deps,
-  );
-  return((universe, state.versionMap, state.cache.pkgs));
-};
 
 let solveDeps =
     (~cfg, ~cache, ~strategy, ~previouslyInstalled=?, ~deep=true, deps) =>
@@ -451,8 +433,12 @@ let solveDeps =
     if (deps == []) {
       return([]);
     } else {
-      let%bind (universe, cudfVersions, manifests) =
-        createUniverse(~cfg, ~cache, ~previouslyInstalled?, ~deep, deps);
+      let%bind (universe, cudfVersions, manifests) = {
+        let%bind state = SolveState.make(~cache, ~cfg, ());
+        /** This is where most of the work happens, file io, network requests, etc. */
+        List.iter(addToUniverse(~state, ~previouslyInstalled, ~deep), deps);
+        return((state.universe, state.versionMap, state.cache.pkgs));
+      };
       /** Here we invoke the solver! Might also take a while, but probably won't */
       let cudfDeps =
         List.map(cudfDep(rootName, universe, cudfVersions), deps);

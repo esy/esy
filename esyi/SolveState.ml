@@ -91,6 +91,7 @@ type t = {
   cfg: Config.t;
   cache: Cache.t;
   versionMap: VersionMap.t;
+  universe: Cudf.universe;
 }
 
 let make ?cache ~cfg () =
@@ -100,4 +101,9 @@ let make ?cache ~cfg () =
     | Some cache -> return cache
     | None -> Cache.make ~cfg ()
   in
-  return {cfg; cache; versionMap = VersionMap.make ()}
+  return {
+    cfg;
+    cache;
+    versionMap = VersionMap.make ();
+    universe = Cudf.empty_universe();
+  }

@@ -1,3 +1,5 @@
+module MakeFormula = Version.Formula.Make;
+
 module Version = {
   [@deriving (eq, yojson)]
   type t = {
@@ -113,7 +115,7 @@ module Version = {
 };
 
 module Formula = {
-  include VersionFormula.Make(Version);
+  include MakeFormula(Version);
 
   module Parser = {
     /**

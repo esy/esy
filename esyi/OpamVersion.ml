@@ -1,21 +1,4 @@
-(* TODO: move this to another module *)
-module Abstract = struct
-
-  (**
-  * Package version.
-  *)
-  module type VERSION = sig
-    type t
-
-    val equal : t -> t -> bool
-    val compare : t -> t -> int
-    val show : t -> string
-
-    val parse : string -> (t, string) result
-    val toString : t -> string
-  end
-
-end
+module MakeFormula = Version.Formula.Make
 
 (** opam versions are Debian-style versions *)
 module Version = DebianVersion
@@ -25,7 +8,7 @@ module Version = DebianVersion
  *)
 module Formula = struct
 
-  include VersionFormula.Make(Version)
+  include MakeFormula(Version)
 
   let nextForCaret v =
     let next =
