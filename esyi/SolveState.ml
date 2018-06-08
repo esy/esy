@@ -38,10 +38,59 @@ module Cache = struct
 
 end
 
+module VersionMap = struct
+  type t = {
+    cudfVersionToVersion: ((string * int), PackageInfo.Version.t) Hashtbl.t ;
+    versionToCudfVersion: ((string * PackageInfo.Version.t), int) Hashtbl.t
+  }
+
+  let make ?(size=100) () = {
+    cudfVersionToVersion = Hashtbl.create size;
+    versionToCudfVersion = Hashtbl.create size;
+  }
+
+  let update t name realVersion version =
+    Hashtbl.replace t.versionToCudfVersion (name, realVersion) version;
+    Hashtbl.replace t.cudfVersionToVersion (name, version) realVersion
+
+  let findVersion ~name ~cudfVersion map =
+    match Hashtbl.find map.cudfVersionToVersion (name, cudfVersion) with
+    | exception Not_found -> None
+    | version -> Some version
+
+  let findCudfVersion ~name ~version map =
+    match Hashtbl.find map.versionToCudfVersion (name, version) with
+    | exception Not_found -> None
+    | version -> Some version
+
+  let findVersionExn ~name ~cudfVersion map =
+    match findVersion ~name ~cudfVersion map with
+    | Some v -> v
+    | None ->
+      let msg =
+        Printf.sprintf
+          "Tried to find a package that wasn't listed in the version map %s@cudf:%i"
+          name cudfVersion
+      in
+      failwith msg
+
+  let findCudfVersionExn ~name ~version map =
+    match findCudfVersion ~name ~version map with
+    | Some v -> v
+    | None ->
+      let msg =
+        Printf.sprintf
+          "Tried to find a package that wasn't listed in the version map %s@%s"
+          name (PackageInfo.Version.toString version)
+      in
+      failwith msg
+
+end
+
 type t = {
   cfg: Config.t;
   cache: Cache.t;
-  cudfVersions: CudfVersions.t;
+  versionMap: VersionMap.t;
 }
 
 let make ?cache ~cfg () =
@@ -51,4 +100,4 @@ let make ?cache ~cfg () =
     | Some cache -> return cache
     | None -> Cache.make ~cfg ()
   in
-  return {cfg; cache; cudfVersions = CudfVersions.init ()}
+  return {cfg; cache; versionMap = VersionMap.make ()}

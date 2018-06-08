@@ -1,4 +1,5 @@
 module Cache = SolveState.Cache;
+module VersionMap = SolveState.VersionMap;
 module Source = PackageInfo.Source;
 module Version = PackageInfo.Version;
 module SourceSpec = PackageInfo.SourceSpec;
@@ -29,7 +30,14 @@ let satisfies = (realVersion, req) =>
   };
 
 let matchesSource = (req, cudfVersions, package) =>
-  satisfies(CudfVersions.getRealVersion(cudfVersions, package), req);
+  satisfies(
+    VersionMap.findVersionExn(
+      cudfVersions,
+      ~name=package.Cudf.package,
+      ~cudfVersion=package.Cudf.version,
+    ),
+    req,
+  );
 
 let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
   let root = {
@@ -112,7 +120,11 @@ let cudfDep = (owner, universe, cudfVersions, req) => {
                  print_endline(
                    "  - "
                    ++ PackageInfo.Version.toString(
-                        CudfVersions.getRealVersion(cudfVersions, package),
+                        VersionMap.findVersionExn(
+                          cudfVersions,
+                          ~name=package.Cudf.package,
+                          ~cudfVersion=package.Cudf.version,
+                        ),
                       ),
                  )
                );
@@ -369,8 +381,8 @@ let rec addPackage =
           version,
           universe,
         ) => {
-  CudfVersions.update(
-    state.SolveState.cudfVersions,
+  VersionMap.update(
+    state.SolveState.versionMap,
     pkg.name,
     pkg.version,
     version,
@@ -405,7 +417,7 @@ let rec addPackage =
             ++ PackageInfo.Version.toString(pkg.version)
             ++ ")",
             universe,
-            state.cudfVersions,
+            state.versionMap,
           ),
           pkg.dependencies.dependencies,
         ) :
@@ -421,11 +433,13 @@ and addToUniverse =
     |> RunAsync.runExn(~err="error getting versions");
   List.iter(
     ((pkg: Package.t, cudfVersion)) =>
-      if (!
-            Hashtbl.mem(
-              state.cudfVersions.lookupIntVersion,
-              (pkg.name, pkg.version),
-            )) {
+      if (Option.isNone(
+            VersionMap.findCudfVersion(
+              state.versionMap,
+              ~name=pkg.name,
+              ~version=pkg.version,
+            ),
+          )) {
         addPackage(
           ~state,
           ~previouslyInstalled,
@@ -450,7 +464,7 @@ let createUniverse = (~cfg, ~cache, ~previouslyInstalled=?, ~deep=true, deps) =>
     addToUniverse(~state, ~previouslyInstalled, ~deep, universe),
     deps,
   );
-  return((universe, state.cudfVersions, state.cache.pkgs));
+  return((universe, state.versionMap, state.cache.pkgs));
 };
 
 let solveDeps =
@@ -470,7 +484,12 @@ let solveDeps =
         packages
         |> List.filter(p => p.Cudf.package != rootName)
         |> List.map(p => {
-             let version = CudfVersions.getRealVersion(cudfVersions, p);
+             let version =
+               VersionMap.findVersionExn(
+                 cudfVersions,
+                 ~name=p.Cudf.package,
+                 ~cudfVersion=p.Cudf.version,
+               );
              switch (
                Cache.Packages.get(manifests, (p.Cudf.package, version))
              ) {
