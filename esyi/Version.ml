@@ -106,6 +106,8 @@ module Formula = struct
           |> String.concat " && ")
         |> String.concat " || "
 
+      let show = toString
+
       let rec map ~f (OR formulas) =
         let mapConj (AND formulas) =
           AND (List.map (Constraint.map ~f) formulas)
@@ -132,10 +134,40 @@ module Formula = struct
       type t =
         Constraint.t disj conj
         [@@deriving yojson]
+
+      let rec toString (AND formulas) =
+        formulas
+        |> List.map (fun (OR formulas) ->
+          let formulas =
+          formulas
+          |> List.map Constraint.toString
+          |> String.concat " || "
+          in "(" ^ formulas ^ ")")
+        |> String.concat " && "
+
+      let show = toString
     end
 
+    type constr = Constraint.t
     type dnf = DNF.t
     type cnf = CNF.t
+
+    let ofDnfToCnf (f : dnf)  =
+      let f : cnf =
+        match f with
+        | OR [] -> AND []
+        | OR ((AND constrs)::conjs) ->
+          let init : constr disj list = List.map (fun r -> OR [r]) constrs in
+          let conjs =
+            let addConj (cnf : constr disj list) (AND conj) =
+              cnf
+              |> List.map (fun (OR constrs) -> List.map (fun r -> OR (r::constrs)) conj)
+              |> List.flatten
+            in
+            ListLabels.fold_left ~f:addConj ~init conjs
+          in
+          AND conjs
+      in f
 
     module Parse = struct
       let conjunction ~parse item =
@@ -155,3 +187,37 @@ module Formula = struct
     end
   end
 end
+
+let%test_module "Formula" = (module struct
+
+  module Version = struct
+    type t = int [@@deriving yojson]
+    let equal = (=)
+    let compare = compare
+    let show = string_of_int
+    let parse v =
+      match int_of_string_opt v with
+      | Some v -> Ok v
+      | None -> Error "not a version"
+    let toString = string_of_int
+  end
+
+  module F = Formula.Make(Version)
+  module C = F.Constraint
+  open C
+  open F
+
+  let%test "ofDnfToCnf: 1" =
+    F.ofDnfToCnf (OR [AND [C.EQ 1]]) = AND [OR [EQ 1]]
+
+  let%test "ofDnfToCnf: 1 && 2" =
+    F.ofDnfToCnf (OR [AND [EQ 1; EQ 2]]) = AND [OR [EQ 1]; OR[EQ 2]]
+
+  let%test "ofDnfToCnf: 1 && 2 || 3" =
+    F.ofDnfToCnf (OR [AND [EQ 1; EQ 2]; AND [EQ 3]])
+    = AND [OR [EQ 3; EQ 1]; OR[EQ 3; EQ 2]]
+
+  let%test "ofDnfToCnf: 1 && 2 || 3 && 4" =
+    F.ofDnfToCnf (OR [AND [EQ 1; EQ 2]; AND [EQ 3; EQ 4]])
+    = AND [OR [EQ 3; EQ 1]; OR [EQ 4; EQ 1]; OR [EQ 3; EQ 2]; OR [EQ 4; EQ 2]]
+end)
