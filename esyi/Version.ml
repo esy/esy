@@ -9,21 +9,21 @@ module type VERSION  = sig
   val of_yojson : Json.t -> (t, string) result
 end
 
-module Formula = struct
+(** Constraints over versions *)
+module Constraint = struct
   module Make (Version: VERSION) = struct
     type t =
-      | OR of t * t
-      | AND of t * t
       | EQ of Version.t
       | GT of Version.t
       | GTE of Version.t
       | LT of Version.t
       | LTE of Version.t
       | NONE
-      | ANY [@@deriving yojson]
+      | ANY
+      [@@deriving yojson]
 
-    let rec matches formula version =
-      match formula with
+    let matches ~version constr  =
+      match constr with
       | EQ a -> Version.compare a version = 0
       | ANY -> true
       | NONE -> false
@@ -31,11 +31,9 @@ module Formula = struct
       | GTE a -> Version.compare a version <= 0
       | LT a -> Version.compare a version > 0
       | LTE a -> Version.compare a version >= 0
-      | AND (a, b) -> matches a version && matches b version
-      | OR (a, b) -> matches a version || matches b version
 
-    let rec isTooLarge formula version =
-      match formula with
+    let isTooLarge ~version constr =
+      match constr with
       | EQ a -> Version.compare a version < 0
       | ANY -> false
       | NONE -> false
@@ -43,11 +41,9 @@ module Formula = struct
       | GTE _a -> false
       | LT a -> Version.compare a version <= 0
       | LTE a -> Version.compare a version < 0
-      | AND (a, b) -> isTooLarge a version || isTooLarge b version
-      | OR (a, b) -> isTooLarge a version && isTooLarge b version
 
-    let rec toString range =
-      match range with
+    let rec toString constr =
+      match constr with
       | EQ a -> Version.toString a
       | ANY -> "*"
       | NONE -> "none"
@@ -55,23 +51,94 @@ module Formula = struct
       | GTE a -> ">= " ^ Version.toString a
       | LT a -> "< " ^ Version.toString a
       | LTE a -> "<= " ^ Version.toString a
-      | AND (a, b) -> toString a ^ " && " ^ toString b
-      | OR (a, b)-> toString a ^ " || " ^ toString b
 
-    let rec map transform range =
-      match range with
-      | EQ a-> EQ (transform a)
+    let rec map ~f constr =
+      match constr with
+      | EQ a-> EQ (f a)
       | ANY -> ANY
       | NONE -> NONE
-      | GT a -> GT (transform a)
-      | GTE a -> GTE (transform a)
-      | LT a -> LT (transform a)
-      | LTE a -> LTE (transform a)
-      | AND (a, b) -> AND (map transform a, map transform b)
-      | OR (a, b) -> OR (map transform a, map transform b)
+      | GT a -> GT (f a)
+      | GTE a -> GTE (f a)
+      | LT a -> LT (f a)
+      | LTE a -> LTE (f a)
+
+  end
+end
+
+module Formula = struct
+
+  module Make (Version: VERSION) = struct
+
+    module Constraint = Constraint.Make(Version)
+
+    type 'f conj = AND of 'f list [@@deriving yojson]
+    type 'f disj = OR of 'f list [@@deriving yojson]
+
+    let any cond formulas =
+      List.exists cond formulas
+
+    let rec every cond = function
+      | f::rest -> if cond f then every cond rest else false
+      | [] -> true
+
+    module DNF = struct
+      type t =
+        Constraint.t conj disj
+        [@@deriving yojson]
+
+      let matches ~version (OR formulas) =
+        let matchesConj (AND formulas) =
+          every (Constraint.matches ~version) formulas
+        in
+        any matchesConj formulas
+
+      let isTooLarge ~version (OR formulas) =
+        let matchesConj (AND formulas) =
+          every (Constraint.isTooLarge ~version) formulas
+        in
+        any matchesConj formulas
+
+      let rec toString (OR formulas) =
+        formulas
+        |> List.map (fun (AND formulas) ->
+          formulas
+          |> List.map Constraint.toString
+          |> String.concat " && ")
+        |> String.concat " || "
+
+      let rec map ~f (OR formulas) =
+        let mapConj (AND formulas) =
+          AND (List.map (Constraint.map ~f) formulas)
+        in OR (List.map mapConj formulas)
+
+      let conj (OR a) (OR b) =
+        let items =
+          let items = [] in
+          let f items (AND a) =
+            let f items (AND b) =
+              (AND (a @ b)::items)
+            in
+            ListLabels.fold_left ~f ~init:items b
+          in
+          ListLabels.fold_left ~f ~init:items a
+        in OR items
+
+      let disj (OR a) (OR b) =
+        OR (a @ b)
+
+    end
+
+    module CNF = struct
+      type t =
+        Constraint.t disj conj
+        [@@deriving yojson]
+    end
+
+    type dnf = DNF.t
+    type cnf = CNF.t
 
     module Parse = struct
-      let conjunction parse item =
+      let conjunction ~parse item =
         let item =
           item
           |> Str.global_replace (Str.regexp ">= +") ">="
@@ -80,25 +147,11 @@ module Formula = struct
           |> Str.global_replace (Str.regexp "< +") "<"
         in
         let items = String.split_on_char ' ' item in
-        let rec loop items =
-          match items with
-          | item::[] -> parse item
-          | item::items -> AND (parse item, loop items)
-          | [] -> assert false in
-        loop items
+        AND (List.map parse items)
 
-      let disjunction parse version =
-        if version = ""
-        then ANY
-        else
-          let items = Str.split (Str.regexp " +|| +") version in
-          let rec loop items =
-            match items with
-            | [] ->
-                failwith ((("WAAAT ")[@reason.raw_literal "WAAAT "]) ^ version)
-            | item::[] -> parse item
-            | item::items -> ((OR ((parse item), (loop items)))[@explicit_arity ]) in
-          loop items
+      let disjunction ~parse version =
+        let items = Str.split (Str.regexp " +|| +") version in
+        OR (List.map parse items)
     end
   end
 end

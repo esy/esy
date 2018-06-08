@@ -117,6 +117,8 @@ module Version = {
 module Formula = {
   include MakeFormula(Version);
 
+  let any: dnf = OR([AND([Constraint.ANY])]);
+
   module Parser = {
     /**
  * Do the nitty gritty parsing of npm semver.
@@ -291,16 +293,21 @@ module Formula = {
     /* ] */
     let parsePrimitive = item =>
       switch (item.[0]) {
-      | '=' => EQ(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
+      | '=' =>
+        Constraint.EQ(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
       | '>' =>
         switch (item.[1]) {
-        | '=' => GTE(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
-        | _ => GT(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
+        | '=' =>
+          Constraint.GTE(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
+        | _ =>
+          Constraint.GT(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
         }
       | '<' =>
         switch (item.[1]) {
-        | '=' => LTE(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
-        | _ => LT(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
+        | '=' =>
+          Constraint.LTE(parsePartial(sliceToEnd(item, 2)) |> exactPartial)
+        | _ =>
+          Constraint.LT(parsePartial(sliceToEnd(item, 1)) |> exactPartial)
         }
       | _ => failwith("Bad primitive")
       };
@@ -310,105 +317,131 @@ module Formula = {
       | '~' =>
         switch (parsePartial(sliceToEnd(item, 1))) {
         | `Major(num, q) =>
-          AND(
-            GTE({major: num, minor: 0, patch: 0, release: q}),
-            LT({major: num + 1, minor: 0, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: num, minor: 0, patch: 0, release: q}),
+            Constraint.LT({
+              major: num + 1,
+              minor: 0,
+              patch: 0,
+              release: None,
+            }),
+          ])
         | `Minor(m, i, q) =>
-          AND(
-            GTE({major: m, minor: i, patch: 0, release: q}),
-            LT({major: m, minor: i + 1, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: 0, release: q}),
+            Constraint.LT({major: m, minor: i + 1, patch: 0, release: None}),
+          ])
         | `Patch(m, i, p, q) =>
-          AND(
-            GTE({major: m, minor: i, patch: p, release: q}),
-            LT({major: m, minor: i + 1, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: p, release: q}),
+            Constraint.LT({major: m, minor: i + 1, patch: 0, release: None}),
+          ])
         | `AllStar => failwith("* cannot be tilded")
         | `MajorStar(num) =>
-          AND(
-            GTE({major: num, minor: 0, patch: 0, release: None}),
-            LT({major: num + 1, minor: 0, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: num, minor: 0, patch: 0, release: None}),
+            Constraint.LT({
+              major: num + 1,
+              minor: 0,
+              patch: 0,
+              release: None,
+            }),
+          ])
         | `MinorStar(m, i) =>
-          AND(
-            GTE({major: m, minor: i, patch: 0, release: None}),
-            LT({major: m, minor: i + 1, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: 0, release: None}),
+            Constraint.LT({major: m, minor: i + 1, patch: 0, release: None}),
+          ])
         | `Raw(_) => failwith("Bad tilde")
         }
       | '^' =>
         switch (parsePartial(sliceToEnd(item, 1))) {
         | `Major(num, q) =>
-          AND(
-            GTE({major: num, minor: 0, patch: 0, release: q}),
+          AND([
+            Constraint.GTE({major: num, minor: 0, patch: 0, release: q}),
             LT({major: num + 1, minor: 0, patch: 0, release: None}),
-          )
+          ])
         | `Minor(0, i, q) =>
-          AND(
-            GTE({major: 0, minor: i, patch: 0, release: q}),
-            LT({major: 0, minor: i + 1, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: 0, minor: i, patch: 0, release: q}),
+            Constraint.LT({major: 0, minor: i + 1, patch: 0, release: None}),
+          ])
         | `Minor(m, i, q) =>
-          AND(
-            GTE({major: m, minor: i, patch: 0, release: q}),
-            LT({major: m + 1, minor: 0, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: 0, release: q}),
+            Constraint.LT({major: m + 1, minor: 0, patch: 0, release: None}),
+          ])
         | `Patch(0, 0, p, q) =>
-          AND(
-            GTE({major: 0, minor: 0, patch: p, release: q}),
-            LT({major: 0, minor: 0, patch: p + 1, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: 0, minor: 0, patch: p, release: q}),
+            Constraint.LT({major: 0, minor: 0, patch: p + 1, release: None}),
+          ])
         | `Patch(0, i, p, q) =>
-          AND(
+          AND([
             GTE({major: 0, minor: i, patch: p, release: q}),
             LT({major: 0, minor: i + 1, patch: 0, release: None}),
-          )
+          ])
         | `Patch(m, i, p, q) =>
-          AND(
-            GTE({major: m, minor: i, patch: p, release: q}),
-            LT({major: m + 1, minor: 0, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: p, release: q}),
+            Constraint.LT({major: m + 1, minor: 0, patch: 0, release: None}),
+          ])
         | `AllStar => failwith("* cannot be careted")
         | `MajorStar(num) =>
-          AND(
-            GTE({major: num, minor: 0, patch: 0, release: None}),
-            LT({major: num + 1, minor: 0, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: num, minor: 0, patch: 0, release: None}),
+            Constraint.LT({
+              major: num + 1,
+              minor: 0,
+              patch: 0,
+              release: None,
+            }),
+          ])
         | `MinorStar(m, i) =>
-          AND(
-            GTE({major: m, minor: i, patch: 0, release: None}),
-            LT({major: m + 1, minor: i, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: 0, release: None}),
+            Constraint.LT({major: m + 1, minor: i, patch: 0, release: None}),
+          ])
         | `Raw(_) => failwith("Bad tilde")
         }
       | '>'
       | '<'
-      | '=' => parsePrimitive(item)
+      | '=' => AND([parsePrimitive(item)])
       | _ =>
         switch (parsePartial(item)) {
-        | `AllStar => ANY
+        | `AllStar => AND([Constraint.ANY])
         /* TODO maybe handle the qualifier */
         | `Major(m, Some(x)) =>
-          EQ({major: m, minor: 0, patch: 0, release: Some(x)})
+          AND([
+            Constraint.EQ({major: m, minor: 0, patch: 0, release: Some(x)}),
+          ])
         | `Major(m, None)
         | `MajorStar(m) =>
-          AND(
+          AND([
             GTE({major: m, minor: 0, patch: 0, release: None}),
             LT({major: m + 1, minor: 0, patch: 0, release: None}),
-          )
+          ])
         | `Minor(m, i, Some(x)) =>
-          EQ({major: m, minor: i, patch: 0, release: Some(x)})
+          AND([
+            Constraint.EQ({major: m, minor: i, patch: 0, release: Some(x)}),
+          ])
         | `Minor(m, i, None)
         | `MinorStar(m, i) =>
-          AND(
-            GTE({major: m, minor: i, patch: 0, release: None}),
-            LT({major: m, minor: i + 1, patch: 0, release: None}),
-          )
+          AND([
+            Constraint.GTE({major: m, minor: i, patch: 0, release: None}),
+            Constraint.LT({major: m, minor: i + 1, patch: 0, release: None}),
+          ])
         | `Patch(m, i, p, q) =>
-          EQ({major: m, minor: i, patch: p, release: q})
+          AND([Constraint.EQ({major: m, minor: i, patch: p, release: q})])
         | `Raw(text) =>
-          EQ({major: 0, minor: 0, patch: 0, release: Some(text)})
+          AND([
+            Constraint.EQ({
+              major: 0,
+              minor: 0,
+              patch: 0,
+              release: Some(text),
+            }),
+          ])
         }
       };
 
@@ -439,30 +472,35 @@ module Formula = {
     let parseNpmRange = simple => {
       let items = Str.split(Str.regexp(" +- +"), simple);
       switch (items) {
-      | [item] => Parse.conjunction(parseSimple, item)
+      | [item] => parseSimple(item)
       | [left, right] =>
-        let left = GTE(parsePartial(left) |> exactPartial);
+        let left = Constraint.GTE(parsePartial(left) |> exactPartial);
         let right =
           switch (parsePartial(right)) {
-          | `AllStar => ANY
+          | `AllStar => Constraint.ANY
           /* TODO maybe handle the qualifier */
           | `Major(m, _)
           | `MajorStar(m) =>
-            LT({major: m + 1, minor: 0, patch: 0, release: None})
+            Constraint.LT({major: m + 1, minor: 0, patch: 0, release: None})
           | `Minor(m, i, _)
           | `MinorStar(m, i) =>
-            LT({major: m, minor: i + 1, patch: 0, release: None})
+            Constraint.LT({major: m, minor: i + 1, patch: 0, release: None})
           | `Patch(m, i, p, q) =>
-            LTE({major: m, minor: i, patch: p, release: q})
+            Constraint.LTE({major: m, minor: i, patch: p, release: q})
           | `Raw(text) =>
-            LT({major: 0, minor: 0, patch: 0, release: Some(text)})
+            Constraint.LT({
+              major: 0,
+              minor: 0,
+              patch: 0,
+              release: Some(text),
+            })
           };
-        AND(left, right);
+        AND([left, right]);
       | _ => failwith("Invalid range")
       };
     };
 
-    let parse = Parse.disjunction(parseNpmRange);
+    let parse = Parse.disjunction(~parse=parseNpmRange);
   };
 
   /**
@@ -505,7 +543,7 @@ module Formula = {
     try (Parser.parse(version)) {
     | Failure(message) =>
       print_endline("Failed with message: " ++ message ++ " : " ++ version);
-      ANY;
+      OR([AND([ANY])]);
     | e =>
       print_endline(
         "Invalid version! pretending its any: "
@@ -513,6 +551,6 @@ module Formula = {
         ++ " "
         ++ Printexc.to_string(e),
       );
-      ANY;
+      OR([AND([ANY])]);
     };
 };

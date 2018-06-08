@@ -128,13 +128,13 @@ end
 module VersionSpec = struct
 
   type t =
-    | Npm of NpmVersion.Formula.t
-    | Opam of OpamVersion.Formula.t
+    | Npm of NpmVersion.Formula.dnf
+    | Opam of OpamVersion.Formula.dnf
     | Source of SourceSpec.t
 
   let toString = function
-    | Npm formula -> NpmVersion.Formula.toString formula
-    | Opam formula -> "opam:" ^ OpamVersion.Formula.toString formula
+    | Npm formula -> NpmVersion.Formula.DNF.toString formula
+    | Opam formula -> "opam:" ^ OpamVersion.Formula.DNF.toString formula
     | Source src -> SourceSpec.toString src
 
   let to_yojson src = `String (toString src)
@@ -144,10 +144,10 @@ module VersionSpec = struct
     | Source (SourceSpec.Github (user, repo, Some ref)),
       Version.Source (Source.Github (user_, repo_, ref_)) ->
       user = user_ && repo = repo_ && ref = ref_
-    | Npm formula, Version.Npm s ->
-      NpmVersion.Formula.matches formula s
-    | Opam formula, Version.Opam s ->
-      OpamVersion.Formula.matches formula s
+    | Npm formula, Version.Npm version ->
+      NpmVersion.Formula.DNF.matches ~version formula
+    | Opam formula, Version.Opam version ->
+      OpamVersion.Formula.DNF.matches ~version formula
     | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
       Path.equal p1 p2
     | _ -> false

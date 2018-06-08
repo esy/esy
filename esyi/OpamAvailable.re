@@ -1,36 +1,42 @@
 open NpmVersion;
 
-let fromPrefix = (op, version) => {
+module F = Formula;
+module C = Formula.Constraint;
+
+let singleDnf = c => F.OR([F.AND([c])]);
+
+let fromPrefix = (op, version) : F.dnf => {
   let v = Version.parseExn(version);
   switch (op) {
-  | `Eq => Formula.EQ(v)
-  | `Geq => Formula.GTE(v)
-  | `Leq => Formula.LTE(v)
-  | `Lt => Formula.LT(v)
-  | `Gt => Formula.GT(v)
-  | `Neq => Formula.OR(Formula.GT(v), Formula.LT(v))
+  | `Eq => singleDnf(C.EQ(v))
+  | `Geq => singleDnf(C.GTE(v))
+  | `Leq => singleDnf(C.LTE(v))
+  | `Lt => singleDnf(C.LT(v))
+  | `Gt => singleDnf(C.GT(v))
+  | `Neq => F.OR([F.AND([C.GT(v)]), F.AND([C.LT(v)])])
   };
 };
 
-let rec getOCamlVersion = opamvalue =>
+let rec getOCamlVersion = opamvalue : F.dnf => {
+  let any = singleDnf(C.ANY);
   /* Shared.VersionFormula.ANY */
   OpamParserTypes.(
     switch (opamvalue) {
     | Logop(_, `And, left, right) =>
-      Formula.AND(getOCamlVersion(left), getOCamlVersion(right))
+      F.DNF.conj(getOCamlVersion(left), getOCamlVersion(right))
     | Logop(_, `Or, left, right) =>
-      Formula.OR(getOCamlVersion(left), getOCamlVersion(right))
+      F.DNF.disj(getOCamlVersion(left), getOCamlVersion(right))
     | Relop(_, rel, Ident(_, "ocaml-version"), String(_, version)) =>
       fromPrefix(rel, version)
     /* We don't support pre-4.02.3 anyway */
-    | Relop(_, `Neq, Ident(_, "compiler"), String(_, "4.02.1+BER")) => Formula.ANY
-    | Relop(_, `Eq, Ident(_, "compiler"), String(_, _)) => Formula.ANY
-    | Relop(_, _rel, Ident(_, "opam-version"), _) => Formula.ANY /* TODO should I care about this? */
-    | Relop(_, _rel, Ident(_, "os"), String(_, _version)) => Formula.ANY
-    | Pfxop(_, `Not, Ident(_, "preinstalled")) => Formula.ANY
-    | Ident(_, "preinstalled" | "false") => Formula.ANY
-    | Bool(_, true) => Formula.ANY
-    | Bool(_, false) => Formula.NONE
+    | Relop(_, `Neq, Ident(_, "compiler"), String(_, "4.02.1+BER")) => any
+    | Relop(_, `Eq, Ident(_, "compiler"), String(_, _)) => any
+    | Relop(_, _rel, Ident(_, "opam-version"), _) => any /* TODO should I care about this? */
+    | Relop(_, _rel, Ident(_, "os"), String(_, _version)) => any
+    | Pfxop(_, `Not, Ident(_, "preinstalled")) => any
+    | Ident(_, "preinstalled" | "false") => any
+    | Bool(_, true) => any
+    | Bool(_, false) => singleDnf(C.NONE)
     | Option(_, contents, options) =>
       print_endline(
         "Ignoring option: "
@@ -40,17 +46,17 @@ let rec getOCamlVersion = opamvalue =>
     | List(_, items) =>
       let rec loop = items =>
         switch (items) {
-        | [] => Formula.ANY
+        | [] => any
         | [item] => getOCamlVersion(item)
-        | [item, ...rest] => Formula.AND(getOCamlVersion(item), loop(rest))
+        | [item, ...rest] => F.DNF.conj(getOCamlVersion(item), loop(rest))
         };
       loop(items);
     | Group(_, items) =>
       let rec loop = items =>
         switch (items) {
-        | [] => Formula.ANY
+        | [] => any
         | [item] => getOCamlVersion(item)
-        | [item, ...rest] => Formula.AND(getOCamlVersion(item), loop(rest))
+        | [item, ...rest] => F.DNF.conj(getOCamlVersion(item), loop(rest))
         };
       loop(items);
     | _y =>
@@ -58,9 +64,10 @@ let rec getOCamlVersion = opamvalue =>
         "Unexpected option -- pretending its any "
         ++ OpamPrinter.value(opamvalue),
       );
-      Formula.ANY;
+      any;
     }
   );
+};
 
 let rec getAvailability = opamvalue =>
   /* Shared.VersionFormula.ANY */

@@ -202,7 +202,7 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
     |> List.sort(((va, _), (vb, _)) => NpmVersion.Version.compare(va, vb))
     |> List.mapi((i, (v, j)) => (v, j, i))
     |> List.filter(((version, _json, _i)) =>
-         NpmVersion.Formula.matches(formula, version)
+         NpmVersion.Formula.DNF.matches(formula, ~version)
        )
     |> List.map(((version, _json, i)) => {
          let version = PackageInfo.Version.Npm(version);
@@ -234,14 +234,14 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
     let matched =
       available
       |> List.filter(((version, _path, _i)) =>
-           OpamVersion.Formula.matches(semver, version)
+           OpamVersion.Formula.DNF.matches(semver, ~version)
          );
 
     let matched =
       if (matched == []) {
         available
         |> List.filter(((version, _path, _i)) =>
-             OpamVersion.Formula.matches(semver, version)
+             OpamVersion.Formula.DNF.matches(semver, ~version)
            );
       } else {
         matched;

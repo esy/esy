@@ -55,8 +55,8 @@ end
  *)
 module VersionSpec : sig
   type t =
-      Npm of NpmVersion.Formula.t
-    | Opam of OpamVersion.Formula.t
+      Npm of NpmVersion.Formula.dnf
+    | Opam of OpamVersion.Formula.dnf
     | Source of SourceSpec.t
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
