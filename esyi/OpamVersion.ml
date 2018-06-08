@@ -10,6 +10,10 @@ module Formula = struct
 
   include MakeFormula(Version)
 
+  let any: dnf = OR [AND [Constraint.ANY]];
+
+  module C = Constraint
+
   let nextForCaret v =
     let next =
       match Version.AsSemver.major v with
@@ -39,42 +43,42 @@ module Formula = struct
     let module String = Astring.String in
     let open Result.Syntax in
     match String.trim text with
-    | "*"  | "" -> return ANY
+    | "*"  | "" -> return [C.ANY]
     | text ->
       begin match text.[0], text.[1] with
       | '^', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         let%bind next = nextForCaret v in
-        return (AND ((GTE v), (LT next)))
+        return [C.GTE v; C.LT next]
       | '~', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         let%bind next = nextForTilde v in
-        return (AND ((GTE v), (LT next)))
+        return [C.GTE v; C.LT next]
       | '=', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
-        return (EQ v)
+        return [C.EQ v]
       | '<', '=' ->
         let text = String.Sub.(text |> v ~start:2 |> to_string) in
         let%bind v = Version.parse text in
-        return (LTE v)
+        return [C.LTE v]
       | '<', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
-        return (LT v)
+        return [C.LT v]
       | '>', '=' ->
         let text = String.Sub.(text |> v ~start:2 |> to_string) in
         let%bind v = Version.parse text in
-        return (GTE v)
+        return [C.GTE v]
       | '>', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
-        return (GT v)
+        return [C.GT v]
       | _, _ ->
         let%bind v = Version.parse text in
-        return (EQ v)
+        return [C.EQ v]
       end
 
   (* TODO: do not use failwith here *)
@@ -85,16 +89,20 @@ module Formula = struct
         | Ok v -> v
         | Error err -> failwith err
         in
-      Parse.conjunction parse v
+      let (AND conjs) = Parse.conjunction ~parse v in
+      let conjs =
+        let f conjs c = conjs @ c in
+        ListLabels.fold_left ~init:[] ~f conjs
+      in AND conjs
     in
-    Parse.disjunction parseSimple v
+    Parse.disjunction ~parse:parseSimple v
 
   let%test_module "matches" = (module struct
     let v = Version.parseExn
     let f = parse
 
     let%test _ =
-      matches (f ">=1.7.0") (v "1.8.0")
+      DNF.matches ~version:(v "1.8.0") (f ">=1.7.0")
 
   end)
 

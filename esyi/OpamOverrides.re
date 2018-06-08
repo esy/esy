@@ -45,7 +45,7 @@ module Override = {
   };
 };
 
-type t = PackageNameMap.t(list((OpamFile.Formula.t, Fpath.t)));
+type t = PackageNameMap.t(list((OpamVersion.Formula.dnf, Fpath.t)));
 
 type override = Override.t;
 
@@ -80,7 +80,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
         switch (String.cut(~sep=".", spec)) {
         | None => (
             OpamFile.PackageName.ofString(spec),
-            OpamVersion.Formula.ANY,
+            OpamVersion.Formula.any,
           )
         | Some((name, constr)) =>
           let constr =
@@ -153,7 +153,7 @@ let get = (overrides, name: OpamFile.PackageName.t, version) =>
       switch (
         List.find_opt(
           ((formula, _path)) =>
-            OpamVersion.Formula.matches(formula, version),
+            OpamVersion.Formula.DNF.matches(formula, ~version),
           items,
         )
       ) {

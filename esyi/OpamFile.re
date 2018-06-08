@@ -1,7 +1,8 @@
 open OpamParserTypes;
 
 module Version = OpamVersion.Version;
-module Formula = OpamVersion.Formula;
+module F = OpamVersion.Formula;
+module C = OpamVersion.Formula.Constraint;
 
 module PackageName: {
   type t;
@@ -90,14 +91,16 @@ let opName = op =>
 module ParseDeps = {
   open OpamVersion;
 
+  let single = c => F.OR([F.AND([c])]);
+
   let fromPrefix = (op, version) => {
     let v = Version.parseExn(version);
     switch (op) {
-    | `Eq => Formula.EQ(v)
-    | `Geq => Formula.GTE(v)
-    | `Leq => Formula.LTE(v)
-    | `Lt => Formula.LT(v)
-    | `Gt => Formula.GT(v)
+    | `Eq => single(C.EQ(v))
+    | `Geq => single(C.GTE(v))
+    | `Leq => single(C.LTE(v))
+    | `Lt => single(C.LT(v))
+    | `Gt => single(C.GT(v))
     | `Neq => failwith("Can't do neq in opam version constraints")
     };
   };
@@ -107,10 +110,11 @@ module ParseDeps = {
       switch (opamvalue) {
       | Prefix_relop(_, op, String(_, version)) => fromPrefix(op, version)
       | Logop(_, `And, left, right) =>
-        AND(parseRange(left), parseRange(right))
+        F.DNF.conj(parseRange(left), parseRange(right))
       | Logop(_, `Or, left, right) =>
-        OR(parseRange(left), parseRange(right))
-      | String(_, version) => EQ(OpamVersion.Version.parseExn(version))
+        F.DNF.disj(parseRange(left), parseRange(right))
+      | String(_, version) =>
+        single(C.EQ(OpamVersion.Version.parseExn(version)))
       | Option(_, contents, options) =>
         print_endline(
           "Ignoring option: "
@@ -124,17 +128,17 @@ module ParseDeps = {
           "Unexpected option -- pretending its any "
           ++ OpamPrinter.value(opamvalue),
         );
-        ANY;
+        single(C.ANY);
       }
     );
 
   let rec toDep = opamvalue =>
     OpamParserTypes.(
       switch (opamvalue) {
-      | String(_, name) => (name, Formula.ANY, `Link)
+      | String(_, name) => (name, single(C.ANY), `Link)
       | Option(_, String(_, name), [Ident(_, "build")]) => (
           name,
-          ANY,
+          single(C.ANY),
           `Build,
         )
       | Option(
@@ -148,7 +152,7 @@ module ParseDeps = {
         )
       | Option(_, String(_, name), [Ident(_, "test")]) => (
           name,
-          ANY,
+          single(C.ANY),
           `Test,
         )
       | Option(
@@ -170,7 +174,7 @@ module ParseDeps = {
           ++ " and "
           ++ two,
         );
-        (two, ANY, `Link);
+        (two, single(C.ANY), `Link);
       | Group(_, [Logop(_, `Or, first, second)]) =>
         print_endline(
           "Arbitrarily choosing the first of two options: "
@@ -543,12 +547,16 @@ let parseManifest =
   let ocamlRequirement = {
     let req = findVariable("available", file_contents);
     let req = Option.map(~f=OpamAvailable.getOCamlVersion, req);
-    Option.orDefault(~default=NpmVersion.Formula.ANY, req);
+    Option.orDefault(~default=NpmVersion.Formula.any, req);
   };
   /* We just don't support anything before 4.2.3 */
   let ourMinimumOcamlVersion = NpmVersion.Version.parseExn("4.2.3");
   let isAVersionWeSupport =
-    ! NpmVersion.Formula.isTooLarge(ocamlRequirement, ourMinimumOcamlVersion);
+    !
+      NpmVersion.Formula.DNF.isTooLarge(
+        ocamlRequirement,
+        ~version=ourMinimumOcamlVersion,
+      );
   let isAvailable = {
     let isAvailable = {
       let v = findVariable("available", file_contents);
@@ -564,21 +572,23 @@ let parseManifest =
         ~name="ocaml",
         ~spec=
           Npm(
-            NpmVersion.Formula.AND(
-              NpmVersion.Formula.GTE(ourMinimumOcamlVersion),
-              ocamlRequirement,
+            NpmVersion.Formula.(
+              DNF.conj(
+                ocamlRequirement,
+                OR([AND([Constraint.GTE(ourMinimumOcamlVersion)])]),
+              )
             ),
           ),
       );
     let substDep =
       PackageInfo.Req.ofSpec(
         ~name="@esy-ocaml/substs",
-        ~spec=Npm(NpmVersion.Formula.ANY),
+        ~spec=Npm(NpmVersion.Formula.any),
       );
     let esyInstallerDep =
       PackageInfo.Req.ofSpec(
         ~name="@esy-ocaml/esy-installer",
-        ~spec=Npm(NpmVersion.Formula.ANY),
+        ~spec=Npm(NpmVersion.Formula.any),
       );
     (ocamlDep, substDep, esyInstallerDep);
   };
