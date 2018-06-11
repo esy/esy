@@ -53,6 +53,7 @@ endif
 	@esy install
 	@make build-dev
 	@make -C test-e2e bootstrap
+	@make -C test-e2e/pkg-tests bootstrap
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
@@ -79,12 +80,16 @@ test-unit::
 test-e2e::
 	@make -C test-e2e test
 
+test-e2e-esyi::
+	@make -C test-e2e/pkg-tests test
+
 test-opam::
 	$(MAKE) -C __tests__/opam
 
 ci::
 	@$(MAKE) test-unit
 	@$(MAKE) test-e2e
+	@$(MAKE) test-e2e-esyi
 
 test::
 	@$(MAKE) test-unit
