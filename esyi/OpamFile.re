@@ -119,7 +119,9 @@ module ParseDeps = {
         print_endline(
           "Ignoring option: "
           ++ (
-            options |> List.map(OpamPrinter.value) |> String.concat(" .. ")
+            options
+            |> List.map(~f=OpamPrinter.value)
+            |> String.concat(" .. ")
           ),
         );
         parseRange(contents);
@@ -217,41 +219,42 @@ let processDeps = (fileName, deps) => {
       )
     };
   List.fold_left(
-    ((deps, buildDeps, devDeps), dep) => {
-      let (name, dep, typ) =
-        try (ParseDeps.parse(dep)) {
-        | Failure(f) =>
-          print_endline("Failed to process dep: " ++ f);
-          print_endline(fileName);
-          failwith("bad");
+    ~f=
+      ((deps, buildDeps, devDeps), dep) => {
+        let (name, dep, typ) =
+          try (ParseDeps.parse(dep)) {
+          | Failure(f) =>
+            print_endline("Failed to process dep: " ++ f);
+            print_endline(fileName);
+            failwith("bad");
+          };
+        switch (typ) {
+        | `Link => (
+            [(PackageName.ofString(name), dep), ...deps],
+            buildDeps,
+            devDeps,
+          )
+        | `Build => (
+            deps,
+            [(PackageName.ofString(name), dep), ...buildDeps],
+            devDeps,
+          )
+        | `Test => (
+            deps,
+            buildDeps,
+            [(PackageName.ofString(name), dep), ...devDeps],
+          )
         };
-      switch (typ) {
-      | `Link => (
-          [(PackageName.ofString(name), dep), ...deps],
-          buildDeps,
-          devDeps,
-        )
-      | `Build => (
-          deps,
-          [(PackageName.ofString(name), dep), ...buildDeps],
-          devDeps,
-        )
-      | `Test => (
-          deps,
-          buildDeps,
-          [(PackageName.ofString(name), dep), ...devDeps],
-        )
-      };
-    },
-    ([], [], []),
+      },
+    ~init=([], [], []),
     deps,
   );
 };
 
-let filterMap = (fn, items) =>
-  List.map(fn, items)
-  |> List.filter(x => x != None)
-  |> List.map(x =>
+let filterMap = (f, items) =>
+  List.map(~f, items)
+  |> List.filter(~f=x => x != None)
+  |> List.map(~f=x =>
        switch (x) {
        | Some(x) => x
        | None => assert(false)
@@ -320,13 +323,14 @@ let replaceVariables = (info, string) => {
          "${" ++ cleanEnvName(name) ++ ".lib}"
        );
   List.fold_left(
-    (string, (name, res)) =>
-      Str.global_replace(
-        Str.regexp_string("%{" ++ name ++ "}%"),
-        res,
-        string,
-      ),
-    string,
+    ~f=
+      (string, (name, res)) =>
+        Str.global_replace(
+          Str.regexp_string("%{" ++ name ++ "}%"),
+          res,
+          string,
+        ),
+    ~init=string,
     variables(info),
   );
 };
@@ -520,7 +524,7 @@ let getSubsts = opamvalue =>
     | None => []
     | Some(List(_, items)) =>
       items
-      |> List.map(item =>
+      |> List.map(~f=item =>
            switch (item) {
            | String(_, text) => text
            | _ => failwith("Bad substs item")
@@ -531,7 +535,7 @@ let getSubsts = opamvalue =>
       failwith("Bad substs value " ++ OpamPrinter.value(other))
     }
   )
-  |> List.map(filename => ["substs", filename ++ ".in"]);
+  |> List.map(~f=filename => ["substs", filename ++ ".in"]);
 
 let parseManifest =
     (info: (PackageName.t, Version.t), {file_contents, file_name}) => {
@@ -609,12 +613,12 @@ let parseManifest =
     files,
     dependencies:
       [ocamlDep, substDep, esyInstallerDep]
-      @ (deps |> List.map(toDepSource))
-      @ (buildDeps |> List.map(toDepSource)),
+      @ (deps |> List.map(~f=toDepSource))
+      @ (buildDeps |> List.map(~f=toDepSource)),
     buildDependencies: PackageInfo.Dependencies.empty,
-    devDependencies: devDeps |> List.map(toDepSource),
+    devDependencies: devDeps |> List.map(~f=toDepSource),
     peerDependencies: [], /* TODO peer deps */
-    optDependencies: depopts |> List.map(toDepSource),
+    optDependencies: depopts |> List.map(~f=toDepSource),
     available: isAvailable, /* TODO */
     source: PackageInfo.Source.NoSource,
     exportedEnv: [],
@@ -624,7 +628,8 @@ let parseManifest =
 let source = ({source, _}) => source;
 
 let commandListToJson = e =>
-  e |> List.map(items => `List(List.map(item => `String(item), items)));
+  e
+  |> List.map(~f=items => `List(List.map(~f=item => `String(item), items)));
 
 let toPackageJson = (manifest, version) => {
   let npmName = PackageName.toNpm(manifest.name);
@@ -682,7 +687,7 @@ let toPackageJson = (manifest, version) => {
         "optDependencies",
         `Assoc(
           manifest.optDependencies
-          |> List.map(req => (PackageInfo.Req.name(req), `String("*"))),
+          |> List.map(~f=req => (PackageInfo.Req.name(req), `String("*"))),
         ),
       ),
       (
@@ -690,11 +695,11 @@ let toPackageJson = (manifest, version) => {
         `Assoc(
           (
             manifest.dependencies
-            |> List.map(req => (PackageInfo.Req.name(req), `String("*")))
+            |> List.map(~f=req => (PackageInfo.Req.name(req), `String("*")))
           )
           @ (
             manifest.buildDependencies
-            |> List.map(req => (PackageInfo.Req.name(req), `String("*")))
+            |> List.map(~f=req => (PackageInfo.Req.name(req), `String("*")))
           ),
         ),
       ),

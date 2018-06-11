@@ -36,9 +36,6 @@ lib: [
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sexp.cmi" {"EsyBuildPackage__Sexp.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Sexp.cmt" {"EsyBuildPackage__Sexp.cmt"}
   "_build/install/default/lib/esy-build-package/Sexp.re" {"Sexp.re"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Std.cmi" {"EsyBuildPackage__Std.cmi"}
-  "_build/install/default/lib/esy-build-package/EsyBuildPackage__Std.cmt" {"EsyBuildPackage__Std.cmt"}
-  "_build/install/default/lib/esy-build-package/Std.re" {"Std.re"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Store.cmi" {"EsyBuildPackage__Store.cmi"}
   "_build/install/default/lib/esy-build-package/EsyBuildPackage__Store.cmt" {"EsyBuildPackage__Store.cmt"}
   "_build/install/default/lib/esy-build-package/Store.re" {"Store.re"}

@@ -61,7 +61,7 @@ let ofDir = (cfg: Config.t) => {
       let resolve = (pkgName: string) =>
         switch%lwt (resolvePackageCached(pkgName, path)) {
         | Ok(Some(depPackagePath)) =>
-          if (List.mem(depPackagePath, stack)) {
+          if (List.mem(depPackagePath, ~set=stack)) {
             if (ignoreCircularDep) {
               Lwt.return_ok((pkgName, `Ignored));
             } else {
@@ -153,14 +153,15 @@ let ofDir = (cfg: Config.t) => {
         let sourceType = {
           let hasDepWithSourceTypeDevelopment =
             List.exists(
-              fun
-              | Package.Dependency(pkg)
-              | Package.PeerDependency(pkg)
-              | Package.BuildTimeDependency(pkg)
-              | Package.OptDependency(pkg) =>
-                pkg.sourceType == Package.SourceType.Development
-              | Package.DevDependency(_)
-              | Package.InvalidDependency(_) => false,
+              ~f=
+                fun
+                | Package.Dependency(pkg)
+                | Package.PeerDependency(pkg)
+                | Package.BuildTimeDependency(pkg)
+                | Package.OptDependency(pkg) =>
+                  pkg.sourceType == Package.SourceType.Development
+                | Package.DevDependency(_)
+                | Package.InvalidDependency(_) => false,
               dependencies,
             );
           switch (hasDepWithSourceTypeDevelopment, manifest._resolved) {
@@ -211,7 +212,7 @@ let ofDir = (cfg: Config.t) => {
     let%bind manifestInfo =
       manifestInfo^
       |> PathSet.elements
-      |> List.map(path => {
+      |> List.map(~f=path => {
            let%bind stat = Fs.stat(path);
            return((path, stat.Unix.st_mtime));
          })

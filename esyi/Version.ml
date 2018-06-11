@@ -75,7 +75,7 @@ module Formula = struct
     type 'f disj = OR of 'f list [@@deriving yojson]
 
     let any cond formulas =
-      List.exists cond formulas
+      List.exists ~f:cond formulas
 
     let rec every cond = function
       | f::rest -> if cond f then every cond rest else false
@@ -100,9 +100,9 @@ module Formula = struct
 
       let rec toString (OR formulas) =
         formulas
-        |> List.map (fun (AND formulas) ->
+        |> List.map ~f:(fun (AND formulas) ->
           formulas
-          |> List.map Constraint.toString
+          |> List.map ~f:Constraint.toString
           |> String.concat " && ")
         |> String.concat " || "
 
@@ -110,8 +110,8 @@ module Formula = struct
 
       let rec map ~f (OR formulas) =
         let mapConj (AND formulas) =
-          AND (List.map (Constraint.map ~f) formulas)
-        in OR (List.map mapConj formulas)
+          AND (List.map ~f:(Constraint.map ~f) formulas)
+        in OR (List.map ~f:mapConj formulas)
 
       let conj (OR a) (OR b) =
         let items =
@@ -137,10 +137,10 @@ module Formula = struct
 
       let rec toString (AND formulas) =
         formulas
-        |> List.map (fun (OR formulas) ->
+        |> List.map ~f:(fun (OR formulas) ->
           let formulas =
           formulas
-          |> List.map Constraint.toString
+          |> List.map ~f:Constraint.toString
           |> String.concat " || "
           in "(" ^ formulas ^ ")")
         |> String.concat " && "
@@ -157,11 +157,11 @@ module Formula = struct
         match f with
         | OR [] -> AND []
         | OR ((AND constrs)::conjs) ->
-          let init : constr disj list = List.map (fun r -> OR [r]) constrs in
+          let init : constr disj list = List.map ~f:(fun r -> OR [r]) constrs in
           let conjs =
             let addConj (cnf : constr disj list) (AND conj) =
               cnf
-              |> List.map (fun (OR constrs) -> List.map (fun r -> OR (r::constrs)) conj)
+              |> List.map ~f:(fun (OR constrs) -> List.map ~f:(fun r -> OR (r::constrs)) conj)
               |> List.flatten
             in
             ListLabels.fold_left ~f:addConj ~init conjs
@@ -179,11 +179,11 @@ module Formula = struct
           |> Str.global_replace (Str.regexp "< +") "<"
         in
         let items = String.split_on_char ' ' item in
-        AND (List.map parse items)
+        AND (List.map ~f:parse items)
 
       let disjunction ~parse version =
         let items = Str.split (Str.regexp " +|| +") version in
-        OR (List.map parse items)
+        OR (List.map ~f:parse items)
     end
   end
 end

@@ -255,8 +255,8 @@ let escapeCodeRegex = {
   let codesList = IntSet.elements(Ansi.starts) @ IntSet.elements(Ansi.stops);
   let codesMiddle =
     List.fold_left(
-      (s, code) => s ++ "\\|" ++ string_of_int(code),
-      string_of_int(List.hd(codesList)),
+      ~f=(s, code) => s ++ "\\|" ++ string_of_int(code),
+      ~init=string_of_int(List.hd(codesList)),
       List.tl(codesList),
     );
   let codesStop = "\\)";
@@ -272,33 +272,34 @@ let parseString = (s: string) : list(part) => {
   let (parts, _) =
     parts
     |> List.fold_left(
-         ((result, modifiers), part) =>
-           switch (part) {
-           | Str.Text(value) => (
-               result @ [{value, modifiers, isModifier: false}],
-               modifiers,
-             )
-           | Str.Delim(value) =>
-             let codeString = Str.global_replace(nonDigitRegex, "", value);
-             let code = int_of_string(codeString);
-             let modifiers =
-               if (IntSet.mem(code, Ansi.starts)) {
-                 IntSet.add(code, modifiers);
-               } else if (IntSet.mem(code, Ansi.stops)) {
-                 let startsToRemove = IntMap.find(code, Ansi.stopToStarts);
-                 IntSet.filter(
-                   code => ! IntSet.mem(code, startsToRemove),
-                   modifiers,
-                 );
-               } else {
-                 failwith(
-                   "Unknown escape code matched escapeCodeRegex: "
-                   ++ codeString,
-                 );
-               };
-             (result @ [{value, modifiers, isModifier: true}], modifiers);
-           },
-         ([], IntSet.empty),
+         ~f=
+           ((result, modifiers), part) =>
+             switch (part) {
+             | Str.Text(value) => (
+                 result @ [{value, modifiers, isModifier: false}],
+                 modifiers,
+               )
+             | Str.Delim(value) =>
+               let codeString = Str.global_replace(nonDigitRegex, "", value);
+               let code = int_of_string(codeString);
+               let modifiers =
+                 if (IntSet.mem(code, Ansi.starts)) {
+                   IntSet.add(code, modifiers);
+                 } else if (IntSet.mem(code, Ansi.stops)) {
+                   let startsToRemove = IntMap.find(code, Ansi.stopToStarts);
+                   IntSet.filter(
+                     code => ! IntSet.mem(code, startsToRemove),
+                     modifiers,
+                   );
+                 } else {
+                   failwith(
+                     "Unknown escape code matched escapeCodeRegex: "
+                     ++ codeString,
+                   );
+                 };
+               (result @ [{value, modifiers, isModifier: true}], modifiers);
+             },
+         ~init=([], IntSet.empty),
        );
   parts;
 };
@@ -308,24 +309,26 @@ let createChalker = (style: Ansi.style) : chalker => {
     let parts = parseString(s);
     /* Now we apply the style to all parts with non-conflicting modifiers */
     List.fold_left(
-      (result, part) =>
-        if (part.isModifier) {
-          result ++ part.value;
-        } else {
-          let myStopCode = style.stopCode;
-          let conflictingStarts = IntMap.find(myStopCode, Ansi.stopToStarts);
-          let next =
-            if (IntSet.exists(
-                  code => IntSet.mem(code, conflictingStarts),
-                  part.modifiers,
-                )) {
-              part.value;
-            } else {
-              style.start ++ part.value ++ style.stop;
-            };
-          result ++ next;
-        },
-      "",
+      ~f=
+        (result, part) =>
+          if (part.isModifier) {
+            result ++ part.value;
+          } else {
+            let myStopCode = style.stopCode;
+            let conflictingStarts =
+              IntMap.find(myStopCode, Ansi.stopToStarts);
+            let next =
+              if (IntSet.exists(
+                    code => IntSet.mem(code, conflictingStarts),
+                    part.modifiers,
+                  )) {
+                part.value;
+              } else {
+                style.start ++ part.value ++ style.stop;
+              };
+            result ++ next;
+          },
+      ~init="",
       parts,
     );
   };

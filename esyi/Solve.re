@@ -6,8 +6,9 @@ let unsatisfied = (map, req) =>
   | versions =>
     !
       List.exists(
-        version =>
-          VersionSpec.satisfies(~version, PackageInfo.Req.spec(req)),
+        ~f=
+          version =>
+            VersionSpec.satisfies(~version, PackageInfo.Req.spec(req)),
         versions,
       )
   };
@@ -15,8 +16,10 @@ let unsatisfied = (map, req) =>
 let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
   let allTransitiveBuildDeps =
     solvedDeps
-    |> List.map(pkg => pkg.Package.dependencies)
-    |> List.map(deps => deps.PackageInfo.DependenciesInfo.buildDependencies)
+    |> List.map(~f=pkg => pkg.Package.dependencies)
+    |> List.map(~f=deps =>
+         deps.PackageInfo.DependenciesInfo.buildDependencies
+       )
     |> List.concat;
   /* let allTransitiveBuildDeps = allNeededBuildDeps @ (
        solvedTargets |> List.map(((_, deps)) => getBuildDeps(deps)) |> List.concat |> List.concat
@@ -25,7 +28,7 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
   let nameToVersions = Hashtbl.create(100);
   let versionMap = Hashtbl.create(100);
   let rec loop = (buildDeps: PackageInfo.Dependencies.t) => {
-    let toAdd = buildDeps |> List.filter(unsatisfied(nameToVersions));
+    let toAdd = List.filter(~f=unsatisfied(nameToVersions), buildDeps);
     if (toAdd != []) {
       let solved =
         SolveDeps.solveLoose(
@@ -37,7 +40,7 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
         )
         |> RunAsync.runExn(~err="error solving deps");
       solved
-      |> List.map((pkg: Package.t) =>
+      |> List.map(~f=(pkg: Package.t) =>
            if (! Hashtbl.mem(versionMap, (pkg.name, pkg.version))) {
              Hashtbl.replace(
                nameToVersions,
@@ -62,8 +65,8 @@ let settleBuildDeps = (~cfg, ~cache, solvedDeps, requestedBuildDeps) => {
              );
              let childBuilds =
                solvedDeps
-               |> List.map(pkg => pkg.Package.dependencies)
-               |> List.map(deps =>
+               |> List.map(~f=pkg => pkg.Package.dependencies)
+               |> List.map(~f=deps =>
                     deps.PackageInfo.DependenciesInfo.buildDependencies
                   )
                |> List.concat;
@@ -110,7 +113,7 @@ let solve = (~cfg, pkg: Package.t) =>
       let makeRootPkg = (pkg, deps) => {
         let%bind bag =
           deps
-          |> List.map((pkg: Package.t) => makePkg(pkg))
+          |> List.map(~f=(pkg: Package.t) => makePkg(pkg))
           |> RunAsync.List.joinAll;
         return({Solution.pkg, bag});
       };
@@ -126,7 +129,7 @@ let solve = (~cfg, pkg: Package.t) =>
           buildVersionMap,
           [],
         )
-        |> List.map(((pkg, deps)) => {
+        |> List.map(~f=((pkg, deps)) => {
              let%bind pkg = makePkg(pkg);
              makeRootPkg(pkg, deps);
            })

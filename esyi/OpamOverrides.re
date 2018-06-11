@@ -51,9 +51,11 @@ type override = Override.t;
 
 let rec yamlToJson = value =>
   switch (value) {
-  | `A(items) => `List(List.map(yamlToJson, items))
+  | `A(items) => `List(List.map(~f=yamlToJson, items))
   | `O(items) =>
-    `Assoc(List.map(((name, value)) => (name, yamlToJson(value)), items))
+    `Assoc(
+      List.map(~f=((name, value)) => (name, yamlToJson(value)), items),
+    )
   | `String(s) => `String(s)
   | `Float(s) => `Float(s)
   | `Bool(b) => `Bool(b)
@@ -152,8 +154,9 @@ let get = (overrides, name: OpamFile.PackageName.t, version) =>
     | Some(items) =>
       switch (
         List.find_opt(
-          ((formula, _path)) =>
-            OpamVersion.Formula.DNF.matches(formula, ~version),
+          ~f=
+            ((formula, _path)) =>
+              OpamVersion.Formula.DNF.matches(formula, ~version),
           items,
         )
       ) {
@@ -175,7 +178,10 @@ let apply = (manifest: OpamFile.manifest, override: Override.t) => {
 
   let files =
     manifest.files
-    @ List.map(f => Override.Opam.(f.name, f.content), override.opam.files);
+    @ List.map(
+        ~f=f => Override.Opam.(f.name, f.content),
+        override.opam.files,
+      );
   {
     ...manifest,
     build: Option.orDefault(~default=manifest.build, override.Override.build),

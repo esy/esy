@@ -1,6 +1,6 @@
-open Std;
-
 module Path = EsyLib.Path;
+module Result = EsyLib.Result;
+module Let_syntax = Result.Syntax.Let_syntax;
 
 module SourceType = {
   [@deriving show]
@@ -141,8 +141,8 @@ module ConfigFile = {
     };
     let renderCommands = commands => {
       let renderCommand = s =>
-        s |> Result.listMap(~f=render) |> Result.map(Bos.Cmd.of_list);
-      Result.listMap(~f=renderCommand, commands);
+        s |> Result.List.map(~f=render) |> Result.map(Bos.Cmd.of_list);
+      Result.List.map(~f=renderCommand, commands);
     };
     let storePath =
       switch (specConfig.sourceType) {

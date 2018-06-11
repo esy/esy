@@ -162,19 +162,21 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
                 )
               );
             };
-            List.iter(cacheManifest, versions);
+            List.iter(~f=cacheManifest, versions);
           };
           return(versions);
         },
       );
 
     available
-    |> List.sort(((va, _), (vb, _)) => NpmVersion.Version.compare(va, vb))
-    |> List.mapi((i, (v, j)) => (v, j, i))
-    |> List.filter(((version, _json, _i)) =>
+    |> List.sort(~cmp=((va, _), (vb, _)) =>
+         NpmVersion.Version.compare(va, vb)
+       )
+    |> List.mapi(~f=(i, (v, j)) => (v, j, i))
+    |> List.filter(~f=((version, _json, _i)) =>
          NpmVersion.Formula.DNF.matches(formula, ~version)
        )
-    |> List.map(((version, _json, i)) => {
+    |> List.map(~f=((version, _json, i)) => {
          let version = PackageInfo.Version.Npm(version);
          let%bind pkg = getPackageCached(~state, name, version);
          return((pkg, i));
@@ -196,21 +198,21 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
 
     let available =
       available
-      |> List.sort(((va, _), (vb, _)) =>
+      |> List.sort(~cmp=((va, _), (vb, _)) =>
            OpamVersion.Version.compare(va, vb)
          )
-      |> List.mapi((i, (v, j)) => (v, j, i));
+      |> List.mapi(~f=(i, (v, j)) => (v, j, i));
 
     let matched =
       available
-      |> List.filter(((version, _path, _i)) =>
+      |> List.filter(~f=((version, _path, _i)) =>
            OpamVersion.Formula.DNF.matches(semver, ~version)
          );
 
     let matched =
       if (matched == []) {
         available
-        |> List.filter(((version, _path, _i)) =>
+        |> List.filter(~f=((version, _path, _i)) =>
              OpamVersion.Formula.DNF.matches(semver, ~version)
            );
       } else {
@@ -218,7 +220,7 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
       };
 
     matched
-    |> List.map(((version, _path, i)) => {
+    |> List.map(~f=((version, _path, i)) => {
          let version = PackageInfo.Version.Opam(version);
          let%bind pkg = getPackageCached(~state, name, version);
          return((pkg, i));
@@ -348,27 +350,28 @@ let rec addToUniverse =
     |> RunAsync.withContext("processing request: " ++ Req.toString(req))
     |> RunAsync.runExn(~err="error getting versions");
   List.iter(
-    ((pkg: Package.t, cudfVersion)) =>
-      if (! Seen.seen(seen, pkg)) {
-        Seen.add(seen, pkg);
+    ~f=
+      ((pkg: Package.t, cudfVersion)) =>
+        if (! Seen.seen(seen, pkg)) {
+          Seen.add(seen, pkg);
 
-        if (deep) {
-          List.iter(
-            addToUniverse(~state, ~previouslyInstalled?, ~seen, ~deep),
-            pkg.dependencies.dependencies,
+          if (deep) {
+            List.iter(
+              ~f=addToUniverse(~state, ~previouslyInstalled?, ~seen, ~deep),
+              pkg.dependencies.dependencies,
+            );
+          } else {
+            ();
+          };
+
+          SolveState.addPackage(
+            ~state,
+            ~previouslyInstalled,
+            ~deep,
+            ~cudfVersion,
+            pkg,
           );
-        } else {
-          ();
-        };
-
-        SolveState.addPackage(
-          ~state,
-          ~previouslyInstalled,
-          ~deep,
-          ~cudfVersion,
-          pkg,
-        );
-      },
+        },
     versions,
   );
 };
@@ -382,7 +385,7 @@ let initState = (~cfg, ~previouslyInstalled=?, ~cache=?, ~deep=true, deps) =>
       /** This is where most of the work happens, file io, network requests, etc. */
       let seen = Seen.make();
       List.iter(
-        addToUniverse(~state, ~seen, ~previouslyInstalled?, ~deep),
+        ~f=addToUniverse(~state, ~seen, ~previouslyInstalled?, ~deep),
         deps,
       );
       return((state.universe, state.versionMap, state.cache.pkgs));
@@ -399,13 +402,16 @@ let solveDeps =
         initState(~cfg, ~previouslyInstalled?, ~cache, ~deep, deps);
       /** Here we invoke the solver! Might also take a while, but probably won't */
       let cudfDeps =
-        List.map(SolveState.cudfDep(rootName, universe, cudfVersions), deps);
+        List.map(
+          ~f=SolveState.cudfDep(rootName, universe, cudfVersions),
+          deps,
+        );
       switch (runSolver(~strategy, rootName, cudfDeps, universe)) {
       | None => error("Unable to resolve")
       | Some(packages) =>
         packages
-        |> List.filter(p => p.Cudf.package != rootName)
-        |> List.map(p => {
+        |> List.filter(~f=p => p.Cudf.package != rootName)
+        |> List.map(~f=p => {
              let version =
                VersionMap.findVersionExn(
                  cudfVersions,
@@ -441,7 +447,7 @@ let solve = (~cfg, ~cache, ~requested) =>
 let makeVersionMap = installed => {
   let map = Hashtbl.create(100);
   installed
-  |> List.iter((pkg: Package.t) => {
+  |> List.iter(~f=(pkg: Package.t) => {
        let current =
          Hashtbl.mem(map, pkg.name) ? Hashtbl.find(map, pkg.name) : [];
        Hashtbl.replace(map, pkg.name, [pkg.version, ...current]);
@@ -461,7 +467,7 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
   current
   |> Hashtbl.iter((name, versions) =>
        versions
-       |> List.iter(version =>
+       |> List.iter(~f=version =>
             Hashtbl.add(previouslyInstalled, (name, version), true)
           )
      );
@@ -480,16 +486,16 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
   } else {
     let versionMap = makeVersionMap(installed);
     print_endline("Build deps now");
-    requested |> List.iter(req => print_endline(Req.name(req)));
+    requested |> List.iter(~f=req => print_endline(Req.name(req)));
     print_endline("Got");
-    installed |> List.iter((pkg: Package.t) => print_endline(pkg.name));
+    installed |> List.iter(~f=(pkg: Package.t) => print_endline(pkg.name));
     let touched = Hashtbl.create(100);
     requested
-    |> List.iter(req => {
+    |> List.iter(~f=req => {
          let versions = Hashtbl.find(versionMap, Req.name(req));
          let matching =
            versions
-           |> List.filter(version =>
+           |> List.filter(~f=version =>
                 VersionSpec.satisfies(~version, Req.spec(req))
               );
          switch (matching) {
@@ -503,7 +509,7 @@ let solveLoose = (~cfg, ~cache, ~requested, ~current, ~deep) => {
        });
     return(
       installed
-      |> List.filter((pkg: Package.t) =>
+      |> List.filter(~f=(pkg: Package.t) =>
            Hashtbl.mem(touched, (pkg.name, pkg.version))
          ),
     );

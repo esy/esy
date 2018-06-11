@@ -1,5 +1,3 @@
-open Std
-
 (**
  * A list of commands as specified in "esy.build" and "esy.install".
  *)
@@ -47,7 +45,7 @@ module CommandList = struct
   let to_yojson commands =
     match commands with
     | None -> `List []
-    | Some commands -> `List (List.map Command.to_yojson commands)
+    | Some commands -> `List (List.map ~f:Command.to_yojson commands)
 
 end
 

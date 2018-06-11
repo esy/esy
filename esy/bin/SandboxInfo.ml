@@ -96,10 +96,10 @@ let readCache (cfg : Config.t) =
           return (curMtime > mtime)
         in
         info.sandbox.manifestInfo
-        |> List.map checkMtime
+        |> List.map ~f:checkMtime
         |> RunAsync.List.joinAll
       in
-      if List.exists (fun x -> x) isStale
+      if List.exists ~f:(fun x -> x) isStale
       then return None
       else return (Some info)
     in

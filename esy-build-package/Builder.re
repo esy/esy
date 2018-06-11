@@ -1,8 +1,6 @@
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 
-open Std;
-
 let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
   let cmd =
     Bos.Cmd.(

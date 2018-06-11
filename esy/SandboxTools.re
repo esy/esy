@@ -77,12 +77,12 @@ let getPackageLibraries =
   let%bind out = ChildProcess.runOut(~env, cmd);
   let libs =
     String.split_on_char('\n', out)
-    |> List.map(line => splitBy(line, ' '))
-    |> Std.List.filterNone
-    |> List.map(((key, _)) => key)
+    |> List.map(~f=line => splitBy(line, ' '))
+    |> List.filterNone
+    |> List.map(~f=((key, _)) => key)
     |> List.rev;
   switch (builtIns) {
-  | Some(discard) => return(Std.List.diff(libs, discard))
+  | Some(discard) => return(List.diff(libs, discard))
   | None => return(libs)
   };
 };
@@ -114,13 +114,13 @@ let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: Task.t, lib) => {
   let%bind out = ChildProcess.runOut(~env, cmd);
   let lines =
     String.split_on_char('\n', out)
-    |> List.map(line => splitBy(line, ':'))
-    |> Std.List.filterNone
+    |> List.map(~f=line => splitBy(line, ':'))
+    |> List.filterNone
     |> List.rev;
   let findField = (~name) =>
     lines
-    |> List.map(((field, value)) => field == name ? Some(value) : None)
-    |> Std.List.filterNone
+    |> List.map(~f=((field, value)) => field == name ? Some(value) : None)
+    |> List.filterNone
     |> List.hd;
   return({
     package: findField(~name="package"),
@@ -143,12 +143,12 @@ let queryModules = (~ocamlobjinfo: string, archive) => {
   };
   let lines =
     String.split_on_char('\n', out)
-    |> List.filter(line =>
+    |> List.filter(~f=line =>
          startsWith(line, "Name: ") || startsWith(line, "Unit name: ")
        )
-    |> List.map(line => splitBy(line, ':'))
-    |> Std.List.filterNone
-    |> List.map(((_, val_)) => val_)
+    |> List.map(~f=line => splitBy(line, ':'))
+    |> List.filterNone
+    |> List.map(~f=((_, val_)) => val_)
     |> List.rev;
   return(lines);
 };

@@ -52,13 +52,14 @@ module ExportedEnv = {
   let to_yojson = (items: t) : Json.t => {
     let items =
       List.map(
-        ({name, value, scope}) => (
-          name,
-          `Assoc([
-            ("val", `String(value)),
-            ("scope", scope_to_yojson(scope)),
-          ]),
-        ),
+        ~f=
+          ({name, value, scope}) => (
+            name,
+            `Assoc([
+              ("val", `String(value)),
+              ("scope", scope_to_yojson(scope)),
+            ]),
+          ),
         items,
       );
     `Assoc(items);

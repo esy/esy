@@ -49,7 +49,7 @@ let formatError (msg, context) =
     let lines =
       content
       |> String.split_on_char '\n'
-      |> List.map (fun line -> "    " ^ line)
+      |> List.map ~f:(fun line -> "    " ^ line)
     in
     let lines =
       ("  " ^ header)::lines

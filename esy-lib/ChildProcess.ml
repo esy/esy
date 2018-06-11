@@ -72,7 +72,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
 
   let env = Option.map env ~f:(fun env -> env
                                               |> StringMap.bindings
-                                              |> List.map (fun (name, value) -> name ^ "=" ^ value)
+                                              |> List.map ~f:(fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
   in
 
@@ -140,7 +140,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
 
   let env = Option.map env ~f:(fun env -> env
                                               |> StringMap.bindings
-                                              |> List.map (fun (name, value) -> name ^ "=" ^ value)
+                                              |> List.map ~f:(fun (name, value) -> name ^ "=" ^ value)
                                               |> Array.of_list)
   in
 

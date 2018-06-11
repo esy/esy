@@ -1,5 +1,3 @@
-open Std
-
 include ShellParamExpansionParser
 
 let parse_exn v =

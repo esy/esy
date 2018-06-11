@@ -1,8 +1,8 @@
-open Std;
-
 /**
  * This module implements utilities which are used to "script" build processes.
  */
+module Result = EsyLib.Result;
+
 type t('a, 'b) =
   result(
     'a,
@@ -47,7 +47,7 @@ let uname = () => {
   String.lowercase_ascii(uname);
 };
 
-module Let_syntax = Result.Let_syntax;
+module Let_syntax = Result.Syntax.Let_syntax;
 
 let rec realpath = (p: Fpath.t) => {
   let%bind p =

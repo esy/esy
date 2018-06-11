@@ -246,10 +246,10 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let shouldDeleteFromBinaryRelease =
     let patterns =
       let f pattern = pattern |> Re.Glob.glob |> Re.compile in
-      List.map f releaseCfg.deleteFromBinaryRelease
+      List.map ~f releaseCfg.deleteFromBinaryRelease
     in
     let filterOut id =
-      List.exists (fun pattern -> Re.execp pattern id) patterns
+      List.exists ~f:(fun pattern -> Re.execp pattern id) patterns
     in
     filterOut
   in
@@ -315,7 +315,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         return ()
       in
       releaseCfg.releasedBinaries
-      |> List.map generateBinaryWrapper
+      |> List.map ~f:generateBinaryWrapper
       |> RunAsync.List.waitAll
     in
 
@@ -381,7 +381,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           ];
           "bin", `Assoc (
             let f name = name, `String ("bin/" ^ name) in
-            List.map f (sandboxEntryBin::releaseCfg.releasedBinaries)
+            List.map ~f (sandboxEntryBin::releaseCfg.releasedBinaries)
           )
         ]
         in
