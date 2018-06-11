@@ -86,7 +86,7 @@ module VersionMap = struct
     | None ->
       let msg =
         Printf.sprintf
-          "Tried to find a package that wasn't listed in the version map %s@cudf:%i"
+          "Tried to find a package that wasn't listed in the version map %s@cudf:%i\n"
           name cudfVersion
       in
       failwith msg
@@ -156,7 +156,7 @@ let cudfDep owner universe cudfVersions req =
       | [], "ocaml" -> []
       | [], _ ->
         Printf.printf
-          "[ERROR]: requirement unsatisfiable: %s wants %s@%s but available:"
+          "[ERROR]: requirement unsatisfiable: %s wants %s@%s but available:\n"
           owner name (VersionSpec.toString spec);
 
         List.iter
@@ -167,7 +167,7 @@ let cudfDep owner universe cudfVersions req =
                 ~name:pkg.Cudf.package
                 ~cudfVersion:pkg.Cudf.version
             in
-            Printf.printf " - %s" (PackageInfo.Version.toString version))
+            Printf.printf " - %s\n" (PackageInfo.Version.toString version))
           available;
 
         []
