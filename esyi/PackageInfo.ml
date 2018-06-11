@@ -228,7 +228,7 @@ module Dependencies = struct
   let to_yojson (deps : t) =
     let items =
         List.map
-          (fun ({ Req.name = name;_} as req) ->
+          ~f:(fun ({ Req.name = name;_} as req) ->
           (name, (Req.to_yojson req))) deps
     in
     `Assoc items
@@ -238,14 +238,14 @@ module Dependencies = struct
       let f seen {Req.name = name; _} =
         StringSet.add name seen
       in
-      List.fold_left f StringSet.empty a
+      List.fold_left ~f ~init:StringSet.empty a
     in
     let f a item =
       if StringSet.mem item.Req.name seen
       then a
       else item::a
     in
-    List.fold_left f a b
+    List.fold_left ~f ~init:a b
 end
 
 module DependenciesInfo = struct

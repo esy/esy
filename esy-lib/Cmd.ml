@@ -37,7 +37,7 @@ let getArgs (_tool, args) = List.rev args
 
 let toString (tool, args) =
   let tool = Filename.quote tool in
-  let args = List.rev_map Filename.quote args in
+  let args = List.rev_map ~f:Filename.quote args in
   StringLabels.concat ~sep:" " (tool::args)
 
 let show = toString

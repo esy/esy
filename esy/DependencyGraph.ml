@@ -144,8 +144,8 @@ module Make (Kernel : Kernel) : DependencyGraph
 
       let value =
         let skipNode (_node, dep, v) = (dep, v) in
-        let allDependencies = List.map skipNode allDependencies
-        and dependencies = List.map skipNode dependencies in
+        let allDependencies = List.map ~f:skipNode allDependencies
+        and dependencies = List.map ~f:skipNode dependencies in
         f ~allDependencies ~dependencies node
       in
       allDependencies, dependencies, value
@@ -158,7 +158,7 @@ module Make (Kernel : Kernel) : DependencyGraph
 
   let rec fold ?(traverse=Kernel.traverse) ~(init : 'a) ~f node =
     let foldDependencies () =
-      node |> traverse |> List.map (fun (node, dep) ->
+      node |> traverse |> List.map ~f:(fun (node, dep) ->
         let v = fold ~traverse ~f ~init node in
         (dep, v))
     in
@@ -173,7 +173,7 @@ module Make (Kernel : Kernel) : DependencyGraph
           let dependencies =
             node
             |> traverse
-            |> List.map (fun (node, _) -> node)
+            |> List.map ~f:(fun (node, _) -> node)
           in
           ListLabels.fold_left
             ~f:aux
@@ -195,7 +195,7 @@ module Make (Kernel : Kernel) : DependencyGraph
           let nodeDependencies =
             node
             |> traverse
-            |> List.map (fun (node, _dep) -> node)
+            |> List.map ~f:(fun (node, _dep) -> node)
           in
           match find' nodeDependencies with
           | None -> find' dependencies

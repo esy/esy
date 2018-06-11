@@ -40,7 +40,9 @@ let rec getOCamlVersion = opamvalue : F.dnf => {
     | Option(_, contents, options) =>
       print_endline(
         "Ignoring option: "
-        ++ (options |> List.map(OpamPrinter.value) |> String.concat(" .. ")),
+        ++ (
+          options |> List.map(~f=OpamPrinter.value) |> String.concat(" .. ")
+        ),
       );
       getOCamlVersion(contents);
     | List(_, items) =>
@@ -94,7 +96,9 @@ let rec getAvailability = opamvalue =>
     | Option(_, contents, options) =>
       print_endline(
         "[[ AVAILABILITY ]] Ignoring option: "
-        ++ (options |> List.map(OpamPrinter.value) |> String.concat(" .. ")),
+        ++ (
+          options |> List.map(~f=OpamPrinter.value) |> String.concat(" .. ")
+        ),
       );
       getAvailability(contents);
     | List(_, items) =>

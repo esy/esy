@@ -1,5 +1,3 @@
-open Std
-
 type t = binding list [@@deriving (show, eq, ord)]
 
 and binding = {
@@ -100,7 +98,7 @@ let current =
   Unix.environment ()
   |> Array.map parseEnv
   |> Array.to_list
-  |> List.filter filterFunctions
+  |> List.filter ~f:filterFunctions
 
 let ofSandboxEnv =
   let toEnvVar (Package.SandboxEnv. {name; value}) = {

@@ -113,10 +113,6 @@ lib: [
   "_build/install/default/lib/esy/Esy__ShellParamExpansionSupport.cmx" {"Esy__ShellParamExpansionSupport.cmx"}
   "_build/install/default/lib/esy/Esy__ShellParamExpansionSupport.cmt" {"Esy__ShellParamExpansionSupport.cmt"}
   "_build/install/default/lib/esy/ShellParamExpansionSupport.ml" {"ShellParamExpansionSupport.ml"}
-  "_build/install/default/lib/esy/Esy__Std.cmi" {"Esy__Std.cmi"}
-  "_build/install/default/lib/esy/Esy__Std.cmx" {"Esy__Std.cmx"}
-  "_build/install/default/lib/esy/Esy__Std.cmt" {"Esy__Std.cmt"}
-  "_build/install/default/lib/esy/Std.re" {"Std.re"}
   "_build/install/default/lib/esy/Esy__System.cmi" {"Esy__System.cmi"}
   "_build/install/default/lib/esy/Esy__System.cmx" {"Esy__System.cmx"}
   "_build/install/default/lib/esy/Esy__System.cmt" {"Esy__System.cmt"}

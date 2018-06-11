@@ -29,7 +29,7 @@ module List = {
         }
       | error => error
       };
-    xs |> List.fold_left(f, Ok([])) |> map(List.rev);
+    xs |> List.fold_left(~f, ~init=Ok([])) |> map(List.rev);
   };
   let foldLeft = (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
     let rec fold = (acc, xs) =>

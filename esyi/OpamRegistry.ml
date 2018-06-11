@@ -92,13 +92,13 @@ let versions registry ~(name : PackageName.t) =
   let%bind items =
     index
     |> VersionMap.bindings
-    |> List.map (fun (version, _path) -> getThinManifest registry ~name ~version)
+    |> List.map ~f:(fun (version, _path) -> getThinManifest registry ~name ~version)
     |> RunAsync.List.joinAll
   in
   return (
     items
     |> filterNone
-    |> List.map (fun manifest -> (manifest.OpamFile.ThinManifest.version, manifest))
+    |> List.map ~f:(fun manifest -> (manifest.OpamFile.ThinManifest.version, manifest))
   )
 
 let resolveSourceSpec srcSpec =

@@ -1,8 +1,8 @@
-open Std;
-
 /**
  * Information about the task.
  */
+module Result = EsyLib.Result;
+
 [@deriving (show, of_yojson, to_yojson)]
 type t = {
   timeSpent: float,

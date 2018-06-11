@@ -26,7 +26,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
       |> addList(
            _,
            solution.buildDependencies
-           |> List.map(({Solution.pkg, bag}) => [pkg, ...bag])
+           |> List.map(~f=({Solution.pkg, bag}) => [pkg, ...bag])
            |> List.concat,
          );
 
@@ -45,7 +45,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
   let%bind packagesFetched = {
     let queue = LwtTaskQueue.create(~concurrency=8, ());
     packagesToFetch
-    |> List.map(pkg => {
+    |> List.map(~f=pkg => {
          let%bind fetchedPkg =
            LwtTaskQueue.submit(queue, () => FetchStorage.fetch(~config, pkg));
          return((pkg, fetchedPkg));

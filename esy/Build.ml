@@ -2,7 +2,7 @@ module StringSet = Set.Make(String)
 
 let waitForDependencies dependencies =
   dependencies
-  |> List.map (fun (_, dep) -> dep)
+  |> List.map ~f:(fun (_, dep) -> dep)
   |> RunAsync.List.waitAll
 
 let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =

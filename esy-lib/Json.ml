@@ -30,7 +30,7 @@ module Parse = struct
   let field ~name (json : t) =
     match json with
     | `Assoc items ->
-      begin match List.find_opt (fun (k, _v) -> k = name) items with
+      begin match List.find_opt ~f:(fun (k, _v) -> k = name) items with
       | Some (_, v) -> Ok v
       | None -> Error ("no such field: " ^ name)
       end
@@ -39,7 +39,7 @@ module Parse = struct
   let fieldOpt ~name (json : t) =
     match json with
     | `Assoc items ->
-      begin match List.find_opt (fun (k, _v) -> k = name) items with
+      begin match List.find_opt ~f:(fun (k, _v) -> k = name) items with
       | Some (_, v) -> Ok (Some v)
       | None -> Ok None
       end
@@ -59,12 +59,12 @@ module Parse = struct
   let list ?(errorMsg="expected an array") value (json : t) =
     match json with
     | `List (items : t list) ->
-      let c acc v = match acc, (value v) with
+      let f acc v = match acc, (value v) with
         | Ok acc, Ok v -> Ok (v::acc)
         | Ok _, Error err -> Error err
         | err, _ -> err
       in begin
-      match List.fold_left c (Ok []) items with
+      match List.fold_left ~f ~init:(Ok []) items with
       | Ok items -> Ok (List.rev items)
       | error -> error
       end
@@ -73,12 +73,12 @@ module Parse = struct
   let stringMap ?(errorMsg= "expected an object") value (json : t) =
     match json with
     | `Assoc items ->
-      let c acc (k, v) = match acc, k, (value v) with
+      let f acc (k, v) = match acc, k, (value v) with
         | Ok acc, k, Ok v -> Ok (StringMap.add k v acc)
         | Ok _, _, Error err -> Error err
         | err, _, _ -> err
       in
-      List.fold_left c (Ok StringMap.empty) items
+      List.fold_left ~f ~init:(Ok StringMap.empty) items
     | _ -> Error errorMsg
 
   let cmd ?(errorMsg="expected a string or an array of strings") (json : t) =

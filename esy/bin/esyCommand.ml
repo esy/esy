@@ -518,10 +518,10 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
           return []
         else
           foldDependencies ()
-          |> List.map (fun (_, v) -> v)
+          |> List.map ~f:(fun (_, v) -> v)
           |> RunAsync.List.joinAll
       in
-      let children = children |> Std.List.filterNone in
+      let children = children |> List.filterNone in
       computeTermNode ~cfg task children
     )
   in
@@ -565,7 +565,7 @@ let lsLibs ~includeTransitive cfg =
 
     let libs =
       libs
-      |> List.map (fun lib ->
+      |> List.map ~f:(fun lib ->
           let line = Chalk.yellow(lib) in
           TermTree.Node { line; children = []; }
         )
@@ -602,7 +602,7 @@ let lsModules ~libs:only cfg =
           in
 
           let modules =
-            lines |> List.map(fun line ->
+            lines |> List.map ~f:(fun line ->
                 let line = Chalk.cyan(line) in
                 TermTree.Node { line; children=[]; }
               )
@@ -628,20 +628,20 @@ let lsModules ~libs:only cfg =
 
     let isNotRoot = task.id <> info.task.id in
     let constraintsSet = List.length only <> 0 in
-    let noMatchedLibs = List.length (Std.List.intersect only libs) = 0 in
+    let noMatchedLibs = List.length (List.intersect only libs) = 0 in
 
     if isNotRoot && constraintsSet && noMatchedLibs then
       return None
     else
       let%bind libs =
         libs
-        |> List.filter (fun lib ->
+        |> List.filter ~f:(fun lib ->
             if List.length only = 0 then
               true
             else
-              List.mem lib only
+              List.mem lib ~set:only
           )
-        |> List.map (fun lib ->
+        |> List.map ~f:(fun lib ->
             let line = Chalk.yellow(lib) in
             let%bind children =
               formatLibraryModules ~cfg ~task lib
@@ -934,7 +934,7 @@ let () =
         let tasks =
           rootTask
           |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
-          |> List.filter (fun (task : Task.t) -> not (task.id = rootTask.id))
+          |> List.filter ~f:(fun (task : Task.t) -> not (task.id = rootTask.id))
         in
 
         let queue = LwtTaskQueue.create ~concurrency:8 () in
@@ -959,7 +959,7 @@ let () =
         in
 
         tasks
-        |> List.map exportBuild
+        |> List.map ~f:exportBuild
         |> RunAsync.List.waitAll
       in
       runAsyncCommand ~info f
@@ -981,14 +981,14 @@ let () =
             buildPaths @ (
             lines
             |> String.split_on_char '\n'
-            |> List.filter (fun line -> String.trim line <> "")
-            |> List.map (fun line -> Path.v line))
+            |> List.filter ~f:(fun line -> String.trim line <> "")
+            |> List.map ~f:(fun line -> Path.v line))
           )
         | None -> return buildPaths
         in
         let queue = LwtTaskQueue.create ~concurrency:8 () in
         buildPaths
-        |> List.map (fun path -> LwtTaskQueue.submit queue (fun () -> Task.importBuild cfg path))
+        |> List.map ~f:(fun path -> LwtTaskQueue.submit queue (fun () -> Task.importBuild cfg path))
         |> RunAsync.List.waitAll
       in
       runAsyncCommand ~info f
@@ -1024,7 +1024,7 @@ let () =
         let pkgs =
           rootTask
           |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
-          |> List.filter (fun (task : Task.t) -> not (task.Task.id = rootTask.id))
+          |> List.filter ~f:(fun (task : Task.t) -> not (task.Task.id = rootTask.id))
         in
 
         let queue = LwtTaskQueue.create ~concurrency:16 () in
@@ -1050,7 +1050,7 @@ let () =
         in
 
         pkgs
-        |> List.map importBuild
+        |> List.map ~f:importBuild
         |> RunAsync.List.waitAll
       in
       runAsyncCommand ~info f
@@ -1192,7 +1192,7 @@ let () =
 
   let hasCommand name =
     List.exists
-      (fun (_cmd, info) -> Term.name info = name)
+      ~f:(fun (_cmd, info) -> Term.name info = name)
       commands
   in
 

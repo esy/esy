@@ -107,7 +107,7 @@ let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pk
               let%bind () = Fs.writeFile ~data name in
               return()
             in
-            List.map f files |> RunAsync.List.waitAll
+            List.map ~f files |> RunAsync.List.waitAll
           in
 
           let%bind() =

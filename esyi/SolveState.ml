@@ -141,7 +141,7 @@ let cudfDep owner universe cudfVersions req =
   let spec = Req.spec req in
 
   let available = Cudf.lookup_packages universe name in
-  let matching = List.filter (matchesSource spec cudfVersions) available in
+  let matching = List.filter ~f:(matchesSource spec cudfVersions) available in
 
   let final =
     if matching = []
@@ -149,7 +149,7 @@ let cudfDep owner universe cudfVersions req =
       let hack =
         match spec with
         | Opam _ ->
-          List.filter (matchesSource spec cudfVersions) available
+          List.filter ~f:(matchesSource spec cudfVersions) available
         | _ -> []
       in
       match hack, name with
@@ -160,7 +160,7 @@ let cudfDep owner universe cudfVersions req =
           owner name (VersionSpec.toString spec);
 
         List.iter
-          (fun pkg ->
+          ~f:(fun pkg ->
             let version =
               VersionMap.findVersionExn
                 cudfVersions
@@ -176,7 +176,7 @@ let cudfDep owner universe cudfVersions req =
   in
   let final =
     List.map
-      (fun package -> package.Cudf.package, Some (`Eq, package.Cudf.version))
+      ~f:(fun package -> package.Cudf.package, Some (`Eq, package.Cudf.version))
       final
   in
   match final with
@@ -204,7 +204,7 @@ let addPackage ~state  ~previouslyInstalled  ~deep ~cudfVersion (pkg : Package.t
               (PackageInfo.Version.toString pkg.version)
           in
           List.map
-            (cudfDep from state.universe state.versionMap)
+            ~f:(cudfDep from state.universe state.versionMap)
             pkg.dependencies.dependencies
       | false -> []
     in

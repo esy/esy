@@ -21,7 +21,7 @@ let versions = (~cfg: Config.t, name) => {
   return(
     packument.Packument.versions
     |> StringMap.bindings
-    |> List.map(((version, manifest)) =>
+    |> List.map(~f=((version, manifest)) =>
          (NpmVersion.Version.parseExn(version), manifest)
        ),
   );

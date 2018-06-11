@@ -1,5 +1,3 @@
-open Std
-
 (**
  * Build task.
  *
@@ -377,12 +375,12 @@ let ofPackage
 
     let allDependenciesTasks =
       allDependencies
-      |> List.filter shouldIncludeDependencyInEnv
+      |> List.filter ~f:shouldIncludeDependencyInEnv
       |> uniqueTasksOfDependencies
     in
     let dependenciesTasks =
       dependencies
-      |> List.filter shouldIncludeDependencyInEnv
+      |> List.filter ~f:shouldIncludeDependencyInEnv
       |> uniqueTasksOfDependencies
     in
 
@@ -564,7 +562,7 @@ let ofPackage
           path::manPath::ocamlpath::task.globalEnv
         in
         allDependenciesTasks
-        |> List.map getGlobalEnvForTask
+        |> List.map ~f:getGlobalEnvForTask
         |> List.concat
         |> List.rev
       in
@@ -573,7 +571,7 @@ let ofPackage
       *)
       let localEnvOfDeps =
         dependenciesTasks
-        |> List.map (fun task -> task.localEnv)
+        |> List.map ~f:(fun task -> task.localEnv)
         |> List.concat
         |> List.rev
       in
@@ -732,7 +730,7 @@ let sandboxEnv (pkg : Package.t) =
   let open Run.Syntax in
   let devDependencies =
     pkg.dependencies
-    |> List.filter (function | Package.DevDependency _ -> true | _ -> false)
+    |> List.filter ~f:(function | Package.DevDependency _ -> true | _ -> false)
   in
   let synPkg = {
     Package.
