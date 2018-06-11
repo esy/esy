@@ -422,6 +422,7 @@ let processStringList = item => {
     | None => []
     | Some(List(_, items))
     | Some(Group(_, items)) => items
+    | Some(String(_) as item) => [item]
     | Some(item) =>
       failwith(
         "Unexpected type for a string list: " ++ OpamPrinter.value(item),
