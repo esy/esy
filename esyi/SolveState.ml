@@ -41,19 +41,7 @@ module Cache = struct
 
 end
 
-module VersionMap : sig
-
-  type t
-
-  val make : ?size:int -> unit -> t
-  val update : t -> string -> PackageInfo.Version.t -> int -> unit
-  val findVersion : name:string -> cudfVersion:int -> t -> PackageInfo.Version.t option
-  val findVersionExn : name:string -> cudfVersion:int -> t -> PackageInfo.Version.t
-
-  val findCudfVersion : name:string -> version:PackageInfo.Version.t -> t -> int option
-  val findCudfVersionExn : name:string -> version:PackageInfo.Version.t -> t -> int
-
-end = struct
+module VersionMap = struct
 
   module VersionSet = Set.Make(Package.Version)
 
