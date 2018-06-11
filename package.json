@@ -4,8 +4,7 @@
   "license": "MIT",
   "description": "Esy sandboxes for compiled languages",
   "dependencies": {
-    "@esy-ocaml/esy-opam": "0.0.14",
-    "fastreplacestring": "git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4"
+    "@esy-ocaml/esy-opam": "0.0.14"
   },
   "scripts": {
     "postinstall": "bash ./scripts/postinstall.sh"

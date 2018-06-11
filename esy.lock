@@ -892,9 +892,9 @@
   peerDependencies:
     ocaml " >= 4.2.3000"
 
-fastreplacestring@IwanKaramazow/FastReplaceString.git#0.0.4:
+fastreplacestring@esy-ocaml/FastReplaceString.git#44511d:
   version "0.0.3"
-  resolved "https://codeload.github.com/IwanKaramazow/FastReplaceString/tar.gz/e834cbed0e71d7e0967ab31f1d67f95af7f05e53"
+  resolved "https://codeload.github.com/esy-ocaml/FastReplaceString/tar.gz/44511dadb5736df8df3f06f99c25314e6beac34b"
 
 ocaml@~4.6.0:
   version "4.6.1"

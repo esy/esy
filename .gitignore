@@ -4,7 +4,7 @@
 /_export
 /_build
 /_release
-/bin/fastreplacestring.exe
+/bin/fastreplacestring
 /bin/esyConfig.sh
 .merlin
 npm-debug.log
