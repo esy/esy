@@ -326,29 +326,41 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
  *
  */
 
+module Seen = {
+  type t = Hashtbl.t((string, Version.t), bool);
+
+  let make = () => Hashtbl.create(100);
+
+  let add = (seen, pkg: Package.t) =>
+    Hashtbl.replace(seen, (pkg.name, pkg.version), true);
+
+  let seen = (seen, pkg: Package.t) =>
+    switch (Hashtbl.find_opt(seen, (pkg.name, pkg.version))) {
+    | Some(v) => v
+    | None => false
+    };
+};
+
 let rec addToUniverse =
-        (~state: SolveState.t, ~previouslyInstalled, ~deep, req) => {
+        (~state: SolveState.t, ~seen, ~previouslyInstalled=?, ~deep, req) => {
   let versions =
     getAvailableVersions(~state, req)
     |> RunAsync.withContext("processing request: " ++ Req.toString(req))
     |> RunAsync.runExn(~err="error getting versions");
   List.iter(
-    ((pkg: Package.t, cudfVersion)) => {
-      let seen =
-        Option.isSome(
-          VersionMap.findCudfVersion(
-            state.versionMap,
-            ~name=pkg.name,
-            ~version=pkg.version,
-          ),
-        );
-      if (! seen) {
-        deep ?
+    ((pkg: Package.t, cudfVersion)) =>
+      if (! Seen.seen(seen, pkg)) {
+        Seen.add(seen, pkg);
+
+        if (deep) {
           List.iter(
-            addToUniverse(~state, ~previouslyInstalled, ~deep),
+            addToUniverse(~state, ~previouslyInstalled?, ~seen, ~deep),
             pkg.dependencies.dependencies,
-          ) :
+          );
+        } else {
           ();
+        };
+
         SolveState.addPackage(
           ~state,
           ~previouslyInstalled,
@@ -356,13 +368,26 @@ let rec addToUniverse =
           ~cudfVersion,
           pkg,
         );
-      };
-    },
+      },
     versions,
   );
 };
 
 let rootName = "*root*";
+
+let initState = (~cfg, ~previouslyInstalled=?, ~cache=?, ~deep=true, deps) =>
+  RunAsync.Syntax.(
+    {
+      let%bind state = SolveState.make(~cache?, ~cfg, ());
+      /** This is where most of the work happens, file io, network requests, etc. */
+      let seen = Seen.make();
+      List.iter(
+        addToUniverse(~state, ~seen, ~previouslyInstalled?, ~deep),
+        deps,
+      );
+      return((state.universe, state.versionMap, state.cache.pkgs));
+    }
+  );
 
 let solveDeps =
     (~cfg, ~cache, ~strategy, ~previouslyInstalled=?, ~deep=true, deps) =>
@@ -370,12 +395,8 @@ let solveDeps =
     if (deps == []) {
       return([]);
     } else {
-      let%bind (universe, cudfVersions, manifests) = {
-        let%bind state = SolveState.make(~cache, ~cfg, ());
-        /** This is where most of the work happens, file io, network requests, etc. */
-        List.iter(addToUniverse(~state, ~previouslyInstalled, ~deep), deps);
-        return((state.universe, state.versionMap, state.cache.pkgs));
-      };
+      let%bind (universe, cudfVersions, manifests) =
+        initState(~cfg, ~previouslyInstalled?, ~cache, ~deep, deps);
       /** Here we invoke the solver! Might also take a while, but probably won't */
       let cudfDeps =
         List.map(SolveState.cudfDep(rootName, universe, cudfVersions), deps);
