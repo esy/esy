@@ -1,6 +1,8 @@
 open EsyInstaller;
 module String = Astring.String;
 
+let info = msg => Printf.printf("[INFO] : %s\n", msg);
+
 module Api = {
   let solve = (cfg: Config.t) =>
     RunAsync.Syntax.(
@@ -57,8 +59,10 @@ module Api = {
   let solveAndFetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       if%bind (Fs.exists(cfg.lockfilePath)) {
+        info("found lockfile");
         fetch(cfg);
       } else {
+        info("no lockfile found, resolving dependencies...");
         let%bind () = solve(cfg);
         fetch(cfg);
       }
