@@ -29,9 +29,12 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
 
   return (getPackageRegistry.promise = (async () => {
     const packageRegistry = new Map();
-    for (const packageFile of await fsUtils.walk(`${require('pkg-tests-fixtures')}/packages`, {
-      filter: ['package.json'],
-    })) {
+    for (const packageFile of await fsUtils.walk(
+      `${require('pkg-tests-fixtures')}/packages`,
+      {
+        filter: ['package.json'],
+      },
+    )) {
       const packageJson = await fsUtils.readJson(packageFile);
       const {name, version} = packageJson;
 
@@ -55,13 +58,18 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
   })());
 };
 
-exports.getPackageEntry = async function getPackageEntry(name: string): Promise<?PackageEntry> {
+exports.getPackageEntry = async function getPackageEntry(
+  name: string,
+): Promise<?PackageEntry> {
   const packageRegistry = await exports.getPackageRegistry();
 
   return packageRegistry.get(name);
 };
 
-exports.getPackageArchiveStream = async function getPackageArchiveStream(name: string, version: string): Promise<Gzip> {
+exports.getPackageArchiveStream = async function getPackageArchiveStream(
+  name: string,
+  version: string,
+): Promise<Gzip> {
   const packageEntry = await exports.getPackageEntry(name);
 
   if (!packageEntry) {
@@ -79,7 +87,10 @@ exports.getPackageArchiveStream = async function getPackageArchiveStream(name: s
   });
 };
 
-exports.getPackageArchivePath = async function getPackageArchivePath(name: string, version: string): Promise<string> {
+exports.getPackageArchivePath = async function getPackageArchivePath(
+  name: string,
+  version: string,
+): Promise<string> {
   const packageEntry = await exports.getPackageEntry(name);
 
   if (!packageEntry) {
@@ -163,12 +174,17 @@ exports.getPackageDirectoryPath = async function getPackageDirectoryPath(
   return packageVersionEntry.path;
 };
 
-exports.startPackageServer = function startPackageServer(): Promise<string> {
+exports.startPackageServer = function startPackageServer(
+  options: {persistent?: boolean} = {},
+): Promise<string> {
   if (startPackageServer.url) {
     return startPackageServer.url;
   }
 
-  async function processPackageInfo(params: ?Array<string>, res: ServerResponse): Promise<boolean> {
+  async function processPackageInfo(
+    params: ?Array<string>,
+    res: ServerResponse,
+  ): Promise<boolean> {
     if (!params) {
       return false;
     }
@@ -213,7 +229,10 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
     return true;
   }
 
-  async function processPackageTarball(params: ?Array<string>, res: ServerResponse): Promise<boolean> {
+  async function processPackageTarball(
+    params: ?Array<string>,
+    res: ServerResponse,
+  ): Promise<boolean> {
     if (!params) {
       return false;
     }
@@ -238,13 +257,19 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
       ['Transfer-Encoding']: 'chunked',
     });
 
-    const packStream = fsUtils.packToStream(packageVersionEntry.path, {virtualPath: '/package'});
+    const packStream = fsUtils.packToStream(packageVersionEntry.path, {
+      virtualPath: '/package',
+    });
     packStream.pipe(res);
 
     return true;
   }
 
-  function processError(res: ServerResponse, statusCode: number, errorMessage: string): boolean {
+  function processError(
+    res: ServerResponse,
+    statusCode: number,
+    errorMessage: string,
+  ): boolean {
     console.error(errorMessage);
 
     res.writeHead(statusCode);
@@ -258,12 +283,20 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
       (req, res) =>
         void (async () => {
           try {
-            if (await processPackageInfo(req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/), res)) {
+            if (
+              await processPackageInfo(
+                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/),
+                res,
+              )
+            ) {
               return;
             }
 
             if (
-              await processPackageTarball(req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/), res)
+              await processPackageTarball(
+                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/),
+                res,
+              )
             ) {
               return;
             }
@@ -275,8 +308,10 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
         })(),
     );
 
-    // We don't want the server to prevent the process from exiting
-    server.unref();
+    if (!options.persistent) {
+      // We don't want the server to prevent the process from exiting
+      server.unref();
+    }
     server.listen(() => {
       const {port} = server.address();
       resolve((startPackageServer.url = `http://localhost:${port}`));
@@ -284,7 +319,11 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
   });
 };
 
-exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver: PackageRunDriver|}): PackageDriver {
+exports.generatePkgDriver = function generatePkgDriver({
+  runDriver,
+}: {|
+  runDriver: PackageRunDriver,
+|}): PackageDriver {
   function withConfig(definition): PackageDriver {
     const makeTemporaryEnv = (packageJson, subDefinition, fn) => {
       if (typeof subDefinition === 'function') {
@@ -315,7 +354,9 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         };
 
         const source = async script => {
-          return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
+          return JSON.parse(
+            (await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString(),
+          );
         };
 
         await fn({

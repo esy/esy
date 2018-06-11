@@ -86,6 +86,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           dependencies: {[`dep-loop-entry`]: `1.0.0`},
         },
         async ({path, run, source}) => {
+          await run(`print-cudf-universe`);
           await run(`install`);
 
           await expect(

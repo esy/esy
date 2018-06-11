@@ -24,9 +24,14 @@ const esyiCommand = path.join(
   'esyi',
 );
 
+const esyiCommands = new Set([
+  'install',
+  'print-cudf-universe',
+]);
+
 const pkgDriver = generatePkgDriver({
   runDriver: (path, line, {registryUrl}) => {
-    if (line.length === 1 && line[0] === 'install') {
+    if (line.length === 1 && esyiCommands.has(line[0])) {
       const extraArgs = [
         `--cache-path`,
         `${path}/.cache`,
