@@ -15,11 +15,11 @@ module type MEMOIZEABLE = sig
   type value
 end
 
-module type MEMOIZE = functor (C: MEMOIZEABLE) -> sig
+module type MEMOIZE = sig
   type t
 
-  type key = C.key
-  type value = C.value
+  type key
+  type value
 
   val make : ?size:int -> unit -> t
   val compute : t -> key -> (key -> value) -> value
@@ -29,5 +29,11 @@ module type MEMOIZE = functor (C: MEMOIZEABLE) -> sig
   val values : t -> (key * value) list
 end
 
-module Make : MEMOIZE
+module type MAKE_MEMOIZE = functor (C: MEMOIZEABLE) -> sig
+  include MEMOIZE with
+    type key := C.key
+    and type value := C.value
+end
+
+module Make : MAKE_MEMOIZE
 
