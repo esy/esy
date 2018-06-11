@@ -110,7 +110,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
             overrides,
           );
         };
-        ListLabels.fold_left(~f, ~init=PackageNameMap.empty, names);
+        List.fold_left(~f, ~init=PackageNameMap.empty, names);
       };
 
       return(overrides);

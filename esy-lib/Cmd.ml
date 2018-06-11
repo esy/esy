@@ -19,7 +19,7 @@ let addArg arg (tool, args) =
 let addArgs nargs (tool, args) =
   let args =
     let f args arg = arg::args in
-    ListLabels.fold_left ~f ~init:args nargs
+    List.fold_left ~f ~init:args nargs
   in
   tool, args
 

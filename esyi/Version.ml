@@ -120,9 +120,9 @@ module Formula = struct
             let f items (AND b) =
               (AND (a @ b)::items)
             in
-            ListLabels.fold_left ~f ~init:items b
+            List.fold_left ~f ~init:items b
           in
-          ListLabels.fold_left ~f ~init:items a
+          List.fold_left ~f ~init:items a
         in OR items
 
       let disj (OR a) (OR b) =
@@ -164,7 +164,7 @@ module Formula = struct
               |> List.map ~f:(fun (OR constrs) -> List.map ~f:(fun r -> OR (r::constrs)) conj)
               |> List.flatten
             in
-            ListLabels.fold_left ~f:addConj ~init conjs
+            List.fold_left ~f:addConj ~init conjs
           in
           AND conjs
       in f

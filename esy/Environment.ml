@@ -106,7 +106,7 @@ let ofSandboxEnv =
     value = Value value;
     origin = None;
   } in
-  ListLabels.map ~f:toEnvVar
+  List.map ~f:toEnvVar
 
 module Value = struct
 

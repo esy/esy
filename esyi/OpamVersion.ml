@@ -92,7 +92,7 @@ module Formula = struct
       let (AND conjs) = Parse.conjunction ~parse v in
       let conjs =
         let f conjs c = conjs @ c in
-        ListLabels.fold_left ~init:[] ~f conjs
+        List.fold_left ~init:[] ~f conjs
       in AND conjs
     in
     Parse.disjunction ~parse:parseSimple v

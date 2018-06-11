@@ -57,7 +57,7 @@ let getVersionIndex registry ~(name : PackageName.t) =
       in
       VersionMap.add version Path.(path / entry) index
     in
-    return (ListLabels.fold_left ~init:VersionMap.empty ~f entries)
+    return (List.fold_left ~init:VersionMap.empty ~f entries)
   in
   OpamPathsByVersion.compute registry.pathsCache name f
 

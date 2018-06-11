@@ -326,8 +326,8 @@ module DependencyGraph = DependencyGraph.Make(struct
       | InvalidDependency _ -> acc
     in
     pkg.dependencies
-    |> ListLabels.fold_left ~f ~init:[]
-    |> ListLabels.rev
+    |> List.fold_left ~f ~init:[]
+    |> List.rev
 
 end)
 

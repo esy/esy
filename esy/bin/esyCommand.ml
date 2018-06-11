@@ -894,8 +894,8 @@ let () =
       | Task.BuildTimeDependency _ -> deps
     in
     task.dependencies
-    |> ListLabels.fold_left ~f ~init:[]
-    |> ListLabels.rev
+    |> List.fold_left ~f ~init:[]
+    |> List.rev
   in
 
   let exportBuildCommand =

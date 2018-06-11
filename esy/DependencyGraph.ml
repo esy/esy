@@ -121,8 +121,8 @@ module Make (Kernel : Kernel) : DependencyGraph
         in
 
         let ctx = seen, allDependencies in
-        let ctx = ListLabels.fold_left ~f ~init:ctx depAllDependencies in
-        let ctx = ListLabels.fold_left ~f ~init:ctx depDependencies in
+        let ctx = List.fold_left ~f ~init:ctx depAllDependencies in
+        let ctx = List.fold_left ~f ~init:ctx depDependencies in
         let ctx = f ctx (node, dep, depValue) in
 
         let seen, allDependencies = ctx in
@@ -134,12 +134,12 @@ module Make (Kernel : Kernel) : DependencyGraph
           let seen = DependencySet.empty in
           let allDependencies = [] in
           let dependencies = [] in
-          ListLabels.fold_left
+          List.fold_left
             ~f:visitDep
             ~init:(seen, allDependencies, dependencies)
             (traverse node)
         in
-        ListLabels.rev allDependencies, ListLabels.rev dependencies
+        List.rev allDependencies, List.rev dependencies
       in
 
       let value =
@@ -175,7 +175,7 @@ module Make (Kernel : Kernel) : DependencyGraph
             |> traverse
             |> List.map ~f:(fun (node, _) -> node)
           in
-          ListLabels.fold_left
+          List.fold_left
             ~f:aux
             ~init:(seen, nodes)
             dependencies
