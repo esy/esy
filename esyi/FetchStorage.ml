@@ -79,7 +79,7 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
       in
 
       match opam with
-      | Some (packageJson, files, patches) ->
+      | Some {PackageInfo.OpamInfo. packageJson; files; patches} ->
 
         let%bind () = removeEsyJsonIfExists() in
 

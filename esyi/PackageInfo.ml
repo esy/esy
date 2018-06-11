@@ -258,6 +258,10 @@ module DependenciesInfo = struct
 end
 
 module OpamInfo = struct
-  type t = Json.t * (Path.t * string) list * string list
+  type t = {
+    packageJson : Json.t;
+    files : (Path.t * string) list;
+    patches : string list;
+  }
   [@@deriving yojson]
 end

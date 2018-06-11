@@ -648,11 +648,7 @@ let toPackageJson = (manifest, version) => {
       ...manifest.exportedEnv,
     ];
 
-  (
-    /* let manifest = getManifest(opamOverrides, (filename, "", withoutScope(name), switch version {
-       | `Opam(t) => t
-       | _ => failwith("unexpected opam version")
-       })); */
+  let packageJson =
     `Assoc([
       ("name", `String(npmName)),
       ("version", `String(PackageInfo.Version.toNpmVersion(version))),
@@ -701,10 +697,12 @@ let toPackageJson = (manifest, version) => {
           ),
         ),
       ),
-    ]),
-    manifest.files,
-    manifest.patches,
-  );
+    ]);
+  {
+    PackageInfo.OpamInfo.packageJson,
+    files: manifest.files,
+    patches: manifest.patches,
+  };
 };
 
 let name = manifest => PackageName.toNpm(manifest.name);

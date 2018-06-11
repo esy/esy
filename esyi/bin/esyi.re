@@ -94,7 +94,7 @@ module Api = {
         );
       OpamFile.{...manifest, source: PackageInfo.Source.NoSource};
     };
-    let (packageJson, _, _) =
+    let {PackageInfo.OpamInfo.packageJson, _} =
       OpamFile.toPackageJson(manifest, PackageInfo.Version.Opam(version));
     print_endline(Yojson.Safe.pretty_to_string(packageJson));
     return();
