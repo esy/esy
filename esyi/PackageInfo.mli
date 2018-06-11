@@ -103,4 +103,5 @@ module OpamInfo : sig
   }
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
+  val show : t -> string
 end
