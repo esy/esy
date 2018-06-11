@@ -31,6 +31,29 @@ module Api = {
       }
     );
 
+  let printCudfUniverse = (cfg: Config.t) =>
+    RunAsync.Syntax.(
+      {
+        let%bind manifest =
+          PackageJson.ofFile(Path.(cfg.basePath / "package.json"));
+        let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
+        let%bind pkg =
+          RunAsync.ofRun(
+            Package.make(
+              ~version=
+                PackageInfo.Version.Source(
+                  PackageInfo.Source.LocalPath(cfg.basePath),
+                ),
+              Package.PackageJson(manifest),
+            ),
+          );
+        let%bind (universe, _, _) =
+          SolveDeps.initState(~cfg, pkg.Package.dependencies.dependencies);
+        Cudf_printer.pp_universe(stdout, universe);
+        return();
+      }
+    );
+
   let solveAndFetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       if%bind (Fs.exists(cfg.lockfilePath)) {
@@ -219,6 +242,14 @@ module CommandLineInterface = {
     (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
   };
 
+  let printCudfUniverse = {
+    let doc = "Print CUDF universe on stdout";
+    let info =
+      Term.info("print-cudf-universe", ~version, ~doc, ~sdocs, ~exits);
+    let cmd = cfg => Api.printCudfUniverse(cfg);
+    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
+  };
+
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
@@ -276,6 +307,7 @@ module CommandLineInterface = {
     solveCommand,
     fetchCommand,
     opamImportCommand,
+    printCudfUniverse,
   ];
 
   let run = () => {
