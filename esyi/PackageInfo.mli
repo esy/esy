@@ -96,7 +96,11 @@ module DependenciesInfo : sig
 end
 
 module OpamInfo : sig
-  type t = Json.t * (Fpath.t * string) list * string list
+  type t = {
+    packageJson : Json.t;
+    files : (Path.t * string) list;
+    patches : string list;
+  }
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
 end
