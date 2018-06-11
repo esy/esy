@@ -6,6 +6,8 @@ type 'a decoder = t -> ('a, string) result
 let to_yojson x = x
 let of_yojson x = Ok x
 
+let pp = Yojson.Safe.pretty_print
+
 let parseJsonWith parser json =
   Run.ofStringError (parser json)
 

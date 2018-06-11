@@ -1,3 +1,4 @@
+module String = Astring.String
 
 module Package = struct
   type t = {
@@ -10,8 +11,25 @@ end
 
 type pkg = Package.t
 
-let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
+let packageKey (pkg : Solution.pkg) =
+  let version = PackageInfo.Version.toString pkg.version in
+  match pkg.opam with
+  | None -> Printf.sprintf "%s__%s" pkg.name version
+  | Some opam ->
+    let opamHash =
+      opam
+      |> PackageInfo.OpamInfo.show
+      |> Digest.string
+      |> Digest.to_hex
+      |> String.Sub.v ~start:0 ~stop:8
+      |> String.Sub.to_string
+    in
+    Printf.sprintf "%s__%s__%s" pkg.name version opamHash
+
+let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pkg) =
   let open RunAsync.Syntax in
+
+  let key = packageKey pkg in
 
   let doFetch path =
     match source with
@@ -58,10 +76,6 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
 
     let complete path =
 
-      let resolvedString name version =
-        Config.resolvedPrefix ^ name ^ "--" ^ PackageInfo.Version.toString version
-      in
-
       let removeEsyJsonIfExists () =
         let esyJson = Path.(path / "esy.json") in
         match%bind Fs.exists(esyJson) with
@@ -69,63 +83,69 @@ let fetch ~(config : Config.t) {Solution. name; version; source; opam; _} =
         | false -> return ()
       in
 
-      let addResolvedFieldToPackageJson filename name version =
-        match%bind Fs.readJsonFile filename with
-        | `Assoc items ->
-          let json = `Assoc (("_resolved", `String (resolvedString name version))::items) in
-          let data = Yojson.Safe.pretty_to_string json in
-          Fs.writeFile ~data filename
-        | _ -> error "invalid package.json"
+      let%bind () =
+        match opam with
+        | Some {PackageInfo.OpamInfo. packageJson; files; patches} ->
+
+          let%bind () = removeEsyJsonIfExists() in
+
+          let%bind () =
+            Fs.writeJsonFile ~json:packageJson Path.(path / "package.json")
+          in
+
+          let%bind () =
+            let f (relPath, data) =
+              let name = Path.append path relPath in
+              let dirname = Path.parent name in
+              let%bind () = Fs.createDir dirname in
+              (* TODO: move this to the place we read data from *)
+              let data =
+                if String.get data (String.length data - 1) == '\n'
+                then data
+                else data ^ "\n"
+              in
+              let%bind () = Fs.writeFile ~data name in
+              return()
+            in
+            List.map f files |> RunAsync.List.waitAll
+          in
+
+          let%bind() =
+            let f patch =
+              let patch = Path.(path / patch) in
+              Patch.apply ~strip:1 ~root:path ~patch ()
+            in RunAsync.List.processSeq ~f patches
+          in
+          return()
+
+        | None -> return ()
+
       in
 
-      match opam with
-      | Some {PackageInfo.OpamInfo. packageJson; files; patches} ->
-
-        let%bind () = removeEsyJsonIfExists() in
-
-        let%bind () =
-          Fs.writeJsonFile ~json:packageJson Path.(path / "package.json")
+      let%bind () =
+        let addResolvedFieldToPackageJson filename =
+          match%bind Fs.readJsonFile filename with
+          | `Assoc items ->
+            let json = `Assoc (("_resolved", `String key)::items) in
+            let data = Yojson.Safe.pretty_to_string json in
+            Fs.writeFile ~data filename
+          | _ -> error "invalid package.json"
         in
 
-        let%bind () =
-          let f (relPath, data) =
-            let name = Path.append path relPath in
-            let dirname = Path.parent name in
-            let%bind () = Fs.createDir dirname in
-            (* TODO: move this to the place we read data from *)
-            let data =
-              if String.get data (String.length data - 1) == '\n'
-              then data
-              else data ^ "\n"
-            in
-            let%bind () = Fs.writeFile ~data name in
-            return()
-          in
-          List.map f files |> RunAsync.List.waitAll
-        in
-
-        let%bind() =
-          let f patch =
-            let patch = Path.(path / patch) in
-            Patch.apply ~strip:1 ~root:path ~patch ()
-          in RunAsync.List.processSeq ~f patches
-        in
-        return()
-
-      | None ->
+        let esyJson = Path.(path / "esy.json") in
         let packageJson = Path.(path / "package.json") in
-        if%bind Fs.exists(packageJson) then
-          addResolvedFieldToPackageJson packageJson name version
-        else
-          error "No opam file or package.json"
+        if%bind Fs.exists esyJson
+        then addResolvedFieldToPackageJson esyJson
+        else if%bind Fs.exists packageJson
+        then addResolvedFieldToPackageJson packageJson
+        else return ()
+      in
+
+      return ()
+
     in
 
-    let key =
-      let version = PackageInfo.Version.toString version in
-      Printf.sprintf "%s__%s" name version
-    in
-
-    let tarballPath = Path.(config.tarballCachePath // v (key ^ ".tgz")) in
+    let tarballPath = Path.(config.tarballCachePath // v key |> addExt "tgz") in
 
     let pkg = {Package. tarballPath; name; version; source} in
 

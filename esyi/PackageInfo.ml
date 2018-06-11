@@ -263,5 +263,5 @@ module OpamInfo = struct
     files : (Path.t * string) list;
     patches : string list;
   }
-  [@@deriving yojson]
+  [@@deriving (yojson, show)]
 end
