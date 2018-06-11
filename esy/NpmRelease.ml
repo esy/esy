@@ -224,8 +224,8 @@ let dependenciesForRelease (task : Task.t) =
     | Task.BuildTimeDependency _ -> deps
   in
   task.dependencies
-  |> ListLabels.fold_left ~f ~init:[]
-  |> ListLabels.rev
+  |> List.fold_left ~f ~init:[]
+  |> List.rev
 
 let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let open RunAsync.Syntax in
@@ -264,7 +264,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       | Package.SourceType.Immutable -> s
       | Package.SourceType.Development -> StringSet.add task.id s
     in
-    ListLabels.fold_left
+    List.fold_left
       ~init:StringSet.empty
       ~f
       tasks
@@ -296,7 +296,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let outputPrefixPath = Path.(outputPath / "_export") in
         LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
     in
-    tasks |> ListLabels.map ~f |> RunAsync.List.waitAll
+    tasks |> List.map ~f |> RunAsync.List.waitAll
   in
 
   let%bind () =

@@ -123,7 +123,7 @@ let buildId
   (dependencies : dependency list) =
   let digest acc update = Digest.string (acc ^ "--" ^ update) in
   let id =
-    ListLabels.fold_left ~f:digest ~init:"" [
+    List.fold_left ~f:digest ~init:"" [
       pkg.name;
       pkg.version;
       Package.CommandList.show pkg.buildCommands;
@@ -140,7 +140,7 @@ let buildId
     | BuildTimeDependency pkg -> digest id pkg.id
     | DevDependency _ -> id
   in
-  let id = ListLabels.fold_left ~f:updateWithDepId ~init:id dependencies in
+  let id = List.fold_left ~f:updateWithDepId ~init:id dependencies in
   let hash = Digest.to_hex id in
   let hash = String.sub hash 0 8 in
   (safeName pkg.name ^ "-" ^ safePath pkg.version ^ "-" ^ hash)
@@ -356,7 +356,7 @@ let ofPackage
         (seen, dependencies)
     in
     let _, dependencies =
-      ListLabels.fold_left ~f ~init:(StringSet.empty, []) dependencies
+      List.fold_left ~f ~init:(StringSet.empty, []) dependencies
     in
     List.rev dependencies
 
@@ -453,7 +453,7 @@ let ofPackage
           addTaskBindings ~scopeName:`PackageName task.pkg task.paths bindings
         in
         dependenciesTasks
-        |> ListLabels.fold_left ~f ~init:bindings
+        |> List.fold_left ~f ~init:bindings
       in
       let bindingsForExportedEnv =
         bindings
@@ -774,7 +774,7 @@ module DependencyGraph = DependencyGraph.Make(struct
         | BuildTimeDependency task
         | DevDependency task -> (task, dep)
       in
-      ListLabels.map ~f task.dependencies
+      List.map ~f task.dependencies
   end)
 
 let toBuildProtocol (task : task) =

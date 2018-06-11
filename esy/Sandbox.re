@@ -101,9 +101,7 @@ let ofDir = (cfg: Config.t) => {
             Package.InvalidDependency({pkgName, reason}),
             ...dependencies,
           ];
-      Lwt.return(
-        ListLabels.fold_left(~f, ~init=prevDependencies, dependencies),
-      );
+      Lwt.return(List.fold_left(~f, ~init=prevDependencies, dependencies));
     };
     switch%bind (Package.Manifest.ofDir(path)) {
     | Some((manifest, manifestPath)) =>

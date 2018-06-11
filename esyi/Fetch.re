@@ -18,7 +18,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
   let packagesToFetch = {
     let add = (pkgs, pkg: Solution.pkg) => PackageSet.add(pkg, pkgs);
     let addList = (pkgs, pkgsList) =>
-      ListLabels.fold_left(~f=add, ~init=pkgs, pkgsList);
+      List.fold_left(~f=add, ~init=pkgs, pkgsList);
 
     let pkgs =
       PackageSet.empty

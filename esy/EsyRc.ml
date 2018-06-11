@@ -30,7 +30,7 @@ let ofPath path =
           acc
       in
       begin
-      match ListLabels.fold_left ~init:(Ok { prefixPath = None }) ~f items with
+      match List.fold_left ~init:(Ok { prefixPath = None }) ~f items with
       | Ok esyRc -> return esyRc
       | v -> v |> Run.ofBosError |> RunAsync.ofRun
       end
