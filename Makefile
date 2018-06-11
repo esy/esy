@@ -49,11 +49,12 @@ bootstrap:
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
-	@make -C esy-install bootstrap
 	@esy install
+	@make -C esy-install bootstrap
 	@make build-dev
 	@make -C test-e2e bootstrap
 	@make -C test-e2e/pkg-tests bootstrap
+	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
@@ -102,6 +103,7 @@ test::
 RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
+	bin/fastreplacestring \
 	bin/esy-install.js \
 	bin/esyInstallRelease.js \
 	scripts/postinstall.sh \
@@ -163,6 +165,10 @@ $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
+
+$(RELEASE_ROOT)/bin/fastreplacestring:
+	@mkdir -p $(@D)
+	@cp $$(esy which fastreplacestring) $(@)
 
 $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)

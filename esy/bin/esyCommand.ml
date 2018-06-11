@@ -54,7 +54,7 @@ module EsyRuntime = struct
     resolveCommand "../../../../bin/esy-install.js"
 
   let fastreplacestringCommand =
-    resolveCommand "fastreplacestring/.bin/fastreplacestring.exe"
+    resolveCommand "../../../../bin/fastreplacestring"
 
   let esyBuildPackageCommand =
     resolveCommand "../../esy-build-package/bin/esyBuildPackageCommand.exe"

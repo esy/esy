@@ -32,12 +32,12 @@ let createConfig = (copts: commonOpts) => {
     let basedir = Fpath.parent(program);
     let resolution =
       EsyBuildPackage.NodeResolution.resolve(
-        "fastreplacestring/.bin/fastreplacestring.exe",
+        "../../../../bin/fastreplacestring",
         basedir,
       );
     switch%bind (Run.coerceFrmMsgOnly(resolution)) {
     | Some(path) => Ok(Fpath.to_string(path))
-    | None => Ok("fastreplacestring.exe")
+    | None => Error(`Msg("cannot resolve fastreplacestring command"))
     };
   };
   EsyBuildPackage.Config.create(

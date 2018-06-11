@@ -54,7 +54,7 @@
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "^3.2.0",
-    "fastreplacestring": "IwanKaramazow/FastReplaceString.git#0.0.4"
+    "fastreplacestring": "esy-ocaml/FastReplaceString.git#44511d"
   },
   "resolutions": {
     "**/@opam/sexplib0": "100000000.11.0",

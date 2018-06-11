@@ -6,10 +6,6 @@
   version "0.0.0"
   uid ""
 
-"@esy-ocaml/esy-opam@0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.14.tgz#f7c1ed6246d6e6ff2dff1e9f74b90875b1fa061f"
-
 "@esy-ocaml/esy-opam@0.0.15":
   version "0.0.15"
   resolved "https://registry.yarnpkg.com/@esy-ocaml/esy-opam/-/esy-opam-0.0.15.tgz#97656c8e5774cf84692a680319784cb833cc5b70"
@@ -2095,10 +2091,6 @@ fast-json-stable-stringify@^2.0.0:
 fast-levenshtein@~2.0.4:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
-
-"fastreplacestring@git+https://github.com/IwanKaramazow/FastReplaceString.git#0.0.4":
-  version "0.0.3"
-  resolved "git+https://github.com/IwanKaramazow/FastReplaceString.git#e834cbed0e71d7e0967ab31f1d67f95af7f05e53"
 
 fb-watchman@^2.0.0:
   version "2.0.0"
