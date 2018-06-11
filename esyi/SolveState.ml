@@ -38,20 +38,46 @@ module Cache = struct
 
 end
 
-module VersionMap = struct
+module VersionMap : sig
+
+  type t
+
+  val make : ?size:int -> unit -> t
+  val update : t -> string -> PackageInfo.Version.t -> int -> unit
+  val findVersion : name:string -> cudfVersion:int -> t -> PackageInfo.Version.t option
+  val findVersionExn : name:string -> cudfVersion:int -> t -> PackageInfo.Version.t
+
+  val findCudfVersion : name:string -> version:PackageInfo.Version.t -> t -> int option
+  val findCudfVersionExn : name:string -> version:PackageInfo.Version.t -> t -> int
+
+end = struct
+
+  module VersionSet = Set.Make(Package.Version)
+
   type t = {
     cudfVersionToVersion: ((string * int), PackageInfo.Version.t) Hashtbl.t ;
-    versionToCudfVersion: ((string * PackageInfo.Version.t), int) Hashtbl.t
+    versionToCudfVersion: ((string * PackageInfo.Version.t), int) Hashtbl.t;
+    versions : (string, VersionSet.t) Hashtbl.t;
   }
 
   let make ?(size=100) () = {
     cudfVersionToVersion = Hashtbl.create size;
     versionToCudfVersion = Hashtbl.create size;
+    versions = Hashtbl.create size;
   }
 
-  let update t name realVersion version =
-    Hashtbl.replace t.versionToCudfVersion (name, realVersion) version;
-    Hashtbl.replace t.cudfVersionToVersion (name, version) realVersion
+  let update map name version cudfVersion =
+    Hashtbl.replace map.versionToCudfVersion (name, version) cudfVersion;
+    Hashtbl.replace map.cudfVersionToVersion (name, cudfVersion) version;
+    let () =
+      let versions =
+        try Hashtbl.find map.versions name
+        with _ -> VersionSet.empty
+      in
+      let versions = VersionSet.add version versions in
+      Hashtbl.replace map.versions name versions
+    in
+    ()
 
   let findVersion ~name ~cudfVersion map =
     match Hashtbl.find map.cudfVersionToVersion (name, cudfVersion) with
