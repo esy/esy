@@ -4,11 +4,10 @@ let filterNone xs =
   let rec loop o accum =
     match o with
     | [] -> accum
-    | hd::tl ->
-        (match hd with
-         | ((Some (v))[@explicit_arity ]) -> loop tl (v :: accum)
-         | None -> loop tl accum) in
-  loop xs []
+    | (Some v)::tl -> loop tl (v :: accum)
+    | None::tl -> loop tl accum
+  in
+  rev (loop xs [])
 
 let diff xs ys =
   filter ~f:(fun elem -> not (mem ~set:ys elem)) xs
