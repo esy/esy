@@ -28,21 +28,3 @@ and pkg = {
    */
   opam: [@default None] option(PackageInfo.OpamInfo.t),
 };
-
-let ofFile = (filename: Path.t) =>
-  RunAsync.Syntax.(
-    {
-      let%bind json = Fs.readJsonFile(filename);
-      switch (of_yojson(json)) {
-      | Error(err) =>
-        let msg = Printf.sprintf("Invalid lockfile: %s", err);
-        error(msg);
-      | Ok(a) => return(a)
-      };
-    }
-  );
-
-let toFile = (filename: Path.t, solution: t) => {
-  let json = to_yojson(solution);
-  Fs.writeJsonFile(~json, filename);
-};

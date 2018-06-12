@@ -4,34 +4,37 @@ module String = Astring.String;
 let info = msg => Printf.printf("[INFO] : %s\n", msg);
 
 module Api = {
-  let solve = (cfg: Config.t) =>
-    RunAsync.Syntax.(
-      {
-        let%bind manifest =
-          PackageJson.ofFile(Path.(cfg.basePath / "package.json"));
-        let%bind pkg =
-          RunAsync.ofRun(
-            Package.make(
-              ~version=
-                PackageInfo.Version.Source(
-                  PackageInfo.Source.LocalPath(cfg.basePath),
-                ),
-              Package.PackageJson(manifest),
-            ),
-          );
-        let%bind solution = Solve.solve(~cfg, pkg);
-        Solution.toFile(cfg.lockfilePath, solution);
-      }
-    );
+  let solve = (cfg: Config.t) => {
+    open RunAsync.Syntax;
 
-  let fetch = (cfg: Config.t) =>
-    RunAsync.Syntax.(
-      {
-        let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
-        let%bind solution = Solution.ofFile(cfg.lockfilePath);
-        Fetch.fetch(cfg, solution);
-      }
-    );
+    info("Resolving dependencies");
+    let%bind manifest = PackageJson.ofDir(cfg.basePath);
+    let%bind pkg =
+      RunAsync.ofRun(
+        Package.make(
+          ~version=
+            PackageInfo.Version.Source(
+              PackageInfo.Source.LocalPath(cfg.basePath),
+            ),
+          Package.PackageJson(manifest),
+        ),
+      );
+    let%bind solution = Solve.solve(~cfg, pkg);
+    Lockfile.toFile(~manifest, ~solution, cfg.lockfilePath);
+  };
+
+  let fetch = (cfg: Config.t) => {
+    open RunAsync.Syntax;
+
+    info("Fetching dependencies");
+    let%bind manifest = PackageJson.ofDir(cfg.basePath);
+    switch%bind (Lockfile.ofFile(~manifest, cfg.lockfilePath)) {
+    | Some(solution) =>
+      let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
+      Fetch.fetch(cfg, solution);
+    | None => error("no lockfile found, run 'esyi solve' first")
+    };
+  };
 
   let printCudfUniverse = (cfg: Config.t) =>
     RunAsync.Syntax.(
@@ -58,13 +61,19 @@ module Api = {
 
   let solveAndFetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
-      if%bind (Fs.exists(cfg.lockfilePath)) {
-        info("found lockfile");
-        fetch(cfg);
-      } else {
-        info("no lockfile found, resolving dependencies...");
-        let%bind () = solve(cfg);
-        fetch(cfg);
+      {
+        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        switch%bind (Lockfile.ofFile(~manifest, cfg.lockfilePath)) {
+        | Some(solution) =>
+          if%bind (Fetch.checkSolutionInstalled(~cfg, solution)) {
+            return();
+          } else {
+            fetch(cfg);
+          }
+        | None =>
+          let%bind () = solve(cfg);
+          fetch(cfg);
+        };
       }
     );
 

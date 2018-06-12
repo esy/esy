@@ -1,48 +1,45 @@
-(* let toFile ~path (solution : Solution.t) = *)
+type t = {
+  rootDependenciesHash : string;
+  solution : Solution.t;
+} [@@deriving (yojson)]
 
-(*   let dumpSource (source : Solution.Source.t) = *)
-(*     let items = *)
-(*       match source.src with *)
-(*       | Solution.Source.Archive { url; checksum } -> *)
-(*         [ *)
-(*           "source", `String url; *)
-(*           "checksum", `String checksum; *)
-(*         ] *)
-(*       | Solution.Source.GitSource { url; commit } -> [ *)
-(*           "source", `String ("git:" ^ url ^ "#" ^ commit); *)
-(*         ] *)
-(*       | Solution.Source.GithubSource { user; name; commit } -> [ *)
-(*           "source", `String ("github:" ^ user ^ "/" ^ name ^ "#" ^ commit); *)
-(*         ] *)
-(*       | Solution.Source.File { path } -> [ *)
-(*         "source", `String ("file:" ^ path); *)
-(*         ] *)
-(*       | Solution.Source.NoSource -> [] *)
-(*     in *)
-(*     `O items *)
-(*   in *)
+let dependenciesHash (manifest : PackageJson.t) =
+  let hashDependencies ~prefix ~dependencies digest =
+    let f digest req =
+     Digest.string (digest ^ "__" ^ prefix ^ "__" ^ PackageInfo.Req.toString req)
+    in
+    List.fold_left
+      ~f ~init:digest
+      dependencies
+  in
+  let digest =
+    Digest.string ""
+    |> hashDependencies
+      ~prefix:"dependencies"
+      ~dependencies:manifest.PackageJson.dependencies
+    |> hashDependencies
+      ~prefix:"buildDependencies"
+      ~dependencies:manifest.PackageJson.buildDependencies
+    |> hashDependencies
+      ~prefix:"devDependencies"
+      ~dependencies:manifest.PackageJson.devDependencies
+  in
+  Digest.to_hex digest
 
-(*   let open RunAsync.Syntax in *)
-(*   let pkgs = solution.root.pkg::solution.root.bag in *)
-(*   let yaml = *)
-(*     let items = *)
-(*       pkgs *)
-(*       |> List.map (fun pkg -> *)
-(*         let version = Solution.Version.toString pkg.Solution.version in *)
-(*         let key = Printf.sprintf "%s@%s" pkg.Solution.name version in *)
-(*         key, pkg.source) *)
-(*       |> List.sort (fun (a, _) (b, _) -> String.compare a b) *)
-(*       |> List.map (fun (key, source) -> *)
-(*           let value = dumpSource source in *)
-(*           key, value) *)
-(*     in `O items *)
-(*   in *)
-(*   let%bind data = *)
-(*     Yaml.to_string ~scalar_style:`Double_quoted ~layout_style:`Block yaml *)
-(*     |> Run.ofBosError *)
-(*     |> RunAsync.ofRun *)
-(*   in *)
-(*   Fs.writeFile ~data path *)
+let ofFile ~(manifest : PackageJson.t) (path : Path.t) =
+  let open RunAsync.Syntax in
+  if%bind Fs.exists path
+  then
+    let%bind json = Fs.readJsonFile path in
+    let%bind lockfile = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
+    if lockfile.rootDependenciesHash = dependenciesHash manifest
+    then return (Some lockfile.solution)
+    else return None
+  else
+    return None
 
-(* let ofFile (_path : Path.t) = *)
-(*   () *)
+let toFile ~(manifest : PackageJson.t) ~(solution : Solution.t) (path : Path.t) =
+  let rootDependenciesHash = dependenciesHash manifest in
+  let lockfile = {rootDependenciesHash; solution} in
+  let json = to_yojson lockfile in
+  Fs.writeJsonFile ~json path

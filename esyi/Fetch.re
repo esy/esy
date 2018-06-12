@@ -11,6 +11,34 @@ module PackageSet =
     };
   });
 
+let checkSolutionInstalled = (~cfg: Config.t, solution: Solution.t) => {
+  open RunAsync.Syntax;
+
+  let checkPkg = (pkg: Solution.pkg) => {
+    let pkgPath = Path.(cfg.basePath / "node_modules" /\/ v(pkg.name));
+    Fs.exists(pkgPath);
+  };
+
+  let checkRoot = root => {
+    let%bind installed =
+      root.Solution.bag |> List.map(~f=checkPkg) |> RunAsync.List.joinAll;
+    return(List.for_all(~f=installed => installed, installed));
+  };
+
+  let%bind installed = checkRoot(solution.Solution.root);
+
+  if (! installed) {
+    return(false);
+  } else {
+    let%bind installed =
+      solution.Solution.buildDependencies
+      |> List.map(~f=checkRoot)
+      |> RunAsync.List.joinAll;
+    let installed = List.for_all(~f=installed => installed, installed);
+    return(installed);
+  };
+};
+
 let fetch = (config: Config.t, solution: Solution.t) => {
   open RunAsync.Syntax;
 

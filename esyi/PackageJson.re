@@ -115,3 +115,18 @@ let ofFile = (path: Path.t) =>
       RunAsync.ofRun(Json.parseJsonWith(of_yojson, data));
     }
   );
+
+let ofDir = (path: Path.t) => {
+  open RunAsync.Syntax;
+  let esyJson = Path.(path / "esy.json");
+  let packageJson = Path.(path / "package.json");
+  if%bind (Fs.exists(esyJson)) {
+    ofFile(esyJson);
+  } else {
+    if%bind (Fs.exists(packageJson)) {
+      ofFile(packageJson);
+    } else {
+      error("no package.json found");
+    };
+  };
+};
