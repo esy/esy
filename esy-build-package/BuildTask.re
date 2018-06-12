@@ -47,7 +47,11 @@ module Cmd = {
     type t = list(string);
   };
   type t = Bos.Cmd.t;
-  let pp = Bos.Cmd.pp;
+  let pp = (ppf, v) => {
+    let v = v |> Bos.Cmd.to_list |> List.map(Filename.quote);
+    Fmt.(hbox(list(~sep=sp, string)))(ppf, v);
+  };
+  let show = Bos.Cmd.to_string;
   let of_yojson = (json: Yojson.Safe.json) =>
     Result.(
       {

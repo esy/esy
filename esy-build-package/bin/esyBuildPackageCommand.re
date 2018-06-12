@@ -1,5 +1,6 @@
 module Option = EsyLib.Option;
 module Run = EsyBuildPackage.Run;
+module BuildTask = EsyBuildPackage.BuildTask;
 module File = Bos.OS.File;
 module Dir = Bos.OS.Dir;
 
@@ -64,17 +65,13 @@ let shell = (copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind config = createConfig(copts);
+  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+
   let runShell = (_run, runInteractive, ()) => {
     let%bind rcFilename =
-      putTempFile(
-        {|
+      putTempFile({|
         export PS1="[build $cur__name] % ";
-
-        echo ""
-        echo "  esy build shell for $cur__name@$cur__version package"
-        echo ""
-        |},
-      );
+        |});
     let cmd =
       Bos.Cmd.of_list([
         "bash",
@@ -84,7 +81,42 @@ let shell = (copts: commonOpts) => {
       ]);
     runInteractive(cmd);
   };
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+
+  let () = {
+    open Fmt;
+
+    let ppList = (ppItem, ppf, (title, items)) => {
+      let pp =
+        switch (items) {
+        | [] => hbox(pair(string, unit(" <empty> ")))
+        | items =>
+          vbox(
+            ~indent=2,
+            pair(string, const(prefix(cut, vbox(list(ppItem))), items)),
+          )
+        };
+      pp(ppf, (title, ()));
+    };
+
+    let ppBanner = (ppf, ()) => {
+      Format.open_vbox(0);
+      fmt("Package: %s@%s", ppf, task.BuildTask.name, task.BuildTask.version);
+      Fmt.cut(ppf, ());
+      Fmt.cut(ppf, ());
+      ppList(BuildTask.Cmd.pp, ppf, ("Build Commands:", task.build));
+      Fmt.cut(ppf, ());
+      Fmt.cut(ppf, ());
+      ppList(BuildTask.Cmd.pp, ppf, ("Install Commands:", task.install));
+      Fmt.cut(ppf, ());
+      Format.close_box();
+    };
+
+    Format.force_newline();
+    ppBanner(Fmt.stdout, ());
+    Format.force_newline();
+    Format.print_flush();
+  };
+
   let%bind () = EsyBuildPackage.Builder.withBuildEnv(config, task, runShell);
   ok;
 };
