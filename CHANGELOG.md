@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.1.14 @ preview
+
+* Fix dependency on @esy-ocaml/esy-opam which was broken since 0.1.12.
+
+* Bundle fastreplacestring with esy prebuilt. This removes the need for `g++` on
+  users machines.
+
+## 0.1.13 @ preview
+
+This release was broken and was unpublished, use 0.1.14 instead.
+
 ## 0.1.12 @ preview
 
   * Fix building opam packages with `%{pkg1+pkg2:var}` syntax constructs in its
