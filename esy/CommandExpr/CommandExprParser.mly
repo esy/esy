@@ -1,5 +1,7 @@
 %token <string> STRING
 %token <string> ID
+%token OPAM_OPEN
+%token OPAM_CLOSE
 %token QUESTION_MARK
 %token COLON
 %token DOT
@@ -7,6 +9,7 @@
 %token DOLLAR
 %token AT
 %token AND
+%token PLUS
 %token PAREN_LEFT
 %token PAREN_RIGHT
 %token EOF
@@ -48,6 +51,7 @@ exprList:
 
 atom:
     PAREN_LEFT; e = atom; PAREN_RIGHT { e }
+  | OPAM_OPEN; e = opam_id; OPAM_CLOSE { E.OpamVar e }
   | e = atomString { e }
   | e = atomId { e }
   | e = atomEnv { e }
@@ -75,9 +79,17 @@ id:
     id = ID { (None, id) }
   | namespace = id_namespace; DOT; id = ID { (Some namespace, id) }
 
+
 id_namespace:
     n = ID { n }
   | AT; s = ID; SLASH; n = ID { ("@" ^ s ^ "/" ^ n) }
+
+opam_id:
+    id = ID { ([], id) }
+  | scope = opam_id_scope; COLON; id = ID { (scope, id) }
+
+opam_id_scope:
+  e = separated_nonempty_list(PLUS, ID) { e }
 
 %%
 

@@ -6,11 +6,15 @@ module Expr = struct
     | Var of name
     | EnvVar of string
     | String of string
+    | Bool of bool
     | Condition of t * t * t
     | And of t * t
     | Colon
     | PathSep
+    | OpamVar of opamVar
     [@@deriving (show, eq)]
+
+  and opamVar = string list * string
 
   and name = string option * string
     [@@deriving (show, eq)]
