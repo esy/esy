@@ -167,14 +167,22 @@ module Req = struct
 
   let make ~name ~spec =
     let parseGitHubSpec text =
+
+      let normalizeGithubRepo repo =
+        match String.cut ~sep:".git" repo with
+        | Some (repo, "") -> repo
+        | Some _ -> repo
+        | None -> repo
+      in
+
       let parts = Str.split (Str.regexp_string "/") text in
       match parts with
       | org::rest::[] ->
         begin match Str.split (Str.regexp_string "#") rest with
         | repo::ref::[] ->
-          Some (SourceSpec.Github (org, repo, Some ref))
+          Some (SourceSpec.Github (org, normalizeGithubRepo repo, Some ref))
         | repo::[] ->
-          Some (SourceSpec.Github (org, repo, None))
+          Some (SourceSpec.Github (org, normalizeGithubRepo repo, None))
         | _ -> None
         end
       | _ -> None
