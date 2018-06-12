@@ -4,7 +4,7 @@
   "license": "MIT",
   "description": "Esy sandboxes for compiled languages",
   "dependencies": {
-    "@esy-ocaml/esy-opam": "0.0.14"
+    "@esy-ocaml/esy-opam": "0.0.15"
   },
   "scripts": {
     "postinstall": "bash ./scripts/postinstall.sh"
