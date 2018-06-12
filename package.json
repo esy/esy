@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "license": "MIT",
   "description": "Esy sandboxes for compiled languages",
   "dependencies": {
