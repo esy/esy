@@ -251,32 +251,6 @@ let processDeps = (fileName, deps) => {
   );
 };
 
-let filterMap = (f, items) =>
-  List.map(~f, items)
-  |> List.filter(~f=x => x != None)
-  |> List.map(~f=x =>
-       switch (x) {
-       | Some(x) => x
-       | None => assert(false)
-       }
-     );
-
-/** TODO handle more variables */
-let variables = ((name: PackageName.t, version)) => [
-  ("jobs", "4"),
-  ("make", "make"),
-  ("ocaml-native", "true"),
-  ("ocaml-native-dynlink", "true"),
-  ("bin", "$cur__install/bin"),
-  ("lib", "$cur__install/lib"),
-  ("man", "$cur__install/man"),
-  ("share", "$cur__install/share"),
-  ("pinned", "false"),
-  ("name", PackageName.toString(name)),
-  ("version", Version.toString(version)),
-  ("prefix", "$cur__install"),
-];
-
 let cleanEnvName = Str.global_replace(Str.regexp("-"), "_");
 
 /* [@test */
@@ -292,49 +266,6 @@ let replaceGroupWithTransform = (rx, transform, string) =>
     string,
   );
 
-/* [@test */
-/*   [ */
-/*     ( */
-/*       (("awesome", Types.Alpha("", None)), "--%{fmt:enable}%-fmt"), */
-/*       "--${fmt_enable:-disable}-fmt", */
-/*     ), */
-/*   ] */
-/* ] */
-let replaceVariables = (info, string) => {
-  let string =
-    string
-    |> replaceGroupWithTransform(
-         Str.regexp("%{\\([^}]+\\):installed}%"), name =>
-         "${" ++ cleanEnvName(name) ++ "_installed:-false}"
-       )
-    |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):enable}%"), name =>
-         "${" ++ cleanEnvName(name) ++ "_enable:-disable}"
-       )
-    |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):version}%"), name =>
-         "${" ++ cleanEnvName(name) ++ "_version}"
-       )
-    |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):bin}%"), name =>
-         "${" ++ cleanEnvName(name) ++ ".bin}"
-       )
-    |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):share}%"), name =>
-         "${" ++ cleanEnvName(name) ++ ".share}"
-       )
-    |> replaceGroupWithTransform(Str.regexp("%{\\([^}]+\\):lib}%"), name =>
-         "${" ++ cleanEnvName(name) ++ ".lib}"
-       );
-  List.fold_left(
-    ~f=
-      (string, (name, res)) =>
-        Str.global_replace(
-          Str.regexp_string("%{" ++ name ++ "}%"),
-          res,
-          string,
-        ),
-    ~init=string,
-    variables(info),
-  );
-};
-
 /* [@test [({|"install" {!preinstalled}|}, Some("install"))]] */
 /* [@test.call */
 /*   string => */
@@ -343,23 +274,17 @@ let replaceVariables = (info, string) => {
 /*       OpamParser.value_from_string(string, "wat") */
 /*     ) */
 /* ] */
-let processCommandItem = (info, item) =>
+let processCommandItem = (_info, item) =>
   switch (item) {
-  | String(_, name) => Some(replaceVariables(info, name))
-  | Ident(_, ident) =>
-    switch (List.assoc_opt(ident, variables(info))) {
-    | Some(string) => Some(string)
-    | None =>
-      print_endline("\226\154\160\239\184\143 Missing vbl " ++ ident);
-      None;
-    }
+  | String(_, value) => Some(value)
+  | Ident(_, ident) => Some("%{" ++ ident ++ "}%")
   | Option(_, _, [Ident(_, "preinstalled")]) =>
     /** Skipping preinstalled */ None
   | Option(_, _, [String(_, _something)]) =>
     /* String options like "%{react:installed}%" are not currently supported */
     None
   | Option(_, String(_, name), [Pfxop(_, `Not, Ident(_, "preinstalled"))]) =>
-    /** Not skipping not preinstalled */ Some(replaceVariables(info, name))
+    /** Not skipping not preinstalled */ Some(name)
   | _ =>
     /** TODO handle  "--%{text:enable}%-text" {"%{react:installed}%"} correctly */
     print_endline("Bad build arg " ++ OpamPrinter.value(item));
@@ -367,7 +292,7 @@ let processCommandItem = (info, item) =>
   };
 
 let processCommand = (info, items) =>
-  items |> filterMap(processCommandItem(info));
+  items |> List.map(~f=processCommandItem(info)) |> List.filterNone;
 
 /** TODO handle optional build things */
 let processCommandList = (info, item) =>
@@ -379,7 +304,7 @@ let processCommandList = (info, item) =>
     | [String(_) | Ident(_), ..._rest] => [items |> processCommand(info)]
     | _ =>
       items
-      |> filterMap(item =>
+      |> List.map(~f=item =>
            switch (item) {
            | List(_, items) => Some(processCommand(info, items))
            | Option(_, List(_, items), _) =>
@@ -391,14 +316,9 @@ let processCommandList = (info, item) =>
              None;
            }
          )
+      |> List.filterNone
     }
-  | Some(Ident(_, ident)) =>
-    switch (List.assoc_opt(ident, variables(info))) {
-    | Some(string) => [[string]]
-    | None =>
-      print_endline("\226\154\160\239\184\143 Missing vbl " ++ ident);
-      [];
-    }
+  | Some(Ident(_, ident)) => [["%{" ++ ident ++ "}%"]]
   | Some(item) =>
     failwith(
       "Unexpected type for a command list: " ++ OpamPrinter.value(item),
@@ -433,7 +353,7 @@ let processStringList = item => {
       )
     };
   items
-  |> filterMap(item =>
+  |> List.map(~f=item =>
        switch (item) {
        | String(_, name) => Some(name)
        | Option(
@@ -461,7 +381,8 @@ let processStringList = item => {
          );
          None;
        }
-     );
+     )
+  |> List.filterNone;
 };
 
 let findArchive = (contents, _file_name) =>
@@ -633,26 +554,7 @@ let commandListToJson = e =>
 
 let toPackageJson = (manifest, version) => {
   let npmName = PackageName.toNpm(manifest.name);
-  let opamName = PackageName.toString(manifest.name);
-  let exportedEnv =
-    PackageJson.ExportedEnv.[
-      {
-        name: cleanEnvName(opamName) ++ "_version",
-        value: PackageInfo.Version.toNpmVersion(version),
-        scope: `Global,
-      },
-      {
-        name: cleanEnvName(opamName) ++ "_installed",
-        value: "true",
-        scope: `Global,
-      },
-      {
-        name: cleanEnvName(opamName) ++ "_enable",
-        value: "enable",
-        scope: `Global,
-      },
-      ...manifest.exportedEnv,
-    ];
+  let exportedEnv = manifest.exportedEnv;
 
   let packageJson =
     `Assoc([
@@ -667,15 +569,6 @@ let toPackageJson = (manifest, version) => {
           ("exportedEnv", PackageJson.ExportedEnv.to_yojson(exportedEnv)),
         ]),
         /* ("buildsInSource", "_build") */
-      ),
-      (
-        "_resolved",
-        `String(
-          Config.resolvedPrefix
-          ++ npmName
-          ++ "--"
-          ++ PackageInfo.Version.toString(version),
-        ),
       ),
       (
         "peerDependencies",
