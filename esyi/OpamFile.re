@@ -93,7 +93,7 @@ module ParseDeps = {
 
   let single = c => F.OR([F.AND([c])]);
 
-  let fromPrefix = (op, version) => {
+  let parsePrefixRelop = (op, version) => {
     let v = Version.parseExn(version);
     switch (op) {
     | `Eq => single(C.EQ(v))
@@ -105,105 +105,113 @@ module ParseDeps = {
     };
   };
 
-  let rec parseRange = opamvalue =>
+  let rec parseRange = (filename, opamvalue) =>
     OpamParserTypes.(
-      switch (opamvalue) {
-      | Prefix_relop(_, op, String(_, version)) => fromPrefix(op, version)
-      | Logop(_, `And, left, right) =>
-        F.DNF.conj(parseRange(left), parseRange(right))
-      | Logop(_, `Or, left, right) =>
-        F.DNF.disj(parseRange(left), parseRange(right))
-      | String(_, version) =>
-        single(C.EQ(OpamVersion.Version.parseExn(version)))
-      | Option(_, contents, options) =>
-        print_endline(
-          "Ignoring option: "
-          ++ (
-            options
-            |> List.map(~f=OpamPrinter.value)
-            |> String.concat(" .. ")
-          ),
-        );
-        parseRange(contents);
-      | _y =>
-        print_endline(
-          "Unexpected option -- pretending its any "
-          ++ OpamPrinter.value(opamvalue),
-        );
-        single(C.ANY);
-      }
+      Option.Syntax.(
+        switch (opamvalue) {
+        | Ident(_, "doc") => None
+
+        | Prefix_relop(_, op, String(_, version)) =>
+          return(parsePrefixRelop(op, version))
+
+        /* handle "<dep> & build" */
+        | Logop(_, `And, syn, Ident(_, "build"))
+        | Logop(_, `And, Ident(_, "build"), syn) =>
+          parseRange(filename, syn)
+
+        | Logop(_, `And, left, right) =>
+          let%bind left = parseRange(filename, left);
+          let%bind right = parseRange(filename, right);
+          return(F.DNF.conj(left, right));
+
+        | Logop(_, `Or, left, right) =>
+          switch (parseRange(filename, left), parseRange(filename, right)) {
+          | (Some(left), Some(right)) => return(F.DNF.disj(left, right))
+          | (Some(left), None) => return(left)
+          | (None, Some(right)) => return(right)
+          | (None, None) => None
+          }
+
+        | String(_, version) =>
+          return(single(C.EQ(OpamVersion.Version.parseExn(version))))
+
+        | Option(_, contents, options) =>
+          print_endline(
+            "Ignoring option: "
+            ++ (
+              options
+              |> List.map(~f=OpamPrinter.value)
+              |> String.concat(" .. ")
+            ),
+          );
+          parseRange(filename, contents);
+
+        | _y =>
+          Printf.printf(
+            "OpamFile: %s: Unexpected option -- pretending its any: %s\n",
+            filename,
+            OpamPrinter.value(opamvalue),
+          );
+          return(single(C.ANY));
+        }
+      )
     );
 
-  let rec toDep = opamvalue =>
+  let rec toDep = (filename, opamvalue) =>
     OpamParserTypes.(
-      switch (opamvalue) {
-      | String(_, name) => (name, single(C.ANY), `Link)
-      | Option(_, String(_, name), [Ident(_, "build")]) => (
-          name,
-          single(C.ANY),
-          `Build,
-        )
-      | Option(
-          _,
-          String(_, name),
-          [Logop(_, `And, Ident(_, "build"), version)],
-        ) => (
-          name,
-          parseRange(version),
-          `Build,
-        )
-      | Option(_, String(_, name), [Ident(_, "test")]) => (
-          name,
-          single(C.ANY),
-          `Test,
-        )
-      | Option(
-          _,
-          String(_, name),
-          [Logop(_, `And, Ident(_, "test"), version)],
-        ) => (
-          name,
-          parseRange(version),
-          `Test,
-        )
-      | Group(_, [Logop(_, `Or, String(_, "base-no-ppx"), otherThing)]) =>
-        /* yep we allow ppxs */
-        toDep(otherThing)
-      | Group(_, [Logop(_, `Or, String(_, one), String(_, two))]) =>
-        print_endline(
-          "Arbitrarily choosing the second of two options: "
-          ++ one
-          ++ " and "
-          ++ two,
-        );
-        (two, single(C.ANY), `Link);
-      | Group(_, [Logop(_, `Or, first, second)]) =>
-        print_endline(
-          "Arbitrarily choosing the first of two options: "
-          ++ OpamPrinter.value(first)
-          ++ " and "
-          ++ OpamPrinter.value(second),
-        );
-        toDep(first);
-      | Option(_, String(_, name), [option]) => (
-          name,
-          parseRange(option),
-          `Link,
-        )
-      | _ =>
-        failwith(
-          "Can't parse this opam dep " ++ OpamPrinter.value(opamvalue),
-        )
-      }
+      Option.Syntax.(
+        switch (opamvalue) {
+        | String(_, name) => Some((name, single(C.ANY), `Link))
+        | Option(_, String(_, name), [Ident(_, "build")]) =>
+          Some((name, single(C.ANY), `Build))
+        | Option(
+            _,
+            String(_, name),
+            [Logop(_, `And, Ident(_, "build"), version)],
+          ) =>
+          let%bind spec = parseRange(filename, version);
+          Some((name, spec, `Build));
+        | Option(_, String(_, name), [Ident(_, "test")]) =>
+          Some((name, single(C.ANY), `Test))
+        | Option(
+            _,
+            String(_, name),
+            [Logop(_, `And, Ident(_, "test"), version)],
+          ) =>
+          let%bind spec = parseRange(filename, version);
+          Some((name, spec, `Test));
+        | Group(_, [Logop(_, `Or, String(_, "base-no-ppx"), otherThing)]) =>
+          /* yep we allow ppxs */
+          toDep(filename, otherThing)
+        | Group(_, [Logop(_, `Or, String(_, one), String(_, two))]) =>
+          print_endline(
+            "Arbitrarily choosing the second of two options: "
+            ++ one
+            ++ " and "
+            ++ two,
+          );
+          Some((two, single(C.ANY), `Link));
+        | Group(_, [Logop(_, `Or, first, second)]) =>
+          print_endline(
+            "Arbitrarily choosing the first of two options: "
+            ++ OpamPrinter.value(first)
+            ++ " and "
+            ++ OpamPrinter.value(second),
+          );
+          toDep(filename, first);
+        | Option(_, String(_, name), [option]) =>
+          let%bind spec = parseRange(filename, option);
+          Some((name, spec, `Link));
+        | _ =>
+          failwith(
+            "Can't parse this opam dep " ++ OpamPrinter.value(opamvalue),
+          )
+        }
+      )
     );
-
-  let parse = opamvalue => {
-    let (name, s, typ) = toDep(opamvalue);
-    (name, s, typ);
-  };
 };
 
-let processDeps = (fileName, deps) => {
+let processDeps = (filename, deps) => {
   let deps =
     switch (deps) {
     | None => []
@@ -213,39 +221,36 @@ let processDeps = (fileName, deps) => {
     | Some(contents) =>
       failwith(
         "Can't handle the dependencies "
-        ++ fileName
+        ++ filename
         ++ " "
         ++ OpamPrinter.value(contents),
       )
     };
   List.fold_left(
     ~f=
-      ((deps, buildDeps, devDeps), dep) => {
-        let (name, dep, typ) =
-          try (ParseDeps.parse(dep)) {
-          | Failure(f) =>
-            print_endline("Failed to process dep: " ++ f);
-            print_endline(fileName);
-            failwith("bad");
-          };
-        switch (typ) {
-        | `Link => (
+      ((deps, buildDeps, devDeps), dep) =>
+        switch (ParseDeps.toDep(filename, dep)) {
+        | Some((name, dep, `Link)) => (
             [(PackageName.ofString(name), dep), ...deps],
             buildDeps,
             devDeps,
           )
-        | `Build => (
+        | Some((name, dep, `Build)) => (
             deps,
             [(PackageName.ofString(name), dep), ...buildDeps],
             devDeps,
           )
-        | `Test => (
+        | Some((name, dep, `Test)) => (
             deps,
             buildDeps,
             [(PackageName.ofString(name), dep), ...devDeps],
           )
-        };
-      },
+        | None => (deps, buildDeps, devDeps)
+        | exception (Failure(f)) =>
+          print_endline("Failed to process dep: " ++ f);
+          print_endline(filename);
+          failwith("bad");
+        },
     ~init=([], [], []),
     deps,
   );
@@ -337,10 +342,10 @@ let processCommandList = (info, item) =>
 /* ] */
 /* [@test.call */
 /*   string => */
-/*     processStringList(Some(OpamParser.value_from_string(string, "wat"))) */
+/*     parsePatches(Some(OpamParser.value_from_string(string, "wat"))) */
 /* ] */
 /* [@test.print (fmt, x) => Format.fprintf(fmt, "%s", String.concat(", ", x))] */
-let processStringList = item => {
+let parsePatches = (filename, item) => {
   let items =
     switch (item) {
     | None => []
@@ -348,9 +353,13 @@ let processStringList = item => {
     | Some(Group(_, items)) => items
     | Some(String(_) as item) => [item]
     | Some(item) =>
-      failwith(
-        "Unexpected type for a string list: " ++ OpamPrinter.value(item),
-      )
+      let msg =
+        Printf.sprintf(
+          "opam: %s\nerror: Unexpected type for a string list\nvalue: %s\n",
+          filename,
+          OpamPrinter.value(item),
+        );
+      failwith(msg);
     };
   items
   |> List.map(~f=item =>
@@ -376,8 +385,10 @@ let processStringList = item => {
          ) =>
          Some(name)
        | _ =>
-         print_endline(
-           "Bad string list item arg " ++ OpamPrinter.value(item),
+         Printf.printf(
+           "opam: %s\nwarning: Bad string list item arg\nvalue: %s\n",
+           filename,
+           OpamPrinter.value(item),
          );
          None;
        }
@@ -467,7 +478,8 @@ let parseManifest =
   let files =
     getOpamFiles(Path.(v(file_name) |> parent))
     |> RunAsync.runExn(~err="error crawling files");
-  let patches = processStringList(findVariable("patches", file_contents));
+  let patches =
+    parsePatches(file_name, findVariable("patches", file_contents));
   /** OPTIMIZE: only read the files when generating the lockfile */
   /* print_endline("Patches for " ++ file_name ++ " " ++ string_of_int(List.length(patches))); */
   let ocamlRequirement = {
