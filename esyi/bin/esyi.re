@@ -1,40 +1,40 @@
 open EsyInstaller;
 module String = Astring.String;
 
-let info = msg => Printf.printf("[INFO] : %s\n", msg);
-
 module Api = {
-  let solve = (cfg: Config.t) => {
-    open RunAsync.Syntax;
-
-    info("Resolving dependencies");
-    let%bind manifest = PackageJson.ofDir(cfg.basePath);
-    let%bind pkg =
-      RunAsync.ofRun(
-        Package.make(
-          ~version=
-            PackageInfo.Version.Source(
-              PackageInfo.Source.LocalPath(cfg.basePath),
+  let solve = (cfg: Config.t) =>
+    RunAsync.Syntax.(
+      {
+        let%lwt () = Logs_lwt.app(m => m("Resolving dependencies"));
+        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind pkg =
+          RunAsync.ofRun(
+            Package.make(
+              ~version=
+                PackageInfo.Version.Source(
+                  PackageInfo.Source.LocalPath(cfg.basePath),
+                ),
+              Package.PackageJson(manifest),
             ),
-          Package.PackageJson(manifest),
-        ),
-      );
-    let%bind solution = Solve.solve(~cfg, pkg);
-    Lockfile.toFile(~manifest, ~solution, cfg.lockfilePath);
-  };
+          );
+        let%bind solution = Solve.solve(~cfg, pkg);
+        Lockfile.toFile(~manifest, ~solution, cfg.lockfilePath);
+      }
+    );
 
-  let fetch = (cfg: Config.t) => {
-    open RunAsync.Syntax;
-
-    info("Fetching dependencies");
-    let%bind manifest = PackageJson.ofDir(cfg.basePath);
-    switch%bind (Lockfile.ofFile(~manifest, cfg.lockfilePath)) {
-    | Some(solution) =>
-      let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
-      Fetch.fetch(cfg, solution);
-    | None => error("no lockfile found, run 'esyi solve' first")
-    };
-  };
+  let fetch = (cfg: Config.t) =>
+    RunAsync.Syntax.(
+      {
+        let%lwt () = Logs_lwt.app(m => m("Fetching dependencies"));
+        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        switch%bind (Lockfile.ofFile(~manifest, cfg.lockfilePath)) {
+        | Some(solution) =>
+          let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
+          Fetch.fetch(cfg, solution);
+        | None => error("no lockfile found, run 'esyi solve' first")
+        };
+      }
+    );
 
   let printCudfUniverse = (cfg: Config.t) =>
     RunAsync.Syntax.(
@@ -119,16 +119,6 @@ module CommandLineInterface = {
 
   let cwd = Path.v(Sys.getcwd());
   let version = "0.1.0";
-
-  let setupLog = (style_renderer, level) => {
-    Fmt_tty.setup_std_outputs(~style_renderer?, ());
-    Logs.set_level(level);
-    Logs.set_reporter(Logs_fmt.reporter());
-    ();
-  };
-
-  let setupLogTerm =
-    Term.(const(setupLog) $ Fmt_cli.style_renderer() $ Logs_cli.level());
 
   let checkoutConv = {
     let parse = v =>
@@ -230,7 +220,7 @@ module CommandLineInterface = {
       $ opamRepositoryArg
       $ esyOpamOverrideArg
       $ npmRegistryArg
-      $ setupLogTerm
+      $ Cli.setupLogTerm
     );
   };
 

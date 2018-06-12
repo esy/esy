@@ -68,7 +68,8 @@ let fetch = (config: Config.t, solution: Solution.t) => {
   let%bind () = Fs.rmPath(nodeModulesPath);
   let%bind () = Fs.createDir(nodeModulesPath);
 
-  Logs.app(m => m("Checking if there are some packages to fetch..."));
+  let%lwt () =
+    Logs_lwt.app(m => m("Checking if there are some packages to fetch..."));
 
   let%bind packagesFetched = {
     let queue = LwtTaskQueue.create(~concurrency=8, ());
@@ -81,7 +82,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
     |> RunAsync.List.joinAll;
   };
 
-  Logs.app(m => m("Populating node_modules..."));
+  let%lwt () = Logs_lwt.app(m => m("Populating node_modules..."));
 
   let%bind () =
     RunAsync.List.processSeq(

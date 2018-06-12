@@ -216,45 +216,6 @@ let configTerm =
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
-let setupLogTerm =
-  let lwt_reporter () =
-    let buf_fmt ~like =
-      let b = Buffer.create 512 in
-      Fmt.with_buffer ~like b,
-      fun () -> let m = Buffer.contents b in Buffer.reset b; m
-    in
-    let app, app_flush = buf_fmt ~like:Fmt.stdout in
-    let dst, dst_flush = buf_fmt ~like:Fmt.stderr in
-    let reporter = Logs_fmt.reporter ~app ~dst () in
-    let report src level ~over k msgf =
-      let k () =
-        let write () = match level with
-          | Logs.App -> Lwt_io.write Lwt_io.stdout (app_flush ())
-          | _ -> Lwt_io.write Lwt_io.stderr (dst_flush ())
-        in
-        let unblock () = over (); Lwt.return_unit in
-        Lwt.finalize write unblock |> Lwt.ignore_result;
-        k ()
-      in
-      reporter.Logs.report src level ~over:(fun () -> ()) k msgf;
-    in
-    { Logs.report = report }
-  in
-  let setupLog style_renderer level =
-    let style_renderer = match style_renderer with
-      | None -> `None
-      | Some renderer -> renderer
-    in
-    Fmt_tty.setup_std_outputs ~style_renderer ();
-    Logs.set_level level;
-    Logs.set_reporter (lwt_reporter ())
-  in
-  let open Cmdliner in
-  Term.(
-    const setupLog
-    $ Fmt_cli.style_renderer ()
-    $ Logs_cli.level ~env:(Arg.env_var "ESY__LOG") ())
-
 let runCommandViaNode cfg name args =
   let open RunAsync.Syntax in
   let%bind cfg = cfg in
@@ -700,7 +661,7 @@ let () =
         ~doc:"Command to execute within the sandbox environment."
         ~docv:"COMMAND"
     in
-    Term.(ret (const cmd $ configTerm $ cmdTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ cmdTerm $ Cli.setupLogTerm)), info
   in
 
   let buildPlanCommand =
@@ -709,7 +670,7 @@ let () =
     let cmd cfg packagePath () =
       runAsyncCommand ~header:`No ~info (buildPlan cfg packagePath)
     in
-    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
   let buildShellCommand =
@@ -718,7 +679,7 @@ let () =
     let cmd cfg packagePath () =
       runAsyncCommand ~info (buildShell cfg packagePath)
     in
-    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
   let buildPackageCommand =
@@ -727,7 +688,7 @@ let () =
     let cmd cfg packagePath () =
       runAsyncCommand ~info (buildPackage cfg packagePath)
     in
-    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
   let installNextCommand =
@@ -756,7 +717,7 @@ let () =
     let cmd cfg () =
       runAsyncCommand ~info (installNext cfg)
     in
-    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let buildCommand =
@@ -775,7 +736,7 @@ let () =
         ~doc:"Command to execute within the build environment."
         ~docv:"COMMAND"
     in
-    Term.(ret (const cmd $ configTerm $ cmdTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ cmdTerm $ Cli.setupLogTerm)), info
   in
 
   let buildEnvCommand =
@@ -788,7 +749,7 @@ let () =
       let doc = "Format output as JSON" in
       Arg.(value & flag & info ["json"]  ~doc);
     in
-    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
   let commandEnvCommand =
@@ -801,7 +762,7 @@ let () =
       let doc = "Format output as JSON" in
       Arg.(value & flag & info ["json"]  ~doc);
     in
-    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
   let sandboxEnvCommand =
@@ -814,7 +775,7 @@ let () =
       let doc = "Format output as JSON" in
       Arg.(value & flag & info ["json"]  ~doc);
     in
-    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ json $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
   let execCommand =
@@ -828,7 +789,7 @@ let () =
         ~doc:"Command to execute within the release environment."
         ~docv:"COMMAND"
     in
-    Term.(ret (const cmd $ configTerm $ cmdTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ cmdTerm $ Cli.setupLogTerm)), info
   in
 
   let shellCommand =
@@ -837,7 +798,7 @@ let () =
     let cmd cfg () =
       runAsyncCommand ~header:`No ~info (devShell cfg)
     in
-    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let lsBuildsCommand =
@@ -850,7 +811,7 @@ let () =
       let doc = "Include transitive dependencies" in
       Arg.(value & flag & info ["T"; "include-transitive"]  ~doc);
     in
-    Term.(ret (const cmd $ includeTransitive $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ includeTransitive $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let lsLibsCommand =
@@ -863,7 +824,7 @@ let () =
       let doc = "Include transitive dependencies" in
       Arg.(value & flag & info ["T"; "include-transitive"]  ~doc);
     in
-    Term.(ret (const cmd $ includeTransitive $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ includeTransitive $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let lsModulesCommand =
@@ -876,7 +837,7 @@ let () =
       let doc = "Output modules only for specified lib(s)" in
       Arg.(value & (pos_all string []) & info [] ~docv:"LIB" ~doc);
     in
-    Term.(ret (const cmd $ lib $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ lib $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let dependenciesForExport (task : Task.t) =
@@ -918,7 +879,7 @@ let () =
         & info [] ~doc
       )
     in
-    Term.(ret (const cmd $ configTerm $ buildPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ buildPathTerm $ Cli.setupLogTerm)), info
   in
 
   let exportDependenciesCommand =
@@ -964,7 +925,7 @@ let () =
       in
       runAsyncCommand ~info f
     in
-    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let importBuildCommand =
@@ -1003,7 +964,7 @@ let () =
         & info ["from"; "f"] ~docv:"FROM"
       )
     in
-    Term.(ret (const cmd $ configTerm $ fromTerm $ buildPathsTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ fromTerm $ buildPathsTerm $ Cli.setupLogTerm)), info
   in
 
   let importDependenciesCommand =
@@ -1064,7 +1025,7 @@ let () =
         & info [] ~doc
       )
     in
-    Term.(ret (const cmd $ configTerm $ fromPathTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ fromPathTerm $ Cli.setupLogTerm)), info
   in
 
   let releaseCommand =
@@ -1093,7 +1054,7 @@ let () =
           ~sandbox
       )
     in
-    Term.(ret (const cmd $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let helpCommand =
@@ -1122,7 +1083,7 @@ let () =
     let argTerm =
       Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
     in
-    Term.(ret (const cmd $ argTerm $ configTerm $ setupLogTerm)), info
+    Term.(ret (const cmd $ argTerm $ configTerm $ Cli.setupLogTerm)), info
   in
 
   let installCommand =

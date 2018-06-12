@@ -156,10 +156,10 @@ let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pk
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
           let%bind () = Fs.createDir sourcePath in
-          Logs.app (fun m -> m "Fetching %s" name);
+          let%lwt () = Logs_lwt.app (fun m -> m "Fetching %s" name) in
           let%bind () = doFetch sourcePath in
           let%bind () = complete sourcePath in
-          Logs.app (fun m -> m "Fetching %s: done" name);
+          let%lwt () = Logs_lwt.app (fun m -> m "Fetching %s: done" name) in
           return ()
         in
 
