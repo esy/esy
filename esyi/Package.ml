@@ -56,7 +56,7 @@ module Github = struct
     let open RunAsync.Syntax in
     let fetchFile name =
       let url =
-        "https://raw.githubusercontent.com/"
+        "https://raw.githubusercontent.com"
         ^ "/" ^ user
         ^ "/" ^ repo
         ^ "/" ^ Option.orDefault ~default:"master" ref
