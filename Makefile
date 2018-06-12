@@ -103,7 +103,8 @@ test::
 RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
-	bin/fastreplacestring \
+	bin/fastreplacestring-darwin \
+	bin/fastreplacestring-linux \
 	bin/esy-install.js \
 	bin/esyInstallRelease.js \
 	scripts/postinstall.sh \
@@ -151,6 +152,10 @@ $(RELEASE_ROOT)/_build/default/esyi/bin/esyi-linux.exe:
 	@mkdir -p $(@D)
 	@cp linux-build/esyi.exe $(@)
 
+$(RELEASE_ROOT)/bin/fastreplacestring-linux:
+	@mkdir -p $(@D)
+	@cp linux-build/fastreplacestring.exe $(@)
+
 $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
 	@touch $(@)
@@ -166,7 +171,7 @@ $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
 
-$(RELEASE_ROOT)/bin/fastreplacestring:
+$(RELEASE_ROOT)/bin/fastreplacestring-darwin:
 	@mkdir -p $(@D)
 	@cp $$(esy which fastreplacestring) $(@)
 

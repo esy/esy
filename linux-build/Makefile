@@ -25,6 +25,7 @@ esy: prepare docker-image-id
 	@cp $(OUTPUT_DIR)/esyCommand.exe ./
 	@cp $(OUTPUT_DIR)/esyBuildPackageCommand.exe ./
 	@cp $(OUTPUT_DIR)/esyi.exe ./
+	@cp $(OUTPUT_DIR)/fastreplacestring.exe ./
 
 build: esy
 
@@ -38,3 +39,4 @@ build-on-target:
 	@cp _build/default/esy/bin/esyCommand.exe /out/esyCommand.exe
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe /out/esyBuildPackageCommand.exe
 	@cp _build/default/esyi/bin/esyi.exe /out/esyi.exe
+	@cp $$(esy which fastreplacestring) /out/fastreplacestring.exe
