@@ -110,6 +110,7 @@ module ParseDeps = {
       Option.Syntax.(
         switch (opamvalue) {
         | Ident(_, "doc") => None
+        | Ident(_, "test") => None
 
         | Prefix_relop(_, op, String(_, version)) =>
           return(parsePrefixRelop(op, version))
@@ -279,7 +280,7 @@ let replaceGroupWithTransform = (rx, transform, string) =>
 /*       OpamParser.value_from_string(string, "wat") */
 /*     ) */
 /* ] */
-let processCommandItem = (_info, item) =>
+let processCommandItem = (filename, item) =>
   switch (item) {
   | String(_, value) => Some(value)
   | Ident(_, ident) => Some("%{" ++ ident ++ "}%")
@@ -292,28 +293,34 @@ let processCommandItem = (_info, item) =>
     /** Not skipping not preinstalled */ Some(name)
   | _ =>
     /** TODO handle  "--%{text:enable}%-text" {"%{react:installed}%"} correctly */
-    print_endline("Bad build arg " ++ OpamPrinter.value(item));
+    Printf.printf(
+      "opam: %s\nmessage: invalid command item\nvalue: %s\n",
+      filename,
+      OpamPrinter.value(item),
+    );
     None;
   };
 
-let processCommand = (info, items) =>
-  items |> List.map(~f=processCommandItem(info)) |> List.filterNone;
+let processCommand = (filename, items) =>
+  items |> List.map(~f=processCommandItem(filename)) |> List.filterNone;
 
 /** TODO handle optional build things */
-let processCommandList = (info, item) =>
+let processCommandList = (filename, item) =>
   switch (item) {
   | None => []
   | Some(List(_, items))
   | Some(Group(_, items)) =>
     switch (items) {
-    | [String(_) | Ident(_), ..._rest] => [items |> processCommand(info)]
+    | [String(_) | Ident(_), ..._rest] => [
+        items |> processCommand(filename),
+      ]
     | _ =>
       items
       |> List.map(~f=item =>
            switch (item) {
-           | List(_, items) => Some(processCommand(info, items))
+           | List(_, items) => Some(processCommand(filename, items))
            | Option(_, List(_, items), _) =>
-             Some(processCommand(info, items))
+             Some(processCommand(filename, items))
            | _ =>
              print_endline(
                "Skipping a non-list build thing " ++ OpamPrinter.value(item),
@@ -538,10 +545,10 @@ let parseManifest =
     fileName: file_name,
     build:
       getSubsts(findVariable("substs", file_contents))
-      @ processCommandList(info, findVariable("build", file_contents))
+      @ processCommandList(file_name, findVariable("build", file_contents))
       @ [["sh", "-c", "(esy-installer || true)"]],
     install:
-      processCommandList(info, findVariable("install", file_contents)),
+      processCommandList(file_name, findVariable("install", file_contents)),
     patches,
     files,
     dependencies:
