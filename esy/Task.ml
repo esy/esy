@@ -152,6 +152,12 @@ let getenv name =
   try Some (Sys.getenv name)
   with Not_found -> None
 
+let opamPackageName name =
+  let prefix = "@opam/" in
+  if Astring.String.is_prefix ~affix:prefix name
+  then Astring.String.Sub.(v ~start:(String.length prefix) name |> to_string)
+  else name
+
 let addTaskBindings
   ?(useStageDirectory=false)
   ~(scopeName : [`Self | `PackageName])
@@ -171,6 +177,7 @@ let addTaskBindings
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
+  let pathToValue p = CommandExpr.Value.String (ConfigPath.toString p) in
   let addS k v s = add k (CommandExpr.Value.String v) s in
   let addB k v s = add k (CommandExpr.Value.Bool v) s in
   let addP k v s = add k (CommandExpr.Value.String (ConfigPath.toString v)) s in
@@ -191,6 +198,15 @@ let addTaskBindings
   |> addP "share" ConfigPath.(installPath / "share")
   |> addP "etc" ConfigPath.(installPath / "etc")
   |> addB "installed" true
+  |> StringMap.add "opam:name" (CommandExpr.Value.String (opamPackageName pkg.name))
+  |> StringMap.add "opam:version" (CommandExpr.Value.String pkg.version)
+  |> StringMap.add "opam:prefix" (pathToValue installPath)
+  |> StringMap.add "opam:bin" (pathToValue ConfigPath.(installPath / "bin"))
+  |> StringMap.add "opam:etc" (pathToValue ConfigPath.(installPath / "etc"))
+  |> StringMap.add "opam:doc" (pathToValue ConfigPath.(installPath / "doc"))
+  |> StringMap.add "opam:man" (pathToValue ConfigPath.(installPath / "man"))
+  |> StringMap.add "opam:lib" (pathToValue ConfigPath.(installPath / "lib"))
+  |> StringMap.add "opam:share" (pathToValue ConfigPath.(installPath / "share"))
 
 let addTaskEnvBindings
   (pkg : Package.t)
@@ -447,7 +463,16 @@ let ofPackage
      * building.
      *)
     let scopeForExportEnv, scopeForCommands =
-      let bindings = StringMap.empty in
+      let bindings =
+        StringMap.(
+          empty
+          |> add "opam:make" (CommandExpr.Value.String "make")
+          |> add "opam:ocaml-native" (CommandExpr.Value.Bool true)
+          |> add "opam:ocaml-native-dynlink" (CommandExpr.Value.Bool true)
+          |> add "opam:jobs" (CommandExpr.Value.String "4")
+          |> add "opam:pinned" (CommandExpr.Value.Bool false)
+        )
+      in
       let bindings =
         let f bindings task =
           addTaskBindings ~scopeName:`PackageName task.pkg task.paths bindings

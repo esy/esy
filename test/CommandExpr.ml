@@ -125,6 +125,47 @@ let%test "parse conj" =
       (Var (Some "async", "installed"))
       ))
 
+let%test "parse opam global" =
+  expectParseOk
+    "%{name}%"
+    (OpamVar ([], "name"))
+  && expectParseOk
+    "%{name }%"
+    (OpamVar ([], "name"))
+  && expectParseOk
+    "%{ name}%"
+    (OpamVar ([], "name"))
+
+let%test "parse opam with surroundings" =
+  expectParseOk
+    "%{name}%!"
+    (Concat [OpamVar ([], "name"); String "!"])
+  && expectParseOk
+    "hey, %{name}%!"
+    (Concat [String "hey, "; OpamVar ([], "name"); String "!"])
+
+let%test "parse opam scoped" =
+  expectParseOk
+    "%{name:var}%"
+    (OpamVar (["name"], "var"))
+  && expectParseOk
+    "%{name :var}%"
+    (OpamVar (["name"], "var"))
+  && expectParseOk
+    "%{name: var}%"
+    (OpamVar (["name"], "var"))
+
+let%test "parse opam scoped with +" =
+  expectParseOk
+    "%{pkg1+pkg2:var}%"
+    (OpamVar (["pkg1"; "pkg2"], "var"))
+  && expectParseOk
+    "%{pkg1 +pkg2:var}%"
+    (OpamVar (["pkg1"; "pkg2"], "var"))
+  && expectParseOk
+    "%{pkg1+ pkg2:var}%"
+    (OpamVar (["pkg1"; "pkg2"], "var"))
+
 let expectRenderOk scope s expected =
   match render ~scope s with
   | Ok v ->
@@ -154,7 +195,12 @@ let scope = function
 | None, "name" -> Some (Value.String "pkg")
 | None, "isTrue" -> Some (Value.Bool true)
 | None, "isFalse" -> Some (Value.Bool false)
+| None, "opam:os" -> Some (Value.String "MSDOS")
 | Some "self", "lib" -> Some (Value.String "store/lib")
+| Some "@opam/pkg", "lib" -> Some (Value.String "store/opam-pkg/lib")
+| Some "@opam/pkg1", "installed" -> Some (Value.Bool true)
+| Some "@opam/pkg2", "installed" -> Some (Value.Bool true)
+| Some "@opam/pkg-not", "installed" -> Some (Value.Bool false)
 | _ -> None
 
 let%test "render" =
@@ -164,6 +210,19 @@ let%test "render" =
   && expectRenderOk scope "#{isTrue ? 'ok' : 'oops'}" "ok"
   && expectRenderOk scope "#{isFalse ? 'oops' : 'ok'}" "ok"
   && expectRenderOk scope "#{isFalse && isTrue ? 'oops' : 'ok'}" "ok"
+
+
+let%test "render opam" =
+  expectRenderOk scope "Hello, %{os}%!" "Hello, MSDOS!"
+  && expectRenderOk scope "%{pkg:lib}%" "store/opam-pkg/lib"
+  && expectRenderOk scope "%{pkg1:enable}%" "enable"
+  && expectRenderOk scope "%{pkg-not:enable}%" "disable"
+  && expectRenderOk scope "%{pkg1+pkg2:enable}%" "enable"
+  && expectRenderOk scope "%{pkg1+pkg-not:enable}%" "disable"
+  && expectRenderOk scope "%{pkg1:installed}%" "true"
+  && expectRenderOk scope "%{pkg-not:installed}%" "false"
+  && expectRenderOk scope "%{pkg1+pkg2:installed}%" "true"
+  && expectRenderOk scope "%{pkg1+pkg-not:installed}%" "false"
 
 let%test "render errors" =
   expectRenderError scope "#{unknown}" "Error: Undefined variable 'unknown'"
