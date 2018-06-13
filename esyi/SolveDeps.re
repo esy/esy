@@ -344,7 +344,7 @@ module Seen = {
 };
 
 let rec addToUniverse =
-        (~state: SolveState.t, ~seen, ~previouslyInstalled=?, ~deep, req) => {
+        (~state: SolveState.t, ~seen, ~previouslyInstalled=?, req) => {
   let versions =
     getAvailableVersions(~state, req)
     |> RunAsync.withContext("processing request: " ++ Req.toString(req))
@@ -355,19 +355,14 @@ let rec addToUniverse =
         if (! Seen.seen(seen, pkg)) {
           Seen.add(seen, pkg);
 
-          if (deep) {
-            List.iter(
-              ~f=addToUniverse(~state, ~previouslyInstalled?, ~seen, ~deep),
-              pkg.dependencies.dependencies,
-            );
-          } else {
-            ();
-          };
+          List.iter(
+            ~f=addToUniverse(~state, ~previouslyInstalled?, ~seen),
+            pkg.dependencies.dependencies,
+          );
 
           SolveState.addPackage(
             ~state,
             ~previouslyInstalled,
-            ~deep,
             ~cudfVersion,
             pkg,
           );
@@ -378,14 +373,14 @@ let rec addToUniverse =
 
 let rootName = "*root*";
 
-let initState = (~cfg, ~previouslyInstalled=?, ~cache=?, ~deep=true, deps) =>
+let initState = (~cfg, ~previouslyInstalled=?, ~cache=?, deps) =>
   RunAsync.Syntax.(
     {
       let%bind state = SolveState.make(~cache?, ~cfg, ());
       /** This is where most of the work happens, file io, network requests, etc. */
       let seen = Seen.make();
       List.iter(
-        ~f=addToUniverse(~state, ~seen, ~previouslyInstalled?, ~deep),
+        ~f=addToUniverse(~state, ~seen, ~previouslyInstalled?),
         deps,
       );
       return((state.universe, state.versionMap, state.cache.pkgs));
@@ -393,13 +388,13 @@ let initState = (~cfg, ~previouslyInstalled=?, ~cache=?, ~deep=true, deps) =>
   );
 
 let solveDeps =
-    (~cfg, ~cache, ~strategy, ~previouslyInstalled=?, ~deep=true, deps) =>
+    (~cfg, ~cache, ~strategy, ~previouslyInstalled=?, deps) =>
   RunAsync.Syntax.(
     if (deps == []) {
       return([]);
     } else {
-      let%bind (universe, cudfVersions, manifests) =
-        initState(~cfg, ~previouslyInstalled?, ~cache, ~deep, deps);
+      let%bind (universe, versionMap, manifests) =
+        initState(~cfg, ~previouslyInstalled?, ~cache, deps);
       /** Here we invoke the solver! Might also take a while, but probably won't */
       let cudfDeps =
         List.map(
@@ -440,6 +435,5 @@ let solve = (~cfg, ~cache, ~requested) =>
     ~cfg,
     ~cache,
     ~strategy=Strategies.initial,
-    ~deep=true,
     requested,
   );

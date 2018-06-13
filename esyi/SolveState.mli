@@ -55,7 +55,6 @@ val make :
 val addPackage :
   state:t
   -> previouslyInstalled:(string * PackageInfo.Version.t, 'a) Hashtbl.t option
-  -> deep:bool
   -> cudfVersion:int
   -> Package.t
   -> unit

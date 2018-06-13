@@ -185,7 +185,7 @@ let cudfDep owner universe cudfVersions req =
     [name, Some (`Eq, 10000000000)]
   | final -> final
 
-let addPackage ~state  ~previouslyInstalled  ~deep ~cudfVersion (pkg : Package.t) =
+let addPackage ~state ~previouslyInstalled ~cudfVersion (pkg : Package.t) =
   VersionMap.update state.versionMap pkg.name pkg.version cudfVersion;
 
   Cache.Packages.put state.cache.pkgs (pkg.name, pkg.version) (RunAsync.return pkg);
@@ -196,17 +196,19 @@ let addPackage ~state  ~previouslyInstalled  ~deep ~cudfVersion (pkg : Package.t
       | Some table ->
         Hashtbl.mem table (pkg.name, pkg.version)
     in
-    let depends = match deep with
-      | true ->
-          let from =
-            Printf.sprintf "%s (at %s)"
-              pkg.name
-              (PackageInfo.Version.toString pkg.version)
-          in
-          List.map
-            ~f:(cudfDep from state.universe state.versionMap)
-            pkg.dependencies.dependencies
-      | false -> []
+    let depends =
+      let from =
+        Printf.sprintf "%s (at %s)"
+          pkg.name
+          (PackageInfo.Version.toString pkg.version)
+      in
+      List.map
+        ~f:(cudfDep
+            ~from
+            ~resolutions:state.resolutions
+            ~universe:state.universe
+            ~versionMap:state.versionMap)
+        pkg.dependencies.dependencies
     in
     {
       Cudf.default_package with
