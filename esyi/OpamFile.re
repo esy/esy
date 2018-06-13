@@ -247,21 +247,6 @@ let processDeps = (filename, deps) => {
   );
 };
 
-let cleanEnvName = Str.global_replace(Str.regexp("-"), "_");
-
-/* [@test */
-/*   [ */
-/*     ((Str.regexp("a\\(.\\)"), String.uppercase_ascii, "applae"), "PplE"), */
-/*     ((Str.regexp("A\\(.\\)"), String.lowercase_ascii, "HANDS"), "HnDS"), */
-/*   ] */
-/* ] */
-let replaceGroupWithTransform = (rx, transform, string) =>
-  Str.global_substitute(
-    rx,
-    s => transform(Str.matched_group(1, s)),
-    string,
-  );
-
 /* [@test [({|"install" {!preinstalled}|}, Some("install"))]] */
 /* [@test.call */
 /*   string => */
