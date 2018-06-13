@@ -56,7 +56,7 @@ module Api = {
             ),
           );
         let%bind state =
-          SolveDeps.initState(
+          Solve.initState(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
             pkg.Package.dependencies.dependencies,
