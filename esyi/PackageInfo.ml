@@ -291,6 +291,8 @@ module Resolutions = struct
   let find resolutions pkgName =
     StringMap.find_opt pkgName resolutions
 
+  let entries = StringMap.bindings
+
   let to_yojson v =
     let items =
       let f k v items = (k, (`String (Version.toString v)))::items in

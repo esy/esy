@@ -102,6 +102,8 @@ module Resolutions : sig
   val empty : t
   val find : t -> string -> Version.t option
 
+  val entries : t -> (string * Version.t) list
+
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
 end
