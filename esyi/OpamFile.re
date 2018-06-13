@@ -78,16 +78,6 @@ let rec findVariable = (name, items) =>
   | [_, ...rest] => findVariable(name, rest)
   };
 
-let opName = op =>
-  switch (op) {
-  | `Leq => "<="
-  | `Lt => "<"
-  | `Neq => "!="
-  | `Eq => "="
-  | `Geq => ">="
-  | `Gt => ">"
-  };
-
 module ParseDeps = {
   open OpamVersion;
 
