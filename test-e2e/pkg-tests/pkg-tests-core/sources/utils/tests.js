@@ -3,6 +3,7 @@
 import type {ServerResponse} from 'http';
 import type {Gzip} from 'zlib';
 
+const path = require('path');
 const crypto = require('crypto');
 const deepResolve = require('super-resolve');
 const http = require('http');
@@ -21,6 +22,26 @@ export type PackageRunDriver = (
 ) => Promise<{|stdout: Buffer, stderr: Buffer|}>;
 
 export type PackageDriver = any;
+
+exports.definePackage = async function(packageJson: {name: string, version: string}) {
+  const packageRegistry = await exports.getPackageRegistry();
+  const {name, version} = packageJson;
+  invariant(name != null, 'Missing "name" in package.json');
+  invariant(version != null, 'Missing "version" in package.json');
+
+  let packageEntry = packageRegistry.get(name);
+
+  if (!packageEntry) {
+    packageRegistry.set(name, (packageEntry = new Map()));
+  }
+
+  const packagePath = await fsUtils.createTemporaryFolder();
+  await fsUtils.writeJson(path.join(packagePath, 'package.json'), packageJson);
+  packageEntry.set(version, {
+    path: packagePath,
+    packageJson,
+  });
+};
 
 exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegistry> {
   if (getPackageRegistry.promise) {

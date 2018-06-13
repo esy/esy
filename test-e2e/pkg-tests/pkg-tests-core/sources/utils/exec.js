@@ -10,7 +10,11 @@ exports.execFile = function(
   return new Promise((resolve, reject) => {
     cp.execFile(path, args, options, (error, stdout, stderr) => {
       if (error) {
-        reject(error);
+        reject(`
+          ${error}
+          STDOUT: ${stdout}
+          STDERR: ${stderr}
+        `);
       } else {
         resolve({stdout, stderr});
       }
