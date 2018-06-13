@@ -62,6 +62,7 @@ module VersionSpec : sig
   val to_yojson : t -> [> `String of string ]
 
   val satisfies : version:Version.t -> t -> bool
+  val ofVersion : Version.t -> t
 end
 
 module Req : sig
@@ -93,6 +94,16 @@ module DependenciesInfo : sig
   }
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
+end
+
+module Resolutions : sig
+  type t
+
+  val empty : t
+  val find : t -> string -> Version.t option
+
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
 end
 
 module OpamInfo : sig

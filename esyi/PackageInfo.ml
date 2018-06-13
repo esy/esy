@@ -119,6 +119,14 @@ module SourceSpec = struct
     | NoSource -> "no-source:"
 
   let to_yojson src = `String (toString src)
+
+  let ofSource (source : Source.t) =
+    match source with
+    | Source.Archive (url, checksum) -> Archive (url, Some checksum)
+    | Source.Git (url, commit) -> Git (url, Some commit)
+    | Source.Github (user, repo, commit) -> Github (user, repo, Some commit)
+    | Source.LocalPath p -> LocalPath p
+    | Source.NoSource -> NoSource
 end
 
 (**
@@ -151,6 +159,16 @@ module VersionSpec = struct
     | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
       Path.equal p1 p2
     | _ -> false
+
+  let ofVersion (version : Version.t) =
+    match version with
+    | Version.Npm v ->
+      Npm (NpmVersion.Formula.DNF.unit (NpmVersion.Formula.Constraint.EQ v))
+    | Version.Opam v ->
+      Opam (OpamVersion.Formula.DNF.unit (OpamVersion.Formula.Constraint.EQ v))
+    | Version.Source src ->
+      let srcSpec = SourceSpec.ofSource src in
+      Source srcSpec
 end
 
 module Req = struct
@@ -263,6 +281,49 @@ module DependenciesInfo = struct
     devDependencies: (Dependencies.t [@default Dependencies.empty]);
   }
   [@@deriving yojson { strict = false }]
+end
+
+module Resolutions = struct
+  type t = Version.t StringMap.t
+
+  let empty = StringMap.empty
+
+  let find resolutions pkgName =
+    StringMap.find_opt pkgName resolutions
+
+  let to_yojson v =
+    let items =
+      let f k v items = (k, (`String (Version.toString v)))::items in
+      StringMap.fold f v []
+    in
+    `Assoc items
+
+  let of_yojson =
+    let open Result.Syntax in
+    let parseKey k =
+      match PackagePath.parse k with
+      | Ok ((_path, name)) -> Ok name
+      | Error err -> Error err
+    in
+    let parseValue key =
+      function
+      | `String v -> begin
+        match String.cut ~sep:"/" key, String.cut ~sep:":" v with
+        | Some ("@opam", _), Some("opam", _) -> Version.parse v
+        | Some ("@opam", _), _ -> Version.parse ("opam:" ^ v)
+        | _ -> Version.parse v
+        end
+      | _ -> Error "expected string"
+    in
+    function
+    | `Assoc items ->
+      let f res (key, json) =
+        let%bind key = parseKey key in
+        let%bind value = parseValue key json in
+        Ok (StringMap.add key value res)
+      in
+      Result.List.foldLeft ~f ~init:empty items
+    | _ -> Error "expected object"
 end
 
 module OpamInfo = struct

@@ -1,4 +1,5 @@
 module Version = NpmVersion.Version;
+module String = Astring.String;
 
 module ExportedEnv = {
   type scope = [ | `Global | `Local];
@@ -70,6 +71,8 @@ module ExportedEnv = {
 type t = {
   name: string,
   version: string,
+  resolutions:
+    [@default PackageInfo.Resolutions.empty] PackageInfo.Resolutions.t,
   dependencies:
     [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
   devDependencies:

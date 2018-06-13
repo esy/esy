@@ -6,10 +6,15 @@ module SourceSpec = PackageInfo.SourceSpec;
 module VersionSpec = PackageInfo.VersionSpec;
 module Req = PackageInfo.Req;
 
-let runSolver = (~strategy="-notuptodate", rootName, deps, universe) => {
+module Strategies = {
+  let initial = "-notuptodate";
+  let greatestOverlap = "-changed,-notuptodate";
+};
+
+let runSolver = (~strategy="-notuptodate", ~from, deps, universe) => {
   let root = {
     ...Cudf.default_package,
-    package: rootName,
+    package: from.Package.name,
     version: 1,
     depends: deps,
   };
@@ -202,78 +207,80 @@ module Seen = {
     };
 };
 
-let rec addToUniverse =
-        (~state: SolveState.t, ~seen, ~previouslyInstalled=?, req) => {
-  let versions =
-    getAvailableVersions(~state, req)
-    |> RunAsync.withContext("processing request: " ++ Req.toString(req))
-    |> RunAsync.runExn(~err="error getting versions");
-  List.iter(
-    ~f=
-      ((pkg: Package.t, cudfVersion)) =>
-        if (! Seen.seen(seen, pkg)) {
-          Seen.add(seen, pkg);
-
-          List.iter(
-            ~f=addToUniverse(~state, ~previouslyInstalled?, ~seen),
-            pkg.dependencies.dependencies,
-          );
-
-          SolveState.addPackage(
-            ~state,
-            ~previouslyInstalled,
-            ~cudfVersion,
-            pkg,
-          );
-        },
-    versions,
-  );
-};
-
 let rootName = "*root*";
 
-let initState = (~cfg, ~previouslyInstalled=?, ~cache=?, deps) =>
-  RunAsync.Syntax.(
-    {
-      let%bind state = SolveState.make(~cache?, ~cfg, ());
-      /** This is where most of the work happens, file io, network requests, etc. */
-      let seen = Seen.make();
-      List.iter(
-        ~f=addToUniverse(~state, ~seen, ~previouslyInstalled?),
-        deps,
-      );
-      return((state.universe, state.versionMap, state.cache.pkgs));
-    }
-  );
+let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
+  open RunAsync.Syntax;
 
-let solveDeps =
-    (~cfg, ~cache, ~strategy, ~previouslyInstalled=?, deps) =>
+  let seen = Seen.make();
+  let%bind state = SolveState.make(~cache?, ~cfg, ());
+
+  let applyResolutionsToReq = req => {
+    let name = Req.name(req);
+    switch (PackageInfo.Resolutions.find(resolutions, name)) {
+    | Some(version) =>
+      Printf.printf(
+        "[INFO] Using resolution %s@%s\n",
+        name,
+        Version.toString(version),
+      );
+      let spec = PackageInfo.VersionSpec.ofVersion(version);
+      Req.ofSpec(~name, ~spec);
+    | None => req
+    };
+  };
+
+  let rec addToUniverse = req => {
+    let versions =
+      getAvailableVersions(~state, req)
+      |> RunAsync.withContext("processing request: " ++ Req.toString(req))
+      |> RunAsync.runExn(~err="error getting versions");
+
+    let addVersion = ((pkg: Package.t, cudfVersion)) =>
+      if (! Seen.seen(seen, pkg)) {
+        Seen.add(seen, pkg);
+
+        /** Recurse into dependencies first and then add the package itself. */
+        let dependencies =
+          List.map(~f=applyResolutionsToReq, pkg.dependencies.dependencies);
+        List.iter(~f=addToUniverse, dependencies);
+        SolveState.addPackage(~state, ~cudfVersion, ~dependencies, pkg);
+      };
+
+    List.iter(~f=addVersion, versions);
+  };
+
+  deps |> List.map(~f=applyResolutionsToReq) |> List.iter(~f=addToUniverse);
+
+  return(state);
+};
+
+let solve =
+    (~cfg, ~cache, ~strategy=Strategies.initial, ~resolutions, ~from, deps) =>
   RunAsync.Syntax.(
     if (deps == []) {
       return([]);
     } else {
-      let%bind (universe, versionMap, manifests) =
-        initState(~cfg, ~previouslyInstalled?, ~cache, deps);
+      let%bind state = initState(~cfg, ~cache, ~resolutions, deps);
       /** Here we invoke the solver! Might also take a while, but probably won't */
-      let cudfDeps =
-        List.map(
-          ~f=SolveState.cudfDep(rootName, universe, cudfVersions),
-          deps,
-        );
-      switch (runSolver(~strategy, rootName, cudfDeps, universe)) {
+      let cudfDeps = List.map(~f=SolveState.cudfDep(~from, ~state), deps);
+      switch (runSolver(~strategy, ~from, cudfDeps, state.universe)) {
       | None => error("Unable to resolve")
       | Some(packages) =>
         packages
-        |> List.filter(~f=p => p.Cudf.package != rootName)
+        |> List.filter(~f=p => p.Cudf.package != from.Package.name)
         |> List.map(~f=p => {
              let version =
                VersionMap.findVersionExn(
-                 cudfVersions,
+                 state.versionMap,
                  ~name=p.Cudf.package,
                  ~cudfVersion=p.Cudf.version,
                );
              switch (
-               Cache.Packages.get(manifests, (p.Cudf.package, version))
+               Cache.Packages.get(
+                 state.cache.pkgs,
+                 (p.Cudf.package, version),
+               )
              ) {
              | Some(value) => value
              | None => error("missing package: " ++ p.Cudf.package)
@@ -282,17 +289,4 @@ let solveDeps =
         |> RunAsync.List.joinAll
       };
     }
-  );
-
-module Strategies = {
-  let initial = "-notuptodate";
-  let greatestOverlap = "-changed,-notuptodate";
-};
-
-let solve = (~cfg, ~cache, ~requested) =>
-  solveDeps(
-    ~cfg,
-    ~cache,
-    ~strategy=Strategies.initial,
-    requested,
   );

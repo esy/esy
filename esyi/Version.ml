@@ -3,6 +3,7 @@ module type VERSION  = sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val show : t -> string
+  val pp : Format.formatter -> t -> unit
   val parse : string -> (t, string) result
   val toString : t -> string
   val to_yojson : t -> Json.t
@@ -20,7 +21,7 @@ module Constraint = struct
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving yojson]
+      [@@deriving (yojson, show)]
 
     let matches ~version constr  =
       match constr with
@@ -71,8 +72,8 @@ module Formula = struct
 
     module Constraint = Constraint.Make(Version)
 
-    type 'f conj = AND of 'f list [@@deriving yojson]
-    type 'f disj = OR of 'f list [@@deriving yojson]
+    type 'f conj = AND of 'f list [@@deriving (show, yojson)]
+    type 'f disj = OR of 'f list [@@deriving (show, yojson)]
 
     let any cond formulas =
       List.exists ~f:cond formulas
@@ -84,7 +85,10 @@ module Formula = struct
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving yojson]
+        [@@deriving (show, yojson)]
+
+      let unit constr =
+        OR [AND [constr]]
 
       let matches ~version (OR formulas) =
         let matchesConj (AND formulas) =
@@ -105,8 +109,6 @@ module Formula = struct
           |> List.map ~f:Constraint.toString
           |> String.concat " && ")
         |> String.concat " || "
-
-      let show = toString
 
       let rec map ~f (OR formulas) =
         let mapConj (AND formulas) =
@@ -183,7 +185,13 @@ module Formula = struct
 
       let disjunction ~parse version =
         let items = Str.split (Str.regexp " +|| +") version in
-        OR (List.map ~f:parse items)
+        let items = List.map ~f:parse items in
+        let items =
+          match items with
+          | [] -> [AND [Constraint.ANY]]
+          | items -> items
+        in
+        OR (items)
     end
   end
 end
@@ -194,6 +202,7 @@ let%test_module "Formula" = (module struct
     type t = int [@@deriving yojson]
     let equal = (=)
     let compare = compare
+    let pp = Fmt.int
     let show = string_of_int
     let parse v =
       match int_of_string_opt v with

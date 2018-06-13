@@ -1,39 +1,31 @@
 module VersionSpec = PackageInfo.VersionSpec;
 
-let solve = (~cfg, pkg: Package.t) =>
+let solve = (~cfg, ~resolutions, pkg: Package.t) =>
   RunAsync.Syntax.(
     {
       let%bind cache = SolveState.Cache.make(~cfg, ());
-      let solvedDeps =
+      let%bind deps =
         SolveDeps.solve(
           ~cfg,
           ~cache,
-          ~requested=pkg.dependencies.dependencies,
           ~resolutions,
-        )
-        |> RunAsync.runExn(~err="error solving deps");
+          ~from=pkg,
+          pkg.dependencies.dependencies,
+        );
 
-      let makePkg = (pkg: Package.t) =>
-        return({
+      let solution = {
+        let makePkg = (pkg: Package.t) => {
           Solution.name: pkg.name,
           version: pkg.version,
           source: pkg.source,
           opam: pkg.opam,
-        });
+        };
 
-      let makeRootPkg = (pkg, deps) => {
-        let%bind bag =
-          deps
-          |> List.map(~f=(pkg: Package.t) => makePkg(pkg))
-          |> RunAsync.List.joinAll;
-        return({Solution.pkg, bag});
+        let pkg = makePkg(pkg);
+        let bag = List.map(~f=(pkg: Package.t) => makePkg(pkg), deps);
+        {Solution.pkg, bag};
       };
 
-      let%bind root = {
-        let%bind pkg = makePkg(pkg);
-        makeRootPkg(pkg, solvedDeps);
-      };
-
-      return(root);
+      return(solution);
     }
   );

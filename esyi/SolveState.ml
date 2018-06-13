@@ -1,5 +1,7 @@
+module Version = PackageInfo.Version
 module VersionSpec = PackageInfo.VersionSpec
 module Req = PackageInfo.Req
+module Resolutions = PackageInfo.Resolutions
 
 module Cache = struct
   module Packages = Memoize.Make(struct
@@ -125,7 +127,6 @@ let make ?cache ~cfg () =
     universe = Cudf.empty_universe();
   }
 
-
 let matchesSource req cudfVersions package =
   let version =
     VersionMap.findVersionExn
@@ -136,12 +137,19 @@ let matchesSource req cudfVersions package =
   VersionSpec.satisfies ~version req
 
 
-let cudfDep owner universe cudfVersions req =
+let cudfDep ~from ~state req =
   let name = Req.name req in
+  let fromS =
+    Printf.sprintf
+      "%s@%s"
+      from.Package.name 
+      (Version.toString from.Package.version)
+  in
+
   let spec = Req.spec req in
 
-  let available = Cudf.lookup_packages universe name in
-  let matching = List.filter ~f:(matchesSource spec cudfVersions) available in
+  let available = Cudf.lookup_packages state.universe name in
+  let matching = List.filter ~f:(matchesSource spec state.versionMap) available in
 
   let final =
     if matching = []
@@ -149,7 +157,7 @@ let cudfDep owner universe cudfVersions req =
       let hack =
         match spec with
         | Opam _ ->
-          List.filter ~f:(matchesSource spec cudfVersions) available
+          List.filter ~f:(matchesSource spec state.versionMap) available
         | _ -> []
       in
       match hack, name with
@@ -157,13 +165,13 @@ let cudfDep owner universe cudfVersions req =
       | [], _ ->
         Printf.printf
           "[ERROR]: requirement unsatisfiable: %s wants %s@%s but available:\n"
-          owner name (VersionSpec.toString spec);
+          fromS name (VersionSpec.toString spec);
 
         List.iter
           ~f:(fun pkg ->
             let version =
               VersionMap.findVersionExn
-                cudfVersions
+                state.versionMap
                 ~name:pkg.Cudf.package
                 ~cudfVersion:pkg.Cudf.version
             in
@@ -185,37 +193,19 @@ let cudfDep owner universe cudfVersions req =
     [name, Some (`Eq, 10000000000)]
   | final -> final
 
-let addPackage ~state ~previouslyInstalled ~cudfVersion (pkg : Package.t) =
+let addPackage ~state ~cudfVersion ~dependencies (pkg : Package.t) =
   VersionMap.update state.versionMap pkg.name pkg.version cudfVersion;
 
   Cache.Packages.put state.cache.pkgs (pkg.name, pkg.version) (RunAsync.return pkg);
 
   let package =
-    let installed = match previouslyInstalled with
-      | None -> false
-      | Some table ->
-        Hashtbl.mem table (pkg.name, pkg.version)
-    in
-    let depends =
-      let from =
-        Printf.sprintf "%s (at %s)"
-          pkg.name
-          (PackageInfo.Version.toString pkg.version)
-      in
-      List.map
-        ~f:(cudfDep
-            ~from
-            ~resolutions:state.resolutions
-            ~universe:state.universe
-            ~versionMap:state.versionMap)
-        pkg.dependencies.dependencies
-    in
+    let depends = List.map ~f:(cudfDep ~from:pkg ~state) dependencies in
     {
       Cudf.default_package with
       package = pkg.name;
       version = cudfVersion;
       conflicts = [pkg.name, None];
-      installed;
+      installed = false;
       depends;
     }
   in Cudf.add_package state.universe package

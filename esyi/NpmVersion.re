@@ -22,6 +22,11 @@ module Version = {
       }
     );
 
+  let pp = (fmt, v) => {
+    let v = toString(v);
+    Fmt.string(fmt, v);
+  };
+
   let show = toString;
 
   let isint = v =>
