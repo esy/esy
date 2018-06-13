@@ -96,6 +96,9 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
           let () = {
             let cacheManifest = ((version, manifest)) => {
               let version = PackageInfo.Version.Npm(version);
+              print_endline(name);
+              print_endline(PackageInfo.Version.toString(version));
+              print_endline(Req.toString(req));
               let key = (name, version);
               Cache.Packages.ensureComputed(cache.pkgs, key, _ =>
                 Lwt.return(
@@ -207,26 +210,26 @@ module Seen = {
     };
 };
 
+let applyResolutionsToReq = (~resolutions, req) => {
+  let name = Req.name(req);
+  switch (PackageInfo.Resolutions.find(resolutions, name)) {
+  | Some(version) =>
+    Printf.printf(
+      "[INFO] Using resolution %s@%s\n",
+      name,
+      Version.toString(version),
+    );
+    let spec = PackageInfo.VersionSpec.ofVersion(version);
+    Req.ofSpec(~name, ~spec);
+  | None => req
+  };
+};
+
 let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
   open RunAsync.Syntax;
 
   let seen = Seen.make();
   let%bind state = SolveState.make(~cache?, ~cfg, ());
-
-  let applyResolutionsToReq = req => {
-    let name = Req.name(req);
-    switch (PackageInfo.Resolutions.find(resolutions, name)) {
-    | Some(version) =>
-      Printf.printf(
-        "[INFO] Using resolution %s@%s\n",
-        name,
-        Version.toString(version),
-      );
-      let spec = PackageInfo.VersionSpec.ofVersion(version);
-      Req.ofSpec(~name, ~spec);
-    | None => req
-    };
-  };
 
   let rec addToUniverse = req => {
     let versions =
@@ -240,7 +243,10 @@ let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
 
         /** Recurse into dependencies first and then add the package itself. */
         let dependencies =
-          List.map(~f=applyResolutionsToReq, pkg.dependencies.dependencies);
+          List.map(
+            ~f=applyResolutionsToReq(~resolutions),
+            pkg.dependencies.dependencies,
+          );
         List.iter(~f=addToUniverse, dependencies);
         SolveState.addPackage(~state, ~cudfVersion, ~dependencies, pkg);
       };
@@ -248,7 +254,7 @@ let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
     List.iter(~f=addVersion, versions);
   };
 
-  deps |> List.map(~f=applyResolutionsToReq) |> List.iter(~f=addToUniverse);
+  deps |> List.iter(~f=addToUniverse);
 
   return(state);
 };
@@ -259,6 +265,7 @@ let solveDeps =
     if (deps == []) {
       return([]);
     } else {
+      let deps = List.map(~f=applyResolutionsToReq(~resolutions), deps);
       let%bind state = initState(~cfg, ~cache, ~resolutions, deps);
       /** Here we invoke the solver! Might also take a while, but probably won't */
       let cudfDeps = List.map(~f=SolveState.cudfDep(~from, ~state), deps);
