@@ -45,7 +45,6 @@
     "@opam/yojson": "*",
     "@opam/ppx_deriving": "^4.2.1",
     "@opam/ppx_deriving_yojson": "^3.1.0",
-    "@opam/ppx_import": "^1.4.0",
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/cudf": "0.9",

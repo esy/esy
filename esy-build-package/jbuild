@@ -8,7 +8,6 @@
   (preprocess (
                pps (
                     ppx_let
-                    ppx_import
                     ppx_deriving_yojson
                     ppx_deriving.std
                     )
