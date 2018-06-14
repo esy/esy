@@ -55,10 +55,11 @@ module Api = {
               Package.PackageJson(manifest),
             ),
           );
-        let%bind state =
+        let%bind (state, _) =
           Solve.initState(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
+            ~root=pkg,
             pkg.Package.dependencies.dependencies,
           );
         Cudf_printer.pp_universe(stdout, state.SolveState.universe);

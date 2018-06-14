@@ -326,6 +326,15 @@ module Resolutions = struct
       in
       Result.List.foldLeft ~f ~init:empty items
     | _ -> Error "expected object"
+
+  let apply resolutions req =
+    let name = Req.name req in
+    match find resolutions name with
+    | Some version ->
+      let spec = VersionSpec.ofVersion version in
+      Some (Req.ofSpec ~name ~spec)
+    | None -> None
+
 end
 
 module OpamInfo = struct

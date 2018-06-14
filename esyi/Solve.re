@@ -210,26 +210,20 @@ module Seen = {
     };
 };
 
-let applyResolutionsToReq = (~resolutions, req) => {
-  let name = Req.name(req);
-  switch (PackageInfo.Resolutions.find(resolutions, name)) {
-  | Some(version) =>
-    Printf.printf(
-      "[INFO] Using resolution %s@%s\n",
-      name,
-      Version.toString(version),
-    );
-    let spec = PackageInfo.VersionSpec.ofVersion(version);
-    Req.ofSpec(~name, ~spec);
-  | None => req
-  };
-};
-
-let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
+let initState =
+    (~cfg, ~cache=?, ~resolutions, ~root: Package.t, deps: list(Req.t)) => {
   open RunAsync.Syntax;
 
   let seen = Seen.make();
   let%bind state = SolveState.make(~cache?, ~cfg, ());
+
+  let applyResolutions = (~resolutions, req) =>
+    switch (PackageInfo.Resolutions.apply(resolutions, req)) {
+    | Some(req) =>
+      Printf.printf("[INFO] Using resolution %s\n", Req.toString(req));
+      req;
+    | None => req
+    };
 
   let rec addToUniverse = req => {
     let versions =
@@ -244,7 +238,7 @@ let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
         /** Recurse into dependencies first and then add the package itself. */
         let dependencies =
           List.map(
-            ~f=applyResolutionsToReq(~resolutions),
+            ~f=applyResolutions(~resolutions),
             pkg.dependencies.dependencies,
           );
         List.iter(~f=addToUniverse, dependencies);
@@ -254,60 +248,77 @@ let initState = (~cfg, ~cache=?, ~resolutions, deps) => {
     List.iter(~f=addVersion, versions);
   };
 
-  deps |> List.iter(~f=addToUniverse);
+  let request =
+    List.map(
+      ~f=
+        req => {
+          let req = applyResolutions(~resolutions, req);
+          addToUniverse(req);
+          SolveState.cudfDep(~state, ~from=root, req);
+        },
+      deps,
+    );
 
-  return(state);
+  return((state, request));
 };
 
-let solveDeps =
-    (~cfg, ~cache, ~strategy=Strategies.initial, ~resolutions, ~from, deps) =>
+let solveDeps = (~state: SolveState.t, ~from: Package.t, request) =>
   RunAsync.Syntax.(
-    if (deps == []) {
+    if (request == []) {
       return([]);
     } else {
-      let deps = List.map(~f=applyResolutionsToReq(~resolutions), deps);
-      let%bind state = initState(~cfg, ~cache, ~resolutions, deps);
       /** Here we invoke the solver! Might also take a while, but probably won't */
-      let cudfDeps = List.map(~f=SolveState.cudfDep(~from, ~state), deps);
-      switch (runSolver(~strategy, ~from, cudfDeps, state.universe)) {
-      | None => error("Unable to resolve")
-      | Some(packages) =>
-        packages
-        |> List.filter(~f=p => p.Cudf.package != from.Package.name)
-        |> List.map(~f=p => {
-             let version =
-               VersionMap.findVersionExn(
-                 state.versionMap,
-                 ~name=p.Cudf.package,
-                 ~cudfVersion=p.Cudf.version,
-               );
-             switch (
-               Cache.Packages.get(
-                 state.cache.pkgs,
-                 (p.Cudf.package, version),
-               )
-             ) {
-             | Some(value) => value
-             | None => error("missing package: " ++ p.Cudf.package)
-             };
-           })
-        |> RunAsync.List.joinAll
-      };
+      (
+        switch (
+          runSolver(
+            ~strategy=Strategies.initial,
+            ~from,
+            request,
+            state.universe,
+          )
+        ) {
+        | None => error("Unable to resolve")
+        | Some(packages) =>
+          packages
+          |> List.filter(~f=p => p.Cudf.package != from.Package.name)
+          |> List.map(~f=p => {
+               let version =
+                 VersionMap.findVersionExn(
+                   state.versionMap,
+                   ~name=p.Cudf.package,
+                   ~cudfVersion=p.Cudf.version,
+                 );
+               switch (
+                 Cache.Packages.get(
+                   state.cache.pkgs,
+                   (p.Cudf.package, version),
+                 )
+               ) {
+               | Some(value) => value
+               | None => error("missing package: " ++ p.Cudf.package)
+               };
+             })
+          |> RunAsync.List.joinAll
+        }
+      );
     }
   );
 
 let solve = (~cfg, ~resolutions, pkg: Package.t) =>
   RunAsync.Syntax.(
     {
+      /** Cache can be shared between the dependencied */
       let%bind cache = SolveState.Cache.make(~cfg, ());
-      let%bind deps =
-        solveDeps(
+      let%bind (state, request) =
+        initState(
           ~cfg,
           ~cache,
           ~resolutions,
-          ~from=pkg,
+          ~root=pkg,
           pkg.dependencies.dependencies,
         );
+
+      let%bind deps = solveDeps(~state, ~from=pkg, request);
 
       let solution = {
         let makePkg = (pkg: Package.t) => {

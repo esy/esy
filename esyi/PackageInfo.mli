@@ -101,6 +101,7 @@ module Resolutions : sig
 
   val empty : t
   val find : t -> string -> Version.t option
+  val apply : t -> Req.t -> Req.t option
 
   val entries : t -> (string * Version.t) list
 
