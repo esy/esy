@@ -87,14 +87,16 @@ test-e2e-esyi::
 test-opam::
 	$(MAKE) -C __tests__/opam
 
-ci::
-	@$(MAKE) test-unit
-	@$(MAKE) test-e2e
-	@$(MAKE) test-e2e-esyi
 
 test::
+	@echo "Running test suite: unit tests"
 	@$(MAKE) test-unit
+	@echo "Running test suite: e2e"
 	@$(MAKE) test-e2e
+	@echo "Running test suite: e2e installer"
+	@$(MAKE) test-e2e-esyi
+
+ci:: test
 
 #
 # Release
