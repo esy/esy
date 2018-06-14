@@ -96,9 +96,6 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
           let () = {
             let cacheManifest = ((version, manifest)) => {
               let version = PackageInfo.Version.Npm(version);
-              print_endline(name);
-              print_endline(PackageInfo.Version.toString(version));
-              print_endline(Req.toString(req));
               let key = (name, version);
               Cache.Packages.ensureComputed(cache.pkgs, key, _ =>
                 Lwt.return(
