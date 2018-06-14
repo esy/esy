@@ -48,7 +48,7 @@
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/cudf": "0.9",
-    "@opam/mccs": "*",
+    "mccs": "andreypopp/ocaml-mccs#73a9a6b",
     "@opam/opam-file-format": "*",
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
