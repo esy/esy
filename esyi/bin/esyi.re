@@ -23,7 +23,7 @@ module Api = {
             ~resolutions=manifest.PackageJson.resolutions,
             pkg,
           );
-        Solution.toFile(~manifest, ~solution, cfg.lockfilePath);
+        Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
       }
     );
 
@@ -32,7 +32,7 @@ module Api = {
       {
         let%lwt () = Logs_lwt.app(m => m("Fetching dependencies"));
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        switch%bind (Solution.ofFile(~manifest, cfg.lockfilePath)) {
+        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
           Fetch.fetch(cfg, solution);
@@ -71,7 +71,7 @@ module Api = {
     RunAsync.Syntax.(
       {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        switch%bind (Solution.ofFile(~manifest, cfg.lockfilePath)) {
+        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           if%bind (Fetch.checkSolutionInstalled(~cfg, solution)) {
             return();

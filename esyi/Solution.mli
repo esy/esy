@@ -28,7 +28,7 @@ val packages : t -> pkg list
 (**
  * Write solution to disk as a lockfile.
  *)
-val toFile : manifest:PackageJson.t -> solution:t -> Fpath.t -> unit RunAsync.t
+val toFile : cfg:Config.t -> manifest:PackageJson.t -> solution:t -> Fpath.t -> unit RunAsync.t
 
 (**
  * Read solution out of a lockfile.
@@ -38,4 +38,4 @@ val toFile : manifest:PackageJson.t -> solution:t -> Fpath.t -> unit RunAsync.t
  * NOTE: We probably want to make a distinction between "does not exist" and
  * "stale".
  *)
-val ofFile : manifest:PackageJson.t -> Fpath.t -> t option RunAsync.t
+val ofFile : cfg:Config.t -> manifest:PackageJson.t -> Fpath.t -> t option RunAsync.t
