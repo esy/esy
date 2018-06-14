@@ -7,7 +7,7 @@ module VersionSpec = PackageInfo.VersionSpec;
 module Req = PackageInfo.Req;
 
 module Strategies = {
-  let initial = "-notuptodate";
+  let trendy = "-removed,-notuptodate,-new";
   /* let greatestOverlap = "-changed,-notuptodate"; */
 };
 
@@ -23,6 +23,8 @@ let runSolver = (~strategy="-notuptodate", ~from, deps, universe) => {
     ...Cudf.default_request,
     install: [(root.Cudf.package, Some((`Eq, root.Cudf.version)))],
   };
+  Cudf_printer.pp_universe(stdout, universe);
+  Cudf_printer.pp_request(stdout, request);
   let preamble = Cudf.default_preamble;
   let solution =
     Mccs.resolve_cudf(
@@ -268,7 +270,7 @@ let solveDeps = (~state: SolveState.t, ~from: Package.t, request) =>
       (
         switch (
           runSolver(
-            ~strategy=Strategies.initial,
+            ~strategy=Strategies.trendy,
             ~from,
             request,
             state.universe,
