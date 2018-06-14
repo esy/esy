@@ -17,7 +17,12 @@ module Api = {
               Package.PackageJson(manifest),
             ),
           );
-        let%bind solution = Solve.solve(~cfg, pkg);
+        let%bind solution =
+          Solve.solve(
+            ~cfg,
+            ~resolutions=manifest.PackageJson.resolutions,
+            pkg,
+          );
         Lockfile.toFile(~manifest, ~solution, cfg.lockfilePath);
       }
     );
@@ -39,9 +44,7 @@ module Api = {
   let printCudfUniverse = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest =
-          PackageJson.ofFile(Path.(cfg.basePath / "package.json"));
-        let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
+        let%bind manifest = PackageJson.ofDir(cfg.basePath);
         let%bind pkg =
           RunAsync.ofRun(
             Package.make(
@@ -52,9 +55,14 @@ module Api = {
               Package.PackageJson(manifest),
             ),
           );
-        let%bind (universe, _, _) =
-          SolveDeps.initState(~cfg, pkg.Package.dependencies.dependencies);
-        Cudf_printer.pp_universe(stdout, universe);
+        let%bind (state, _) =
+          Solve.initState(
+            ~cfg,
+            ~resolutions=manifest.PackageJson.resolutions,
+            ~root=pkg,
+            pkg.Package.dependencies.dependencies,
+          );
+        Cudf_printer.pp_universe(stdout, state.SolveState.universe);
         return();
       }
     );

@@ -25,18 +25,7 @@ let checkSolutionInstalled = (~cfg: Config.t, solution: Solution.t) => {
     return(List.for_all(~f=installed => installed, installed));
   };
 
-  let%bind installed = checkRoot(solution.Solution.root);
-
-  if (! installed) {
-    return(false);
-  } else {
-    let%bind installed =
-      solution.Solution.buildDependencies
-      |> List.map(~f=checkRoot)
-      |> RunAsync.List.joinAll;
-    let installed = List.for_all(~f=installed => installed, installed);
-    return(installed);
-  };
+  checkRoot(solution);
 };
 
 let fetch = (config: Config.t, solution: Solution.t) => {
@@ -48,15 +37,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
     let addList = (pkgs, pkgsList) =>
       List.fold_left(~f=add, ~init=pkgs, pkgsList);
 
-    let pkgs =
-      PackageSet.empty
-      |> addList(_, solution.root.bag)
-      |> addList(
-           _,
-           solution.buildDependencies
-           |> List.map(~f=({Solution.pkg, bag}) => [pkg, ...bag])
-           |> List.concat,
-         );
+    let pkgs = PackageSet.empty |> addList(_, solution.bag);
 
     PackageSet.elements(pkgs);
   };

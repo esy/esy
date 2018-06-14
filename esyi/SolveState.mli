@@ -47,24 +47,22 @@ type t = {
 }
 
 val make :
-  ?cache:Cache.t
+  ?cache : Cache.t
   -> cfg:Config.t
   -> unit
   -> t RunAsync.t
 
 val addPackage :
   state:t
-  -> previouslyInstalled:(string * PackageInfo.Version.t, 'a) Hashtbl.t option
-  -> deep:bool
   -> cudfVersion:int
+  -> dependencies:PackageInfo.Dependencies.t
   -> Package.t
   -> unit
 
 (** TODO: refactor it away *)
 val cudfDep :
-  string
-  -> Cudf.universe
-  -> VersionMap.t
+  from : Package.t
+  -> state : t
   -> PackageInfo.Req.t
   -> (string * ([> `Eq ] * int) option) list
 

@@ -7,10 +7,6 @@
   */
 [@deriving yojson]
 type t = {
-  root,
-  buildDependencies: list(root),
-}
-and root = {
   pkg,
   bag: list(pkg),
 }

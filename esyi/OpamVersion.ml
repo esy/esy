@@ -85,25 +85,47 @@ module Formula = struct
   let parse v =
     let parseSimple v =
       let parse v =
-        match parseRel v with
+        let v = String.trim v in
+        if v = ""
+        then [C.ANY]
+        else match parseRel v with
         | Ok v -> v
-        | Error err -> failwith err
-        in
+        | Error err -> failwith ("Error: " ^ err)
+      in
       let (AND conjs) = Parse.conjunction ~parse v in
       let conjs =
         let f conjs c = conjs @ c in
         List.fold_left ~init:[] ~f conjs
-      in AND conjs
+      in
+      let conjs = match conjs with | [] -> [C.ANY] | conjs -> conjs in
+      AND conjs
     in
     Parse.disjunction ~parse:parseSimple v
+
+  let%test_module "parse" = (module struct
+    let v = Version.parseExn
+
+    let parsesOk f e =
+      let pf = parse f in
+      if pf <> e
+      then failwith ("Received: " ^ (DNF.show pf))
+      else ()
+
+    let%test_unit _ = parsesOk ">=1.7.0" (OR [AND [C.GTE (v "1.7.0")]])
+    let%test_unit _ = parsesOk "*" (OR [AND [C.ANY]])
+    let%test_unit _ = parsesOk "" (OR [AND [C.ANY]])
+
+  end)
 
   let%test_module "matches" = (module struct
     let v = Version.parseExn
     let f = parse
 
-    let%test _ =
-      DNF.matches ~version:(v "1.8.0") (f ">=1.7.0")
+    let%test _ = DNF.matches ~version:(v "1.8.0") (f ">=1.7.0")
+    let%test _ = DNF.matches ~version:(v "0.3") (f "=0.3")
+    let%test _ = DNF.matches ~version:(v "0.3") (f "0.3")
 
   end)
+
 
 end

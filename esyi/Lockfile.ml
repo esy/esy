@@ -12,8 +12,18 @@ let dependenciesHash (manifest : PackageJson.t) =
       ~f ~init:digest
       dependencies
   in
+  let hashResolutions ~resolutions digest =
+    let f digest (key, version) =
+     Digest.string (digest ^ "__" ^ key ^ "__" ^ PackageInfo.Version.toString version)
+    in
+    List.fold_left
+      ~f ~init:digest
+      (PackageInfo.Resolutions.entries resolutions)
+  in
   let digest =
     Digest.string ""
+    |> hashResolutions
+      ~resolutions:manifest.PackageJson.resolutions
     |> hashDependencies
       ~prefix:"dependencies"
       ~dependencies:manifest.PackageJson.dependencies
