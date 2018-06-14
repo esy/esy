@@ -2,11 +2,9 @@
  * This module represents a solution.
  *)
 
-type t = {
-  pkg: pkg;
-  bag: pkg list;
-}
-and pkg = {
+type t
+
+type pkg = {
   name: string ;
   version: PackageInfo.Version.t ;
   source: PackageInfo.Source.t ;
@@ -19,6 +17,13 @@ and pkg = {
    *)
   opam: PackageInfo.OpamInfo.t option;
 }
+
+val make : root:Package.t -> dependencies:Package.t list -> t
+
+(**
+ * List all packages in a solution.
+ *)
+val packages : t -> pkg list
 
 (**
  * Write solution to disk as a lockfile.

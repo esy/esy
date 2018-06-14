@@ -301,7 +301,7 @@ let solveDeps = (~state: SolveState.t, ~from: Package.t, request) =>
     }
   );
 
-let solve = (~cfg, ~resolutions, pkg: Package.t) =>
+let solve = (~cfg, ~resolutions, root: Package.t) =>
   RunAsync.Syntax.(
     {
       /** Cache can be shared between the dependencied */
@@ -311,24 +311,12 @@ let solve = (~cfg, ~resolutions, pkg: Package.t) =>
           ~cfg,
           ~cache,
           ~resolutions,
-          ~root=pkg,
-          pkg.dependencies.dependencies,
+          ~root,
+          root.dependencies.dependencies,
         );
 
-      let%bind deps = solveDeps(~state, ~from=pkg, request);
-
-      let solution = {
-        let makePkg = (pkg: Package.t) => {
-          Solution.name: pkg.name,
-          version: pkg.version,
-          source: pkg.source,
-          opam: pkg.opam,
-        };
-
-        let pkg = makePkg(pkg);
-        let bag = List.map(~f=(pkg: Package.t) => makePkg(pkg), deps);
-        {Solution.pkg, bag};
-      };
+      let%bind dependencies = solveDeps(~state, ~from=root, request);
+      let solution = Solution.make(~root, ~dependencies);
 
       return(solution);
     }

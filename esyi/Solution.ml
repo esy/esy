@@ -1,6 +1,6 @@
 type t = {
-  pkg: pkg;
-  bag: pkg list;
+  root: pkg;
+  dependencies: pkg list;
 }
 [@@deriving yojson]
 
@@ -15,6 +15,19 @@ and lockfile = {
   rootDependenciesHash : string;
   solution : t;
 }
+
+let make ~root ~dependencies =
+  let makePkg (pkg : Package.t) = {
+    name = pkg.name;
+    version = pkg.version;
+    source = pkg.source;
+    opam = pkg.opam
+  } in
+  let root = makePkg root in
+  let dependencies = List.map ~f:makePkg dependencies in
+  {root; dependencies}
+
+let packages solution = solution.dependencies
 
 let dependenciesHash (manifest : PackageJson.t) =
   let hashDependencies ~prefix ~dependencies digest =
