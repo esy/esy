@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## 0.1.16 @ preview
+
+* New experimental installer exposed as `esyi` command!
+
+  Usage:
+
+  ```
+  % esyi
+  ```
+
+  It will create `esyi.lock.json` and `node_modules` directories.
+
+  Caveats & notes:
+
+  - Only regular `"dependencies"` are install, support for `"peerDependencies"`
+    and `"buildDependencies"` will come soon.
+
+  - `@opam/*` packages now use original opam versioning, this means that
+    previously published packages which refet to `@opam/*` dependencies with
+    npm-like versions will fail, for example `@esy-ocaml/reason`. The fix would
+    be to add a field to `"resolutions"` which forces to use an opam version for
+    the offended dependency:
+
+    ```
+    "resolutions": {"@opam/merlin-extend": "0.3"}
+    ```
+
+  - Some package sources like `git:*`, `path:*` and `link:*` are not yet
+    supported.
+
+  - There's no good error explanation if dep solver fails, this will be
+    addressed soon.
+
 ## 0.1.15 @ preview
 
 * Fix dependency on @esy-ocaml/esy-opam which was broken since 0.1.12.
