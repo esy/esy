@@ -94,6 +94,12 @@ module Version = struct
     | Npm v -> NpmVersion.Version.toString(v)
     | Opam t -> OpamVersion.Version.toString(t)
     | Source src -> Source.toString src
+
+  module Map = Map.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+
 end
 
 (**
@@ -149,15 +155,18 @@ module VersionSpec = struct
 
   let satisfies ~version spec =
     match spec, version with
-    | Source (SourceSpec.Github (user, repo, Some ref)),
-      Version.Source (Source.Github (user_, repo_, ref_)) ->
-      user = user_ && repo = repo_ && ref = ref_
     | Npm formula, Version.Npm version ->
       NpmVersion.Formula.DNF.matches ~version formula
     | Opam formula, Version.Opam version ->
       OpamVersion.Formula.DNF.matches ~version formula
     | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
       Path.equal p1 p2
+    | Source (SourceSpec.Github (userS, repoS, Some refS)),
+      Version.Source (Source.Github (userV, repoV, refV)) ->
+      String.(equal userS userV && equal repoS repoV && equal refS refV)
+    | Source (SourceSpec.Github (userS, repoS, None)),
+      Version.Source (Source.Github (userV, repoV, _)) ->
+      String.(equal userS userV && equal repoS repoV)
     | _ -> false
 
   let ofVersion (version : Version.t) =

@@ -23,7 +23,7 @@ module Api = {
             ~resolutions=manifest.PackageJson.resolutions,
             pkg,
           );
-        Lockfile.toFile(~manifest, ~solution, cfg.lockfilePath);
+        Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
       }
     );
 
@@ -32,7 +32,7 @@ module Api = {
       {
         let%lwt () = Logs_lwt.app(m => m("Fetching dependencies"));
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        switch%bind (Lockfile.ofFile(~manifest, cfg.lockfilePath)) {
+        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
           Fetch.fetch(cfg, solution);
@@ -45,7 +45,7 @@ module Api = {
     RunAsync.Syntax.(
       {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        let%bind pkg =
+        let%bind root =
           RunAsync.ofRun(
             Package.make(
               ~version=
@@ -55,14 +55,15 @@ module Api = {
               Package.PackageJson(manifest),
             ),
           );
-        let%bind (state, _) =
+        let%bind state =
           Solve.initState(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
-            ~root=pkg,
-            pkg.Package.dependencies.dependencies,
+            root,
           );
-        Cudf_printer.pp_universe(stdout, state.SolveState.universe);
+        let cudfUniverse =
+          SolveState.Universe.toCudfUniverse(state.SolveState.universe);
+        Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }
     );
@@ -71,7 +72,7 @@ module Api = {
     RunAsync.Syntax.(
       {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        switch%bind (Lockfile.ofFile(~manifest, cfg.lockfilePath)) {
+        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           if%bind (Fetch.checkSolutionInstalled(~cfg, solution)) {
             return();

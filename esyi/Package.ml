@@ -52,14 +52,14 @@ let make ~version manifest =
   }
 
 module Github = struct
-  let getManifest user repo ref =
+  let getManifest ~user ~repo ?(ref="master") () =
     let open RunAsync.Syntax in
     let fetchFile name =
       let url =
         "https://raw.githubusercontent.com"
         ^ "/" ^ user
         ^ "/" ^ repo
-        ^ "/" ^ Option.orDefault ~default:"master" ref
+        ^ "/" ^ ref (* TODO: resolve default ref against GH instead *)
         ^ "/" ^ name
       in
       Curl.get url

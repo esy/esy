@@ -32,6 +32,8 @@ module Version : sig
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
   val toNpmVersion : t -> string
+
+  module Map : Map.S with type key := t
 end
 
 (**

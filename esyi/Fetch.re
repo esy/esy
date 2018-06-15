@@ -19,13 +19,11 @@ let checkSolutionInstalled = (~cfg: Config.t, solution: Solution.t) => {
     Fs.exists(pkgPath);
   };
 
-  let checkRoot = root => {
-    let%bind installed =
-      root.Solution.bag |> List.map(~f=checkPkg) |> RunAsync.List.joinAll;
-    return(List.for_all(~f=installed => installed, installed));
-  };
-
-  checkRoot(solution);
+  let%bind installed =
+    Solution.packages(solution)
+    |> List.map(~f=checkPkg)
+    |> RunAsync.List.joinAll;
+  return(List.for_all(~f=installed => installed, installed));
 };
 
 let fetch = (config: Config.t, solution: Solution.t) => {
@@ -37,7 +35,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
     let addList = (pkgs, pkgsList) =>
       List.fold_left(~f=add, ~init=pkgs, pkgsList);
 
-    let pkgs = PackageSet.empty |> addList(_, solution.bag);
+    let pkgs = PackageSet.empty |> addList(_, Solution.packages(solution));
 
     PackageSet.elements(pkgs);
   };
