@@ -109,10 +109,6 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
             RunAsync.ofRun(OpamFile.PackageName.ofNpm(name));
           let%bind info =
             OpamRegistry.versions(state.cache.opamRegistry, ~name=opamName);
-          let%lwt () =
-            Logs_lwt.app(m =>
-              m("Resolving %s: found %i", name, List.length(info))
-            );
           return(info);
         },
       );
