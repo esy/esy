@@ -59,9 +59,6 @@ module EsyRuntime = struct
   let esyBuildPackageCommand =
     resolveCommand "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
-  let esyICommand =
-    resolveCommand "../../esyi/bin/esyi.exe"
-
   let esyInstallRelease =
     resolve "../../../../bin/esyInstallRelease.js"
 
@@ -691,35 +688,6 @@ let () =
     Term.(ret (const cmd $ configTerm $ pkgPathTerm $ Cli.setupLogTerm)), info
   in
 
-  let installNextCommand =
-    let doc = "Install dependendencies using esyi (experimental)" in
-    let info =
-      Term.info "install-next"
-        ~version:EsyRuntime.version
-        ~doc
-        ~sdocs
-        ~exits
-    in
-
-    let installNext cfg =
-      let open RunAsync.Syntax in
-
-      let%bind cfg = cfg in
-
-      match%lwt EsyRuntime.esyICommand with
-      | Ok commandPath ->
-        let cmd = Cmd.(v commandPath % p cfg.Config.sandboxPath) in
-        ChildProcess.run cmd
-      | Error _err ->
-        RunAsync.error "unable to find esyi"
-    in
-
-    let cmd cfg () =
-      runAsyncCommand ~info (installNext cfg)
-    in
-    Term.(ret (const cmd $ configTerm $ Cli.setupLogTerm)), info
-  in
-
   let buildCommand =
     let doc = "Build the entire sandbox" in
     let info = Term.info "build" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
@@ -1128,8 +1096,6 @@ let () =
     importBuildCommand;
 
     releaseCommand;
-
-    installNextCommand;
 
     (* commands implemented via JS *)
     installCommand;
