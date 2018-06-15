@@ -9,6 +9,9 @@ prepare:
 	@mkdir $(INPUT_DIR) $(OUTPUT_DIR)
 	@(cd ../ && git archive -o $(PWD)/src.tar.gz HEAD .)
 	@mv $(PWD)/src.tar.gz $(INPUT_DIR)/src.tar.gz
+	@(cd $(INPUT_DIR) && tar -xzf src.tar.gz)
+	@cp -rf $(PWD)/node_modules $(INPUT_DIR)/node_modules
+	@rm -rf $(INPUT_DIR)/node_modules/.cache
 	@cp Makefile $(INPUT_DIR)/Makefile
 
 docker-image-id:
@@ -33,8 +36,6 @@ clean:
 	@rm -rf esyCommand.exe esyBuildPackageCommand.exe esyi.exe
 
 build-on-target:
-	@tar -xzf src.tar.gz
-	@esy install
 	@esy build
 	@cp _build/default/esy/bin/esyCommand.exe /out/esyCommand.exe
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe /out/esyBuildPackageCommand.exe
