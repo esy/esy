@@ -1,9 +1,0 @@
-(jbuild_version 1)
-
-(executable
- ((name esySolveCommand)
-  (package esy-solve)
-  (public_name esy-solve)
-  (flags (:standard "-open" "EsyLib"))
-  (preprocess (pps (ppx_let ppxlib)))
-  (libraries (EsyLib cudf mccs cmdliner))))
