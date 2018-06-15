@@ -12,12 +12,23 @@ module Cache : sig
     type key := string
     and type value := (OpamVersion.Version.t * OpamFile.ThinManifest.t) list RunAsync.t
 
+  module Sources : Memoize.MEMOIZE with
+    type key := PackageInfo.SourceSpec.t
+    and type value := PackageInfo.Source.t RunAsync.t
+
   type t = {
     opamRegistry: OpamRegistry.t;
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
 
     pkgs: Packages.t;
+
+    (**
+     * This caches source spec to source resolutions, for example for github we
+     * resolve "repo/name" to "repo/name#commit" and so on.
+     *)
+    sources: Sources.t;
+
     availableNpmVersions: NpmPackages.t;
     availableOpamVersions: OpamPackages.t;
   }

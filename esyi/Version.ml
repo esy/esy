@@ -33,16 +33,6 @@ module Constraint = struct
       | LT a -> Version.compare a version > 0
       | LTE a -> Version.compare a version >= 0
 
-    let isTooLarge ~version constr =
-      match constr with
-      | EQ a -> Version.compare a version < 0
-      | ANY -> false
-      | NONE -> false
-      | GT _a -> false
-      | GTE _a -> false
-      | LT a -> Version.compare a version <= 0
-      | LTE a -> Version.compare a version < 0
-
     let rec toString constr =
       match constr with
       | EQ a -> Version.toString a
@@ -93,12 +83,6 @@ module Formula = struct
       let matches ~version (OR formulas) =
         let matchesConj (AND formulas) =
           every (Constraint.matches ~version) formulas
-        in
-        any matchesConj formulas
-
-      let isTooLarge ~version (OR formulas) =
-        let matchesConj (AND formulas) =
-          every (Constraint.isTooLarge ~version) formulas
         in
         any matchesConj formulas
 

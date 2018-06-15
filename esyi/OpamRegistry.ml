@@ -72,9 +72,8 @@ let getThinManifest registry ~(name : PackageName.t) ~(version : Version.t) =
       let opamFile = OpamParser.file (Path.toString path) in
       OpamFile.parseManifest (name, version) opamFile
     in
-    if not manifest.OpamFile.available
-    then return None
-    else
+    match manifest.OpamFile.available with
+    | `Ok ->
       let opamFile = Path.(packagePath / "opam") in
       let urlFile = Path.(packagePath / "url") in
       let manifest = {
@@ -84,7 +83,9 @@ let getThinManifest registry ~(name : PackageName.t) ~(version : Version.t) =
         urlFile;
         version
       } in
-    return (Some manifest)
+      return (Some manifest)
+    | `IsNotAvailable ->
+      return None
 
 let versions registry ~(name : PackageName.t) =
   let open RunAsync.Syntax in

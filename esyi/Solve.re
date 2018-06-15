@@ -105,9 +105,14 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
         name,
         name => {
           let%lwt () = Logs_lwt.app(m => m("Resolving %s", name));
-          let%bind name = RunAsync.ofRun(OpamFile.PackageName.ofNpm(name));
+          let%bind opamName =
+            RunAsync.ofRun(OpamFile.PackageName.ofNpm(name));
           let%bind info =
-            OpamRegistry.versions(state.cache.opamRegistry, ~name);
+            OpamRegistry.versions(state.cache.opamRegistry, ~name=opamName);
+          let%lwt () =
+            Logs_lwt.app(m =>
+              m("Resolving %s: found %i", name, List.length(info))
+            );
           return(info);
         },
       );
@@ -142,24 +147,29 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
        })
     |> RunAsync.List.joinAll;
 
-  | VersionSpec.Source(SourceSpec.Github(user, repo, Some(ref))) =>
-    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
-    let version = Version.Source(Source.Github(user, repo, ref));
-    let%bind pkg = getPackageCached(~state, name, version);
-    let%lwt () =
-      Logs_lwt.app(m =>
-        m(
-          "Resolving %s: %s@%s",
-          Req.toString(req),
-          pkg.Package.name,
-          Version.toString(pkg.version),
-        )
+  | VersionSpec.Source(SourceSpec.Github(user, repo, ref) as srcSpec) =>
+    let%bind source =
+      Cache.Sources.compute(
+        state.cache.sources,
+        srcSpec,
+        _ => {
+          let%lwt () =
+            Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
+          let%bind ref =
+            switch (ref) {
+            | Some(ref) => return(ref)
+            | None =>
+              let remote =
+                Printf.sprintf("https://github.com/%s/%s", user, repo);
+              Git.lsRemote(~remote, ());
+            };
+          return(Source.Github(user, repo, ref));
+        },
       );
-    return([pkg]);
 
-  | VersionSpec.Source(SourceSpec.Github(_, _, None)) =>
-    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
-    error("githunb dependencies without commit are not supported");
+    let version = Version.Source(source);
+    let%bind pkg = getPackageCached(~state, name, version);
+    return([pkg]);
 
   | VersionSpec.Source(SourceSpec.Git(_)) =>
     let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));

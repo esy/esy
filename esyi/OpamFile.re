@@ -56,7 +56,7 @@ type manifest = {
   devDependencies: PackageInfo.Dependencies.t,
   peerDependencies: PackageInfo.Dependencies.t,
   optDependencies: PackageInfo.Dependencies.t,
-  available: bool,
+  available: [ | `IsNotAvailable | `Ok],
   /* TODO optDependencies (depopts) */
   source: PackageInfo.Source.t,
   exportedEnv: PackageJson.ExportedEnv.t,
@@ -471,19 +471,17 @@ let parseManifest =
   };
   /* We just don't support anything before 4.2.3 */
   let ourMinimumOcamlVersion = NpmVersion.Version.parseExn("4.2.3");
-  let isAVersionWeSupport =
-    !
-      NpmVersion.Formula.DNF.isTooLarge(
-        ocamlRequirement,
-        ~version=ourMinimumOcamlVersion,
-      );
   let isAvailable = {
     let isAvailable = {
       let v = findVariable("available", file_contents);
       let v = Option.map(~f=OpamAvailable.getAvailability, v);
       Option.orDefault(~default=true, v);
     };
-    isAVersionWeSupport && isAvailable;
+    if (! isAvailable) {
+      `IsNotAvailable;
+    } else {
+      `Ok;
+    };
   };
 
   let (ocamlDep, substDep, esyInstallerDep) = {

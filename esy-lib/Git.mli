@@ -24,7 +24,7 @@ val pull :
   -> remote:remote
   -> repo:Fpath.t
   -> branchSpec:remote
-  -> unit 
+  -> unit
   -> unit RunAsync.t
 
 (** Checkout the [ref] in the [repo] *)

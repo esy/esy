@@ -25,7 +25,7 @@ type manifest = {
   devDependencies: PackageInfo.Dependencies.t,
   peerDependencies: PackageInfo.Dependencies.t,
   optDependencies: PackageInfo.Dependencies.t,
-  available: bool,
+  available: [ | `IsNotAvailable | `Ok],
   /* TODO optDependencies (depopts) */
   source: PackageInfo.Source.t,
   exportedEnv: PackageJson.ExportedEnv.t,

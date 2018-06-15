@@ -1,3 +1,5 @@
+module Source = PackageInfo.Source
+module SourceSpec = PackageInfo.SourceSpec
 module Version = PackageInfo.Version
 module VersionSpec = PackageInfo.VersionSpec
 module Req = PackageInfo.Req
@@ -19,12 +21,19 @@ module Cache = struct
     type value = (OpamVersion.Version.t * OpamFile.ThinManifest.t) list RunAsync.t
   end)
 
+  module Sources = Memoize.Make(struct
+    type key = SourceSpec.t
+    type value = Source.t RunAsync.t
+  end)
+
   type t = {
     opamRegistry: OpamRegistry.t;
     npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
     opamPackages: (string, OpamFile.manifest) Hashtbl.t;
 
     pkgs: Packages.t;
+    sources: Sources.t;
+
     availableNpmVersions: NpmPackages.t;
     availableOpamVersions: OpamPackages.t;
   }
@@ -39,6 +48,7 @@ module Cache = struct
       npmPackages = Hashtbl.create(100);
       opamPackages = Hashtbl.create(100);
       pkgs = Packages.make ();
+      sources = Sources.make ();
     }
 
 end
