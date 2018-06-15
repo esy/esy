@@ -25,25 +25,17 @@ module Cache : sig
   val make : cfg:Config.t -> unit -> t RunAsync.t
 end
 
-module VersionMap : sig
-
+module Universe : sig
   type t
-
-  val make : ?size:int -> unit -> t
-  val update : t -> string -> PackageInfo.Version.t -> int -> unit
-  val findVersion : name:string -> cudfVersion:int -> t -> PackageInfo.Version.t option
-  val findVersionExn : name:string -> cudfVersion:int -> t -> PackageInfo.Version.t
-
-  val findCudfVersion : name:string -> version:PackageInfo.Version.t -> t -> int option
-  val findCudfVersionExn : name:string -> version:PackageInfo.Version.t -> t -> int
-
+  val add : pkg:Package.t -> t -> t
+  val mem : pkg:Package.t -> t -> bool
+  val toCudfUniverse : t -> Cudf.universe
 end
 
 type t = {
   cfg: Config.t;
   cache: Cache.t;
-  versionMap: VersionMap.t;
-  universe: Cudf.universe;
+  mutable universe: Universe.t;
 }
 
 val make :
@@ -54,15 +46,11 @@ val make :
 
 val addPackage :
   state:t
-  -> cudfVersion:int
-  -> dependencies:PackageInfo.Dependencies.t
   -> Package.t
   -> unit
 
-(** TODO: refactor it away *)
-val cudfDep :
-  from : Package.t
-  -> state : t
-  -> PackageInfo.Req.t
-  -> (string * ([> `Eq ] * int) option) list
-
+val runSolver :
+  ?strategy:string
+  -> univ:Universe.t
+  -> Package.t
+  -> Package.t list option

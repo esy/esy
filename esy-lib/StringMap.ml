@@ -8,3 +8,7 @@ let mergeOverride a b =
   | None, None -> None
   in
   merge f a b
+
+let values map =
+  let f _k v vs = v::vs in
+  fold f map []

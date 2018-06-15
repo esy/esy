@@ -1,43 +1,10 @@
 module Cache = SolveState.Cache;
-module VersionMap = SolveState.VersionMap;
 module Source = PackageInfo.Source;
 module Version = PackageInfo.Version;
 module SourceSpec = PackageInfo.SourceSpec;
 module VersionSpec = PackageInfo.VersionSpec;
 module Req = PackageInfo.Req;
-
-module Strategies = {
-  let trendy = "-removed,-notuptodate,-new";
-  /* let greatestOverlap = "-changed,-notuptodate"; */
-};
-
-let runSolver = (~strategy="-notuptodate", ~from, deps, universe) => {
-  let root = {
-    ...Cudf.default_package,
-    package: from.Package.name,
-    version: 1,
-    depends: deps,
-  };
-  Cudf.add_package(universe, root);
-  let request = {
-    ...Cudf.default_request,
-    install: [(root.Cudf.package, Some((`Eq, root.Cudf.version)))],
-  };
-  let preamble = Cudf.default_preamble;
-  let solution =
-    Mccs.resolve_cudf(
-      ~verbose=false,
-      ~timeout=5.,
-      strategy,
-      (preamble, universe, request),
-    );
-  switch (solution) {
-  | None => None
-  | Some((_preamble, universe)) =>
-    let packages = Cudf.get_packages(~filter=p => p.Cudf.installed, universe);
-    Some(packages);
-  };
-};
+module Universe = SolveState.Universe;
 
 let getPackageCached =
     (~state: SolveState.t, name: string, version: PackageInfo.Version.t) => {
@@ -51,8 +18,15 @@ let getPackageCached =
         switch (version) {
         | Version.Source(Source.LocalPath(_)) => error("not implemented")
         | Version.Source(Git(_)) => error("not implemented")
-        | Version.Source(Github(user, name, ref)) =>
-          Package.Github.getManifest(user, name, Some(ref))
+        | Version.Source(Github(user, repo, ref)) =>
+          switch%bind (Package.Github.getManifest(~user, ~repo, ~ref, ())) {
+          | Package.PackageJson(manifest) =>
+            /* We rewrite a package name as per request */
+            return(Package.PackageJson({...manifest, name}))
+          | manifest =>
+            /* TODO: decide if we need to rewrite package name as well */
+            return(manifest)
+          }
         | Version.Source(Source.NoSource) => error("no source")
         | Version.Source(Source.Archive(_)) => error("not implemented")
 
@@ -92,6 +66,7 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
         cache.availableNpmVersions,
         name,
         name => {
+          let%lwt () = Logs_lwt.app(m => m("Resolving %s", name));
           let%bind versions = NpmRegistry.versions(~cfg=state.cfg, name);
           let () = {
             let cacheManifest = ((version, manifest)) => {
@@ -113,14 +88,13 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
     |> List.sort(~cmp=((va, _), (vb, _)) =>
          NpmVersion.Version.compare(va, vb)
        )
-    |> List.mapi(~f=(i, (v, j)) => (v, j, i))
-    |> List.filter(~f=((version, _json, _i)) =>
+    |> List.filter(~f=((version, _json)) =>
          NpmVersion.Formula.DNF.matches(formula, ~version)
        )
-    |> List.map(~f=((version, _json, i)) => {
+    |> List.map(~f=((version, _json)) => {
          let version = PackageInfo.Version.Npm(version);
          let%bind pkg = getPackageCached(~state, name, version);
-         return((pkg, i));
+         return(pkg);
        })
     |> RunAsync.List.joinAll;
 
@@ -130,6 +104,7 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
         cache.availableOpamVersions,
         name,
         name => {
+          let%lwt () = Logs_lwt.app(m => m("Resolving %s", name));
           let%bind name = RunAsync.ofRun(OpamFile.PackageName.ofNpm(name));
           let%bind info =
             OpamRegistry.versions(state.cache.opamRegistry, ~name);
@@ -141,19 +116,18 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
       available
       |> List.sort(~cmp=((va, _), (vb, _)) =>
            OpamVersion.Version.compare(va, vb)
-         )
-      |> List.mapi(~f=(i, (v, j)) => (v, j, i));
+         );
 
     let matched =
       available
-      |> List.filter(~f=((version, _path, _i)) =>
+      |> List.filter(~f=((version, _path)) =>
            OpamVersion.Formula.DNF.matches(semver, ~version)
          );
 
     let matched =
       if (matched == []) {
         available
-        |> List.filter(~f=((version, _path, _i)) =>
+        |> List.filter(~f=((version, _path)) =>
              OpamVersion.Formula.DNF.matches(semver, ~version)
            );
       } else {
@@ -161,161 +135,106 @@ let getAvailableVersions = (~state: SolveState.t, req: Req.t) => {
       };
 
     matched
-    |> List.map(~f=((version, _path, i)) => {
+    |> List.map(~f=((version, _path)) => {
          let version = PackageInfo.Version.Opam(version);
          let%bind pkg = getPackageCached(~state, name, version);
-         return((pkg, i));
+         return(pkg);
        })
     |> RunAsync.List.joinAll;
 
-  | VersionSpec.Source(SourceSpec.Github(user, name, Some(ref))) =>
-    let version = Version.Source(Source.Github(user, name, ref));
+  | VersionSpec.Source(SourceSpec.Github(user, repo, Some(ref))) =>
+    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
+    let version = Version.Source(Source.Github(user, repo, ref));
     let%bind pkg = getPackageCached(~state, name, version);
-    return([(pkg, 1)]);
+    let%lwt () =
+      Logs_lwt.app(m =>
+        m(
+          "Resolving %s: %s@%s",
+          Req.toString(req),
+          pkg.Package.name,
+          Version.toString(pkg.version),
+        )
+      );
+    return([pkg]);
 
   | VersionSpec.Source(SourceSpec.Github(_, _, None)) =>
-    error("githunb dependencies without commit are not supported")
+    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
+    error("githunb dependencies without commit are not supported");
 
   | VersionSpec.Source(SourceSpec.Git(_)) =>
-    error("git dependencies are not supported")
+    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
+    error("git dependencies are not supported");
 
   | VersionSpec.Source(SourceSpec.NoSource) =>
-    error("no source dependencies are not supported")
+    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
+    error("no source dependencies are not supported");
 
   | VersionSpec.Source(SourceSpec.Archive(_)) =>
-    error("archive dependencies are not supported")
+    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
+    error("archive dependencies are not supported");
 
   | VersionSpec.Source(SourceSpec.LocalPath(p)) =>
+    let%lwt () = Logs_lwt.app(m => m("Resolving %s", Req.toString(req)));
     let version = Version.Source(Source.LocalPath(p));
     let%bind pkg = getPackageCached(~state, name, version);
-    return([(pkg, 2)]);
+    return([pkg]);
   };
 };
 
-module Seen = {
-  type t = Hashtbl.t((string, Version.t), bool);
-
-  let make = () : t => Hashtbl.create(100);
-
-  let add = (seen, pkg: Package.t) =>
-    Hashtbl.replace(seen, (pkg.name, pkg.version), true);
-
-  let seen = (seen, pkg: Package.t) =>
-    switch (Hashtbl.find_opt(seen, (pkg.name, pkg.version))) {
-    | Some(v) => v
-    | None => false
-    };
-};
-
-let initState =
-    (~cfg, ~cache=?, ~resolutions, ~root: Package.t, deps: list(Req.t)) => {
+let initState = (~cfg, ~cache=?, ~resolutions, root) => {
   open RunAsync.Syntax;
 
-  let seen = Seen.make();
-  let%bind state = SolveState.make(~cache?, ~cfg, ());
-
-  let applyResolutions = (~resolutions, req) =>
-    switch (PackageInfo.Resolutions.apply(resolutions, req)) {
-    | Some(req) =>
-      Printf.printf("[INFO] Using resolution %s\n", Req.toString(req));
-      req;
-    | None => req
-    };
-
-  let rec addToUniverse = req => {
-    let versions =
-      getAvailableVersions(~state, req)
-      |> RunAsync.withContext("processing request: " ++ Req.toString(req))
-      |> RunAsync.runExn(~err="error getting versions");
-
-    let addVersion = ((pkg: Package.t, cudfVersion)) =>
-      if (! Seen.seen(seen, pkg)) {
-        Seen.add(seen, pkg);
-
-        /** Recurse into dependencies first and then add the package itself. */
-        let dependencies =
-          List.map(
-            ~f=applyResolutions(~resolutions),
-            pkg.dependencies.dependencies,
-          );
-        List.iter(~f=addToUniverse, dependencies);
-        SolveState.addPackage(~state, ~cudfVersion, ~dependencies, pkg);
+  let rewritePkgWithResolutions = (pkg: Package.t) => {
+    let rewriteReq = req =>
+      switch (PackageInfo.Resolutions.apply(resolutions, req)) {
+      | Some(req) => req
+      | None => req
       };
-
-    List.iter(~f=addVersion, versions);
+    {
+      ...pkg,
+      dependencies: {
+        ...pkg.dependencies,
+        dependencies: List.map(~f=rewriteReq, pkg.dependencies.dependencies),
+      },
+    };
   };
 
-  let request =
-    List.map(
-      ~f=
-        req => {
-          let req = applyResolutions(~resolutions, req);
-          addToUniverse(req);
-          SolveState.cudfDep(~state, ~from=root, req);
-        },
-      deps,
-    );
+  let%bind state = SolveState.make(~cache?, ~cfg, ());
 
-  return((state, request));
-};
+  let rec addPkg = (pkg: Package.t) =>
+    if (! Universe.mem(~pkg, state.SolveState.universe)) {
+      let pkg = rewritePkgWithResolutions(pkg);
+      state.SolveState.universe =
+        Universe.add(~pkg, state.SolveState.universe);
 
-let solveDeps = (~state: SolveState.t, ~from: Package.t, request) =>
-  RunAsync.Syntax.(
-    if (request == []) {
-      return([]);
+      pkg.dependencies.dependencies
+      |> List.map(~f=addReq)
+      |> RunAsync.List.waitAll;
     } else {
-      /** Here we invoke the solver! Might also take a while, but probably won't */
-      (
-        switch (
-          runSolver(
-            ~strategy=Strategies.trendy,
-            ~from,
-            request,
-            state.universe,
-          )
-        ) {
-        | None => error("Unable to resolve")
-        | Some(packages) =>
-          packages
-          |> List.filter(~f=p => p.Cudf.package != from.Package.name)
-          |> List.map(~f=p => {
-               let version =
-                 VersionMap.findVersionExn(
-                   state.versionMap,
-                   ~name=p.Cudf.package,
-                   ~cudfVersion=p.Cudf.version,
-                 );
-               switch (
-                 Cache.Packages.get(
-                   state.cache.pkgs,
-                   (p.Cudf.package, version),
-                 )
-               ) {
-               | Some(value) => value
-               | None => error("missing package: " ++ p.Cudf.package)
-               };
-             })
-          |> RunAsync.List.joinAll
-        }
-      );
+      return();
     }
-  );
+  and addReq = req => {
+    let%bind versions =
+      getAvailableVersions(~state, req)
+      |> RunAsync.withContext("processing request: " ++ Req.toString(req));
+
+    List.map(~f=addPkg, versions) |> RunAsync.List.waitAll;
+  };
+
+  let%bind () = addPkg(root);
+  return(state);
+};
 
 let solve = (~cfg, ~resolutions, root: Package.t) =>
   RunAsync.Syntax.(
     {
-      /** Cache can be shared between the dependencied */
-      let%bind cache = SolveState.Cache.make(~cfg, ());
-      let%bind (state, request) =
-        initState(
-          ~cfg,
-          ~cache,
-          ~resolutions,
-          ~root,
-          root.dependencies.dependencies,
-        );
+      let%bind state = initState(~cfg, ~resolutions, root);
 
-      let%bind dependencies = solveDeps(~state, ~from=root, request);
+      let%bind dependencies =
+        switch (SolveState.runSolver(~univ=state.SolveState.universe, root)) {
+        | None => error("Unable to resolve dependencies")
+        | Some(packages) => return(packages)
+        };
       let solution = Solution.make(~root, ~dependencies);
 
       return(solution);

@@ -45,7 +45,7 @@ module Api = {
     RunAsync.Syntax.(
       {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        let%bind pkg =
+        let%bind root =
           RunAsync.ofRun(
             Package.make(
               ~version=
@@ -55,14 +55,15 @@ module Api = {
               Package.PackageJson(manifest),
             ),
           );
-        let%bind (state, _) =
+        let%bind state =
           Solve.initState(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
-            ~root=pkg,
-            pkg.Package.dependencies.dependencies,
+            root,
           );
-        Cudf_printer.pp_universe(stdout, state.SolveState.universe);
+        let cudfUniverse =
+          SolveState.Universe.toCudfUniverse(state.SolveState.universe);
+        Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }
     );

@@ -94,6 +94,12 @@ module Version = struct
     | Npm v -> NpmVersion.Version.toString(v)
     | Opam t -> OpamVersion.Version.toString(t)
     | Source src -> Source.toString src
+
+  module Map = Map.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+
 end
 
 (**
