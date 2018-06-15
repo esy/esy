@@ -1,0 +1,13 @@
+lib: [
+  "_build/install/default/lib/esy-solve/META" {"META"}
+  "_build/install/default/lib/esy-solve/opam" {"opam"}
+]
+bin: [
+  "_build/install/default/bin/esy-solve" {"esy-solve"}
+]
+doc: [
+  "_build/install/default/doc/esy-solve/README.md"
+  "_build/install/default/doc/esy-solve/README.esyi.md"
+  "_build/install/default/doc/esy-solve/LICENSE"
+  "_build/install/default/doc/esy-solve/CHANGELOG.md"
+]
