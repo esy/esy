@@ -32,7 +32,7 @@ let createConfig = (copts: commonOpts) => {
     let%bind program = realpath(v(program));
     let basedir = Fpath.parent(program);
     let resolution =
-      EsyBuildPackage.NodeResolution.resolve(
+      EsyLib.NodeResolution.resolve(
         "../../../../bin/fastreplacestring",
         basedir,
       );

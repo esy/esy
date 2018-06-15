@@ -7,7 +7,6 @@ bin: [
 ]
 doc: [
   "_build/install/default/doc/esyi/README.md"
-  "_build/install/default/doc/esyi/README.esyi.md"
   "_build/install/default/doc/esyi/LICENSE"
   "_build/install/default/doc/esyi/CHANGELOG.md"
 ]

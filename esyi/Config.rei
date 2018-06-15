@@ -1,6 +1,8 @@
 /** Configuration for esy installer */
 
 type t = {
+  esySolveCmd: Cmd.t,
+
   basePath: Path.t,
   lockfilePath: Path.t,
   tarballCachePath: Path.t,
@@ -26,6 +28,7 @@ let make : (
     ~cachePath: Fpath.t=?,
     ~opamRepository: checkoutCfg=?,
     ~esyOpamOverride: checkoutCfg=?,
+    ~esySolveCmd: Cmd.t,
     Fpath.t
   ) => RunAsync.t(t)
 

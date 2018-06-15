@@ -126,7 +126,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
     | `CustomEnv env -> Some env
   in
 
-  let%bind cmd = RunAsync.ofRun (
+  let%bind cmdLwt = RunAsync.ofRun (
       let open Run.Syntax in
       let prg, args = Cmd.getToolAndArgs cmd in
       let%bind prg =
@@ -149,11 +149,13 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
     | Unix.WEXITED 0 -> 
       let%lwt out = Lwt_io.read process#stdout in
       return out
-    | _ -> error "error running command"
+    | _ ->
+      let msg = Printf.sprintf "running command: %s" (Cmd.show cmd) in
+      error msg
   in
 
   try%lwt
-    Lwt_process.with_process_in ?env ?stdin ?stderr cmd f
+    Lwt_process.with_process_in ?env ?stdin ?stderr cmdLwt f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in

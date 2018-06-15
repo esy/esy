@@ -1,5 +1,3 @@
-module Path = EsyLib.Path;
-
 module PackageJson = {
   type t = {
     name: string,
@@ -32,7 +30,7 @@ let stat_option = (path: Fpath.t) =>
   };
 
 let package_entry_point = (package_json_path: Fpath.t) => {
-  open Run;
+  open Result.Syntax;
   let package_path = Fpath.parent(package_json_path);
   let%bind main_value = {
     let%bind data = Bos.OS.File.read(package_path);
@@ -53,7 +51,7 @@ let package_entry_point = (package_json_path: Fpath.t) => {
 
 /** Try to resolve an absolute path */
 let resolve_path = path =>
-  Run.(
+  Result.Syntax.(
     switch (stat_option(path)) {
     | None => Ok(None)
     | Some(stat) =>
@@ -62,13 +60,13 @@ let resolve_path = path =>
         /* Check if directory contains package.json and read entry point from
            there if any */
         let package_json_path = Fpath.(path / "package.json");
-        if%bind (exists(package_json_path)) {
+        if%bind (Bos.OS.Path.exists(package_json_path)) {
           let%bind entry_point = package_entry_point(package_json_path);
           Ok(Some(entry_point));
         } else {
           /*** Check if directory contains index.js and return it if found */
           let index_js_path = Fpath.(path / "index.js");
-          if%bind (exists(index_js_path)) {
+          if%bind (Bos.OS.Path.exists(index_js_path)) {
             Ok(Some(index_js_path));
           } else {
             Ok(None);
@@ -83,7 +81,7 @@ let resolve_path = path =>
 
 /** Try to resolve an absolute path with different extensions */
 let resolve_extensionless_path = (path: Fpath.t) =>
-  Run.(
+  Result.Syntax.(
     switch%bind (resolve_path(path)) {
     | None => resolve_path(Fpath.add_ext(".js", path))
     | Some(_) as res => Ok(res)
@@ -93,15 +91,20 @@ let resolve_extensionless_path = (path: Fpath.t) =>
 /** Try to resolve a package */
 let rec resolve_package =
         (package: Path.t, segments: option(list(string)), basedir: Fpath.t) => {
-  open Run;
-  let node_modules_path = basedir / "node_modules";
+  open Result.Syntax;
+  let node_modules_path = Path.(basedir / "node_modules");
   let package_path = Path.append(node_modules_path, package);
-  if%bind (exists(node_modules_path)) {
-    if%bind (exists(package_path)) {
+  if%bind (Bos.OS.Path.exists(node_modules_path)) {
+    if%bind (Bos.OS.Path.exists(package_path)) {
       switch (segments) {
       | None => resolve_extensionless_path(package_path)
       | Some(segments) =>
-        let path = List.fold_left((p, x) => p / x, package_path, segments);
+        let path =
+          List.fold_left(
+            ~f=(p, x) => Path.(p / x),
+            ~init=package_path,
+            segments,
+          );
         resolve_extensionless_path(path);
       };
     } else {
@@ -123,7 +126,7 @@ let rec resolve_package =
 };
 
 let resolve = (path, basedir) =>
-  Run.(
+  Result.Syntax.(
     switch (path) {
     | "" => Ok(None)
     | path =>

@@ -48,12 +48,12 @@
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/cudf": "0.9",
-    "mccs": "andreypopp/ocaml-mccs#73a9a6b",
     "@opam/opam-file-format": "*",
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "^3.2.0",
-    "fastreplacestring": "esy-ocaml/FastReplaceString.git#44511d"
+    "fastreplacestring": "esy-ocaml/FastReplaceString.git#44511d",
+    "esy-solve-cudf": "^0.0.2"
   },
   "resolutions": {
     "**/@opam/sexplib0": "100000000.11.0",

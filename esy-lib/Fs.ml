@@ -330,7 +330,7 @@ let withTempFile ~data f =
     (fun () -> f (Path.v path))
     (fun () -> Lwt_unix.unlink path)
 
-let rec realpath path =
+let realpath path =
   let open RunAsync.Syntax in
   let path =
     if Fpath.is_abs path
@@ -344,15 +344,18 @@ let rec realpath path =
     | Ok {Unix.st_kind = Unix.S_LNK; _} -> return true
     | _ -> return false
   in
-  if Fpath.is_root path
-  then return path
-  else
-    let%bind isSymlink = isSymlinkAndExists path in
-    if isSymlink
-    then
-      let%bind target = readlink path in
-      realpath (target |> Fpath.append(Fpath.parent(path)) |> Fpath.normalize)
+  let rec aux path =
+    if Fpath.is_root path
+    then return path
     else
-      let parentPath = path |> Fpath.parent |> Fpath.rem_empty_seg in
-      let%bind parentPath = realpath parentPath  in
-      return Path.(parentPath / Fpath.basename path)
+      let%bind isSymlink = isSymlinkAndExists path in
+      if isSymlink
+      then
+        let%bind target = readlink path in
+        aux (target |> Fpath.append(Fpath.parent(path)) |> Fpath.normalize)
+      else
+        let parentPath = path |> Fpath.parent |> Fpath.rem_empty_seg in
+        let%bind parentPath = aux parentPath  in
+        return Path.(parentPath / Fpath.basename path)
+  in
+  aux (Path.normalize path)

@@ -62,6 +62,7 @@ val addPackage :
 
 val runSolver :
   ?strategy:string
+  -> cfg:Config.t
   -> univ:Universe.t
   -> Package.t
-  -> Package.t list option
+  -> Package.t list option RunAsync.t

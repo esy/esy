@@ -32,7 +32,7 @@ module EsyRuntime = struct
     let%bind currentFilename = Fs.realpath currentExecutable in
     let currentDirname = Path.parent currentFilename in
     let%bind cmd =
-      match EsyBuildPackage.NodeResolution.resolve req currentDirname with
+      match NodeResolution.resolve req currentDirname with
       | Ok (Some path) -> return path
       | Ok (None) ->
         let msg =
