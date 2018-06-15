@@ -149,6 +149,19 @@ module Universe = struct
       |> Version.Map.bindings
       |> List.map ~f:(fun (_, pkg) -> pkg)
 
+  module CudfName = struct
+
+    let escapeWith = "UuU"
+    let underscoreRe = Re.(compile (char '_'))
+    let underscoreEscapeRe = Re.(compile (str escapeWith))
+
+    let ofString name =
+      Re.replace_string underscoreRe ~by:escapeWith name
+
+    let toString name =
+      Re.replace_string underscoreEscapeRe ~by:"_" name
+  end
+
   let toCudf univ =
     let cudfUniv = Cudf.empty_universe () in
     let cudfVersionMap = VersionMap.make () in
@@ -165,7 +178,11 @@ module Universe = struct
 
     let updateVersionMap pkgs =
       let f cudfVersion (pkg : Package.t) =
-        VersionMap.update cudfVersionMap pkg.name pkg.version cudfVersion;
+        VersionMap.update
+          cudfVersionMap
+          pkg.name
+          pkg.version
+          (cudfVersion + 1);
       in
       List.iteri ~f pkgs;
     in
@@ -179,11 +196,12 @@ module Universe = struct
       in
 
       let depends = List.map ~f:(encodeReq ~from:pkg) pkg.dependencies.dependencies in
+      let cudfName = CudfName.ofString pkg.name in
       let cudfPkg = {
         Cudf.default_package with
-        package = pkg.name;
+        package = cudfName;
         version = cudfVersion;
-        conflicts = [pkg.name, None];
+        conflicts = [cudfName, None];
         installed = false;
         depends;
       }
@@ -226,7 +244,7 @@ module Universe = struct
 
       match versionsMatched with
       | [] ->
-        let name = "**not-a-package**" in
+        let name = "NOTAREALPACKAGE" in
         [name, Some (`Eq, 10000000000)]
       | versionsMatched ->
         let pkgToConstraint pkg =
@@ -236,7 +254,7 @@ module Universe = struct
               ~version:pkg.Package.version
               cudfVersionMap
           in
-          pkg.Package.name, Some (`Eq, cudfVersion)
+          CudfName.ofString pkg.Package.name, Some (`Eq, cudfVersion)
         in
         List.map ~f:pkgToConstraint versionsMatched
     in
@@ -282,7 +300,8 @@ module Strategies = struct
   let trendy = "-removed,-notuptodate,-new"
 end
 
-let runSolver ?(strategy=Strategies.trendy) ~univ root =
+let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
+  let open RunAsync.Syntax in
   let cudfUniverse, cudfVersionMap = Universe.toCudf univ in
 
   let cudfName = root.Package.name in
@@ -293,22 +312,42 @@ let runSolver ?(strategy=Strategies.trendy) ~univ root =
       cudfVersionMap
   in
 
-  let solution =
-    let request = {
-      Cudf.default_request with
-      install = [cudfName, Some (`Eq, cudfVersion)]
-    } in
-    let preamble = Cudf.default_preamble in
-    Mccs.resolve_cudf
-      ~verbose:false
-      ~timeout:5.
-      strategy
-      (preamble, cudfUniverse, request)
+  let printCudfDoc doc =
+    let o = IO.output_string () in
+    Cudf_printer.pp_io_doc o doc;
+    IO.close_out o
+  in
+
+  let parseCudfSolution data =
+    let i = IO.input_string data in
+    let p = Cudf_parser.from_IO_in_channel i in
+    let solution = Cudf_parser.load_solution p cudfUniverse in
+    IO.close_in i;
+    solution
+  in
+
+  let%bind solution =
+    let doc =
+      let request = {
+        Cudf.default_request with
+        install = [cudfName, Some (`Eq, cudfVersion)]
+      } in
+      let preamble = Cudf.default_preamble in
+      Some preamble, Cudf.get_packages cudfUniverse, request
+    in
+    let dataIn = printCudfDoc doc in
+    let%bind () = Fs.writeFile ~data:dataIn Path.(v "./input.cudf") in
+    let%bind dataOut = Fs.withTempFile ~data:dataIn (fun filename ->
+      let cmd = Cmd.(cfg.Config.esySolveCmd % "--" % strategy % p filename) in
+      ChildProcess.runOut cmd
+    ) in
+    return (Some (parseCudfSolution dataOut))
   in
 
   match solution with
-  | None -> None
+  | None -> return None
   | Some (_preamble, universe) ->
+
     let cudfPackagesToInstall =
       Cudf.get_packages
         ~filter:(fun p -> p.Cudf.installed)
@@ -317,20 +356,23 @@ let runSolver ?(strategy=Strategies.trendy) ~univ root =
 
     let packagesToInstall =
       cudfPackagesToInstall
-      |> List.filter ~f:(fun p -> p.Cudf.package <> root.Package.name)
+      |> List.filter ~f:(fun p -> Universe.CudfName.toString p.Cudf.package <> root.Package.name)
       |> List.map ~f:(fun p ->
+          let name = Universe.CudfName.toString p.Cudf.package in
           let version =
             VersionMap.findVersionExn
-              ~name:p.Cudf.package
+              ~name
               ~cudfVersion:p.Cudf.version
               cudfVersionMap
           in
-          match Universe.findVersion ~name:p.Cudf.package ~version univ with
+          match Universe.findVersion ~name ~version univ with
           | Some pkg -> pkg
           | None ->
             let msg = Printf.sprintf
               "inconsistent state: missing package %s@%s"
-              p.Cudf.package (Version.toString version)
+              name (Version.toString version)
             in
             failwith msg)
-    in Some packagesToInstall
+    in
+
+    return (Some packagesToInstall)

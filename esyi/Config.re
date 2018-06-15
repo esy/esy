@@ -1,4 +1,5 @@
 type t = {
+  esySolveCmd: Cmd.t,
   basePath: Path.t,
   lockfilePath: Path.t,
   tarballCachePath: Path.t,
@@ -30,6 +31,7 @@ let make =
       ~cachePath=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
+      ~esySolveCmd,
       basePath,
     ) =>
   RunAsync.Syntax.(
@@ -65,6 +67,7 @@ let make =
         Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
       return({
+        esySolveCmd,
         basePath,
         lockfilePath: Path.(basePath / "esyi.lock.json"),
         tarballCachePath,

@@ -59,6 +59,10 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Memoize.cmti" {"EsyLib__Memoize.cmti"}
   "_build/install/default/lib/esy-lib/Memoize.mli" {"Memoize.mli"}
   "_build/install/default/lib/esy-lib/Memoize.ml" {"Memoize.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__NodeResolution.cmi" {"EsyLib__NodeResolution.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__NodeResolution.cmx" {"EsyLib__NodeResolution.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__NodeResolution.cmt" {"EsyLib__NodeResolution.cmt"}
+  "_build/install/default/lib/esy-lib/NodeResolution.re" {"NodeResolution.re"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmi" {"EsyLib__Option.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmx" {"EsyLib__Option.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Option.cmt" {"EsyLib__Option.cmt"}
@@ -115,7 +119,6 @@ lib: [
 ]
 doc: [
   "_build/install/default/doc/esy-lib/README.md"
-  "_build/install/default/doc/esy-lib/README.esyi.md"
   "_build/install/default/doc/esy-lib/LICENSE"
   "_build/install/default/doc/esy-lib/CHANGELOG.md"
 ]

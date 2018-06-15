@@ -246,7 +246,7 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/cudf@ >= 0.7.0", "@opam/cudf@0.9":
+"@opam/cudf@0.9":
   version "0.9.0"
   uid "68efd1b03b4e1495d74eeb4b716b913a"
   resolved "@opam/cudf@0.9.0-68efd1b03b4e1495d74eeb4b716b913a.tgz"
@@ -865,21 +865,13 @@
   peerDependencies:
     ocaml " >= 4.2.3000"
 
+esy-solve-cudf@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/esy-solve-cudf/-/esy-solve-cudf-0.0.2.tgz#086c384b5c4fb78bc70d86633d18189e0b82514b"
+
 fastreplacestring@esy-ocaml/FastReplaceString.git#44511d:
   version "0.0.3"
   resolved "https://codeload.github.com/esy-ocaml/FastReplaceString/tar.gz/44511dadb5736df8df3f06f99c25314e6beac34b"
-
-mccs@andreypopp/ocaml-mccs#73a9a6b:
-  version "1.1.0-8"
-  uid c76054ee2c8bedb1c5b833a9b97e4b97
-  resolved "https://codeload.github.com/andreypopp/ocaml-mccs/tar.gz/73a9a6babe54adc3c452b0dd9ecbeba6414411c6"
-  dependencies:
-    "@esy-ocaml/esy-installer" "^0.0.0"
-    "@esy-ocaml/substs" "^0.0.1"
-    "@opam/cudf" " >= 0.7.0"
-    "@opam/jbuilder" "*"
-  peerDependencies:
-    ocaml "*"
 
 ocaml@~4.6.0:
   version "4.6.1"

@@ -136,7 +136,6 @@ bin: [
 ]
 doc: [
   "_build/install/default/doc/esy/README.md"
-  "_build/install/default/doc/esy/README.esyi.md"
   "_build/install/default/doc/esy/LICENSE"
   "_build/install/default/doc/esy/CHANGELOG.md"
 ]

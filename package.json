@@ -4,7 +4,8 @@
   "license": "MIT",
   "description": "Esy sandboxes for compiled languages",
   "dependencies": {
-    "@esy-ocaml/esy-opam": "0.0.15"
+    "@esy-ocaml/esy-opam": "0.0.15",
+    "esy-solve-cudf": "^0.0.2"
   },
   "scripts": {
     "postinstall": "bash ./scripts/postinstall.sh"
@@ -14,7 +15,8 @@
     "url": "git+https://github.com/esy/esy.git"
   },
   "bin": {
-    "esy": "./_build/default/esy/bin/esyCommand.exe"
+    "esy": "./_build/default/esy/bin/esyCommand.exe",
+    "esyi": "./_build/default/esyi/bin/esyi.exe"
   },
   "files": [
     "bin/",

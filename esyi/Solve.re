@@ -237,7 +237,9 @@ let solve = (~cfg, ~resolutions, root: Package.t) =>
       let%bind state = initState(~cfg, ~resolutions, root);
 
       let%bind dependencies =
-        switch (SolveState.runSolver(~univ=state.SolveState.universe, root)) {
+        switch%bind (
+          SolveState.runSolver(~cfg, ~univ=state.SolveState.universe, root)
+        ) {
         | None => error("Unable to resolve dependencies")
         | Some(packages) => return(packages)
         };

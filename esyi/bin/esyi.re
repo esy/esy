@@ -129,6 +129,20 @@ module CommandLineInterface = {
   let cwd = Path.v(Sys.getcwd());
   let version = "0.1.0";
 
+  let resolve = req => {
+    open RunAsync.Syntax;
+    let currentExecutable = Path.v(Sys.executable_name);
+    let%bind currentFilename = Fs.realpath(currentExecutable);
+    let currentDirname = Path.parent(currentFilename);
+    let p =
+      Run.ofBosError(EsyLib.NodeResolution.resolve(req, currentDirname));
+    switch (p) {
+    | Ok(Some(p)) => return(Cmd.v(Path.toString(p)))
+    | Ok(None) => error("not found: " ++ req)
+    | Error(err) => error(Run.formatError(err))
+    };
+  };
+
   let checkoutConv = {
     let parse = v =>
       switch (String.cut(~sep=":", v)) {
@@ -209,12 +223,15 @@ module CommandLineInterface = {
           npmRegistry,
           (),
         ) => {
+      open RunAsync.Syntax;
       let sandboxPath =
         switch (sandboxPath) {
         | Some(sandboxPath) => sandboxPath
         | None => cwd
         };
+      let%bind esySolveCmd = resolve("esy-solve-cudf/esySolveCommand.exe");
       Config.make(
+        ~esySolveCmd,
         ~cachePath?,
         ~npmRegistry?,
         ~opamRepository?,
