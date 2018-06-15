@@ -15,7 +15,8 @@
     "url": "git+https://github.com/esy/esy.git"
   },
   "bin": {
-    "esy": "./_build/default/esy/bin/esyCommand.exe"
+    "esy": "./_build/default/esy/bin/esyCommand.exe",
+    "esyi": "./_build/default/esyi/bin/esyi.exe"
   },
   "files": [
     "bin/",
