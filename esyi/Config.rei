@@ -10,6 +10,8 @@ type t = {
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
+
+  solveTimeout: float,
 }
 
 /** This described how a reposoitory should be used */
@@ -28,6 +30,7 @@ let make : (
     ~cachePath: Fpath.t=?,
     ~opamRepository: checkoutCfg=?,
     ~esyOpamOverride: checkoutCfg=?,
+    ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
     Fpath.t
   ) => RunAsync.t(t)

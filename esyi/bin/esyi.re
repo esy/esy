@@ -213,6 +213,13 @@ module CommandLineInterface = {
     );
   };
 
+  let solveTimeoutArg = {
+    let doc = "Specifies timeout for running depsolver.";
+    Arg.(
+      value & opt(some(float), None) & info(["solve-timeout"], ~docs, ~doc)
+    );
+  };
+
   let cfgTerm = {
     let parse =
         (
@@ -221,6 +228,7 @@ module CommandLineInterface = {
           opamRepository,
           esyOpamOverride,
           npmRegistry,
+          solveTimeout,
           (),
         ) => {
       open RunAsync.Syntax;
@@ -229,13 +237,15 @@ module CommandLineInterface = {
         | Some(sandboxPath) => sandboxPath
         | None => cwd
         };
-      let%bind esySolveCmd = resolve("esy-solve-cudf/esySolveCommand.exe");
+      let%bind esySolveCmd =
+        resolve("esy-solve-cudf/esySolveCudfCommand.exe");
       Config.make(
         ~esySolveCmd,
         ~cachePath?,
         ~npmRegistry?,
         ~opamRepository?,
         ~esyOpamOverride?,
+        ~solveTimeout?,
         sandboxPath,
       );
     };
@@ -246,6 +256,7 @@ module CommandLineInterface = {
       $ opamRepositoryArg
       $ esyOpamOverrideArg
       $ npmRegistryArg
+      $ solveTimeoutArg
       $ Cli.setupLogTerm
     );
   };

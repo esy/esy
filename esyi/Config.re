@@ -6,6 +6,7 @@ type t = {
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
+  solveTimeout: float,
 }
 and checkout =
   | Local(Path.t)
@@ -31,6 +32,7 @@ let make =
       ~cachePath=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
+      ~solveTimeout=8.0,
       ~esySolveCmd,
       basePath,
     ) =>
@@ -74,6 +76,7 @@ let make =
         opamRepository,
         esyOpamOverride,
         npmRegistry,
+        solveTimeout,
       });
     }
   );

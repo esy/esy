@@ -865,9 +865,9 @@
   peerDependencies:
     ocaml " >= 4.2.3000"
 
-esy-solve-cudf@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/esy-solve-cudf/-/esy-solve-cudf-0.0.2.tgz#086c384b5c4fb78bc70d86633d18189e0b82514b"
+esy-solve-cudf@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/esy-solve-cudf/-/esy-solve-cudf-0.0.3.tgz#9dbf90d357a5e7bdd20c5a975c6a2d67dd6f26dd"
 
 fastreplacestring@esy-ocaml/FastReplaceString.git#44511d:
   version "0.0.3"

@@ -336,9 +336,12 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
       Some preamble, Cudf.get_packages cudfUniverse, request
     in
     let dataIn = printCudfDoc doc in
-    let%bind () = Fs.writeFile ~data:dataIn Path.(v "./input.cudf") in
     let%bind dataOut = Fs.withTempFile ~data:dataIn (fun filename ->
-      let cmd = Cmd.(cfg.Config.esySolveCmd % "--" % strategy % p filename) in
+      let cmd = Cmd.(
+        cfg.Config.esySolveCmd
+        % ("--strategy=" ^ strategy)
+        % ("--timeout=" ^ string_of_float(cfg.solveTimeout))
+        % p filename) in
       ChildProcess.runOut cmd
     ) in
     return (Some (parseCudfSolution dataOut))

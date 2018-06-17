@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.1.17 @ preview
+
+* Build Linux release using Ubuntu 14.04 LTS so it's compatible with older
+  libc than previous.
+
 ## 0.1.16 @ preview
 
 * New experimental installer exposed as `esyi` command!
@@ -14,7 +19,7 @@
 
   Caveats & notes:
 
-  - Only regular `"dependencies"` are install, support for `"peerDependencies"`
+  - Only regular `"dependencies"` are installed, support for `"peerDependencies"`
     and `"buildDependencies"` will come soon.
 
   - `@opam/*` packages now use original opam versioning, this means that
