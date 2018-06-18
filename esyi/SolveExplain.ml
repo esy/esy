@@ -94,12 +94,19 @@ let collectReasons ~cudfMapping ~root reasons =
         else reasons
       | Algo.Diagnostic.Missing (pkg, vpkglist) ->
         let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
-        let requestor, path = resolveDepChain pkg in
+        let path =
+          if pkg.Package.name = root.Package.name
+          then []
+          else
+            let requestor, path = resolveDepChain pkg in
+            requestor::path
+        in
         let f reasons (name, _) =
+          let name = Universe.CudfMapping.decodePkgName name in
           let req = resolveReq name pkg in
           if not (seenMissingFor req reasons)
           then
-            let chain = (req, pkg::requestor::path) in
+            let chain = (req, pkg::path) in
             let available =
               Universe.CudfMapping.univ cudfMapping
               |> Universe.findVersions ~name

@@ -13,6 +13,9 @@ val findVersionExn : name:string -> version:PackageInfo.Version.t -> t -> Packag
 module CudfMapping : sig
   type t
 
+  val encodePkgName : string -> string
+  val decodePkgName : string -> string
+
   val encodePkg : Package.t -> t -> Cudf.package option
   val encodePkgExn : Package.t -> t -> Cudf.package
 

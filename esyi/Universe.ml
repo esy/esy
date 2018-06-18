@@ -125,6 +125,9 @@ module CudfMapping = struct
 
   type t = univ * Cudf.universe * CudfVersionMap.t
 
+  let encodePkgName = CudfName.ofString
+  let decodePkgName = CudfName.toString
+
   let decodePkg (cudf : Cudf.package) (univ, _cudfUniv, vmap) =
     let name = CudfName.toString cudf.package in
     match CudfVersionMap.findVersion ~name ~cudfVersion:cudf.version vmap with
