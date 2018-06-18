@@ -116,6 +116,19 @@ module VersionMap = struct
 
 end
 
+module CudfName = struct
+
+  let escapeWith = "UuU"
+  let underscoreRe = Re.(compile (char '_'))
+  let underscoreEscapeRe = Re.(compile (str escapeWith))
+
+  let ofString name =
+    Re.replace_string underscoreRe ~by:escapeWith name
+
+  let toString name =
+    Re.replace_string underscoreEscapeRe ~by:"_" name
+end
+
 module Universe = struct
 
   type t = Package.t Version.Map.t StringMap.t
@@ -159,19 +172,6 @@ module Universe = struct
       versions
       |> Version.Map.bindings
       |> List.map ~f:(fun (_, pkg) -> pkg)
-
-  module CudfName = struct
-
-    let escapeWith = "UuU"
-    let underscoreRe = Re.(compile (char '_'))
-    let underscoreEscapeRe = Re.(compile (str escapeWith))
-
-    let ofString name =
-      Re.replace_string underscoreRe ~by:escapeWith name
-
-    let toString name =
-      Re.replace_string underscoreEscapeRe ~by:"_" name
-  end
 
   let toCudf univ =
     let cudfUniv = Cudf.empty_universe () in
@@ -298,7 +298,7 @@ let ppReasons ~cudfVersionMap ~univ fmt reasons =
   let ppBoldRed pp = Fmt.(styled `Bold (styled `Red pp)) in
 
   let cudfPkgTopkg pkg =
-    let name = pkg.Cudf.package in
+    let name = CudfName.toString pkg.Cudf.package in
     let version =
       VersionMap.findVersionExn
         ~name
@@ -380,7 +380,7 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
   in
 
   let mapCudfToPackage p =
-    let name = Universe.CudfName.toString p.Cudf.package in
+    let name = CudfName.toString p.Cudf.package in
     let version =
       VersionMap.findVersionExn
         ~name
@@ -451,7 +451,7 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
 
     let packagesToInstall =
       cudfPackagesToInstall
-      |> List.filter ~f:(fun p -> Universe.CudfName.toString p.Cudf.package <> root.Package.name)
+      |> List.filter ~f:(fun p -> CudfName.toString p.Cudf.package <> root.Package.name)
       |> List.map ~f:mapCudfToPackage
     in
 
