@@ -141,6 +141,17 @@ module Universe = struct
     | None -> None
     | Some versions -> Version.Map.find_opt version versions
 
+  let findVersionExn ~name ~version (univ : t) =
+    match findVersion ~name ~version univ with
+    | Some pkg -> pkg
+    | None ->
+      let msg =
+        Printf.sprintf
+          "inconsistent state: package not in the universr %s@%s"
+          name (PackageInfo.Version.toString version)
+      in
+      failwith msg
+
   let findVersions ~name univ =
     match StringMap.find name univ with
     | None -> []
@@ -244,7 +255,6 @@ module Universe = struct
 
       match versionsMatched with
       | [] ->
-        let name = "NOTAREALPACKAGE" in
         [name, Some (`Eq, 10000000000)]
       | versionsMatched ->
         let pkgToConstraint pkg =
@@ -300,6 +310,57 @@ module Strategies = struct
   let trendy = "-removed,-notuptodate,-new"
 end
 
+let ppReasons ~cudfVersionMap ~univ fmt reasons =
+
+  let cudfPkgTopkg pkg =
+    let name = pkg.Cudf.package in
+    let version =
+      VersionMap.findVersionExn
+        ~name
+        ~cudfVersion:pkg.Cudf.version
+        cudfVersionMap
+    in
+    Universe.findVersionExn ~name ~version univ
+  in
+
+  let ppDep ~pkg fmt (name, _) =
+    let req =
+      List.find
+        ~f:(fun req -> Req.name req = name)
+        pkg.Package.dependencies.dependencies
+    in
+    Req.pp fmt req
+  in
+
+  let ppReason fmt (reason : Algo.Diagnostic.reason) =
+    match reason with
+    | Algo.Diagnostic.Dependency (pkg, _, pkgs) ->
+      let pkg = cudfPkgTopkg pkg in
+      let pkgs = List.map ~f:cudfPkgTopkg pkgs in
+      Fmt.pf fmt
+        "at %a:@[<v 2>@,%a@]@,"
+        Package.pp pkg (Fmt.list Package.pp) pkgs
+    | Algo.Diagnostic.Missing (pkg, vpkglist) ->
+      let pkg = cudfPkgTopkg pkg in
+      Fmt.pf fmt
+        "@[<hv 2>@,%a has a dependency which cannot be satisfied:@,@[<v 2>@,%a@]@]"
+        Package.pp pkg (Fmt.list (ppDep ~pkg)) vpkglist
+    | Algo.Diagnostic.Conflict _ ->
+      Fmt.pf fmt
+        "Conflict"
+  in
+
+  let reasonToReport = function
+    | Algo.Diagnostic.Dependency (pkg, _, _) ->
+      (* this is what dose uses for the root, ignore it *)
+      pkg.Cudf.package <> "dose-dummy-request"
+    | _ -> true
+  in
+
+  let reasons = List.filter ~f:reasonToReport reasons in
+
+  (Fmt.list ppReason) fmt reasons
+
 let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
   let open RunAsync.Syntax in
   let cudfUniverse, cudfVersionMap = Universe.toCudf univ in
@@ -326,16 +387,35 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
     solution
   in
 
-  let%bind solution =
-    let doc =
-      let request = {
-        Cudf.default_request with
-        install = [cudfName, Some (`Eq, cudfVersion)]
-      } in
-      let preamble = Cudf.default_preamble in
+  let mapCudfToPackage p =
+    let name = Universe.CudfName.toString p.Cudf.package in
+    let version =
+      VersionMap.findVersionExn
+        ~name
+        ~cudfVersion:p.Cudf.version
+        cudfVersionMap
+    in
+    match Universe.findVersion ~name ~version univ with
+    | Some pkg -> pkg
+    | None ->
+      let msg = Printf.sprintf
+        "inconsistent state: missing package %s@%s"
+        name (Version.toString version)
+      in
+      failwith msg
+  in
+
+  let request = {
+    Cudf.default_request with
+    install = [cudfName, Some (`Eq, cudfVersion)]
+  } in
+  let preamble = Cudf.default_preamble in
+
+  let solution =
+    let cudf =
       Some preamble, Cudf.get_packages cudfUniverse, request
     in
-    let dataIn = printCudfDoc doc in
+    let dataIn = printCudfDoc cudf in
     let%bind dataOut = Fs.withTempFile ~data:dataIn (fun filename ->
       let cmd = Cmd.(
         cfg.Config.esySolveCmd
@@ -344,12 +424,32 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
         % p filename) in
       ChildProcess.runOut cmd
     ) in
-    return (Some (parseCudfSolution dataOut))
+    return (parseCudfSolution dataOut)
   in
 
-  match solution with
-  | None -> return None
-  | Some (_preamble, universe) ->
+  match%lwt solution with
+
+  | Error _ ->
+    let cudf = preamble, cudfUniverse, request in
+    begin match Algo.Depsolver.check_request ~explain:true cudf with
+    | Algo.Depsolver.Error err -> error err
+    | Algo.Depsolver.Sat  _ ->
+      (** FIXME: decide if it's even possible and what to do *)
+      failwith "incostistent state: dose and mccs have different opinion"
+    | Algo.Depsolver.Unsat None ->
+      error "no solution found (no diagnostics provided)"
+    | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Success _; _ }) ->
+      error "no solution found (diag success)"
+    | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Failure reasons; _ }) ->
+      let%lwt () =
+        Logs_lwt.err (fun m ->
+          m "No solution found:@\n%a"
+          (ppReasons ~cudfVersionMap ~univ) (reasons ()))
+      in
+      error "no solution found (diag failure)"
+    end
+
+  | Ok (_preamble, universe) ->
 
     let cudfPackagesToInstall =
       Cudf.get_packages
@@ -360,22 +460,7 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
     let packagesToInstall =
       cudfPackagesToInstall
       |> List.filter ~f:(fun p -> Universe.CudfName.toString p.Cudf.package <> root.Package.name)
-      |> List.map ~f:(fun p ->
-          let name = Universe.CudfName.toString p.Cudf.package in
-          let version =
-            VersionMap.findVersionExn
-              ~name
-              ~cudfVersion:p.Cudf.version
-              cudfVersionMap
-          in
-          match Universe.findVersion ~name ~version univ with
-          | Some pkg -> pkg
-          | None ->
-            let msg = Printf.sprintf
-              "inconsistent state: missing package %s@%s"
-              name (Version.toString version)
-            in
-            failwith msg)
+      |> List.map ~f:mapCudfToPackage
     in
 
     return (Some packagesToInstall)

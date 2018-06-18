@@ -69,6 +69,9 @@ module Version = struct
     | Opam v -> "opam:" ^ OpamVersion.Version.toString(v)
     | Source src -> (Source.toString src)
 
+  let pp fmt v =
+    Fmt.fmt "%s" fmt (toString v)
+
   let parse v =
     let open Result.Syntax in
     match Parse.cutWith ":" v with
@@ -191,6 +194,9 @@ module Req = struct
 
   let to_yojson req =
     `String (toString req)
+
+  let pp fmt req =
+    Fmt.fmt "%s" fmt (toString req)
 
   let make ~name ~spec =
     let parseGitHubSpec text =

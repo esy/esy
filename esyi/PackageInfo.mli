@@ -33,6 +33,8 @@ module Version : sig
   val of_yojson : Json.t -> (t, string) result
   val toNpmVersion : t -> string
 
+  val pp : Format.formatter -> t -> unit
+
   module Map : Map.S with type key := t
 end
 
@@ -69,6 +71,8 @@ end
 
 module Req : sig
   type t
+
+  val pp : Format.formatter -> t -> unit
 
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]

@@ -51,6 +51,9 @@ let make ~version manifest =
     opam;
   }
 
+let pp fmt pkg =
+  Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
+
 module Github = struct
   let getManifest ~user ~repo ?(ref="master") () =
     let open RunAsync.Syntax in
