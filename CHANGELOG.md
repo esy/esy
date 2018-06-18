@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.1.18 @ preview
+
+* Parse scripts only for the top level package's manifest.
+
+  We don't need dependencies' scripts ever and also we won't fail if they are
+  incorrectly formatted.
+
 ## 0.1.17 @ preview
 
 * Build Linux release using Ubuntu 14.04 LTS so it's compatible with older
