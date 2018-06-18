@@ -293,9 +293,7 @@ module Strategies = struct
   let trendy = "-removed,-notuptodate,-new"
 end
 
-let ppReasons ~cudfVersionMap ~univ fmt reasons =
-
-  let ppBoldRed pp = Fmt.(styled `Bold (styled `Red pp)) in
+let ppReasons ~cudfVersionMap ~univ ~root fmt reasons =
 
   let cudfPkgTopkg pkg =
     let name = CudfName.toString pkg.Cudf.package in
@@ -307,6 +305,34 @@ let ppReasons ~cudfVersionMap ~univ fmt reasons =
     in
     Universe.findVersionExn ~name ~version univ
   in
+
+  let depChainMap =
+    let f map = function
+      | Algo.Diagnostic.Dependency (pkg, _, _) when pkg.Cudf.package = "dose-dummy-request" -> map
+      | Algo.Diagnostic.Dependency (pkg, _, deplist) ->
+        let pkg = cudfPkgTopkg pkg in
+        let f map dep =
+          let dep = cudfPkgTopkg dep in
+          Package.Map.add dep pkg map
+        in
+        List.fold_left ~f ~init:map deplist
+      | _ -> map
+    in
+    List.fold_left ~f ~init:Package.Map.empty reasons
+  in
+
+  let resolveDepChain pkg =
+    let rec aux path pkg =
+      match Package.Map.find_opt pkg depChainMap with
+      | None -> pkg::path
+      | Some npkg -> aux (pkg::path) npkg
+    in
+    match List.rev (aux [] pkg) with
+    | [] -> []
+    | _::path -> path
+  in
+
+  let ppBoldRed pp = Fmt.(styled `Bold (styled `Red pp)) in
 
   let ppFailedReq ~pkg fmt (name, _) =
     let req =
@@ -320,32 +346,44 @@ let ppReasons ~cudfVersionMap ~univ fmt reasons =
       |> List.map ~f:(fun pkg -> pkg.Package.version)
     in
     Fmt.pf fmt
-      "@[<v>Requires %a@,While only the following versions of %s found: @[<hv 2>@,%a@]@]"
+      "@[<v>Requires %a@,While only the following versions of %s found: @[<v 2>@,%a@]@]"
       (ppBoldRed Req.pp) req name (Fmt.list Version.pp) available
+  in
+
+  let ppPkg fmt pkg =
+    if pkg.Package.name = root.Package.name
+    then Fmt.unit "<root>" fmt ()
+    else Package.pp fmt pkg
   in
 
   let ppReason fmt (reason : Algo.Diagnostic.reason) =
     match reason with
-    | Algo.Diagnostic.Dependency (pkg, _, pkgs) ->
-      let pkg = cudfPkgTopkg pkg in
-      let pkgs = List.map ~f:cudfPkgTopkg pkgs in
-      Fmt.pf fmt
-        "At %a:@[<v 2>@,%a@]@,"
-        Package.pp pkg (Fmt.list (ppBoldRed Package.pp)) pkgs
+    | Algo.Diagnostic.Dependency _ -> ()
+
     | Algo.Diagnostic.Missing (pkg, vpkglist) ->
       let pkg = cudfPkgTopkg pkg in
       Fmt.pf fmt
-        "@[<hv 2>@,%a cannot be installed:@,@[<v 2>@,%a@]@]"
-        Package.pp pkg (Fmt.list (ppFailedReq ~pkg)) vpkglist
-    | Algo.Diagnostic.Conflict _ ->
+        "@[<v>@,%a cannot be installed:@,@[<v 2>@,%a@]@]"
+        ppPkg pkg (Fmt.list (ppFailedReq ~pkg)) vpkglist
+
+    | Algo.Diagnostic.Conflict (pkga, pkgb, _req) ->
+      let pkga = cudfPkgTopkg pkga in
+      let pkgb = cudfPkgTopkg pkgb in
+      let ppChain fmt pkg =
+        let chain = resolveDepChain pkg in
+        Fmt.pf fmt
+          "@[<v>%a@,Required by %a@]"
+          (ppBoldRed ppPkg) pkg
+          Fmt.(list ~sep:(unit " <- ") ppPkg) chain
+      in
       Fmt.pf fmt
-        "Conflict"
+        "@\n@[<v>Conflicting dependency declarations:@,@[<v 2>@,%a@,@,and@,@,%a@]@]"
+        ppChain pkga
+        ppChain pkgb
   in
 
   let reasonToReport = function
-    | Algo.Diagnostic.Dependency (pkg, _, _) ->
-      (* this is what dose uses for the root, ignore it *)
-      pkg.Cudf.package <> "dose-dummy-request"
+    | Algo.Diagnostic.Dependency _ -> false
     | _ -> true
   in
 
@@ -436,7 +474,7 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
       let%lwt () =
         Logs_lwt.err (fun m ->
           m "No solution found:@\n%a"
-          (ppReasons ~cudfVersionMap ~univ) (reasons ()))
+          (ppReasons ~root ~cudfVersionMap ~univ) (reasons ()))
       in
       error "no solution found"
     end
