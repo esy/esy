@@ -10,4 +10,14 @@
                     ppx_inline_test)))
   (inline_tests)
   (flags (:standard (-w -39) "-open" "EsyLib"))
-  (libraries (esy-lib str cudf yaml ppx_deriving_yojson.runtime yojson logs logs.lwt opam-file-format))))
+  (libraries (
+              esy-lib
+              str
+              cudf
+              yaml
+              ppx_deriving_yojson.runtime
+              yojson
+              logs
+              logs.lwt
+              dose3.algo
+              opam-file-format))))
