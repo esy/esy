@@ -69,7 +69,7 @@ let ofDir = (cfg: Config.t) => {
             };
           } else {
             switch%lwt (loadPackageCached(depPackagePath, [path, ...stack])) {
-            | Ok(result) => Lwt.return_ok((pkgName, result))
+            | Ok((result, _json)) => Lwt.return_ok((pkgName, result))
             | Error(err) => Lwt.return_error((pkgName, Run.formatError(err)))
             };
           }
@@ -81,8 +81,8 @@ let ofDir = (cfg: Config.t) => {
         |> Lwt_list.map_s(((pkgName, _)) => resolve(pkgName));
       let f = dependencies =>
         fun
-        | Ok((_, `EsyPkg(pkg, _))) => [make(pkg), ...dependencies]
-        | Ok((_, `NonEsyPkg(transitiveDependencies, _))) =>
+        | Ok((_, `EsyPkg(pkg))) => [make(pkg), ...dependencies]
+        | Ok((_, `NonEsyPkg(transitiveDependencies))) =>
           transitiveDependencies @ dependencies
         | Ok((_, `Ignored)) => dependencies
         | Ok((pkgName, `Unresolved)) =>
@@ -104,7 +104,7 @@ let ofDir = (cfg: Config.t) => {
       Lwt.return(List.fold_left(~f, ~init=prevDependencies, dependencies));
     };
     switch%bind (Package.Manifest.ofDir(path)) {
-    | Some((manifest, manifestPath)) =>
+    | Some((manifest, manifestPath, json)) =>
       let ignoreCircularDep = Option.isNone(manifest.Package.Manifest.esy);
       manifestInfo := PathSet.add(manifestPath, manifestInfo^);
       let (>>=) = Lwt.(>>=);
@@ -146,7 +146,7 @@ let ofDir = (cfg: Config.t) => {
             }
         );
       switch (manifest.Package.Manifest.esy) {
-      | None => return(`NonEsyPkg((dependencies, manifest.scripts)))
+      | None => return((`NonEsyPkg(dependencies), json))
       | Some(esyManifest) =>
         let sourceType = {
           let hasDepWithSourceTypeDevelopment =
@@ -196,7 +196,7 @@ let ofDir = (cfg: Config.t) => {
             sourcePath: ConfigPath.ofPath(cfg, sourcePath),
             resolution: manifest._resolved,
           };
-        return(`EsyPkg((pkg, manifest.scripts)));
+        return((`EsyPkg(pkg), json));
       };
     | None => error("unable to find manifest")
     };
@@ -206,7 +206,7 @@ let ofDir = (cfg: Config.t) => {
     Memoize.compute(packageCache, path, compute);
   };
   switch%bind (loadPackageCached(cfg.sandboxPath, [])) {
-  | `EsyPkg(root, scripts) =>
+  | (`EsyPkg(root), json) =>
     let%bind manifestInfo =
       manifestInfo^
       |> PathSet.elements
@@ -215,6 +215,10 @@ let ofDir = (cfg: Config.t) => {
            return((path, stat.Unix.st_mtime));
          })
       |> RunAsync.List.joinAll;
+    let%bind scripts =
+      Package.Scripts.ParseManifest.parse(json)
+      |> Run.ofStringError
+      |> RunAsync.ofRun;
     let sandbox = {root, scripts, manifestInfo};
     return(sandbox);
   | _ => error("root package missing esy config")

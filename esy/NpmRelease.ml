@@ -189,7 +189,7 @@ let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
   let%bind manifestOpt = Manifest.ofDir cfg.Config.sandboxPath in
   let%bind manifest = match manifestOpt with
-  | Some (manifest, _) -> return manifest
+  | Some (manifest, _path, _json) -> return manifest
   | None -> error "no manifest found"
   in
   let%bind releaseCfg =

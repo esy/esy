@@ -63,23 +63,39 @@ module Scripts = struct
     script StringMap.t
     [@@deriving (eq, ord)]
 
+  let empty = StringMap.empty
+
   let pp =
     let open Fmt in
     let ppBinding = hbox (pair (quote string) (quote pp_script)) in
     vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
 
   let of_yojson =
-    let open Json.Parse in
     let errorMsg =
       "A command in \"scripts\" expects a string or an array of strings"
     in
-    let script (json: Json.t) = match cmd ~errorMsg json with
+    let script (json: Json.t) =
+      match Json.Parse.cmd ~errorMsg json with
       | Ok command -> Ok {command;}
       | Error err -> Error err
     in
-    stringMap script
+    Json.Parse.stringMap script
 
   let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
+
+  type scripts = t
+  let scripts_of_yojson = of_yojson
+
+  module ParseManifest = struct
+    type t = {
+      scripts: (scripts [@default empty]);
+    } [@@deriving (of_yojson { strict = false })]
+
+    let parse json =
+      match of_yojson json with
+      | Ok pkg -> Ok pkg.scripts
+      | Error err -> Error err
+  end
 end
 
 (**
@@ -228,7 +244,6 @@ module Manifest = struct
     version : string;
     description : (string option [@default None]);
     license : (string option [@default None]);
-    scripts: (Scripts.t [@default StringMap.empty]);
     dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
@@ -243,7 +258,7 @@ module Manifest = struct
     if%bind (Fs.exists path) then (
       let%bind json = Fs.readJsonFile path in
       match of_yojson json with
-      | Ok manifest -> return (Some manifest)
+      | Ok manifest -> return (Some (manifest, json))
       | Error err -> error err
     ) else
       return None
@@ -254,10 +269,10 @@ module Manifest = struct
     and packageJson = Path.(path / "package.json")
     in match%bind ofFile esyJson with
     | None -> begin match%bind ofFile packageJson with
-      | Some manifest -> return (Some (manifest, packageJson))
+      | Some (manifest, json) -> return (Some (manifest, packageJson, json))
       | None -> return None
       end
-    | Some manifest -> return (Some (manifest, esyJson))
+    | Some (manifest, json) -> return (Some (manifest, esyJson, json))
 end
 
 type t = {
