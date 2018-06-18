@@ -10,7 +10,7 @@ module Formula = struct
 
   include MakeFormula(Version)
 
-  let any: dnf = OR [AND [Constraint.ANY]];
+  let any: DNF.t = OR [AND [Constraint.ANY]];
 
   module C = Constraint
 

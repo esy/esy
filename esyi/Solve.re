@@ -4,7 +4,6 @@ module Version = PackageInfo.Version;
 module SourceSpec = PackageInfo.SourceSpec;
 module VersionSpec = PackageInfo.VersionSpec;
 module Req = PackageInfo.Req;
-module Universe = SolveState.Universe;
 
 let getPackageCached =
     (~state: SolveState.t, name: string, version: PackageInfo.Version.t) => {

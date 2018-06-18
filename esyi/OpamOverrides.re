@@ -45,7 +45,7 @@ module Override = {
   };
 };
 
-type t = PackageNameMap.t(list((OpamVersion.Formula.dnf, Fpath.t)));
+type t = PackageNameMap.t(list((OpamVersion.Formula.DNF.t, Fpath.t)));
 
 type override = Override.t;
 

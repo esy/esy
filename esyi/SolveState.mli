@@ -36,13 +36,6 @@ module Cache : sig
   val make : cfg:Config.t -> unit -> t RunAsync.t
 end
 
-module Universe : sig
-  type t
-  val add : pkg:Package.t -> t -> t
-  val mem : pkg:Package.t -> t -> bool
-  val toCudfUniverse : t -> Cudf.universe
-end
-
 type t = {
   cfg: Config.t;
   cache: Cache.t;

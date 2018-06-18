@@ -61,8 +61,7 @@ module Api = {
             ~resolutions=manifest.PackageJson.resolutions,
             root,
           );
-        let cudfUniverse =
-          SolveState.Universe.toCudfUniverse(state.SolveState.universe);
+        let (cudfUniverse, _) = Universe.toCudf(state.SolveState.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }

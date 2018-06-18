@@ -135,11 +135,9 @@ module Formula = struct
     end
 
     type constr = Constraint.t
-    type dnf = DNF.t
-    type cnf = CNF.t
 
-    let ofDnfToCnf (f : dnf)  =
-      let f : cnf =
+    let ofDnfToCnf (f : DNF.t)  =
+      let f : CNF.t =
         match f with
         | OR [] -> AND []
         | OR ((AND constrs)::conjs) ->

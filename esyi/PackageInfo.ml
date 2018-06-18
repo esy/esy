@@ -145,8 +145,8 @@ end
 module VersionSpec = struct
 
   type t =
-    | Npm of NpmVersion.Formula.dnf
-    | Opam of OpamVersion.Formula.dnf
+    | Npm of NpmVersion.Formula.DNF.t
+    | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
   let toString = function
