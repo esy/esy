@@ -219,7 +219,7 @@ module Universe = struct
       in
       Cudf.add_package cudfUniv cudfPkg
 
-    and encodeReq ~from req =
+    and encodeReq ~from:_ req =
       let name = Req.name req in
       let spec = Req.spec req in
 
@@ -235,23 +235,6 @@ module Universe = struct
           ~f:(fun pkg -> VersionSpec.satisfies ~version:pkg.Package.version spec)
           versions
       in
-
-      if versionsMatched = [] && name <> "ocaml" then begin
-          let printAvailableVersions () =
-            List.iter
-              ~f:(fun pkg -> Printf.printf " - %s\n" (PackageInfo.Version.toString pkg.Package.version))
-              versions
-          in
-
-          Printf.printf
-            "[ERROR]: requirement unsatisfiable: %s@%s wants %s@%s but available:\n"
-            from.Package.name
-            (Version.toString from.Package.version)
-            name
-            (VersionSpec.toString spec);
-
-          printAvailableVersions ();
-      end;
 
       match versionsMatched with
       | [] ->
@@ -312,6 +295,8 @@ end
 
 let ppReasons ~cudfVersionMap ~univ fmt reasons =
 
+  let ppBoldRed pp = Fmt.(styled `Bold (styled `Red pp)) in
+
   let cudfPkgTopkg pkg =
     let name = pkg.Cudf.package in
     let version =
@@ -323,13 +308,20 @@ let ppReasons ~cudfVersionMap ~univ fmt reasons =
     Universe.findVersionExn ~name ~version univ
   in
 
-  let ppDep ~pkg fmt (name, _) =
+  let ppFailedReq ~pkg fmt (name, _) =
     let req =
       List.find
         ~f:(fun req -> Req.name req = name)
         pkg.Package.dependencies.dependencies
     in
-    Req.pp fmt req
+    let available =
+      univ
+      |> Universe.findVersions ~name
+      |> List.map ~f:(fun pkg -> pkg.Package.version)
+    in
+    Fmt.pf fmt
+      "@[<v>Requires %a@,While only the following versions of %s found: @[<hv 2>@,%a@]@]"
+      (ppBoldRed Req.pp) req name (Fmt.list Version.pp) available
   in
 
   let ppReason fmt (reason : Algo.Diagnostic.reason) =
@@ -338,13 +330,13 @@ let ppReasons ~cudfVersionMap ~univ fmt reasons =
       let pkg = cudfPkgTopkg pkg in
       let pkgs = List.map ~f:cudfPkgTopkg pkgs in
       Fmt.pf fmt
-        "at %a:@[<v 2>@,%a@]@,"
-        Package.pp pkg (Fmt.list Package.pp) pkgs
+        "At %a:@[<v 2>@,%a@]@,"
+        Package.pp pkg (Fmt.list (ppBoldRed Package.pp)) pkgs
     | Algo.Diagnostic.Missing (pkg, vpkglist) ->
       let pkg = cudfPkgTopkg pkg in
       Fmt.pf fmt
-        "@[<hv 2>@,%a has a dependency which cannot be satisfied:@,@[<v 2>@,%a@]@]"
-        Package.pp pkg (Fmt.list (ppDep ~pkg)) vpkglist
+        "@[<hv 2>@,%a cannot be installed:@,@[<v 2>@,%a@]@]"
+        Package.pp pkg (Fmt.list (ppFailedReq ~pkg)) vpkglist
     | Algo.Diagnostic.Conflict _ ->
       Fmt.pf fmt
         "Conflict"
@@ -437,16 +429,16 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
       (** FIXME: decide if it's even possible and what to do *)
       failwith "incostistent state: dose and mccs have different opinion"
     | Algo.Depsolver.Unsat None ->
-      error "no solution found (no diagnostics provided)"
+      failwith "incostistent state: no explanation available"
     | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Success _; _ }) ->
-      error "no solution found (diag success)"
+      failwith "incostistent state: dose reports success"
     | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Failure reasons; _ }) ->
       let%lwt () =
         Logs_lwt.err (fun m ->
           m "No solution found:@\n%a"
           (ppReasons ~cudfVersionMap ~univ) (reasons ()))
       in
-      error "no solution found (diag failure)"
+      error "no solution found"
     end
 
   | Ok (_preamble, universe) ->
