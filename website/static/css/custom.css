@@ -86,7 +86,7 @@
 }
 
 .navGroup {
-  background-color: #f6f4f4 !important;
+  background-color: transparent !important;
 }
 
 .projectTitle {
@@ -122,6 +122,51 @@
 
 .quickStartAndExamples .blockimage img {
   border-radius: 3px;
+}
+
+/* Tweak heading styles */
+.mainContainer .wrapper .post h1 { font-weight: 800; margin-top: 5em; }
+.mainContainer .wrapper .post h2 { font-weight: 800; margin-top: 5em; }
+.mainContainer .wrapper .post h3 { font-weight: 800; margin-top: 5em; }
+.mainContainer .wrapper .post h4 { font-weight: 800; margin-top: 5em; }
+.mainContainer .wrapper .post h5 { font-weight: 800; margin-top: 5em; }
+.mainContainer .wrapper .post h6 { font-weight: 800; margin-top: 5em; }
+
+.mainContainer .wrapper .postHeader h1 { font-weight: 800; margin-top: 0em; }
+
+/* Tweak font-weight */
+.mainContainer .wrapper p,
+.blockElement p,
+.mainContainer .wrapper ul li,
+.mainContainer .wrapper ol li {
+  font-weight: 300;
+}
+
+code {
+  font-size: 90%;
+  font-weight: 300;
+}
+
+.hljs {
+  border-radius: 0 !important;
+  border: 0 !important;
+}
+
+nav.toc .toggleNav .navGroup h3 {
+  font-weight: 800;
+}
+nav.toc .toggleNav ul li a {
+  font-weight: 300;
+}
+nav.toc .toggleNav ul li a.navItemActive {
+  font-weight: 600;
+}
+
+.button {
+  border: none;
+  font-weight: 300;
+  text-transform: none;
+  font-size: 22px;
 }
 
 /* end override */

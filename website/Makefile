@@ -1,5 +1,10 @@
-bootstrap:
+BIN = $(PWD)/node_modules/.bin
+
+bootstrap::
 	@yarn --pure-lockfile
 
-start:
-	@npm start
+build::
+	@$(BIN)/docusaurus-build
+
+start::
+	@$(BIN)/docusaurus-start
