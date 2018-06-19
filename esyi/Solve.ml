@@ -13,7 +13,7 @@ end
 type t = {
   cfg: Config.t;
   resolver : Resolver.t;
-  mutable universe: Universe.t;
+  universe: Universe.t;
 }
 
 module Explanation = struct
@@ -208,24 +208,19 @@ let make ~cfg ?resolver ~resolutions root =
     }
   in
 
-  let%bind state =
-    let%bind resolver =
-      match resolver with
-      | Some resolver -> return resolver
-      | None -> Resolver.make ~cfg ()
-    in
-    return {
-      cfg;
-      resolver;
-      universe = Universe.empty;
-    }
+  let%bind resolver =
+    match resolver with
+    | Some resolver -> return resolver
+    | None -> Resolver.make ~cfg ()
   in
 
+  let universe = ref Universe.empty in
+
   let rec addPkg (pkg : Package.t) =
-    if not (Universe.mem ~pkg state.universe)
+    if not (Universe.mem ~pkg !universe)
     then
       let pkg = rewritePkgWithResolutions pkg in
-      state.universe <- Universe.add ~pkg state.universe;
+      universe := Universe.add ~pkg !universe;
       pkg.dependencies.dependencies
       |> List.map ~f:addReq
       |> RunAsync.List.waitAll
@@ -233,23 +228,23 @@ let make ~cfg ?resolver ~resolutions root =
 
   and addReq req =
     let%bind resolutions =
-      Resolver.resolve ~req state.resolver
+      Resolver.resolve ~req resolver
       |> RunAsync.withContext ("resolving request: " ^ Req.toString req)
     in
 
     let%bind packages =
       resolutions
-      |> List.map ~f:(fun resolution -> Resolver.package ~resolution state.resolver)
+      |> List.map ~f:(fun resolution -> Resolver.package ~resolution resolver)
       |> RunAsync.List.joinAll
     in
 
     packages
     |> List.map ~f:addPkg
-    |> RunAsync.List.waitAll
+    |> RunAsync.List.waitAll;
   in
 
   let%bind () = addPkg root in
-  return state
+  return {cfg; resolver; universe = !universe}
 
 let solve ?(strategy=Strategy.trendy) ~root solver =
   let open RunAsync.Syntax in

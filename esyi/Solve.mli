@@ -8,10 +8,10 @@ module Explanation : sig
   val pp : Format.formatter -> t -> unit
 end
 
-type t = {
+type t = private {
   cfg: Config.t;
   resolver: Resolver.t;
-  mutable universe: Universe.t;
+  universe: Universe.t;
 }
 
 type solveResult = (Solution.t, Explanation.t) result
