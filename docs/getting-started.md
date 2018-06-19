@@ -8,8 +8,6 @@ Esy provides a single command called `esy`.
 The typical workflow is to `cd` into a directory that contains a `package.json`
 file, and then perform operations on that project.
 
-### Try An Example
-
 There are example projects:
 
 * [OCaml + jbuilder project](https://github.com/esy-ocaml/esy-ocaml-project)

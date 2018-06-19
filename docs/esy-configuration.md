@@ -3,7 +3,6 @@ id: esy-configuration
 title: esy Configuration
 ---
 
-
 esy can be configured through `.esyrc` which esy tries to find in the following
 locations (sorted by priority):
 
@@ -17,7 +16,7 @@ The following configuration parameters available:
 Note that some of them could be also controlled via corresponding environment
 variables.
 
-### `esy-prefix-path`
+## `esy-prefix-path`
 
 Prefix path controls the location where esy puts its installation caches and
 build store. By default it is set to `$HOME/.esy`. To override the default
@@ -32,7 +31,7 @@ If relative path is provided then it will be resolved against the directory
 
 Prefix path could also be set using `$ESY__PREFIX` environment variable.
 
-### `yarn-*`
+## `yarn-*`
 
 Any of the yarn configuration parameters can be set in `.esyrc` similar to
 `.yarnrc`. See a corresponding [yarn
