@@ -63,6 +63,7 @@ endif
 	@make -C test-e2e bootstrap
 	@make -C test-e2e/pkg-tests bootstrap
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
+	@make -C site bootstrap
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
