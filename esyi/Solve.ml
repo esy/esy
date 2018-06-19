@@ -5,80 +5,249 @@ module VersionSpec = PackageInfo.VersionSpec
 module Req = PackageInfo.Req
 module Resolutions = PackageInfo.Resolutions
 
-module Cache = struct
-  module Packages = Memoize.Make(struct
-    type key = (string * PackageInfo.Version.t)
-    type value = Package.t RunAsync.t
-  end)
+module Strategy = struct
+  type t = string
+  let trendy = "-removed,-notuptodate,-new"
+end
 
-  module NpmPackages = Memoize.Make(struct
-    type key = string
-    type value = (NpmVersion.Version.t * PackageJson.t) list RunAsync.t
-  end)
+module Explanation = struct
 
-  module OpamPackages = Memoize.Make(struct
-    type key = string
-    type value = (OpamVersion.Version.t * OpamFile.ThinManifest.t) list RunAsync.t
-  end)
+  type t = reason list
 
-  module Sources = Memoize.Make(struct
-    type key = SourceSpec.t
-    type value = Source.t RunAsync.t
-  end)
+  and reason =
+    | Conflict of chain * chain
+    | Missing of chain * Version.t list
 
-  type t = {
-    opamRegistry: OpamRegistry.t;
-    npmPackages: (string, Yojson.Safe.json) Hashtbl.t;
-    opamPackages: (string, OpamFile.manifest) Hashtbl.t;
+  and chain =
+    Req.t * Package.t list
 
-    pkgs: Packages.t;
-    sources: Sources.t;
+  let empty = []
 
-    availableNpmVersions: NpmPackages.t;
-    availableOpamVersions: OpamPackages.t;
-  }
+  let pp fmt reasons =
 
-  let make ~cfg () =
+    let ppEm pp = Fmt.styled `Bold pp in
+    let ppErr pp = Fmt.styled `Bold (Fmt.styled `Red pp) in
+
+    let ppChain fmt (req, path) =
+      let ppPkgName fmt pkg = Fmt.string fmt pkg.Package.name in
+      let sep = Fmt.unit " -> " in
+      Fmt.pf fmt
+        "@[<v>%a@,(required by %a)@]"
+        (ppErr Req.pp) req Fmt.(list ~sep (ppEm ppPkgName)) (List.rev path)
+    in
+
+    let ppReason fmt = function
+      | Missing (chain, available) ->
+        Fmt.pf fmt
+          "No packages matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
+          ppChain chain
+          (Fmt.list Version.pp) available
+      | Conflict (chaina, chainb) ->
+        Fmt.pf fmt
+          "@[<v 2>Conflicting dependencies:@;@%a@;%a@]"
+          ppChain chaina ppChain chainb
+    in
+
+    let sep = Fmt.unit "@;@;" in
+    Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep ppReason) reasons
+
+  let collectReasons ~cudfMapping ~root reasons =
+
+    (* Find a pair of requestor, path for the current package.
+    * Note that there can be multiple paths in the dependency graph but we only
+    * consider one of them.
+    *)
+    let resolveDepChain =
+
+      let map =
+        let f map = function
+          | Algo.Diagnostic.Dependency (pkg, _, _) when pkg.Cudf.package = "dose-dummy-request" -> map
+          | Algo.Diagnostic.Dependency (pkg, _, deplist) ->
+            let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
+            let f map dep =
+              let dep = Universe.CudfMapping.decodePkgExn dep cudfMapping in
+              Package.Map.add dep pkg map
+            in
+            List.fold_left ~f ~init:map deplist
+          | _ -> map
+        in
+        let map = Package.Map.empty in
+        List.fold_left ~f ~init:map reasons
+      in
+
+      let resolve pkg =
+        if pkg.Package.name = root.Package.name
+        then failwith "inconsistent state: root package was not expected"
+        else
+          let rec aux path pkg =
+            match Package.Map.find_opt pkg map with
+            | None -> pkg::path
+            | Some npkg -> aux (pkg::path) npkg
+          in
+          match List.rev (aux [] pkg) with
+          | []
+          | _::[] -> failwith "inconsistent state: empty dep path"
+          | _::requestor::path -> (requestor, path)
+      in
+
+      resolve
+    in
+
+    let resolveReq name requestor =
+      List.find
+        ~f:(fun req -> Req.name req = name)
+        requestor.Package.dependencies.dependencies
+    in
+
+    let resolveReqViaDepChain pkg =
+      let requestor, path = resolveDepChain pkg in
+      let req = resolveReq pkg.name requestor in
+      (req, requestor, path)
+    in
+
+    let reasons =
+      let seenConflictFor reqa reqb reasons =
+        let f = function
+          | Conflict ((ereqa, _), (ereqb, _)) ->
+            Req.(toString ereqa = toString reqa && toString ereqb = toString reqb)
+          | Missing _ -> false
+        in
+        List.exists ~f reasons
+      in
+      let seenMissingFor req reasons =
+        let f = function
+          | Missing ((ereq, _), _) ->
+            Req.(toString req = toString ereq)
+          | Conflict _ -> false
+        in
+        List.exists ~f reasons
+      in
+      let f reasons = function
+        | Algo.Diagnostic.Conflict (pkga, pkgb, _) ->
+          let pkga = Universe.CudfMapping.decodePkgExn pkga cudfMapping in
+          let pkgb = Universe.CudfMapping.decodePkgExn pkgb cudfMapping in
+          let reqa, requestora, patha = resolveReqViaDepChain pkga in
+          let reqb, requestorb, pathb = resolveReqViaDepChain pkgb in
+          if not (seenConflictFor reqa reqb reasons)
+          then
+            let conflict = Conflict ((reqa, requestora::patha), (reqb, requestorb::pathb)) in
+            conflict::reasons
+          else reasons
+        | Algo.Diagnostic.Missing (pkg, vpkglist) ->
+          let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
+          let path =
+            if pkg.Package.name = root.Package.name
+            then []
+            else
+              let requestor, path = resolveDepChain pkg in
+              requestor::path
+          in
+          let f reasons (name, _) =
+            let name = Universe.CudfMapping.decodePkgName name in
+            let req = resolveReq name pkg in
+            if not (seenMissingFor req reasons)
+            then
+              let chain = (req, pkg::path) in
+              let available =
+                Universe.CudfMapping.univ cudfMapping
+                |> Universe.findVersions ~name
+                |> List.map ~f:(fun p -> p.Package.version)
+              in
+              let missing = Missing (chain, available) in
+              missing::reasons
+            else reasons
+          in
+          List.fold_left ~f ~init:reasons vpkglist
+        | _ -> reasons
+      in
+      List.fold_left ~f ~init:[] reasons
+    in
+
+    reasons
+
+  let explain ~cudfMapping ~root cudf =
     let open RunAsync.Syntax in
-    let%bind opamRegistry = OpamRegistry.init ~cfg () in
-    return {
-      availableNpmVersions = NpmPackages.make ();
-      availableOpamVersions = OpamPackages.make ();
-      opamRegistry;
-      npmPackages = Hashtbl.create(100);
-      opamPackages = Hashtbl.create(100);
-      pkgs = Packages.make ();
-      sources = Sources.make ();
-    }
+    begin match Algo.Depsolver.check_request ~explain:true cudf with
+    | Algo.Depsolver.Sat  _
+    | Algo.Depsolver.Unsat None
+    | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Success _; _ }) ->
+      return None
+    | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Failure reasons; _ }) ->
+      let reasons = reasons () in
+      let reasons = collectReasons ~cudfMapping ~root reasons in
+      return (Some reasons)
+    | Algo.Depsolver.Error err -> error err
+    end
 
 end
 
 type t = {
   cfg: Config.t;
-  cache: Cache.t;
+  resolver : Resolver.t;
   mutable universe: Universe.t;
 }
 
-let make ?cache ~cfg () =
+type solveResult = (Solution.t, Explanation.t) result
+
+let make ~cfg ?resolver ~resolutions root =
   let open RunAsync.Syntax in
-  let%bind cache =
-    match cache with
-    | Some cache -> return cache
-    | None -> Cache.make ~cfg ()
+
+  let rewritePkgWithResolutions (pkg : Package.t) =
+    let rewriteReq req =
+      match PackageInfo.Resolutions.apply resolutions req with
+      | Some req -> req
+      | None -> req
+    in
+    {
+      pkg with
+      dependencies = {
+        pkg.dependencies with
+        dependencies =
+          List.map ~f:rewriteReq pkg.dependencies.dependencies
+      }
+    }
   in
-  return {
-    cfg;
-    cache;
-    universe = Universe.empty;
-  }
 
-module Strategies = struct
-  let trendy = "-removed,-notuptodate,-new"
-end
+  let%bind state =
+    let%bind resolver =
+      match resolver with
+      | Some resolver -> return resolver
+      | None -> Resolver.make ~cfg ()
+    in
+    return {
+      cfg;
+      resolver;
+      universe = Universe.empty;
+    }
+  in
 
-let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
+  let rec addPkg (pkg : Package.t) =
+    if not (Universe.mem ~pkg state.universe)
+    then
+      let pkg = rewritePkgWithResolutions pkg in
+      state.universe <- Universe.add ~pkg state.universe;
+      pkg.dependencies.dependencies
+      |> List.map ~f:addReq
+      |> RunAsync.List.waitAll
+    else return ()
+
+  and addReq req =
+    let%bind versions =
+      Resolver.resolve ~req state.resolver
+      |> RunAsync.withContext ("processing request: " ^ Req.toString req)
+    in
+    versions
+    |> List.map ~f:addPkg
+    |> RunAsync.List.waitAll
+  in
+
+  let%bind () = addPkg root in
+  return state
+
+let solve ?(strategy=Strategy.trendy) ~root solver =
   let open RunAsync.Syntax in
-  let cudfUniverse, cudfMapping = Universe.toCudf univ in
+
+  let cudfUniverse, cudfMapping = Universe.toCudf solver.universe in
 
   let cudfRoot = Universe.CudfMapping.encodePkgExn root cudfMapping in
 
@@ -109,9 +278,9 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
     let dataIn = printCudfDoc cudf in
     let%bind dataOut = Fs.withTempFile ~data:dataIn (fun filename ->
       let cmd = Cmd.(
-        cfg.Config.esySolveCmd
+        solver.cfg.Config.esySolveCmd
         % ("--strategy=" ^ strategy)
-        % ("--timeout=" ^ string_of_float(cfg.solveTimeout))
+        % ("--timeout=" ^ string_of_float(solver.cfg.solveTimeout))
         % p filename) in
       ChildProcess.runOut cmd
     ) in
@@ -122,229 +291,19 @@ let runSolver ?(strategy=Strategies.trendy) ~cfg ~univ root =
 
   | Error _ ->
     let cudf = preamble, cudfUniverse, request in
-    begin match%bind SolveExplain.explain ~cudfMapping ~root cudf with
-    | Some reasons ->
-      Logs_lwt.err
-        (fun m ->
-          m "@[<v>No solution found (possible explanations below):@\n%a@]"
-          SolveExplain.ppReasons reasons);%lwt
-      error "no solution found"
-    | None ->
-      error "no solution found"
+    begin match%bind Explanation.explain ~cudfMapping ~root cudf with
+    | Some reasons -> return (Error reasons)
+    | None -> return (Error Explanation.empty)
     end
 
-  | Ok (_preamble, universe) ->
+  | Ok (_preamble, cudfUniv) ->
 
-    let cudfPackagesToInstall =
-      Cudf.get_packages
-        ~filter:(fun p -> p.Cudf.installed)
-        universe
-    in
-
-    let packagesToInstall =
-      cudfPackagesToInstall
+    let dependencies =
+      cudfUniv
+      |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
       |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
       |> List.filter ~f:(fun p -> p.Package.name <> root.Package.name)
     in
 
-    return (Some packagesToInstall)
-
-let getPackageCached ~state name version =
-  let open RunAsync.Syntax in
-  let key = (name, version) in
-  Cache.Packages.compute (state.cache).pkgs key begin fun _ ->
-    let%bind manifest =
-      match version with
-      | Version.Source (Source.LocalPath _) -> error "not implemented"
-      | Version.Source (Git _) -> error "not implemented"
-      | Version.Source (Github (user, repo, ref)) ->
-        begin match%bind Package.Github.getManifest ~user ~repo ~ref () with
-        | Package.PackageJson manifest ->
-          return (Package.PackageJson ({ manifest with name }))
-        | manifest -> return manifest
-        end
-      | Version.Source Source.NoSource -> error "no source"
-      | Version.Source (Source.Archive _) -> error "not implemented"
-      | Version.Npm version ->
-        let%bind manifest = NpmRegistry.version ~cfg:(state.cfg) name version in
-        return (Package.PackageJson manifest)
-      | Version.Opam version ->
-        let name = OpamFile.PackageName.ofNpmExn name in
-        begin match%bind OpamRegistry.version state.cache.opamRegistry ~name ~version with
-          | Some manifest ->
-            return (Package.Opam manifest)
-          | None -> error ("no such opam package: " ^ OpamFile.PackageName.toString name)
-        end
-    in
-    let%bind pkg = RunAsync.ofRun (Package.make ~version manifest) in
-    return pkg
-  end
-
-let getAvailableVersions ~state:(state : t)  (req : Req.t) =
-  let open RunAsync.Syntax in
-  let cache = state.cache in
-  let name = Req.name req in
-  let spec = Req.spec req in
-  match spec with
-
-  | VersionSpec.Npm formula ->
-    let%bind available =
-      Cache.NpmPackages.compute cache.availableNpmVersions name begin fun name ->
-        let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
-        let%bind versions = NpmRegistry.versions ~cfg:(state.cfg) name in
-        let () =
-          let cacheManifest (version, manifest) =
-            let version = PackageInfo.Version.Npm version in
-            let key = (name, version) in
-            Cache.Packages.ensureComputed cache.pkgs key begin fun _ ->
-              Lwt.return (Package.make ~version (Package.PackageJson manifest))
-            end
-          in
-          List.iter ~f:cacheManifest versions
-        in
-        return versions
-      end
-    in
-    available
-    |> List.sort ~cmp:(fun (va, _) (vb, _) -> NpmVersion.Version.compare va vb)
-    |> List.filter ~f:(fun (version, _json) -> NpmVersion.Formula.DNF.matches formula ~version)
-    |> List.map ~f:(
-        fun (version, _json) ->
-          let version = PackageInfo.Version.Npm version in
-          let%bind pkg = getPackageCached ~state name version in
-          return pkg
-        )
-    |> RunAsync.List.joinAll
-
-  | VersionSpec.Opam semver ->
-    let%bind available =
-      Cache.OpamPackages.compute cache.availableOpamVersions name begin fun name ->
-        let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
-        let%bind opamName = RunAsync.ofRun (OpamFile.PackageName.ofNpm name) in
-        let%bind info = OpamRegistry.versions (state.cache).opamRegistry ~name:opamName in
-        return info
-      end
-    in
-
-    let available =
-      List.sort
-        ~cmp:(fun (va, _) (vb, _) -> OpamVersion.Version.compare va vb)
-        available
-    in
-
-    let matched =
-      List.filter
-        ~f:(fun (version, _path) -> OpamVersion.Formula.DNF.matches semver ~version)
-        available
-    in
-
-    let matched =
-      if matched = []
-      then
-        List.filter
-          ~f:(fun (version, _path) -> OpamVersion.Formula.DNF.matches semver ~version)
-          available
-      else matched
-    in
-
-    matched
-    |> List.map
-        ~f:(fun (version, _path) ->
-            let version = PackageInfo.Version.Opam version in
-            let%bind pkg = getPackageCached ~state name version in
-            return pkg)
-    |> RunAsync.List.joinAll
-
-  | VersionSpec.Source (SourceSpec.Github (user, repo, ref) as srcSpec) ->
-      let%bind source =
-        Cache.Sources.compute (state.cache).sources srcSpec begin fun _ ->
-          let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
-          let%bind ref =
-            match ref with
-            | Some ref -> return ref
-            | None ->
-              let remote =
-                Printf.sprintf (("https://github.com/%s/%s")
-                  [@reason.raw_literal
-                    "https://github.com/%s/%s"]) user repo in
-              Git.lsRemote ~remote ()
-          in
-          return (Source.Github (user, repo, ref))
-        end
-      in
-      let version = Version.Source source in
-      let%bind pkg = getPackageCached ~state name version in
-      return [pkg]
-
-  | VersionSpec.Source (SourceSpec.Git _) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
-    error "git dependencies are not supported"
-
-  | VersionSpec.Source SourceSpec.NoSource ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
-    error "no source dependencies are not supported"
-
-  | VersionSpec.Source (SourceSpec.Archive _) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
-    error "archive dependencies are not supported"
-
-  | VersionSpec.Source (SourceSpec.LocalPath p) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
-    let version = Version.Source (Source.LocalPath p) in
-    let%bind pkg = getPackageCached ~state name version in
-    return [pkg]
-
-let initState ~cfg  ?cache  ~resolutions  root =
-  let open RunAsync.Syntax in
-
-  let rewritePkgWithResolutions (pkg : Package.t) =
-    let rewriteReq req =
-      match PackageInfo.Resolutions.apply resolutions req with
-      | Some req -> req
-      | None -> req
-    in
-    {
-      pkg with
-      dependencies = {
-        pkg.dependencies with
-        dependencies =
-          List.map ~f:rewriteReq pkg.dependencies.dependencies
-      }
-    }
-  in
-
-  let%bind state = make ?cache ~cfg () in
-
-  let rec addPkg (pkg : Package.t) =
-    if not (Universe.mem ~pkg state.universe)
-    then
-      let pkg = rewritePkgWithResolutions pkg in
-      state.universe <- Universe.add ~pkg state.universe;
-      pkg.dependencies.dependencies
-      |> List.map ~f:addReq
-      |> RunAsync.List.waitAll
-    else return ()
-
-  and addReq req =
-    let%bind versions =
-      getAvailableVersions ~state req
-      |> RunAsync.withContext ("processing request: " ^ Req.toString req)
-    in
-    versions
-    |> List.map ~f:addPkg
-    |> RunAsync.List.waitAll
-  in
-
-  let%bind () = addPkg root in
-  return state
-
-let solve ~cfg  ~resolutions  (root : Package.t) =
-  let open RunAsync.Syntax in
-  let%bind state = initState ~cfg ~resolutions root in
-  let%bind dependencies =
-    match%bind runSolver ~cfg ~univ:state.universe root with
-    | None -> error "Unable to resolve dependencies"
-    | Some packages -> return packages
-  in
-  let solution = Solution.make ~root ~dependencies in
-  return solution
+    let solution = Solution.make ~root ~dependencies in
+    return (Ok solution)

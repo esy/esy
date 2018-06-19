@@ -1,23 +1,30 @@
-module Cache : sig
+module Strategy : sig
   type t
-  val make : cfg:Config.t -> unit -> t RunAsync.t
+  val trendy : t
+end
+
+module Explanation : sig
+  type t
+  val pp : Format.formatter -> t -> unit
 end
 
 type t = {
   cfg: Config.t;
-  cache: Cache.t;
+  resolver: Resolver.t;
   mutable universe: Universe.t;
 }
 
-val solve :
-  cfg:Config.t
-  -> resolutions:PackageInfo.Resolutions.t
-  -> Package.t
-  -> Solution.t RunAsync.t
+type solveResult = (Solution.t, Explanation.t) result
 
-val initState :
+val make :
   cfg:Config.t
-  -> ?cache:Cache.t
+  -> ?resolver:Resolver.t
   -> resolutions:PackageInfo.Resolutions.t
   -> Package.t
   -> t RunAsync.t
+
+val solve :
+  ?strategy:Strategy.t
+  -> root:Package.t
+  -> t
+  -> solveResult RunAsync.t
