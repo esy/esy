@@ -262,7 +262,7 @@
 
 "@opam/dose3@*":
   version "5.0.1"
-  uid fc91966fd0c7dbccb8f5daf4da8956ff
+  uid d80d1f60961c59d6bdde9b11c7bc71e6
   resolved "@opam/dose3@5.0.1-fc91966fd0c7dbccb8f5daf4da8956ff.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
