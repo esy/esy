@@ -3,34 +3,19 @@ id: configuration
 title: Project Configuration
 ---
 
-## Configuring Your `package.json`
+## package.json
 
 esy knows how to build your package and its dependencies by looking at the
-`"esy"` config section in your `package.json`.
+`package.json` file at the root of the project.
 
-This is how it looks for a [jbuilder](https://jbuilder.readthedocs.io/) based project:
+Because esy needs more information about the project, it extends `package.json`
+with the following fields:
 
-```json
-{
-  "name": "example-package",
-  "version": "1.0.0",
-
-  "esy": {
-    "build": [
-      "jbuilder build"
-    ],
-    "install": [
-      "esy-installer"
-    ],
-    "buildsInSource": "_build"
-  },
-
-  "dependencies": {
-    "anotherpackage": "1.0.0",
-    "@esy-ocaml/esy-installer"
-  }
-}
-```
+* [`esy.build`](#esybuild)
+* [`esy.install`](#esyinstall)
+* [`esy.buildsInSource`](#esybuildsinsource)
+* [`esy.exportedEnv`](#esy.exportedenv)
+* [`scripts`](#scripts)
 
 ## Specify Build & Install Commands
 
@@ -58,7 +43,7 @@ command.
 Commands specified in `esy.build` are always executed for the root's project
 when user calls `esy build` command.
 
-[Esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
+[esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare build commands.
 
 ### `esy.install`
@@ -79,18 +64,24 @@ list of commands with `esy.install` config key.
 
 For `jbuilder` based projects (and other projects which maintain `.install` file
 in opam format) that could be just a single `esy-installer` invokation. The
-command is a thin wrapper over `opam-installer` which configures it with Esy
+command is a thin wrapper over `opam-installer` which configures it with esy
 defaults.
 
-[Esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
+[esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare install commands.
 
 ## Enforcing Out Of Source Builds
 
-Esy requires packages to be built "out of source".
+esy requires packages to be built "out of source".
 
-It allows Esy to separate source code from built artifacts and thus reuse the
-same source code location with several projects/sandboxes.
+It allows esy to separate source code from built artifacts and thus reuse the
+same source code location between several sandboxes.
+
+### `esy.buildsInSource`
+
+Because not every project's build system is designed in a way which allows "out
+of source" builds esy has special settings `esy.buildsInSource` which provide
+a useful workaround.
 
 There are three modes which are controlled by `esy.buildsInSource` config key:
 
@@ -104,13 +95,13 @@ There are three modes which are controlled by `esy.buildsInSource` config key:
 }
 ```
 
-Each mode changes how Esy executes [build commands](#esybuild). This is how
+Each mode changes how esy executes [build commands](#esybuild). This is how
 those modes work:
 
 * `"_build"`
 
   Build commands can place artifacts inside the `_build` directory of the
-  project's root (`$cur__root/_build` in terms of Esy [build
+  project's root (`$cur__root/_build` in terms of esy [build
   environment](environment.md#build-environment)).
 
   This is what [jbuilder](https://jbuilder.readthedocs.io/) or [ocamlbuild](https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc) (in its default configuration)
@@ -122,17 +113,51 @@ those modes work:
 
 * `true`
 
-  Projects are allowed to place build artifacts anywhere in their source tree, but not outside of their source tree. Otherwise, Esy will defensively copy project's root into `$cur__target_dir` and run build commands from there.
+  Projects are allowed to place build artifacts anywhere in their source tree, but not outside of their source tree. Otherwise, esy will defensively copy project's root into `$cur__target_dir` and run build commands from there.
 
   This is the mode which should be used as the last resort as it degrades
   performance of the builds greatly by placing correctness as a priority.
+
+## Project Specific Commands
+
+### `scripts`
+
+Similar to npm and yarn, esy supports custom project specific commands via
+`scripts` section inside `package.json`.
+
+```
+"scripts": {
+  "build-dev": "esy build jbuilder build --dev",
+  "test": "jbuilder runtest",
+}
+```
+
+The example above defines two new commands.
+
+The command `esy build-dev` is defined as a shortcut for the following
+invocation:
+
+```bash
+esy build jbuilder build --dev
+```
+
+While the command `esy test` is defined as:
+
+```bash
+esy jbuild runtest
+```
+
+Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
+
 
 ## Exported Environment
 
 Packages can configure how they contribute to the environment of the packages
 which depend on them.
 
-To add a new environment variable to the Esy [build
+### `esy.exportedEnv`
+
+To add a new environment variable to the esy [build
 environment](#build-environment) packages could specify `esy.exportedEnv` config
 key:
 
@@ -153,7 +178,34 @@ In the example above, the configuration _exports_ (in this specific case it
 _re-exports_ it) an environment variable called `$CAML_LD_LIBRARY_PATH` by
 appending `$mylib__lib` to its previous value.
 
-Also note the usage of [Esy variable substitution
+Also note the usage of [esy variable substitution
 syntax](#variable-substitution-syntax) to define the value of the
 `$CAML_LD_LIBRARY_PATH` variable.
+
+## Example: dune (jbuilder)
+
+This is how it looks for a [dune](https://jbuilder.readthedocs.io/) (formely
+jbuilder) based project:
+
+```json
+{
+  "name": "my-dune-project",
+  "version": "1.0.0",
+
+  "esy": {
+    "build": [
+      "jbuilder build"
+    ],
+    "install": [
+      "esy-installer"
+    ],
+    "buildsInSource": "_build"
+  },
+
+  "dependencies": {
+    "@opam/jbuilder": "*",
+    "@esy-ocaml/esy-installer"
+  }
+}
+```
 
