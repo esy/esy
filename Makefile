@@ -33,6 +33,14 @@ define HELP
    bump-minor-version  Bump minor package version (commits & tags)
    bump-patch-version  Bump patch package version (commits & tags)
 
+ Website tasks:
+
+   website-serve       Serve website locally
+   website-publish     Publish website to https://esy.sh (powered by GitHub Pages)
+                       Note that the current USER environment variable will be used as a
+                       GitHub user used for push. You can override it by setting GIT_USER
+                       env: make GIT_USER=anna publish
+
  Other tasks:
 
    refmt               Reformal all *.re source with refmt
@@ -197,3 +205,12 @@ bump-patch-version:
 refmt::
 	@find $(PROJECTS) -name '*.re' \
 		| xargs -n1 esy refmt --in-place --print-width 80
+
+## Website
+
+website-start:
+	@$(MAKE) -C website start
+website-build:
+	@$(MAKE) -C website build
+website-publish:
+	@$(MAKE) -C website publish
