@@ -5,7 +5,7 @@ module C = Formula.Constraint;
 
 let singleDnf = c => F.OR([F.AND([c])]);
 
-let fromPrefix = (op, version) : F.dnf => {
+let fromPrefix = (op, version) : F.DNF.t => {
   let v = Version.parseExn(version);
   switch (op) {
   | `Eq => singleDnf(C.EQ(v))
@@ -17,7 +17,7 @@ let fromPrefix = (op, version) : F.dnf => {
   };
 };
 
-let rec getOCamlVersion = opamvalue : F.dnf => {
+let rec getOCamlVersion = opamvalue : F.DNF.t => {
   let any = singleDnf(C.ANY);
   /* Shared.VersionFormula.ANY */
   OpamParserTypes.(

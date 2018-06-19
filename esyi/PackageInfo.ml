@@ -69,6 +69,9 @@ module Version = struct
     | Opam v -> "opam:" ^ OpamVersion.Version.toString(v)
     | Source src -> (Source.toString src)
 
+  let pp fmt v =
+    Fmt.fmt "%s" fmt (toString v)
+
   let parse v =
     let open Result.Syntax in
     match Parse.cutWith ":" v with
@@ -142,8 +145,8 @@ end
 module VersionSpec = struct
 
   type t =
-    | Npm of NpmVersion.Formula.dnf
-    | Opam of OpamVersion.Formula.dnf
+    | Npm of NpmVersion.Formula.DNF.t
+    | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
   let toString = function
@@ -153,7 +156,7 @@ module VersionSpec = struct
 
   let to_yojson src = `String (toString src)
 
-  let satisfies ~version spec =
+  let matches ~version spec =
     match spec, version with
     | Npm formula, Version.Npm version ->
       NpmVersion.Formula.DNF.matches ~version formula
@@ -191,6 +194,9 @@ module Req = struct
 
   let to_yojson req =
     `String (toString req)
+
+  let pp fmt req =
+    Fmt.fmt "%s" fmt (toString req)
 
   let make ~name ~spec =
     let parseGitHubSpec text =

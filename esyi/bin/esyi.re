@@ -7,7 +7,7 @@ module Api = {
       {
         let%lwt () = Logs_lwt.app(m => m("Resolving dependencies"));
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        let%bind pkg =
+        let%bind root =
           RunAsync.ofRun(
             Package.make(
               ~version=
@@ -17,13 +17,26 @@ module Api = {
               Package.PackageJson(manifest),
             ),
           );
-        let%bind solution =
-          Solve.solve(
+        let%bind state =
+          Solver.make(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
-            pkg,
+            root,
           );
-        Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
+        switch%bind (Solver.solve(~root, state)) {
+        | Ok(solution) =>
+          Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath)
+        | Error(explanation) =>
+          let%lwt () =
+            Logs_lwt.err(m =>
+              m(
+                "@[<v>No solution found:@;@;%a@]",
+                Solver.Explanation.pp,
+                explanation,
+              )
+            );
+          error("");
+        };
       }
     );
 
@@ -56,13 +69,12 @@ module Api = {
             ),
           );
         let%bind state =
-          Solve.initState(
+          Solver.make(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
             root,
           );
-        let cudfUniverse =
-          SolveState.Universe.toCudfUniverse(state.SolveState.universe);
+        let (cudfUniverse, _) = Universe.toCudf(state.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }

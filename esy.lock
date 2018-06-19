@@ -246,7 +246,7 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/cudf@0.9":
+"@opam/cudf@ >= 0.7.0", "@opam/cudf@0.9":
   version "0.9.0"
   uid "68efd1b03b4e1495d74eeb4b716b913a"
   resolved "@opam/cudf@0.9.0-68efd1b03b4e1495d74eeb4b716b913a.tgz"
@@ -257,6 +257,24 @@
     "@opam/extlib" "*"
     "@opam/extlib-compat" "*"
     "@opam/ocamlbuild" "*"
+  peerDependencies:
+    ocaml "*"
+
+"@opam/dose3@*":
+  version "5.0.1"
+  uid d80d1f60961c59d6bdde9b11c7bc71e6
+  resolved "@opam/dose3@5.0.1-fc91966fd0c7dbccb8f5daf4da8956ff.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/conf-perl" "*"
+    "@opam/cppo" " >= 1.1.2"
+    "@opam/cudf" " >= 0.7.0"
+    "@opam/extlib" " >= 1.7.0"
+    "@opam/extlib-compat" " >= 1.7.0"
+    "@opam/ocamlbuild" "*"
+    "@opam/ocamlgraph" " >= 1.8.6"
+    "@opam/re" " >= 1.2.2"
   peerDependencies:
     ocaml "*"
 
@@ -271,7 +289,7 @@
   peerDependencies:
     ocaml " >= 4.2.3000"
 
-"@opam/extlib-compat@*":
+"@opam/extlib-compat@ >= 1.7.0", "@opam/extlib-compat@*":
   version "1.7.2"
   uid cc6d1f9782489bb9b262f0dd6eefad3e
   resolved "@opam/extlib-compat@1.7.2-cc6d1f9782489bb9b262f0dd6eefad3e.tgz"
@@ -284,7 +302,7 @@
   peerDependencies:
     ocaml " < 4.7.0"
 
-"@opam/extlib@*":
+"@opam/extlib@ >= 1.7.0", "@opam/extlib@*":
   version "1.7.4"
   uid "841611d908facb00c9780806e7e290f3"
   resolved "@opam/extlib@1.7.4-841611d908facb00c9780806e7e290f3.tgz"
@@ -516,6 +534,17 @@
   peerDependencies:
     ocaml " >= 4.0.0"
 
+"@opam/ocamlgraph@ >= 1.8.6":
+  version "1.8.8"
+  uid "2b87921b52b557831c6964b139209f76"
+  resolved "@opam/ocamlgraph@1.8.8-2b87921b52b557831c6964b139209f76.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/ocamlfind" "*"
+  peerDependencies:
+    ocaml "*"
+
 "@opam/ocp-build@ >= 1.99.6--beta":
   version "1.99.20--beta"
   uid e257cd415f77a7b2e9714bfd95aafbe2
@@ -690,7 +719,7 @@
   peerDependencies:
     ocaml " >= 4.4.1000"
 
-"@opam/re@^1.7.1":
+"@opam/re@ >= 1.2.2", "@opam/re@^1.7.1":
   version "1.7.3"
   uid "98b9a57656724b0540d0e404ad8a6024"
   resolved "@opam/re@1.7.3-98b9a57656724b0540d0e404ad8a6024.tgz"

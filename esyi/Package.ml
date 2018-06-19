@@ -51,6 +51,20 @@ let make ~version manifest =
     opam;
   }
 
+let pp fmt pkg =
+  Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
+
+let compare pkga pkgb =
+  let name = String.compare pkga.name pkgb.name in
+  if name = 0
+  then Version.compare pkga.version pkgb.version
+  else name
+
+module Map = Map.Make(struct
+  type nonrec t = t
+  let compare = compare
+end)
+
 module Github = struct
   let getManifest ~user ~repo ?(ref="master") () =
     let open RunAsync.Syntax in

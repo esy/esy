@@ -88,6 +88,7 @@ end
  * Work with lists of computations.
  *)
 module List : sig
+  val foldLeft : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
   val waitAll : unit t list -> unit t
   val joinAll : 'a t list -> 'a list t
   val processSeq :

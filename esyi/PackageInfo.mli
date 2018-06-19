@@ -33,6 +33,8 @@ module Version : sig
   val of_yojson : Json.t -> (t, string) result
   val toNpmVersion : t -> string
 
+  val pp : Format.formatter -> t -> unit
+
   module Map : Map.S with type key := t
 end
 
@@ -57,18 +59,20 @@ end
  *)
 module VersionSpec : sig
   type t =
-      Npm of NpmVersion.Formula.dnf
-    | Opam of OpamVersion.Formula.dnf
+      Npm of NpmVersion.Formula.DNF.t
+    | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
 
-  val satisfies : version:Version.t -> t -> bool
+  val matches : version:Version.t -> t -> bool
   val ofVersion : Version.t -> t
 end
 
 module Req : sig
   type t
+
+  val pp : Format.formatter -> t -> unit
 
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]

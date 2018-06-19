@@ -56,6 +56,19 @@ let runExn ?err v =
   Run.runExn ?err v
 
 module List = struct
+
+  let foldLeft ~(f : 'a -> 'b -> 'a t) ~(init : 'a) (xs : 'b list) =
+    let rec fold acc xs =
+      match%lwt acc with
+      | Error err -> Lwt.return (Error err)
+      | Ok acc ->
+        begin match xs with
+        | [] -> return acc
+        | x::xs -> fold (f acc x) xs
+        end
+    in
+    fold (return init) xs
+
   let joinAll xs =
     let rec _joinAll xs res = match xs with
       | [] ->
