@@ -4,6 +4,6 @@ val explain :
   cudfMapping:Universe.CudfMapping.t
   -> root:Package.t
   -> Cudf.cudf
-  -> reasons Run.t
+  -> reasons option RunAsync.t
 
 val ppReasons : reasons Fmt.t

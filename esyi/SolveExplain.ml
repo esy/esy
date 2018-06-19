@@ -125,18 +125,17 @@ let collectReasons ~cudfMapping ~root reasons =
   reasons
 
 let explain ~cudfMapping ~root cudf =
-  let open Run.Syntax in
+  let open RunAsync.Syntax in
   begin match Algo.Depsolver.check_request ~explain:true cudf with
-  | Algo.Depsolver.Error err -> error err
-  | Algo.Depsolver.Sat  _ ->
-    failwith "incostistent state: dose and mccs have different opinion"
-  | Algo.Depsolver.Unsat None ->
-    failwith "incostistent state: no explanation available"
+  | Algo.Depsolver.Sat  _
+  | Algo.Depsolver.Unsat None
   | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Success _; _ }) ->
-    failwith "incostistent state: dose reports success"
+    return None
   | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Failure reasons; _ }) ->
     let reasons = reasons () in
-    return (collectReasons ~cudfMapping ~root reasons)
+    let reasons = collectReasons ~cudfMapping ~root reasons in
+    return (Some reasons)
+  | Algo.Depsolver.Error err -> error err
   end
 
 let ppEm pp =
@@ -147,10 +146,10 @@ let ppErr pp =
 
 let ppChain fmt (req, path) =
   let ppPkgName fmt pkg = Fmt.string fmt pkg.Package.name in
-  let sep = Fmt.unit " <- " in
+  let sep = Fmt.unit " -> " in
   Fmt.pf fmt
     "@[<v>%a@,(required by %a)@]"
-    (ppErr Req.pp) req Fmt.(list ~sep (ppEm ppPkgName)) path
+    (ppErr Req.pp) req Fmt.(list ~sep (ppEm ppPkgName)) (List.rev path)
 
 let ppReason fmt = function
   | Missing (chain, available) ->
