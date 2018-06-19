@@ -3,11 +3,6 @@ id: development
 title: Development
 ---
 
-* [Testing Locally](#testing-locally)
-* [Running Tests](#running-tests)
-* [Issues](#issues)
-* [Publishing Releases](#publishing-releases)
-
 To make changes to `esy` and test them locally:
 
 ```bash
@@ -24,7 +19,7 @@ make
 
 to see the description of development workflow.
 
-### Testing Locally
+## Testing Locally
 
 ```bash
 make build-release
@@ -37,17 +32,17 @@ Now you may run `esy` commands using your local version of `esy`.
 > You don't have to install local version of esy globally if you're in the middle of developing something.
 > Just running `PATH_TO_ESY/bin/esy` will work, too.
 
-### Running Tests
+## Running Tests
 
 ```bash
 make test
 ```
 
-### Issues
+## Issues
 
 Issues are tracked at [esy/esy](https://github.com/esy/esy).
 
-### Publishing Releases
+## Publishing Releases
 
 On a clean branch off of `origin/master`, run:
 

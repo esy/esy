@@ -169,4 +169,8 @@ nav.toc .toggleNav ul li a.navItemActive {
   font-size: 22px;
 }
 
+blockquote {
+  font-size: 90%;
+}
+
 /* end override */
