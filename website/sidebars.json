@@ -1,0 +1,20 @@
+{
+  "docs": {
+    "Workflow": [
+      "what-why",
+      "getting-started",
+      "configuration",
+      "esy-configuration",
+      "environment",
+      "commands",
+      "concepts"
+    ],
+    "Advanced": [
+      "release"
+    ],
+    "Internals": [
+      "how-it-works",
+      "development"
+    ]
+  }
+}
