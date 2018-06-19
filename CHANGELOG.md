@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.19 @ preview
+
+* Dependency solver now provides possible explanation in case of failures.
+
 ## 0.1.18 @ preview
 
 * Parse scripts only for the top level package's manifest.
