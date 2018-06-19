@@ -35,8 +35,8 @@ define HELP
 
  Website tasks:
 
-   website-serve       Serve website locally
-   website-publish     Publish website to https://esy.sh (powered by GitHub Pages)
+   site-serve          Serve site locally
+   site-publish        Publish site to https://esy.sh (powered by GitHub Pages)
                        Note that the current USER environment variable will be used as a
                        GitHub user used for push. You can override it by setting GIT_USER
                        env: make GIT_USER=anna publish
@@ -208,9 +208,9 @@ refmt::
 
 ## Website
 
-website-start:
-	@$(MAKE) -C website start
-website-build:
-	@$(MAKE) -C website build
-website-publish:
-	@$(MAKE) -C website publish
+site-start:
+	@$(MAKE) -C site start
+site-build:
+	@$(MAKE) -C site build
+site-publish:
+	@$(MAKE) -C site publish
