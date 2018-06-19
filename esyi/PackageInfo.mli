@@ -65,7 +65,7 @@ module VersionSpec : sig
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
 
-  val satisfies : version:Version.t -> t -> bool
+  val matches : version:Version.t -> t -> bool
   val ofVersion : Version.t -> t
 end
 

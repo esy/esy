@@ -10,13 +10,19 @@ module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"
 end
 
+type t = {
+  cfg: Config.t;
+  resolver : Resolver.t;
+  mutable universe: Universe.t;
+}
+
 module Explanation = struct
 
   type t = reason list
 
   and reason =
     | Conflict of chain * chain
-    | Missing of chain * Version.t list
+    | Missing of chain * Resolver.Resolution.t list
 
   and chain =
     Req.t * Package.t list
@@ -41,7 +47,7 @@ module Explanation = struct
         Fmt.pf fmt
           "No packages matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
           ppChain chain
-          (Fmt.list Version.pp) available
+          (Fmt.list Resolver.Resolution.pp) available
       | Conflict (chaina, chainb) ->
         Fmt.pf fmt
           "@[<v 2>Conflicting dependencies:@;@%a@;%a@]"
@@ -51,7 +57,8 @@ module Explanation = struct
     let sep = Fmt.unit "@;@;" in
     Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep ppReason) reasons
 
-  let collectReasons ~cudfMapping ~root reasons =
+  let collectReasons ~resolver ~cudfMapping ~root reasons =
+    let open RunAsync.Syntax in
 
     (* Find a pair of requestor, path for the current package.
     * Note that there can be multiple paths in the dependency graph but we only
@@ -131,8 +138,8 @@ module Explanation = struct
           if not (seenConflictFor reqa reqb reasons)
           then
             let conflict = Conflict ((reqa, requestora::patha), (reqb, requestorb::pathb)) in
-            conflict::reasons
-          else reasons
+            return (conflict::reasons)
+          else return reasons
         | Algo.Diagnostic.Missing (pkg, vpkglist) ->
           let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
           let path =
@@ -148,24 +155,23 @@ module Explanation = struct
             if not (seenMissingFor req reasons)
             then
               let chain = (req, pkg::path) in
-              let available =
-                Universe.CudfMapping.univ cudfMapping
-                |> Universe.findVersions ~name
-                |> List.map ~f:(fun p -> p.Package.version)
+              let%bind available =
+                let req = Req.make ~name:(Req.name req) ~spec:"*" in
+                Resolver.resolve ~req resolver
               in
               let missing = Missing (chain, available) in
-              missing::reasons
-            else reasons
+              return (missing::reasons)
+            else return reasons
           in
-          List.fold_left ~f ~init:reasons vpkglist
-        | _ -> reasons
+          RunAsync.List.foldLeft ~f ~init:reasons vpkglist
+        | _ -> return reasons
       in
-      List.fold_left ~f ~init:[] reasons
+      RunAsync.List.foldLeft ~f ~init:[] reasons
     in
 
     reasons
 
-  let explain ~cudfMapping ~root cudf =
+  let explain ~resolver ~cudfMapping ~root cudf =
     let open RunAsync.Syntax in
     begin match Algo.Depsolver.check_request ~explain:true cudf with
     | Algo.Depsolver.Sat  _
@@ -174,18 +180,12 @@ module Explanation = struct
       return None
     | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Failure reasons; _ }) ->
       let reasons = reasons () in
-      let reasons = collectReasons ~cudfMapping ~root reasons in
+      let%bind reasons = collectReasons ~resolver ~cudfMapping ~root reasons in
       return (Some reasons)
     | Algo.Depsolver.Error err -> error err
     end
 
 end
-
-type t = {
-  cfg: Config.t;
-  resolver : Resolver.t;
-  mutable universe: Universe.t;
-}
 
 type solveResult = (Solution.t, Explanation.t) result
 
@@ -232,11 +232,18 @@ let make ~cfg ?resolver ~resolutions root =
     else return ()
 
   and addReq req =
-    let%bind versions =
+    let%bind resolutions =
       Resolver.resolve ~req state.resolver
-      |> RunAsync.withContext ("processing request: " ^ Req.toString req)
+      |> RunAsync.withContext ("resolving request: " ^ Req.toString req)
     in
-    versions
+
+    let%bind packages =
+      resolutions
+      |> List.map ~f:(fun resolution -> Resolver.package ~resolution state.resolver)
+      |> RunAsync.List.joinAll
+    in
+
+    packages
     |> List.map ~f:addPkg
     |> RunAsync.List.waitAll
   in
@@ -291,7 +298,7 @@ let solve ?(strategy=Strategy.trendy) ~root solver =
 
   | Error _ ->
     let cudf = preamble, cudfUniverse, request in
-    begin match%bind Explanation.explain ~cudfMapping ~root cudf with
+    begin match%bind Explanation.explain ~resolver:solver.resolver ~cudfMapping ~root cudf with
     | Some reasons -> return (Error reasons)
     | None -> return (Error Explanation.empty)
     end

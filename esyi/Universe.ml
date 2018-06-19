@@ -218,7 +218,7 @@ let toCudf univ =
 
     let versionsMatched =
       List.filter
-        ~f:(fun pkg -> VersionSpec.satisfies ~version:pkg.Package.version spec)
+        ~f:(fun pkg -> VersionSpec.matches ~version:pkg.Package.version spec)
         versions
     in
 

@@ -4,6 +4,19 @@ module Version = PackageInfo.Version
 module Source = PackageInfo.Source
 module Req = PackageInfo.Req
 
+module Resolution = struct
+  type t = {
+    name: string;
+    version: Version.t
+  }
+
+  let cmpByVersion a b =
+    Version.compare a.version b.version
+
+  let pp fmt {name; version} =
+    Fmt.pf fmt "%s@%a" name Version.pp version
+end
+
 module PackageCache = Memoize.Make(struct
   type key = (string * PackageInfo.Version.t)
   type value = Package.t RunAsync.t
@@ -14,14 +27,14 @@ module SourceCache = Memoize.Make(struct
   type value = Source.t RunAsync.t
 end)
 
-module NpmCache = Memoize.Make(struct
+module NpmResolutionCache = Memoize.Make(struct
   type key = string
-  type value = (NpmVersion.Version.t * PackageJson.t) list RunAsync.t
+  type value = Resolution.t list RunAsync.t
 end)
 
-module OpamCache = Memoize.Make(struct
+module OpamResolutionCache = Memoize.Make(struct
   type key = string
-  type value = (OpamVersion.Version.t * OpamFile.ThinManifest.t) list RunAsync.t
+  type value = Resolution.t list RunAsync.t
 end)
 
 type t = {
@@ -29,8 +42,8 @@ type t = {
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
   opamRegistry : OpamRegistry.t;
-  npmCache : NpmCache.t;
-  opamCache : OpamCache.t;
+  npmResolutionCache : NpmResolutionCache.t;
+  opamResolutionCache : OpamResolutionCache.t;
 }
 
 let make ~cfg () =
@@ -41,38 +54,38 @@ let make ~cfg () =
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
     opamRegistry;
-    npmCache = NpmCache.make ();
-    opamCache = OpamCache.make ();
+    npmResolutionCache = NpmResolutionCache.make ();
+    opamResolutionCache = OpamResolutionCache.make ();
   }
 
-let fetchPackage ~name ~version resolver =
+let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
-  let key = (name, version) in
+  let key = (resolution.name, resolution.version) in
   PackageCache.compute resolver.pkgCache key begin fun _ ->
     let%bind manifest =
-      match version with
+      match resolution.version with
       | Version.Source (Source.LocalPath _) -> error "not implemented"
       | Version.Source (Git _) -> error "not implemented"
       | Version.Source (Github (user, repo, ref)) ->
         begin match%bind Package.Github.getManifest ~user ~repo ~ref () with
         | Package.PackageJson manifest ->
-          return (Package.PackageJson ({ manifest with name }))
+          return (Package.PackageJson ({ manifest with name = resolution.name }))
         | manifest -> return manifest
         end
       | Version.Source Source.NoSource -> error "no source"
       | Version.Source (Source.Archive _) -> error "not implemented"
       | Version.Npm version ->
-        let%bind manifest = NpmRegistry.version ~cfg:resolver.cfg name version in
+        let%bind manifest = NpmRegistry.version ~cfg:resolver.cfg resolution.name version in
         return (Package.PackageJson manifest)
       | Version.Opam version ->
-        let name = OpamFile.PackageName.ofNpmExn name in
+        let name = OpamFile.PackageName.ofNpmExn resolution.name in
         begin match%bind OpamRegistry.version resolver.opamRegistry ~name ~version with
           | Some manifest ->
             return (Package.Opam manifest)
           | None -> error ("no such opam package: " ^ OpamFile.PackageName.toString name)
         end
     in
-    let%bind pkg = RunAsync.ofRun (Package.make ~version manifest) in
+    let%bind pkg = RunAsync.ofRun (Package.make ~version:resolution.version manifest) in
     return pkg
   end
 
@@ -84,73 +97,58 @@ let resolve ~req resolver =
 
   match spec with
 
-  | VersionSpec.Npm formula ->
-    let%bind available =
-      NpmCache.compute resolver.npmCache name begin fun name ->
+  | VersionSpec.Npm _ ->
+
+    let%bind resolutions =
+      NpmResolutionCache.compute resolver.npmResolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
         let%bind versions = NpmRegistry.versions ~cfg:resolver.cfg name in
-        let () =
-          let cacheManifest (version, manifest) =
-            let version = PackageInfo.Version.Npm version in
-            let key = (name, version) in
-            PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-              Lwt.return (Package.make ~version (Package.PackageJson manifest))
-            end
-          in
-          List.iter ~f:cacheManifest versions
+
+        let f (version, manifest) =
+          let version = PackageInfo.Version.Npm version in
+          let resolution = {Resolution. name; version} in
+
+          (* precache manifest so we don't have to fetch it once more *)
+          let key = (resolution.name, resolution.version) in
+          PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
+            Lwt.return (Package.make ~version (Package.PackageJson manifest))
+          end;
+
+          resolution
         in
-        return versions
+        return (List.map ~f versions)
       end
     in
-    available
-    |> List.sort ~cmp:(fun (va, _) (vb, _) -> NpmVersion.Version.compare va vb)
-    |> List.filter ~f:(fun (version, _json) -> NpmVersion.Formula.DNF.matches formula ~version)
-    |> List.map ~f:(
-        fun (version, _json) ->
-          let version = PackageInfo.Version.Npm version in
-          let%bind pkg = fetchPackage ~name ~version resolver in
-          return pkg
-        )
-    |> RunAsync.List.joinAll
 
-  | VersionSpec.Opam formula ->
-    let%bind available =
-      OpamCache.compute resolver.opamCache name begin fun name ->
+    let resolutions =
+      resolutions
+      |> List.sort ~cmp:Resolution.cmpByVersion
+      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
+    in
+
+    return resolutions
+
+  | VersionSpec.Opam _ ->
+    let%bind resolutions =
+      OpamResolutionCache.compute resolver.opamResolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
         let%bind opamName = RunAsync.ofRun (OpamFile.PackageName.ofNpm name) in
-        let%bind info = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
-        return info
+        let%bind versions = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
+        let f (version, _) =
+          let version = Version.Opam version in
+          {Resolution. name; version}
+        in
+        return (List.map ~f versions)
       end
     in
 
-    let available =
-      List.sort
-        ~cmp:(fun (va, _) (vb, _) -> OpamVersion.Version.compare va vb)
-        available
+    let resolutions =
+      resolutions
+      |> List.sort ~cmp:Resolution.cmpByVersion
+      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    let matched =
-      List.filter
-        ~f:(fun (version, _path) -> OpamVersion.Formula.DNF.matches formula ~version)
-        available
-    in
-
-    let matched =
-      if matched = []
-      then
-        List.filter
-          ~f:(fun (version, _path) -> OpamVersion.Formula.DNF.matches formula ~version)
-          available
-      else matched
-    in
-
-    matched
-    |> List.map
-        ~f:(fun (version, _path) ->
-            let version = PackageInfo.Version.Opam version in
-            let%bind pkg = fetchPackage ~name ~version resolver in
-            return pkg)
-    |> RunAsync.List.joinAll
+    return resolutions
 
   | VersionSpec.Source (SourceSpec.Github (user, repo, ref) as srcSpec) ->
       let%bind source =
@@ -170,8 +168,7 @@ let resolve ~req resolver =
         end
       in
       let version = Version.Source source in
-      let%bind pkg = fetchPackage ~name ~version resolver in
-      return [pkg]
+      return [{Resolution. name; version}]
 
   | VersionSpec.Source (SourceSpec.Git _) ->
     let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
@@ -188,5 +185,4 @@ let resolve ~req resolver =
   | VersionSpec.Source (SourceSpec.LocalPath p) ->
     let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
     let version = Version.Source (Source.LocalPath p) in
-    let%bind pkg = fetchPackage ~name ~version resolver in
-    return [pkg]
+    return [{Resolution. name; version}]

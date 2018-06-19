@@ -156,7 +156,7 @@ module VersionSpec = struct
 
   let to_yojson src = `String (toString src)
 
-  let satisfies ~version spec =
+  let matches ~version spec =
     match spec, version with
     | Npm formula, Version.Npm version ->
       NpmVersion.Formula.DNF.matches ~version formula
