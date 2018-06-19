@@ -3,16 +3,7 @@ id: how-it-works
 title: How esy works
 ---
 
-* [Build Steps](#build-steps)
-* [Directory Layout](#directory-layout)
-  * [Global Cache](#global-cache)
-  * [Top Level Project Build Artifacts](#top-level-project-build-artifacts)
-  * [Integration with OPAM packages repository](#integration-with-opam-packages-repository)
-    * [Consuming published OPAM packages](#consuming-published-opam-packages)
-    * [Converting OPAM packages manually](#converting-opam-packages-manually)
-    * [Implementation notes](#implementation-notes)
-
-### Build Steps
+## Build Steps
 
 The `build` entry in the `esy` config object is an array of build steps executed in sequence.
 
@@ -28,12 +19,12 @@ A typical configuration might build the artifacts into the special build
 destination, and then copy the important artifacts into the final installation
 location (which is the cache).
 
-### Directory Layout
+## Directory Layout
 
 Here's a general overview of the directory layout created by various `esy`
 commands.
 
-#### Global Cache
+### Global Cache
 
 When building projects, most globally cached artifacts are stored in `~/.esy`.
 
@@ -47,7 +38,7 @@ When building projects, most globally cached artifacts are stored in `~/.esy`.
 The global store's `_build` directory contains the logs for each package build (whether it was successful or not). The `_install` contains the final
 compilation artifacts that should be retained.
 
-#### Top Level Project Build Artifacts
+### Top Level Project Build Artifacts
 
 Not all artifacts are cached globally. Build artifacts for any symlinked
 dependencies (using `yarn link`) are stored in
@@ -91,7 +82,7 @@ Support for "ejecting" a build is computed and stored in
               ├── i
               └── s
 
-#### Advanced Build Environment
+### Advanced Build Environment
 
 The following environment variables are related to the package that is
 currently being built, which might be _different_ than the package that
@@ -118,9 +109,9 @@ which may refer to the "cur" package - the package *cur*ently being built.
 
 This is based on [PJC](https://github.com/jordwalke/PackageJsonForCompilers) spec.
 
-#### Integration with OPAM packages repository
+### Integration with OPAM packages repository
 
-##### Consuming published OPAM packages
+#### Consuming published OPAM packages
 
 During `esy install` command running Esy resolves dependencies within the
 `@opam/*` npm scope using a special resolver which looks for a package in the
@@ -138,7 +129,7 @@ esy add @opam/lwt
 
 You can inspect `node_modules/@opam/lwt/package.json` for Esy build configuration.
 
-##### Converting OPAM packages manually
+#### Converting OPAM packages manually
 
 Esy provides a command `esy import-opam` which can be used like this to convert
 OPAM packages manually into `package.json`-based packages. For example to
@@ -150,7 +141,7 @@ cd lwt
 esy import-opam lwt 3.1.0 ./opam > package.json
 ```
 
-##### Implementation notes
+#### Implementation notes
 
 Code for `esy install` command (along with `esy add` and `esy install-cache`
 commands) is based on a fork of yarn — [esy-ocaml/esy-install](https://github.com/esy/esy-install).

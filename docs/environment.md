@@ -34,7 +34,7 @@ Each environment consists of two parts:
       implemented** currently. The workaround is to declare such dependencies as
       regular dependencies for the time being.
 
-### Build Environment
+## Build Environment
 
 The following environment is provided by esy:
 
@@ -52,7 +52,7 @@ Each regular dependency of the project can also contribute to the environment
 through `"esy.exportedEnv"` key in `package.json`. See [Project
 Configuration](configuration.md) for details.
 
-### Command Environment
+## Command Environment
 
 The following environment is provided by esy:
 
@@ -69,7 +69,7 @@ Each regular **and development** dependency of the project can also contribute t
 environment through `"esy.exportedEnv"` key in `package.json`. See [Project
 Configuration](configuration.md) for details.
 
-### Test Environment
+## Test Environment
 
 The following environment is provided by esy:
 
@@ -86,7 +86,7 @@ Each regular dependency of the project **and the project itself** can also
 contribute to the environment through `"esy.exportedEnv"` key in `package.json`.
 See [Project Configuration](configuration.md) for details.
 
-### Variable substitution syntax
+## Variable substitution syntax
 
 Your `package.json`'s `esy` configuration can include "interpolation" regions
 written as `#{ }`, where `esy` "variables" can be used which will automatically

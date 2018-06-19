@@ -3,7 +3,7 @@ id: what-why
 title: What & Why
 ---
 
-### For npm users
+## For npm users
 
 For those familiar with [npm](https://npmjs.org/), esy allows to work with Reason/OCaml projects
 within the familiar npm-like workflow:
@@ -18,7 +18,7 @@ within the familiar npm-like workflow:
 * Access packages published on [OPAM](https://opam.ocaml.org/) (a package registry for OCaml) via
   `@opam` npm scope (for example `@opam/lwt` to pull `lwt` library from OPAM).
 
-### For OPAM users
+## For opam users
 
 For those who familiar with [OPAM](https://opam.ocaml.org/), esy provides a powerful alternative (to
 the `opam` tool, OPAM packages are still accessible with Esy):
@@ -32,7 +32,7 @@ the `opam` tool, OPAM packages are still accessible with Esy):
 
 * Keeps the ability to use packages published on OPAM repository.
 
-### In depth
+## In depth
 
 * Project metadata is managed inside `package.json`.
 
