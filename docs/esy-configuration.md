@@ -1,6 +1,6 @@
 ---
 id: esy-configuration
-title: esy Configuration
+title: Configuration
 ---
 
 esy can be configured through `.esyrc` which esy tries to find in the following
