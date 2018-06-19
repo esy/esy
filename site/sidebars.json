@@ -4,7 +4,9 @@
       "what-why",
       "getting-started",
       "configuration",
-      "esy-configuration",
+      "esy-configuration"
+    ],
+    "Reference": [
       "environment",
       "commands",
       "concepts"
