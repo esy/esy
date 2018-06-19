@@ -78,7 +78,7 @@ class HomeSplash extends React.Component {
         <div className="homeWrapperWrapper">
           <div className="wrapper homeWrapper">
             <div className="homeWrapperInner">
-              <img width={150} height={150} src='img/block-red.svg' />
+              <img width={150} height={150} src={siteConfig.baseUrl + "img/block-red.svg"} />
               <div>
                 <div className="projectTitle">{siteConfig.title}</div>
                 <div className="homeTagLine">{siteConfig.tagline}</div>
