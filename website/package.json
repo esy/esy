@@ -1,13 +1,11 @@
 {
-  "name": "bucklescript-site",
+  "name": "esy-site",
   "scripts": {
     "start": "docusaurus-start",
     "build": "docusaurus-build",
     "write-translations": "docusaurus-write-translations",
-    "crowdin-upload":
-      "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml upload sources --auto-update -b master",
-    "crowdin-download":
-      "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml download -b master"
+    "crowdin-upload": "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml upload sources --auto-update -b master",
+    "crowdin-download": "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml download -b master"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +15,6 @@
     "url": "git+https://github.com/esy/esy.github.io.git"
   },
   "dependencies": {
-    "docusaurus": "~1.0"
+    "docusaurus": "^1.0.0"
   }
 }

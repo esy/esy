@@ -15,7 +15,8 @@ const siteConfig = {
   translationRecruitingLink: "https://crowdin.com/project/esy-website",
   sourceCodeButton: null,
   baseUrl: "/",
-  projectName: "",
+  projectName: "esy.github.io",
+  organizationName: "esy",
   cname: "esy.sh",
   headerLinks: [
     { doc: "what-why", label: "Docs" },
