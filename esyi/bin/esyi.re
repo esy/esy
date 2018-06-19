@@ -18,12 +18,12 @@ module Api = {
             ),
           );
         let%bind state =
-          Solve.make(
+          Solver.make(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
             root,
           );
-        switch%bind (Solve.solve(~root, state)) {
+        switch%bind (Solver.solve(~root, state)) {
         | Ok(solution) =>
           Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath)
         | Error(explanation) =>
@@ -31,7 +31,7 @@ module Api = {
             Logs_lwt.err(m =>
               m(
                 "@[<v>No solution found:@;@;%a@]",
-                Solve.Explanation.pp,
+                Solver.Explanation.pp,
                 explanation,
               )
             );
@@ -69,12 +69,12 @@ module Api = {
             ),
           );
         let%bind state =
-          Solve.make(
+          Solver.make(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
             root,
           );
-        let (cudfUniverse, _) = Universe.toCudf(state.Solve.universe);
+        let (cudfUniverse, _) = Universe.toCudf(state.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }
