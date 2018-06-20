@@ -173,22 +173,12 @@ Example:
 
 This is analogue of `yarn add` command and is based on it internally.
 
-### `esy release <release-type>`
+### `esy release`
 
-Produce an npm package with a release in `_export/<release-type>` directory. See
-[Building Releases](release.md) for more info.
+Produce an npm package with pre built binaries for the current platform inside
+the `_release` directory.
 
-The required argument `<release-type>` must be one of:
-
-* `dev`
-* `pack`
-* `bin`
-
-Example:
-
-```bash
-% esy release bin
-```
+See [Building Releases](release.md) for more info.
 
 ### `esy config`
 
