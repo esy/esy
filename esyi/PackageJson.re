@@ -91,20 +91,6 @@ and dist = {
 let name = manifest => manifest.name;
 let version = manifest => Version.parseExn(manifest.version);
 
-let source = manifest =>
-  switch (manifest.dist) {
-  | Some(dist) =>
-    Run.return(PackageInfo.Source.Archive(dist.tarball, dist.shasum))
-  | None =>
-    let msg =
-      Printf.sprintf(
-        "source cannot be found for %s@%s",
-        manifest.name,
-        manifest.version,
-      );
-    Run.error(msg);
-  };
-
 let ofFile = (path: Path.t) =>
   RunAsync.Syntax.(
     {

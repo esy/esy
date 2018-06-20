@@ -14,12 +14,30 @@ type t = {
   opam : PackageInfo.OpamInfo.t option;
 }
 
-(* TODO: get rid of that, at least publicly *)
-and manifest =
-  | Opam of OpamFile.manifest
-  | PackageJson of PackageJson.t
+(**
+ * Make package out of opam manifest.
+ *
+ * Optional arguments `name` and `version` are used to override name and version
+ * specified in manifest if needed.
+ *)
+val ofOpam :
+  ?name:string
+  -> ?version:PackageInfo.Version.t
+  -> OpamFile.manifest
+  -> t Run.t
 
-val make : version:PackageInfo.Version.t -> manifest -> t Run.t
+(**
+ * Make package out of package.json manifest.
+ *
+ * Optional arguments `name` and `version` are used to override name and version
+ * specified in manifest if needed.
+ *)
+val ofPackageJson :
+  ?name:string
+  -> ?version:PackageInfo.Version.t
+  -> PackageJson.t
+  -> t Run.t
+
 val pp : t Fmt.t
 val compare : t -> t -> int
 

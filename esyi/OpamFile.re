@@ -538,8 +538,6 @@ let parseManifest =
   };
 };
 
-let source = ({source, _}) => source;
-
 let commandListToJson = e =>
   e
   |> List.map(~f=items => `List(List.map(~f=item => `String(item), items)));
@@ -595,6 +593,3 @@ let toPackageJson = (manifest, version) => {
     patches: manifest.patches,
   };
 };
-
-let name = manifest => PackageName.toNpm(manifest.name);
-let version = manifest => manifest.version;

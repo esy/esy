@@ -55,14 +55,14 @@ module Github = struct
       let%bind packageJson =
         RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data)
       in
-      return (Package.PackageJson packageJson)
+      return (`PackageJson packageJson)
     | Error _ ->
       begin match%lwt fetchFile "package.json" with
       | Ok text ->
         let%bind packageJson =
           RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson text)
         in
-        return (Package.PackageJson packageJson)
+        return (`PackageJson packageJson)
       | Error _ ->
         error "no manifest found"
       end
@@ -93,30 +93,36 @@ let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
   let key = (resolution.name, resolution.version) in
   PackageCache.compute resolver.pkgCache key begin fun _ ->
+
     let%bind manifest =
       match resolution.version with
       | Version.Source (Source.LocalPath _) -> error "not implemented"
       | Version.Source (Git _) -> error "not implemented"
       | Version.Source (Github (user, repo, ref)) ->
         begin match%bind Github.getManifest ~user ~repo ~ref () with
-        | Package.PackageJson manifest ->
-          return (Package.PackageJson ({ manifest with name = resolution.name }))
-        | manifest -> return manifest
+        | `PackageJson manifest ->
+          return (`PackageJson (PackageJson.{ manifest with name = resolution.name }))
         end
       | Version.Source Source.NoSource -> error "no source"
       | Version.Source (Source.Archive _) -> error "not implemented"
       | Version.Npm version ->
         let%bind manifest = NpmRegistry.version ~cfg:resolver.cfg resolution.name version in
-        return (Package.PackageJson manifest)
+        return (`PackageJson manifest)
       | Version.Opam version ->
         let name = OpamFile.PackageName.ofNpmExn resolution.name in
         begin match%bind OpamRegistry.version resolver.opamRegistry ~name ~version with
           | Some manifest ->
-            return (Package.Opam manifest)
+            return (`Opam manifest)
           | None -> error ("no such opam package: " ^ OpamFile.PackageName.toString name)
         end
     in
-    let%bind pkg = RunAsync.ofRun (Package.make ~version:resolution.version manifest) in
+
+    let%bind pkg = RunAsync.ofRun (
+      match manifest with
+      | `PackageJson manifest -> Package.ofPackageJson ~version:resolution.version manifest
+      | `Opam manifest -> Package.ofOpam ~version:resolution.version manifest
+    ) in
+
     return pkg
   end
 
@@ -142,7 +148,7 @@ let resolve ~req resolver =
           (* precache manifest so we don't have to fetch it once more *)
           let key = (resolution.name, resolution.version) in
           PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-            Lwt.return (Package.make ~version (Package.PackageJson manifest))
+            Lwt.return (Package.ofPackageJson ~version manifest)
           end;
 
           resolution

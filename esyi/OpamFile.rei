@@ -40,10 +40,6 @@ module ThinManifest : {
   };
 };
 
-let name : manifest => string;
-let version : manifest => OpamVersion.Version.t;
-let source : manifest => PackageInfo.Source.t;
-
 let parseManifest : ((PackageName.t, OpamVersion.Version.t), OpamParserTypes.opamfile) => manifest;
 let parseUrlFile : OpamParserTypes.opamfile => PackageInfo.SourceSpec.t;
 

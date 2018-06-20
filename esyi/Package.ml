@@ -12,54 +12,74 @@ type t = {
   opam : PackageInfo.OpamInfo.t option;
 }
 
-and manifest =
-  | Opam of OpamFile.manifest
-  | PackageJson of PackageJson.t
-
-let make ~version manifest =
+let ofOpam ?name ?version (manifest : OpamFile.manifest) =
   let open Run.Syntax in
-  let dependencies, buildDependencies, devDependencies =
-    match manifest with
-    | Opam manifest ->
-      manifest.OpamFile.dependencies,
-      manifest.OpamFile.buildDependencies,
-      manifest.OpamFile.devDependencies
-    | PackageJson manifest ->
-      manifest.PackageJson.dependencies,
-      manifest.PackageJson.buildDependencies,
-      manifest.PackageJson.devDependencies
+  let name =
+    match name with
+    | Some name -> name
+    | None -> OpamFile.PackageName.toNpm manifest.name
   in
-  let%bind source =
+  let version =
+    match version with
+    | Some version -> version
+    | None -> Version.Opam manifest.version
+  in
+  let source =
     match version with
     | Version.Source (Source.Github (user, name, ref)) ->
-      Run.return (PackageInfo.Source.Github (user, name, ref))
+      Source.Github (user, name, ref)
     | Version.Source (Source.LocalPath path)  ->
-      Run.return (PackageInfo.Source.LocalPath path)
-    | _ -> begin
-      match manifest with
-      | Opam manifest -> return (OpamFile.source manifest)
-      | PackageJson json -> PackageJson.source json
-    end
-  in
-  let name =
-    match manifest with
-    | Opam manifest -> OpamFile.name manifest
-    | PackageJson manifest  -> PackageJson.name manifest
-  in
-  let opam =
-    match manifest with
-    | Opam manifest ->
-      Some (OpamFile.toPackageJson manifest version)
-    | PackageJson _ -> None
+      Source.LocalPath path
+    | _ -> manifest.source
   in
   return {
     name;
     version;
-    dependencies;
-    buildDependencies;
-    devDependencies;
+    dependencies = manifest.dependencies;
+    buildDependencies = manifest.buildDependencies;
+    devDependencies = manifest.devDependencies;
     source;
-    opam;
+    opam = Some (OpamFile.toPackageJson manifest version);
+  }
+
+let ofPackageJson ?name ?version (manifest : PackageJson.t) =
+  let open Run.Syntax in
+  let name =
+    match name with
+    | Some name -> name
+    | None -> manifest.name
+  in
+  let version =
+    match version with
+    | Some version -> version
+    | None -> Version.Npm (PackageJson.Version.parseExn manifest.version)
+  in
+  let%bind source =
+    match version with
+    | Version.Source (Source.Github (user, name, ref)) ->
+      Run.return (Source.Github (user, name, ref))
+    | Version.Source (Source.LocalPath path)  ->
+      Run.return (Source.LocalPath path)
+    | _ -> begin
+      match manifest.dist with
+      | Some dist -> return (Source.Archive (dist.tarball, dist.shasum))
+      | None ->
+        let msg =
+          Printf.sprintf
+            "source cannot be found for %s@%s"
+            manifest.name manifest.version
+        in
+        error msg
+      end
+  in
+  return {
+    name;
+    version;
+    dependencies = manifest.dependencies;
+    buildDependencies = manifest.buildDependencies;
+    devDependencies = manifest.devDependencies;
+    source;
+    opam = None;
   }
 
 let pp fmt pkg =

@@ -9,12 +9,12 @@ module Api = {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.make(
+            Package.ofPackageJson(
               ~version=
                 PackageInfo.Version.Source(
                   PackageInfo.Source.LocalPath(cfg.basePath),
                 ),
-              Package.PackageJson(manifest),
+              manifest,
             ),
           );
         let%bind state =
@@ -60,12 +60,12 @@ module Api = {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.make(
+            Package.ofPackageJson(
               ~version=
                 PackageInfo.Version.Source(
                   PackageInfo.Source.LocalPath(cfg.basePath),
                 ),
-              Package.PackageJson(manifest),
+              manifest,
             ),
           );
         let%bind state =
