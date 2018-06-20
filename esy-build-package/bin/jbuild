@@ -1,9 +1,32 @@
 (jbuild_version 1)
 
-(executable
+;(executable
+; ((name esyBuildPackageCommand)
+;  (public_name esy-build-package)
+;  (package esy-build-package)
+;  (flags (:standard (-w -39)))
+;  (preprocess (pps (ppx_let)))
+;  (modules (esyBuildPackageCommand))
+;  (libraries (
+;              esy-build-package
+;              cmdliner
+;              yojson
+;              bos
+;              logs
+;              logs.fmt
+;              logs.cli
+;              re
+;              fmt
+;              fmt.cli
+;              fmt.tty
+;              ppx_deriving_yojson.runtime
+;              rresult
+;              ))
+;  ))
+;
+(library
  ((name esyBuildPackageCommand)
-  (public_name esy-build-package)
-  (package esy-build-package)
+  (public_name esy-build-package-bin)
   (flags (:standard (-w -39)))
   (preprocess (pps (ppx_let)))
   (modules (esyBuildPackageCommand))

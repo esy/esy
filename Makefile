@@ -6,6 +6,61 @@ RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
 PROJECTS = esy esy-build-package esyi
 
+define ESYBUILDPACKAGE
+#load "unix.cma"
+#load "./cmdliner.cma"
+#load "./rresult.cma"
+#load "./astring.cma"
+#load "./fmt.cma"
+#load "./fmt_tty.cma"
+#load "./fmt_cli.cma"
+#load "./logs.cma"
+#load "./logs_fmt.cma"
+#load "./logs_cli.cma"
+#load "./fpath.cma"
+#load "./bos.cma"
+#load "./easy_format.cma"
+#load "./biniou.cma"
+#load "./re.cma"
+#load "./yojson.cma"
+#load "./result.cma"
+#load "./ppx_deriving_runtime.cma"
+#load "./ppx_deriving_yojson_runtime.cma"
+#load "./EsyLib.cma"
+#load "./EsyBuildPackage.cma"
+#load "./esyBuildPackageCommand.cma"
+endef
+export ESYBUILDPACKAGE
+
+bootstrap-esyBuildPackage:
+	rm -rf _bootstrap
+	mkdir _bootstrap
+	esy b jbuilder build esy-lib/EsyLib.cma
+	esy b jbuilder build esy-build-package/EsyBuildPackage.cma
+	esy b jbuilder build esy-build-package/bin/esyBuildPackageCommand.cma
+	cp _build/default/esy-lib/EsyLib.cma ./_bootstrap
+	cp _build/default/esy-build-package/esyBuildPackage.cma ./_bootstrap
+	cp _build/default/esy-build-package/bin/esyBuildPackageCommand.cma ./_bootstrap
+	cp $(shell esy ocamlfind query result)/result.cma ./_bootstrap
+	cp $(shell esy ocamlfind query cmdliner)/cmdliner.cma ./_bootstrap
+	cp $(shell esy ocamlfind query rresult)/rresult.cma ./_bootstrap
+	cp $(shell esy ocamlfind query bos)/bos.cma ./_bootstrap
+	cp $(shell esy ocamlfind query fmt)/fmt.cma ./_bootstrap
+	cp $(shell esy ocamlfind query fmt)/fmt_tty.cma ./_bootstrap
+	cp $(shell esy ocamlfind query fmt)/fmt_cli.cma ./_bootstrap
+	cp $(shell esy ocamlfind query fpath)/fpath.cma ./_bootstrap
+	cp $(shell esy ocamlfind query logs)/logs.cma ./_bootstrap
+	cp $(shell esy ocamlfind query logs)/logs_fmt.cma ./_bootstrap
+	cp $(shell esy ocamlfind query logs)/logs_cli.cma ./_bootstrap
+	cp $(shell esy ocamlfind query astring)/astring.cma ./_bootstrap
+	cp $(shell esy ocamlfind query easy-format)/easy_format.cma ./_bootstrap
+	cp $(shell esy ocamlfind query biniou)/biniou.cma ./_bootstrap
+	cp $(shell esy ocamlfind query yojson)/yojson.cma ./_bootstrap
+	cp $(shell esy ocamlfind query re)/re.cma ./_bootstrap
+	cp $(shell esy ocamlfind query ppx_deriving_yojson)/ppx_deriving_yojson_runtime.cma ./_bootstrap
+	cp $(shell esy ocamlfind query ppx_deriving)/ppx_deriving_runtime.cma ./_bootstrap
+	echo "$$ESYBUILDPACKAGE" > ./_bootstrap/esyBuildPackage
+
 #
 # Tools
 #
