@@ -27,4 +27,7 @@ module CudfMapping : sig
 
 end
 
-val toCudf : t -> Cudf.universe * CudfMapping.t
+val toCudf :
+  ?installed:Package.Set.t
+  -> t
+  -> Cudf.universe * CudfMapping.t

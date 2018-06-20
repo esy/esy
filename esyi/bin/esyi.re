@@ -17,27 +17,13 @@ module Api = {
               manifest,
             ),
           );
-        let%bind state =
-          Solver.make(
+        let%bind solution =
+          Solver.solve(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
             root,
           );
-        switch%bind (Solver.solve(~root, state)) {
-        | Ok(dependencies) =>
-          let solution = Solution.make(~root, ~dependencies);
-          Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
-        | Error(explanation) =>
-          let%lwt () =
-            Logs_lwt.err(m =>
-              m(
-                "@[<v>No solution found:@;@;%a@]",
-                Solver.Explanation.pp,
-                explanation,
-              )
-            );
-          error("");
-        };
+        Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
       }
     );
 
@@ -49,7 +35,7 @@ module Api = {
         switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
-          Fetch.fetch(cfg, solution);
+          Fetch.fetch(~cfg, solution);
         | None => error("no lockfile found, run 'esyi solve' first")
         };
       }
@@ -69,13 +55,15 @@ module Api = {
               manifest,
             ),
           );
-        let%bind state =
+        let%bind solver =
           Solver.make(
             ~cfg,
             ~resolutions=manifest.PackageJson.resolutions,
-            root,
+            (),
           );
-        let (cudfUniverse, _) = Universe.toCudf(state.Solver.universe);
+        let%bind (solver, _) =
+          Solver.add(~dependencies=root.Package.dependencies, solver);
+        let (cudfUniverse, _) = Universe.toCudf(solver.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }

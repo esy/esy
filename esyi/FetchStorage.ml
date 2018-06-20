@@ -11,7 +11,7 @@ end
 
 type pkg = Package.t
 
-let packageKey (pkg : Solution.pkg) =
+let packageKey (pkg : Solution.Record.t) =
   let version = PackageInfo.Version.toString pkg.version in
   match pkg.opam with
   | None -> Printf.sprintf "%s__%s" pkg.name version
@@ -26,7 +26,7 @@ let packageKey (pkg : Solution.pkg) =
     in
     Printf.sprintf "%s__%s__%s" pkg.name version opamHash
 
-let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pkg) =
+let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} as pkg) =
   let open RunAsync.Syntax in
 
   let key = packageKey pkg in
@@ -145,7 +145,7 @@ let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pk
 
     in
 
-    let tarballPath = Path.(config.tarballCachePath // v key |> addExt "tgz") in
+    let tarballPath = Path.(cfg.tarballCachePath // v key |> addExt "tgz") in
 
     let pkg = {Package. tarballPath; name; version; source} in
 
@@ -174,7 +174,7 @@ let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pk
         return pkg
       )
 
-let install ~config:_ ~dst pkg =
+let install ~cfg:_ ~dst pkg =
   let open RunAsync.Syntax in
   let {Package. tarballPath; _} = pkg in
   let%bind () = Fs.createDir dst in

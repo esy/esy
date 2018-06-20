@@ -15,6 +15,8 @@ module Source : sig
   val parse : string -> (t, string) result
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
+
+  val equal : t -> t -> bool
 end
 
 (**
@@ -29,11 +31,13 @@ module Version : sig
   val compare : t -> t -> int
   val toString : t -> string
   val parse : string -> (t, string) result
+  val parseExn : string -> t
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
   val toNpmVersion : t -> string
 
   val pp : Format.formatter -> t -> unit
+  val equal : t -> t -> bool
 
   module Map : Map.S with type key := t
 end

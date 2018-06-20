@@ -2,40 +2,37 @@ module Version = PackageInfo.Version
 module Source = PackageInfo.Source
 module Req = PackageInfo.Req
 
-type t = {
-  root: pkg;
-  dependencies: pkg list;
-}
+module Record = struct
+  type t = {
+    name: string ;
+    version: Version.t ;
+    source: Source.t ;
+    opam: PackageInfo.OpamInfo.t option;
+  } [@@deriving yojson]
+
+  let ofPkg (pkg : Package.t) = {
+    name = pkg.name;
+    version = pkg.version;
+    source = pkg.source;
+    opam = pkg.opam;
+  }
+end
+
+type t = root
 [@@deriving yojson]
 
-and pkg = {
-  name: string ;
-  version: Version.t ;
-  source: Source.t ;
-  opam: (PackageInfo.OpamInfo.t option [@default None])
+(**
+ * This represent an isolated dependency root.
+ *)
+and root = {
+  root: Record.t;
+  dependencies: root list;
 }
 
 and lockfile = {
   rootDependenciesHash : string;
   solution : t;
 }
-
-let make ~root ~dependencies =
-  let makePkg (pkg : Package.t) = {
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    opam = pkg.opam
-  } in
-  let root = makePkg root in
-  let dependencies =
-    dependencies
-    |> Package.Set.elements
-    |> List.map ~f:makePkg
-  in
-  {root; dependencies}
-
-let packages solution = solution.dependencies
 
 let dependenciesHash (manifest : PackageJson.t) =
   let hashDependencies ~prefix ~dependencies digest =
@@ -71,30 +68,32 @@ let dependenciesHash (manifest : PackageJson.t) =
   Digest.to_hex digest
 
 let mapSourceLocalPath ~f solution =
-  let mapPkg (pkg : pkg) =
+  let mapRecord (record : Record.t) =
     let version =
-      match pkg.version with
+      match record.version with
       | Version.Source (Source.LocalPath p) ->
         Version.Source (Source.LocalPath (f p))
       | Version.Npm _
       | Version.Opam _
-      | Version.Source _ -> pkg.version
+      | Version.Source _ -> record.version
     in
     let source =
-      match pkg.source with
+      match record.source with
       | Source.LocalPath p ->
         Source.LocalPath (f p)
       | Source.Archive _
       | Source.Git _
       | Source.Github _
-      | Source.NoSource -> pkg.source
+      | Source.NoSource -> record.source
     in
-    {pkg with source; version}
+    {record with source; version}
   in
-  {
-    root = mapPkg solution.root;
-    dependencies = List.map ~f:mapPkg solution.dependencies;
+  let rec mapRoot root = {
+    root = mapRecord root.root;
+    dependencies = List.map ~f:mapRoot root.dependencies;
   }
+  in
+  mapRoot solution
 
 let relativize ~cfg sol =
   let f path =

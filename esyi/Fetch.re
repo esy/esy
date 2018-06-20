@@ -1,8 +1,9 @@
 module PackageSet =
   Set.Make({
-    type t = Solution.pkg;
+    type t = Solution.Record.t;
     let compare = (pkga, pkgb) => {
-      let c = String.compare(pkga.Solution.name, pkgb.Solution.name);
+      let c =
+        String.compare(pkga.Solution.Record.name, pkgb.Solution.Record.name);
       if (c == 0) {
         PackageInfo.Version.compare(pkga.version, pkga.version);
       } else {
@@ -11,38 +12,65 @@ module PackageSet =
     };
   });
 
+type layout = list((Path.t, Solution.Record.t));
+
+let packagesOfSolution = solution => {
+  let rec addRoot = (pkgs, root) =>
+    pkgs
+    |> PackageSet.add(root.Solution.root, _)
+    |> List.fold_left(~f=addRoot, ~init=_, root.Solution.dependencies);
+
+  let pkgs =
+    List.fold_left(
+      ~f=addRoot,
+      ~init=PackageSet.empty,
+      solution.Solution.dependencies,
+    );
+
+  PackageSet.elements(pkgs);
+};
+
+let layoutOfSolution = (basePath, solution) : layout => {
+  let rec layoutRoot = (basePath, layout, root) => {
+    let recordPath =
+      Path.(basePath / "node_modules" /\/ v(root.Solution.root.name));
+    let layout = [(recordPath, root.Solution.root), ...layout];
+    List.fold_left(
+      ~f=layoutRoot(recordPath),
+      ~init=layout,
+      root.Solution.dependencies,
+    );
+  };
+
+  let layout =
+    List.fold_left(
+      ~f=layoutRoot(basePath),
+      ~init=[],
+      solution.Solution.dependencies,
+    );
+
+  layout;
+};
+
 let checkSolutionInstalled = (~cfg: Config.t, solution: Solution.t) => {
   open RunAsync.Syntax;
 
-  let checkPkg = (pkg: Solution.pkg) => {
-    let pkgPath = Path.(cfg.basePath / "node_modules" /\/ v(pkg.name));
-    Fs.exists(pkgPath);
-  };
+  let layout = layoutOfSolution(cfg.basePath, solution);
 
   let%bind installed =
-    Solution.packages(solution)
-    |> List.map(~f=checkPkg)
+    layout
+    |> List.map(~f=((path, _)) => Fs.exists(path))
     |> RunAsync.List.joinAll;
   return(List.for_all(~f=installed => installed, installed));
 };
 
-let fetch = (config: Config.t, solution: Solution.t) => {
+let fetch = (~cfg: Config.t, solution: Solution.t) => {
   open RunAsync.Syntax;
 
   /* Collect packages which from the solution */
-  let packagesToFetch = {
-    let add = (pkgs, pkg: Solution.pkg) => PackageSet.add(pkg, pkgs);
-    let addList = (pkgs, pkgsList) =>
-      List.fold_left(~f=add, ~init=pkgs, pkgsList);
+  let packagesToFetch = packagesOfSolution(solution);
 
-    let pkgs = PackageSet.empty |> addList(_, Solution.packages(solution));
-
-    PackageSet.elements(pkgs);
-  };
-
-  let nodeModulesPath = Path.(config.basePath / "node_modules");
-  let packageInstallPath = pkg =>
-    Path.(append(nodeModulesPath, v(pkg.Solution.name)));
+  let nodeModulesPath = Path.(cfg.basePath / "node_modules");
 
   let%bind () = Fs.rmPath(nodeModulesPath);
   let%bind () = Fs.createDir(nodeModulesPath);
@@ -55,7 +83,7 @@ let fetch = (config: Config.t, solution: Solution.t) => {
     packagesToFetch
     |> List.map(~f=pkg => {
          let%bind fetchedPkg =
-           LwtTaskQueue.submit(queue, () => FetchStorage.fetch(~config, pkg));
+           LwtTaskQueue.submit(queue, () => FetchStorage.fetch(~cfg, pkg));
          return((pkg, fetchedPkg));
        })
     |> RunAsync.List.joinAll;
@@ -63,12 +91,30 @@ let fetch = (config: Config.t, solution: Solution.t) => {
 
   let%lwt () = Logs_lwt.app(m => m("Populating node_modules..."));
 
+  let packageInstallPath = {
+    let layout = layoutOfSolution(cfg.basePath, solution);
+    pkg => {
+      let (path, _) =
+        List.find(
+          ~f=
+            ((_path, p)) =>
+              String.equal(p.Solution.Record.name, pkg.Solution.Record.name)
+              && PackageInfo.Version.equal(
+                   p.Solution.Record.version,
+                   pkg.Solution.Record.version,
+                 ),
+          layout,
+        );
+      path;
+    };
+  };
+
   let%bind () =
     RunAsync.List.processSeq(
       ~f=
         ((pkg, fetchedPkg)) => {
           let dst = packageInstallPath(pkg);
-          FetchStorage.install(~config, ~dst, fetchedPkg);
+          FetchStorage.install(~cfg, ~dst, fetchedPkg);
         },
       packagesFetched,
     );

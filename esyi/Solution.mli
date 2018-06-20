@@ -2,28 +2,36 @@
  * This module represents a solution.
  *)
 
-type t
+(**
+ * This is minimal info needed to fetch and build a package.
+ *)
+module Record : sig
+  type t = {
+    name: string ;
+    version: PackageInfo.Version.t ;
+    source: PackageInfo.Source.t ;
 
-type pkg = {
-  name: string ;
-  version: PackageInfo.Version.t ;
-  source: PackageInfo.Source.t ;
+    (**
+    * We store OpamInfo.t as part of the lockfile as we want to lock against:
+    *   1. changes in the opam->esy conversion algo
+    *   2. changes in esy-opam-override
+    *   3. changes in opam repository (yes, it is mutable)
+    *)
+    opam: PackageInfo.OpamInfo.t option;
+  }
 
-  (**
-   * We store OpamInfo.t as part of the lockfile as we want to lock against:
-   *   1. changes in the algo opam->esy conversion
-   *   2. changes in esy-opam-override
-   *   3. changes in opam repository (yes, it is mutable)
-   *)
-  opam: PackageInfo.OpamInfo.t option;
-}
-
-val make : root:Package.t -> dependencies:Package.Set.t -> t
+  val ofPkg : Package.t -> t
+end
 
 (**
- * List all packages in a solution.
+ * This represent an isolated dependency root.
  *)
-val packages : t -> pkg list
+type root = {
+  root: Record.t;
+  dependencies: root list;
+}
+
+type t = root
 
 (**
  * Write solution to disk as a lockfile.

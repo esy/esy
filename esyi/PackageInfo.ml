@@ -14,7 +14,7 @@ module Source = struct
     | Github of string * string * string
     | LocalPath of Path.t
     | NoSource
-  [@@deriving (ord)]
+  [@@deriving (ord, eq)]
 
   let toString = function
     | Github (user, repo, ref) -> "github:" ^ user ^ "/" ^ repo ^ "#" ^ ref
@@ -61,7 +61,7 @@ module Version = struct
     | Npm of NpmVersion.Version.t
     | Opam of OpamVersion.Version.t
     | Source of Source.t
-    [@@deriving (ord)]
+    [@@deriving (ord, eq)]
 
   let toString v =
     match v with
@@ -84,6 +84,11 @@ module Version = struct
     | Ok _ ->
       let%bind v = Source.parse v in
       return (Source v)
+
+  let parseExn v =
+    match parse v with
+    | Ok v -> v
+    | Error err -> failwith err
 
   let to_yojson v = `String (toString v)
 

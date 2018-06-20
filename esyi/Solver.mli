@@ -2,11 +2,6 @@
  * Package dependency solver.
  *)
 
-module Strategy : sig
-  type t
-  val trendy : t
-end
-
 (** Explanation for solve failure *)
 module Explanation : sig
   type t
@@ -18,27 +13,33 @@ type t = private {
   cfg: Config.t;
   resolver: Resolver.t;
   universe: Universe.t;
+  resolutions : PackageInfo.Resolutions.t;
 }
 
 (**
  * Result of the solver
  *
- * It's either a set of packages to be installed or a failure with a (possibly
- * empty) explanation.
+ * It's either a solution or a failure with a (possibly empty) explanation.
  *)
-type solveResult = (Package.Set.t, Explanation.t) result
-
-(** Make new solver given the root package as a seed *)
+(** Make new solver *)
 val make :
   cfg:Config.t
   -> ?resolver:Resolver.t
   -> resolutions:PackageInfo.Resolutions.t
-  -> Package.t
+  -> unit
   -> t RunAsync.t
 
-(** Solve dependencies *)
-val solve :
-  ?strategy:Strategy.t
-  -> root:Package.t
+(** Add dependencies to the solver *)
+val add :
+  dependencies:PackageInfo.Dependencies.t
   -> t
-  -> solveResult RunAsync.t
+  -> (t * PackageInfo.Dependencies.t) RunAsync.t
+
+(**
+ * Solve dependencies for the root
+ *)
+val solve :
+  cfg:Config.t
+  -> resolutions:PackageInfo.Resolutions.t
+  -> Package.t
+  -> Solution.t RunAsync.t

@@ -14,15 +14,15 @@ type pkg
  * return it.
  *)
 val fetch :
-  config : Config.t
-  -> Solution.pkg
+  cfg : Config.t
+  -> Solution.Record.t
   -> pkg RunAsync.t
 
 (**
  * Install package from storage into destination.
  *)
 val install :
-  config : Config.t
+  cfg : Config.t
   -> dst : Path.t
   -> pkg
   -> unit RunAsync.t
