@@ -5,32 +5,35 @@ title: What & Why
 
 ## For npm users
 
-For those familiar with [npm](https://npmjs.org/), esy allows to work with Reason/OCaml projects
-within the familiar npm-like workflow:
+For those familiar with [npm](https://npmjs.org/), esy allows to work with
+Reason/OCaml projects within the familiar npm-like workflow:
 
 * Declare dependencies in `package.json`.
 
-* Install and build with `esy install` and `esy build` commands. Dependencies'
-  source code end up in `node_modules`.
+* Install and build with `esy install` and `esy build` commands.
 
-* Share your work with other developers by publishing on npm registry and/or github.
+* Share your work with other developers by publishing on npm registry and/or
+  GitHub.
 
-* Access packages published on [OPAM](https://opam.ocaml.org/) (a package registry for OCaml) via
-  `@opam` npm scope (for example `@opam/lwt` to pull `lwt` library from OPAM).
+* Access packages published on [opam](https://opam.ocaml.org/) (a package
+  registry for OCaml) via `@opam` npm scope (for example `@opam/lwt` to pull
+  `lwt` library from opam).
 
 ## For opam users
 
-For those who familiar with [OPAM](https://opam.ocaml.org/), esy provides a powerful alternative (to
-the `opam` tool, OPAM packages are still accessible with Esy):
+For those who familiar with [opam](https://opam.ocaml.org/), esy provides a
+powerful alternative (to the `opam` tool, opam packages are still accessible
+with esy):
 
 * Manages OCaml compilers and dependencies on a per project basis.
 
 * Sandboxes project environment by exposing only those packages which are
   defined as dependencies.
 
-* Fast parallel builds which are agressively cached (even across different projects).
+* Fast parallel builds which are agressively cached (even across different
+  projects).
 
-* Keeps the ability to use packages published on OPAM repository.
+* Keeps the ability to use packages published on opam repository.
 
 ## In depth
 
@@ -56,10 +59,3 @@ the `opam` tool, OPAM packages are still accessible with Esy):
   need to rebuild themselves.
 
 * Run commands in project environment quickly `esy <anycommand>`.
-
-* Makes sharing of native projects easier than ever by supporting "eject to `Makefile`".
-
-  * Build dependency graph without network access.
-
-  * Build dependency graph where `node` is not installed and where no package
-    manager is installed.
