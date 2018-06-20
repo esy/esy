@@ -60,7 +60,7 @@ let findVersions ~name univ =
 
 module CudfVersionMap = struct
 
-  module VersionSet = Set.Make(Package.Version)
+  module VersionSet = Set.Make(PackageInfo.Version)
 
   type t = {
     cudfVersionToVersion: ((string * int), PackageInfo.Version.t) Hashtbl.t ;

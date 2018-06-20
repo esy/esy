@@ -37,6 +37,37 @@ module OpamResolutionCache = Memoize.Make(struct
   type value = Resolution.t list RunAsync.t
 end)
 
+module Github = struct
+  let getManifest ~user ~repo ?(ref="master") () =
+    let open RunAsync.Syntax in
+    let fetchFile name =
+      let url =
+        "https://raw.githubusercontent.com"
+        ^ "/" ^ user
+        ^ "/" ^ repo
+        ^ "/" ^ ref (* TODO: resolve default ref against GH instead *)
+        ^ "/" ^ name
+      in
+      Curl.get url
+    in
+    match%lwt fetchFile "esy.json" with
+    | Ok data ->
+      let%bind packageJson =
+        RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data)
+      in
+      return (Package.PackageJson packageJson)
+    | Error _ ->
+      begin match%lwt fetchFile "package.json" with
+      | Ok text ->
+        let%bind packageJson =
+          RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson text)
+        in
+        return (Package.PackageJson packageJson)
+      | Error _ ->
+        error "no manifest found"
+      end
+end
+
 type t = {
   cfg: Config.t;
   pkgCache: PackageCache.t;
@@ -67,7 +98,7 @@ let package ~(resolution : Resolution.t) resolver =
       | Version.Source (Source.LocalPath _) -> error "not implemented"
       | Version.Source (Git _) -> error "not implemented"
       | Version.Source (Github (user, repo, ref)) ->
-        begin match%bind Package.Github.getManifest ~user ~repo ~ref () with
+        begin match%bind Github.getManifest ~user ~repo ~ref () with
         | Package.PackageJson manifest ->
           return (Package.PackageJson ({ manifest with name = resolution.name }))
         | manifest -> return manifest

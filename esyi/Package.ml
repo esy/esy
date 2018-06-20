@@ -65,33 +65,7 @@ module Map = Map.Make(struct
   let compare = compare
 end)
 
-module Github = struct
-  let getManifest ~user ~repo ?(ref="master") () =
-    let open RunAsync.Syntax in
-    let fetchFile name =
-      let url =
-        "https://raw.githubusercontent.com"
-        ^ "/" ^ user
-        ^ "/" ^ repo
-        ^ "/" ^ ref (* TODO: resolve default ref against GH instead *)
-        ^ "/" ^ name
-      in
-      Curl.get url
-    in
-    match%lwt fetchFile "esy.json" with
-    | Ok data ->
-      let%bind packageJson =
-        RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data)
-      in
-      return (PackageJson packageJson)
-    | Error _ ->
-      begin match%lwt fetchFile "package.json" with
-      | Ok text ->
-        let%bind packageJson =
-          RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson text)
-        in
-        return (PackageJson packageJson)
-      | Error _ ->
-        error "no manifest found"
-      end
-end
+module Set = Set.Make(struct
+  type nonrec t = t
+  let compare = compare
+end)
