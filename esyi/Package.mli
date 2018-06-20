@@ -6,7 +6,9 @@ type t = {
   name : string;
   version : PackageInfo.Version.t;
   source : PackageInfo.Source.t;
-  dependencies: PackageInfo.DependenciesInfo.t;
+  dependencies: PackageInfo.Dependencies.t;
+  buildDependencies: PackageInfo.Dependencies.t;
+  devDependencies: PackageInfo.Dependencies.t;
 
   (* TODO: make it non specific to opam. *)
   opam : PackageInfo.OpamInfo.t option;

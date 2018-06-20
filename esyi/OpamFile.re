@@ -598,9 +598,3 @@ let toPackageJson = (manifest, version) => {
 
 let name = manifest => PackageName.toNpm(manifest.name);
 let version = manifest => manifest.version;
-
-let dependencies = manifest => {
-  PackageInfo.DependenciesInfo.devDependencies: manifest.devDependencies,
-  buildDependencies: manifest.buildDependencies,
-  dependencies: manifest.dependencies,
-};

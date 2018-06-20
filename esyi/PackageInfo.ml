@@ -289,15 +289,6 @@ module Dependencies = struct
     List.fold_left ~f ~init:a b
 end
 
-module DependenciesInfo = struct
-  type t = {
-    dependencies: (Dependencies.t [@default Dependencies.empty]);
-    buildDependencies: (Dependencies.t [@default Dependencies.empty]);
-    devDependencies: (Dependencies.t [@default Dependencies.empty]);
-  }
-  [@@deriving yojson { strict = false }]
-end
-
 module Resolutions = struct
   type t = Version.t StringMap.t
 

@@ -92,16 +92,6 @@ module Dependencies : sig
   val merge : Req.t list -> Req.t list -> Req.t list
 end
 
-module DependenciesInfo : sig
-  type t = {
-    dependencies : Dependencies.t;
-    buildDependencies : Dependencies.t;
-    devDependencies : Dependencies.t;
-  }
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
-end
-
 module Resolutions : sig
   type t
 

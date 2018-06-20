@@ -1,11 +1,14 @@
 module Version = PackageInfo.Version
 module Source = PackageInfo.Source
+module Dependencies = PackageInfo.Dependencies
 
 type t = {
   name : string;
   version : PackageInfo.Version.t;
   source : PackageInfo.Source.t;
-  dependencies: PackageInfo.DependenciesInfo.t;
+  dependencies: (Dependencies.t [@default Dependencies.empty]);
+  buildDependencies: (Dependencies.t [@default Dependencies.empty]);
+  devDependencies: (Dependencies.t [@default Dependencies.empty]);
   opam : PackageInfo.OpamInfo.t option;
 }
 
@@ -15,10 +18,16 @@ and manifest =
 
 let make ~version manifest =
   let open Run.Syntax in
-  let dependencies =
+  let dependencies, buildDependencies, devDependencies =
     match manifest with
-    | Opam manifest -> OpamFile.dependencies manifest
-    | PackageJson manifest -> PackageJson.dependencies manifest
+    | Opam manifest ->
+      manifest.OpamFile.dependencies,
+      manifest.OpamFile.buildDependencies,
+      manifest.OpamFile.devDependencies
+    | PackageJson manifest ->
+      manifest.PackageJson.dependencies,
+      manifest.PackageJson.buildDependencies,
+      manifest.PackageJson.devDependencies
   in
   let%bind source =
     match version with
@@ -47,6 +56,8 @@ let make ~version manifest =
     name;
     version;
     dependencies;
+    buildDependencies;
+    devDependencies;
     source;
     opam;
   }

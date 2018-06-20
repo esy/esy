@@ -192,7 +192,7 @@ let toCudf univ =
         cudfVersionMap
     in
 
-    let depends = List.map ~f:(encodeReq ~from:pkg) pkg.dependencies.dependencies in
+    let depends = List.map ~f:(encodeReq ~from:pkg) pkg.dependencies in
     let cudfName = CudfName.ofString pkg.name in
     let cudfPkg = {
       Cudf.default_package with

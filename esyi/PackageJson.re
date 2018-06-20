@@ -105,12 +105,6 @@ let source = manifest =>
     Run.error(msg);
   };
 
-let dependencies = (manifest: t) => {
-  PackageInfo.DependenciesInfo.dependencies: manifest.dependencies,
-  buildDependencies: manifest.buildDependencies,
-  devDependencies: manifest.devDependencies,
-};
-
 let ofFile = (path: Path.t) =>
   RunAsync.Syntax.(
     {

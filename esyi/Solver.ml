@@ -103,7 +103,7 @@ module Explanation = struct
     let resolveReq name requestor =
       List.find
         ~f:(fun req -> Req.name req = name)
-        requestor.Package.dependencies.dependencies
+        requestor.Package.dependencies
     in
 
     let resolveReqViaDepChain pkg =
@@ -200,11 +200,7 @@ let make ~cfg ?resolver ~resolutions root =
     in
     {
       pkg with
-      dependencies = {
-        pkg.dependencies with
-        dependencies =
-          List.map ~f:rewriteReq pkg.dependencies.dependencies
-      }
+      dependencies = List.map ~f:rewriteReq pkg.dependencies
     }
   in
 
@@ -221,7 +217,7 @@ let make ~cfg ?resolver ~resolutions root =
     then
       let pkg = rewritePkgWithResolutions pkg in
       universe := Universe.add ~pkg !universe;
-      pkg.dependencies.dependencies
+      pkg.dependencies
       |> List.map ~f:addReq
       |> RunAsync.List.waitAll
     else return ()
