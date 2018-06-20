@@ -1,11 +1,11 @@
-module PackageSet =
+module RecordSet =
   Set.Make({
     type t = Solution.Record.t;
     let compare = (pkga, pkgb) => {
       let c =
         String.compare(pkga.Solution.Record.name, pkgb.Solution.Record.name);
       if (c == 0) {
-        PackageInfo.Version.compare(pkga.version, pkga.version);
+        PackageInfo.Version.compare(pkga.version, pkgb.version);
       } else {
         c;
       };
@@ -17,17 +17,17 @@ type layout = list((Path.t, Solution.Record.t));
 let packagesOfSolution = solution => {
   let rec addRoot = (pkgs, root) =>
     pkgs
-    |> PackageSet.add(root.Solution.root, _)
+    |> RecordSet.add(root.Solution.root, _)
     |> List.fold_left(~f=addRoot, ~init=_, root.Solution.dependencies);
 
   let pkgs =
     List.fold_left(
       ~f=addRoot,
-      ~init=PackageSet.empty,
+      ~init=RecordSet.empty,
       solution.Solution.dependencies,
     );
 
-  PackageSet.elements(pkgs);
+  RecordSet.elements(pkgs);
 };
 
 let layoutOfSolution = (basePath, solution) : layout => {
