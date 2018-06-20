@@ -2,7 +2,7 @@
 
 const path = require('path');
 const {
-  tests: {generatePkgDriver, startPackageServer, getPackageRegistry},
+  tests: {generatePkgDriver, startPackageServer, getPackageRegistry, clearPackageRegistry},
   exec: {execFile},
 } = require(`pkg-tests-core`);
 
@@ -52,6 +52,7 @@ const pkgDriver = generatePkgDriver({
 });
 
 beforeEach(async () => {
+  await clearPackageRegistry();
   await startPackageServer();
   await getPackageRegistry();
 });

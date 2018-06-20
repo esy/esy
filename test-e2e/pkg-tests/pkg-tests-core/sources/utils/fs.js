@@ -11,6 +11,7 @@ const zlib = require('zlib');
 
 const miscUtils = require('./misc');
 
+exports.exists = fs.exists;
 exports.walk = function walk(
   source: string,
   {filter, relative = false}: {|filter?: Array<string>, relative?: boolean|} = {},

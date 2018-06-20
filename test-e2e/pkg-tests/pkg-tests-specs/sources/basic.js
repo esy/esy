@@ -3,7 +3,7 @@
 import type {PackageDriver} from 'pkg-tests-core';
 
 const {
-  fs: {walk},
+  fs: {walk, exists},
   tests: {
     getPackageArchivePath,
     getPackageHttpArchivePath,
@@ -156,20 +156,20 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          devDependencies: {apkg: `1.0.0`},
+          devDependencies: {devDep: `1.0.0`},
         },
         async ({path, run, source}) => {
           await definePackage({
-            name: 'apkg',
+            name: 'devDep',
             version: '1.0.0',
             dependencies: {},
           });
 
           await run(`install`);
 
-          await expect(source(`require('apkg/package.json')`)).resolves.toMatchObject(
+          await expect(source(`require('devDep/package.json')`)).resolves.toMatchObject(
             {
-              name: 'apkg',
+              name: 'devDep',
               version: `1.0.0`,
             },
           );
@@ -201,7 +201,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await run(`install`);
 
-          await expect(source(`require('devDep/package.json')`)).resolves.toMatchObject(
+          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
             {
               name: 'devDep',
               version: `1.0.0`,
@@ -218,7 +218,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     );
 
     test(
-      `it should allow to duplicate deps between devDependencies and runtime deps`,
+      `it should allow to duplicate conflicting deps between devDependencies and runtime deps`,
       makeTemporaryEnv(
         {
           name: 'root',
@@ -228,7 +228,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         },
         async ({path, run, source}) => {
           await definePackage({
-            name: 'depDep',
+            name: 'devDep',
             version: '1.0.0',
             dependencies: {
               'ok': '2.0.0',
@@ -247,7 +247,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await run(`install`);
 
-          await expect(source(`require('ok/package.json')`)).resolves.toMatchObject(
+          await expect(source(`require('./node_modules/ok/package.json')`)).resolves.toMatchObject(
             {
               name: 'ok',
               version: `1.0.0`,
@@ -265,6 +265,53 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
               version: `2.0.0`,
             },
           );
+        },
+      ),
+    );
+
+    test(
+      `it should prefer an already installed version when solving devDeps deps`,
+      makeTemporaryEnv(
+        {
+          name: 'root',
+          version: '1.0.0',
+          dependencies: {ok: `1.0.0`},
+          devDependencies: {devDep: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await definePackage({
+            name: 'devDep',
+            version: '1.0.0',
+            dependencies: {
+              'ok': '*',
+            },
+          });
+          await definePackage({
+            name: 'ok',
+            version: '1.0.0',
+            dependencies: {},
+          });
+          await definePackage({
+            name: 'ok',
+            version: '2.0.0',
+            dependencies: {},
+          });
+
+          await run(`install`);
+
+          await expect(source(`require('./node_modules/ok/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'ok',
+              version: `1.0.0`,
+            },
+          );
+          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'devDep',
+              version: `1.0.0`,
+            },
+          );
+          expect(await exists(path + '/node_modules/devDep/node_modules/ok/package.json')).toBe(false);
         },
       ),
     );

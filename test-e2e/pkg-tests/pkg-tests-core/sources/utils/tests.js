@@ -79,6 +79,10 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
   })());
 };
 
+exports.clearPackageRegistry = function() {
+  delete exports.getPackageRegistry.promise;
+}
+
 exports.getPackageEntry = async function getPackageEntry(
   name: string,
 ): Promise<?PackageEntry> {
