@@ -28,7 +28,11 @@ let make ~root ~dependencies =
     opam = pkg.opam
   } in
   let root = makePkg root in
-  let dependencies = List.map ~f:makePkg dependencies in
+  let dependencies =
+    dependencies
+    |> Package.Set.elements
+    |> List.map ~f:makePkg
+  in
   {root; dependencies}
 
 let packages solution = solution.dependencies

@@ -18,7 +18,7 @@ type pkg = {
   opam: PackageInfo.OpamInfo.t option;
 }
 
-val make : root:Package.t -> dependencies:Package.t list -> t
+val make : root:Package.t -> dependencies:Package.Set.t -> t
 
 (**
  * List all packages in a solution.

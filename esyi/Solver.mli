@@ -20,8 +20,13 @@ type t = private {
   universe: Universe.t;
 }
 
-(** Result of the solver *)
-type solveResult = (Solution.t, Explanation.t) result
+(**
+ * Result of the solver
+ *
+ * It's either a set of packages to be installed or a failure with a (possibly
+ * empty) explanation.
+ *)
+type solveResult = (Package.Set.t, Explanation.t) result
 
 (** Make new solver given the root package as a seed *)
 val make :

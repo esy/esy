@@ -24,8 +24,9 @@ module Api = {
             root,
           );
         switch%bind (Solver.solve(~root, state)) {
-        | Ok(solution) =>
-          Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath)
+        | Ok(dependencies) =>
+          let solution = Solution.make(~root, ~dependencies);
+          Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
         | Error(explanation) =>
           let%lwt () =
             Logs_lwt.err(m =>

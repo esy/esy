@@ -187,7 +187,7 @@ module Explanation = struct
 
 end
 
-type solveResult = (Solution.t, Explanation.t) result
+type solveResult = (Package.Set.t, Explanation.t) result
 
 let make ~cfg ?resolver ~resolutions root =
   let open RunAsync.Syntax in
@@ -296,12 +296,12 @@ let solve ?(strategy=Strategy.trendy) ~root solver =
 
   | Ok (_preamble, cudfUniv) ->
 
-    let dependencies =
+    let packages =
       cudfUniv
       |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
       |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
       |> List.filter ~f:(fun p -> p.Package.name <> root.Package.name)
+      |> Package.Set.of_list
     in
 
-    let solution = Solution.make ~root ~dependencies in
-    return (Ok solution)
+    return (Ok packages)
