@@ -81,7 +81,7 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
 
 exports.clearPackageRegistry = function() {
   delete exports.getPackageRegistry.promise;
-}
+};
 
 exports.getPackageEntry = async function getPackageEntry(
   name: string,
@@ -400,4 +400,36 @@ exports.generatePkgDriver = function generatePkgDriver({
   }
 
   return withConfig({});
+};
+
+type Layout = {
+  name: string,
+  version: string,
+  path: string,
+  dependencies: {[name: string]: Layout},
+};
+
+exports.crawlLayout = async function crawlLayout(directory: string): Promise<Layout> {
+  const packageJsonPath = path.join(directory, 'package.json');
+  const nodeModulesPath = path.join(directory, 'node_modules');
+  const packageJson = await fsUtils.readJson(packageJsonPath);
+  const dependencies = {};
+
+  if (await fsUtils.exists(nodeModulesPath)) {
+    const items = await fsUtils.readdir(nodeModulesPath);
+    await Promise.all(
+      items.map(async name => {
+        const depDirectory = path.join(directory, 'node_modules', name);
+        const dep = await crawlLayout(depDirectory);
+        dependencies[dep.name] = dep;
+      }),
+    );
+  }
+
+  return {
+    name: packageJson.name,
+    version: packageJson.version,
+    path: directory,
+    dependencies,
+  };
 };

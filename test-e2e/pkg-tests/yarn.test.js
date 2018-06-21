@@ -2,7 +2,12 @@
 
 const path = require('path');
 const {
-  tests: {generatePkgDriver, startPackageServer, getPackageRegistry, clearPackageRegistry},
+  tests: {
+    generatePkgDriver,
+    startPackageServer,
+    getPackageRegistry,
+    clearPackageRegistry,
+  },
   exec: {execFile},
 } = require(`pkg-tests-core`);
 
@@ -13,6 +18,7 @@ const {
 } = require(`pkg-tests-specs`);
 
 const devDependenciesSpecs = require('pkg-tests-specs/sources/devDependencies.js');
+const resolutionsSpecs = require('pkg-tests-specs/sources/resolutions.js');
 
 const cwd = process.cwd();
 const esyiCommand = path.join(
@@ -26,10 +32,7 @@ const esyiCommand = path.join(
   'esyi',
 );
 
-const esyiCommands = new Set([
-  'install',
-  'print-cudf-universe',
-]);
+const esyiCommands = new Set(['install', 'print-cudf-universe']);
 
 const pkgDriver = generatePkgDriver({
   runDriver: (path, line, {registryUrl}) => {
@@ -61,5 +64,6 @@ beforeEach(async () => {
 
 basicSpecs(pkgDriver);
 devDependenciesSpecs(pkgDriver);
+resolutionsSpecs(pkgDriver);
 //dragonSpecs(pkgDriver);
 //scriptSpecs(pkgDriver);

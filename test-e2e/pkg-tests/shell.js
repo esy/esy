@@ -38,33 +38,24 @@ async function main() {
   });
 
   await definePackage({
-    name: 'devDep',
+    name: 'dep',
     version: '1.0.0',
-    dependencies: {
-      ok: '*',
-    },
+    dependencies: {depDep: `1.0.0`},
   });
   await definePackage({
-    name: 'devDep2',
+    name: 'depDep',
     version: '1.0.0',
-    dependencies: {
-      ok: '*',
-    },
   });
   await definePackage({
-    name: 'ok',
-    version: '1.0.0',
-    dependencies: {},
+    name: 'depDep',
+    version: '2.0.0',
   });
 
   const packageJson = {
     name: 'root',
-    version: '0.0.0',
-    dependencies: {},
-    devDependencies: {
-      devDep: '*',
-      devDep2: '*',
-    },
+    version: '1.0.0',
+    dependencies: {dep: `1.0.0`},
+    resolutions: {depDep: `2.0.0`},
   };
   await fs.writeFile(
     path.join(cwd, 'package.json'),

@@ -5,6 +5,7 @@ import type {PackageDriver} from 'pkg-tests-core';
 const {
   fs: {walk, exists},
   tests: {
+    crawlLayout,
     getPackageArchivePath,
     getPackageHttpArchivePath,
     getPackageDirectoryPath,
@@ -31,12 +32,13 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await run(`install`);
 
-          await expect(source(`require('devDep/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'devDep',
-              version: `1.0.0`,
+          await expect(crawlLayout(path)).resolves.toMatchObject({
+            dependencies: {
+              devDep: {
+                name: 'devDep',
+              },
             },
-          );
+          });
         },
       ),
     );
@@ -54,29 +56,30 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             name: 'devDep',
             version: '1.0.0',
             dependencies: {
-              'apkg-dep': '1.0.0',
+              ok: '1.0.0',
             },
           });
           await definePackage({
-            name: 'apkg-dep',
+            name: 'ok',
             version: '1.0.0',
             dependencies: {},
           });
 
           await run(`install`);
 
-          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'devDep',
-              version: `1.0.0`,
+          await expect(crawlLayout(path)).resolves.toMatchObject({
+            dependencies: {
+              devDep: {
+                name: 'devDep',
+                dependencies: {
+                  ok: {
+                    name: 'ok',
+                    version: '1.0.0',
+                  },
+                },
+              },
             },
-          );
-          await expect(source(`require('./node_modules/devDep/node_modules/apkg-dep/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'apkg-dep',
-              version: `1.0.0`,
-            },
-          );
+          });
         },
       ),
     );
@@ -95,7 +98,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             name: 'devDep',
             version: '1.0.0',
             dependencies: {
-              'ok': '2.0.0',
+              ok: '2.0.0',
             },
           });
           await definePackage({
@@ -111,24 +114,23 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await run(`install`);
 
-          await expect(source(`require('./node_modules/ok/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'ok',
-              version: `1.0.0`,
+          await expect(crawlLayout(path)).resolves.toMatchObject({
+            dependencies: {
+              ok: {
+                name: 'ok',
+                version: '1.0.0',
+              },
+              devDep: {
+                name: 'devDep',
+                dependencies: {
+                  ok: {
+                    name: 'ok',
+                    version: '2.0.0',
+                  },
+                },
+              },
             },
-          );
-          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'devDep',
-              version: `1.0.0`,
-            },
-          );
-          await expect(source(`require('./node_modules/devDep/node_modules/ok/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'ok',
-              version: `2.0.0`,
-            },
-          );
+          });
         },
       ),
     );
@@ -147,7 +149,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             name: 'devDep',
             version: '1.0.0',
             dependencies: {
-              'ok': '*',
+              ok: '*',
             },
           });
           await definePackage({
@@ -163,19 +165,20 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await run(`install`);
 
-          await expect(source(`require('./node_modules/ok/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'ok',
-              version: `1.0.0`,
+          const layout = await crawlLayout(path);
+          await expect(layout).toMatchObject({
+            dependencies: {
+              ok: {
+                name: 'ok',
+                version: '1.0.0',
+              },
+              devDep: {
+                name: 'devDep',
+                dependencies: {},
+              },
             },
-          );
-          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'devDep',
-              version: `1.0.0`,
-            },
-          );
-          expect(await exists(path + '/node_modules/devDep/node_modules/ok/package.json')).toBe(false);
+          });
+          expect(layout).not.toHaveProperty('dependencies.devDep.dependencies.ok');
         },
       ),
     );
@@ -193,14 +196,14 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             name: 'devDep',
             version: '1.0.0',
             dependencies: {
-              'ok': '*',
+              ok: '*',
             },
           });
           await definePackage({
             name: 'devDep2',
             version: '1.0.0',
             dependencies: {
-              'ok': '*',
+              ok: '*',
             },
           });
           await definePackage({
@@ -211,33 +214,94 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await run(`install`);
 
-          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'devDep',
-              version: `1.0.0`,
+          const layout = await crawlLayout(path);
+          await expect(layout).toMatchObject({
+            dependencies: {
+              devDep: {
+                name: 'devDep',
+                dependencies: {
+                  ok: {
+                    name: 'ok',
+                  },
+                },
+              },
+              devDep2: {
+                name: 'devDep2',
+                dependencies: {
+                  ok: {
+                    name: 'ok',
+                  },
+                },
+              },
             },
-          );
-          await expect(source(`require('./node_modules/devDep2/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'devDep2',
-              version: `1.0.0`,
+          });
+          expect(layout).not.toHaveProperty('dependencies.ok');
+        },
+      ),
+    );
+
+    test(
+      `it should handle two devDeps having conflicting dep`,
+      makeTemporaryEnv(
+        {
+          name: 'root',
+          version: '1.0.0',
+          devDependencies: {devDep: `1.0.0`, devDep2: '1.0.0'},
+        },
+        async ({path, run, source}) => {
+          await definePackage({
+            name: 'devDep',
+            version: '1.0.0',
+            dependencies: {
+              ok: '^1',
             },
-          );
-          await expect(source(`require('./node_modules/devDep/node_modules/ok/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'ok',
-              version: `1.0.0`,
+          });
+          await definePackage({
+            name: 'devDep2',
+            version: '1.0.0',
+            dependencies: {
+              ok: '^2',
             },
-          );
-          await expect(source(`require('./node_modules/devDep2/node_modules/ok/package.json')`)).resolves.toMatchObject(
-            {
-              name: 'ok',
-              version: `1.0.0`,
+          });
+          await definePackage({
+            name: 'ok',
+            version: '1.0.0',
+            dependencies: {},
+          });
+          await definePackage({
+            name: 'ok',
+            version: '2.0.0',
+            dependencies: {},
+          });
+
+          await run(`install`);
+
+          const layout = await crawlLayout(path);
+          await expect(layout).toMatchObject({
+            dependencies: {
+              devDep: {
+                name: 'devDep',
+                dependencies: {
+                  ok: {
+                    name: 'ok',
+                    version: '1.0.0',
+                  },
+                },
+              },
+              devDep2: {
+                name: 'devDep2',
+                dependencies: {
+                  ok: {
+                    name: 'ok',
+                    version: '2.0.0',
+                  },
+                },
+              },
             },
-          );
+          });
+          expect(layout).not.toHaveProperty('dependencies.ok');
         },
       ),
     );
   });
 };
-
