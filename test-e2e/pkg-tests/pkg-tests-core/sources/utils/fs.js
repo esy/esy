@@ -11,6 +11,9 @@ const zlib = require('zlib');
 
 const miscUtils = require('./misc');
 
+exports.stat = fs.stat;
+exports.readdir = fs.readdir;
+exports.exists = fs.exists;
 exports.walk = function walk(
   source: string,
   {filter, relative = false}: {|filter?: Array<string>, relative?: boolean|} = {},
@@ -97,7 +100,11 @@ exports.packToStream = function packToStream(
   return zipperStream;
 };
 
-exports.packToFile = function packToFile(target: string, source: string, options: *): Promise<void> {
+exports.packToFile = function packToFile(
+  target: string,
+  source: string,
+  options: *,
+): Promise<void> {
   const tarballStream = fs.createWriteStream(target);
 
   const packStream = exports.packToStream(source, options);
@@ -130,7 +137,9 @@ exports.createTemporaryFolder = function createTemporaryFolder(): Promise<string
   });
 };
 
-exports.createTemporaryFile = async function createTemporaryFile(filePath: string): Promise<string> {
+exports.createTemporaryFile = async function createTemporaryFile(
+  filePath: string,
+): Promise<string> {
   if (filePath) {
     if (path.normalize(filePath).match(/^(\.\.)?\//)) {
       throw new Error('A temporary file path must be a forward path');
@@ -151,12 +160,18 @@ exports.createTemporaryFile = async function createTemporaryFile(filePath: strin
   }
 };
 
-exports.writeFile = async function writeFile(target: string, body: string | Buffer): Promise<void> {
+exports.writeFile = async function writeFile(
+  target: string,
+  body: string | Buffer,
+): Promise<void> {
   await fs.mkdirp(path.dirname(target));
   await fs.writeFile(target, body);
 };
 
-exports.readFile = function readFile(source: string, encoding: ?string = null): Promise<any> {
+exports.readFile = function readFile(
+  source: string,
+  encoding: ?string = null,
+): Promise<any> {
   return fs.readFile(source, encoding);
 };
 

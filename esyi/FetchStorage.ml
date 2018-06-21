@@ -1,6 +1,6 @@
 module String = Astring.String
 
-module Package = struct
+module Dist = struct
   type t = {
     name : string;
     version : PackageInfo.Version.t;
@@ -9,9 +9,9 @@ module Package = struct
   }
 end
 
-type pkg = Package.t
+type dist = Dist.t
 
-let packageKey (pkg : Solution.pkg) =
+let packageKey (pkg : Solution.Record.t) =
   let version = PackageInfo.Version.toString pkg.version in
   match pkg.opam with
   | None -> Printf.sprintf "%s__%s" pkg.name version
@@ -26,10 +26,10 @@ let packageKey (pkg : Solution.pkg) =
     in
     Printf.sprintf "%s__%s__%s" pkg.name version opamHash
 
-let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pkg) =
+let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} as dist) =
   let open RunAsync.Syntax in
 
-  let key = packageKey pkg in
+  let key = packageKey dist in
 
   let doFetch path =
     match source with
@@ -145,13 +145,13 @@ let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pk
 
     in
 
-    let tarballPath = Path.(config.tarballCachePath // v key |> addExt "tgz") in
+    let tarballPath = Path.(cfg.tarballCachePath // v key |> addExt "tgz") in
 
-    let pkg = {Package. tarballPath; name; version; source} in
+    let dist = {Dist. tarballPath; name; version; source} in
 
     match%bind Fs.exists tarballPath with
     | true ->
-      return pkg
+      return dist
     | false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
@@ -171,12 +171,12 @@ let fetch ~(config : Config.t) ({Solution. name; version; source; opam; _} as pk
           return ()
         in
 
-        return pkg
+        return dist
       )
 
-let install ~config:_ ~dst pkg =
+let install ~cfg:_ ~path dist =
   let open RunAsync.Syntax in
-  let {Package. tarballPath; _} = pkg in
-  let%bind () = Fs.createDir dst in
-  let%bind () = Tarball.unpack ~dst tarballPath in
+  let {Dist. tarballPath; _} = dist in
+  let%bind () = Fs.createDir path in
+  let%bind () = Tarball.unpack ~dst:path tarballPath in
   return ()

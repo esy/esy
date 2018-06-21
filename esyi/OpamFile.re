@@ -91,7 +91,7 @@ module ParseDeps = {
     | `Leq => single(C.LTE(v))
     | `Lt => single(C.LT(v))
     | `Gt => single(C.GT(v))
-    | `Neq => failwith("Can't do neq in opam version constraints")
+    | `Neq => F.OR([F.AND([C.LT(v)]), F.AND([C.GT(v)])])
     };
   };
 
@@ -238,9 +238,8 @@ let processDeps = (filename, deps) => {
           )
         | None => (deps, buildDeps, devDeps)
         | exception (Failure(f)) =>
-          print_endline("Failed to process dep: " ++ f);
-          print_endline(filename);
-          failwith("bad");
+          let msg = "Failed to process dep: " ++ filename ++ ": " ++ f;
+          failwith(msg);
         },
     ~init=([], [], []),
     deps,
@@ -538,8 +537,6 @@ let parseManifest =
   };
 };
 
-let source = ({source, _}) => source;
-
 let commandListToJson = e =>
   e
   |> List.map(~f=items => `List(List.map(~f=item => `String(item), items)));
@@ -594,13 +591,4 @@ let toPackageJson = (manifest, version) => {
     files: manifest.files,
     patches: manifest.patches,
   };
-};
-
-let name = manifest => PackageName.toNpm(manifest.name);
-let version = manifest => manifest.version;
-
-let dependencies = manifest => {
-  PackageInfo.DependenciesInfo.devDependencies: manifest.devDependencies,
-  buildDependencies: manifest.buildDependencies,
-  dependencies: manifest.dependencies,
 };

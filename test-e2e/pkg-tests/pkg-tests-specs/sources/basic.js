@@ -3,7 +3,7 @@
 import type {PackageDriver} from 'pkg-tests-core';
 
 const {
-  fs: {walk},
+  fs: {walk, exists},
   tests: {
     getPackageArchivePath,
     getPackageHttpArchivePath,

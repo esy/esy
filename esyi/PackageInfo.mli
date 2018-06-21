@@ -15,6 +15,8 @@ module Source : sig
   val parse : string -> (t, string) result
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
+
+  val equal : t -> t -> bool
 end
 
 (**
@@ -29,11 +31,13 @@ module Version : sig
   val compare : t -> t -> int
   val toString : t -> string
   val parse : string -> (t, string) result
+  val parseExn : string -> t
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
   val toNpmVersion : t -> string
 
   val pp : Format.formatter -> t -> unit
+  val equal : t -> t -> bool
 
   module Map : Map.S with type key := t
 end
@@ -90,16 +94,6 @@ module Dependencies : sig
   val of_yojson : Json.t -> (Req.t list, string) result
   val to_yojson : t -> [> `Assoc of (string * [> `String of string ]) list ]
   val merge : Req.t list -> Req.t list -> Req.t list
-end
-
-module DependenciesInfo : sig
-  type t = {
-    dependencies : Dependencies.t;
-    buildDependencies : Dependencies.t;
-    devDependencies : Dependencies.t;
-  }
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
 end
 
 module Resolutions : sig

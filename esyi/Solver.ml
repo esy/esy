@@ -2,18 +2,20 @@ module Source = PackageInfo.Source
 module SourceSpec = PackageInfo.SourceSpec
 module Version = PackageInfo.Version
 module VersionSpec = PackageInfo.VersionSpec
+module Dependencies = PackageInfo.Dependencies
 module Req = PackageInfo.Req
 module Resolutions = PackageInfo.Resolutions
 
 module Strategy = struct
-  type t = string
   let trendy = "-removed,-notuptodate,-new"
+  let minimalAddition = "-removed,-changed,-notuptodate"
 end
 
 type t = {
-  cfg: Config.t;
+  cfg : Config.t;
   resolver : Resolver.t;
-  universe: Universe.t;
+  universe : Universe.t;
+  resolutions : Resolutions.t;
 }
 
 module Explanation = struct
@@ -103,7 +105,7 @@ module Explanation = struct
     let resolveReq name requestor =
       List.find
         ~f:(fun req -> Req.name req = name)
-        requestor.Package.dependencies.dependencies
+        requestor.Package.dependencies
     in
 
     let resolveReqViaDepChain pkg =
@@ -187,26 +189,8 @@ module Explanation = struct
 
 end
 
-type solveResult = (Solution.t, Explanation.t) result
-
-let make ~cfg ?resolver ~resolutions root =
+let make ~cfg ?resolver ~resolutions () =
   let open RunAsync.Syntax in
-
-  let rewritePkgWithResolutions (pkg : Package.t) =
-    let rewriteReq req =
-      match PackageInfo.Resolutions.apply resolutions req with
-      | Some req -> req
-      | None -> req
-    in
-    {
-      pkg with
-      dependencies = {
-        pkg.dependencies with
-        dependencies =
-          List.map ~f:rewriteReq pkg.dependencies.dependencies
-      }
-    }
-  in
 
   let%bind resolver =
     match resolver with
@@ -216,25 +200,46 @@ let make ~cfg ?resolver ~resolutions root =
 
   let universe = ref Universe.empty in
 
+
+  return {cfg; resolver; universe = !universe; resolutions}
+
+let add ~dependencies solver =
+  let open RunAsync.Syntax in
+
+  let rewriteReq req =
+    match PackageInfo.Resolutions.apply solver.resolutions req with
+    | Some req -> req
+    | None -> req
+  in
+
+  let rewritePkgWithResolutions (pkg : Package.t) =
+    {
+      pkg with
+      dependencies = List.map ~f:rewriteReq pkg.dependencies
+    }
+  in
+
+  let universe = ref solver.universe in
+
   let rec addPkg (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
     then
       let pkg = rewritePkgWithResolutions pkg in
       universe := Universe.add ~pkg !universe;
-      pkg.dependencies.dependencies
+      pkg.dependencies
       |> List.map ~f:addReq
       |> RunAsync.List.waitAll
     else return ()
 
   and addReq req =
     let%bind resolutions =
-      Resolver.resolve ~req resolver
+      Resolver.resolve ~req solver.resolver
       |> RunAsync.withContext ("resolving request: " ^ Req.toString req)
     in
 
     let%bind packages =
       resolutions
-      |> List.map ~f:(fun resolution -> Resolver.package ~resolution resolver)
+      |> List.map ~f:(fun resolution -> Resolver.package ~resolution solver.resolver)
       |> RunAsync.List.joinAll
     in
 
@@ -243,29 +248,46 @@ let make ~cfg ?resolver ~resolutions root =
     |> RunAsync.List.waitAll;
   in
 
-  let%bind () = addPkg root in
-  return {cfg; resolver; universe = !universe}
+  let%bind dependencies =
+    dependencies
+    |> List.map ~f:(fun req ->
+        let req = rewriteReq req in
+        let%bind () = addReq req in
+        return req)
+    |> RunAsync.List.joinAll
+  in
 
-let solve ?(strategy=Strategy.trendy) ~root solver =
+  return ({solver with universe = !universe}, dependencies)
+
+let printCudfDoc doc =
+  let o = IO.output_string () in
+  Cudf_printer.pp_io_doc o doc;
+  IO.close_out o
+
+let parseCudfSolution ~cudfUniverse data =
+  let i = IO.input_string data in
+  let p = Cudf_parser.from_IO_in_channel i in
+  let solution = Cudf_parser.load_solution p cudfUniverse in
+  IO.close_in i;
+  solution
+
+let solveDependencies ~installed ~strategy dependencies solver =
   let open RunAsync.Syntax in
 
-  let cudfUniverse, cudfMapping = Universe.toCudf solver.universe in
+  let dummyRoot = {
+    Package.
+    name = "ROOT";
+    version = Version.parseExn "0.0.0";
+    source = Source.NoSource;
+    opam = None;
+    dependencies;
+    buildDependencies = Dependencies.empty;
+    devDependencies = Dependencies.empty;
+  } in
 
-  let cudfRoot = Universe.CudfMapping.encodePkgExn root cudfMapping in
-
-  let printCudfDoc doc =
-    let o = IO.output_string () in
-    Cudf_printer.pp_io_doc o doc;
-    IO.close_out o
-  in
-
-  let parseCudfSolution data =
-    let i = IO.input_string data in
-    let p = Cudf_parser.from_IO_in_channel i in
-    let solution = Cudf_parser.load_solution p cudfUniverse in
-    IO.close_in i;
-    solution
-  in
+  let universe = Universe.add ~pkg:dummyRoot solver.universe in
+  let cudfUniverse, cudfMapping = Universe.toCudf ~installed universe in
+  let cudfRoot = Universe.CudfMapping.encodePkgExn dummyRoot cudfMapping in
 
   let request = {
     Cudf.default_request with
@@ -286,26 +308,99 @@ let solve ?(strategy=Strategy.trendy) ~root solver =
         % p filename) in
       ChildProcess.runOut cmd
     ) in
-    return (parseCudfSolution dataOut)
+    return (parseCudfSolution ~cudfUniverse dataOut)
   in
 
   match%lwt solution with
 
   | Error _ ->
     let cudf = preamble, cudfUniverse, request in
-    begin match%bind Explanation.explain ~resolver:solver.resolver ~cudfMapping ~root cudf with
+    begin match%bind
+      Explanation.explain
+        ~resolver:solver.resolver
+        ~cudfMapping
+        ~root:dummyRoot
+        cudf
+    with
     | Some reasons -> return (Error reasons)
     | None -> return (Error Explanation.empty)
     end
 
   | Ok (_preamble, cudfUniv) ->
 
-    let dependencies =
+    let packages =
       cudfUniv
       |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
       |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
-      |> List.filter ~f:(fun p -> p.Package.name <> root.Package.name)
+      |> List.filter ~f:(fun p -> p.Package.name <> dummyRoot.Package.name)
+      |> Package.Set.of_list
     in
 
-    let solution = Solution.make ~root ~dependencies in
-    return (Ok solution)
+    return (Ok packages)
+
+let solve ~cfg ~resolutions (root : Package.t) =
+  let open RunAsync.Syntax in
+
+  let%bind solver = make ~cfg ~resolutions () in
+  let%bind solver, dependencies = add ~dependencies:root.dependencies solver in
+  let%bind solver, devDependencies = add ~dependencies:root.devDependencies solver in
+
+  let getResultOrExplain = function
+    | Ok dependencies -> return dependencies
+    | Error explanation ->
+      let msg = Format.asprintf
+        "@[<v>No solution found:@;@;%a@]"
+        Explanation.pp explanation
+      in
+      error msg
+  in
+
+  (* Solve runtime dependencies first *)
+  let%bind dependencies =
+    let%bind res =
+      solveDependencies
+        ~installed:Package.Set.empty
+        ~strategy:Strategy.trendy
+        dependencies
+        solver
+    in getResultOrExplain res
+  in
+
+  let toRootList pkgs =
+    pkgs
+    |> Package.Set.elements
+    |> List.map ~f:(fun pkg -> Solution.make pkg [])
+  in
+
+  let%bind devDependencies =
+    let sovleDevDependency req =
+      let%bind packages = solveDependencies
+        ~installed:dependencies
+        ~strategy:Strategy.minimalAddition
+        [req]
+        solver
+      in
+      let%bind packages = getResultOrExplain packages in
+      let rootName = Req.name req in
+      let root = Package.Set.find_first
+        (fun p -> String.compare p.Package.name rootName >= 0)
+        packages
+      in
+      let dependencies =
+        packages
+        |> Package.Set.remove root
+        |> fun packages -> Package.Set.diff packages dependencies
+      in
+      return (Solution.make root (toRootList dependencies))
+    in
+    devDependencies
+    |> List.map ~f:sovleDevDependency
+    |> RunAsync.List.joinAll
+  in
+
+  let solution =
+    Solution.make root
+    (toRootList dependencies @ devDependencies)
+  in
+
+  return solution

@@ -2,17 +2,46 @@ module Version = PackageInfo.Version
 module Source = PackageInfo.Source
 module Req = PackageInfo.Req
 
-type t = {
-  root: pkg;
-  dependencies: pkg list;
-}
+module Record = struct
+  type t = {
+    name: string ;
+    version: Version.t ;
+    source: Source.t ;
+    opam: PackageInfo.OpamInfo.t option;
+  } [@@deriving yojson]
+
+  let ofPkg (pkg : Package.t) = {
+    name = pkg.name;
+    version = pkg.version;
+    source = pkg.source;
+    opam = pkg.opam;
+  }
+
+  let compare a b =
+    let c = String.compare a.name b.name in
+    if c = 0
+    then Version.compare a.version b.version
+    else c
+
+  let equal a b =
+    String.equal a.name b.name && Version.equal a.version b.version
+
+  let pp fmt record =
+    Fmt.pf fmt "%s@%a" record.name Version.pp record.version
+
+  module Map = Map.Make(struct type nonrec t = t let compare = compare end)
+  module Set = Set.Make(struct type nonrec t = t let compare = compare end)
+end
+
+type t = root
 [@@deriving yojson]
 
-and pkg = {
-  name: string ;
-  version: Version.t ;
-  source: Source.t ;
-  opam: (PackageInfo.OpamInfo.t option [@default None])
+(**
+ * This represent an isolated dependency root.
+ *)
+and root = {
+  record: Record.t;
+  dependencies: root list;
 }
 
 and lockfile = {
@@ -20,18 +49,19 @@ and lockfile = {
   solution : t;
 }
 
-let make ~root ~dependencies =
-  let makePkg (pkg : Package.t) = {
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    opam = pkg.opam
-  } in
-  let root = makePkg root in
-  let dependencies = List.map ~f:makePkg dependencies in
-  {root; dependencies}
+let make record dependencies =
+  {record = Record.ofPkg record; dependencies}
 
-let packages solution = solution.dependencies
+let record root = root.record
+let dependencies root = root.dependencies
+
+let fold ~f ~init solution =
+  let rec aux v root =
+    let v = List.fold_left ~f:aux ~init:v root.dependencies in
+    let v = f v root.record in
+    v
+  in
+  aux init solution
 
 let dependenciesHash (manifest : PackageJson.t) =
   let hashDependencies ~prefix ~dependencies digest =
@@ -67,30 +97,32 @@ let dependenciesHash (manifest : PackageJson.t) =
   Digest.to_hex digest
 
 let mapSourceLocalPath ~f solution =
-  let mapPkg (pkg : pkg) =
+  let mapRecord (record : Record.t) =
     let version =
-      match pkg.version with
+      match record.version with
       | Version.Source (Source.LocalPath p) ->
         Version.Source (Source.LocalPath (f p))
       | Version.Npm _
       | Version.Opam _
-      | Version.Source _ -> pkg.version
+      | Version.Source _ -> record.version
     in
     let source =
-      match pkg.source with
+      match record.source with
       | Source.LocalPath p ->
         Source.LocalPath (f p)
       | Source.Archive _
       | Source.Git _
       | Source.Github _
-      | Source.NoSource -> pkg.source
+      | Source.NoSource -> record.source
     in
-    {pkg with source; version}
+    {record with source; version}
   in
-  {
-    root = mapPkg solution.root;
-    dependencies = List.map ~f:mapPkg solution.dependencies;
+  let rec mapRoot root = {
+    record = mapRecord root.record;
+    dependencies = List.map ~f:mapRoot root.dependencies;
   }
+  in
+  mapRoot solution
 
 let relativize ~cfg sol =
   let f path =

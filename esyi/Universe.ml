@@ -60,7 +60,7 @@ let findVersions ~name univ =
 
 module CudfVersionMap = struct
 
-  module VersionSet = Set.Make(Package.Version)
+  module VersionSet = Set.Make(PackageInfo.Version)
 
   type t = {
     cudfVersionToVersion: ((string * int), PackageInfo.Version.t) Hashtbl.t ;
@@ -154,12 +154,40 @@ module CudfMapping = struct
     let cudfVersion = CudfVersionMap.findCudfVersionExn ~name ~version:pkg.version vmap in
     Cudf.lookup_package cudfUniv (name, cudfVersion)
 
+  let encodeReqExn (req : Req.t) (univ, _cudfUniv, vmap)  =
+    let name = Req.name req in
+    let spec = Req.spec req in
+
+    let versions = findVersions ~name univ in
+
+    let versionsMatched =
+      List.filter
+        ~f:(fun pkg -> VersionSpec.matches ~version:pkg.Package.version spec)
+        versions
+    in
+
+    match versionsMatched with
+    | [] ->
+      [name, Some (`Eq, 10000000000)]
+    | versionsMatched ->
+      let pkgToConstraint pkg =
+        let cudfVersion =
+          CudfVersionMap.findCudfVersionExn
+            ~name:pkg.Package.name
+            ~version:pkg.Package.version
+            vmap
+        in
+        CudfName.ofString pkg.Package.name, Some (`Eq, cudfVersion)
+      in
+      List.map ~f:pkgToConstraint versionsMatched
+
+
   let univ (univ, _, _) = univ
   let cudfUniv (_, cudfUniv, _) = cudfUniv
 
 end
 
-let toCudf univ =
+let toCudf ?(installed=Package.Set.empty) univ =
   let cudfUniv = Cudf.empty_universe () in
   let cudfVersionMap = CudfVersionMap.make () in
 
@@ -184,7 +212,17 @@ let toCudf univ =
     List.iteri ~f pkgs;
   in
 
-  let rec encodePkg (pkg : Package.t) =
+  let encodeReq req =
+    let name = Req.name req in
+    let versions = findVersions ~name univ in
+    if not (seen name) then (
+      markAsSeen name;
+      updateVersionMap versions;
+    );
+    CudfMapping.encodeReqExn req (univ, cudfUniv, cudfVersionMap)
+  in
+
+  let encodePkg (pkg : Package.t) =
     let cudfVersion =
       CudfVersionMap.findCudfVersionExn
         ~name:pkg.name
@@ -192,50 +230,18 @@ let toCudf univ =
         cudfVersionMap
     in
 
-    let depends = List.map ~f:(encodeReq ~from:pkg) pkg.dependencies.dependencies in
+    let depends = List.map ~f:encodeReq pkg.dependencies in
     let cudfName = CudfName.ofString pkg.name in
     let cudfPkg = {
       Cudf.default_package with
       package = cudfName;
       version = cudfVersion;
       conflicts = [cudfName, None];
-      installed = false;
+      installed = Package.Set.mem pkg installed;
       depends;
     }
     in
     Cudf.add_package cudfUniv cudfPkg
-
-  and encodeReq ~from:_ req =
-    let name = Req.name req in
-    let spec = Req.spec req in
-
-    let versions = findVersions ~name univ in
-
-    if not (seen name) then (
-      markAsSeen name;
-      updateVersionMap versions;
-    );
-
-    let versionsMatched =
-      List.filter
-        ~f:(fun pkg -> VersionSpec.matches ~version:pkg.Package.version spec)
-        versions
-    in
-
-    match versionsMatched with
-    | [] ->
-      [name, Some (`Eq, 10000000000)]
-    | versionsMatched ->
-      let pkgToConstraint pkg =
-        let cudfVersion =
-          CudfVersionMap.findCudfVersionExn
-            ~name:pkg.Package.name
-            ~version:pkg.Package.version
-            cudfVersionMap
-        in
-        CudfName.ofString pkg.Package.name, Some (`Eq, cudfVersion)
-      in
-      List.map ~f:pkgToConstraint versionsMatched
   in
 
   StringMap.iter (fun name _ ->
