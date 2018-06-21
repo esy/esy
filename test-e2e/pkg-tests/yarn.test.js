@@ -12,6 +12,8 @@ const {
   script: scriptSpecs,
 } = require(`pkg-tests-specs`);
 
+const devDependenciesSpecs = require('pkg-tests-specs/sources/devDependencies.js');
+
 const cwd = process.cwd();
 const esyiCommand = path.join(
   cwd,
@@ -58,5 +60,6 @@ beforeEach(async () => {
 });
 
 basicSpecs(pkgDriver);
+devDependenciesSpecs(pkgDriver);
 //dragonSpecs(pkgDriver);
 //scriptSpecs(pkgDriver);

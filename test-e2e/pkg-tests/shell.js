@@ -1,7 +1,7 @@
 // @flow
 
 const {
-  tests: {startPackageServer},
+  tests: {startPackageServer, definePackage},
   fs: {createTemporaryFolder},
 } = require(`pkg-tests-core`);
 const fs = require('fs-extra');
@@ -28,25 +28,43 @@ function spawnShell({env, cwd}) {
 
 async function main() {
   const registryUrl = await startPackageServer();
-  const env = {
-    ...process.env,
+  const cwd = await createTemporaryFolder();
+  const env = Object.assign({}, process.env, {
     PATH: `${esyBin}:${process.env.PATH || ''}`,
     NPM_CONFIG_REGISTRY: registryUrl,
+    ESYI__CACHE: path.join(cwd, 'cache'),
     ESYI__OPAM_REPOSITORY: ':' + path.join(currentDir, 'opam-repository'),
     ESYI__OPAM_OVERRIDE: ':' + path.join(currentDir, 'esy-opam-override'),
-  };
-  const cwd = await createTemporaryFolder();
+  });
 
-  const dependencies = {};
-  for (let i = 2; i < process.argv.length; i++) {
-    const [_, name, version] = /(@?[^@]+)@?(.*)/.exec(process.argv[i]);
-    dependencies[name] = version;
-  }
+  await definePackage({
+    name: 'devDep',
+    version: '1.0.0',
+    dependencies: {
+      ok: '*',
+    },
+  });
+  await definePackage({
+    name: 'devDep2',
+    version: '1.0.0',
+    dependencies: {
+      ok: '*',
+    },
+  });
+  await definePackage({
+    name: 'ok',
+    version: '1.0.0',
+    dependencies: {},
+  });
 
   const packageJson = {
     name: 'root',
     version: '0.0.0',
-    dependencies,
+    dependencies: {},
+    devDependencies: {
+      devDep: '*',
+      devDep2: '*',
+    },
   };
   await fs.writeFile(
     path.join(cwd, 'package.json'),

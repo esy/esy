@@ -316,6 +316,65 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
       ),
     );
 
+    test(
+      `it should handle two devDeps sharing a dep`,
+      makeTemporaryEnv(
+        {
+          name: 'root',
+          version: '1.0.0',
+          devDependencies: {devDep: `1.0.0`, devDep2: '1.0.0'},
+        },
+        async ({path, run, source}) => {
+          await definePackage({
+            name: 'devDep',
+            version: '1.0.0',
+            dependencies: {
+              'ok': '*',
+            },
+          });
+          await definePackage({
+            name: 'devDep2',
+            version: '1.0.0',
+            dependencies: {
+              'ok': '*',
+            },
+          });
+          await definePackage({
+            name: 'ok',
+            version: '1.0.0',
+            dependencies: {},
+          });
+
+          await run(`install`);
+
+          await expect(source(`require('./node_modules/devDep/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'devDep',
+              version: `1.0.0`,
+            },
+          );
+          await expect(source(`require('./node_modules/devDep2/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'devDep2',
+              version: `1.0.0`,
+            },
+          );
+          await expect(source(`require('./node_modules/devDep/node_modules/ok/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'ok',
+              version: `1.0.0`,
+            },
+          );
+          await expect(source(`require('./node_modules/devDep2/node_modules/ok/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'ok',
+              version: `1.0.0`,
+            },
+          );
+        },
+      ),
+    );
+
     test.skip(
       `it should correctly install an inter-dependency loop`,
       makeTemporaryEnv(
