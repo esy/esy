@@ -369,9 +369,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
   let toRootList pkgs =
     pkgs
     |> Package.Set.elements
-    |> List.map ~f:(fun pkg ->
-      let root = Solution.Record.ofPkg pkg in
-      {Solution.root; dependencies = []});
+    |> List.map ~f:(fun pkg -> Solution.make pkg [])
   in
 
   let%bind devDependencies =
@@ -393,11 +391,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
         |> Package.Set.remove root
         |> fun packages -> Package.Set.diff packages dependencies
       in
-      return {
-        Solution.
-        root = Solution.Record.ofPkg root;
-        dependencies = toRootList dependencies;
-      }
+      return (Solution.make root (toRootList dependencies))
     in
     devDependencies
     |> List.map ~f:sovleDevDependency
@@ -405,11 +399,8 @@ let solve ~cfg ~resolutions (root : Package.t) =
   in
 
   let solution =
-    {
-      Solution.
-      root = Solution.Record.ofPkg root;
-      dependencies = (toRootList dependencies) @ devDependencies
-    }
+    Solution.make root
+    (toRootList dependencies @ devDependencies)
   in
 
   return solution

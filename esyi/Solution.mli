@@ -20,18 +20,24 @@ module Record : sig
     opam: PackageInfo.OpamInfo.t option;
   }
 
-  val ofPkg : Package.t -> t
+  val pp : t Fmt.t
+  val equal : t -> t -> bool
+
+  module Map : Map.S with type key := t
+  module Set : Set.S with type elt := t
 end
 
 (**
  * This represent an isolated dependency root.
  *)
-type root = {
-  root: Record.t;
-  dependencies: root list;
-}
+type t
 
-type t = root
+val make : Package.t -> t list -> t
+
+val record : t -> Record.t
+val dependencies : t -> t list
+
+val fold : f:('a -> Record.t -> 'a) -> init:'a -> t -> 'a
 
 (**
  * Write solution to disk as a lockfile.

@@ -1,61 +1,56 @@
+module Version = PackageInfo.Version
 module Record = Solution.Record
-module RecordSet = Set.Make(struct
-  type t = Record.t
-  let compare pkga pkgb =
-    let c = String.compare pkga.Record.name pkgb.Record.name in
-    if c = 0
-    then PackageInfo.Version.compare pkga.version pkgb.version
-    else c
-end)
 
 type layout = (Path.t * Record.t) list
 
-let packagesOfSolution solution =
-  let rec addRoot pkgs root =
-    pkgs
-    |> RecordSet.add root.Solution.root
-    |> fun pkgs -> List.fold_left ~f:addRoot ~init:pkgs root.Solution.dependencies
+let recordsOfSolution solution =
+  let set =
+    let f set record = Record.Set.add record set in
+    Solution.fold ~init:Record.Set.empty ~f solution
   in
-  let pkgs =
-    List.fold_left
-      ~f:addRoot
-      ~init:RecordSet.empty
-      solution.Solution.dependencies
-  in
-  RecordSet.elements pkgs
+  let set = Record.Set.remove (Solution.record solution) set in
+  Record.Set.elements set
 
-let layoutOfSolution basePath solution =
-  let rec layoutRoot basePath layout root =
-     let recordPath = Path.(basePath / "node_modules" // v root.Solution.root.name) in
-     let layout = (recordPath, root.Solution.root)::layout in
-     List.fold_left
-      ~f:(layoutRoot recordPath)
-      ~init:layout
-      root.Solution.dependencies
+let traverseWithPath ~path ~f ~init solution =
+  let open RunAsync.Syntax in
+  let solutionRoot = Solution.record solution in
+  let rec aux ~path ~v root =
+    let record = Solution.record root in
+    let%bind v =
+      if Record.equal solutionRoot record
+      then return v
+      else f ~path v record
+    in
+    let%bind v =
+      let f v dep =
+        let record = Solution.record dep in
+        let path = Path.(path / "node_modules" // v record.Record.name) in
+        aux ~path ~v dep
+      in
+      RunAsync.List.foldLeft ~f ~init:v (Solution.dependencies root)
+    in
+    return v
   in
-  let layout =
-    List.fold_left
-    ~f:(layoutRoot basePath)
-    ~init:[]
-    solution.Solution.dependencies
-  in
-  layout
+  aux ~path ~v:init solution
 
 let checkSolutionInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-  let layout = layoutOfSolution cfg.basePath solution in
+
   let%bind installed =
-    layout
-    |> List.map ~f:(fun (path, _) -> Fs.exists path)
-    |> RunAsync.List.joinAll
+    let f ~path installed _record =
+      if not installed
+      then return false
+      else Fs.exists path
+    in
+    traverseWithPath ~path:cfg.basePath ~f ~init:true solution
   in
-  return (List.for_all ~f:(fun installed -> installed) installed)
+
+  return installed
 
 let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
-  let packagesToFetch = packagesOfSolution solution in
   let nodeModulesPath = Path.(cfg.basePath / "node_modules") in
 
   let%bind () = Fs.rmPath nodeModulesPath in
@@ -65,37 +60,53 @@ let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
     Logs_lwt.app (fun m -> m "Checking if there are some packages to fetch...")
   in
 
-  let%bind packagesFetched =
+  let records = recordsOfSolution solution in
+
+  let%bind fetched =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
-    packagesToFetch
-    |> List.map ~f:(fun pkg ->
-        let%bind fetchedPkg =
+    let%bind items =
+      let fetch record =
+        let%bind dist =
           LwtTaskQueue.submit queue
-          (fun () -> FetchStorage.fetch ~cfg pkg)
-        in return (pkg, fetchedPkg))
-    |> RunAsync.List.joinAll
+          (fun () -> FetchStorage.fetch ~cfg record)
+        in
+        return (record, dist)
+      in
+      records
+      |> List.map ~f:fetch
+      |> RunAsync.List.joinAll
+    in
+    let f map (record, dist) = Record.Map.add record dist map in
+    let map = List.fold_left ~f ~init:Record.Map.empty items in
+    return map
   in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Populating node_modules...") in
 
-  let packageInstallPath =
-    let layout = layoutOfSolution cfg.basePath solution in
-    fun pkg ->
-      let (path, _) =
-        List.find
-          ~f:(fun (_path, p) ->
-            String.equal p.Record.name pkg.Record.name
-            && PackageInfo.Version.equal p.Record.version pkg.Record.version)
-          layout
-      in path
-  in
-
   let%bind () =
-    RunAsync.List.processSeq
-      ~f:(fun (pkg, fetchedPkg) ->
-        let dst = packageInstallPath pkg in
-        FetchStorage.install ~cfg ~dst fetchedPkg)
-    packagesFetched
+    let f ~path () record =
+      match Record.Map.find_opt record fetched with
+      | Some dist ->
+        let%lwt () = Logs_lwt.app (fun m ->
+          let path =
+            match Path.relativize ~root:cfg.basePath path with
+            | Some path -> path
+            | None -> path
+          in
+          m "Installing %a at %a" Record.pp record Path.pp path)
+        in
+        FetchStorage.install ~cfg ~path dist
+      | None ->
+        let msg =
+          Printf.sprintf
+            "inconsistent state: no dist were fetched for %s@%s at %s"
+            record.Record.name
+            (Version.toString record.Record.version)
+            (Path.toString path)
+        in
+        failwith msg
+    in
+    traverseWithPath ~path:cfg.basePath ~init:() ~f solution
   in
 
   return ()

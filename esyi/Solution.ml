@@ -16,6 +16,21 @@ module Record = struct
     source = pkg.source;
     opam = pkg.opam;
   }
+
+  let compare a b =
+    let c = String.compare a.name b.name in
+    if c = 0
+    then Version.compare a.version b.version
+    else c
+
+  let equal a b =
+    String.equal a.name b.name && Version.equal a.version b.version
+
+  let pp fmt record =
+    Fmt.pf fmt "%s@%a" record.name Version.pp record.version
+
+  module Map = Map.Make(struct type nonrec t = t let compare = compare end)
+  module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
 type t = root
@@ -25,7 +40,7 @@ type t = root
  * This represent an isolated dependency root.
  *)
 and root = {
-  root: Record.t;
+  record: Record.t;
   dependencies: root list;
 }
 
@@ -33,6 +48,20 @@ and lockfile = {
   rootDependenciesHash : string;
   solution : t;
 }
+
+let make record dependencies =
+  {record = Record.ofPkg record; dependencies}
+
+let record root = root.record
+let dependencies root = root.dependencies
+
+let fold ~f ~init solution =
+  let rec aux v root =
+    let v = List.fold_left ~f:aux ~init:v root.dependencies in
+    let v = f v root.record in
+    v
+  in
+  aux init solution
 
 let dependenciesHash (manifest : PackageJson.t) =
   let hashDependencies ~prefix ~dependencies digest =
@@ -89,7 +118,7 @@ let mapSourceLocalPath ~f solution =
     {record with source; version}
   in
   let rec mapRoot root = {
-    root = mapRecord root.root;
+    record = mapRecord root.record;
     dependencies = List.map ~f:mapRoot root.dependencies;
   }
   in
