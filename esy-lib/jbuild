@@ -4,6 +4,7 @@
  ((name EsyLib)
   (public_name esy-lib)
   (preprocess (pps (lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std)))
+  (modules (List Cmd Option Path Result Run NodeResolution))
   (flags (:standard (-w -39)))
   (libraries (
               lwt
