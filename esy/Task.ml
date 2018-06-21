@@ -529,7 +529,7 @@ let ofPackage
           let%bind value = CommandExpr.render ~scope:scopeForExportEnv value in
           match envScope with
           | Package.ExportedEnv.Global ->
-            let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" || injectCamlLdLibraryPath in
+            let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath in
             let globalEnv = Environment.{origin = Some pkg; name; value = Value value}::globalEnv in
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
           | Package.ExportedEnv.Local ->
@@ -538,7 +538,7 @@ let ofPackage
         )
       in
       let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
-        Run.List.foldLeft ~f ~init:(false, [], []) pkg.exportedEnv
+        Run.List.foldLeft ~f ~init:(true, [], []) pkg.exportedEnv
       in
       let%bind globalEnv = if injectCamlLdLibraryPath then
         let%bind value = CommandExpr.render
