@@ -1,15 +1,30 @@
+(**
+ * Package universe holds information about available packages.
+ *)
+
+(** Package universe. *)
 type t
 type univ = t
 
+(** Empty package universe. *)
 val empty : t
+
+(** Add package to the package universe. *)
 val add : pkg:Package.t -> t -> t
 
+(** Check if the package is a member of the package universe. *)
 val mem : pkg:Package.t -> t -> bool
 
+(** Find all versions of a package specified by name. *)
 val findVersions : name:string -> t -> Package.t list
+
+(** Find a specific version of a package. *)
 val findVersion : name:string -> version:PackageInfo.Version.t -> t -> Package.t option
 val findVersionExn : name:string -> version:PackageInfo.Version.t -> t -> Package.t
 
+(**
+ * Mapping from universe to CUDF.
+ *)
 module CudfMapping : sig
   type t
 
@@ -24,9 +39,11 @@ module CudfMapping : sig
 
   val univ : t -> univ
   val cudfUniv : t -> Cudf.universe
-
 end
 
+(**
+ * Encode universe as CUDF>
+ *)
 val toCudf :
   ?installed:Package.Set.t
   -> t
