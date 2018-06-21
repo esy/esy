@@ -75,7 +75,7 @@ module Api = {
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
         switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
-          if%bind (Fetch.checkSolutionInstalled(~cfg, solution)) {
+          if%bind (Fetch.check(~cfg, solution)) {
             return();
           } else {
             fetch(cfg);

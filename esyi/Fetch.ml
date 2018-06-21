@@ -1,8 +1,6 @@
 module Version = PackageInfo.Version
 module Record = Solution.Record
 
-type layout = (Path.t * Record.t) list
-
 let recordsOfSolution solution =
   let set =
     let f set record = Record.Set.add record set in
@@ -33,7 +31,7 @@ let traverseWithPath ~path ~f ~init solution =
   in
   aux ~path ~v:init solution
 
-let checkSolutionInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
+let check ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   let%bind installed =
