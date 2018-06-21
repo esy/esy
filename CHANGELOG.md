@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.1.20 @ preview
+
+* Support `devDependencies` with `esyi`.
+
+  Development dependencies specified as `devDependencies` section of
+  `package.json` are no supported by `esyi` command.
+
+  They are installed as isolated "roots", which means that they are allowed to
+  have conflicting versions with regular dependencies. When reusing a regular
+  dependency is possible it is done.
+
 ## 0.1.19 @ preview
 
 * Dependency solver now provides possible explanation in case of failures.
