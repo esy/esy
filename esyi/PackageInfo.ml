@@ -262,6 +262,9 @@ module Dependencies = struct
 
   let empty = []
 
+  let pp fmt deps =
+    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
+
   let of_yojson json =
     let open Result.Syntax in
     let request (name, json) =
@@ -279,19 +282,25 @@ module Dependencies = struct
     in
     `Assoc items
 
-  let merge a b =
+  let override ~override deps =
     let seen =
       let f seen {Req.name = name; _} =
         StringSet.add name seen
       in
-      List.fold_left ~f ~init:StringSet.empty a
+      List.fold_left ~f ~init:StringSet.empty override
     in
     let f a item =
       if StringSet.mem item.Req.name seen
       then a
       else item::a
     in
-    List.fold_left ~f ~init:a b
+    List.fold_left ~f ~init:override deps
+
+  let%test "override overrides dependency" =
+    let a = [Req.make ~name:"pkg" ~spec:"^1.0.0"] in
+    let b = [Req.make ~name:"pkg" ~spec:"^2.0.0"] in
+    let r = override ~override:b a in
+    r = [Req.make ~name:"pkg" ~spec:"^2.0.0"]
 end
 
 module Resolutions = struct

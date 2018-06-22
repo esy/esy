@@ -88,12 +88,14 @@ module Req : sig
   val spec : t -> VersionSpec.t
 end
 
+(** A collection of dependencies *)
 module Dependencies : sig
   type t = Req.t list
+  val pp : t Fmt.t
   val empty : 'a list
   val of_yojson : Json.t -> (Req.t list, string) result
   val to_yojson : t -> [> `Assoc of (string * [> `String of string ]) list ]
-  val merge : Req.t list -> Req.t list -> Req.t list
+  val override : override:t -> t -> t
 end
 
 module Resolutions : sig
