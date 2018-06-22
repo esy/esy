@@ -3,6 +3,8 @@ open OpamParserTypes;
 module Version = OpamVersion.Version;
 module F = OpamVersion.Formula;
 module C = OpamVersion.Formula.Constraint;
+module Dependencies = PackageInfo.Dependencies;
+module Req = PackageInfo.Req;
 
 module PackageName: {
   type t;
@@ -60,15 +62,6 @@ type manifest = {
   /* TODO optDependencies (depopts) */
   source: PackageInfo.Source.t,
   exportedEnv: PackageJson.ExportedEnv.t,
-};
-
-module ThinManifest = {
-  type t = {
-    name: PackageName.t,
-    opamFile: Path.t,
-    urlFile: Path.t,
-    version: Version.t,
-  };
 };
 
 let rec findVariable = (name, items) =>
@@ -221,21 +214,21 @@ let processDeps = (filename, deps) => {
     ~f=
       ((deps, buildDeps, devDeps), dep) =>
         switch (ParseDeps.toDep(filename, dep)) {
-        | Some((name, dep, `Link)) => (
-            [(PackageName.ofString(name), dep), ...deps],
-            buildDeps,
-            devDeps,
-          )
-        | Some((name, dep, `Build)) => (
-            deps,
-            [(PackageName.ofString(name), dep), ...buildDeps],
-            devDeps,
-          )
-        | Some((name, dep, `Test)) => (
-            deps,
-            buildDeps,
-            [(PackageName.ofString(name), dep), ...devDeps],
-          )
+        | Some((name, formula, `Link)) =>
+          let name = PackageName.(name |> ofString |> toNpm);
+          let spec = PackageInfo.VersionSpec.Opam(formula);
+          let req = PackageInfo.Req.ofSpec(~name, ~spec);
+          ([req, ...deps], buildDeps, devDeps);
+        | Some((name, formula, `Build)) =>
+          let name = PackageName.(name |> ofString |> toNpm);
+          let spec = PackageInfo.VersionSpec.Opam(formula);
+          let req = PackageInfo.Req.ofSpec(~name, ~spec);
+          (deps, [req, ...buildDeps], devDeps);
+        | Some((name, formula, `Test)) =>
+          let name = PackageName.(name |> ofString |> toNpm);
+          let spec = PackageInfo.VersionSpec.Opam(formula);
+          let req = PackageInfo.Req.ofSpec(~name, ~spec);
+          (deps, buildDeps, [req, ...devDeps]);
         | None => (deps, buildDeps, devDeps)
         | exception (Failure(f)) =>
           let msg = "Failed to process dep: " ++ filename ++ ": " ++ f;
@@ -409,11 +402,6 @@ let parseUrlFile = ({file_contents, file_name}) =>
     PackageInfo.SourceSpec.Archive(archive, checksum);
   };
 
-let toDepSource = ((name, formula)) => {
-  let name = PackageName.toNpm(name);
-  PackageInfo.Req.ofSpec(~name, ~spec=PackageInfo.VersionSpec.Opam(formula));
-};
-
 let getOpamFiles = (path: Path.t) => {
   open RunAsync.Syntax;
   let filesPath = Path.(path / "files");
@@ -510,6 +498,19 @@ let parseManifest =
     (ocamlDep, substDep, esyInstallerDep);
   };
 
+  let dependencies =
+    Dependencies.(
+      empty
+      |> add(~req=ocamlDep)
+      |> add(~req=substDep)
+      |> add(~req=esyInstallerDep)
+      |> addMany(~reqs=deps)
+      |> addMany(~reqs=buildDeps)
+    );
+
+  let devDependencies = Dependencies.(empty |> addMany(~reqs=devDeps));
+  let optDependencies = Dependencies.(empty |> addMany(~reqs=depopts));
+
   let (name, version) = info;
   {
     name,
@@ -523,15 +524,12 @@ let parseManifest =
       processCommandList(file_name, findVariable("install", file_contents)),
     patches,
     files,
-    dependencies:
-      [ocamlDep, substDep, esyInstallerDep]
-      @ (deps |> List.map(~f=toDepSource))
-      @ (buildDeps |> List.map(~f=toDepSource)),
+    dependencies,
+    devDependencies,
+    optDependencies,
     buildDependencies: PackageInfo.Dependencies.empty,
-    devDependencies: devDeps |> List.map(~f=toDepSource),
-    peerDependencies: [], /* TODO peer deps */
-    optDependencies: depopts |> List.map(~f=toDepSource),
-    available: isAvailable, /* TODO */
+    peerDependencies: PackageInfo.Dependencies.empty,
+    available: isAvailable,
     source: PackageInfo.Source.NoSource,
     exportedEnv: [],
   };
@@ -557,34 +555,13 @@ let toPackageJson = (manifest, version) => {
           ("buildsInSource", `Bool(true)),
           ("exportedEnv", PackageJson.ExportedEnv.to_yojson(exportedEnv)),
         ]),
-        /* ("buildsInSource", "_build") */
       ),
       (
         "peerDependencies",
-        `Assoc([
-          ("ocaml", `String("*")) /* HACK probably get this somewhere */,
-        ]),
+        Dependencies.to_yojson(manifest.peerDependencies),
       ),
-      (
-        "optDependencies",
-        `Assoc(
-          manifest.optDependencies
-          |> List.map(~f=req => (PackageInfo.Req.name(req), `String("*"))),
-        ),
-      ),
-      (
-        "dependencies",
-        `Assoc(
-          (
-            manifest.dependencies
-            |> List.map(~f=req => (PackageInfo.Req.name(req), `String("*")))
-          )
-          @ (
-            manifest.buildDependencies
-            |> List.map(~f=req => (PackageInfo.Req.name(req), `String("*")))
-          ),
-        ),
-      ),
+      ("optDependencies", Dependencies.to_yojson(manifest.optDependencies)),
+      ("dependencies", Dependencies.to_yojson(manifest.dependencies)),
     ]);
   {
     PackageInfo.OpamInfo.packageJson,

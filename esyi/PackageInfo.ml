@@ -262,44 +262,53 @@ module Dependencies = struct
 
   let empty = []
 
+  let add ~req deps = req::deps
+  let addMany ~reqs deps = reqs @ deps
+
+  let override ~req deps =
+    let f r =
+      if r.Req.name = req.Req.name
+      then req
+      else r
+    in
+    List.map ~f deps
+
+  let overrideMany ~reqs deps =
+    let f deps req = override ~req deps in
+    List.fold_left ~f ~init:deps reqs
+
+  let map ~f deps = List.map ~f deps
+
+  let findByName ~name deps =
+    let f req = req.Req.name = name in
+    List.find_opt ~f deps
+
+  let toList deps = deps
+
   let pp fmt deps =
     Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
 
   let of_yojson json =
     let open Result.Syntax in
-    let request (name, json) =
-      let%bind spec = Json.Parse.string json in
-      return (Req.make ~name ~spec)
-    in
     let%bind items = Json.Parse.assoc json in
-    Result.List.map ~f:request items
+    let f deps (name, json) =
+      let%bind spec = Json.Parse.string json in
+      let req = Req.make ~name ~spec in
+      return (req::deps)
+    in
+    Result.List.foldLeft ~f ~init:empty items
 
   let to_yojson (deps : t) =
     let items =
-        List.map
-          ~f:(fun ({ Req.name = name;_} as req) ->
-          (name, (Req.to_yojson req))) deps
+      let f req = (req.Req.name, Req.to_yojson req) in
+      List.map ~f deps
     in
     `Assoc items
 
-  let override ~override deps =
-    let seen =
-      let f seen {Req.name = name; _} =
-        StringSet.add name seen
-      in
-      List.fold_left ~f ~init:StringSet.empty override
-    in
-    let f a item =
-      if StringSet.mem item.Req.name seen
-      then a
-      else item::a
-    in
-    List.fold_left ~f ~init:override deps
-
-  let%test "override overrides dependency" =
+  let%test "overrideMany overrides dependency" =
     let a = [Req.make ~name:"pkg" ~spec:"^1.0.0"] in
     let b = [Req.make ~name:"pkg" ~spec:"^2.0.0"] in
-    let r = override ~override:b a in
+    let r = overrideMany ~reqs:b a in
     r = [Req.make ~name:"pkg" ~spec:"^2.0.0"]
 end
 

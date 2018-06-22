@@ -31,15 +31,6 @@ type manifest = {
   exportedEnv: PackageJson.ExportedEnv.t,
 };
 
-module ThinManifest : {
-  type t = {
-    name: PackageName.t,
-    opamFile: Path.t,
-    urlFile: Path.t,
-    version: OpamVersion.Version.t,
-  };
-};
-
 let parseManifest : ((PackageName.t, OpamVersion.Version.t), OpamParserTypes.opamfile) => manifest;
 let parseUrlFile : OpamParserTypes.opamfile => PackageInfo.SourceSpec.t;
 
