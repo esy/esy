@@ -266,12 +266,14 @@ module Dependencies = struct
   let addMany ~reqs deps = reqs @ deps
 
   let override ~req deps =
-    let f r =
+    let f (seen, deps) r =
       if r.Req.name = req.Req.name
-      then req
-      else r
+      then `Seen, req::deps
+      else seen, r::deps
     in
-    List.map ~f deps
+    match List.fold_left ~f ~init:(`Never, []) deps with
+    | `Never, deps -> req::deps
+    | `Seen, deps -> deps
 
   let overrideMany ~reqs deps =
     let f deps req = override ~req deps in
@@ -306,10 +308,14 @@ module Dependencies = struct
     `Assoc items
 
   let%test "overrideMany overrides dependency" =
-    let a = [Req.make ~name:"pkg" ~spec:"^1.0.0"] in
-    let b = [Req.make ~name:"pkg" ~spec:"^2.0.0"] in
+    let a = [Req.make ~name:"prev" ~spec:"1.0.0"; Req.make ~name:"pkg" ~spec:"^1.0.0"] in
+    let b = [Req.make ~name:"pkg" ~spec:"^2.0.0"; Req.make ~name:"new" ~spec:"1.0.0"] in
     let r = overrideMany ~reqs:b a in
-    r = [Req.make ~name:"pkg" ~spec:"^2.0.0"]
+    r = [
+      Req.make ~name:"new" ~spec:"1.0.0";
+      Req.make ~name:"prev" ~spec:"1.0.0";
+      Req.make ~name:"pkg" ~spec:"^2.0.0";
+    ]
 end
 
 module Resolutions = struct

@@ -8,7 +8,7 @@ module Resolutions = PackageInfo.Resolutions
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"
-  let minimalAddition = "-removed,-changed,-notuptodate"
+  (* let minimalAddition = "-removed,-changed,-notuptodate" *)
 end
 
 type t = {
@@ -348,10 +348,6 @@ let solveDependencies ~installed ~strategy dependencies solver =
 let solve ~cfg ~resolutions (root : Package.t) =
   let open RunAsync.Syntax in
 
-  let%bind solver = make ~cfg ~resolutions () in
-  let%bind solver, dependencies = add ~dependencies:root.dependencies solver in
-  let%bind solver, devDependencies = add ~dependencies:root.devDependencies solver in
-
   let getResultOrExplain = function
     | Ok dependencies -> return dependencies
     | Error explanation ->
@@ -360,6 +356,18 @@ let solve ~cfg ~resolutions (root : Package.t) =
         Explanation.pp explanation
       in
       error msg
+  in
+
+  let%bind solver, dependencies =
+    (* we override dependencies with devDependencies form the root project *)
+    let dependencies =
+      Dependencies.overrideMany
+        ~reqs:(Dependencies.toList root.devDependencies)
+        root.dependencies
+    in
+    let%bind solver = make ~cfg ~resolutions () in
+    let%bind solver, dependencies = add ~dependencies solver in
+    return (solver, dependencies)
   in
 
   (* Solve runtime dependencies first *)
@@ -379,36 +387,9 @@ let solve ~cfg ~resolutions (root : Package.t) =
     |> List.map ~f:(fun pkg -> Solution.make pkg [])
   in
 
-  let%bind devDependencies =
-    let sovleDevDependency req =
-      let%bind packages = solveDependencies
-        ~installed:dependencies
-        ~strategy:Strategy.minimalAddition
-        Dependencies.(empty |> add ~req)
-        solver
-      in
-      let%bind packages = getResultOrExplain packages in
-      let rootName = Req.name req in
-      let root = Package.Set.find_first
-        (fun p -> String.compare p.Package.name rootName >= 0)
-        packages
-      in
-      let dependencies =
-        packages
-        |> Package.Set.remove root
-        |> fun packages -> Package.Set.diff packages dependencies
-      in
-      return (Solution.make root (toRootList dependencies))
-    in
-    devDependencies
-    |> Dependencies.toList
-    |> List.map ~f:sovleDevDependency
-    |> RunAsync.List.joinAll
-  in
-
   let solution =
     Solution.make root
-    (toRootList dependencies @ devDependencies)
+    (toRootList dependencies)
   in
 
   return solution
