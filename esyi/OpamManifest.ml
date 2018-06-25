@@ -48,8 +48,8 @@ module Problem = struct
   let make ?value message = {value; message;}
   let pp fmt pr =
     match pr.value with
-    | Some value -> Fmt.pf fmt "%s: %s" pr.message (OpamPrinter.value value)
-    | None -> Fmt.pf fmt "%s" pr.message
+    | Some value -> Fmt.pf fmt "@[<v>problem: %s@\nvalue: %s@]" pr.message (OpamPrinter.value value)
+    | None -> Fmt.pf fmt "problem: %s" pr.message
 end
 
 type 'v parser = OpamParserTypes.opamfile -> ('v * Problem.t list, Problem.t) result
@@ -508,22 +508,21 @@ let parseUrl { OpamParserTypes. file_contents; file_name } =
 
 let runParsePath ~parser path =
   let open RunAsync.Syntax in
+
+  let logProblem lvl p =
+    Logs_lwt.msg lvl (fun m ->
+      m "@[<v>Problem found while parsing opam@\n%a@\n%a@]"
+      Path.pp path Problem.pp p)
+  in
+
   let%bind data = Fs.readFile path in
   let value = OpamParser.string data (Path.toString path) in
   match parser value with
   | Ok (value, []) -> return value
   | Ok (value, warnings) ->
-    let%lwt () = Lwt_list.iter_s
-      (fun p -> Logs_lwt.warn (fun m ->
-        m "warning while reading opam %a: %a" Path.pp path Problem.pp p))
-      warnings
-    in
+    Lwt_list.iter_s (logProblem Logs.Warning) warnings;%lwt
     return value
   | Error p ->
-    let%lwt () = Logs_lwt.err
-      (fun m ->
-        m "error while reading opam %a: %a"
-        Path.pp path Problem.pp p)
-    in
+    logProblem Logs.Error p;%lwt
     error "error reading opam file"
 
