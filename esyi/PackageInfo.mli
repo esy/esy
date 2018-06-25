@@ -88,12 +88,34 @@ module Req : sig
   val spec : t -> VersionSpec.t
 end
 
+(**
+ * A collection of dependency requests.
+ *
+ * There maybe possible multiple requests of the same name.
+ * TODO: Make sure there's no requests of the same name possible and provide
+ *       explicit API for conjuction/override.
+ *)
 module Dependencies : sig
-  type t = Req.t list
-  val empty : 'a list
-  val of_yojson : Json.t -> (Req.t list, string) result
-  val to_yojson : t -> [> `Assoc of (string * [> `String of string ]) list ]
-  val merge : Req.t list -> Req.t list -> Req.t list
+  type t
+
+  val empty : t
+
+  val add : req:Req.t -> t -> t
+  val addMany : reqs:Req.t list -> t -> t
+
+  val override : req:Req.t -> t -> t
+  val overrideMany : reqs:Req.t list -> t -> t
+
+  val map : f:(Req.t -> Req.t) -> t -> t
+
+  val findByName : name:string -> t -> Req.t option
+
+  val toList : t -> Req.t list
+
+  val pp : t Fmt.t
+
+  val of_yojson : Json.t -> (t, string) result
+  val to_yojson : t -> Json.t
 end
 
 module Resolutions : sig

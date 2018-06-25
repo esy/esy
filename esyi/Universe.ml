@@ -1,3 +1,4 @@
+module Dependencies = PackageInfo.Dependencies
 module Version = PackageInfo.Version
 module VersionSpec = PackageInfo.VersionSpec
 module Req = PackageInfo.Req
@@ -230,7 +231,11 @@ let toCudf ?(installed=Package.Set.empty) univ =
         cudfVersionMap
     in
 
-    let depends = List.map ~f:encodeReq pkg.dependencies in
+    let depends =
+      pkg.dependencies
+      |> Dependencies.toList
+      |> List.map ~f:encodeReq
+    in
     let cudfName = CudfName.ofString pkg.name in
     let cudfPkg = {
       Cudf.default_package with

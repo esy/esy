@@ -13,12 +13,18 @@ type t = {
   repoPath : Path.t;
   overrides : OpamOverrides.t;
   pathsCache : OpamPathsByVersion.t;
-  
+}
+
+type pkg = {
+  name: PackageName.t;
+  opam: Path.t;
+  url: Path.t;
+  version: Version.t;
 }
 
 let init ~cfg () =
   let open RunAsync.Syntax in
-  let%bind repoPath = 
+  let%bind repoPath =
     match cfg.Config.opamRepository with
     | Config.Local local -> return local
     | Config.Remote (remote, local) ->
@@ -61,26 +67,26 @@ let getVersionIndex registry ~(name : PackageName.t) =
   in
   OpamPathsByVersion.compute registry.pathsCache name f
 
-let getThinManifest registry ~(name : PackageName.t) ~(version : Version.t) =
+let getPackage registry ~(name : PackageName.t) ~(version : Version.t) =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
   match VersionMap.find_opt version index with
   | None -> return None
   | Some packagePath ->
-    let manifest =
-      let path = Path.(packagePath / "opam") in
-      let opamFile = OpamParser.file (Path.toString path) in
-      OpamFile.parseManifest (name, version) opamFile
+    let%bind manifest =
+      let opamFilename = Path.(packagePath / "opam") in
+      let%bind opamData = Fs.readFile opamFilename in
+      let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
+      return (OpamFile.parseManifest ~name ~version opamFile)
     in
     match manifest.OpamFile.available with
     | `Ok ->
-      let opamFile = Path.(packagePath / "opam") in
-      let urlFile = Path.(packagePath / "url") in
+      let opam = Path.(packagePath / "opam") in
+      let url = Path.(packagePath / "url") in
       let manifest = {
-        OpamFile.ThinManifest.
         name;
-        opamFile;
-        urlFile;
+        opam;
+        url;
         version
       } in
       return (Some manifest)
@@ -93,13 +99,13 @@ let versions registry ~(name : PackageName.t) =
   let%bind items =
     index
     |> VersionMap.bindings
-    |> List.map ~f:(fun (version, _path) -> getThinManifest registry ~name ~version)
+    |> List.map ~f:(fun (version, _path) -> getPackage registry ~name ~version)
     |> RunAsync.List.joinAll
   in
   return (
     items
     |> filterNone
-    |> List.map ~f:(fun manifest -> (manifest.OpamFile.ThinManifest.version, manifest))
+    |> List.map ~f:(fun manifest -> (manifest.version, manifest))
   )
 
 let resolveSourceSpec srcSpec =
@@ -128,20 +134,20 @@ let resolveSourceSpec srcSpec =
 
 let version registry ~(name : PackageName.t) ~version =
   let open RunAsync.Syntax in
-  match%bind getThinManifest registry ~name ~version with
+  match%bind getPackage registry ~name ~version with
   | None -> return None
-  | Some { OpamFile.ThinManifest. opamFile; urlFile; name; version } ->
+  | Some { opam = opamFilename; url; name; version } ->
     let%bind sourceSpec =
-      if%bind Fs.exists urlFile
-      then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString urlFile)))
+      if%bind Fs.exists url
+      then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString url)))
       else return PackageInfo.SourceSpec.NoSource
     in
     let%bind source = resolveSourceSpec sourceSpec in
-    let manifest =
-      let manifest =
-        OpamFile.parseManifest (name, version) (OpamParser.file (Path.toString opamFile))
-      in
-      {manifest with source}
+    let%bind manifest =
+      let%bind opamData = Fs.readFile opamFilename in
+      let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
+      let manifest = OpamFile.parseManifest ~name ~version opamFile in
+      return {manifest with source}
     in
     begin match%bind OpamOverrides.get registry.overrides name version with
       | None ->

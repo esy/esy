@@ -8,7 +8,7 @@ module Resolutions = PackageInfo.Resolutions
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"
-  let minimalAddition = "-removed,-changed,-notuptodate"
+  (* let minimalAddition = "-removed,-changed,-notuptodate" *)
 end
 
 type t = {
@@ -103,9 +103,11 @@ module Explanation = struct
     in
 
     let resolveReq name requestor =
-      List.find
-        ~f:(fun req -> Req.name req = name)
-        requestor.Package.dependencies
+      match Dependencies.findByName ~name requestor.Package.dependencies with
+      | Some req -> req
+      | None ->
+        let msg = Printf.sprintf "inconsistent state: no request found for %s" name in
+        failwith msg
     in
 
     let resolveReqViaDepChain pkg =
@@ -203,7 +205,7 @@ let make ~cfg ?resolver ~resolutions () =
 
   return {cfg; resolver; universe = !universe; resolutions}
 
-let add ~dependencies solver =
+let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let rewriteReq req =
@@ -215,7 +217,7 @@ let add ~dependencies solver =
   let rewritePkgWithResolutions (pkg : Package.t) =
     {
       pkg with
-      dependencies = List.map ~f:rewriteReq pkg.dependencies
+      dependencies = Dependencies.map ~f:rewriteReq pkg.dependencies
     }
   in
 
@@ -227,6 +229,7 @@ let add ~dependencies solver =
       let pkg = rewritePkgWithResolutions pkg in
       universe := Universe.add ~pkg !universe;
       pkg.dependencies
+      |> Dependencies.toList
       |> List.map ~f:addReq
       |> RunAsync.List.waitAll
     else return ()
@@ -249,12 +252,16 @@ let add ~dependencies solver =
   in
 
   let%bind dependencies =
-    dependencies
-    |> List.map ~f:(fun req ->
-        let req = rewriteReq req in
-        let%bind () = addReq req in
-        return req)
-    |> RunAsync.List.joinAll
+    let%bind dependencies =
+      dependencies
+      |> Dependencies.toList
+      |> List.map ~f:(fun req ->
+          let req = rewriteReq req in
+          let%bind () = addReq req in
+          return req)
+      |> RunAsync.List.joinAll
+    in
+    return (Dependencies.(addMany ~reqs:dependencies empty))
   in
 
   return ({solver with universe = !universe}, dependencies)
@@ -341,10 +348,6 @@ let solveDependencies ~installed ~strategy dependencies solver =
 let solve ~cfg ~resolutions (root : Package.t) =
   let open RunAsync.Syntax in
 
-  let%bind solver = make ~cfg ~resolutions () in
-  let%bind solver, dependencies = add ~dependencies:root.dependencies solver in
-  let%bind solver, devDependencies = add ~dependencies:root.devDependencies solver in
-
   let getResultOrExplain = function
     | Ok dependencies -> return dependencies
     | Error explanation ->
@@ -353,6 +356,18 @@ let solve ~cfg ~resolutions (root : Package.t) =
         Explanation.pp explanation
       in
       error msg
+  in
+
+  let%bind solver, dependencies =
+    (* we override dependencies with devDependencies form the root project *)
+    let dependencies =
+      Dependencies.overrideMany
+        ~reqs:(Dependencies.toList root.devDependencies)
+        root.dependencies
+    in
+    let%bind solver = make ~cfg ~resolutions () in
+    let%bind solver, dependencies = add ~dependencies solver in
+    return (solver, dependencies)
   in
 
   (* Solve runtime dependencies first *)
@@ -372,35 +387,9 @@ let solve ~cfg ~resolutions (root : Package.t) =
     |> List.map ~f:(fun pkg -> Solution.make pkg [])
   in
 
-  let%bind devDependencies =
-    let sovleDevDependency req =
-      let%bind packages = solveDependencies
-        ~installed:dependencies
-        ~strategy:Strategy.minimalAddition
-        [req]
-        solver
-      in
-      let%bind packages = getResultOrExplain packages in
-      let rootName = Req.name req in
-      let root = Package.Set.find_first
-        (fun p -> String.compare p.Package.name rootName >= 0)
-        packages
-      in
-      let dependencies =
-        packages
-        |> Package.Set.remove root
-        |> fun packages -> Package.Set.diff packages dependencies
-      in
-      return (Solution.make root (toRootList dependencies))
-    in
-    devDependencies
-    |> List.map ~f:sovleDevDependency
-    |> RunAsync.List.joinAll
-  in
-
   let solution =
     Solution.make root
-    (toRootList dependencies @ devDependencies)
+    (toRootList dependencies)
   in
 
   return solution

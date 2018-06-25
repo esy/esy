@@ -1,4 +1,5 @@
 module PackageNameMap = Map.Make(OpamFile.PackageName);
+module Dependencies = PackageInfo.Dependencies;
 
 module Override = {
   module Opam = {
@@ -188,14 +189,14 @@ let apply = (manifest: OpamFile.manifest, override: Override.t) => {
     install:
       Option.orDefault(~default=manifest.install, override.Override.install),
     dependencies:
-      PackageInfo.Dependencies.merge(
+      Dependencies.overrideMany(
+        ~reqs=Dependencies.toList(override.Override.dependencies),
         manifest.dependencies,
-        override.Override.dependencies,
       ),
     peerDependencies:
-      PackageInfo.Dependencies.merge(
+      Dependencies.overrideMany(
+        ~reqs=Dependencies.toList(override.Override.peerDependencies),
         manifest.peerDependencies,
-        override.Override.peerDependencies,
       ),
     files,
     source,

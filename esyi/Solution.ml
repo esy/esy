@@ -1,3 +1,4 @@
+module Dependencies = PackageInfo.Dependencies
 module Version = PackageInfo.Version
 module Source = PackageInfo.Source
 module Req = PackageInfo.Req
@@ -86,13 +87,13 @@ let dependenciesHash (manifest : PackageJson.t) =
       ~resolutions:manifest.PackageJson.resolutions
     |> hashDependencies
       ~prefix:"dependencies"
-      ~dependencies:manifest.PackageJson.dependencies
+      ~dependencies:(Dependencies.toList manifest.PackageJson.dependencies)
     |> hashDependencies
       ~prefix:"buildDependencies"
-      ~dependencies:manifest.PackageJson.buildDependencies
+      ~dependencies:(Dependencies.toList manifest.PackageJson.buildDependencies)
     |> hashDependencies
       ~prefix:"devDependencies"
-      ~dependencies:manifest.PackageJson.devDependencies
+      ~dependencies:(Dependencies.toList manifest.PackageJson.devDependencies)
   in
   Digest.to_hex digest
 
