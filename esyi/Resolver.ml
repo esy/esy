@@ -109,11 +109,11 @@ let package ~(resolution : Resolution.t) resolver =
         let%bind manifest = NpmRegistry.version ~cfg:resolver.cfg resolution.name version in
         return (`PackageJson manifest)
       | Version.Opam version ->
-        let name = OpamFile.PackageName.ofNpmExn resolution.name in
+        let name = OpamManifest.PackageName.ofNpmExn resolution.name in
         begin match%bind OpamRegistry.version resolver.opamRegistry ~name ~version with
           | Some manifest ->
             return (`Opam manifest)
-          | None -> error ("no such opam package: " ^ OpamFile.PackageName.toString name)
+          | None -> error ("no such opam package: " ^ OpamManifest.PackageName.toString name)
         end
     in
 
@@ -169,7 +169,7 @@ let resolve ~req resolver =
     let%bind resolutions =
       OpamResolutionCache.compute resolver.opamResolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
-        let%bind opamName = RunAsync.ofRun (OpamFile.PackageName.ofNpm name) in
+        let%bind opamName = RunAsync.ofRun (OpamManifest.PackageName.ofNpm name) in
         let%bind versions = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
         let f (version, _) =
           let version = Version.Opam version in

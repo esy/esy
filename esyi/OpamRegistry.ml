@@ -1,10 +1,10 @@
-module PackageName = OpamFile.PackageName
+module PackageName = OpamManifest.PackageName
 module Version = OpamVersion.Version
 module VersionMap = Map.Make(Version)
 module String = Astring.String
 
 module OpamPathsByVersion = Memoize.Make(struct
-  type key = OpamFile.PackageName.t
+  type key = OpamManifest.PackageName.t
   type value = Path.t VersionMap.t RunAsync.t
 end)
 
@@ -77,9 +77,9 @@ let getPackage registry ~(name : PackageName.t) ~(version : Version.t) =
       let opamFilename = Path.(packagePath / "opam") in
       let%bind opamData = Fs.readFile opamFilename in
       let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
-      return (OpamFile.parseManifest ~name ~version opamFile)
+      return (OpamManifest.parseManifest ~name ~version opamFile)
     in
-    match manifest.OpamFile.available with
+    match manifest.OpamManifest.available with
     | `Ok ->
       let opam = Path.(packagePath / "opam") in
       let url = Path.(packagePath / "url") in
@@ -139,14 +139,14 @@ let version registry ~(name : PackageName.t) ~version =
   | Some { opam = opamFilename; url; name; version } ->
     let%bind sourceSpec =
       if%bind Fs.exists url
-      then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString url)))
+      then return (OpamManifest.parseUrlFile (OpamParser.file (Path.toString url)))
       else return PackageInfo.SourceSpec.NoSource
     in
     let%bind source = resolveSourceSpec sourceSpec in
     let%bind manifest =
       let%bind opamData = Fs.readFile opamFilename in
       let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
-      let manifest = OpamFile.parseManifest ~name ~version opamFile in
+      let manifest = OpamManifest.parseManifest ~name ~version opamFile in
       return {manifest with source}
     in
     begin match%bind OpamOverrides.get registry.overrides name version with
