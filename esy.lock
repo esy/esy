@@ -898,9 +898,9 @@ esy-solve-cudf@^0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/esy-solve-cudf/-/esy-solve-cudf-0.0.3.tgz#9dbf90d357a5e7bdd20c5a975c6a2d67dd6f26dd"
 
-fastreplacestring@esy-ocaml/FastReplaceString.git#44511d:
+fastreplacestring@esy-ocaml/FastReplaceString.git#9450b6:
   version "0.0.3"
-  resolved "https://codeload.github.com/esy-ocaml/FastReplaceString/tar.gz/44511dadb5736df8df3f06f99c25314e6beac34b"
+  resolved "https://codeload.github.com/esy-ocaml/FastReplaceString/tar.gz/9450b606589eb4504df6c3df435be434cd4ef0b6"
 
 ocaml@~4.6.0:
   version "4.6.1"

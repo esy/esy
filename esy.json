@@ -53,7 +53,7 @@
     "@opam/yaml": "*",
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "^3.2.0",
-    "fastreplacestring": "esy-ocaml/FastReplaceString.git#44511d",
+    "fastreplacestring": "esy-ocaml/FastReplaceString.git#9450b6",
     "esy-solve-cudf": "^0.0.3"
   },
   "resolutions": {
