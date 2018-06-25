@@ -85,7 +85,7 @@ let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
     let f ~path () record =
       match Record.Map.find_opt record fetched with
       | Some dist ->
-        let%lwt () = Logs_lwt.app (fun m ->
+        let%lwt () = Logs_lwt.debug (fun m ->
           let path =
             match Path.relativize ~root:cfg.basePath path with
             | Some path -> path

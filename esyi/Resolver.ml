@@ -138,7 +138,7 @@ let resolve ~req resolver =
 
     let%bind resolutions =
       NpmResolutionCache.compute resolver.npmResolutionCache name begin fun name ->
-        let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
+        let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
         let%bind versions = NpmRegistry.versions ~cfg:resolver.cfg name in
 
         let f (version, manifest) =
@@ -168,7 +168,7 @@ let resolve ~req resolver =
   | VersionSpec.Opam _ ->
     let%bind resolutions =
       OpamResolutionCache.compute resolver.opamResolutionCache name begin fun name ->
-        let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" name) in
+        let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
         let%bind opamName = RunAsync.ofRun (OpamManifest.PackageName.ofNpm name) in
         let%bind versions = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
         let f (version, _) =
@@ -190,7 +190,7 @@ let resolve ~req resolver =
   | VersionSpec.Source (SourceSpec.Github (user, repo, ref) as srcSpec) ->
       let%bind source =
         SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
-          let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
+          let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
           let%bind ref =
             match ref with
             | Some ref -> return ref
@@ -208,18 +208,18 @@ let resolve ~req resolver =
       return [{Resolution. name; version}]
 
   | VersionSpec.Source (SourceSpec.Git _) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
+    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
     error "git dependencies are not supported"
 
   | VersionSpec.Source SourceSpec.NoSource ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
+    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
     error "no source dependencies are not supported"
 
   | VersionSpec.Source (SourceSpec.Archive _) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
+    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
     error "archive dependencies are not supported"
 
   | VersionSpec.Source (SourceSpec.LocalPath p) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "Resolving %s" (Req.toString req)) in
+    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
     let version = Version.Source (Source.LocalPath p) in
     return [{Resolution. name; version}]
