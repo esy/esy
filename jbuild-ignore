@@ -1,2 +1,5 @@
 node_modules
+esy-install
 reason
+test-e2e
+linux-build/
