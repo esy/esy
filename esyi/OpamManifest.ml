@@ -293,7 +293,7 @@ let parsePatches ~emitWarning item =
     | Option (_, String (_, _name), Ident (_, "preinstalled")::[]) -> None
     | Option (_, String (_, name), Pfxop (_, `Not, Ident (_, "preinstalled"))::[]) -> Some name
     | value ->
-      emitWarning ~value "Bad string list item arg" ();
+      emitWarning ~value "do not know how to parse as patch" ();
       None
   in
   return (items |> List.map ~f |> List.filterNone)
