@@ -26,12 +26,18 @@ type manifest = {
   peerDependencies: PackageInfo.Dependencies.t,
   optDependencies: PackageInfo.Dependencies.t,
   available: [ | `IsNotAvailable | `Ok],
-  /* TODO optDependencies (depopts) */
   source: PackageInfo.Source.t,
   exportedEnv: PackageJson.ExportedEnv.t,
 };
 
-let parseManifest : ((PackageName.t, OpamVersion.Version.t), OpamParserTypes.opamfile) => manifest;
-let parseUrlFile : OpamParserTypes.opamfile => PackageInfo.SourceSpec.t;
+let parseManifest : (
+  ~name: PackageName.t,
+  ~version: OpamVersion.Version.t,
+  OpamParserTypes.opamfile
+) => manifest;
+
+let parseUrlFile : (
+  OpamParserTypes.opamfile
+) => PackageInfo.SourceSpec.t;
 
 let toPackageJson : (manifest, PackageInfo.Version.t) => PackageInfo.OpamInfo.t;

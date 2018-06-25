@@ -73,10 +73,11 @@ let getPackage registry ~(name : PackageName.t) ~(version : Version.t) =
   match VersionMap.find_opt version index with
   | None -> return None
   | Some packagePath ->
-    let manifest =
-      let path = Path.(packagePath / "opam") in
-      let opamFile = OpamParser.file (Path.toString path) in
-      OpamFile.parseManifest (name, version) opamFile
+    let%bind manifest =
+      let opamFilename = Path.(packagePath / "opam") in
+      let%bind opamData = Fs.readFile opamFilename in
+      let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
+      return (OpamFile.parseManifest ~name ~version opamFile)
     in
     match manifest.OpamFile.available with
     | `Ok ->
@@ -135,18 +136,18 @@ let version registry ~(name : PackageName.t) ~version =
   let open RunAsync.Syntax in
   match%bind getPackage registry ~name ~version with
   | None -> return None
-  | Some { opam; url; name; version } ->
+  | Some { opam = opamFilename; url; name; version } ->
     let%bind sourceSpec =
       if%bind Fs.exists url
       then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString url)))
       else return PackageInfo.SourceSpec.NoSource
     in
     let%bind source = resolveSourceSpec sourceSpec in
-    let manifest =
-      let manifest =
-        OpamFile.parseManifest (name, version) (OpamParser.file (Path.toString opam))
-      in
-      {manifest with source}
+    let%bind manifest =
+      let%bind opamData = Fs.readFile opamFilename in
+      let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
+      let manifest = OpamFile.parseManifest ~name ~version opamFile in
+      return {manifest with source}
     in
     begin match%bind OpamOverrides.get registry.overrides name version with
       | None ->

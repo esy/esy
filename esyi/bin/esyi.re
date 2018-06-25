@@ -108,7 +108,8 @@ module Api = {
     let manifest = {
       let manifest =
         OpamFile.parseManifest(
-          (name, version),
+          ~name,
+          ~version,
           OpamParser.file(Path.toString(path)),
         );
       OpamFile.{...manifest, source: PackageInfo.Source.NoSource};

@@ -439,7 +439,7 @@ let getSubsts = opamvalue =>
   |> List.map(~f=filename => ["substs", filename ++ ".in"]);
 
 let parseManifest =
-    (info: (PackageName.t, Version.t), {file_contents, file_name}) => {
+    (~name: PackageName.t, ~version: Version.t, {file_contents, file_name}) => {
   let (deps, buildDeps, devDeps) =
     processDeps(file_name, findVariable("depends", file_contents));
   let (depopts, _, _) =
@@ -511,7 +511,6 @@ let parseManifest =
   let devDependencies = Dependencies.(empty |> addMany(~reqs=devDeps));
   let optDependencies = Dependencies.(empty |> addMany(~reqs=depopts));
 
-  let (name, version) = info;
   {
     name,
     version,
