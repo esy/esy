@@ -305,22 +305,6 @@ let findArchive contents _file_name =
       end
     end
 
-let parseUrlFile { OpamParserTypes. file_contents; file_name } =
-  match findArchive file_contents file_name with
-  | None -> begin
-    match findVariable "git" file_contents with
-    | Some (String (_, git)) -> PackageInfo.SourceSpec.Git (git, None)
-    | _ ->
-      failwith ("Invalid url file - no archive: " ^ file_name)
-    end
-  | Some archive ->
-      let checksum =
-        match findVariable "checksum" file_contents with
-        | Some (String (_, checksum)) -> Some checksum
-        | _ -> None
-      in
-      PackageInfo.SourceSpec.Archive (archive, checksum)
-
 let getOpamFiles (path : Path.t) =
   let open RunAsync.Syntax in
   let filesPath = Path.(path / "files") in
@@ -354,7 +338,7 @@ let getSubsts opamvalue =
   in
   List.map ~f:(fun filename -> ["substs"; filename ^ ".in"]) items
 
-let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
+let parse ~name ~version { OpamParserTypes. file_contents; file_name } =
   let (deps, buildDeps, devDeps) =
     processDeps file_name (findVariable "depends" file_contents)
   in
@@ -468,3 +452,21 @@ let toPackageJson manifest version =
     files = (manifest.files);
     patches = (manifest.patches)
   }
+
+module Url = struct
+  let parse { OpamParserTypes. file_contents; file_name } =
+    match findArchive file_contents file_name with
+    | None -> begin
+      match findVariable "git" file_contents with
+      | Some (String (_, git)) -> PackageInfo.SourceSpec.Git (git, None)
+      | _ ->
+        failwith ("Invalid url file - no archive: " ^ file_name)
+      end
+    | Some archive ->
+        let checksum =
+          match findVariable "checksum" file_contents with
+          | Some (String (_, checksum)) -> Some checksum
+          | _ -> None
+        in
+        PackageInfo.SourceSpec.Archive (archive, checksum)
+end

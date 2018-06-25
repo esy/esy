@@ -107,7 +107,7 @@ module Api = {
 
     let manifest = {
       let manifest =
-        OpamManifest.parseManifest(
+        OpamManifest.parse(
           ~name,
           ~version,
           OpamParser.file(Path.toString(path)),

@@ -77,7 +77,7 @@ let getPackage registry ~(name : PackageName.t) ~(version : Version.t) =
       let opamFilename = Path.(packagePath / "opam") in
       let%bind opamData = Fs.readFile opamFilename in
       let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
-      return (OpamManifest.parseManifest ~name ~version opamFile)
+      return (OpamManifest.parse ~name ~version opamFile)
     in
     match manifest.OpamManifest.available with
     | `Ok ->
@@ -139,14 +139,14 @@ let version registry ~(name : PackageName.t) ~version =
   | Some { opam = opamFilename; url; name; version } ->
     let%bind sourceSpec =
       if%bind Fs.exists url
-      then return (OpamManifest.parseUrlFile (OpamParser.file (Path.toString url)))
+      then return (OpamManifest.Url.parse (OpamParser.file (Path.toString url)))
       else return PackageInfo.SourceSpec.NoSource
     in
     let%bind source = resolveSourceSpec sourceSpec in
     let%bind manifest =
       let%bind opamData = Fs.readFile opamFilename in
       let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
-      let manifest = OpamManifest.parseManifest ~name ~version opamFile in
+      let manifest = OpamManifest.parse ~name ~version opamFile in
       return {manifest with source}
     in
     begin match%bind OpamOverrides.get registry.overrides name version with

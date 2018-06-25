@@ -1,3 +1,7 @@
+(**
+ * Utilities for working with opam manifests.
+ *)
+
 module PackageName : sig
   type t
   val toNpm : t -> string
@@ -27,15 +31,15 @@ type t = {
   exportedEnv: PackageJson.ExportedEnv.t
 }
 
-val parseManifest :
+val parse :
   name:PackageName.t
   -> version:OpamVersion.Version.t
   -> OpamParserTypes.opamfile
   -> t
 
-val parseUrlFile :
-  OpamParserTypes.opamfile
-  -> PackageInfo.SourceSpec.t
+module Url : sig
+  val parse : OpamParserTypes.opamfile -> PackageInfo.SourceSpec.t
+end
 
 val toPackageJson :
   t
