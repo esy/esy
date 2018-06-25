@@ -31,15 +31,17 @@ type t = {
   exportedEnv: PackageJson.ExportedEnv.t
 }
 
-val parse :
+type 'v parser
+
+val parseManifest :
   name:PackageName.t
   -> version:OpamVersion.Version.t
-  -> OpamParserTypes.opamfile
-  -> t
+  -> t parser
 
-module Url : sig
-  val parse : OpamParserTypes.opamfile -> PackageInfo.SourceSpec.t
-end
+val parseUrl : PackageInfo.SourceSpec.t parser
+
+(** Run parser and log all errors, warnings *)
+val runParsePath : parser:'v parser -> Path.t -> 'v RunAsync.t
 
 val toPackageJson :
   t

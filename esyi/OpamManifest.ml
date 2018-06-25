@@ -39,6 +39,21 @@ end = struct
   let equal = String.equal
 end
 
+module Problem = struct
+  type t = {
+    value : OpamParserTypes.value option;
+    message : string;
+  }
+
+  let make ?value message = {value; message;}
+  let pp fmt pr =
+    match pr.value with
+    | Some value -> Fmt.pf fmt "%s: %s" pr.message (OpamPrinter.value value)
+    | None -> Fmt.pf fmt "%s" pr.message
+end
+
+type 'v parser = OpamParserTypes.opamfile -> ('v * Problem.t list, Problem.t) result
+
 type t = {
   name: PackageName.t;
   version: OpamVersion.Version.t;
@@ -74,214 +89,214 @@ module ParseDeps = struct
     | `Gt -> unit (C.GT v)
     | `Neq -> F.OR [F.AND [C.LT v]; F.AND [C.GT v]]
 
-  let rec parseRange filename opamvalue =
+  let rec parse ~emitWarning value =
     let open OpamParserTypes in
-    let open Option.Syntax in
-    match opamvalue with
-    | Ident (_, "doc")
-    | Ident (_, "test") -> None
 
-    | Prefix_relop (_, op, (String (_, version))) -> return (parsePrefixRelop op version)
+    let rec parseRange value =
+      let open OpamParserTypes in
+      let open Option.Syntax in
+      match value with
+      | Ident (_, "doc")
+      | Ident (_, "test") -> None
 
-    | Logop (_, `And, syn, Ident (_, "build"))
-    | Logop (_, `And, Ident (_, "build"), syn) -> parseRange filename syn
+      | Prefix_relop (_, op, (String (_, version))) ->
+        return (parsePrefixRelop op version)
 
-    | Logop (_, `And, left, right) ->
-      let%bind left = parseRange filename left in
-      let%bind right = parseRange filename right in
-      return (F.DNF.conj left right)
+      | Logop (_, `And, syn, Ident (_, "build"))
+      | Logop (_, `And, Ident (_, "build"), syn) -> parseRange syn
 
-    | Logop (_, `Or, left, right) -> begin
-      match parseRange filename left, parseRange filename right with
-      | Some left, Some right -> return (F.DNF.disj left right)
-      | Some left, None -> return left
-      | None, Some right -> return right
-      | None, None -> None
-      end
+      | Logop (_, `And, left, right) ->
+        let%bind left = parseRange left in
+        let%bind right = parseRange right in
+        return (F.DNF.conj left right)
 
-    | String (_, version) -> return (unit (C.EQ (OpamVersion.Version.parseExn version)))
+      | Logop (_, `Or, left, right) -> begin
+        match parseRange left, parseRange right with
+        | Some left, Some right -> return (F.DNF.disj left right)
+        | Some left, None -> return left
+        | None, Some right -> return right
+        | None, None -> None
+        end
 
-    | Option (_, contents, options) ->
-      print_endline ("Ignoring option: " ^
-            (options |> List.map ~f:OpamPrinter.value |>
-                String.concat " .. "));
-      parseRange filename contents
-    | _y ->
-        (Printf.printf
-            (("OpamFile: %s: Unexpected option -- pretending its any: %s\n")
-            [@reason.raw_literal
-              "OpamFile: %s: Unexpected option -- pretending its any: %s\\n"])
-            filename (OpamPrinter.value opamvalue);
-          return (unit C.ANY))
+      | String (_, version) ->
+        return (unit (C.EQ (OpamVersion.Version.parseExn version)))
 
-  let rec toDep filename opamvalue =
-    let open OpamParserTypes in
-    let open Option.Syntax in
-    match opamvalue with
+      | Option (_, contents, _options) ->
+        emitWarning ~value "unknown option value" ();
+        parseRange contents
+      | value ->
+        emitWarning ~value "unknown value" ();
+        return (unit C.ANY)
+    in
+
+    match value with
     | String (_, name) ->
-      Some (name, unit C.ANY, `Link)
+      Ok (Some (name, unit C.ANY, `Link))
 
     | Option (_, String (_, name), Ident (_, "build")::[]) ->
-      Some (name, unit C.ANY, `Build)
+      Ok (Some (name, unit C.ANY, `Build))
     | Option (_, String (_, name), Ident (_, "test")::[]) ->
-      Some (name, unit C.ANY, `Test)
+      Ok (Some (name, unit C.ANY, `Test))
 
     | Option (_, String (_, name), Logop (_, `And, Ident (_, "build"), version)::[]) ->
-      let%bind spec = parseRange filename version in
-      Some (name, spec, `Build)
+      let deps =
+        let open Option.Syntax in
+        let%bind spec = parseRange version in
+        Some (name, spec, `Build)
+      in
+      Ok deps
     | Option (_, String (_, name), Logop (_, `And, Ident (_, "test"), version)::[]) ->
-      let%bind spec = parseRange filename version in
-      Some (name, spec, `Test)
+      let deps =
+        let open Option.Syntax in
+        let%bind spec = parseRange version in
+        Some (name, spec, `Test)
+      in
+      Ok deps
 
     | Group (_, Logop (_, `Or, String (_, "base-no-ppx"), otherThing)::[]) ->
-      toDep filename otherThing
+      parse ~emitWarning otherThing
 
-    | Group (_, Logop (_, `Or, String (_, one), String (_, two))::[]) ->
-      Printf.printf
-        "Arbitrarily choosing the second of two options: %s and %s"
-        one two;
-      Some (two, unit C.ANY, `Link)
+    | Group (_, Logop (_, `Or, String (_, _one), String (_, two))::[]) ->
+      emitWarning
+        ~value
+        "Arbitrarily choosing the second of two options"
+        ();
+      Ok (Some (two, unit C.ANY, `Link))
 
-    | Group (_, (Logop (_, `Or, one, two))::[]) ->
-      Printf.printf
+    | Group (_, (Logop (_, `Or, one, _two))::[]) ->
+      emitWarning
+        ~value
         "Arbitrarily choosing the first of two options: %s and %s"
-        (OpamPrinter.value one) (OpamPrinter.value two);
-        toDep filename one
+        ();
+      parse ~emitWarning one
 
     | Option (_, String (_, name), option::[]) ->
-      let%bind spec = parseRange filename option in
-      Some (name, spec, `Link)
+      let deps =
+        let open Option.Syntax in
+        let%bind spec = parseRange option in
+        Some (name, spec, `Link)
+      in
+      Ok deps
 
     | _ ->
-      let msg =
-        Printf.sprintf
-          "Can't parse this opam dep %s"
-          (OpamPrinter.value opamvalue)
-      in
-      failwith msg
+      let problem = Problem.make ~value "Can't parse this opam dep %s" in
+      Error problem
 end
 
-let processDeps filename deps =
+let processDeps ~emitWarning deps =
   let open OpamParserTypes in
-  let deps =
+  let open Result.Syntax in
+  let%bind deps =
     match deps with
-    | None -> []
-    | Some (List (_, items)) -> items
-    | Some (Group (_, items)) -> items
-    | Some (String (pos, value)) -> [String (pos, value)]
-    | Some contents ->
-      let msg = Printf.sprintf
-        "Can't handle dependencies at %s: %s"
-        filename (OpamPrinter.value contents)
-      in failwith msg
+    | None -> return []
+    | Some (List (_, items)) -> return items
+    | Some (Group (_, items)) -> return items
+    | Some (String (pos, value)) -> return [String (pos, value)]
+    | Some value ->
+      let problem = Problem.make ~value "unknown value" in
+      error problem
   in
   let f (deps, buildDeps, devDeps) dep =
-    match ParseDeps.toDep filename dep with
-    | Some (name, formula, `Link) ->
+    match ParseDeps.parse ~emitWarning dep with
+    | Ok (Some (name, formula, `Link)) ->
       let name = PackageName.(name |> ofString |> toNpm) in
       let spec = PackageInfo.VersionSpec.Opam formula in
       let req = PackageInfo.Req.ofSpec ~name ~spec in
-      (req::deps, buildDeps, devDeps)
-    | Some (name, formula, `Build) ->
+      return (req::deps, buildDeps, devDeps)
+    | Ok (Some (name, formula, `Build)) ->
       let name = PackageName.(name |> ofString |> toNpm) in
       let spec = PackageInfo.VersionSpec.Opam formula in
       let req = PackageInfo.Req.ofSpec ~name ~spec in
-      (deps, req::buildDeps, devDeps)
-    | Some (name, formula, `Test) ->
+      return (deps, req::buildDeps, devDeps)
+    | Ok (Some (name, formula, `Test)) ->
       let name = PackageName.(name |> ofString |> toNpm) in
       let spec = PackageInfo.VersionSpec.Opam formula in
       let req = PackageInfo.Req.ofSpec ~name ~spec in
-      (deps, buildDeps, req::devDeps)
-    | None -> (deps, buildDeps, devDeps)
-    | exception Failure msg ->
-      let msg = Printf.sprintf
-        "Can't handle dependencies at %s: %s"
-        filename msg
-      in failwith msg
+      return (deps, buildDeps, req::devDeps)
+    | Ok None ->
+      return (deps, buildDeps, devDeps)
+    | Error msg -> error msg
   in
-  List.fold_left ~f ~init:([], [], []) deps
+  Result.List.foldLeft ~f ~init:([], [], []) deps
 
-let processCommandItem filename item =
+let processCommandList ~emitWarning item =
+  let open Result.Syntax in
   let open OpamParserTypes in
+  let processCommand items =
+    let f item =
+      match item with
+      | String (_, value) -> Some value
+      | Ident (_, ident) -> Some ("%{" ^ ident ^ "}%")
+      | Option (_, _, Ident (_, "preinstalled")::[]) -> None
+      | Option (_, _, String (_, _something)::[]) -> None
+      | Option (_, String (_, name), Pfxop (_, `Not, (Ident (_, ("preinstalled"))))::[]) -> Some name
+      | value ->
+        emitWarning ~value "invalid command item" ();
+        None
+    in
+    items
+    |> List.map ~f
+    |> List.filterNone
+  in
   match item with
-  | String (_, value) -> Some value
-  | Ident (_, ident) -> Some ("%{" ^ ident ^ "}%")
-  | Option (_, _, Ident (_, "preinstalled")::[]) -> None
-  | Option (_, _, String (_, _something)::[]) -> None
-  | Option (_, String (_, name), Pfxop (_, `Not, (Ident (_, ("preinstalled"))))::[]) -> Some name
-  | _ ->
-    Printf.printf
-      "opam: %s\nmessage: invalid command item\nvalue: %s\n"
-      filename (OpamPrinter.value item);
-    None
-
-let processCommand filename items =
-  items |> List.map ~f:(processCommandItem filename) |> List.filterNone
-
-let processCommandList filename item =
-  let open OpamParserTypes in
-  match item with
-  | None -> []
+  | None -> return []
   | Some (List (_, items))
   | Some (Group (_, items)) -> begin
     match items with
-      | (String _ | Ident _)::_rest -> [processCommand filename items]
+      | (String _ | Ident _)::_rest -> return [processCommand items]
       | items ->
         let f item =
           match item with
-          | List (_, items) -> Some (processCommand filename items)
-          | Option (_, List (_, items), _) -> Some (processCommand filename items)
-          | _ ->
-            Printf.printf "Skipping a non-list build thing %s" (OpamPrinter.value item);
+          | List (_, items) -> Some (processCommand items)
+          | Option (_, List (_, items), _) -> Some (processCommand items)
+          | value ->
+            emitWarning ~value "skipping a non-list build thing" ();
             None
         in
-        items
-        |> List.map ~f
-        |> List.filterNone
+        return (
+          items
+          |> List.map ~f
+          |> List.filterNone
+        )
     end
-  | Some (Ident (_, ident)) -> [["%{" ^ ident ^ "}%"]]
+  | Some (Ident (_, ident)) -> return [["%{" ^ ident ^ "}%"]]
 
-  | Some item ->
-    let msg =
-      Printf.sprintf
-        "Unexpected type for a command list: %s"
-        (OpamPrinter.value item)
-    in failwith msg
+  | Some value ->
+    let problem = Problem.make ~value "unexpected command" in
+    error problem
 
-let parsePatches filename item =
+let parsePatches ~emitWarning item =
+  let open Result.Syntax in
   let open OpamParserTypes in
-  let items =
-    match item with
-    | None -> []
-    | Some (List (_, items))
-    | Some (Group (_, items)) -> items
 
-    | Some (String _ as item) -> [item]
-    | Some item ->
-      let msg =
-        Printf.sprintf
-          (("opam: %s\nerror: Unexpected type for a string list\nvalue: %s\n")
-          [@reason.raw_literal
-            "opam: %s\\nerror: Unexpected type for a string list\\nvalue: %s\\n"])
-          filename (OpamPrinter.value item) in
-      failwith msg
+  let%bind items =
+    match item with
+    | None -> return []
+    | Some (List (_, items))
+    | Some (Group (_, items)) -> return items
+
+    | Some (String _ as item) -> return [item]
+    | Some value ->
+      let problem =
+        Problem.make
+          ~value
+          "unexpected type for a string list"
+      in error problem
   in
 
-  let f item =
-    match item with
+  let f value =
+    match value with
     | String (_, name) -> Some name
     | Option (_, String (_, name), Relop (_, `Eq, Ident (_, "os"), String (_, "darwin"))::[]) ->
       Some name
     | Option (_, String (_, _name), Relop (_, `Eq, Ident (_, "os"), String (_, _))::[]) -> None
     | Option (_, String (_, _name), Ident (_, "preinstalled")::[]) -> None
     | Option (_, String (_, name), Pfxop (_, `Not, Ident (_, "preinstalled"))::[]) -> Some name
-    | _ ->
-      Printf.printf
-        "opam: %s\nwarning: Bad string list item arg\nvalue: %s\n"
-        filename (OpamPrinter.value item);
+    | value ->
+      emitWarning ~value "Bad string list item arg" ();
       None
   in
-  items |> List.map ~f |> List.filterNone
+  return (items |> List.map ~f |> List.filterNone)
 
 let rec findVariable name items =
   let open OpamParserTypes in
@@ -320,37 +335,75 @@ let getOpamFiles (path : Path.t) =
     Fs.fold ~init:[] ~f:collect filesPath
   else return []
 
-let getSubsts opamvalue =
+let getSubsts value =
+  let open Result.Syntax in
   let open OpamParserTypes in
-  let items =
-    match opamvalue with
-    | None -> []
+  let%bind items =
+    match value with
+    | None -> return []
     | Some (List (_, items)) ->
-      let f item =
-        match item with
-        | String (_, text) -> text
-        | _ -> failwith "Bad substs item"
+      let f value =
+        match value with
+        | String (_, text) -> return text
+        | _ -> error (Problem.make ~value "Bad substs item")
       in
-      List.map ~f items
-    | Some (String (_, text)) -> [text]
-    | Some other ->
-        failwith ("Bad substs value " ^ (OpamPrinter.value other))
+      Result.List.map ~f items
+    | Some (String (_, text)) -> return [text]
+    | Some value -> error (Problem.make ~value "Bad substs item")
   in
-  List.map ~f:(fun filename -> ["substs"; filename ^ ".in"]) items
+  return (List.map ~f:(fun filename -> ["substs"; filename ^ ".in"]) items)
 
-let parse ~name ~version { OpamParserTypes. file_contents; file_name } =
-  let (deps, buildDeps, devDeps) =
-    processDeps file_name (findVariable "depends" file_contents)
+let toPackageJson manifest version =
+  let commandListToJson =
+    let f items = `List (List.map ~f:(fun item -> `String item) items) in
+    List.map ~f
   in
-  let (depopts, _, _) =
-    processDeps file_name (findVariable "depopts" file_contents)
+  let npmName = PackageName.toNpm manifest.name in
+  let exportedEnv = manifest.exportedEnv in
+  let packageJson =
+    `Assoc [
+      "name", `String npmName;
+      "version", `String (PackageInfo.Version.toNpmVersion version);
+      "esy", `Assoc [
+        "build", `List (commandListToJson manifest.build);
+        "install", `List (commandListToJson manifest.install);
+        "buildsInSource", `Bool true;
+        "exportedEnv", PackageJson.ExportedEnv.to_yojson exportedEnv;
+      ];
+      "peerDependencies", Dependencies.to_yojson manifest.peerDependencies;
+      "optDependencies", Dependencies.to_yojson manifest.optDependencies;
+      "dependencies", Dependencies.to_yojson manifest.dependencies;
+    ]
+  in
+  {
+    PackageInfo.OpamInfo.packageJson = packageJson;
+    files = (manifest.files);
+    patches = (manifest.patches)
+  }
+
+let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
+  let open Result.Syntax in
+
+  let warnings = ref [] in
+  let emitWarning ~value message () =
+    let warning = Problem.make ~value message in
+    warnings := warning::!warnings
+  in
+
+  let%bind (deps, buildDeps, devDeps) =
+    processDeps ~emitWarning (findVariable "depends" file_contents)
+  in
+  let%bind (depopts, _, _) =
+    processDeps ~emitWarning (findVariable "depopts" file_contents)
   in
   let files =
     getOpamFiles Path.(v file_name |> parent)
     |> RunAsync.runExn ~err:"error crawling files"
   in
-  let patches =
-    parsePatches file_name (findVariable "patches" file_contents)
+  let%bind patches =
+    parsePatches
+      ~emitWarning
+      (findVariable "patches" file_contents)
   in
   let ocamlRequirement =
     let req = findVariable "available" file_contents in
@@ -403,16 +456,24 @@ let parse ~name ~version { OpamParserTypes. file_contents; file_name } =
   let devDependencies = Dependencies.(empty |> addMany ~reqs:devDeps) in
   let optDependencies = Dependencies.(empty |> addMany ~reqs:depopts) in
 
-  {
+  let%bind build =
+    let%bind preCmds = getSubsts (findVariable "substs" file_contents) in
+    let%bind cmds = processCommandList ~emitWarning (findVariable "build" file_contents) in
+    return (preCmds @ cmds)
+  in
+
+  let%bind install =
+    let installCmds = [["sh"; "-c"; "(esy-installer || true)";]] in
+    let%bind cmds = processCommandList ~emitWarning (findVariable "install" file_contents) in
+    return (cmds @ installCmds)
+  in
+
+  let manifests = {
     name;
     version;
     fileName = file_name;
-    build =
-      getSubsts (findVariable "substs" file_contents)
-      @ (processCommandList file_name (findVariable "build" file_contents))
-      @ [["sh"; "-c"; "(esy-installer || true)";]];
-    install =
-      processCommandList file_name (findVariable "install" file_contents);
+    build;
+    install;
     patches;
     files;
     dependencies;
@@ -423,50 +484,46 @@ let parse ~name ~version { OpamParserTypes. file_contents; file_name } =
     available = isAvailable;
     source = PackageInfo.Source.NoSource;
     exportedEnv = []
-  }
+  } in
 
-let commandListToJson =
-  let f items = `List (List.map ~f:(fun item -> `String item) items) in
-  List.map ~f
+  return (manifests, !warnings)
 
-let toPackageJson manifest version =
-  let npmName = PackageName.toNpm manifest.name in
-  let exportedEnv = manifest.exportedEnv in
-  let packageJson =
-    `Assoc [
-      "name", `String npmName;
-      "version", `String (PackageInfo.Version.toNpmVersion version);
-      "esy", `Assoc [
-        "build", `List (commandListToJson manifest.build);
-        "install", `List (commandListToJson manifest.install);
-        "buildsInSource", `Bool true;
-        "exportedEnv", PackageJson.ExportedEnv.to_yojson exportedEnv;
-      ];
-      "peerDependencies", Dependencies.to_yojson manifest.peerDependencies;
-      "optDependencies", Dependencies.to_yojson manifest.optDependencies;
-      "dependencies", Dependencies.to_yojson manifest.dependencies;
-    ]
-  in
-  {
-    PackageInfo.OpamInfo.packageJson = packageJson;
-    files = (manifest.files);
-    patches = (manifest.patches)
-  }
+let parseUrl { OpamParserTypes. file_contents; file_name } =
+  let open Result.Syntax in
+  match findArchive file_contents file_name with
+  | None -> begin
+    match findVariable "git" file_contents with
+    | Some (String (_, git)) -> return (PackageInfo.SourceSpec.Git (git, None), [])
+    | _ ->
+      let problem = Problem.make "no archive found" in
+      error problem
+    end
+  | Some archive ->
+      let checksum =
+        match findVariable "checksum" file_contents with
+        | Some (String (_, checksum)) -> Some checksum
+        | _ -> None
+      in
+      return (PackageInfo.SourceSpec.Archive (archive, checksum), [])
 
-module Url = struct
-  let parse { OpamParserTypes. file_contents; file_name } =
-    match findArchive file_contents file_name with
-    | None -> begin
-      match findVariable "git" file_contents with
-      | Some (String (_, git)) -> PackageInfo.SourceSpec.Git (git, None)
-      | _ ->
-        failwith ("Invalid url file - no archive: " ^ file_name)
-      end
-    | Some archive ->
-        let checksum =
-          match findVariable "checksum" file_contents with
-          | Some (String (_, checksum)) -> Some checksum
-          | _ -> None
-        in
-        PackageInfo.SourceSpec.Archive (archive, checksum)
-end
+let runParsePath ~parser path =
+  let open RunAsync.Syntax in
+  let%bind data = Fs.readFile path in
+  let value = OpamParser.string data (Path.toString path) in
+  match parser value with
+  | Ok (value, []) -> return value
+  | Ok (value, warnings) ->
+    let%lwt () = Lwt_list.iter_s
+      (fun p -> Logs_lwt.warn (fun m ->
+        m "warning while reading opam %a: %a" Path.pp path Problem.pp p))
+      warnings
+    in
+    return value
+  | Error p ->
+    let%lwt () = Logs_lwt.err
+      (fun m ->
+        m "error while reading opam %a: %a"
+        Path.pp path Problem.pp p)
+    in
+    error "error reading opam file"
+

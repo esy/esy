@@ -105,14 +105,15 @@ module Api = {
         },
       );
 
-    let manifest = {
-      let manifest =
-        OpamManifest.parse(
-          ~name,
-          ~version,
-          OpamParser.file(Path.toString(path)),
+    let%bind manifest = {
+      let%bind manifest =
+        OpamManifest.runParsePath(
+          ~parser=OpamManifest.parseManifest(~name, ~version),
+          path,
         );
-      OpamManifest.{...manifest, source: PackageInfo.Source.NoSource};
+      return(
+        OpamManifest.{...manifest, source: PackageInfo.Source.NoSource},
+      );
     };
     let {PackageInfo.OpamInfo.packageJson, _} =
       OpamManifest.toPackageJson(
