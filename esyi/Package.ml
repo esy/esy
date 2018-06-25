@@ -12,12 +12,12 @@ type t = {
   opam : PackageInfo.OpamInfo.t option;
 }
 
-let ofOpam ?name ?version (manifest : OpamFile.manifest) =
+let ofOpam ?name ?version (manifest : OpamManifest.t) =
   let open Run.Syntax in
   let name =
     match name with
     | Some name -> name
-    | None -> OpamFile.PackageName.toNpm manifest.name
+    | None -> OpamManifest.PackageName.toNpm manifest.name
   in
   let version =
     match version with
@@ -39,7 +39,7 @@ let ofOpam ?name ?version (manifest : OpamFile.manifest) =
     buildDependencies = manifest.buildDependencies;
     devDependencies = manifest.devDependencies;
     source;
-    opam = Some (OpamFile.toPackageJson manifest version);
+    opam = Some (OpamManifest.toPackageJson manifest version);
   }
 
 let ofPackageJson ?name ?version (manifest : PackageJson.t) =

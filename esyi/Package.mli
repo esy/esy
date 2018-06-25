@@ -23,7 +23,7 @@ type t = {
 val ofOpam :
   ?name:string
   -> ?version:PackageInfo.Version.t
-  -> OpamFile.manifest
+  -> OpamManifest.t
   -> t Run.t
 
 (**

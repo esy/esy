@@ -1,4 +1,4 @@
-module PackageNameMap = Map.Make(OpamFile.PackageName);
+module PackageNameMap = Map.Make(OpamManifest.PackageName);
 module Dependencies = PackageInfo.Dependencies;
 
 module Override = {
@@ -82,7 +82,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
       let parseOverrideSpec = spec =>
         switch (String.cut(~sep=".", spec)) {
         | None => (
-            OpamFile.PackageName.ofString(spec),
+            OpamManifest.PackageName.ofString(spec),
             OpamVersion.Formula.any,
           )
         | Some((name, constr)) =>
@@ -94,7 +94,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
               constr,
             );
           let constr = OpamVersion.Formula.parse(constr);
-          (OpamFile.PackageName.ofString(name), constr);
+          (OpamManifest.PackageName.ofString(name), constr);
         };
 
       let overrides = {
@@ -149,7 +149,7 @@ let load = baseDir => {
   };
 };
 
-let get = (overrides, name: OpamFile.PackageName.t, version) =>
+let get = (overrides, name: OpamManifest.PackageName.t, version) =>
   RunAsync.Syntax.(
     switch (PackageNameMap.find_opt(name, overrides)) {
     | Some(items) =>
@@ -170,7 +170,7 @@ let get = (overrides, name: OpamFile.PackageName.t, version) =>
     }
   );
 
-let apply = (manifest: OpamFile.manifest, override: Override.t) => {
+let apply = (manifest: OpamManifest.t, override: Override.t) => {
   let source =
     switch (override.opam.Override.Opam.source) {
     | Some(source) => PackageInfo.Source.Archive(source.url, source.checksum)

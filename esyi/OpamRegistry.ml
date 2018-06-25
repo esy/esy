@@ -1,10 +1,10 @@
-module PackageName = OpamFile.PackageName
+module PackageName = OpamManifest.PackageName
 module Version = OpamVersion.Version
 module VersionMap = Map.Make(Version)
 module String = Astring.String
 
 module OpamPathsByVersion = Memoize.Make(struct
-  type key = OpamFile.PackageName.t
+  type key = OpamManifest.PackageName.t
   type value = Path.t VersionMap.t RunAsync.t
 end)
 
@@ -74,12 +74,11 @@ let getPackage registry ~(name : PackageName.t) ~(version : Version.t) =
   | None -> return None
   | Some packagePath ->
     let%bind manifest =
-      let opamFilename = Path.(packagePath / "opam") in
-      let%bind opamData = Fs.readFile opamFilename in
-      let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
-      return (OpamFile.parseManifest ~name ~version opamFile)
+      OpamManifest.runParsePath
+        ~parser:(OpamManifest.parseManifest ~name ~version)
+        Path.(packagePath / "opam")
     in
-    match manifest.OpamFile.available with
+    match manifest.OpamManifest.available with
     | `Ok ->
       let opam = Path.(packagePath / "opam") in
       let url = Path.(packagePath / "url") in
@@ -136,18 +135,22 @@ let version registry ~(name : PackageName.t) ~version =
   let open RunAsync.Syntax in
   match%bind getPackage registry ~name ~version with
   | None -> return None
-  | Some { opam = opamFilename; url; name; version } ->
+  | Some { opam = opamFilename; url = urlFilename; name; version } ->
     let%bind sourceSpec =
-      if%bind Fs.exists url
-      then return (OpamFile.parseUrlFile (OpamParser.file (Path.toString url)))
+      if%bind Fs.exists urlFilename
+      then
+        OpamManifest.runParsePath
+          ~parser:OpamManifest.parseUrl
+          urlFilename
       else return PackageInfo.SourceSpec.NoSource
     in
     let%bind source = resolveSourceSpec sourceSpec in
     let%bind manifest =
-      let%bind opamData = Fs.readFile opamFilename in
-      let opamFile = OpamParser.string opamData (Path.toString opamFilename) in
-      let manifest = OpamFile.parseManifest ~name ~version opamFile in
-      return {manifest with source}
+      let%bind manifest = OpamManifest.runParsePath
+        ~parser:(OpamManifest.parseManifest ~name ~version)
+        opamFilename
+      in
+      return OpamManifest.{manifest with source}
     in
     begin match%bind OpamOverrides.get registry.overrides name version with
       | None ->
