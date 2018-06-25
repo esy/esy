@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.1.21 @ preview
+
+* Change `devDependencies` to be installed as regular dependencies of the root
+  package. This allows to use `devDependencies` to specify a concrete version of
+  an `ocaml` toolchain. The "isolated" mode to `devDependencies` will be
+  re-added back later.
+
+* Bump `fastreplacestring` which fixes a bug with `@opam/omake` installation
+  (esy/esy#217).
+
+* Fix opam conversion errors to be logged properly on terminal.
+
 ## 0.1.20 @ preview
 
 * Support `devDependencies` with `esyi`.
