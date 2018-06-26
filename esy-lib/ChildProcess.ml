@@ -145,10 +145,12 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
   in
 
   let f process =
+    let%lwt out = Lwt.finalize
+      (fun () -> Lwt_io.read process#stdout)
+      (fun () -> Lwt_io.close process#stdout)
+    in
     match%lwt process#status with
-    | Unix.WEXITED 0 -> 
-      let%lwt out = Lwt_io.read process#stdout in
-      return out
+    | Unix.WEXITED 0 -> return out
     | _ ->
       let msg = Printf.sprintf "running command: %s" (Cmd.show cmd) in
       error msg
