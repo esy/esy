@@ -7,9 +7,10 @@ module Dist = struct
     source : PackageInfo.Source.t;
     tarballPath : Path.t;
   }
-end
 
-type dist = Dist.t
+  let pp fmt dist =
+    Fmt.pf fmt "%s@%a" dist.name PackageInfo.Version.pp dist.version
+end
 
 let packageKey (pkg : Solution.Record.t) =
   let version = PackageInfo.Version.toString pkg.version in
@@ -156,10 +157,8 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
           let%bind () = Fs.createDir sourcePath in
-          let%lwt () = Logs_lwt.app (fun m -> m "Fetching %s" name) in
           let%bind () = doFetch sourcePath in
           let%bind () = complete sourcePath in
-          let%lwt () = Logs_lwt.app (fun m -> m "Fetching %s: done" name) in
           return ()
         in
 

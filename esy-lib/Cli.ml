@@ -1,3 +1,73 @@
+module ProgressReporter = struct
+
+  type t = {
+    mutable status : string;
+    statusLock : Lwt_mutex.t;
+  }
+
+  let make () =
+    {status = ""; statusLock = Lwt_mutex.create ()}
+
+  let hide s =
+    let len = String.length s in
+    if len > 0
+    then
+      let s = Printf.sprintf "\r%*s\r" len "" in
+      Lwt_io.write Lwt_io.stderr s
+    else
+      Lwt.return ()
+
+  let show s =
+    Lwt_io.write Lwt_io.stderr s
+
+  let status r =
+    r.status
+
+  let clearStatus r =
+    Lwt_mutex.with_lock r.statusLock begin fun () ->
+      hide r.status;%lwt
+      r.status <- "";
+      Lwt.return ()
+    end
+
+  let setStatus status r =
+    Lwt_mutex.with_lock r.statusLock begin fun () ->
+      hide r.status;%lwt
+      r.status <- status;
+      show r.status
+    end
+
+  let finish r =
+    Lwt_main.run (hide r.status)
+end
+
+module Progress = struct
+  let reporter = ref None
+
+  let init () =
+    reporter := Some (ProgressReporter.make ())
+
+  let finish () =
+    match !reporter with
+    | None -> ()
+    | Some reporter -> ProgressReporter.finish reporter
+
+  let setStatus status =
+    match !reporter with
+    | None -> Lwt.return ()
+    | Some reporter -> ProgressReporter.setStatus status reporter
+
+  let clearStatus () =
+    match !reporter with
+    | None -> Lwt.return ()
+    | Some reporter -> ProgressReporter.clearStatus reporter
+
+  let status () =
+    match !reporter with
+    | None -> ""
+    | Some reporter -> reporter.status
+end
+
 let pathConv =
   let open Cmdliner in
   let parse = Path.of_string in
@@ -38,7 +108,7 @@ let setupLogTerm =
   let pp_header ppf ((lvl : Logs.level), _header) =
     match lvl with
     | Logs.App ->
-      Fmt.(styled `Blue (unit "[INFO] ")) ppf ()
+      Fmt.(styled `Blue (unit "info ")) ppf ()
     | Logs.Error ->
       Fmt.(styled `Red (unit "[ERROR] ")) ppf ()
     | Logs.Warning ->
@@ -57,11 +127,24 @@ let setupLogTerm =
     let app, app_flush = buf_fmt ~like:Fmt.stdout in
     let dst, dst_flush = buf_fmt ~like:Fmt.stderr in
     let reporter = Logs_fmt.reporter ~pp_header ~app ~dst () in
+    let withPreserveStatus f =
+      let status = Progress.status () in
+      let%lwt () = Progress.clearStatus () in
+      let%lwt () = f () in
+      let%lwt () = Progress.setStatus status in
+      Lwt.return ()
+    in
     let report src level ~over k msgf =
       let k () =
-        let write () = match level with
-          | Logs.App -> Lwt_io.write Lwt_io.stdout (app_flush ())
-          | _ -> Lwt_io.write Lwt_io.stderr (dst_flush ())
+        let write () =
+          let%lwt () =
+            withPreserveStatus begin fun () ->
+              match level with
+              | Logs.App -> Lwt_io.write Lwt_io.stderr (app_flush ())
+              | _ -> Lwt_io.write Lwt_io.stderr (dst_flush ())
+            end
+          in
+          Lwt.return ()
         in
         let unblock () = over (); Lwt.return_unit in
         Lwt.finalize write unblock |> Lwt.ignore_result;
@@ -78,7 +161,8 @@ let setupLogTerm =
     in
     Fmt_tty.setup_std_outputs ~style_renderer ();
     Logs.set_level level;
-    Logs.set_reporter (lwt_reporter ())
+    Logs.set_reporter (lwt_reporter ());
+    Progress.init ()
   in
   let open Cmdliner in
   Term.(

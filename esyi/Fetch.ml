@@ -1,5 +1,6 @@
 module Version = PackageInfo.Version
 module Record = Solution.Record
+module Dist = FetchStorage.Dist
 
 let recordsOfSolution solution =
   let set =
@@ -45,7 +46,7 @@ let check ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
   return installed
 
-let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
+let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
@@ -54,19 +55,21 @@ let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let%lwt () =
-    Logs_lwt.app (fun m -> m "Checking if there are some packages to fetch...")
-  in
-
   let records = recordsOfSolution solution in
 
   let%bind fetched =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
+    let report, finish = cfg.Config.createProgressReporter ~name:"fetching" () in
     let%bind items =
       let fetch record =
         let%bind dist =
           LwtTaskQueue.submit queue
-          (fun () -> FetchStorage.fetch ~cfg record)
+          (fun () ->
+            let%lwt () =
+              let status = Format.asprintf "%a" Record.pp record in
+              report status
+            in
+            FetchStorage.fetch ~cfg record)
         in
         return (record, dist)
       in
@@ -74,24 +77,20 @@ let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
       |> List.map ~f:fetch
       |> RunAsync.List.joinAll
     in
+    let%lwt () = finish () in
     let f map (record, dist) = Record.Map.add record dist map in
     let map = List.fold_left ~f ~init:Record.Map.empty items in
     return map
   in
 
-  let%lwt () = Logs_lwt.app (fun m -> m "Populating node_modules...") in
-
   let%bind () =
+    let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
     let f ~path () record =
       match Record.Map.find_opt record fetched with
       | Some dist ->
-        let%lwt () = Logs_lwt.debug (fun m ->
-          let path =
-            match Path.relativize ~root:cfg.basePath path with
-            | Some path -> path
-            | None -> path
-          in
-          m "Installing %a at %a" Record.pp record Path.pp path)
+        let%lwt () =
+          let status = Format.asprintf "%a" Dist.pp dist in
+          report status
         in
         FetchStorage.install ~cfg ~path dist
       | None ->
@@ -104,7 +103,9 @@ let fetch ~cfg:(cfg : Config.t)  (solution : Solution.t) =
         in
         failwith msg
     in
-    traverseWithPath ~path:cfg.basePath ~init:() ~f solution
+    let%bind () = traverseWithPath ~path:cfg.basePath ~init:() ~f solution in
+    let%lwt () = finish () in
+    return ()
   in
 
   return ()

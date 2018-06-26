@@ -222,6 +222,7 @@ let add ~(dependencies : Dependencies.t) solver =
   in
 
   let universe = ref solver.universe in
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
 
   let rec addPkg (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
@@ -235,6 +236,10 @@ let add ~(dependencies : Dependencies.t) solver =
     else return ()
 
   and addReq req =
+    let%lwt () = 
+      let status = Format.asprintf "%a" Req.pp req in
+      report status
+    in
     let%bind resolutions =
       Resolver.resolve ~req solver.resolver
       |> RunAsync.withContext ("resolving request: " ^ Req.toString req)
@@ -263,6 +268,8 @@ let add ~(dependencies : Dependencies.t) solver =
     in
     return (Dependencies.(addMany ~reqs:dependencies empty))
   in
+
+  let%lwt () = finish () in
 
   return ({solver with universe = !universe}, dependencies)
 

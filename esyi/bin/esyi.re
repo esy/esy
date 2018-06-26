@@ -5,7 +5,6 @@ module Api = {
   let solve = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%lwt () = Logs_lwt.app(m => m("Resolving dependencies"));
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
@@ -30,7 +29,6 @@ module Api = {
   let fetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%lwt () = Logs_lwt.app(m => m("Fetching dependencies"));
         let%bind manifest = PackageJson.ofDir(cfg.basePath);
         switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
@@ -245,8 +243,20 @@ module CommandLineInterface = {
         };
       let%bind esySolveCmd =
         resolve("esy-solve-cudf/esySolveCudfCommand.exe");
+      let createProgressReporter = (~name, ()) => {
+        let progress = msg => {
+          let status = Format.asprintf(".... %s: %s", name, msg);
+          Cli.Progress.setStatus(status);
+        };
+        let finish = () => {
+          let%lwt () = Cli.Progress.clearStatus();
+          Logs_lwt.app(m => m("%s: done", name));
+        };
+        (progress, finish);
+      };
       Config.make(
         ~esySolveCmd,
+        ~createProgressReporter,
         ~cachePath?,
         ~npmRegistry?,
         ~opamRepository?,
@@ -358,7 +368,7 @@ module CommandLineInterface = {
 
   let run = () => {
     Printexc.record_backtrace(true);
-    Term.(exit(eval_choice(~argv=Sys.argv, defaultCommand, commands)));
+    Term.(exit(Term.eval_choice(~argv=Sys.argv, defaultCommand, commands)));
   };
 };
 
