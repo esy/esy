@@ -234,7 +234,7 @@ let resolve ~req resolver =
       return [{Resolution. name; version}]
 
   | VersionSpec.Source (SourceSpec.Git (remote, ref)) ->
-    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
+    let%lwt () = Logs_lwt.app (fun m -> m "resolving %s" (Req.toString req)) in
     let%bind commit = Git.lsRemote ?ref ~remote () in
     let version = Version.Source (Source.Git (remote, commit)) in
     return [{Resolution. name; version}]
