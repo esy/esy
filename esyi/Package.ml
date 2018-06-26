@@ -7,12 +7,11 @@ type t = {
   version : PackageInfo.Version.t;
   source : PackageInfo.Source.t;
   dependencies: (Dependencies.t [@default Dependencies.empty]);
-  buildDependencies: (Dependencies.t [@default Dependencies.empty]);
   devDependencies: (Dependencies.t [@default Dependencies.empty]);
   opam : PackageInfo.OpamInfo.t option;
 }
 
-let ofOpam ?name ?version (manifest : OpamManifest.t) =
+let ofOpamManifest ?name ?version (manifest : OpamManifest.t) =
   let open Run.Syntax in
   let name =
     match name with
@@ -36,13 +35,12 @@ let ofOpam ?name ?version (manifest : OpamManifest.t) =
     name;
     version;
     dependencies = manifest.dependencies;
-    buildDependencies = manifest.buildDependencies;
     devDependencies = manifest.devDependencies;
     source;
     opam = Some (OpamManifest.toPackageJson manifest version);
   }
 
-let ofPackageJson ?name ?version (manifest : PackageJson.t) =
+let ofManifest ?name ?version (manifest : Manifest.t) =
   let open Run.Syntax in
   let name =
     match name with
@@ -52,31 +50,20 @@ let ofPackageJson ?name ?version (manifest : PackageJson.t) =
   let version =
     match version with
     | Some version -> version
-    | None -> Version.Npm (PackageJson.Version.parseExn manifest.version)
+    | None -> Version.Npm (NpmVersion.Version.parseExn manifest.version)
   in
-  let%bind source =
+  let source =
     match version with
     | Version.Source (Source.Github (user, name, ref)) ->
-      Run.return (Source.Github (user, name, ref))
+      Source.Github (user, name, ref)
     | Version.Source (Source.LocalPath path)  ->
-      Run.return (Source.LocalPath path)
-    | _ -> begin
-      match manifest.dist with
-      | Some dist -> return (Source.Archive (dist.tarball, dist.shasum))
-      | None ->
-        let msg =
-          Printf.sprintf
-            "source cannot be found for %s@%s"
-            manifest.name manifest.version
-        in
-        error msg
-      end
+      Source.LocalPath path
+    | _ -> manifest.source
   in
   return {
     name;
     version;
     dependencies = manifest.dependencies;
-    buildDependencies = manifest.buildDependencies;
     devDependencies = manifest.devDependencies;
     source;
     opam = None;

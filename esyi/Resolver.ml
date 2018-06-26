@@ -53,14 +53,14 @@ module Github = struct
     match%lwt fetchFile "esy.json" with
     | Ok data ->
       let%bind packageJson =
-        RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data)
+        RunAsync.ofRun (Json.parseStringWith Manifest.of_yojson data)
       in
       return (`PackageJson packageJson)
     | Error _ ->
       begin match%lwt fetchFile "package.json" with
       | Ok text ->
         let%bind packageJson =
-          RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson text)
+          RunAsync.ofRun (Json.parseStringWith Manifest.of_yojson text)
         in
         return (`PackageJson packageJson)
       | Error _ ->
@@ -72,6 +72,7 @@ type t = {
   cfg: Config.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
+  npmRegistryQueue : LwtTaskQueue.t;
   opamRegistry : OpamRegistry.t;
   npmResolutionCache : NpmResolutionCache.t;
   opamResolutionCache : OpamResolutionCache.t;
@@ -80,10 +81,12 @@ type t = {
 let make ~cfg () =
   let open RunAsync.Syntax in
   let%bind opamRegistry = OpamRegistry.init ~cfg () in
+  let npmRegistryQueue = LwtTaskQueue.create ~concurrency:12 () in
   return {
     cfg;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
+    npmRegistryQueue;
     opamRegistry;
     npmResolutionCache = NpmResolutionCache.make ();
     opamResolutionCache = OpamResolutionCache.make ();
@@ -97,16 +100,35 @@ let package ~(resolution : Resolution.t) resolver =
     let%bind manifest =
       match resolution.version with
       | Version.Source (Source.LocalPath _) -> error "not implemented"
-      | Version.Source (Git _) -> error "not implemented"
+      | Version.Source (Git (remote, ref) as source) ->
+        Fs.withTempDir begin fun repo ->
+          let%bind () = Git.clone ~dst:repo ~remote () in
+          let%bind () = Git.checkout ~ref ~repo () in
+          match%lwt Manifest.ofDir repo with
+          | Ok manifest ->
+            let manifest = {manifest with name = resolution.name} in
+            return (`PackageJson manifest)
+          | Error err ->
+            let msg =
+              Format.asprintf
+                "cannot read manifest at %a: %s"
+                Source.pp source (Run.formatError err)
+            in
+            error msg
+        end
       | Version.Source (Github (user, repo, ref)) ->
         begin match%bind Github.getManifest ~user ~repo ~ref () with
         | `PackageJson manifest ->
-          return (`PackageJson (PackageJson.{ manifest with name = resolution.name }))
+          return (`PackageJson (Manifest.{ manifest with name = resolution.name }))
         end
       | Version.Source Source.NoSource -> error "no source"
       | Version.Source (Source.Archive _) -> error "not implemented"
       | Version.Npm version ->
-        let%bind manifest = NpmRegistry.version ~cfg:resolver.cfg resolution.name version in
+        let%bind manifest =
+          LwtTaskQueue.submit
+            resolver.npmRegistryQueue
+            (fun () -> NpmRegistry.version ~cfg:resolver.cfg resolution.name version)
+        in
         return (`PackageJson manifest)
       | Version.Opam version ->
         let name = OpamManifest.PackageName.ofNpmExn resolution.name in
@@ -119,8 +141,8 @@ let package ~(resolution : Resolution.t) resolver =
 
     let%bind pkg = RunAsync.ofRun (
       match manifest with
-      | `PackageJson manifest -> Package.ofPackageJson ~version:resolution.version manifest
-      | `Opam manifest -> Package.ofOpam ~version:resolution.version manifest
+      | `PackageJson manifest -> Package.ofManifest ~version:resolution.version manifest
+      | `Opam manifest -> Package.ofOpamManifest ~version:resolution.version manifest
     ) in
 
     return pkg
@@ -139,7 +161,11 @@ let resolve ~req resolver =
     let%bind resolutions =
       NpmResolutionCache.compute resolver.npmResolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
-        let%bind versions = NpmRegistry.versions ~cfg:resolver.cfg name in
+        let%bind versions = 
+          LwtTaskQueue.submit
+            resolver.npmRegistryQueue
+            (fun () -> NpmRegistry.versions ~cfg:resolver.cfg name)
+        in
 
         let f (version, manifest) =
           let version = PackageInfo.Version.Npm version in
@@ -148,7 +174,7 @@ let resolve ~req resolver =
           (* precache manifest so we don't have to fetch it once more *)
           let key = (resolution.name, resolution.version) in
           PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-            Lwt.return (Package.ofPackageJson ~version manifest)
+            Lwt.return (Package.ofManifest ~version manifest)
           end;
 
           resolution
@@ -207,9 +233,11 @@ let resolve ~req resolver =
       let version = Version.Source source in
       return [{Resolution. name; version}]
 
-  | VersionSpec.Source (SourceSpec.Git _) ->
+  | VersionSpec.Source (SourceSpec.Git (remote, ref)) ->
     let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
-    error "git dependencies are not supported"
+    let%bind commit = Git.lsRemote ?ref ~remote () in
+    let version = Version.Source (Source.Git (remote, commit)) in
+    return [{Resolution. name; version}]
 
   | VersionSpec.Source SourceSpec.NoSource ->
     let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in

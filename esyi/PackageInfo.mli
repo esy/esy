@@ -16,6 +16,7 @@ module Source : sig
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
 
+  val pp : t Fmt.t
   val equal : t -> t -> bool
 end
 
@@ -129,6 +130,16 @@ module Resolutions : sig
 
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
+end
+
+module ExportedEnv : sig
+  type t = item list
+  and item = { name : string; value : string; scope : scope; }
+  and scope = [ `Global | `Local ]
+
+  val empty : t
+  val of_yojson : t Json.decoder
+  val to_yojson : t Json.encoder
 end
 
 module OpamInfo : sig

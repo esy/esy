@@ -51,6 +51,9 @@ module Source = struct
     let%bind v = Json.Parse.string json in
     parse v
 
+  let pp fmt src =
+    Fmt.pf fmt "%s" (toString src)
+
 end
 
 (**
@@ -204,6 +207,14 @@ module Req = struct
     Fmt.fmt "%s" fmt (toString req)
 
   let make ~name ~spec =
+
+    let parseRef spec =
+      match String.cut ~sep:"#" spec with
+      | None -> spec, None
+      | Some (spec, "") -> spec, None
+      | Some (spec, ref) -> spec, Some ref
+    in
+
     let parseGitHubSpec text =
 
       let normalizeGithubRepo repo =
@@ -216,13 +227,8 @@ module Req = struct
       let parts = Str.split (Str.regexp_string "/") text in
       match parts with
       | org::rest::[] ->
-        begin match Str.split (Str.regexp_string "#") rest with
-        | repo::ref::[] ->
-          Some (SourceSpec.Github (org, normalizeGithubRepo repo, Some ref))
-        | repo::[] ->
-          Some (SourceSpec.Github (org, normalizeGithubRepo repo, None))
-        | _ -> None
-        end
+        let repo, ref = parseRef rest in
+        Some (SourceSpec.Github (org, normalizeGithubRepo repo, ref))
       | _ -> None
     in
 
@@ -244,10 +250,21 @@ module Req = struct
           match parseGitHubSpec spec with
             | Some gh -> VersionSpec.Source gh
             | None ->
-              if String.is_prefix ~affix:"git+" spec
-              then VersionSpec.Source (SourceSpec.Git (spec, None))
-              else VersionSpec.Npm (NpmVersion.Formula.parse spec)
+              begin match String.cut ~sep:"git+" spec with
+              | Some ("", remote) ->
+                let remote, ref = parseRef remote in
+                VersionSpec.Source (SourceSpec.Git (remote, ref))
+              | _ -> VersionSpec.Npm (NpmVersion.Formula.parse spec)
+              end
         in {name; spec;}
+
+  let%test "make: parsing git spec" =
+    let req = make ~name:"pkg" ~spec:"git+https://some/repo" in
+    req.spec = VersionSpec.Source (SourceSpec.Git ("https://some/repo", None))
+
+  let%test "make: parsing git spec with ref" =
+    let req = make ~name:"pkg" ~spec:"git+https://some/repo#ref" in
+    req.spec = VersionSpec.Source (SourceSpec.Git ("https://some/repo", Some "ref"))
 
   let ofSpec ~name ~spec =
     {name; spec}
@@ -369,6 +386,58 @@ module Resolutions = struct
       let spec = VersionSpec.ofVersion version in
       Some (Req.ofSpec ~name ~spec)
     | None -> None
+
+end
+
+module ExportedEnv = struct
+  type t = item list
+
+  and item = {
+    name : string;
+    value : string;
+    scope : scope;
+  }
+
+  and scope = [ `Global  | `Local ]
+
+  let empty = []
+
+  let scope_to_yojson =
+    function
+    | `Global -> `String "global"
+    | `Local -> `String "local"
+
+  let scope_of_yojson (json : Json.t) =
+    let open Result.Syntax in
+    match json with
+    | `String "global" -> return `Global
+    | `String "local" -> return `Local
+    | _ -> error "invalid scope value"
+
+  let of_yojson json =
+    let open Result.Syntax in
+    let f (name, v) =
+      match v with
+      | `String value -> return { name; value; scope = `Global }
+      | `Assoc _ ->
+        let%bind value = Json.Parse.field ~name:"val" v in
+        let%bind value = Json.Parse.string value in
+        let%bind scope = Json.Parse.field ~name:"scope" v in
+        let%bind scope = scope_of_yojson scope in
+        return { name; value; scope }
+      | _ -> error "env value should be a string or an object"
+    in
+    let%bind items = Json.Parse.assoc json in
+    Result.List.map ~f items
+
+  let to_yojson (items : t) =
+    let f { name; value; scope } =
+      name, `Assoc [
+        "val", `String value;
+        "scope", scope_to_yojson scope]
+    in
+    let items = List.map ~f items in
+    `Assoc items
 
 end
 

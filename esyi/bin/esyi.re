@@ -5,23 +5,19 @@ module Api = {
   let solve = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.ofPackageJson(
+            Package.ofManifest(
               ~version=
                 PackageInfo.Version.Source(
                   PackageInfo.Source.LocalPath(cfg.basePath),
                 ),
-              manifest,
+              manifest.manifest,
             ),
           );
         let%bind solution =
-          Solver.solve(
-            ~cfg,
-            ~resolutions=manifest.PackageJson.resolutions,
-            root,
-          );
+          Solver.solve(~cfg, ~resolutions=manifest.resolutions, root);
         Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
       }
     );
@@ -29,7 +25,7 @@ module Api = {
   let fetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
@@ -42,21 +38,21 @@ module Api = {
   let printCudfUniverse = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.ofPackageJson(
+            Package.ofManifest(
               ~version=
                 PackageInfo.Version.Source(
                   PackageInfo.Source.LocalPath(cfg.basePath),
                 ),
-              manifest,
+              manifest.Manifest.Root.manifest,
             ),
           );
         let%bind solver =
           Solver.make(
             ~cfg,
-            ~resolutions=manifest.PackageJson.resolutions,
+            ~resolutions=manifest.Manifest.Root.resolutions,
             (),
           );
         let%bind (solver, _) =
@@ -70,7 +66,7 @@ module Api = {
   let solveAndFetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
         | Some(solution) =>
           if%bind (Fetch.check(~cfg, solution)) {

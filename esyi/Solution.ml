@@ -64,7 +64,7 @@ let fold ~f ~init solution =
   in
   aux init solution
 
-let dependenciesHash (manifest : PackageJson.t) =
+let dependenciesHash (manifest : Manifest.Root.t) =
   let hashDependencies ~prefix ~dependencies digest =
     let f digest req =
      Digest.string (digest ^ "__" ^ prefix ^ "__" ^ Req.toString req)
@@ -84,16 +84,13 @@ let dependenciesHash (manifest : PackageJson.t) =
   let digest =
     Digest.string ""
     |> hashResolutions
-      ~resolutions:manifest.PackageJson.resolutions
+      ~resolutions:manifest.Manifest.Root.resolutions
     |> hashDependencies
       ~prefix:"dependencies"
-      ~dependencies:(Dependencies.toList manifest.PackageJson.dependencies)
-    |> hashDependencies
-      ~prefix:"buildDependencies"
-      ~dependencies:(Dependencies.toList manifest.PackageJson.buildDependencies)
+      ~dependencies:(Dependencies.toList manifest.manifest.dependencies)
     |> hashDependencies
       ~prefix:"devDependencies"
-      ~dependencies:(Dependencies.toList manifest.PackageJson.devDependencies)
+      ~dependencies:(Dependencies.toList manifest.manifest.devDependencies)
   in
   Digest.to_hex digest
 
@@ -139,7 +136,7 @@ let derelativize ~cfg sol =
   let f path = Path.append cfg.Config.basePath path in
   mapSourceLocalPath ~f sol
 
-let ofFile ~cfg ~(manifest : PackageJson.t) (path : Path.t) =
+let ofFile ~cfg ~(manifest : Manifest.Root.t) (path : Path.t) =
   let open RunAsync.Syntax in
   if%bind Fs.exists path
   then
@@ -153,7 +150,7 @@ let ofFile ~cfg ~(manifest : PackageJson.t) (path : Path.t) =
   else
     return None
 
-let toFile ~cfg ~(manifest : PackageJson.t) ~(solution : t) (path : Path.t) =
+let toFile ~cfg ~(manifest : Manifest.Root.t) ~(solution : t) (path : Path.t) =
   let solution = relativize ~cfg solution in
   let rootDependenciesHash = dependenciesHash manifest in
   let lockfile = {rootDependenciesHash; solution} in

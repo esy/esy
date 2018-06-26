@@ -295,7 +295,6 @@ let solveDependencies ~installed ~strategy dependencies solver =
     source = Source.NoSource;
     opam = None;
     dependencies;
-    buildDependencies = Dependencies.empty;
     devDependencies = Dependencies.empty;
   } in
 

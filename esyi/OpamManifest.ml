@@ -69,7 +69,7 @@ type t = {
   optDependencies: Dependencies.t;
   available: [ | `IsNotAvailable  | `Ok ] ;
   source: PackageInfo.Source.t;
-  exportedEnv: PackageJson.ExportedEnv.t
+  exportedEnv: PackageInfo.ExportedEnv.t
 }
 
 module ParseDeps = struct
@@ -368,7 +368,7 @@ let toPackageJson manifest version =
         "build", `List (commandListToJson manifest.build);
         "install", `List (commandListToJson manifest.install);
         "buildsInSource", `Bool true;
-        "exportedEnv", PackageJson.ExportedEnv.to_yojson exportedEnv;
+        "exportedEnv", PackageInfo.ExportedEnv.to_yojson exportedEnv;
       ];
       "peerDependencies", Dependencies.to_yojson manifest.peerDependencies;
       "optDependencies", Dependencies.to_yojson manifest.optDependencies;
