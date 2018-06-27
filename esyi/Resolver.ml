@@ -85,7 +85,7 @@ type t = {
 let make ~cfg () =
   let open RunAsync.Syntax in
   let%bind opamRegistry = OpamRegistry.init ~cfg () in
-  let npmRegistryQueue = LwtTaskQueue.create ~concurrency:12 () in
+  let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
   return {
     cfg;
     pkgCache = PackageCache.make ();

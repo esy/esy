@@ -21,8 +21,8 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__Curl.cmx" {"EsyLib__Curl.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Curl.cmt" {"EsyLib__Curl.cmt"}
   "_build/install/default/lib/esy-lib/EsyLib__Curl.cmti" {"EsyLib__Curl.cmti"}
-  "_build/install/default/lib/esy-lib/Curl.rei" {"Curl.rei"}
-  "_build/install/default/lib/esy-lib/Curl.re" {"Curl.re"}
+  "_build/install/default/lib/esy-lib/Curl.mli" {"Curl.mli"}
+  "_build/install/default/lib/esy-lib/Curl.ml" {"Curl.ml"}
   "_build/install/default/lib/esy-lib/EsyLib.cmi" {"EsyLib.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib.cmx" {"EsyLib.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib.cmt" {"EsyLib.cmt"}

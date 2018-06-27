@@ -14,18 +14,23 @@ module Packument = {
 let versions = (~cfg: Config.t, name) => {
   open RunAsync.Syntax;
   let name = Str.global_replace(Str.regexp("/"), "%2f", name);
-  let%bind data = Curl.get(cfg.npmRegistry ++ "/" ++ name);
-  let%bind packument =
-    RunAsync.ofRun(Json.parseStringWith(Packument.of_yojson, data));
+  /* Some packages can be unpublished so we handle not found case by ignoring
+   * it */
+  switch%bind (Curl.getOrNotFound(cfg.npmRegistry ++ "/" ++ name)) {
+  | Curl.NotFound => return([])
+  | Curl.Success(data) =>
+    let%bind packument =
+      RunAsync.ofRun(Json.parseStringWith(Packument.of_yojson, data));
 
-  return(
-    packument.Packument.versions
-    |> StringMap.bindings
-    |> List.map(~f=((version, packageJson)) => {
-         let manifest = Manifest.ofPackageJson(packageJson);
-         (NpmVersion.Version.parseExn(version), manifest);
-       }),
-  );
+    return(
+      packument.Packument.versions
+      |> StringMap.bindings
+      |> List.map(~f=((version, packageJson)) => {
+           let manifest = Manifest.ofPackageJson(packageJson);
+           (NpmVersion.Version.parseExn(version), manifest);
+         }),
+    );
+  };
 };
 
 let version = (~cfg: Config.t, name: string, version: Version.t) => {
