@@ -241,7 +241,7 @@ module CommandLineInterface = {
         resolve("esy-solve-cudf/esySolveCudfCommand.exe");
       let createProgressReporter = (~name, ()) => {
         let progress = msg => {
-          let status = Format.asprintf(".... %s: %s", name, msg);
+          let status = Format.asprintf(".... %s %s", name, msg);
           Cli.Progress.setStatus(status);
         };
         let finish = () => {
