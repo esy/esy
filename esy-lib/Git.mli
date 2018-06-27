@@ -5,7 +5,7 @@
  *)
 
 type ref = string
-
+type commit = string
 type remote = string
 
 (** Clone repository from [remote] into [dst] local path. *)
@@ -35,12 +35,14 @@ val checkout :
   -> unit RunAsync.t
 
 
-  (** Resolve [ref] of the [remote] *)
+(** Resolve [ref] of the [remote] *)
 val lsRemote :
   ?ref:ref
   -> remote:remote
   -> unit
-  -> string RunAsync.t
+  -> commit option RunAsync.t
+
+val isCommitLike : string -> bool
 
 module ShallowClone : sig
   val update : branch:remote -> dst:Fpath.t -> remote -> unit RunAsync.t

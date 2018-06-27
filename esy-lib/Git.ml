@@ -1,7 +1,32 @@
 
 type ref = string
-
+type commit = string
 type remote = string
+
+let runGit cmd =
+  let f p =
+    let%lwt stdout = Lwt_io.read p#stdout
+    and stderr = Lwt_io.read p#stderr in
+    match%lwt p#status with
+    | Unix.WEXITED 0 ->
+      RunAsync.return ()
+    | _ ->
+      Logs_lwt.err (fun m -> m
+        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
+        Cmd.pp cmd stderr stdout
+      );%lwt
+      RunAsync.error "error running command"
+  in
+  try%lwt
+    let prg, args = Cmd.getToolAndArgs cmd in
+    let cmd = prg, Array.of_list (prg::args) in
+    Lwt_process.with_process_full cmd f
+  with
+  | Unix.Unix_error (err, _, _) ->
+    let msg = Unix.error_message err in
+    RunAsync.error msg
+  | _ ->
+    RunAsync.error "error running subprocess"
 
 let clone ?branch ?depth ~dst ~remote () =
   let cmd =
@@ -17,7 +42,7 @@ let clone ?branch ?depth ~dst ~remote () =
     in
     Cmd.(cmd % remote % p dst)
   in
-  ChildProcess.run cmd
+  runGit cmd
 
 let pull ?(force=false) ?depth ~remote ~repo ~branchSpec () =
   let cmd =
@@ -33,11 +58,11 @@ let pull ?(force=false) ?depth ~remote ~repo ~branchSpec () =
     in
     Cmd.(cmd % remote % branchSpec)
   in
-  ChildProcess.run cmd
+  runGit cmd
 
 let checkout ~ref ~repo () =
   let cmd = Cmd.(v "git" % "-C" % p repo % "checkout" % ref) in
-  ChildProcess.run cmd
+  runGit cmd
 
 let lsRemote ?ref ~remote () =
   let open RunAsync.Syntax in
@@ -49,7 +74,18 @@ let lsRemote ?ref ~remote () =
     let msg = Printf.sprintf "Unable to resolve ref: %s" ref in
     error msg
   | line::_ ->
-    return (line |> String.split_on_char '\t' |> List.hd)
+    let commit = line |> String.split_on_char '\t' |> List.hd in
+    if commit = ""
+    then return None
+    else return (Some commit)
+
+let isCommitLikeRe = Str.regexp "^[0-9abcdef]+$"
+let isCommitLike v =
+  let len = String.length v in
+  match len with
+  | 40 | 6 ->
+    Str.string_match isCommitLikeRe v 0
+  | _ -> false
 
 module ShallowClone = struct
 
