@@ -18,8 +18,7 @@ let runGit cmd =
       RunAsync.error "error running command"
   in
   try%lwt
-    let prg, args = Cmd.getToolAndArgs cmd in
-    let cmd = prg, Array.of_list (prg::args) in
+    let cmd = Cmd.getToolAndLine cmd in
     Lwt_process.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->

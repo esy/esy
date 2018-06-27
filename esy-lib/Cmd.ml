@@ -31,6 +31,10 @@ let getToolAndArgs (tool, args) =
   let args = List.rev args in
   tool, args
 
+let getToolAndLine (tool, args) =
+  let args = List.rev args in
+  tool, Array.of_list (tool::args)
+
 let getTool (tool, _args) = tool
 
 let getArgs (_tool, args) = List.rev args
