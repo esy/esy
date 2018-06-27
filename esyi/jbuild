@@ -2,6 +2,7 @@
 
 (library
  ((name EsyInstaller)
+  (public_name esyi)
   (preprocess (pps (
                     lwt.ppx ppx_let
                     ppx_deriving.std

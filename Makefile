@@ -74,6 +74,9 @@ clean:
 build:
 	@esy b jbuilder build -j 4 $(TARGETS)
 
+doc:
+	@esy b jbuilder build @doc
+
 b: build-dev
 build-dev:
 	@esy b jbuilder build -j 4 --dev $(TARGETS)
