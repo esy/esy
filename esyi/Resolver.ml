@@ -38,6 +38,10 @@ module OpamResolutionCache = Memoize.Make(struct
 end)
 
 module Github = struct
+
+  let remote ~user ~repo =
+    Printf.sprintf "https://github.com/%s/%s.git" user repo
+
   let getManifest ~user ~repo ?(ref="master") () =
     let open RunAsync.Syntax in
     let fetchFile name =
@@ -154,6 +158,11 @@ let resolve ~req resolver =
   let name = Req.name req in
   let spec = Req.spec req in
 
+  let errorResolvingReq req msg =
+    let msg = Format.asprintf "unable to resolve %a: %s" Req.pp req msg in
+    error msg
+  in
+
   match spec with
 
   | VersionSpec.Npm _ ->
@@ -161,7 +170,7 @@ let resolve ~req resolver =
     let%bind resolutions =
       NpmResolutionCache.compute resolver.npmResolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
-        let%bind versions = 
+        let%bind versions =
           LwtTaskQueue.submit
             resolver.npmRegistryQueue
             (fun () -> NpmRegistry.versions ~cfg:resolver.cfg name)
@@ -214,29 +223,38 @@ let resolve ~req resolver =
     return resolutions
 
   | VersionSpec.Source (SourceSpec.Github (user, repo, ref) as srcSpec) ->
-      let%bind source =
-        SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
-          let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
-          let%bind ref =
-            match ref with
-            | Some ref -> return ref
-            | None ->
-              let remote =
-                Printf.sprintf (("https://github.com/%s/%s")
-                  [@reason.raw_literal
-                    "https://github.com/%s/%s"]) user repo in
-              Git.lsRemote ~remote ()
-          in
-          return (Source.Github (user, repo, ref))
-        end
-      in
-      let version = Version.Source source in
-      return [{Resolution. name; version}]
+    let%bind source = SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
+      let%lwt () = Logs_lwt.app (fun m -> m "resolving %s" (Req.toString req)) in
+      let remote = Github.remote ~user ~repo in
+      let%bind commit = Git.lsRemote ?ref ~remote () in
+      match commit, ref with
+      | Some commit, _ ->
+        return (Source.Github (user, repo, commit))
+      | None, Some ref ->
+        if Git.isCommitLike ref
+        then return (Source.Github (user, repo, ref))
+        else errorResolvingReq req "cannot resolve commit"
+      | None, None ->
+        errorResolvingReq req "cannot resolve commit"
+    end in
+    let version = Version.Source source in
+    return [{Resolution. name; version}]
 
-  | VersionSpec.Source (SourceSpec.Git (remote, ref)) ->
-    let%lwt () = Logs_lwt.app (fun m -> m "resolving %s" (Req.toString req)) in
-    let%bind commit = Git.lsRemote ?ref ~remote () in
-    let version = Version.Source (Source.Git (remote, commit)) in
+  | VersionSpec.Source (SourceSpec.Git (remote, ref) as srcSpec) ->
+    let%bind source = SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
+      let%lwt () = Logs_lwt.app (fun m -> m "resolving %s" (Req.toString req)) in
+      let%bind commit = Git.lsRemote ?ref ~remote () in
+      match commit, ref  with
+      | Some commit, _ ->
+        return (Source.Git (remote, commit))
+      | None, Some ref ->
+        if Git.isCommitLike ref
+        then return (Source.Git (remote, ref))
+        else errorResolvingReq req "cannot resolve commit"
+      | None, None ->
+        errorResolvingReq req "cannot resolve commit"
+    end in
+    let version = Version.Source source in
     return [{Resolution. name; version}]
 
   | VersionSpec.Source SourceSpec.NoSource ->

@@ -56,6 +56,7 @@ module SourceSpec : sig
     | NoSource
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
+  val pp : t Fmt.t
 end
 
 (**

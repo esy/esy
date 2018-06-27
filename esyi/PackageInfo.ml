@@ -144,6 +144,9 @@ module SourceSpec = struct
     | Source.Github (user, repo, commit) -> Github (user, repo, Some commit)
     | Source.LocalPath p -> LocalPath p
     | Source.NoSource -> NoSource
+
+  let pp fmt spec =
+    Fmt.pf fmt "%s" (toString spec)
 end
 
 (**
@@ -265,6 +268,15 @@ module Req = struct
   let%test "make: parsing git spec with ref" =
     let req = make ~name:"pkg" ~spec:"git+https://some/repo#ref" in
     req.spec = VersionSpec.Source (SourceSpec.Git ("https://some/repo", Some "ref"))
+  let%test "make: parsing git spec with command" =
+    let req = make
+      ~name:"eslint"
+      ~spec:"git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a"
+    in
+    req.spec = VersionSpec.Source (
+      SourceSpec.Git (
+        "https://github.com/eslint/eslint.git",
+        Some "9d6223040316456557e0a2383afd96be90d28c5a"))
 
   let ofSpec ~name ~spec =
     {name; spec}
