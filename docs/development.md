@@ -24,15 +24,18 @@ to see the description of development workflow.
 ```bash
 make build-release
 npm remove -g esy
-npm install -g dist
+npm install -g _release
 ```
 
 Now you may run `esy` commands using your local version of `esy`.
 
-> You don't have to install local version of esy globally if you're in the middle of developing something.
-> Just running `PATH_TO_ESY/bin/esy` will work, too.
+> You don't have to install local version of esy globally if you're in the
+> middle of developing something.  Just running `PATH_TO_ESY/bin/esy` will work,
+> too.
 
 ## Running Tests
+
+Run all test suites:
 
 ```bash
 make test
