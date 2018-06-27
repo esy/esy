@@ -493,7 +493,7 @@ let parseUrl { OpamParserTypes. file_contents; file_name } =
   match findArchive file_contents file_name with
   | None -> begin
     match findVariable "git" file_contents with
-    | Some (String (_, git)) -> return (PackageInfo.SourceSpec.Git (git, None), [])
+    | Some (String (_, remote)) -> return (PackageInfo.SourceSpec.Git {remote; ref = None}, [])
     | _ ->
       let problem = Problem.make "no archive found" in
       error problem

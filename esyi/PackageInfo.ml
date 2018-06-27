@@ -8,17 +8,21 @@ module Parse = struct
 end
 
 module Source = struct
+
   type t =
     | Archive of string * string
-    | Git of string * string
-    | Github of string * string * string
+    | Git of {remote : string; commit : string}
+    | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
     | NoSource
-  [@@deriving (ord, eq)]
+    [@@deriving (ord, eq)]
+
 
   let toString = function
-    | Github (user, repo, ref) -> "github:" ^ user ^ "/" ^ repo ^ "#" ^ ref
-    | Git (url, commit) -> "git:" ^ url ^ "#" ^ commit
+    | Github {user; repo; commit; _} ->
+      Printf.sprintf "github:%s/%s#%s" user repo commit
+    | Git {remote; commit; _} ->
+      Printf.sprintf "git:%s#%s" remote commit
     | Archive (url, checksum) -> "archive:" ^ url ^ "#" ^ checksum
     | LocalPath path -> "path:" ^ Path.toString(path)
     | NoSource -> "no-source:"
@@ -28,11 +32,11 @@ module Source = struct
     match%bind Parse.cutWith ":" v with
     | "github", v ->
       let%bind user, v = Parse.cutWith "/" v in
-      let%bind name, commit = Parse.cutWith "#" v in
-      return (Github (user, name, commit))
+      let%bind repo, commit = Parse.cutWith "#" v in
+      return (Github {user; repo; commit})
     | "git", v ->
-      let%bind url, commit = Parse.cutWith "#" v in
-      return (Git (url, commit))
+      let%bind remote, commit = Parse.cutWith "#" v in
+      return (Git {remote; commit})
     | "archive", v ->
       let%bind url, checksum = Parse.cutWith "#" v in
       return (Archive (url, checksum))
@@ -120,16 +124,16 @@ end
 module SourceSpec = struct
   type t =
     | Archive of string * string option
-    | Git of string * string option
-    | Github of string * string * string option
+    | Git of {remote : string; ref : string option}
+    | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
     | NoSource
 
   let toString = function
-    | Github (user, repo, None) -> "github:" ^ user ^ "/" ^ repo
-    | Github (user, repo, Some ref) -> "github:" ^ user ^ "/" ^ repo ^ "#" ^ ref
-    | Git (url, Some ref) -> "git:" ^ url ^ "#" ^ ref
-    | Git (url, None) -> "git:" ^ url
+    | Github {user; repo; ref = None} -> Printf.sprintf "github:%s/%s" user repo
+    | Github {user; repo; ref = Some ref} -> Printf.sprintf "github:%s/%s#%s" user repo ref
+    | Git {remote; ref = None} -> Printf.sprintf "git:%s" remote
+    | Git {remote; ref = Some ref} -> Printf.sprintf "git:%s#%s" remote ref
     | Archive (url, Some checksum) -> "archive:" ^ url ^ "#" ^ checksum
     | Archive (url, None) -> "archive:" ^ url
     | LocalPath path -> "path:" ^ Path.toString(path)
@@ -140,8 +144,10 @@ module SourceSpec = struct
   let ofSource (source : Source.t) =
     match source with
     | Source.Archive (url, checksum) -> Archive (url, Some checksum)
-    | Source.Git (url, commit) -> Git (url, Some commit)
-    | Source.Github (user, repo, commit) -> Github (user, repo, Some commit)
+    | Source.Git {remote; commit} ->
+      Git {remote; ref =  Some commit}
+    | Source.Github {user; repo; commit} ->
+      Github {user; repo; ref = Some commit}
     | Source.LocalPath p -> LocalPath p
     | Source.NoSource -> NoSource
 
@@ -175,12 +181,28 @@ module VersionSpec = struct
       OpamVersion.Formula.DNF.matches ~version formula
     | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
       Path.equal p1 p2
-    | Source (SourceSpec.Github (userS, repoS, Some refS)),
-      Version.Source (Source.Github (userV, repoV, refV)) ->
-      String.(equal userS userV && equal repoS repoV && equal refS refV)
-    | Source (SourceSpec.Github (userS, repoS, None)),
-      Version.Source (Source.Github (userV, repoV, _)) ->
-      String.(equal userS userV && equal repoS repoV)
+
+    | Source (SourceSpec.Github ({ref = Some specRef; _} as spec)),
+      Version.Source (Source.Github src) ->
+      String.(
+        equal src.user spec.user
+        && equal src.repo spec.repo
+        && equal src.commit specRef
+      )
+    | Source (SourceSpec.Github ({ref = None; _} as spec)),
+      Version.Source (Source.Github src) ->
+      String.(equal spec.user src.user && equal spec.repo src.repo)
+
+    | Source (SourceSpec.Git ({ref = Some specRef; _} as spec)),
+      Version.Source (Source.Git src) ->
+      String.(
+        equal spec.remote src.remote
+        && equal specRef src.commit
+      )
+    | Source (SourceSpec.Git ({ref = None; _} as spec)),
+      Version.Source (Source.Git src) ->
+      String.(equal spec.remote src.remote)
+
     | _ -> false
 
   let ofVersion (version : Version.t) =
@@ -229,9 +251,9 @@ module Req = struct
 
       let parts = Str.split (Str.regexp_string "/") text in
       match parts with
-      | org::rest::[] ->
+      | user::rest::[] ->
         let repo, ref = parseRef rest in
-        Some (SourceSpec.Github (org, normalizeGithubRepo repo, ref))
+        Some (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref})
       | _ -> None
     in
 
@@ -256,27 +278,28 @@ module Req = struct
               begin match String.cut ~sep:"git+" spec with
               | Some ("", remote) ->
                 let remote, ref = parseRef remote in
-                VersionSpec.Source (SourceSpec.Git (remote, ref))
+                VersionSpec.Source (SourceSpec.Git {remote; ref})
               | _ -> VersionSpec.Npm (NpmVersion.Formula.parse spec)
               end
         in {name; spec;}
 
   let%test "make: parsing git spec" =
     let req = make ~name:"pkg" ~spec:"git+https://some/repo" in
-    req.spec = VersionSpec.Source (SourceSpec.Git ("https://some/repo", None))
+    req.spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None})
 
   let%test "make: parsing git spec with ref" =
     let req = make ~name:"pkg" ~spec:"git+https://some/repo#ref" in
-    req.spec = VersionSpec.Source (SourceSpec.Git ("https://some/repo", Some "ref"))
+    req.spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"})
   let%test "make: parsing git spec with command" =
     let req = make
       ~name:"eslint"
       ~spec:"git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a"
     in
     req.spec = VersionSpec.Source (
-      SourceSpec.Git (
-        "https://github.com/eslint/eslint.git",
-        Some "9d6223040316456557e0a2383afd96be90d28c5a"))
+      SourceSpec.Git {
+        remote = "https://github.com/eslint/eslint.git";
+        ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
+      })
 
   let ofSpec ~name ~spec =
     {name; spec}

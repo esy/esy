@@ -1,4 +1,5 @@
 module PackageName = OpamManifest.PackageName
+module Source = PackageInfo.Source
 module Version = OpamVersion.Version
 module VersionMap = Map.Make(Version)
 module String = Astring.String
@@ -128,29 +129,29 @@ let resolveSourceSpec spec =
   | PackageInfo.SourceSpec.Archive (url, None) ->
     return (PackageInfo.Source.Archive (url, "fake-checksum-fix-me"))
 
-  | PackageInfo.SourceSpec.Git (remote, Some ref) -> begin
+  | PackageInfo.SourceSpec.Git {remote; ref = Some ref} -> begin
     match%bind Git.lsRemote ~ref ~remote () with
-    | Some commit -> return (PackageInfo.Source.Git (remote, commit))
-    | None when Git.isCommitLike ref -> return (PackageInfo.Source.Git (remote, ref))
+    | Some commit -> return (Source.Git {remote; commit})
+    | None when Git.isCommitLike ref -> return (Source.Git {remote; commit = ref})
     | None -> errorResolvingSpec spec
     end
-  | PackageInfo.SourceSpec.Git (remote, None) -> begin
+  | PackageInfo.SourceSpec.Git {remote; ref = None} -> begin
     match%bind Git.lsRemote ~remote () with
-    | Some commit -> return (PackageInfo.Source.Git (remote, commit))
+    | Some commit -> return (Source.Git {remote; commit})
     | None -> errorResolvingSpec spec
     end
 
-  | PackageInfo.SourceSpec.Github (user, name, Some ref) -> begin
-    let remote = Printf.sprintf "https://github.com/%s/%s.git" user name in
+  | PackageInfo.SourceSpec.Github {user; repo; ref = Some ref} -> begin
+    let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
     match%bind Git.lsRemote ~ref ~remote () with
-    | Some commit -> return (PackageInfo.Source.Github (user, name, commit))
-    | None when Git.isCommitLike ref -> return (PackageInfo.Source.Github (user, name, ref))
+    | Some commit -> return (Source.Github {user; repo; commit})
+    | None when Git.isCommitLike ref -> return (Source.Github {user; repo; commit = ref})
     | None -> errorResolvingSpec spec
     end
-  | PackageInfo.SourceSpec.Github (user, name, None) -> begin
-    let remote = Printf.sprintf "https://github.com/%s/%s.git" user name in
+  | PackageInfo.SourceSpec.Github {user; repo; ref = None} -> begin
+    let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
     match%bind Git.lsRemote ~remote () with
-    | Some commit -> return (PackageInfo.Source.Github (user, name, commit))
+    | Some commit -> return (Source.Github {user; repo; commit})
     | None -> errorResolvingSpec spec
     end
 

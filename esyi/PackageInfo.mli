@@ -5,8 +5,8 @@
 module Source : sig
   type t =
       Archive of string * string
-    | Git of string * string
-    | Github of string * string * string
+    | Git of {remote : string; commit : string}
+    | Github of {user : string; repo : string; commit : string}
     | LocalPath of Fpath.t
     | NoSource
 
@@ -50,8 +50,8 @@ end
 module SourceSpec : sig
   type t =
       Archive of string * string option
-    | Git of string * string option
-    | Github of string * string * string option
+    | Git of {remote : string; ref : string option}
+    | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Fpath.t
     | NoSource
   val toString : t -> string

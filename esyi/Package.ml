@@ -25,10 +25,7 @@ let ofOpamManifest ?name ?version (manifest : OpamManifest.t) =
   in
   let source =
     match version with
-    | Version.Source (Source.Github (user, name, ref)) ->
-      Source.Github (user, name, ref)
-    | Version.Source (Source.LocalPath path)  ->
-      Source.LocalPath path
+    | Version.Source src -> src
     | _ -> manifest.source
   in
   return {
@@ -54,10 +51,7 @@ let ofManifest ?name ?version (manifest : Manifest.t) =
   in
   let source =
     match version with
-    | Version.Source (Source.Github (user, name, ref)) ->
-      Source.Github (user, name, ref)
-    | Version.Source (Source.LocalPath path)  ->
-      Source.LocalPath path
+    | Version.Source src -> src
     | _ -> manifest.source
   in
   return {
