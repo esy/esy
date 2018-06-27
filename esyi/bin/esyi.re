@@ -364,7 +364,7 @@ module CommandLineInterface = {
 
   let run = () => {
     Printexc.record_backtrace(true);
-    Term.(exit(Term.eval_choice(~argv=Sys.argv, defaultCommand, commands)));
+    Term.(exit(Cli.eval(~defaultCommand, ~commands, ())));
   };
 };
 
