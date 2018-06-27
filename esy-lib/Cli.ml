@@ -110,13 +110,13 @@ let setupLogTerm =
     | Logs.App ->
       Fmt.(styled `Blue (unit "info ")) ppf ()
     | Logs.Error ->
-      Fmt.(styled `Red (unit "[ERROR] ")) ppf ()
+      Fmt.(styled `Red (unit "error ")) ppf ()
     | Logs.Warning ->
-      Fmt.(styled `Yellow (unit "[WARNING] ")) ppf ()
+      Fmt.(styled `Yellow (unit "warn ")) ppf ()
     | Logs.Info ->
-      Fmt.(styled `Blue (unit "[INFO] ")) ppf ()
+      Fmt.(styled `Blue (unit "info ")) ppf ()
     | Logs.Debug ->
-      Fmt.(unit "[DEBUG] ") ppf ()
+      Fmt.(unit "debug ") ppf ()
   in
   let lwt_reporter () =
     let buf_fmt ~like =
