@@ -24,21 +24,35 @@ let runCurl cmd =
     % {|\n{"code": %{http_code}}|}
   ) in
   let f p =
-    let%lwt stdout = Lwt_io.read p#stdout
+    let%lwt stdout =
+      Lwt.finalize
+        (fun () -> Lwt_io.read p#stdout)
+        (fun () -> Lwt_io.close p#stdout)
     and stderr = Lwt_io.read p#stderr in
     match%lwt p#status with
-    | Unix.WEXITED 0 ->
-      RunAsync.return (Success stdout)
+    | Unix.WEXITED 0 -> begin
+      match parseStdout stdout with
+      | Ok (stdout, _meta) -> RunAsync.return (Success stdout)
+      | Error err -> Lwt.return (Error err)
+      end
     | _ -> begin
       match parseStdout stdout with
       | Ok (_stdout, meta) when meta.Meta.code = 404 ->
         RunAsync.return NotFound
+      | Ok (_stdout, meta) ->
+        let msg =
+          Format.asprintf
+            "@[<v>error running curl: %a:@\ncode: %i@\nstderr:@[<v 2>@\n%s@]@]"
+            Cmd.pp cmd meta.code stderr
+        in
+        RunAsync.error msg
       | _ ->
-        Logs_lwt.err (fun m -> m
-          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
-          Cmd.pp cmd stderr stdout
-        );%lwt
-        RunAsync.error "error running command"
+        let msg =
+          Format.asprintf
+            "@[<v>error running curl: %a:@\nstderr:@[<v 2>@\n%s@]@]"
+            Cmd.pp cmd stderr
+        in
+        RunAsync.error msg
     end
   in
   try%lwt
