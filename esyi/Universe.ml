@@ -169,7 +169,7 @@ module CudfMapping = struct
 
     match versionsMatched with
     | [] ->
-      [name, Some (`Eq, 10000000000)]
+      [CudfName.ofString name, Some (`Eq, 10000000000)]
     | versionsMatched ->
       let pkgToConstraint pkg =
         let cudfVersion =
