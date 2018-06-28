@@ -112,6 +112,8 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
   let records = uniqueRecordsOfSolution solution in
 
+  (* Fetch all records *)
+
   let%bind fetched =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = cfg.Config.createProgressReporter ~name:"fetching" () in
@@ -133,10 +135,14 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
       |> RunAsync.List.joinAll
     in
     let%lwt () = finish () in
-    let f map (record, dist) = Record.Map.add record dist map in
-    let map = List.fold_left ~f ~init:Record.Map.empty items in
+    let map =
+      let f map (record, dist) = Record.Map.add record dist map in
+      List.fold_left ~f ~init:Record.Map.empty items
+    in
     return map
   in
+
+  (* Layout all fetched packages into node_modules *)
 
   let%bind () =
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
