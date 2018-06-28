@@ -18,7 +18,12 @@ module Api = {
           );
         let%bind solution =
           Solver.solve(~cfg, ~resolutions=manifest.resolutions, root);
-        Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
+        Solution.LockfileV1.toFile(
+          ~cfg,
+          ~manifest,
+          ~solution,
+          cfg.lockfilePath,
+        );
       }
     );
 
@@ -26,7 +31,9 @@ module Api = {
     RunAsync.Syntax.(
       {
         let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
-        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
+        switch%bind (
+          Solution.LockfileV1.ofFile(~cfg, ~manifest, cfg.lockfilePath)
+        ) {
         | Some(solution) =>
           let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
           Fetch.fetch(~cfg, solution);
@@ -67,9 +74,11 @@ module Api = {
     RunAsync.Syntax.(
       {
         let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
-        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
+        switch%bind (
+          Solution.LockfileV1.ofFile(~cfg, ~manifest, cfg.lockfilePath)
+        ) {
         | Some(solution) =>
-          if%bind (Fetch.check(~cfg, solution)) {
+          if%bind (Fetch.isInstalled(~cfg, solution)) {
             return();
           } else {
             fetch(cfg);

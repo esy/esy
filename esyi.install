@@ -29,6 +29,10 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__FetchStorage.cmti" {"EsyInstaller__FetchStorage.cmti"}
   "_build/install/default/lib/esyi/FetchStorage.mli" {"FetchStorage.mli"}
   "_build/install/default/lib/esyi/FetchStorage.ml" {"FetchStorage.ml"}
+  "_build/install/default/lib/esyi/EsyInstaller__Manifest.cmi" {"EsyInstaller__Manifest.cmi"}
+  "_build/install/default/lib/esyi/EsyInstaller__Manifest.cmx" {"EsyInstaller__Manifest.cmx"}
+  "_build/install/default/lib/esyi/EsyInstaller__Manifest.cmt" {"EsyInstaller__Manifest.cmt"}
+  "_build/install/default/lib/esyi/Manifest.ml" {"Manifest.ml"}
   "_build/install/default/lib/esyi/EsyInstaller__NpmRegistry.cmi" {"EsyInstaller__NpmRegistry.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller__NpmRegistry.cmx" {"EsyInstaller__NpmRegistry.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller__NpmRegistry.cmt" {"EsyInstaller__NpmRegistry.cmt"}
@@ -77,10 +81,6 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__PackageInfo.cmti" {"EsyInstaller__PackageInfo.cmti"}
   "_build/install/default/lib/esyi/PackageInfo.mli" {"PackageInfo.mli"}
   "_build/install/default/lib/esyi/PackageInfo.ml" {"PackageInfo.ml"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageJson.cmi" {"EsyInstaller__PackageJson.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageJson.cmx" {"EsyInstaller__PackageJson.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageJson.cmt" {"EsyInstaller__PackageJson.cmt"}
-  "_build/install/default/lib/esyi/PackageJson.re" {"PackageJson.re"}
   "_build/install/default/lib/esyi/EsyInstaller__PackagePath.cmi" {"EsyInstaller__PackagePath.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller__PackagePath.cmx" {"EsyInstaller__PackagePath.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller__PackagePath.cmt" {"EsyInstaller__PackagePath.cmt"}
