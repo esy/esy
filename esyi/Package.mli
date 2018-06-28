@@ -11,7 +11,12 @@ type t = {
 
   (* TODO: make it non specific to opam. *)
   opam : PackageInfo.OpamInfo.t option;
+  kind : kind;
 }
+
+and kind =
+  | Esy
+  | Npm
 
 (**
  * Make package out of opam manifest.

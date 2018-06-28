@@ -13,6 +13,7 @@ module PackageJson = struct
     dependencies : (Dependencies.t [@default Dependencies.empty]);
     devDependencies : (Dependencies.t [@default Dependencies.empty]);
     dist : (dist option [@default None]);
+    esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
 
   and dist = {
@@ -43,6 +44,7 @@ type t = {
   dependencies : Dependencies.t;
   devDependencies : Dependencies.t;
   source : Source.t;
+  hasEsyManifest : bool;
 }
 
 type manifest = t
@@ -55,6 +57,7 @@ let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) = {
   version = pkgJson.version;
   dependencies = pkgJson.dependencies;
   devDependencies = pkgJson.devDependencies;
+  hasEsyManifest = Option.isSome pkgJson.esy;
   source =
     match pkgJson.dist with
     | Some dist -> Source.Archive (dist.PackageJson.tarball, dist.PackageJson.shasum)

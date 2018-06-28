@@ -9,7 +9,12 @@ type t = {
   dependencies: (Dependencies.t [@default Dependencies.empty]);
   devDependencies: (Dependencies.t [@default Dependencies.empty]);
   opam : PackageInfo.OpamInfo.t option;
+  kind : kind;
 }
+
+and kind =
+  | Esy
+  | Npm
 
 let ofOpamManifest ?name ?version (manifest : OpamManifest.t) =
   let open Run.Syntax in
@@ -35,6 +40,7 @@ let ofOpamManifest ?name ?version (manifest : OpamManifest.t) =
     devDependencies = manifest.devDependencies;
     source;
     opam = Some (OpamManifest.toPackageJson manifest version);
+    kind = Esy;
   }
 
 let ofManifest ?name ?version (manifest : Manifest.t) =
@@ -61,6 +67,10 @@ let ofManifest ?name ?version (manifest : Manifest.t) =
     devDependencies = manifest.devDependencies;
     source;
     opam = None;
+    kind =
+      if manifest.hasEsyManifest
+      then Esy
+      else Npm
   }
 
 let pp fmt pkg =
