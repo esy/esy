@@ -424,6 +424,17 @@ let solveDependenciesNaively
   in
 
   let rec solveDependencies dependencies =
+
+    (** This prefetches resolutions which can result in an overfetch but makes
+     * things happen much faster. *)
+    let%bind _ =
+      let f req = Resolver.resolve ~req solver.resolver in
+      dependencies
+      |> Dependencies.toList
+      |> List.map ~f
+      |> RunAsync.List.joinAll
+    in
+
     let f roots req =
       let%bind pkg = resolve req in
       addToInstalled pkg;
