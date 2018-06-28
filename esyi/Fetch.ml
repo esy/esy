@@ -50,32 +50,56 @@ let optimizeForLayout (solution : Solution.t) =
 
   optRoot solution
 
-let layoutSolution ~path (solution : Solution.t) =
-  let solution = optimizeForLayout solution in
-  let rec layoutRecord ~path layout root =
-    let record = Solution.record root in
-    let path = Path.(path / "node_modules" // v record.Record.name) in
-    let layout = Record.Map.add record path layout in
-    layoutDependenciess ~path layout root
+(*
+ * This describes the physical layout of a solution on filesystem.
+ *
+ * TODO: redesign to allow safe parallel operations - no it's a plain list but
+ * maybe we need a nested structure so that different installation do not race
+ * with each other. Though the current method of installation (tar xzf) doesn't
+ * uncover any issues with that yet.
+ *)
+module Layout = struct
 
-  and layoutDependenciess ~path layout root =
-    List.fold_left
-      ~f:(layoutRecord ~path)
-      ~init:layout
-      (Solution.dependencies root)
-  in
+  type t = (Path.t * Solution.Record.t) list
 
-  layoutDependenciess ~path Record.Map.empty solution
+  let ofSolution ~path (solution : Solution.t) =
+    let solution = optimizeForLayout solution in
+
+    let rec layoutRecord ~path layout root =
+      let record = Solution.record root in
+      let path = Path.(path / "node_modules" // v record.Record.name) in
+      let layout = (path, record)::layout in
+      layoutDependenciess ~path layout root
+
+    and layoutDependenciess ~path layout root =
+      List.fold_left
+        ~f:(layoutRecord ~path)
+        ~init:layout
+        (Solution.dependencies root)
+    in
+
+    let layout =
+      layoutDependenciess ~path [] solution
+    in
+
+    (* Sort the layout so we can have a stable order of operations *)
+    let layout =
+      let cmp (patha, _) (pathb, _) = Path.compare patha pathb in
+      List.sort ~cmp layout
+    in
+
+    (layout : t)
+end
 
 let isInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-  let layout = layoutSolution ~path:cfg.basePath solution in
-  let f installed (_, path) =
+  let layout = Layout.ofSolution ~path:cfg.basePath solution in
+  let f installed (path, _record) =
     if not installed
     then return installed
     else Fs.exists path
   in
-  RunAsync.List.foldLeft ~f ~init:true (Record.Map.bindings layout)
+  RunAsync.List.foldLeft ~f ~init:true layout
 
 let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
@@ -116,7 +140,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
   let%bind () =
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
-    let f (record, path) =
+    let f (path, record) =
       match Record.Map.find_opt record fetched with
       | Some dist ->
         let%lwt () =
@@ -134,10 +158,9 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
         in
         failwith msg
     in
-    let layout = layoutSolution ~path:cfg.basePath solution in
+    let layout = Layout.ofSolution ~path:cfg.basePath solution in
     let%bind () =
       layout
-      |> Record.Map.bindings
       |> List.map ~f
       |> RunAsync.List.waitAll
     in
