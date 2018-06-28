@@ -16,27 +16,33 @@ module CudfName = struct
     Re.replace_string underscoreEscapeRe ~by:"_" name
 end
 
-type t = Package.t Version.Map.t StringMap.t
+type t = {
+  pkgs : Package.t Version.Map.t StringMap.t;
+}
+
 type univ = t
 
-let empty = StringMap.empty
+let empty = {
+  pkgs = StringMap.empty;
+}
 
 let add ~pkg (univ : t) =
   let {Package. name; version; _} = pkg in
   let versions =
-    match StringMap.find_opt name univ with
+    match StringMap.find_opt name univ.pkgs with
     | None -> Version.Map.empty
     | Some versions -> versions
   in
-  StringMap.add name (Version.Map.add version pkg versions) univ
+  let pkgs = StringMap.add name (Version.Map.add version pkg versions) univ.pkgs in
+  {pkgs}
 
-let mem ~pkg univ =
-  match StringMap.find pkg.Package.name univ with
+let mem ~pkg (univ : t) =
+  match StringMap.find pkg.Package.name univ.pkgs with
   | None -> false
   | Some versions -> Version.Map.mem pkg.Package.version versions
 
 let findVersion ~name ~version (univ : t) =
-  match StringMap.find name univ with
+  match StringMap.find name univ.pkgs with
   | None -> None
   | Some versions -> Version.Map.find_opt version versions
 
@@ -51,8 +57,8 @@ let findVersionExn ~name ~version (univ : t) =
     in
     failwith msg
 
-let findVersions ~name univ =
-  match StringMap.find name univ with
+let findVersions ~name (univ : t) =
+  match StringMap.find name univ.pkgs with
   | None -> []
   | Some versions ->
     versions
@@ -232,8 +238,16 @@ let toCudf ?(installed=Package.Set.empty) univ =
     in
 
     let depends =
+
+      let onlyExisting (req : Req.t) =
+        match StringMap.find_opt (Req.name req) univ.pkgs with
+        | Some _ -> true
+        | None -> false
+      in
+
       pkg.dependencies
       |> Dependencies.toList
+      |> List.filter ~f:onlyExisting
       |> List.map ~f:encodeReq
     in
     let cudfName = CudfName.ofString pkg.name in
@@ -253,6 +267,6 @@ let toCudf ?(installed=Package.Set.empty) univ =
     let versions = findVersions ~name univ in
     updateVersionMap versions;
     List.iter ~f:encodePkg versions;
-  ) univ;
+  ) univ.pkgs;
 
   cudfUniv, (univ, cudfUniv, cudfVersionMap)
