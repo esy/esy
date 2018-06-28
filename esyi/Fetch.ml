@@ -10,6 +10,48 @@ let uniqueRecordsOfSolution (solution : Solution.t) =
   let set = Record.Set.remove (Solution.record solution) set in
   Record.Set.elements set
 
+module Manifest = struct
+  type bin =
+    | One of string
+    | Many of string StringMap.t
+
+  let bin_of_yojson =
+    let open Result.Syntax in
+    function
+    | `String cmd -> return (One cmd)
+    | `Assoc items ->
+      let%bind items =
+        let f cmds (name, json) =
+          match json with
+          | `String cmd -> return (StringMap.add name cmd cmds)
+          | _ -> error "expected a string"
+        in
+        Result.List.foldLeft ~f ~init:StringMap.empty items
+      in
+      return (Many items)
+    | _ -> error "expected a string or an object"
+
+  type t = {
+    name : string;
+    bin : (bin option [@default None]);
+  } [@@deriving of_yojson { strict = false }]
+end
+
+let readPackageCommands (path : Path.t) =
+  let open RunAsync.Syntax in
+  let makePathToCmd cmdPath = Path.(path // v cmdPath |> normalize) in
+
+  let%bind json = Fs.readJsonFile Path.(path / "package.json") in
+  let%bind manifest = RunAsync.ofRun (Json.parseJsonWith Manifest.of_yojson json) in
+
+  match manifest.Manifest.bin with
+  | Some (Manifest.One cmd) ->
+    return [manifest.name, makePathToCmd cmd]
+  | Some (Manifest.Many cmds) ->
+    let f name cmd cmds = (name, makePathToCmd cmd)::cmds in
+    return (StringMap.fold f cmds [])
+  | None -> return []
+
 (* This tries to flatten the solution as much as possible. *)
 let optimizeForLayout (solution : Solution.t) =
 
@@ -173,5 +215,38 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
     let%lwt () = finish () in
     return ()
   in
+
+  (* populate node_modules/.bin with scripts defined for the direct dependencies *)
+
+  let%bind () =
+    let binPath = Path.(cfg.basePath / "node_modules" / ".bin") in
+    let%bind () = Fs.createDir binPath in
+
+    let installBinWrapper (name, path) =
+      let%bind () = Fs.chmod 0o777 path in
+      let%bind () = Fs.symlink ~src:path Path.(binPath / name) in
+      return ()
+    in
+
+    let installBinWrappersForPkg {Solution. record; _} =
+      let pkgPath = Path.(cfg.basePath / "node_modules" // v record.name) in
+      match%lwt readPackageCommands pkgPath with
+      | Ok commands ->
+        commands
+        |> List.map ~f:installBinWrapper
+        |> RunAsync.List.waitAll
+      | Error err ->
+        let%lwt () =
+          Logs_lwt.warn ( fun m ->
+            m "error install bin wrappers for %s: %s" record.name (Run.formatError err))
+        in return ()
+    in
+
+    solution.dependencies
+    |> StringMap.values
+    |> List.map ~f:installBinWrappersForPkg
+    |> RunAsync.List.waitAll
+  in
+
 
   return ()
