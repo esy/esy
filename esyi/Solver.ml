@@ -423,7 +423,7 @@ let solveDependenciesNaively
     return pkg
   in
 
-  let rec solveDependencies dependencies =
+  let rec solveDependencies ~seen dependencies =
 
     (** This prefetches resolutions which can result in an overfetch but makes
      * things happen much faster. *)
@@ -436,19 +436,25 @@ let solveDependenciesNaively
     in
 
     let f roots req =
-      let%bind pkg = resolve req in
-      addToInstalled pkg;
-      let%bind dependencies = solveDependencies pkg.Package.dependencies in
-      let record = Solution.Record.ofPackage pkg in
-      let root = Solution.make record dependencies in
-      return (root::roots)
+      let name = Req.name req in
+      if StringSet.mem name seen
+      then return roots
+      else begin
+        let seen = StringSet.add name seen in
+        let%bind pkg = resolve req in
+        addToInstalled pkg;
+        let%bind dependencies = solveDependencies ~seen pkg.Package.dependencies in
+        let record = Solution.Record.ofPackage pkg in
+        let root = Solution.make record dependencies in
+        return (root::roots)
+      end
     in
     dependencies
     |> Dependencies.toList
     |> RunAsync.List.foldLeft ~f ~init:[]
   in
 
-  let%bind roots = solveDependencies dependencies in
+  let%bind roots = solveDependencies ~seen:StringSet.empty dependencies in
   finish ();%lwt
   return roots
 
