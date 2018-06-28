@@ -415,7 +415,9 @@ let solveDependenciesNaively
     let%bind pkg =
       match resolveOfInstalled req with
       | None -> begin match%bind resolveOfOutside req with
-        | None -> error "unable to solve"
+        | None ->
+          let msg = Format.asprintf "unable to find a match for %a" Req.pp req in
+          error msg
         | Some pkg -> return pkg
         end
       | Some pkg -> return pkg
