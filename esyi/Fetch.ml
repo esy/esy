@@ -2,7 +2,7 @@ module Version = PackageInfo.Version
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
-let recordsOfSolution solution =
+let uniqueRecordsOfSolution (solution : Solution.t) =
   let set =
     let f set record = Record.Set.add record set in
     Solution.fold ~init:Record.Set.empty ~f solution
@@ -10,41 +10,72 @@ let recordsOfSolution solution =
   let set = Record.Set.remove (Solution.record solution) set in
   Record.Set.elements set
 
-let traverseWithPath ~path ~f ~init solution =
-  let open RunAsync.Syntax in
-  let solutionRoot = Solution.record solution in
-  let rec aux ~path ~v root =
-    let record = Solution.record root in
-    let%bind v =
-      if Record.equal solutionRoot record
-      then return v
-      else f ~path v record
-    in
-    let%bind v =
-      let f v dep =
-        let record = Solution.record dep in
-        let path = Path.(path / "node_modules" // v record.Record.name) in
-        aux ~path ~v dep
+(* This tries to flatten the solution as much as possible. *)
+let optimizeForLayout (solution : Solution.t) =
+
+  let swap ~dep (orig, dest) =
+    let name = dep.Solution.record.name in
+    let dest = StringMap.add name dep dest in
+    let orig = StringMap.remove name orig in
+    orig, dest
+  in
+
+  let rec optDependencies rootname (root : Solution.t) (dependencies : Solution.t StringMap.t) =
+    let root = optRoot root in
+    let rootDependencies, dependencies =
+      let f depname dep (rootDependencies, dependencies) =
+        match StringMap.find depname dependencies with
+        | None ->
+          swap ~dep (rootDependencies, dependencies)
+        | Some edep ->
+          if Record.equal dep.Solution.record edep.Solution.record
+          then swap ~dep (rootDependencies, dependencies)
+          else rootDependencies, dependencies
       in
-      RunAsync.List.foldLeft ~f ~init:v (Solution.dependencies root)
+      StringMap.fold f root.Solution.dependencies (root.Solution.dependencies, dependencies)
     in
-    return v
-  in
-  aux ~path ~v:init solution
+    let root = {root with dependencies = rootDependencies} in
+    let dependencies = StringMap.add rootname root dependencies in
+    dependencies
 
-let check ~cfg:(cfg : Config.t) (solution : Solution.t) =
+  and optRoot (root : Solution.t) =
+    let dependencies =
+      StringMap.fold
+        optDependencies
+        root.dependencies
+        root.dependencies
+    in
+    {root with dependencies}
+  in
+
+  optRoot solution
+
+let layoutSolution ~path (solution : Solution.t) =
+  let solution = optimizeForLayout solution in
+  let rec layoutRecord ~path layout root =
+    let record = Solution.record root in
+    let path = Path.(path / "node_modules" // v record.Record.name) in
+    let layout = Record.Map.add record path layout in
+    layoutDependenciess ~path layout root
+
+  and layoutDependenciess ~path layout root =
+    List.fold_left
+      ~f:(layoutRecord ~path)
+      ~init:layout
+      (Solution.dependencies root)
+  in
+
+  layoutDependenciess ~path Record.Map.empty solution
+
+let isInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-
-  let%bind installed =
-    let f ~path installed _record =
-      if not installed
-      then return false
-      else Fs.exists path
-    in
-    traverseWithPath ~path:cfg.basePath ~f ~init:true solution
+  let layout = layoutSolution ~path:cfg.basePath solution in
+  let f installed (_, path) =
+    if not installed
+    then return installed
+    else Fs.exists path
   in
-
-  return installed
+  RunAsync.List.foldLeft ~f ~init:true (Record.Map.bindings layout)
 
 let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
@@ -55,7 +86,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let records = recordsOfSolution solution in
+  let records = uniqueRecordsOfSolution solution in
 
   let%bind fetched =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
@@ -85,7 +116,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
   let%bind () =
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
-    let f ~path () record =
+    let f (record, path) =
       match Record.Map.find_opt record fetched with
       | Some dist ->
         let%lwt () =
@@ -103,7 +134,13 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
         in
         failwith msg
     in
-    let%bind () = traverseWithPath ~path:cfg.basePath ~init:() ~f solution in
+    let layout = layoutSolution ~path:cfg.basePath solution in
+    let%bind () =
+      layout
+      |> Record.Map.bindings
+      |> List.map ~f
+      |> RunAsync.List.waitAll
+    in
     let%lwt () = finish () in
     return ()
   in
