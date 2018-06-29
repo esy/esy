@@ -17,4 +17,8 @@ install:
 build_script:
     - npm run bootstrap:build
 
+artifacts:
+    - path: _release
+      name: esy-windows
+
 test: off
