@@ -21,7 +21,7 @@ module Constraint = struct
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving (yojson, show)]
+      [@@deriving (yojson, show, eq)]
 
     let matches ~version constr  =
       match constr with
@@ -62,8 +62,8 @@ module Formula = struct
 
     module Constraint = Constraint.Make(Version)
 
-    type 'f conj = AND of 'f list [@@deriving (show, yojson)]
-    type 'f disj = OR of 'f list [@@deriving (show, yojson)]
+    type 'f conj = AND of 'f list [@@deriving (show, yojson, eq)]
+    type 'f disj = OR of 'f list [@@deriving (show, yojson, eq)]
 
     let any cond formulas =
       List.exists ~f:cond formulas
@@ -75,7 +75,7 @@ module Formula = struct
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving (show, yojson)]
+        [@@deriving (show, yojson, eq)]
 
       let unit constr =
         OR [AND [constr]]
@@ -166,6 +166,7 @@ module Formula = struct
         AND (List.map ~f:parse items)
 
       let disjunction ~parse version =
+        let version = String.trim version in
         let items = Str.split (Str.regexp " +|| +") version in
         let items = List.map ~f:parse items in
         let items =
