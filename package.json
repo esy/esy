@@ -11,6 +11,7 @@
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
+    "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "postinstall": "esy-bash ./scripts/postinstall.sh"
   },
   "repository": {

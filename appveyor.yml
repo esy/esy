@@ -8,6 +8,6 @@ install:
     - npm run bootstrap:install-dependencies
 
 build_script:
-    - echo TODO
+    - npm run bootstrap:build
 
 test: off
