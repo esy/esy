@@ -19,10 +19,10 @@ case $(uname) in
       mv esyi/bin/esyi-linux.exe esyi/bin/esyi.exe && \
       mv esy-build-package/bin/esyBuildPackageCommand-linux.exe esy-build-package/bin/esyBuildPackageCommand.exe)
     ;;
-  *)
   CYGWIN*)
     echo "No-op for now on Cygwin."
     ;;
+  *)
     echo "Unsupported operating system $(uname), exiting...";
     exit 1
     ;;
