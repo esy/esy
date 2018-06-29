@@ -21,4 +21,4 @@ let gethost () =
   | "Cygwin" -> Cygwin
   | _ -> Other
 
-let host = uname ()
+let host = gethost ()
