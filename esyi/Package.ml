@@ -53,7 +53,7 @@ let ofManifest ?name ?version (manifest : Manifest.t) =
   let version =
     match version with
     | Some version -> version
-    | None -> Version.Npm (NpmVersion.Version.parseExn manifest.version)
+    | None -> Version.Npm (SemverVersion.Version.parseExn manifest.version)
   in
   let source =
     match version with

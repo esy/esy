@@ -25,7 +25,7 @@ end
  *)
 module Version : sig
   type t =
-      Npm of NpmVersion.Version.t
+      Npm of SemverVersion.Version.t
     | Opam of DebianVersion.t
     | Source of Source.t
 
@@ -65,7 +65,7 @@ end
  *)
 module VersionSpec : sig
   type t =
-      Npm of NpmVersion.Formula.DNF.t
+      Npm of SemverVersion.Formula.DNF.t
     | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
   val toString : t -> string

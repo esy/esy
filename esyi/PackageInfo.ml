@@ -65,14 +65,14 @@ end
  *)
 module Version = struct
   type t =
-    | Npm of NpmVersion.Version.t
+    | Npm of SemverVersion.Version.t
     | Opam of OpamVersion.Version.t
     | Source of Source.t
     [@@deriving (ord, eq)]
 
   let toString v =
     match v with
-    | Npm t -> NpmVersion.Version.toString(t)
+    | Npm t -> SemverVersion.Version.toString(t)
     | Opam v -> "opam:" ^ OpamVersion.Version.toString(v)
     | Source src -> (Source.toString src)
 
@@ -83,7 +83,7 @@ module Version = struct
     let open Result.Syntax in
     match Parse.cutWith ":" v with
     | Error _ ->
-      let%bind v = NpmVersion.Version.parse v in
+      let%bind v = SemverVersion.Version.parse v in
       return (Npm v)
     | Ok ("opam", v) ->
       let%bind v = OpamVersion.Version.parse v in
@@ -106,7 +106,7 @@ module Version = struct
 
   let toNpmVersion v =
     match v with
-    | Npm v -> NpmVersion.Version.toString(v)
+    | Npm v -> SemverVersion.Version.toString(v)
     | Opam t -> OpamVersion.Version.toString(t)
     | Source src -> Source.toString src
 
@@ -162,12 +162,12 @@ end
 module VersionSpec = struct
 
   type t =
-    | Npm of NpmVersion.Formula.DNF.t
+    | Npm of SemverVersion.Formula.DNF.t
     | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
   let toString = function
-    | Npm formula -> NpmVersion.Formula.DNF.toString formula
+    | Npm formula -> SemverVersion.Formula.DNF.toString formula
     | Opam formula -> "opam:" ^ OpamVersion.Formula.DNF.toString formula
     | Source src -> SourceSpec.toString src
 
@@ -176,7 +176,7 @@ module VersionSpec = struct
   let matches ~version spec =
     match spec, version with
     | Npm formula, Version.Npm version ->
-      NpmVersion.Formula.DNF.matches ~version formula
+      SemverVersion.Formula.DNF.matches ~version formula
     | Opam formula, Version.Opam version ->
       OpamVersion.Formula.DNF.matches ~version formula
     | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
@@ -208,7 +208,7 @@ module VersionSpec = struct
   let ofVersion (version : Version.t) =
     match version with
     | Version.Npm v ->
-      Npm (NpmVersion.Formula.DNF.unit (NpmVersion.Formula.Constraint.EQ v))
+      Npm (SemverVersion.Formula.DNF.unit (SemverVersion.Formula.Constraint.EQ v))
     | Version.Opam v ->
       Opam (OpamVersion.Formula.DNF.unit (OpamVersion.Formula.Constraint.EQ v))
     | Version.Source src ->
@@ -279,7 +279,7 @@ module Req = struct
               | Some ("", remote) ->
                 let remote, ref = parseRef remote in
                 VersionSpec.Source (SourceSpec.Git {remote; ref})
-              | _ -> VersionSpec.Npm (NpmVersion.Formula.parse spec)
+              | _ -> VersionSpec.Npm (SemverVersion.Formula.parse spec)
               end
         in {name; spec;}
 

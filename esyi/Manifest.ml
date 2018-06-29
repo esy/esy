@@ -1,4 +1,4 @@
-module Version = NpmVersion.Version
+module Version = SemverVersion.Version
 module String = Astring.String
 module Resolutions = PackageInfo.Resolutions
 module Source = PackageInfo.Source

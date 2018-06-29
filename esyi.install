@@ -39,10 +39,6 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__NpmRegistry.cmti" {"EsyInstaller__NpmRegistry.cmti"}
   "_build/install/default/lib/esyi/NpmRegistry.rei" {"NpmRegistry.rei"}
   "_build/install/default/lib/esyi/NpmRegistry.re" {"NpmRegistry.re"}
-  "_build/install/default/lib/esyi/EsyInstaller__NpmVersion.cmi" {"EsyInstaller__NpmVersion.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__NpmVersion.cmx" {"EsyInstaller__NpmVersion.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__NpmVersion.cmt" {"EsyInstaller__NpmVersion.cmt"}
-  "_build/install/default/lib/esyi/NpmVersion.re" {"NpmVersion.re"}
   "_build/install/default/lib/esyi/EsyInstaller__OpamAvailable.cmi" {"EsyInstaller__OpamAvailable.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller__OpamAvailable.cmx" {"EsyInstaller__OpamAvailable.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller__OpamAvailable.cmt" {"EsyInstaller__OpamAvailable.cmt"}
@@ -93,6 +89,10 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__Resolver.cmti" {"EsyInstaller__Resolver.cmti"}
   "_build/install/default/lib/esyi/Resolver.mli" {"Resolver.mli"}
   "_build/install/default/lib/esyi/Resolver.ml" {"Resolver.ml"}
+  "_build/install/default/lib/esyi/EsyInstaller__SemverVersion.cmi" {"EsyInstaller__SemverVersion.cmi"}
+  "_build/install/default/lib/esyi/EsyInstaller__SemverVersion.cmx" {"EsyInstaller__SemverVersion.cmx"}
+  "_build/install/default/lib/esyi/EsyInstaller__SemverVersion.cmt" {"EsyInstaller__SemverVersion.cmt"}
+  "_build/install/default/lib/esyi/SemverVersion.ml" {"SemverVersion.ml"}
   "_build/install/default/lib/esyi/EsyInstaller__Solution.cmi" {"EsyInstaller__Solution.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller__Solution.cmx" {"EsyInstaller__Solution.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller__Solution.cmt" {"EsyInstaller__Solution.cmt"}

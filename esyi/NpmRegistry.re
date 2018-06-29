@@ -1,4 +1,4 @@
-module Version = NpmVersion.Version;
+module Version = SemverVersion.Version;
 
 module Packument = {
   module Versions = {
@@ -47,7 +47,7 @@ let versions = (~cfg: Config.t, name) => {
       |> StringMap.bindings
       |> List.map(~f=((version, packageJson)) => {
            let manifest = Manifest.ofPackageJson(packageJson);
-           (NpmVersion.Version.parseExn(version), manifest);
+           (SemverVersion.Version.parseExn(version), manifest);
          }),
     );
   };
