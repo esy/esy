@@ -2,6 +2,9 @@
 
 cp scripts/bootstrap/Makefile.bootstrap Makefile
 
+jbuilder build _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
+jbuilder build _build/default/esy/bin/esyCommand.exe
+
 make _release/bin/esy-install.js
 make _release/bin/esyInstallRelease.js
 make _release/scripts/postinstall.sh
