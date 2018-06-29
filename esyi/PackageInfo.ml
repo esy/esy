@@ -128,6 +128,7 @@ module SourceSpec = struct
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
     | NoSource
+    [@@deriving eq]
 
   let toString = function
     | Github {user; repo; ref = None} -> Printf.sprintf "github:%s/%s" user repo
@@ -165,11 +166,15 @@ module VersionSpec = struct
     | Npm of SemverVersion.Formula.DNF.t
     | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
+    [@@deriving eq]
 
   let toString = function
     | Npm formula -> SemverVersion.Formula.DNF.toString formula
     | Opam formula -> "opam:" ^ OpamVersion.Formula.DNF.toString formula
     | Source src -> SourceSpec.toString src
+
+  let pp fmt spec =
+    Fmt.string fmt (toString spec)
 
   let to_yojson src = `String (toString src)
 
@@ -231,75 +236,135 @@ module Req = struct
   let pp fmt req =
     Fmt.fmt "%s" fmt (toString req)
 
+  let parseRef spec =
+    match String.cut ~sep:"#" spec with
+    | None -> spec, None
+    | Some (spec, "") -> spec, None
+    | Some (spec, ref) -> spec, Some ref
+
+  let tryParseGitHubSpec text =
+
+    let normalizeGithubRepo repo =
+      match String.cut ~sep:".git" repo with
+      | Some (repo, "") -> repo
+      | Some _ -> repo
+      | None -> repo
+    in
+
+    let parts = Str.split (Str.regexp_string "/") text in
+    match parts with
+    | user::rest::[] ->
+      let repo, ref = parseRef rest in
+      Some (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref})
+    | _ -> None
+
+  let tryParseGitSpec v =
+    match String.cut ~sep:"git+" v with
+    | Some ("", remote) ->
+      let remote, ref = parseRef remote in
+      Some (SourceSpec.Git {remote; ref})
+    | _ -> None
+
+  let gitProtoRe =
+    Re.(compile (seq [bos; str "git:"]))
+  let httpProtoRe =
+    Re.(compile (seq [bos; str "http"; opt (char 's'); char ':']))
+
+  let tryParseSourceSpec v =
+    match tryParseGitHubSpec v with
+    | Some spec -> Some spec
+    | None -> begin
+      match tryParseGitSpec v with
+      | Some spec -> Some spec
+      | None ->
+          if Re.execp gitProtoRe v
+          then
+            let remote, ref = parseRef v in
+            Some (SourceSpec.Git {remote; ref})
+          else if Re.execp httpProtoRe v
+          then
+            let url, checksum = parseRef v in
+            Some (SourceSpec.Archive (url, checksum))
+          else None
+      end
+
   let make ~name ~spec =
-
-    let parseRef spec =
-      match String.cut ~sep:"#" spec with
-      | None -> spec, None
-      | Some (spec, "") -> spec, None
-      | Some (spec, ref) -> spec, Some ref
-    in
-
-    let parseGitHubSpec text =
-
-      let normalizeGithubRepo repo =
-        match String.cut ~sep:".git" repo with
-        | Some (repo, "") -> repo
-        | Some _ -> repo
-        | None -> repo
-      in
-
-      let parts = Str.split (Str.regexp_string "/") text in
-      match parts with
-      | user::rest::[] ->
-        let repo, ref = parseRef rest in
-        Some (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref})
-      | _ -> None
-    in
-
     if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
     then
       let spec = VersionSpec.Source (SourceSpec.LocalPath (Path.v spec)) in
       {name; spec}
     else
-      match String.cut ~sep:"/" name with
-      | Some ("@opam", _opamName) ->
-        let spec =
-          match parseGitHubSpec spec with
-          | Some gh -> VersionSpec.Source gh
+      let spec =
+        match String.cut ~sep:"/" name with
+        | Some ("@opam", _opamName) -> begin
+          match tryParseSourceSpec spec with
+          | Some spec -> VersionSpec.Source spec
           | None -> VersionSpec.Opam (OpamVersion.Formula.parse spec)
-        in {name; spec;}
-      | Some _
-      | None ->
-        let spec =
-          match parseGitHubSpec spec with
-            | Some gh -> VersionSpec.Source gh
-            | None ->
-              begin match String.cut ~sep:"git+" spec with
-              | Some ("", remote) ->
-                let remote, ref = parseRef remote in
-                VersionSpec.Source (SourceSpec.Git {remote; ref})
-              | _ -> VersionSpec.Npm (SemverVersion.Formula.parse spec)
-              end
-        in {name; spec;}
+          end
+        | Some _
+        | None -> begin
+          match tryParseSourceSpec spec with
+          | Some spec -> VersionSpec.Source spec
+          | None ->
+            begin match SemverVersion.Formula.parse spec with
+              | Ok v -> VersionSpec.Npm v
+              | Error err ->
+                Logs.warn (fun m ->
+                  m "invalid version spec %s treating as *:@\n  %s" spec err);
+                VersionSpec.Npm SemverVersion.Formula.any
+            end
+          end
+      in
+      {name; spec;}
 
-  let%test "make: parsing git spec" =
-    let req = make ~name:"pkg" ~spec:"git+https://some/repo" in
-    req.spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None})
+  let%test_module "parsing" = (module struct
 
-  let%test "make: parsing git spec with ref" =
-    let req = make ~name:"pkg" ~spec:"git+https://some/repo#ref" in
-    req.spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"})
-  let%test "make: parsing git spec with command" =
-    let req = make
-      ~name:"eslint"
-      ~spec:"git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a"
-    in
-    req.spec = VersionSpec.Source (
-      SourceSpec.Git {
-        remote = "https://github.com/eslint/eslint.git";
-        ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
-      })
+    let cases = [
+      make ~name:"pkg" ~spec:"git+https://some/repo",
+      VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+
+      make ~name:"pkg" ~spec:"git://github.com/caolan/async.git",
+      VersionSpec.Source (SourceSpec.Git {
+        remote = "git://github.com/caolan/async.git";
+        ref = None
+      });
+
+      make ~name:"pkg" ~spec:"git+https://some/repo#ref",
+      VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
+
+      make ~name:"pkg" ~spec:"https://some/url#checksum",
+      VersionSpec.Source (SourceSpec.Archive ("https://some/url", Some "checksum"));
+
+      make ~name:"pkg" ~spec:"http://some/url#checksum",
+      VersionSpec.Source (SourceSpec.Archive ("http://some/url", Some "checksum"));
+
+      make
+        ~name:"eslint"
+        ~spec:"git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
+      VersionSpec.Source (
+        SourceSpec.Git {
+          remote = "https://github.com/eslint/eslint.git";
+          ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
+        });
+    ]
+
+    let expectParsesTo req e =
+      if VersionSpec.equal req.spec e
+      then true
+      else (
+        Format.printf "@[<v>     got: %a@\nexpected: %a@\n@]"
+          VersionSpec.pp req.spec VersionSpec.pp e;
+        false
+      )
+
+    let%test "parsing" =
+      let f passes (req, e) =
+        passes && (expectParsesTo req e)
+      in
+      List.fold_left ~f ~init:true cases
+
+  end)
+
 
   let ofSpec ~name ~spec =
     {name; spec}
