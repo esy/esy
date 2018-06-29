@@ -258,35 +258,44 @@ module Req = struct
       Some (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref})
     | _ -> None
 
-  let tryParseGitSpec v =
-    match String.cut ~sep:"git+" v with
-    | Some ("", remote) ->
-      let remote, ref = parseRef remote in
-      Some (SourceSpec.Git {remote; ref})
-    | _ -> None
+  let protoRe =
+    let open Re in
+    let proto = alt [
+      str "file:";
+      str "https:";
+      str "http:";
+      str "git:";
+      str "git+";
+    ] in
+    compile (seq [bos; group proto; group (rep any); eos])
 
-  let gitProtoRe =
-    Re.(compile (seq [bos; str "git:"]))
-  let httpProtoRe =
-    Re.(compile (seq [bos; str "http"; opt (char 's'); char ':']))
+  let parseProto v =
+    match Re.exec_opt protoRe v with
+    | Some m ->
+      let proto = Re.Group.get m 1 in
+      let body = Re.Group.get m 2 in
+      Some (proto, body)
+    | None -> None
 
   let tryParseSourceSpec v =
     match tryParseGitHubSpec v with
     | Some spec -> Some spec
     | None -> begin
-      match tryParseGitSpec v with
-      | Some spec -> Some spec
-      | None ->
-          if Re.execp gitProtoRe v
-          then
-            let remote, ref = parseRef v in
-            Some (SourceSpec.Git {remote; ref})
-          else if Re.execp httpProtoRe v
-          then
-            let url, checksum = parseRef v in
-            Some (SourceSpec.Archive (url, checksum))
-          else None
-      end
+      match parseProto v with
+      | Some ("file:", v) -> Some (SourceSpec.LocalPath (Path.v v))
+      | Some ("https:", _)
+      | Some ("http:", _) ->
+        let url, checksum = parseRef v in
+        Some (SourceSpec.Archive (url, checksum))
+      | Some ("git+", v) ->
+        let remote, ref = parseRef v in
+        Some (SourceSpec.Git {remote;ref;})
+      | Some ("git:", _) ->
+        let remote, ref = parseRef v in
+        Some (SourceSpec.Git {remote;ref;})
+      | Some _
+      | None -> None
+    end
 
   let make ~name ~spec =
     if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
@@ -337,6 +346,9 @@ module Req = struct
 
       make ~name:"pkg" ~spec:"http://some/url#checksum",
       VersionSpec.Source (SourceSpec.Archive ("http://some/url", Some "checksum"));
+
+      make ~name:"pkg" ~spec:"file:./some/file",
+      VersionSpec.Source (SourceSpec.LocalPath (Path.v "./some/file"));
 
       make
         ~name:"eslint"
