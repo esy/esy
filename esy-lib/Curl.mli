@@ -6,7 +6,19 @@ type response =
   | Success of string
   | NotFound
 
-val getOrNotFound : string -> response RunAsync.t
+type url = string
 
-val get : string -> string RunAsync.t
-val download : output:Fpath.t -> string -> unit RunAsync.t
+val getOrNotFound :
+  ?accept : string
+  -> url
+  -> response RunAsync.t
+
+val get :
+  ?accept : string
+  -> url
+  -> string RunAsync.t
+
+val download :
+  output:Fpath.t
+  -> url
+  -> unit RunAsync.t

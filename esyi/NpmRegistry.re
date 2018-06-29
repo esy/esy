@@ -31,7 +31,10 @@ let versions = (~cfg: Config.t, name) => {
    * it */
   switch%bind (
     retryInCaseOfError(~num=3, ~desc, () =>
-      Curl.getOrNotFound(cfg.npmRegistry ++ "/" ++ name)
+      Curl.getOrNotFound(
+        ~accept="application/vnd.npm.install-v1+json",
+        cfg.npmRegistry ++ "/" ++ name,
+      )
     )
   ) {
   | Curl.NotFound => return([])

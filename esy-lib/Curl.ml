@@ -8,6 +8,8 @@ type response =
   | Success of string
   | NotFound
 
+type url = string
+
 let parseStdout stdout =
   let open Run.Syntax in
   match String.cut ~rev:true ~sep:"\n" stdout with
@@ -65,18 +67,23 @@ let runCurl cmd =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let getOrNotFound url =
+let getOrNotFound ?accept url =
   let cmd = Cmd.(
     v "curl"
     % "--silent"
     % "--fail"
     % "--location" % url
   ) in
+  let cmd =
+    match accept with
+    | Some accept -> Cmd.(cmd % "--header" % accept)
+    | None -> cmd
+  in
   runCurl cmd
 
-let get url =
+let get ?accept url =
   let open RunAsync.Syntax in
-  match%bind getOrNotFound url with
+  match%bind getOrNotFound ?accept url with
   | Success result -> RunAsync.return result
   | NotFound -> RunAsync.error "not found"
 
