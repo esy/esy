@@ -2,6 +2,9 @@ platform:
     - x64
     - x86
 
+cache:
+    - '%LocalAppData%\.opam'
+
 install:
     - npm install -g rimraf
     - rimraf C:\cygwin
