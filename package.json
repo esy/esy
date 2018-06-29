@@ -5,7 +5,6 @@
   "description": "Esy sandboxes for compiled languages",
   "dependencies": {
     "@esy-ocaml/esy-opam": "0.0.15",
-    "esy-solve-cudf": "^0.0.3",
     "esy-bash": "^0.1.9"
   },
   "scripts": {
