@@ -6,6 +6,7 @@ cache:
 
 install:
     - npm install -g rimraf
+    - npm install -g yarn
     - rimraf C:\cygwin
     - rimraf C:\cygwin64
     - rimraf C:\mingw-w64
