@@ -15,6 +15,7 @@ install:
     - npm run bootstrap:install-dependencies
 
 build_script:
+    - npm run cygwin:check-dll
     - npm run bootstrap:build
 
 artifacts:
