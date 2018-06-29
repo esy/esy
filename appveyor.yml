@@ -3,6 +3,11 @@ platform:
     - x86
 
 install:
+    - npm install -g rimraf
+    - rimraf C:\cygwin
+    - rimraf C:\cygwin64
+    - rimraf C:\mingw-w64
+    - rimraf C:\MinGw
     - npm install
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
