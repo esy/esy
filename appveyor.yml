@@ -1,0 +1,13 @@
+platform:
+    - x64
+    - x86
+
+install:
+    - npm install
+    - npm run bootstrap:install-opam
+    - npm run bootstrap:install-dependencies
+
+build_script:
+    - echo TODO
+
+test: off

@@ -9,6 +9,8 @@
     "esy-bash": "^0.1.9"
   },
   "scripts": {
+    "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
+    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "postinstall": "esy-bash ./scripts/postinstall.sh"
   },
   "repository": {
