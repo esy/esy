@@ -1,6 +1,7 @@
 type system =
   | Darwin
   | Linux
+  | Windows
   | Cygwin
   | Other
 
@@ -11,6 +12,13 @@ let uname () =
   match String.lowercase_ascii(uname) with
   | "linux" -> Linux
   | "darwin" -> Darwin
+  | _ -> Other
+
+let gethost () =
+  match Sys.os_type with
+  | "Unix" -> uname ()
+  | "Win32" -> Windows
+  | "Cygwin" -> Cygwin
   | _ -> Other
 
 let host = uname ()
