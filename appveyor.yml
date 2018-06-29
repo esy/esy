@@ -1,6 +1,5 @@
 platform:
     - x64
-    - x86
 
 cache:
     - '%LocalAppData%\.opam'
