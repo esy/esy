@@ -7,12 +7,12 @@ cache:
 install:
     - npm install -g rimraf
     - npm install -g yarn
-    - npm run temp:find-npm
     - rimraf C:\cygwin
     - rimraf C:\cygwin64
     - rimraf C:\mingw-w64
     - rimraf C:\MinGw
     - npm install
+    - npm run temp:find-npm
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
 
