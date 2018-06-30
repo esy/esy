@@ -47,6 +47,8 @@ val dependencies : t -> t list
 val findDependency : name:string -> t -> t option
 
 val fold : f:('a -> Record.t -> 'a) -> init:'a -> t -> 'a
+val equal : t -> t -> bool
+val pp : Format.formatter -> t -> unit
 
 (** This is an on disk format for storing solutions. *)
 module LockfileV1 : sig

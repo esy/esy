@@ -35,7 +35,8 @@ module Record = struct
 end
 
 
-type solution = t
+[@@@ocaml.warning "-32"]
+type solution = t [@@deriving (eq)]
 
 and t = root
 
@@ -43,6 +44,13 @@ and root = {
   record: Record.t;
   dependencies: root StringMap.t;
 }
+
+let rec pp fmt root =
+  let ppItem = Fmt.(pair string pp) in
+  Fmt.pf fmt
+    "@[<v 2>%a@\n%a@]"
+    Record.pp root.record
+    (StringMap.pp ~sep:(Fmt.unit "@\n") ppItem) root.dependencies
 
 let make record dependencies =
   let dependencies =
