@@ -7,6 +7,7 @@ cache:
 install:
     - npm install -g rimraf
     - npm install -g yarn
+    - npm run temp:find-npm
     - rimraf C:\cygwin
     - rimraf C:\cygwin64
     - rimraf C:\mingw-w64
@@ -18,7 +19,6 @@ install:
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
-    - npm run temp:find-npm
     - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs
     - npm run temp:cygwin:check-dll
     - npm run bootstrap:build
