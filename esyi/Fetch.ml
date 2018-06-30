@@ -92,7 +92,7 @@ module Layout = struct
   (* This tries to flatten the solution as much as possible. *)
   let optimize (solution : Solution.t) =
 
-    let swap ~dep (orig, dest) =
+    let move ~dep (orig, dest) =
       let name = dep.Solution.record.name in
       let dest = StringMap.add name dep dest in
       let orig = StringMap.remove name orig in
@@ -105,10 +105,10 @@ module Layout = struct
         let f depname dep (rootDependencies, dependencies) =
           match StringMap.find depname dependencies with
           | None ->
-            swap ~dep (rootDependencies, dependencies)
+            move ~dep (rootDependencies, dependencies)
           | Some edep ->
             if Record.equal dep.Solution.record edep.Solution.record
-            then swap ~dep (rootDependencies, dependencies)
+            then move ~dep (rootDependencies, dependencies)
             else rootDependencies, dependencies
         in
         StringMap.fold f root.Solution.dependencies (root.Solution.dependencies, dependencies)
@@ -128,6 +128,232 @@ module Layout = struct
     in
 
     optRoot solution
+
+  let%test_module "optimize" = (module struct
+
+    let make name version dependencies =
+      let version = PackageInfo.Version.Npm (SemverVersion.Version.parseExn version) in
+      let record = Record.{
+        name; version;
+        source = PackageInfo.Source.NoSource; opam = None;
+      } in
+      Solution.make record dependencies
+
+
+    let%test "optimize1" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "dep" "1.0.0" [];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize2" =
+      let s = make "root" "1.0.0" [
+        make "dep" "1.0.0" [];
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize3" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "dep" "2.0.0" [];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ];
+          make "dep" "2.0.0" [];
+        ]
+      )
+
+    let%test "optimize4" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "b" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "b" "1.0.0" [];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize5" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "b" "1.0.0" [
+          make "dep" "2.0.0" [];
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "b" "1.0.0" [
+            make "dep" "2.0.0" [];
+          ];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize6" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "b" "1.0.0" [
+          make "dep" "2.0.0" [];
+        ];
+        make "dep" "2.0.0" [];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ];
+          make "b" "1.0.0" [];
+          make "dep" "2.0.0" [];
+        ]
+      )
+
+    let%test "optimize7" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "b" "1.0.0" [
+          make "dep" "2.0.0" [];
+        ];
+        make "dep" "3.0.0" [];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ];
+          make "b" "1.0.0" [
+            make "dep" "2.0.0" [];
+          ];
+          make "dep" "3.0.0" [];
+        ]
+      )
+
+    let%test "optimize8" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "dep" "1.0.0" [];
+        ];
+        make "b" "1.0.0" [
+          make "bb" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "b" "1.0.0" [];
+          make "bb" "1.0.0" [];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize9" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "bb" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+        make "b" "1.0.0" [
+          make "bb" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "b" "1.0.0" [];
+          make "bb" "1.0.0" [];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize10" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "bb" "2.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+        make "b" "1.0.0" [
+          make "bb" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "b" "1.0.0" [
+            make "bb" "1.0.0" [];
+          ];
+          make "bb" "2.0.0" [];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize11" =
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "bb" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+        make "b" "1.0.0" [
+          make "bb" "2.0.0" [
+            make "dep" "2.0.0" [];
+          ]
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "bb" "1.0.0" [];
+          make "dep" "1.0.0" [];
+          make "b" "1.0.0" [
+            make "bb" "2.0.0" [];
+            make "dep" "2.0.0" [];
+          ];
+        ]
+      )
+
+  end)
 
   let ofSolution ~path (solution : Solution.t) =
 
