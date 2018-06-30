@@ -11,7 +11,7 @@
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
-    "temp:find-npm": "esy-bash where npm && esy-bash where node",
+    "temp:find-npm": "esy-bash where yarn && esy-bash where node",
     "temp:cygwin:check-dll": "esy-bash where cygwin1.dll",
     "postinstall": "esy-bash ./scripts/postinstall.sh"
   },
