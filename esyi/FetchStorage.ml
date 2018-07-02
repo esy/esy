@@ -44,7 +44,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
     | PackageInfo.Source.Archive (url, _checksum)  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
-        let tarballPath = Path.(tempPath / "package.tgz") in
+        let tarballPath = Path.(tempPath / Filename.basename url) in
         let%bind () = Curl.download ~output:tarballPath url in
         let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
         return ()
@@ -156,10 +156,13 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
     | false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
-          let%bind () = Fs.createDir sourcePath in
-          let%bind () = doFetch sourcePath in
-          let%bind () = complete sourcePath in
-          return ()
+          let msg = Format.asprintf "fetching %a" PackageInfo.Source.pp source in
+          RunAsync.withContext msg (
+            let%bind () = Fs.createDir sourcePath in
+            let%bind () = doFetch sourcePath in
+            let%bind () = complete sourcePath in
+            return ()
+          )
         in
 
         let%bind () =
