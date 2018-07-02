@@ -15,7 +15,7 @@ let unpackWithTar ?stripComponents ~dst filename =
 let unpackWithUnzip ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
   Fs.withTempDir begin fun out ->
-    let cmd = Cmd.(v "unzip" % "-d" % p out % p filename) in
+    let cmd = Cmd.(v "unzip" % "-q" % "-d" % p out % p filename) in
     let%bind () = ChildProcess.run cmd in
     let%bind out =
       match stripComponents with
@@ -34,7 +34,7 @@ let unpackWithUnzip ?stripComponents ~dst filename =
     in
     let%bind items = Fs.listDir out in
     let%bind () =
-      let f item = Fs.copyFile ~src:Path.(out / item) ~dst:Path.(dst / item) in
+      let f item = Fs.copyPath ~src:Path.(out / item) ~dst:Path.(dst / item) in
       items |> List.map ~f |> RunAsync.List.waitAll
     in
     return ()
