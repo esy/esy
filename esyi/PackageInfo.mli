@@ -113,6 +113,7 @@ module Dependencies : sig
   val findByName : name:string -> t -> Req.t option
 
   val toList : t -> Req.t list
+  val ofList : Req.t list -> t
 
   val pp : t Fmt.t
 

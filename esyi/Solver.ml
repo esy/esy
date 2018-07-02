@@ -159,7 +159,7 @@ module Explanation = struct
             if not (seenMissingFor req reasons)
             then
               let chain = (req, pkg::path) in
-              let%bind available =
+              let%bind _req, available =
                 let req = Req.make ~name:(Req.name req) ~spec:"*" in
                 Resolver.resolve ~req resolver
               in
@@ -230,10 +230,15 @@ let add ~(dependencies : Dependencies.t) solver =
       | Package.Esy ->
         let pkg = rewritePkgWithResolutions pkg in
         universe := Universe.add ~pkg !universe;
-        pkg.dependencies
-        |> Dependencies.toList
-        |> List.map ~f:addReq
-        |> RunAsync.List.waitAll
+        let%bind dependencies =
+          pkg.dependencies
+          |> Dependencies.toList
+          |> List.map ~f:addReq
+          |> RunAsync.List.joinAll
+        in
+        let pkg = {pkg with dependencies = Dependencies.ofList dependencies} in
+        universe := Universe.add ~pkg !universe;
+        return ()
       | Package.Npm -> return ()
     else return ()
 
@@ -242,7 +247,7 @@ let add ~(dependencies : Dependencies.t) solver =
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions =
+    let%bind req, resolutions =
       Resolver.resolve ~req solver.resolver
       |> RunAsync.withContext ("resolving request: " ^ Req.toString req)
     in
@@ -253,9 +258,13 @@ let add ~(dependencies : Dependencies.t) solver =
       |> RunAsync.List.joinAll
     in
 
-    packages
-    |> List.map ~f:addPkg
-    |> RunAsync.List.waitAll;
+    let%bind () =
+      packages
+      |> List.map ~f:addPkg
+      |> RunAsync.List.waitAll
+    in
+
+    return req
   in
 
   let%bind dependencies =
@@ -264,8 +273,7 @@ let add ~(dependencies : Dependencies.t) solver =
       |> Dependencies.toList
       |> List.map ~f:(fun req ->
           let req = rewriteReq req in
-          let%bind () = addReq req in
-          return req)
+          addReq req)
       |> RunAsync.List.joinAll
     in
     return (Dependencies.(addMany ~reqs:dependencies empty))
@@ -402,7 +410,7 @@ let solveDependenciesNaively
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions = Resolver.resolve ~req solver.resolver in
+    let%bind _req, resolutions = Resolver.resolve ~req solver.resolver in
     let resolutions = List.rev resolutions in
     match findFirstMatching resolutions with
     | Some resolution ->

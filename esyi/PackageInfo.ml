@@ -415,6 +415,7 @@ module Dependencies = struct
     List.find_opt ~f deps
 
   let toList deps = deps
+  let ofList deps = deps
 
   let pp fmt deps =
     Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps

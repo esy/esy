@@ -206,7 +206,7 @@ let resolve ~req resolver =
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return resolutions
+    return (req, resolutions)
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =
@@ -228,7 +228,7 @@ let resolve ~req resolver =
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return resolutions
+    return (req, resolutions)
 
   | VersionSpec.Source (SourceSpec.Github {user; repo; ref} as srcSpec) ->
     let%bind source = SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
@@ -246,7 +246,16 @@ let resolve ~req resolver =
         errorResolvingReq req "cannot resolve commit"
     end in
     let version = Version.Source source in
-    return [{Resolution. name; version}]
+    let req =
+      let commit =
+        match source with
+        | Source.Github {commit;_} -> commit
+        | _ -> assert false
+      in
+      let source = SourceSpec.Github {user;repo;ref = Some commit;} in
+      Req.ofSpec ~name ~spec:(VersionSpec.Source source)
+    in
+    return (req, [{Resolution. name; version}])
 
   | VersionSpec.Source (SourceSpec.Git {remote; ref} as srcSpec) ->
     let%bind source = SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
@@ -263,7 +272,7 @@ let resolve ~req resolver =
         errorResolvingReq req "cannot resolve commit"
     end in
     let version = Version.Source source in
-    return [{Resolution. name; version}]
+    return (req, [{Resolution. name; version}])
 
   | VersionSpec.Source SourceSpec.NoSource ->
     let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
@@ -276,4 +285,4 @@ let resolve ~req resolver =
   | VersionSpec.Source (SourceSpec.LocalPath p) ->
     let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
     let version = Version.Source (Source.LocalPath p) in
-    return [{Resolution. name; version}]
+    return (req, [{Resolution. name; version}])
