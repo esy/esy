@@ -535,10 +535,6 @@ let runLifecycle ~installation ~(manifest : Manifest.t) () =
 
 let isInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-  let%bind () =
-    let json = Solution.to_yojson (Layout.optimize solution) in
-    Fs.writeJsonFile ~json Path.(cfg.basePath / "esyi.layout.json")
-  in
   let layout = Layout.ofSolution ~path:cfg.basePath solution in
   let f installed {Layout.path;_} =
     if not installed
