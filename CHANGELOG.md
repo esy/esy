@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 0.1.22 @ preview
+
+* `esyi` now uses naive dependency solver for npm (non-esy) packages.
+
+  npm (non-esy) packages are those without esy configuration defined in
+  package.json.
+
+  The naive dependency solver works as in npm/yarn it tries to match each
+  dependency one-by-one preferring already resolved versions or the most recent
+  versions. Never backtracks.
+
+* New lockfile format.
+
+* Various fixes to semver version/constraint parsing and matching. Things are
+  more aligned with how node-semver works now.
+
 ## 0.1.21 @ preview
 
 * Change `devDependencies` to be installed as regular dependencies of the root
