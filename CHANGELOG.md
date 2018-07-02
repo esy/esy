@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.1.25 @ preview
+
+* esyi: Fix updating copies of opam-repository and esy-opam-override
+  repositories.
+
 ## 0.1.24 @ preview
 
 * Unpack `*.zip` archives with `unzip`.
