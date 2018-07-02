@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.1.24 @ preview
+
+* Unpack `*.zip` archives with `unzip`.
+
+* Remove debug artifacts by produced by `esyi` in sandbox directory.
+
 ## 0.1.23 @ preview
 
 * Fix resolving `git:` and `github:` package sources.
