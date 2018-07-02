@@ -184,7 +184,8 @@ module Version = struct
           in
           Ok {major; minor = 0; patch = 0; prerelease; build}
         | None ->
-          Error "unable to parse"
+          let msg = Printf.sprintf "invalid semver version: '%s'" version in
+          Error msg
         end
       end
 
