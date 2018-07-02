@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.23 @ preview
+
+* Fix resolving `git:` and `github:` package sources.
+
 ## 0.1.22 @ preview
 
 * `esyi` now uses naive dependency solver for npm (non-esy) packages.
