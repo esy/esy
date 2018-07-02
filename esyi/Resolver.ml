@@ -272,6 +272,15 @@ let resolve ~req resolver =
         errorResolvingReq req "cannot resolve commit"
     end in
     let version = Version.Source source in
+    let req =
+      let commit =
+        match source with
+        | Source.Git {commit;_} -> commit
+        | _ -> assert false
+      in
+      let source = SourceSpec.Git {remote;ref = Some commit;} in
+      Req.ofSpec ~name ~spec:(VersionSpec.Source source)
+    in
     return (req, [{Resolution. name; version}])
 
   | VersionSpec.Source SourceSpec.NoSource ->
