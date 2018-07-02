@@ -5,6 +5,7 @@ module type VERSION  = sig
   val show : t -> string
   val pp : Format.formatter -> t -> unit
   val parse : string -> (t, string) result
+  val prerelease : t -> bool
   val toString : t -> string
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
@@ -24,14 +25,35 @@ module Constraint = struct
       [@@deriving (yojson, show, eq)]
 
     let matches ~version constr  =
-      match constr with
-      | EQ a -> Version.compare a version = 0
-      | ANY -> true
-      | NONE -> false
-      | GT a -> Version.compare a version < 0
-      | GTE a -> Version.compare a version <= 0
-      | LT a -> Version.compare a version > 0
-      | LTE a -> Version.compare a version >= 0
+      match Version.prerelease version, constr with
+      | _, EQ a -> Version.compare a version = 0
+      | _, ANY -> true
+      | _, NONE -> false
+
+      | true, GT a ->
+        if Version.prerelease a
+        then Version.compare a version < 0
+        else false
+      | false, GT a -> Version.compare a version < 0
+
+      | true, GTE a ->
+        if Version.prerelease a
+        then Version.compare a version <= 0
+        else false
+      | false, GTE a -> Version.compare a version <= 0
+
+      | true, LT a ->
+        if Version.prerelease a
+        then Version.compare a version > 0
+        else false
+      | false, LT a -> Version.compare a version > 0
+
+      | true, LTE a ->
+        if Version.prerelease a
+        then Version.compare a version >= 0
+        else false
+
+      | false, LTE a -> Version.compare a version >= 0
 
     let rec toString constr =
       match constr with
@@ -187,6 +209,7 @@ let%test_module "Formula" = (module struct
     let compare = compare
     let pp = Fmt.int
     let show = string_of_int
+    let prerelease _ = false
     let parse v =
       match int_of_string_opt v with
       | Some v -> Ok v

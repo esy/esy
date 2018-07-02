@@ -51,6 +51,10 @@ module Version = struct
   let pp fmt v =
     Fmt.string fmt (toString v)
 
+  let prerelease v = match v.prerelease, v.build with
+  | [], [] -> false
+  | _, _ -> true
+
   module Parse = struct
     open Re
     let dot = char '.'
@@ -661,23 +665,28 @@ module Formula = struct
     let parse = Parse.disjunction ~parse:parseNpmRange
   end
 
-  let parse version =
-    try Ok (Parser.parse version)
+  let parse formula =
+    try Ok (Parser.parse formula)
     with
     | Failure message ->
       Error (
         "Failed with message: "
           ^ message
           ^ " : "
-          ^ version
+          ^ formula
       )
     | e ->
       Error (
-        "Invalid version! pretending its any: "
-        ^ version
+        "Invalid formula (pretending its any): "
+        ^ formula
         ^ " "
         ^ Printexc.to_string e
       )
+
+  let parseExn formula =
+    match parse formula with
+    | Ok f -> f
+    | Error err -> raise (Invalid_argument err)
 
   let%test_module "parse" = (module struct
 
@@ -820,6 +829,66 @@ module Formula = struct
     let%test "parsing" =
       let f passes (v, e) =
         passes && (expectParsesTo v e)
+      in
+      List.fold_left ~f ~init:true cases
+
+  end)
+
+  let%test_module "matches" = (module struct
+
+    let expectMatches m v f =
+      let pf = parseExn f in
+      let pv = Version.parseExn v in
+      if m = DNF.matches ~version:pv pf
+      then true
+      else begin
+        let m = if m then "TO MATCH" else "NOT TO MATCH" in
+        Format.printf "Expected %s %s %s\n" v m f;
+        false
+      end
+
+
+    let cases = [
+      true, "1.0.0", "1.0.0";
+      false, "1.0.1", "1.0.0";
+
+      true, "1.0.0", ">=1.0.0";
+      true, "1.0.0", "<=1.0.0";
+
+      true, "0.9.0", "<=1.0.0";
+      true, "0.9.0", "<1.0.0";
+      false, "1.1.0", "<=1.0.0";
+      false, "1.1.0", "<1.0.0";
+
+      true, "1.1.0", ">=1.0.0";
+      true, "1.1.0", ">1.0.0";
+      false, "0.9.0", ">=1.0.0";
+      false, "1.0.0", ">1.0.0";
+
+      true, "1.0.0", "1.0.0 - 1.1.0";
+      true, "1.1.0", "1.0.0 - 1.1.0";
+      false, "0.9.0", "1.0.0 - 1.1.0";
+      false, "1.2.0", "1.0.0 - 1.1.0";
+
+      (* prereleases *)
+      true, "1.0.0-alpha", "1.0.0-alpha";
+      false, "1.0.0-alpha", ">1.0.0";
+      false, "1.0.0-alpha", ">=1.0.0";
+      false, "1.0.0-alpha", "<1.0.0";
+      false, "1.0.0-alpha", "<=1.0.0";
+
+      true, "1.0.0-alpha", ">=1.0.0-alpha";
+      true, "1.0.0-alpha", "<=1.0.0-alpha";
+
+      true, "1.0.0-alpha.2", ">=1.0.0-alpha.1";
+      true, "1.0.0-alpha.2", ">1.0.0-alpha.1";
+      true, "1.0.0-alpha.1", "<=1.0.0-alpha.2";
+      true, "1.0.0-alpha.1", "<1.0.0-alpha.2";
+      ]
+
+    let%test "parsing" =
+      let f passes (m, v, f) =
+        (expectMatches m v f) && passes
       in
       List.fold_left ~f ~init:true cases
 
