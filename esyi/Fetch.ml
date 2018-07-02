@@ -89,8 +89,39 @@ module Layout = struct
   let pp_installation fmt installation =
     Record.pp fmt installation.record
 
-  (* This tries to flatten the solution as much as possible. *)
   let optimize (solution : Solution.t) =
+
+    let index =
+      let rec build root (deps, index) =
+        let rootDeps, index =
+          let f _name dep (deps, index) =
+            let deps, index = build dep (deps, index) in
+            let deps = Record.Set.add dep.Solution.record deps in
+            deps, index
+          in
+          StringMap.fold f root.Solution.dependencies (Record.Set.empty, index)
+        in
+        let index = Record.Map.add root.Solution.record rootDeps index in
+        let deps = Record.Set.union deps rootDeps in
+        deps, index
+      in
+      let _, index = build solution (Record.Set.empty, Record.Map.empty) in
+      index
+    in
+
+    let canMove dep dest =
+      let aux (record : Record.t) =
+        match StringMap.find record.name dest with
+        | None -> true
+        | Some edep ->
+          Record.equal record edep.Solution.record
+      in
+      aux dep.Solution.record && (
+        match Record.Map.find_opt dep.Solution.record index with
+        | Some deps -> Record.Set.for_all aux deps
+        | None -> true
+      )
+    in
 
     let move ~dep (orig, dest) =
       let name = dep.Solution.record.name in
@@ -99,28 +130,33 @@ module Layout = struct
       orig, dest
     in
 
-    let rec optDependencies rootname (root : Solution.t) (dependencies : Solution.t StringMap.t) =
+    let rec optDependencies name (root : Solution.t) (parentDependencies : Solution.t StringMap.t) =
       let root = optRoot root in
-      let rootDependencies, dependencies =
-        let f depname dep (rootDependencies, dependencies) =
-          match StringMap.find depname dependencies with
-          | None ->
-            move ~dep (rootDependencies, dependencies)
-          | Some edep ->
-            if Record.equal dep.Solution.record edep.Solution.record
-            then move ~dep (rootDependencies, dependencies)
-            else rootDependencies, dependencies
+
+      let dependencies, parentDependencies =
+        let f _name dep (dependencies, parentDependencies) =
+          if canMove dep parentDependencies
+          then move ~dep (dependencies, parentDependencies)
+          else dependencies, parentDependencies
         in
-        StringMap.fold f root.Solution.dependencies (root.Solution.dependencies, dependencies)
+        StringMap.fold
+          f
+          root.Solution.dependencies
+          (root.Solution.dependencies, parentDependencies)
       in
-      let root = {root with dependencies = rootDependencies} in
-      let dependencies = StringMap.add rootname root dependencies in
-      dependencies
+
+      let root = {root with dependencies} in
+      let parentDependencies = StringMap.add name root parentDependencies in
+      root, parentDependencies
 
     and optRoot (root : Solution.t) =
       let dependencies =
+        let f name dep dependencies =
+          let _ ,dependencies = optDependencies name dep dependencies
+          in dependencies
+        in
         StringMap.fold
-          optDependencies
+          f
           root.dependencies
           root.dependencies
       in
@@ -329,6 +365,7 @@ module Layout = struct
       )
 
     let%test "optimize11" =
+      let optimize = optimize in
       let s = make "root" "1.0.0" [
         make "a" "1.0.0" [
           make "bb" "1.0.0" [
@@ -349,6 +386,51 @@ module Layout = struct
           make "b" "1.0.0" [
             make "bb" "2.0.0" [];
             make "dep" "2.0.0" [];
+          ];
+        ]
+      )
+
+    let%test "optimize12" =
+      let optimize = optimize in
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "aa" "1.0.0" [
+            make "dep" "2.0.0" [];
+          ];
+        ];
+        make "dep" "1.0.0" [];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [
+            make "aa" "1.0.0" [];
+            make "dep" "2.0.0" [];
+          ];
+          make "dep" "1.0.0" [];
+        ]
+      )
+
+    let%test "optimize13" =
+      let optimize = optimize in
+      let s = make "root" "1.0.0" [
+        make "a" "1.0.0" [
+          make "bb" "1.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+        make "b" "1.0.0" [
+          make "bb" "2.0.0" [
+            make "dep" "1.0.0" [];
+          ]
+        ];
+      ] in
+      Solution.equal (optimize s) (
+        make "root" "1.0.0" [
+          make "a" "1.0.0" [];
+          make "bb" "1.0.0" [];
+          make "dep" "1.0.0" [];
+          make "b" "1.0.0" [
+            make "bb" "2.0.0" [];
           ];
         ]
       )
@@ -453,6 +535,10 @@ let runLifecycle ~installation ~(manifest : Manifest.t) () =
 
 let isInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
+  let%bind () =
+    let json = Solution.to_yojson (Layout.optimize solution) in
+    Fs.writeJsonFile ~json Path.(cfg.basePath / "esyi.layout.json")
+  in
   let layout = Layout.ofSolution ~path:cfg.basePath solution in
   let f installed {Layout.path;_} =
     if not installed

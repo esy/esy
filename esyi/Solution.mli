@@ -49,6 +49,7 @@ val findDependency : name:string -> t -> t option
 val fold : f:('a -> Record.t -> 'a) -> init:'a -> t -> 'a
 val equal : t -> t -> bool
 val pp : Format.formatter -> t -> unit
+val to_yojson : t -> Json.t
 
 (** This is an on disk format for storing solutions. *)
 module LockfileV1 : sig

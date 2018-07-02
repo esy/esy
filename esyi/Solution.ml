@@ -36,7 +36,7 @@ end
 
 
 [@@@ocaml.warning "-32"]
-type solution = t [@@deriving (eq)]
+type solution = t [@@deriving (to_yojson, eq)]
 
 and t = root
 
@@ -46,11 +46,11 @@ and root = {
 }
 
 let rec pp fmt root =
-  let ppItem = Fmt.(pair string pp) in
+  let ppItem = Fmt.(pair nop pp) in
   Fmt.pf fmt
     "@[<v 2>%a@\n%a@]"
     Record.pp root.record
-    (StringMap.pp ~sep:(Fmt.unit "@\n") ppItem) root.dependencies
+    (StringMap.pp ppItem) root.dependencies
 
 let make record dependencies =
   let dependencies =
