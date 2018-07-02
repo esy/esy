@@ -15,6 +15,7 @@ install:
     - npm run temp:find-npm
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
+    - npm run bootstrap:esy-install:install
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
