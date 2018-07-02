@@ -7,9 +7,9 @@
  *)
 module Record : sig
   type t = {
-    name: string ;
-    version: PackageInfo.Version.t ;
-    source: PackageInfo.Source.t ;
+    name: string;
+    version: PackageInfo.Version.t;
+    source: PackageInfo.Source.t;
 
     (**
     * We store OpamInfo.t as part of the lockfile as we want to lock against:
@@ -23,6 +23,8 @@ module Record : sig
   val pp : t Fmt.t
   val equal : t -> t -> bool
 
+  val ofPackage : Package.t -> t
+
   module Map : Map.S with type key := t
   module Set : Set.S with type elt := t
 end
@@ -30,26 +32,38 @@ end
 (**
  * This represent an isolated dependency root.
  *)
-type t
+type t = root
 
-val make : Package.t -> t list -> t
+and root = {
+  record: Record.t;
+  dependencies: root StringMap.t;
+}
+
+val make : Record.t -> t list -> t
 
 val record : t -> Record.t
 val dependencies : t -> t list
 
+val findDependency : name:string -> t -> t option
+
 val fold : f:('a -> Record.t -> 'a) -> init:'a -> t -> 'a
+val equal : t -> t -> bool
+val pp : Format.formatter -> t -> unit
+val to_yojson : t -> Json.t
 
-(**
- * Write solution to disk as a lockfile.
- *)
-val toFile : cfg:Config.t -> manifest:PackageJson.t -> solution:t -> Fpath.t -> unit RunAsync.t
+(** This is an on disk format for storing solutions. *)
+module LockfileV1 : sig
 
-(**
- * Read solution out of a lockfile.
- *
- * This returns None either if lockfiles doesn't exist or stale.
- *
- * NOTE: We probably want to make a distinction between "does not exist" and
- * "stale".
- *)
-val ofFile : cfg:Config.t -> manifest:PackageJson.t -> Fpath.t -> t option RunAsync.t
+  val toFile :
+    cfg:Config.t
+    -> manifest:Manifest.Root.t
+    -> solution:t
+    -> Fpath.t
+    -> unit RunAsync.t
+
+  val ofFile :
+    cfg:Config.t
+    -> manifest:Manifest.Root.t
+    -> Fpath.t
+    -> t option RunAsync.t
+end

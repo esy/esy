@@ -1,4 +1,4 @@
-open NpmVersion;
+open SemverVersion;
 
 module F = Formula;
 module C = Formula.Constraint;

@@ -11,7 +11,7 @@ module Record = struct
     opam: PackageInfo.OpamInfo.t option;
   } [@@deriving yojson]
 
-  let ofPkg (pkg : Package.t) = {
+  let ofPackage (pkg : Package.t) = {
     name = pkg.name;
     version = pkg.version;
     source = pkg.source;
@@ -34,37 +34,48 @@ module Record = struct
   module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
-type t = root
-[@@deriving yojson]
 
-(**
- * This represent an isolated dependency root.
- *)
+[@@@ocaml.warning "-32"]
+type solution = t [@@deriving (to_yojson, eq)]
+
+and t = root
+
 and root = {
   record: Record.t;
-  dependencies: root list;
+  dependencies: root StringMap.t;
 }
 
-and lockfile = {
-  rootDependenciesHash : string;
-  solution : t;
-}
+let rec pp fmt root =
+  let ppItem = Fmt.(pair nop pp) in
+  Fmt.pf fmt
+    "@[<v 2>%a@\n%a@]"
+    Record.pp root.record
+    (StringMap.pp ppItem) root.dependencies
 
 let make record dependencies =
-  {record = Record.ofPkg record; dependencies}
+  let dependencies =
+    let f map (root : t) =
+      StringMap.add root.record.name root map
+    in
+    List.fold_left ~f ~init:StringMap.empty dependencies
+  in
+  {record; dependencies}
 
 let record root = root.record
-let dependencies root = root.dependencies
+let dependencies root = StringMap.values root.dependencies
+
+let findDependency ~name root =
+  StringMap.find_opt name root.dependencies
 
 let fold ~f ~init solution =
-  let rec aux v root =
-    let v = List.fold_left ~f:aux ~init:v root.dependencies in
-    let v = f v root.record in
-    v
+  let rec aux r root =
+    let r = StringMap.fold (fun _k v r -> aux r v) root.dependencies r in
+    let r = f r root.record in
+    r
   in
   aux init solution
 
-let dependenciesHash (manifest : PackageJson.t) =
+let dependenciesHash (manifest : Manifest.Root.t) =
   let hashDependencies ~prefix ~dependencies digest =
     let f digest req =
      Digest.string (digest ^ "__" ^ prefix ^ "__" ^ Req.toString req)
@@ -84,21 +95,31 @@ let dependenciesHash (manifest : PackageJson.t) =
   let digest =
     Digest.string ""
     |> hashResolutions
-      ~resolutions:manifest.PackageJson.resolutions
+      ~resolutions:manifest.Manifest.Root.resolutions
     |> hashDependencies
       ~prefix:"dependencies"
-      ~dependencies:(Dependencies.toList manifest.PackageJson.dependencies)
-    |> hashDependencies
-      ~prefix:"buildDependencies"
-      ~dependencies:(Dependencies.toList manifest.PackageJson.buildDependencies)
+      ~dependencies:(Dependencies.toList manifest.manifest.dependencies)
     |> hashDependencies
       ~prefix:"devDependencies"
-      ~dependencies:(Dependencies.toList manifest.PackageJson.devDependencies)
+      ~dependencies:(Dependencies.toList manifest.manifest.devDependencies)
   in
   Digest.to_hex digest
 
-let mapSourceLocalPath ~f solution =
-  let mapRecord (record : Record.t) =
+module LockfileV1 = struct
+
+
+  type t = {
+    hash : string;
+    root : string;
+    node : node StringMap.t
+  }
+
+  and node = {
+    record : Record.t;
+    dependencies : string list;
+  } [@@deriving yojson]
+
+  let mapRecord ~f (record : Record.t) =
     let version =
       match record.version with
       | Version.Source (Source.LocalPath p) ->
@@ -117,45 +138,70 @@ let mapSourceLocalPath ~f solution =
       | Source.NoSource -> record.source
     in
     {record with source; version}
-  in
-  let rec mapRoot root = {
-    record = mapRecord root.record;
-    dependencies = List.map ~f:mapRoot root.dependencies;
-  }
-  in
-  mapRoot solution
 
-let relativize ~cfg sol =
-  let f path =
-    if Path.equal path cfg.Config.basePath
-    then Path.(v ".")
-    else match Path.relativize ~root:cfg.Config.basePath path with
-    | Some path -> path
-    | None -> path
-  in
-  mapSourceLocalPath ~f sol
+  let relativizeRecord ~cfg record =
+    let f path =
+      if Path.equal path cfg.Config.basePath
+      then Path.(v ".")
+      else match Path.relativize ~root:cfg.Config.basePath path with
+      | Some path -> path
+      | None -> path
+    in
+    mapRecord ~f record
 
-let derelativize ~cfg sol =
-  let f path = Path.append cfg.Config.basePath path in
-  mapSourceLocalPath ~f sol
+  let derelativize ~cfg record =
+    let f path = Path.append cfg.Config.basePath path in
+    mapRecord ~f record
 
-let ofFile ~cfg ~(manifest : PackageJson.t) (path : Path.t) =
-  let open RunAsync.Syntax in
-  if%bind Fs.exists path
-  then
-    let%bind json = Fs.readJsonFile path in
-    let%bind lockfile = RunAsync.ofRun (Json.parseJsonWith lockfile_of_yojson json) in
-    if lockfile.rootDependenciesHash = dependenciesHash manifest
+  let rec solutionOfLockfile ~cfg nodes id =
+    match StringMap.find id nodes with
+    | Some {record; dependencies} ->
+      let dependencies = List.map ~f:(solutionOfLockfile ~cfg nodes) dependencies in
+      let record = derelativize ~cfg record in
+      make record dependencies
+    | None -> raise (Invalid_argument "malformed lockfile")
+
+  let lockfileOfSolution ~cfg (root : solution) =
+    let nodes = StringMap.empty in
+    let rec aux nodes root =
+      let dependencies, nodes =
+        let f (dependencies, nodes) root =
+          let id, nodes = aux nodes root in
+          (id::dependencies, nodes)
+        in
+        List.fold_left ~f ~init:([], nodes) (dependencies root)
+      in
+      let record = record root in
+      let record = relativizeRecord ~cfg record in
+      let id = Format.asprintf "%s@%a" record.name Version.pp record.version in
+      let node = {record; dependencies} in
+      let nodes =
+        if StringMap.mem id nodes
+        then nodes
+        else StringMap.add id node nodes
+      in
+      id, nodes
+    in
+    aux nodes root
+
+  let ofFile ~cfg ~(manifest : Manifest.Root.t) (path : Path.t) =
+    let open RunAsync.Syntax in
+    if%bind Fs.exists path
     then
-      let solution = derelativize ~cfg lockfile.solution in
-      return (Some solution)
-    else return None
-  else
-    return None
+      let%bind json = Fs.readJsonFile path in
+      let%bind lockfile = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
+      if lockfile.hash = dependenciesHash manifest
+      then
+        let solution = solutionOfLockfile ~cfg lockfile.node lockfile.root in
+        return (Some solution)
+      else return None
+    else
+      return None
 
-let toFile ~cfg ~(manifest : PackageJson.t) ~(solution : t) (path : Path.t) =
-  let solution = relativize ~cfg solution in
-  let rootDependenciesHash = dependenciesHash manifest in
-  let lockfile = {rootDependenciesHash; solution} in
-  let json = lockfile_to_yojson lockfile in
-  Fs.writeJsonFile ~json path
+  let toFile ~cfg ~(manifest : Manifest.Root.t) ~(solution : solution) (path : Path.t) =
+    let root, node = lockfileOfSolution ~cfg solution in
+    let hash = dependenciesHash manifest in
+    let lockfile = {hash; node; root} in
+    let json = to_yojson lockfile in
+    Fs.writeJsonFile ~json path
+end

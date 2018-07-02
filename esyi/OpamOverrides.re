@@ -41,7 +41,7 @@ module Override = {
     peerDependencies:
       [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
     exportedEnv:
-      [@default PackageJson.ExportedEnv.empty] PackageJson.ExportedEnv.t,
+      [@default PackageInfo.ExportedEnv.empty] PackageInfo.ExportedEnv.t,
     opam: [@default Opam.empty] Opam.t,
   };
 };

@@ -7,6 +7,8 @@ type t = {
   opamRepository: checkout,
   npmRegistry: string,
   solveTimeout: float,
+  createProgressReporter:
+    (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
 and checkout =
   | Local(Path.t)
@@ -34,6 +36,7 @@ let make =
       ~esyOpamOverride=?,
       ~solveTimeout=8.0,
       ~esySolveCmd,
+      ~createProgressReporter,
       basePath,
     ) =>
   RunAsync.Syntax.(
@@ -69,6 +72,7 @@ let make =
         Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
       return({
+        createProgressReporter,
         esySolveCmd,
         basePath,
         lockfilePath: Path.(basePath / "esyi.lock.json"),

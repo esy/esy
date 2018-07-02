@@ -28,7 +28,7 @@ type t = {
   optDependencies: PackageInfo.Dependencies.t ;
   available: [ `IsNotAvailable  | `Ok ] ;
   source: PackageInfo.Source.t ;
-  exportedEnv: PackageJson.ExportedEnv.t
+  exportedEnv: PackageInfo.ExportedEnv.t
 }
 
 type 'v parser

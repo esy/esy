@@ -243,7 +243,7 @@ module Manifest = struct
     name : string;
     version : string;
     description : (string option [@default None]);
-    license : (string option [@default None]);
+    license : (Json.t option [@default None]);
     dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
     devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);

@@ -7,9 +7,10 @@ module Dist = struct
     source : PackageInfo.Source.t;
     tarballPath : Path.t;
   }
-end
 
-type dist = Dist.t
+  let pp fmt dist =
+    Fmt.pf fmt "%s@%a" dist.name PackageInfo.Version.pp dist.version
+end
 
 let packageKey (pkg : Solution.Record.t) =
   let version = PackageInfo.Version.toString pkg.version in
@@ -50,7 +51,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
       Fs.withTempDir f
 
-    | PackageInfo.Source.Github (user, repo, ref) ->
+    | PackageInfo.Source.Github github ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -58,7 +59,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
           let url =
             Printf.sprintf
               "https://api.github.com/repos/%s/%s/tarball/%s"
-              user repo ref
+              github.user github.repo github.commit
           in
           Curl.download ~output:tarballPath url
         in
@@ -67,9 +68,9 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
       Fs.withTempDir f
 
-    | PackageInfo.Source.Git (gitUrl, commit) ->
-      let%bind () = Git.clone ~dst:path ~remote:gitUrl () in
-      let%bind () = Git.checkout ~ref:commit ~repo:path () in
+    | PackageInfo.Source.Git git ->
+      let%bind () = Git.clone ~dst:path ~remote:git.remote () in
+      let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
       let%bind () = Fs.rmPath Path.(path / ".git") in
       return ()
     in
@@ -156,10 +157,8 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
           let%bind () = Fs.createDir sourcePath in
-          let%lwt () = Logs_lwt.app (fun m -> m "Fetching %s" name) in
           let%bind () = doFetch sourcePath in
           let%bind () = complete sourcePath in
-          let%lwt () = Logs_lwt.app (fun m -> m "Fetching %s: done" name) in
           return ()
         in
 

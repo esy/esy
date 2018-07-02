@@ -18,6 +18,9 @@ let toString v =
     | N (s, Some v) -> string_of_int s ^ aToString v
   in aToString v
 
+let prerelease _ = false
+let stripPrerelease v = v
+
 let%test_module "toString" = (module struct
 
   let%test "<empty>" = toString (A ("", None)) = ""

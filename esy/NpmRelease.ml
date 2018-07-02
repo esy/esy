@@ -6,7 +6,7 @@ module EsyReleaseConfig = Package.EsyReleaseConfig
 type config = {
   name : string;
   version : string;
-  license : string option;
+  license : Json.t option;
   description : string option;
   releasedBinaries : string list;
   deleteFromBinaryRelease : string list;
@@ -386,7 +386,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         ]
         in
         let items = match releaseCfg.license with
-        | Some license -> ("license", `String license)::items
+        | Some license -> ("license", license)::items
         | None -> items
         in
         let items = match releaseCfg.description with

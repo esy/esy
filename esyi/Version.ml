@@ -5,6 +5,8 @@ module type VERSION  = sig
   val show : t -> string
   val pp : Format.formatter -> t -> unit
   val parse : string -> (t, string) result
+  val prerelease : t -> bool
+  val stripPrerelease : t -> t
   val toString : t -> string
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
@@ -13,6 +15,9 @@ end
 (** Constraints over versions *)
 module Constraint = struct
   module Make (Version: VERSION) = struct
+
+    module VersionSet = Set.Make(Version)
+
     type t =
       | EQ of Version.t
       | GT of Version.t
@@ -21,17 +26,37 @@ module Constraint = struct
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving (yojson, show)]
+      [@@deriving (yojson, show, eq)]
 
-    let matches ~version constr  =
+    let matchesSimple ~version constr =
       match constr with
       | EQ a -> Version.compare a version = 0
       | ANY -> true
       | NONE -> false
+
       | GT a -> Version.compare a version < 0
       | GTE a -> Version.compare a version <= 0
       | LT a -> Version.compare a version > 0
       | LTE a -> Version.compare a version >= 0
+
+    let matches ~matchPrerelease ~version constr  =
+      match Version.prerelease version, constr with
+      | _, EQ _
+      | _, NONE
+      | false, ANY
+      | false, GT _
+      | false, GTE _
+      | false, LT _
+      | false, LTE _ -> matchesSimple ~version constr
+
+      | true, ANY
+      | true, GT _
+      | true, GTE _
+      | true, LT _
+      | true, LTE _ ->
+        if VersionSet.mem (Version.stripPrerelease version) matchPrerelease
+        then matchesSimple ~version constr
+        else false
 
     let rec toString constr =
       match constr with
@@ -61,9 +86,10 @@ module Formula = struct
   module Make (Version: VERSION) = struct
 
     module Constraint = Constraint.Make(Version)
+    module VersionSet = Constraint.VersionSet
 
-    type 'f conj = AND of 'f list [@@deriving (show, yojson)]
-    type 'f disj = OR of 'f list [@@deriving (show, yojson)]
+    type 'f conj = AND of 'f list [@@deriving (show, yojson, eq)]
+    type 'f disj = OR of 'f list [@@deriving (show, yojson, eq)]
 
     let any cond formulas =
       List.exists ~f:cond formulas
@@ -75,14 +101,36 @@ module Formula = struct
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving (show, yojson)]
+        [@@deriving (show, yojson, eq)]
 
       let unit constr =
         OR [AND [constr]]
 
       let matches ~version (OR formulas) =
         let matchesConj (AND formulas) =
-          every (Constraint.matches ~version) formulas
+          (* Within each conjunction we allow prelease versions to be matched
+           * but only those were mentioned in any of the constraints of the
+           * conjunction, so that:
+           *  1.0.0-alpha.2 matches >=1.0.0.alpha1
+           *  1.0.0-alpha.2 does not match >=0.9.0
+           *  1.0.0-alpha.2 does not match >=0.9.0 <2.0.0
+           *)
+          let matchPrerelease =
+            let f vs = function
+              | Constraint.NONE
+              | Constraint.ANY -> vs
+              | Constraint.EQ v
+              | Constraint.LTE v
+              | Constraint.LT v
+              | Constraint.GTE v
+              | Constraint.GT v ->
+                if Version.prerelease v
+                then VersionSet.add (Version.stripPrerelease v) vs
+                else vs
+            in
+            List.fold_left ~f ~init:VersionSet.empty formulas
+          in
+          every (Constraint.matches ~matchPrerelease ~version) formulas
         in
         any matchesConj formulas
 
@@ -166,6 +214,7 @@ module Formula = struct
         AND (List.map ~f:parse items)
 
       let disjunction ~parse version =
+        let version = String.trim version in
         let items = Str.split (Str.regexp " +|| +") version in
         let items = List.map ~f:parse items in
         let items =
@@ -186,6 +235,8 @@ let%test_module "Formula" = (module struct
     let compare = compare
     let pp = Fmt.int
     let show = string_of_int
+    let prerelease _ = false
+    let stripPrerelease v = v
     let parse v =
       match int_of_string_opt v with
       | Some v -> Ok v

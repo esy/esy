@@ -5,34 +5,35 @@ module Api = {
   let solve = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%lwt () = Logs_lwt.app(m => m("Resolving dependencies"));
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.ofPackageJson(
+            Package.ofManifest(
               ~version=
                 PackageInfo.Version.Source(
                   PackageInfo.Source.LocalPath(cfg.basePath),
                 ),
-              manifest,
+              manifest.manifest,
             ),
           );
         let%bind solution =
-          Solver.solve(
-            ~cfg,
-            ~resolutions=manifest.PackageJson.resolutions,
-            root,
-          );
-        Solution.toFile(~cfg, ~manifest, ~solution, cfg.lockfilePath);
+          Solver.solve(~cfg, ~resolutions=manifest.resolutions, root);
+        Solution.LockfileV1.toFile(
+          ~cfg,
+          ~manifest,
+          ~solution,
+          cfg.lockfilePath,
+        );
       }
     );
 
   let fetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%lwt () = Logs_lwt.app(m => m("Fetching dependencies"));
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
+        switch%bind (
+          Solution.LockfileV1.ofFile(~cfg, ~manifest, cfg.lockfilePath)
+        ) {
         | Some(solution) =>
           let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
           Fetch.fetch(~cfg, solution);
@@ -44,21 +45,21 @@ module Api = {
   let printCudfUniverse = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.ofPackageJson(
+            Package.ofManifest(
               ~version=
                 PackageInfo.Version.Source(
                   PackageInfo.Source.LocalPath(cfg.basePath),
                 ),
-              manifest,
+              manifest.Manifest.Root.manifest,
             ),
           );
         let%bind solver =
           Solver.make(
             ~cfg,
-            ~resolutions=manifest.PackageJson.resolutions,
+            ~resolutions=manifest.Manifest.Root.resolutions,
             (),
           );
         let%bind (solver, _) =
@@ -72,10 +73,12 @@ module Api = {
   let solveAndFetch = (cfg: Config.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = PackageJson.ofDir(cfg.basePath);
-        switch%bind (Solution.ofFile(~cfg, ~manifest, cfg.lockfilePath)) {
+        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
+        switch%bind (
+          Solution.LockfileV1.ofFile(~cfg, ~manifest, cfg.lockfilePath)
+        ) {
         | Some(solution) =>
-          if%bind (Fetch.check(~cfg, solution)) {
+          if%bind (Fetch.isInstalled(~cfg, solution)) {
             return();
           } else {
             fetch(cfg);
@@ -245,8 +248,20 @@ module CommandLineInterface = {
         };
       let%bind esySolveCmd =
         resolve("esy-solve-cudf/esySolveCudfCommand.exe");
+      let createProgressReporter = (~name, ()) => {
+        let progress = msg => {
+          let status = Format.asprintf(".... %s %s", name, msg);
+          Cli.Progress.setStatus(status);
+        };
+        let finish = () => {
+          let%lwt () = Cli.Progress.clearStatus();
+          Logs_lwt.app(m => m("%s: done", name));
+        };
+        (progress, finish);
+      };
       Config.make(
         ~esySolveCmd,
+        ~createProgressReporter,
         ~cachePath?,
         ~npmRegistry?,
         ~opamRepository?,
@@ -358,7 +373,7 @@ module CommandLineInterface = {
 
   let run = () => {
     Printexc.record_backtrace(true);
-    Term.(exit(eval_choice(~argv=Sys.argv, defaultCommand, commands)));
+    Term.(exit(Cli.eval(~defaultCommand, ~commands, ())));
   };
 };
 

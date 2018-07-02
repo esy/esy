@@ -5,8 +5,8 @@
 module Source : sig
   type t =
       Archive of string * string
-    | Git of string * string
-    | Github of string * string * string
+    | Git of {remote : string; commit : string}
+    | Github of {user : string; repo : string; commit : string}
     | LocalPath of Fpath.t
     | NoSource
 
@@ -16,6 +16,7 @@ module Source : sig
   val to_yojson : t -> [> `String of string ]
   val of_yojson : Json.t -> (t, string) result
 
+  val pp : t Fmt.t
   val equal : t -> t -> bool
 end
 
@@ -24,7 +25,7 @@ end
  *)
 module Version : sig
   type t =
-      Npm of NpmVersion.Version.t
+      Npm of SemverVersion.Version.t
     | Opam of DebianVersion.t
     | Source of Source.t
 
@@ -49,12 +50,13 @@ end
 module SourceSpec : sig
   type t =
       Archive of string * string option
-    | Git of string * string option
-    | Github of string * string * string option
+    | Git of {remote : string; ref : string option}
+    | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Fpath.t
     | NoSource
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
+  val pp : t Fmt.t
 end
 
 (**
@@ -63,7 +65,7 @@ end
  *)
 module VersionSpec : sig
   type t =
-      Npm of NpmVersion.Formula.DNF.t
+      Npm of SemverVersion.Formula.DNF.t
     | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
   val toString : t -> string
@@ -129,6 +131,16 @@ module Resolutions : sig
 
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
+end
+
+module ExportedEnv : sig
+  type t = item list
+  and item = { name : string; value : string; scope : scope; }
+  and scope = [ `Global | `Local ]
+
+  val empty : t
+  val of_yojson : t Json.decoder
+  val to_yojson : t Json.encoder
 end
 
 module OpamInfo : sig

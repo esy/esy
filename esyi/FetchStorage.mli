@@ -2,7 +2,10 @@
  * Package storage.
  *)
 
-type dist
+module Dist : sig
+  type t
+  val pp : Format.formatter -> t -> unit
+end
 
 (**
  * Make sure package specified by [name], [version] and [source] is in store and
@@ -11,7 +14,7 @@ type dist
 val fetch :
   cfg : Config.t
   -> Solution.Record.t
-  -> dist RunAsync.t
+  -> Dist.t RunAsync.t
 
 (**
  * Install package from storage into destination.
@@ -19,5 +22,5 @@ val fetch :
 val install :
   cfg : Config.t
   -> path : Path.t
-  -> dist
+  -> Dist.t
   -> unit RunAsync.t
