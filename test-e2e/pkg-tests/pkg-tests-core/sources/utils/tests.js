@@ -409,9 +409,12 @@ type Layout = {
   dependencies: {[name: string]: Layout},
 };
 
-exports.crawlLayout = async function crawlLayout(directory: string): Promise<Layout> {
+exports.crawlLayout = async function crawlLayout(directory: string): Promise<?Layout> {
   const packageJsonPath = path.join(directory, 'package.json');
   const nodeModulesPath = path.join(directory, 'node_modules');
+  if (!await fsUtils.exists(packageJsonPath)) {
+    return null;
+  }
   const packageJson = await fsUtils.readJson(packageJsonPath);
   const dependencies = {};
 
@@ -421,7 +424,9 @@ exports.crawlLayout = async function crawlLayout(directory: string): Promise<Lay
       items.map(async name => {
         const depDirectory = path.join(directory, 'node_modules', name);
         const dep = await crawlLayout(depDirectory);
-        dependencies[dep.name] = dep;
+        if (dep != null) {
+          dependencies[dep.name] = dep;
+        }
       }),
     );
   }

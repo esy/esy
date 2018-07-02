@@ -20,6 +20,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
+          esy: true,
           dependencies: {[`no-deps`]: `1.0.0`},
         },
         async ({path, run, source}) => {
@@ -39,6 +40,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
+          esy: true,
           dependencies: {[`one-fixed-dep`]: `1.0.0`},
         },
         async ({path, run, source}) => {
@@ -64,6 +66,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
+          esy: true,
           dependencies: {[`one-range-dep`]: `1.0.0`},
         },
         async ({path, run, source}) => {
@@ -89,16 +92,19 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
+          esy: true,
           dependencies: {'dep-via-resolution': `1.0.0`},
           resolutions: {'dep-via-resolution': `2.0.0`},
         },
         async ({path, run, source}) => {
           await definePackage({
             name: 'dep-via-resolution',
+            esy: true,
             version: '1.0.0',
           });
           await definePackage({
             name: 'dep-via-resolution',
+            esy: true,
             version: '2.0.0',
           });
 
@@ -121,20 +127,24 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           name: 'root',
           version: '1.0.0',
           dependencies: {apkg: `1.0.0`},
+          esy: true,
           resolutions: {'apkg-dep': `2.0.0`},
         },
         async ({path, run, source}) => {
           await definePackage({
             name: 'apkg',
             version: '1.0.0',
+            esy: true,
             dependencies: {'apkg-dep': `1.0.0`},
           });
           await definePackage({
             name: 'apkg-dep',
+            esy: true,
             version: '1.0.0',
           });
           await definePackage({
             name: 'apkg-dep',
+            esy: true,
             version: '2.0.0',
           });
 
