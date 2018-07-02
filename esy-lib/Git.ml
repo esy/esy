@@ -93,7 +93,7 @@ module ShallowClone = struct
     if%bind Fs.exists dst then
 
       let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
-      and localCommit = lsRemote ~ref:branch ~remote:source () in
+      and localCommit = lsRemote ~ref:branch ~remote:(Path.toString dst) () in
 
       if remoteCommit = localCommit
       then return ()
