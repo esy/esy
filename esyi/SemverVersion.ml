@@ -55,6 +55,8 @@ module Version = struct
   | [], [] -> false
   | _, _ -> true
 
+  let stripPrerelease v = {v with prerelease = []; build = []}
+
   module Parse = struct
     open Re
     let dot = char '.'
@@ -878,12 +880,18 @@ module Formula = struct
       false, "1.0.0-alpha", "<=1.0.0";
 
       true, "1.0.0-alpha", ">=1.0.0-alpha";
+      true, "1.0.0-alpha", ">=1.0.0-alpha < 2.0.0";
+      true, "1.0.0-alpha.2", ">1.0.0-alpha.1 < 2.0.0";
+      true, "1.0.0-alpha", ">0.1.0 <=1.0.0-alpha";
+      true, "1.0.0-alpha.1", ">0.1.0 <1.0.0-alpha.2";
       true, "1.0.0-alpha", "<=1.0.0-alpha";
 
       true, "1.0.0-alpha.2", ">=1.0.0-alpha.1";
       true, "1.0.0-alpha.2", ">1.0.0-alpha.1";
       true, "1.0.0-alpha.1", "<=1.0.0-alpha.2";
       true, "1.0.0-alpha.1", "<1.0.0-alpha.2";
+
+      false, "2.0.0-alpha", ">=1.0.0 < 3.0.0";
       ]
 
     let%test "parsing" =

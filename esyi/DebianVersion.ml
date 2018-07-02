@@ -19,6 +19,7 @@ let toString v =
   in aToString v
 
 let prerelease _ = false
+let stripPrerelease v = v
 
 let%test_module "toString" = (module struct
 
