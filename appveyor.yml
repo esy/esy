@@ -9,22 +9,18 @@ install:
     - npm install -g yarn
     - git submodule update
     - git submodule init
-    - rimraf C:\cygwin
-    - rimraf C:\cygwin64
-    - rimraf C:\mingw-w64
-    - rimraf C:\MinGw
-    - npm install
-    - npm run temp:find-npm
-    - npm run bootstrap:install-opam
-    - npm run bootstrap:install-dependencies
-    - npm run bootstrap:esy-install:install
+    - yarn install
+    - yarn run temp:find-npm
+    - yarn run bootstrap:install-opam
+    - yarn run bootstrap:install-dependencies
+    - yarn run bootstrap:esy-install:install
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
     - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm
-    - npm run temp:cygwin:check-dll
-    - npm run bootstrap:build
+    - yarn run temp:cygwin:check-dll
+    - yarn run bootstrap:build
 
 artifacts:
     - path: _release
