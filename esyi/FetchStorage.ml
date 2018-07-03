@@ -28,10 +28,10 @@ let packageKey (pkg : Solution.Record.t) =
     in
     Printf.sprintf "%s__%s__%s" pkg.name version opamHash
 
-let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} as dist) =
+let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} as record) =
   let open RunAsync.Syntax in
 
-  let key = packageKey dist in
+  let key = packageKey record in
 
   let doFetch path =
     match source with
