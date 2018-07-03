@@ -7,7 +7,7 @@ PROJECTS = esy esy-build-package esyi
 VERSION = $(shell node -p "require('./package.json').version")
 PLATFORM = $(shell uname | tr '[A-Z]' '[a-z]')
 NPM_RELEASE_TAG ?= latest
-ESY_RELEASE_TAG ?= $(VERSION)
+ESY_RELEASE_TAG ?= v$(VERSION)
 
 #
 # Tools
