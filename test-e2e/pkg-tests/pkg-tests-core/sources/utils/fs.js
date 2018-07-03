@@ -11,6 +11,7 @@ const zlib = require('zlib');
 
 const miscUtils = require('./misc');
 
+exports.mkdir = fs.mkdirp;
 exports.stat = fs.stat;
 exports.readdir = fs.readdir;
 exports.exists = fs.exists;
