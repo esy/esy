@@ -126,6 +126,7 @@ RELEASE_FILES = \
 	platform-linux \
 	platform-darwin \
 	bin/esy \
+	bin/esyi \
 	bin/esyInstallRelease.js \
 	postinstall.js \
 	LICENSE \
@@ -142,7 +143,7 @@ release:
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
 
-$(RELEASE_ROOT)/bin/esy:
+$(RELEASE_ROOT)/bin/esy $(RELEASE_ROOT)/bin/esyi:
 	@mkdir -p $(@D)
 	@echo "#!/bin/sh\necho 'error: esy is not installed correctly...'; exit 1" > $(@)
 	@chmod +x $(@)
@@ -178,11 +179,12 @@ console.log(
 			postinstall: "node ./postinstall.js"
 		},
 		bin: {
-			esy: "./_build/default/esy/bin/esyCommand.exe",
-			esyi: "./_build/default/esyi/bin/esyi.exe"
+			esy: "bin/esy",
+			esyi: "bin/esyi"
 		},
 		files: [
 			"bin/",
+			"postinstall.js",
 			"platform-linux/",
 			"platform-darwin/"
 		]
@@ -205,6 +207,22 @@ switch (platform) {
       path.join(__dirname, 'platform-' + platform, '_build'),
       path.join(__dirname, '_build')
     );
+    fs.renameSync(
+      path.join(__dirname, 'platform-' + platform, 'bin', 'fastreplacestring'),
+      path.join(__dirname, 'bin', 'fastreplacestring')
+    );
+
+    fs.unlinkSync(path.join(__dirname, 'bin', 'esy'));
+    fs.symlinkSync(
+      path.join(__dirname, '_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
+      path.join(__dirname, 'bin', 'esy')
+  	);
+
+		fs.unlinkSync(path.join(__dirname, 'bin', 'esyi'));
+    fs.symlinkSync(
+      path.join(__dirname, '_build', 'default', 'esyi', 'bin', 'esyi.exe'),
+      path.join(__dirname, 'bin', 'esyi')
+  	);
     break;
   default:
     console.warn("error: no release built for the " + platform + " platform");
