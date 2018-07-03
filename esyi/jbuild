@@ -4,7 +4,7 @@
  ((name EsyInstaller)
   (public_name esyi)
   (preprocess (pps (
-                    lwt.ppx ppx_let
+                    lwt_ppx ppx_let
                     ppx_deriving.std
                     ppx_deriving_yojson
                     ppxlib
