@@ -18,7 +18,7 @@ install:
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
-    - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm
+    - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\appveyor\esy\node_modules\esy-bash\.cygwin\bin
     - npm run temp:ocamlfind
     - npm run temp:cygwin:check-dll
     - npm run bootstrap:build
