@@ -10,10 +10,10 @@ install:
     - git submodule update
     - git submodule init
     - yarn install
+    - yarn run bootstrap:esy-install
     - yarn run temp:find-npm
     - yarn run bootstrap:install-opam
     - yarn run bootstrap:install-dependencies
-    - yarn run bootstrap:esy-install:install
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
