@@ -1,12 +1,24 @@
 # CHANGELOG
 
-## 0.1.26 @ preview
+## 0.1.28 @ preview
+
+* Fix mystical "unable to stat" error.
+
+  This was caused by sandbox staleness cache check which wasn't robust against
+  removal of manifests from sandbox. This usually happens when you switch
+  between branches.
+
+## 0.1.27 @ preview
 
 * esyi: add support for `link:` package sources.
 
 * esy releases are now built on CI automatically for all tagged commits. The
   release process is still manual via `make release` which downloads those built
   artifacts from CI.
+
+## 0.1.26 @ preview
+
+This release was broken and was unpublished, use 0.1.27 instead.
 
 ## 0.1.25 @ preview
 
