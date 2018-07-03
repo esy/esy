@@ -4,6 +4,10 @@
 
 * esyi: add support for `link:` package sources.
 
+* esy releases are now built on CI automatically for all tagged commits. The
+  release process is still manual via `make release` which downloads those built
+  artifacts from CI.
+
 ## 0.1.25 @ preview
 
 * esyi: Fix updating copies of opam-repository and esy-opam-override
