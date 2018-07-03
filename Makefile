@@ -117,75 +117,38 @@ ci:: test
 RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
-	bin/fastreplacestring-darwin \
-	bin/fastreplacestring-linux \
 	bin/esy-install.js \
 	bin/esyInstallRelease.js \
 	scripts/postinstall.sh \
 	package.json \
-	_build/default/esy-build-package/bin/esyBuildPackageCommand-darwin.exe \
-	_build/default/esyi/bin/esyi-darwin.exe \
-	_build/default/esy/bin/esyCommand-darwin.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy/bin/esyCommand.exe \
-	_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe \
-	_build/default/esyi/bin/esyi-linux.exe \
-	_build/default/esy/bin/esyCommand-linux.exe
 
 build-release:
 	@$(MAKE) build
-	@$(MAKE) -C linux-build build
 	@$(MAKE) build-release-copy-artifacts
 
 build-release-copy-artifacts:
 	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
 
-$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand-darwin.exe:
+$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy/bin/esyCommand.exe $(@)
 
-$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-darwin.exe:
+$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
-$(RELEASE_ROOT)/_build/default/esyi/bin/esyi-darwin.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esyi/bin/esyi.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand-linux.exe:
-	@mkdir -p $(@D)
-	@cp linux-build/esyCommand.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand-linux.exe:
-	@mkdir -p $(@D)
-	@cp linux-build/esyBuildPackageCommand.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esyi/bin/esyi-linux.exe:
-	@mkdir -p $(@D)
-	@cp linux-build/esyi.exe $(@)
-
-$(RELEASE_ROOT)/bin/fastreplacestring-linux:
-	@mkdir -p $(@D)
-	@cp linux-build/fastreplacestring.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
-	@mkdir -p $(@D)
-	@touch $(@)
-
-$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
-	@mkdir -p $(@D)
-	@touch $(@)
-
 $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
 	@mkdir -p $(@D)
-	@touch $(@)
+	@cp _build/default/esyi/bin/esyi.exe $(@)
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
 
-$(RELEASE_ROOT)/bin/fastreplacestring-darwin:
+$(RELEASE_ROOT)/bin/fastreplacestring:
 	@mkdir -p $(@D)
 	@cp $$(esy which fastreplacestring) $(@)
 
