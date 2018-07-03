@@ -10,7 +10,7 @@ install:
     - git submodule update
     - git submodule init
     - npm install
-    - npm run bootstrap:esy-install
+    - yarn run bootstrap:esy-install
     - npm run temp:find-npm
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
