@@ -4,8 +4,8 @@
 /_export
 /_build
 /_release
+/_platformrelease
 /bin/fastreplacestring
-/bin/esyConfig.sh
 .merlin
 npm-debug.log
 yarn-error.log
