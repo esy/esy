@@ -21,6 +21,7 @@ build_script:
     - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm
     - npm run temp:cygwin:check-dll
     - npm run bootstrap:build
+    - C:\appveyor\esy\_release\_build\default\esy\bin\esyCommand.exe help
 
 artifacts:
     - path: _release
