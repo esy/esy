@@ -4,7 +4,7 @@
 
 open Esy
 
-type t = {
+type t = private {
   sandbox : Sandbox.t;
   task : Task.t;
   commandEnv : Environment.t;
