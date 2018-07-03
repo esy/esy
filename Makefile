@@ -2,11 +2,12 @@
 
 ESY_EXT := $(shell command -v esy 2> /dev/null)
 
-RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
 PROJECTS = esy esy-build-package esyi
 VERSION = $(shell node -p "require('./package.json').version")
 PLATFORM = $(shell uname | tr '[A-Z]' '[a-z]')
+NPM_RELEASE_TAG ?= latest
+ESY_RELEASE_TAG ?= $(VERSION)
 
 #
 # Tools
@@ -83,6 +84,10 @@ b: build-dev
 build-dev:
 	@esy b jbuilder build -j 4 --dev $(TARGETS)
 
+refmt::
+	@find $(PROJECTS) -name '*.re' \
+		| xargs -n1 esy refmt --in-place --print-width 80
+
 #
 # Test
 #
@@ -117,18 +122,115 @@ ci:: test
 #
 
 RELEASE_ROOT = _release
+RELEASE_FILES = \
+	platform-linux \
+	platform-darwin \
+	bin/esy \
+	bin/esyInstallRelease.js \
+	postinstall.js \
+	LICENSE \
+	README.md \
+	package.json \
+	bin/esy-install.js
 
-PLATFORM_RELEASE_TAG ?= $(VERSION)
-PLATFORM_RELEASE_NAME = esy-$(PLATFORM_RELEASE_TAG)-$(PLATFORM).tgz
-PLATFORM_RELEASE_ROOT = $(RELEASE_ROOT)/$(PLATFORM)
+release:
+	@echo "Creating $(ESY_RELEASE_TAG) release"
+	@rm -rf $(RELEASE_ROOT)
+	@mkdir -p $(RELEASE_ROOT)
+	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
+
+$(RELEASE_ROOT)/bin/esy-install.js:
+	@$(MAKE) -C esy-install BUILD=../$(@) build
+
+$(RELEASE_ROOT)/bin/esy:
+	@mkdir -p $(@D)
+	@echo "#!/bin/sh\necho 'error: esy is not installed correctly...'; exit 1" > $(@)
+	@chmod +x $(@)
+
+$(RELEASE_ROOT)/%: $(PWD)/%
+	@mkdir -p $(@D)
+	@cp $(<) $(@)
+
+$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin: PLATFORM=$(@:$(RELEASE_ROOT)/platform-%=%)
+$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin:
+	@wget \
+		-q --show-progress \
+		-O $(PLATFORM).tgz \
+		'https://github.com/esy/esy/releases/download/$(ESY_RELEASE_TAG)/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz'
+	@mkdir $(@)
+	@tar -xzf $(PLATFORM).tgz -C $(@)
+	@rm $(PLATFORM).tgz
+
+define MAKE_PACKAGE_JSON
+let esyJson = require('./esy.json');
+console.log(
+  JSON.stringify({
+		name: esyJson.name,
+		version: esyJson.version,
+		license: esyJson.license,
+		description: esyJson.description,
+		repository: esyJson.repository,
+		dependencies: {
+			"@esy-ocaml/esy-opam": esyJson.dependencies["@esy-ocaml/esy-opam"],
+			"esy-solve-cudf": esyJson.dependencies["esy-solve-cudf"]
+		},
+		scripts: {
+			postinstall: "node ./postinstall.js"
+		},
+		bin: {
+			esy: "./_build/default/esy/bin/esyCommand.exe",
+			esyi: "./_build/default/esyi/bin/esyi.exe"
+		},
+		files: [
+			"bin/",
+			"platform-linux/",
+			"platform-darwin/"
+		]
+	}, null, 2));
+endef
+export MAKE_PACKAGE_JSON
+
+$(RELEASE_ROOT)/package.json:
+	@node -e "$$MAKE_PACKAGE_JSON" > $(@)
+
+define POSTINSTALL_JS
+var path = require('path');
+var fs = require('fs');
+var platform = process.platform;
+
+switch (platform) {
+  case 'linux':
+  case 'darwin':
+    fs.renameSync(
+      path.join(__dirname, 'platform-' + platform, '_build'),
+      path.join(__dirname, '_build')
+    );
+    break;
+  default:
+    console.warn("error: no release built for the " + platform + " platform");
+    process.exit(1);
+}
+endef
+export POSTINSTALL_JS
+
+$(RELEASE_ROOT)/postinstall.js:
+	@echo "$$POSTINSTALL_JS" > $(@)
+
+#
+# Platform Specific Release
+#
+
+PLATFORM_RELEASE_NAME = _platformrelease/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz
+PLATFORM_RELEASE_ROOT = _platformrelease/$(PLATFORM)
 PLATFORM_RELEASE_FILES = \
+	bin/fastreplacestring \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy/bin/esyCommand.exe \
 
-platform-release: $(RELEASE_ROOT)/$(PLATFORM_RELEASE_NAME)
+platform-release: $(PLATFORM_RELEASE_NAME)
 
-$(RELEASE_ROOT)/$(PLATFORM_RELEASE_NAME): $(PLATFORM_RELEASE_FILES)
+$(PLATFORM_RELEASE_NAME): $(PLATFORM_RELEASE_FILES)
 	@echo "Creating $(PLATFORM_RELEASE_NAME)"
 	@rm -rf $(PLATFORM_RELEASE_ROOT)
 	@$(MAKE) $(^:%=$(PLATFORM_RELEASE_ROOT)/%)
@@ -147,30 +249,16 @@ $(PLATFORM_RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esyi/bin/esyi.exe $(@)
 
-RELEASE_FILES = \
-	bin/esy \
-	bin/esy-install.js \
-	bin/esyInstallRelease.js \
-	scripts/postinstall.sh \
-	package.json
-
-build-release-copy-artifacts:
-	@rm -rf $(RELEASE_ROOT)
-	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
-
-$(RELEASE_ROOT)/bin/esy-install.js:
-	@$(MAKE) -C esy-install BUILD=../$(@) build
-
-$(RELEASE_ROOT)/bin/fastreplacestring:
+$(PLATFORM_RELEASE_ROOT)/bin/fastreplacestring:
 	@mkdir -p $(@D)
-	@cp $$(esy which fastreplacestring) $(@)
+	@cp $(shell esy which fastreplacestring) $(@)
 
-$(RELEASE_ROOT)/%: $(PWD)/%
-	@mkdir -p $(@D)
-	@cp $(<) $(@)
+#
+# npm publish workflow
+#
 
-publish: build-release
-	@(cd $(RELEASE_ROOT) && npm publish --access public --tag $(RELEASE_TAG))
+publish: release
+	@(cd $(RELEASE_ROOT) && npm publish --access public --tag $(NPM_RELEASE_TAG))
 	@git push && git push --tags
 
 bump-major-version:
@@ -181,10 +269,6 @@ bump-minor-version:
 
 bump-patch-version:
 	@npm version patch
-
-refmt::
-	@find $(PROJECTS) -name '*.re' \
-		| xargs -n1 esy refmt --in-place --print-width 80
 
 ## Website
 
