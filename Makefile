@@ -155,14 +155,14 @@ $(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin: PLATFORM=$(@:$(R
 $(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin:
 	@wget \
 		-q --show-progress \
-		-O $(PLATFORM).tgz \
+		-O $(RELEASE_ROOT)/$(PLATFORM).tgz \
 		'https://github.com/esy/esy/releases/download/$(ESY_RELEASE_TAG)/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz'
 	@mkdir $(@)
-	@tar -xzf $(PLATFORM).tgz -C $(@)
-	@rm $(PLATFORM).tgz
+	@tar -xzf $(RELEASE_ROOT)/$(PLATFORM).tgz -C $(@)
+	@rm $(RELEASE_ROOT)/$(PLATFORM).tgz
 
 define MAKE_PACKAGE_JSON
-let esyJson = require('./esy.json');
+let esyJson = require('./package.json');
 console.log(
   JSON.stringify({
 		name: esyJson.name,
