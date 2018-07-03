@@ -13,6 +13,7 @@
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "temp:find-npm": "esy-bash where yarn && esy-bash where node",
+    "temp:ocamlfind": "esy-bash ocamlfind list | grep lwt.ppx",
     "temp:cygwin:check-dll": "esy-bash where cygwin1.dll",
     "postinstall": "esy-bash ./scripts/postinstall.sh"
   },
