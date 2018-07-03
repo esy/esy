@@ -5,6 +5,8 @@ ESY_EXT := $(shell command -v esy 2> /dev/null)
 RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
 PROJECTS = esy esy-build-package esyi
+VERSION = $(shell node -p "require('./package.json').version")
+PLATFORM = $(shell uname | tr '[A-Z]' '[a-z]')
 
 #
 # Tools
@@ -115,35 +117,45 @@ ci:: test
 #
 
 RELEASE_ROOT = _release
+
+PLATFORM_RELEASE_NAME = esy-$(VERSION)-$(PLATFORM).tgz
+PLATFORM_RELEASE_ROOT = $(RELEASE_ROOT)/$(PLATFORM)
+PLATFORM_RELEASE_FILES = \
+	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
+	_build/default/esyi/bin/esyi.exe \
+	_build/default/esy/bin/esyCommand.exe \
+
+platform-release: $(RELEASE_ROOT)/$(PLATFORM_RELEASE_NAME)
+
+$(RELEASE_ROOT)/$(PLATFORM_RELEASE_NAME): $(PLATFORM_RELEASE_FILES)
+	@echo "Creating $(PLATFORM_RELEASE_NAME)"
+	@rm -rf $(PLATFORM_RELEASE_ROOT)
+	@$(MAKE) $(^:%=$(PLATFORM_RELEASE_ROOT)/%)
+	@tar czf $(@) -C $(PLATFORM_RELEASE_ROOT) .
+	@rm -rf $(PLATFORM_RELEASE_ROOT)
+
+$(PLATFORM_RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
+	@mkdir -p $(@D)
+	@cp _build/default/esy/bin/esyCommand.exe $(@)
+
+$(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
+	@mkdir -p $(@D)
+	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
+
+$(PLATFORM_RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
+	@mkdir -p $(@D)
+	@cp _build/default/esyi/bin/esyi.exe $(@)
+
 RELEASE_FILES = \
 	bin/esy \
 	bin/esy-install.js \
 	bin/esyInstallRelease.js \
 	scripts/postinstall.sh \
-	package.json \
-	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	_build/default/esyi/bin/esyi.exe \
-	_build/default/esy/bin/esyCommand.exe \
-
-build-release:
-	@$(MAKE) build
-	@$(MAKE) build-release-copy-artifacts
+	package.json
 
 build-release-copy-artifacts:
 	@rm -rf $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
-
-$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esy/bin/esyCommand.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esyi/bin/esyi.exe $(@)
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
