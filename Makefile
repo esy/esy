@@ -175,7 +175,7 @@ console.log(
 		description: esyJson.description,
 		repository: esyJson.repository,
 		dependencies: {
-			"@esy-ocaml/esy-opam": esyJson.dependencies["@esy-ocaml/esy-opam"],
+			"@esy-ocaml/esy-opam": "0.0.15",
 			"esy-solve-cudf": esyJson.dependencies["esy-solve-cudf"]
 		},
 		scripts: {
