@@ -118,7 +118,8 @@ ci:: test
 
 RELEASE_ROOT = _release
 
-PLATFORM_RELEASE_NAME = esy-$(VERSION)-$(PLATFORM).tgz
+PLATFORM_RELEASE_TAG ?= $(VERSION)
+PLATFORM_RELEASE_NAME = esy-$(PLATFORM_RELEASE_TAG)-$(PLATFORM).tgz
 PLATFORM_RELEASE_ROOT = $(RELEASE_ROOT)/$(PLATFORM)
 PLATFORM_RELEASE_FILES = \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \

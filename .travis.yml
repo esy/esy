@@ -4,14 +4,13 @@ os:
 - osx
 node_js:
 - '8'
-- '6'
 install:
 - travis_retry npm install -g yarn
 - travis_retry npm install -g esy@0.1.9
 - travis_wait travis_retry make bootstrap
 script:
 - make ci
-- make build platform-release
+- make PLATFORM_RELEASE_TAG="$TRAVIS_TAG" build platform-release
 cache:
   timeout: 360
   directories:
