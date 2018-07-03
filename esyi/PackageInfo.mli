@@ -7,7 +7,8 @@ module Source : sig
       Archive of string * string
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
-    | LocalPath of Fpath.t
+    | LocalPath of Path.t
+    | LocalPathLink of Path.t
     | NoSource
 
   val compare : t -> t -> int
@@ -52,7 +53,8 @@ module SourceSpec : sig
       Archive of string * string option
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
-    | LocalPath of Fpath.t
+    | LocalPath of Path.t
+    | LocalPathLink of Path.t
     | NoSource
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]

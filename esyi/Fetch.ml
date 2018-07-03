@@ -82,6 +82,7 @@ module Layout = struct
 
   and installation = {
     path : Path.t;
+    sourcePath : Path.t;
     record : Record.t;
     isDirectDependencyOfRoot : bool;
   }
@@ -449,8 +450,17 @@ module Layout = struct
     let rec layoutRecord ~path layout root =
       let record = Solution.record root in
       let path = Path.(path / "node_modules" // v record.Record.name) in
+      let sourcePath =
+        match record.Record.source with
+        | PackageInfo.Source.Archive _
+        | PackageInfo.Source.Git _
+        | PackageInfo.Source.Github _
+        | PackageInfo.Source.LocalPath _
+        | PackageInfo.Source.NoSource -> path
+        | PackageInfo.Source.LocalPathLink path -> path
+      in
       let isDirectDependencyOfRoot = Record.Set.mem record directDependencies in
-      let layout = {path; record; isDirectDependencyOfRoot}::layout in
+      let layout = {path; sourcePath; record; isDirectDependencyOfRoot}::layout in
       layoutDependenciess ~path layout root
 
     and layoutDependenciess ~path layout root =
@@ -589,7 +599,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let%bind installed =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
-    let f ({Layout.path;record;_} as installation) =
+    let f ({Layout.path; sourcePath;record;_} as installation) =
       match Record.Map.find_opt record dists with
       | Some dist ->
         let%lwt () =
@@ -601,7 +611,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
             queue
             (fun () -> FetchStorage.install ~cfg ~path dist)
         in
-        let%bind manifest = Manifest.ofDir path in
+        let%bind manifest = Manifest.ofDir sourcePath in
         return (installation, manifest)
       | None ->
         let msg =

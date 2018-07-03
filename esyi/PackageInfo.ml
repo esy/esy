@@ -14,6 +14,7 @@ module Source = struct
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
+    | LocalPathLink of Path.t
     | NoSource
     [@@deriving (ord, eq)]
 
@@ -25,6 +26,7 @@ module Source = struct
       Printf.sprintf "git:%s#%s" remote commit
     | Archive (url, checksum) -> "archive:" ^ url ^ "#" ^ checksum
     | LocalPath path -> "path:" ^ Path.toString(path)
+    | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
 
   let parse v =
@@ -44,6 +46,8 @@ module Source = struct
       return NoSource
     | "path", p ->
       return (LocalPath (Path.v p))
+    | "link", p ->
+      return (LocalPathLink (Path.v p))
     | _, _ ->
       let msg = Printf.sprintf "unknown source: %s" v in
       error msg
@@ -127,6 +131,7 @@ module SourceSpec = struct
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
+    | LocalPathLink of Path.t
     | NoSource
     [@@deriving eq]
 
@@ -138,6 +143,7 @@ module SourceSpec = struct
     | Archive (url, Some checksum) -> "archive:" ^ url ^ "#" ^ checksum
     | Archive (url, None) -> "archive:" ^ url
     | LocalPath path -> "path:" ^ Path.toString(path)
+    | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
 
   let to_yojson src = `String (toString src)
@@ -150,6 +156,7 @@ module SourceSpec = struct
     | Source.Github {user; repo; commit} ->
       Github {user; repo; ref = Some commit}
     | Source.LocalPath p -> LocalPath p
+    | Source.LocalPathLink p -> LocalPathLink p
     | Source.NoSource -> NoSource
 
   let pp fmt spec =
@@ -182,10 +189,21 @@ module VersionSpec = struct
     match spec, version with
     | Npm formula, Version.Npm version ->
       SemverVersion.Formula.DNF.matches ~version formula
+    | Npm _, _ -> false
+
     | Opam formula, Version.Opam version ->
       OpamVersion.Formula.DNF.matches ~version formula
+    | Opam _, _ -> false
+
     | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
       Path.equal p1 p2
+    | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPathLink p2) ->
+      Path.equal p1 p2
+    | Source (SourceSpec.LocalPath _), _ -> false
+
+    | Source (SourceSpec.LocalPathLink p1), Version.Source (Source.LocalPathLink p2) ->
+      Path.equal p1 p2
+    | Source (SourceSpec.LocalPathLink _), _ -> false
 
     | Source (SourceSpec.Github ({ref = Some specRef; _} as spec)),
       Version.Source (Source.Github src) ->
@@ -197,6 +215,8 @@ module VersionSpec = struct
     | Source (SourceSpec.Github ({ref = None; _} as spec)),
       Version.Source (Source.Github src) ->
       String.(equal spec.user src.user && equal spec.repo src.repo)
+    | Source (SourceSpec.Github _), _ -> false
+
 
     | Source (SourceSpec.Git ({ref = Some specRef; _} as spec)),
       Version.Source (Source.Git src) ->
@@ -207,8 +227,14 @@ module VersionSpec = struct
     | Source (SourceSpec.Git ({ref = None; _} as spec)),
       Version.Source (Source.Git src) ->
       String.(equal spec.remote src.remote)
+    | Source (SourceSpec.Git _), _ -> false
 
-    | _ -> false
+    | Source (SourceSpec.Archive (url1, _)), Version.Source (Source.Archive (url2, _))  ->
+      String.equal url1 url2
+    | Source (SourceSpec.Archive _), _ -> false
+
+    | Source (SourceSpec.NoSource), _ -> false
+
 
   let ofVersion (version : Version.t) =
     match version with
@@ -265,6 +291,7 @@ module Req = struct
       str "https:";
       str "http:";
       str "git:";
+      str "link:";
       str "git+";
     ] in
     compile (seq [bos; group proto; group (rep any); eos])
@@ -278,24 +305,21 @@ module Req = struct
     | None -> None
 
   let tryParseSourceSpec v =
-    match tryParseGitHubSpec v with
-    | Some spec -> Some spec
-    | None -> begin
-      match parseProto v with
-      | Some ("file:", v) -> Some (SourceSpec.LocalPath (Path.v v))
-      | Some ("https:", _)
-      | Some ("http:", _) ->
-        let url, checksum = parseRef v in
-        Some (SourceSpec.Archive (url, checksum))
-      | Some ("git+", v) ->
-        let remote, ref = parseRef v in
-        Some (SourceSpec.Git {remote;ref;})
-      | Some ("git:", _) ->
-        let remote, ref = parseRef v in
-        Some (SourceSpec.Git {remote;ref;})
-      | Some _
-      | None -> None
-    end
+    match parseProto v with
+    | Some ("link:", v) -> Some (SourceSpec.LocalPathLink (Path.v v))
+    | Some ("file:", v) -> Some (SourceSpec.LocalPath (Path.v v))
+    | Some ("https:", _)
+    | Some ("http:", _) ->
+      let url, checksum = parseRef v in
+      Some (SourceSpec.Archive (url, checksum))
+    | Some ("git+", v) ->
+      let remote, ref = parseRef v in
+      Some (SourceSpec.Git {remote;ref;})
+    | Some ("git:", _) ->
+      let remote, ref = parseRef v in
+      Some (SourceSpec.Git {remote;ref;})
+    | Some _
+    | None -> tryParseGitHubSpec v
 
   let make ~name ~spec =
     if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
@@ -349,6 +373,11 @@ module Req = struct
 
       make ~name:"pkg" ~spec:"file:./some/file",
       VersionSpec.Source (SourceSpec.LocalPath (Path.v "./some/file"));
+
+      make ~name:"pkg" ~spec:"link:./some/file",
+      VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "./some/file"));
+      make ~name:"pkg" ~spec:"link:../reason-wall-demo",
+      VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "../reason-wall-demo"));
 
       make
         ~name:"eslint"

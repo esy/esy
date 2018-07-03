@@ -49,6 +49,7 @@ let ofDir = (cfg: Config.t) => {
     Memoize.compute(resolutionCache, key, compute);
   };
   let packageCache = Memoize.make(~size=200, ());
+
   let rec loadPackage = (path: Path.t, stack: list(Path.t)) => {
     let addDeps =
         (
@@ -103,48 +104,53 @@ let ofDir = (cfg: Config.t) => {
           ];
       Lwt.return(List.fold_left(~f, ~init=prevDependencies, dependencies));
     };
-    switch%bind (Package.Manifest.ofDir(path)) {
-    | Some((manifest, manifestPath, json)) =>
-      let ignoreCircularDep = Option.isNone(manifest.Package.Manifest.esy);
-      manifestInfo := PathSet.add(manifestPath, manifestInfo^);
+
+    let pathToEsyLink = Path.(path / "_esylink");
+
+    let loadDependencies = manifest => {
       let (>>=) = Lwt.(>>=);
-      let%lwt dependencies =
-        Lwt.return([])
-        >>= addDeps(
-              ~ignoreCircularDep,
-              ~make=pkg => Package.PeerDependency(pkg),
-              manifest.Package.Manifest.peerDependencies,
-            )
-        >>= addDeps(
-              ~ignoreCircularDep,
-              ~make=pkg => Package.Dependency(pkg),
-              manifest.Package.Manifest.dependencies,
-            )
-        >>= addDeps(
-              ~ignoreCircularDep,
-              ~make=pkg => Package.BuildTimeDependency(pkg),
-              manifest.Package.Manifest.buildTimeDependencies,
-            )
-        >>= addDeps(
+      let ignoreCircularDep = Option.isNone(manifest.Package.Manifest.esy);
+      Lwt.return([])
+      >>= addDeps(
+            ~ignoreCircularDep,
+            ~make=pkg => Package.PeerDependency(pkg),
+            manifest.Package.Manifest.peerDependencies,
+          )
+      >>= addDeps(
+            ~ignoreCircularDep,
+            ~make=pkg => Package.Dependency(pkg),
+            manifest.Package.Manifest.dependencies,
+          )
+      >>= addDeps(
+            ~ignoreCircularDep,
+            ~make=pkg => Package.BuildTimeDependency(pkg),
+            manifest.Package.Manifest.buildTimeDependencies,
+          )
+      >>= addDeps(
+            ~ignoreCircularDep,
+            ~skipUnresolved=true,
+            ~make=pkg => Package.OptDependency(pkg),
+            manifest.optDependencies,
+          )
+      >>= (
+        dependencies =>
+          if (Path.equal(cfg.sandboxPath, path)) {
+            addDeps(
               ~ignoreCircularDep,
               ~skipUnresolved=true,
-              ~make=pkg => Package.OptDependency(pkg),
-              manifest.optDependencies,
-            )
-        >>= (
-          dependencies =>
-            if (Path.equal(cfg.sandboxPath, path)) {
-              addDeps(
-                ~ignoreCircularDep,
-                ~skipUnresolved=true,
-                ~make=pkg => Package.DevDependency(pkg),
-                manifest.Package.Manifest.devDependencies,
-                dependencies,
-              );
-            } else {
-              Lwt.return(dependencies);
-            }
-        );
+              ~make=pkg => Package.DevDependency(pkg),
+              manifest.Package.Manifest.devDependencies,
+              dependencies,
+            );
+          } else {
+            Lwt.return(dependencies);
+          }
+      );
+    };
+
+    let packageOfManifest = (~sourcePath, manifest, manifestPath, json) => {
+      manifestInfo := PathSet.add(manifestPath, manifestInfo^);
+      let%lwt dependencies = loadDependencies(manifest);
       switch (manifest.Package.Manifest.esy) {
       | None => return((`NonEsyPkg(dependencies), json))
       | Some(esyManifest) =>
@@ -168,19 +174,6 @@ let ofDir = (cfg: Config.t) => {
           | (false, Some(_)) => Package.SourceType.Immutable
           };
         };
-        let%bind sourcePath = {
-          let linkPath = Path.(path / "_esylink");
-          if%bind (Fs.exists(linkPath)) {
-            let%bind path = Fs.readFile(linkPath);
-            path
-            |> String.trim
-            |> Path.of_string
-            |> Run.ofBosError
-            |> RunAsync.ofRun;
-          } else {
-            return(path);
-          };
-        };
         let pkg =
           Package.{
             id: Path.to_string(path),
@@ -198,6 +191,19 @@ let ofDir = (cfg: Config.t) => {
           };
         return((`EsyPkg(pkg), json));
       };
+    };
+
+    let%bind sourcePath =
+      if%bind (Fs.exists(pathToEsyLink)) {
+        let%bind path = Fs.readFile(pathToEsyLink);
+        return(Path.v(String.trim(path)));
+      } else {
+        return(path);
+      };
+
+    switch%bind (Package.Manifest.ofDir(sourcePath)) {
+    | Some((manifest, manifestPath, json)) =>
+      packageOfManifest(~sourcePath, manifest, manifestPath, json)
     | None => error("unable to find manifest")
     };
   }

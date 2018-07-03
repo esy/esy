@@ -130,6 +130,8 @@ module LockfileV1 = struct
     in
     let source =
       match record.source with
+      | Source.LocalPathLink p ->
+        Source.LocalPathLink (f p)
       | Source.LocalPath p ->
         Source.LocalPath (f p)
       | Source.Archive _
@@ -150,7 +152,7 @@ module LockfileV1 = struct
     mapRecord ~f record
 
   let derelativize ~cfg record =
-    let f path = Path.append cfg.Config.basePath path in
+    let f path = Path.(cfg.Config.basePath // path |> normalize) in
     mapRecord ~f record
 
   let rec solutionOfLockfile ~cfg nodes id =

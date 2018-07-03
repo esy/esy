@@ -19,6 +19,7 @@ const {
 
 const devDependenciesSpecs = require('pkg-tests-specs/sources/devDependencies.js');
 const resolutionsSpecs = require('pkg-tests-specs/sources/resolutions.js');
+const linkSpecs = require('pkg-tests-specs/sources/link.js');
 
 const cwd = process.cwd();
 const esyiCommand = path.join(
@@ -65,5 +66,6 @@ beforeEach(async () => {
 basicSpecs(pkgDriver);
 devDependenciesSpecs(pkgDriver);
 resolutionsSpecs(pkgDriver);
+linkSpecs(pkgDriver);
 //dragonSpecs(pkgDriver);
 //scriptSpecs(pkgDriver);

@@ -1,11 +1,12 @@
 module String = Astring.String
+module Source = PackageInfo.Source
 
 module Dist = struct
   type t = {
     name : string;
     version : PackageInfo.Version.t;
     source : PackageInfo.Source.t;
-    tarballPath : Path.t;
+    tarballPath : Path.t option;
   }
 
   let pp fmt dist =
@@ -34,9 +35,14 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
 
   let doFetch path =
     match source with
+
     | PackageInfo.Source.LocalPath _ ->
       let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
       failwith msg
+
+    | PackageInfo.Source.LocalPathLink _ ->
+      (* this case is handled separately *)
+      return ()
 
     | PackageInfo.Source.NoSource ->
       return ()
@@ -148,12 +154,16 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
 
     let tarballPath = Path.(cfg.tarballCachePath // v key |> addExt "tgz") in
 
-    let dist = {Dist. tarballPath; name; version; source} in
+    let dist = {Dist. tarballPath = Some tarballPath; name; version; source} in
+    let%bind tarballIsInCache = Fs.exists tarballPath in
 
-    match%bind Fs.exists tarballPath with
-    | true ->
+    match source, tarballIsInCache with
+    | Source.LocalPathLink _, _ ->
       return dist
-    | false ->
+
+    | _, true ->
+      return dist
+    | _, false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
           let msg = Format.asprintf "fetching %a" PackageInfo.Source.pp source in
@@ -178,7 +188,20 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
 
 let install ~cfg:_ ~path dist =
   let open RunAsync.Syntax in
-  let {Dist. tarballPath; _} = dist in
-  let%bind () = Fs.createDir path in
-  let%bind () = Tarball.unpack ~dst:path tarballPath in
-  return ()
+  let {Dist. tarballPath; source; _} = dist in
+  match source, tarballPath with
+
+  | Source.LocalPathLink orig, _ ->
+    let%bind () = Fs.createDir path in
+    let%bind () =
+      let data = (Path.toString orig) ^ "\n" in
+      Fs.writeFile ~data Path.(path / "_esylink")
+    in
+    return ()
+
+  | _, Some tarballPath ->
+    let%bind () = Fs.createDir path in
+    let%bind () = Tarball.unpack ~dst:path tarballPath in
+    return ()
+  | _, None ->
+    return ()
