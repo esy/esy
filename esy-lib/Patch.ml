@@ -7,8 +7,8 @@ let runPatch cmd =
       RunAsync.return ()
     | _ ->
       Logs_lwt.err (fun m -> m
-        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
-        Cmd.pp cmd stderr stdout
+        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
       );%lwt
       RunAsync.error "error running command"
   in

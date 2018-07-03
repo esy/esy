@@ -44,15 +44,15 @@ let runCurl cmd =
       | Ok (_stdout, meta) ->
         let msg =
           Format.asprintf
-            "@[<v>error running curl: %a:@\ncode: %i@\nstderr:@[<v 2>@\n%s@]@]"
-            Cmd.pp cmd meta.code stderr
+            "@[<v>error running curl: %a:@\ncode: %i@\nstderr:@[<v 2>@\n%a@]@]"
+            Cmd.pp cmd meta.code Fmt.lines stderr
         in
         RunAsync.error msg
       | _ ->
         let msg =
           Format.asprintf
-            "@[<v>error running curl: %a:@\nstderr:@[<v 2>@\n%s@]@]"
-            Cmd.pp cmd stderr
+            "@[<v>error running curl: %a:@\nstderr:@[<v 2>@\n%a@]@]"
+            Cmd.pp cmd Fmt.lines stderr
         in
         RunAsync.error msg
     end
