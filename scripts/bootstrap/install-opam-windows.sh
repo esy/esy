@@ -8,6 +8,10 @@
 # Other aspects of the script are based on the ocaml-ci-scripts:
 # https://github.com/ocaml/ocaml-ci-scripts/blob/master/appveyor-opam.sh
 
+set -u
+set -e
+set -o pipefail
+
 SWITCH=${OPAM_SWITCH:-'4.06.1+mingw64c'}
 OPAM_URL='https://github.com/fdopen/opam-repository-mingw/releases/download/0.0.0.1/opam64.tar.xz'
 OPAM_ARCH=opam64
