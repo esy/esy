@@ -103,7 +103,12 @@ let package ~(resolution : Resolution.t) resolver =
 
     let%bind manifest =
       match resolution.version with
-      | Version.Source (Source.LocalPath _) -> error "not implemented"
+
+      | Version.Source (Source.LocalPath path)
+      | Version.Source (Source.LocalPathLink path) ->
+        let%bind manifest = Manifest.ofDir path in
+        return (`PackageJson manifest)
+
       | Version.Source (Git {remote; commit} as source) ->
         Fs.withTempDir begin fun repo ->
           let%bind () = Git.clone ~dst:repo ~remote () in
@@ -294,4 +299,9 @@ let resolve ~req resolver =
   | VersionSpec.Source (SourceSpec.LocalPath p) ->
     let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
     let version = Version.Source (Source.LocalPath p) in
+    return (req, [{Resolution. name; version}])
+
+  | VersionSpec.Source (SourceSpec.LocalPathLink p) ->
+    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
+    let version = Version.Source (Source.LocalPathLink p) in
     return (req, [{Resolution. name; version}])

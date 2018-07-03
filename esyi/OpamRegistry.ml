@@ -1,5 +1,6 @@
 module PackageName = OpamManifest.PackageName
 module Source = PackageInfo.Source
+module SourceSpec = PackageInfo.SourceSpec
 module Version = OpamVersion.Version
 module VersionMap = Map.Make(Version)
 module String = Astring.String
@@ -115,48 +116,51 @@ let resolveSourceSpec spec =
       let msg =
         Format.asprintf
           "unable to resolve: %a"
-          PackageInfo.SourceSpec.pp spec
+          SourceSpec.pp spec
       in
       error msg
   in
 
   match spec with
-  | PackageInfo.SourceSpec.NoSource ->
-    return PackageInfo.Source.NoSource
+  | SourceSpec.NoSource ->
+    return Source.NoSource
 
-  | PackageInfo.SourceSpec.Archive (url, Some checksum) ->
-    return (PackageInfo.Source.Archive (url, checksum))
-  | PackageInfo.SourceSpec.Archive (url, None) ->
-    return (PackageInfo.Source.Archive (url, "fake-checksum-fix-me"))
+  | SourceSpec.Archive (url, Some checksum) ->
+    return (Source.Archive (url, checksum))
+  | SourceSpec.Archive (url, None) ->
+    return (Source.Archive (url, "fake-checksum-fix-me"))
 
-  | PackageInfo.SourceSpec.Git {remote; ref = Some ref} -> begin
+  | SourceSpec.Git {remote; ref = Some ref} -> begin
     match%bind Git.lsRemote ~ref ~remote () with
     | Some commit -> return (Source.Git {remote; commit})
     | None when Git.isCommitLike ref -> return (Source.Git {remote; commit = ref})
     | None -> errorResolvingSpec spec
     end
-  | PackageInfo.SourceSpec.Git {remote; ref = None} -> begin
+  | SourceSpec.Git {remote; ref = None} -> begin
     match%bind Git.lsRemote ~remote () with
     | Some commit -> return (Source.Git {remote; commit})
     | None -> errorResolvingSpec spec
     end
 
-  | PackageInfo.SourceSpec.Github {user; repo; ref = Some ref} -> begin
+  | SourceSpec.Github {user; repo; ref = Some ref} -> begin
     let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
     match%bind Git.lsRemote ~ref ~remote () with
     | Some commit -> return (Source.Github {user; repo; commit})
     | None when Git.isCommitLike ref -> return (Source.Github {user; repo; commit = ref})
     | None -> errorResolvingSpec spec
     end
-  | PackageInfo.SourceSpec.Github {user; repo; ref = None} -> begin
+  | SourceSpec.Github {user; repo; ref = None} -> begin
     let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
     match%bind Git.lsRemote ~remote () with
     | Some commit -> return (Source.Github {user; repo; commit})
     | None -> errorResolvingSpec spec
     end
 
-  | PackageInfo.SourceSpec.LocalPath path ->
-    return (PackageInfo.Source.LocalPath path)
+  | SourceSpec.LocalPath path ->
+    return (Source.LocalPath path)
+
+  | SourceSpec.LocalPathLink path ->
+    return (Source.LocalPathLink path)
 
 
 let version registry ~(name : PackageName.t) ~version =
@@ -170,7 +174,7 @@ let version registry ~(name : PackageName.t) ~version =
         OpamManifest.runParsePath
           ~parser:OpamManifest.parseUrl
           urlFilename
-      else return PackageInfo.SourceSpec.NoSource
+      else return SourceSpec.NoSource
     in
     let%bind source = resolveSourceSpec sourceSpec in
     let%bind manifest =
