@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.26 @ preview
+
+* esyi: add support for `link:` package sources.
+
 ## 0.1.25 @ preview
 
 * esyi: Fix updating copies of opam-repository and esy-opam-override
