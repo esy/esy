@@ -11,11 +11,10 @@ set -o pipefail
 opam install --yes ocaml-migrate-parsetree
 opam install --yes reason
 opam install --yes cmdliner
-opam install --yes lwt
+opam install --yes lwt.3.3.0
 opam install --yes menhir
 opam install --yes ppx_let
 opam install --yes ppx_deriving_yojson
-opam install --yes lwt_ppx
 opam install --yes yojson
 opam install --yes bos
 opam install --yes re
