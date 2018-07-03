@@ -4,7 +4,9 @@
   "license": "MIT",
   "description": "Esy sandboxes for compiled languages",
   "dependencies": {
-    "@esy-ocaml/esy-opam": "0.0.15",
+    "@esy-ocaml/esy-opam": "0.0.15"
+  },
+  "devDependencies": {
     "esy-bash": "^0.1.9"
   },
   "scripts": {
