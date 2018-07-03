@@ -30,7 +30,10 @@ define HELP
  Release tasks:
 
    publish             Build release and run 'npm publish'
-   build-release       Produce an npm package ready to be published (useful for debug)
+   release             Produce an npm release inside _release, use ESY_RELEASE_TAG
+                       to control for which tag to fetch platform releases from GitHub
+
+   platform-release    Produce a plartform specific release inside _platformrelease.
 
    bump-major-version  Bump major package version (commits & tags)
    bump-minor-version  Bump minor package version (commits & tags)
@@ -277,7 +280,6 @@ $(PLATFORM_RELEASE_ROOT)/bin/fastreplacestring:
 
 publish: release
 	@(cd $(RELEASE_ROOT) && npm publish --access public --tag $(NPM_RELEASE_TAG))
-	@git push && git push --tags
 
 bump-major-version:
 	@npm version major

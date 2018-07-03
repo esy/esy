@@ -73,22 +73,43 @@ Issues are tracked at [esy/esy][].
 
 ### Publishing Releases
 
-On a clean branch off of `origin/master`, run:
+esy is released on npm.
 
-```
-% make bump-patch-version publish
-```
+Because esy is written in OCaml/Reason and compiled into a native executable we
+need to acquire a set of prebuilt binaries. We employ CI servers (thanks Travis
+CI) to build platform specific releases.
 
-to bump the patch version, tag the release in git repository and publish the
-tarball on npm.
+The release workflow is the following:
 
-To publish under custom release tag:
+1. Ensure you arre on `master` branch and run
 
-```
-% make RELEASE_TAG=next bump-patch-version publish
-```
+   ```
+   % make bump-patch-verson
+   % git push && git push --tags
+   ```
 
-Release tag `next` is used to publish preview releases.
+   (this bumps patch version, use `bump-minor-version` or `bump-major-version`
+   correspondingly to bump either minor or major version of esy)
+
+2. Wait till CI finishes its task and uploads releases on GitHub,
+   check https://github.com/esy/esy/releases for them.
+
+3. Run
+
+   ```
+   % make release
+   ```
+   Which downloads platform specific releases (which CI uploaded GitHub) and
+   produces an npm releases with needed metadata inside `_release` directory.
+
+4. Ensure release inside `_release` directory is ok.
+
+   You can `cd _release && npm pack && npm install -g ./esy-*.tgz` to test how
+   release installs and feels.
+
+5. Run `cd _release && npm publish` to publish release on npm.
+
+   Release tag `next` is used to publish preview releases.
 
 [esy-ocaml-project]: https://github.com/esy-ocaml/esy-ocaml-project
 [esy-reason-project]: https://github.com/esy-ocaml/esy-reason-project
