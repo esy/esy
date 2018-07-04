@@ -80,6 +80,36 @@ module TestCommandExpr = struct
          ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-d7d07b72/bin"]]
     )
 
+  let%test "#{...} inside esy.build / esy.install (depends on os)" =
+    let pkg = Package.{
+      pkg with
+      buildCommands = Some [
+        CommandList.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
+      ];
+      installCommands = Some [
+        CommandList.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
+      ];
+    } in
+    check ~system:System.Linux pkg (fun task ->
+      Task.CommandList.equal
+        task.buildCommands
+        [["apt-get"; "install"; "pkg"]]
+      &&
+      Task.CommandList.equal
+        task.installCommands
+        [["make"; "install-linux"]]
+    )
+    &&
+    check ~system:System.Darwin pkg (fun task ->
+      Task.CommandList.equal
+        task.buildCommands
+        [["true"]]
+      &&
+      Task.CommandList.equal
+        task.installCommands
+        [["make"; "install"]]
+    )
+
   let%test "#{self...} inside esy.install" =
     check pkg (fun task ->
       Task.CommandList.equal
@@ -103,6 +133,60 @@ module TestCommandExpr = struct
         |> List.map f
         |> List.exists (function | Some false -> true | _ -> false)
       )
+    )
+
+let checkEnvExists ~name ~value task =
+  let bindings = Environment.Closed.bindings task.Task.env in
+  List.exists
+    (function
+      | {Environment. name = n; value = Value v; _} when name = n ->
+        if v = value
+        then true
+        else false
+      | _ -> false)
+    bindings
+
+  let%test "#{OCAMLPATH} depending on os" =
+    let dep = Package.{
+      dep with
+      exportedEnv = [
+        {
+          ExportedEnv.
+          name = "OCAMLPATH";
+          value = "#{'one' : 'two'}";
+          exclusive = false;
+          scope = Local;
+        };
+        {
+          ExportedEnv.
+          name = "PATH";
+          value = "#{'/bin' : '/usr/bin'}";
+          exclusive = false;
+          scope = Local;
+        };
+        {
+          ExportedEnv.
+          name = "OCAMLLIB";
+          value = "#{os == 'cygwin' ? ('lib' / 'ocaml') : 'lib'}";
+          exclusive = false;
+          scope = Local;
+        };
+      ];
+    } in
+    let pkg = Package.{
+      pkg with
+      dependencies = [Dependency dep];
+    } in
+    check pkg (fun task ->
+      checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
+      && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
+      && checkEnvExists ~name:"OCAMLLIB" ~value:"lib" task
+    )
+    &&
+    check ~system:System.Cygwin pkg (fun task ->
+      checkEnvExists ~name:"OCAMLPATH" ~value:"one;two" task
+      && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
+      && checkEnvExists ~name:"OCAMLLIB" ~value:"lib/ocaml" task
     )
 
 end

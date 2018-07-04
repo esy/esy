@@ -8,12 +8,34 @@
 
 module ConfigPath = Config.ConfigPath
 
+let renderCommandExpr ?name ~system ~scope expr =
+  let pathSep =
+    match System.host with
+    | System.Darwin
+    | System.Linux
+    | System.Cygwin -> "/"
+    | System.Other _ -> "\\"
+  in
+  let colon =
+    match name, system with
+    | Some "OCAMLPATH", (System.Linux | System.Darwin) -> ":"
+    | Some "OCAMLPATH", (System.Cygwin | System.Other _) -> ";"
+    | _, (System.Linux | System.Darwin | System.Cygwin) -> ":"
+    | _, System.Other _ -> ";"
+  in
+  let scope name =
+    match name with
+    | None, "os" -> Some (CommandExpr.Value.String (System.toString system))
+    | _ -> scope name
+  in
+  CommandExpr.render ~pathSep ~colon ~scope expr
+
 module CommandList = struct
   type t =
     string list list
     [@@deriving (show, eq, ord)]
 
-  let render ~env ~scope (commands : Package.CommandList.t) =
+  let render ~system ~env ~scope (commands : Package.CommandList.t) =
     let open Run.Syntax in
     let env = Environment.Closed.value env in
     let envScope name =
@@ -24,7 +46,7 @@ module CommandList = struct
     | Some commands ->
       let renderCommand =
         let render v =
-          let%bind v = CommandExpr.render ~scope v in
+          let%bind v = renderCommandExpr ~system ~scope v in
           ShellParamExpansion.render ~scope:envScope v
         in
         function
@@ -278,6 +300,7 @@ let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?(forceImmutable=false)
+    ?(system=System.host)
     ?finalPath
     ?term
     ?finalManPath
@@ -526,7 +549,7 @@ let ofPackage
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
         let context = Printf.sprintf "processing exportedEnv $%s" name in
         Run.withContext context (
-          let%bind value = CommandExpr.render ~scope:scopeForExportEnv value in
+          let%bind value = renderCommandExpr ~system ~name ~scope:scopeForExportEnv value in
           match envScope with
           | Package.ExportedEnv.Global ->
             let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath in
@@ -541,7 +564,9 @@ let ofPackage
         Run.List.foldLeft ~f ~init:(true, [], []) pkg.exportedEnv
       in
       let%bind globalEnv = if injectCamlLdLibraryPath then
-        let%bind value = CommandExpr.render
+        let%bind value = renderCommandExpr
+          ~system
+          ~name:"CAML_LD_LIBRARY_PATH"
           ~scope:scopeForExportEnv
           "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
         in
@@ -696,12 +721,12 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        (CommandList.render ~env ~scope:scopeForCommands pkg.buildCommands)
+        (CommandList.render ~system ~env ~scope:scopeForCommands pkg.buildCommands)
     in
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        (CommandList.render ~env ~scope:scopeForCommands pkg.installCommands)
+        (CommandList.render ~system ~env ~scope:scopeForCommands pkg.installCommands)
     in
 
     let task: t = {
