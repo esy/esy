@@ -8,7 +8,6 @@ install:
     - npm install -g rimraf
     - npm install -g yarn
     - git submodule update --init --recursive
-    - npm install
     - appveyor-retry yarn run bootstrap:esy-install
     - npm run temp:find-npm
     - npm run bootstrap:install-opam
