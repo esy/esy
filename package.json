@@ -60,7 +60,8 @@
     "@opam/re": "^1.7.1",
     "@esy-ocaml/reason": "^3.2.0",
     "fastreplacestring": "esy-ocaml/FastReplaceString.git#9450b6",
-    "esy-solve-cudf": "^0.0.3"
+    "esy-solve-cudf": "^0.0.3",
+    "esy-bash": "^0.1.9"
   },
   "resolutions": {
     "**/@opam/sexplib0": "100000000.11.0",
@@ -72,7 +73,6 @@
     "ocaml": "~4.6.0"
   },
   "devDependencies": {
-    "esy-bash": "^0.1.9",
     "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
     "@opam/ocp-indent": "*",
