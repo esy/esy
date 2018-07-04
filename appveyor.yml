@@ -9,6 +9,8 @@ install:
     - npm install -g yarn
     - git submodule update --init --recursive
     - npm install esy-bash
+    - npm install esy-ocaml/FastReplaceString.git#9450b6
+    - node scripts/bootstrap/copy-fastreplacestring.js
     - appveyor-retry yarn run bootstrap:esy-install
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
