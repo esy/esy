@@ -1,7 +1,6 @@
 type t =
   | Darwin
   | Linux
-  | Windows
   | Cygwin
   | Windows (* mingw msvc *)
   | Unix (* all other unix-y systems *)
