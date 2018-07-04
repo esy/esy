@@ -14,6 +14,8 @@ val show : t -> string
 val pp : Format.formatter -> t -> unit
 val equal : t -> t -> bool
 val compare : t -> t -> int
+val prerelease : t -> bool
+val stripPrerelease : t -> t
 
 (**
  * Yojson protocol

@@ -159,7 +159,7 @@ module Explanation = struct
             if not (seenMissingFor req reasons)
             then
               let chain = (req, pkg::path) in
-              let%bind available =
+              let%bind _req, available =
                 let req = Req.make ~name:(Req.name req) ~spec:"*" in
                 Resolver.resolve ~req resolver
               in
@@ -202,7 +202,6 @@ let make ~cfg ?resolver ~resolutions () =
 
   let universe = ref Universe.empty in
 
-
   return {cfg; resolver; universe = !universe; resolutions}
 
 let add ~(dependencies : Dependencies.t) solver =
@@ -222,20 +221,33 @@ let add ~(dependencies : Dependencies.t) solver =
   in
 
   let universe = ref solver.universe in
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
 
   let rec addPkg (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
     then
-      let pkg = rewritePkgWithResolutions pkg in
-      universe := Universe.add ~pkg !universe;
-      pkg.dependencies
-      |> Dependencies.toList
-      |> List.map ~f:addReq
-      |> RunAsync.List.waitAll
+      match pkg.kind with
+      | Package.Esy ->
+        let pkg = rewritePkgWithResolutions pkg in
+        universe := Universe.add ~pkg !universe;
+        let%bind dependencies =
+          pkg.dependencies
+          |> Dependencies.toList
+          |> List.map ~f:addReq
+          |> RunAsync.List.joinAll
+        in
+        let pkg = {pkg with dependencies = Dependencies.ofList dependencies} in
+        universe := Universe.add ~pkg !universe;
+        return ()
+      | Package.Npm -> return ()
     else return ()
 
   and addReq req =
-    let%bind resolutions =
+    let%lwt () =
+      let status = Format.asprintf "%a" Req.pp req in
+      report status
+    in
+    let%bind req, resolutions =
       Resolver.resolve ~req solver.resolver
       |> RunAsync.withContext ("resolving request: " ^ Req.toString req)
     in
@@ -246,9 +258,13 @@ let add ~(dependencies : Dependencies.t) solver =
       |> RunAsync.List.joinAll
     in
 
-    packages
-    |> List.map ~f:addPkg
-    |> RunAsync.List.waitAll;
+    let%bind () =
+      packages
+      |> List.map ~f:addPkg
+      |> RunAsync.List.waitAll
+    in
+
+    return req
   in
 
   let%bind dependencies =
@@ -257,12 +273,13 @@ let add ~(dependencies : Dependencies.t) solver =
       |> Dependencies.toList
       |> List.map ~f:(fun req ->
           let req = rewriteReq req in
-          let%bind () = addReq req in
-          return req)
+          addReq req)
       |> RunAsync.List.joinAll
     in
     return (Dependencies.(addMany ~reqs:dependencies empty))
   in
+
+  let%lwt () = finish () in
 
   return ({solver with universe = !universe}, dependencies)
 
@@ -288,8 +305,8 @@ let solveDependencies ~installed ~strategy dependencies solver =
     source = Source.NoSource;
     opam = None;
     dependencies;
-    buildDependencies = Dependencies.empty;
     devDependencies = Dependencies.empty;
+    kind = Esy;
   } in
 
   let universe = Universe.add ~pkg:dummyRoot solver.universe in
@@ -345,6 +362,112 @@ let solveDependencies ~installed ~strategy dependencies solver =
 
     return (Ok packages)
 
+let solveDependenciesNaively
+  ~(installed : Package.Set.t)
+  (dependencies : Dependencies.t)
+  (solver : t) =
+  let open RunAsync.Syntax in
+
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
+
+  let installed =
+    let tbl = Hashtbl.create 100 in
+    Package.Set.iter (fun pkg -> Hashtbl.add tbl pkg.name pkg) installed;
+    tbl
+  in
+
+  let addToInstalled pkg =
+    Hashtbl.add installed pkg.Package.name pkg
+  in
+
+  let resolveOfInstalled req =
+    let spec = Req.spec req in
+    let name = Req.name req in
+
+    let rec findFirstMatching = function
+      | [] -> None
+      | pkg::pkgs ->
+        if VersionSpec.matches ~version:pkg.Package.version spec
+        then Some pkg
+        else findFirstMatching pkgs
+    in
+
+    findFirstMatching (Hashtbl.find_all installed name)
+  in
+
+  let resolveOfOutside req =
+    let spec = Req.spec req in
+
+    let rec findFirstMatching = function
+      | [] -> None
+      | res::rest ->
+        if VersionSpec.matches ~version:res.Resolver.Resolution.version spec
+        then Some res
+        else findFirstMatching rest
+    in
+
+    let%lwt () =
+      let status = Format.asprintf "%a" Req.pp req in
+      report status
+    in
+    let%bind _req, resolutions = Resolver.resolve ~req solver.resolver in
+    let resolutions = List.rev resolutions in
+    match findFirstMatching resolutions with
+    | Some resolution ->
+      let%bind pkg = Resolver.package ~resolution solver.resolver in
+      return (Some pkg)
+    | None -> return None
+  in
+
+  let resolve req =
+    let%bind pkg =
+      match resolveOfInstalled req with
+      | None -> begin match%bind resolveOfOutside req with
+        | None ->
+          let msg = Format.asprintf "unable to find a match for %a" Req.pp req in
+          error msg
+        | Some pkg -> return pkg
+        end
+      | Some pkg -> return pkg
+    in
+    return pkg
+  in
+
+  let rec solveDependencies ~seen dependencies =
+
+    (** This prefetches resolutions which can result in an overfetch but makes
+     * things happen much faster. *)
+    let%bind _ =
+      let f req = Resolver.resolve ~req solver.resolver in
+      dependencies
+      |> Dependencies.toList
+      |> List.map ~f
+      |> RunAsync.List.joinAll
+    in
+
+    let f roots req =
+      let name = Req.name req in
+      if StringSet.mem name seen
+      then return roots
+      else begin
+        let seen = StringSet.add name seen in
+        let%bind pkg = resolve req in
+        addToInstalled pkg;
+        let%bind dependencies = solveDependencies ~seen pkg.Package.dependencies in
+        let record = Solution.Record.ofPackage pkg in
+        let root = Solution.make record dependencies in
+        return (root::roots)
+      end
+    in
+    dependencies
+    |> Dependencies.toList
+    |> RunAsync.List.foldLeft ~f ~init:[]
+  in
+
+  let%bind roots = solveDependencies ~seen:StringSet.empty dependencies in
+  finish ();%lwt
+  return roots
+
 let solve ~cfg ~resolutions (root : Package.t) =
   let open RunAsync.Syntax in
 
@@ -371,7 +494,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
   in
 
   (* Solve runtime dependencies first *)
-  let%bind dependencies =
+  let%bind installed =
     let%bind res =
       solveDependencies
         ~installed:Package.Set.empty
@@ -381,15 +504,16 @@ let solve ~cfg ~resolutions (root : Package.t) =
     in getResultOrExplain res
   in
 
-  let toRootList pkgs =
-    pkgs
-    |> Package.Set.elements
-    |> List.map ~f:(fun pkg -> Solution.make pkg [])
+  let%bind dependencies =
+    solveDependenciesNaively
+      ~installed
+      dependencies
+      solver
   in
 
   let solution =
-    Solution.make root
-    (toRootList dependencies)
+    Solution.make (Solution.Record.ofPackage root)
+    dependencies
   in
 
   return solution

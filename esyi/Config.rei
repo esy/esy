@@ -12,6 +12,9 @@ type t = {
   npmRegistry: string,
 
   solveTimeout: float,
+
+  createProgressReporter:
+    (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
 
 /** This described how a reposoitory should be used */
@@ -32,6 +35,8 @@ let make : (
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
+    ~createProgressReporter:
+      (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
     Fpath.t
   ) => RunAsync.t(t)
 

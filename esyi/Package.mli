@@ -7,12 +7,16 @@ type t = {
   version : PackageInfo.Version.t;
   source : PackageInfo.Source.t;
   dependencies: PackageInfo.Dependencies.t;
-  buildDependencies: PackageInfo.Dependencies.t;
   devDependencies: PackageInfo.Dependencies.t;
 
   (* TODO: make it non specific to opam. *)
   opam : PackageInfo.OpamInfo.t option;
+  kind : kind;
 }
+
+and kind =
+  | Esy
+  | Npm
 
 (**
  * Make package out of opam manifest.
@@ -20,7 +24,7 @@ type t = {
  * Optional arguments `name` and `version` are used to override name and version
  * specified in manifest if needed.
  *)
-val ofOpam :
+val ofOpamManifest :
   ?name:string
   -> ?version:PackageInfo.Version.t
   -> OpamManifest.t
@@ -32,10 +36,10 @@ val ofOpam :
  * Optional arguments `name` and `version` are used to override name and version
  * specified in manifest if needed.
  *)
-val ofPackageJson :
+val ofManifest :
   ?name:string
   -> ?version:PackageInfo.Version.t
-  -> PackageJson.t
+  -> Manifest.t
   -> t Run.t
 
 val pp : t Fmt.t

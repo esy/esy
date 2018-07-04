@@ -1,5 +1,56 @@
 # CHANGELOG
 
+## 0.1.28 @ preview
+
+* Fix mystical "unable to stat" error.
+
+  This was caused by sandbox staleness cache check which wasn't robust against
+  removal of manifests from sandbox. This usually happens when you switch
+  between branches.
+
+## 0.1.27 @ preview
+
+* esyi: add support for `link:` package sources.
+
+* esy releases are now built on CI automatically for all tagged commits. The
+  release process is still manual via `make release` which downloads those built
+  artifacts from CI.
+
+## 0.1.26 @ preview
+
+This release was broken and was unpublished, use 0.1.27 instead.
+
+## 0.1.25 @ preview
+
+* esyi: Fix updating copies of opam-repository and esy-opam-override
+  repositories.
+
+## 0.1.24 @ preview
+
+* Unpack `*.zip` archives with `unzip`.
+
+* Remove debug artifacts by produced by `esyi` in sandbox directory.
+
+## 0.1.23 @ preview
+
+* Fix resolving `git:` and `github:` package sources.
+
+## 0.1.22 @ preview
+
+* `esyi` now uses naive dependency solver for npm (non-esy) packages.
+
+  npm (non-esy) packages are those without esy configuration defined in
+  package.json.
+
+  The naive dependency solver works as in npm/yarn it tries to match each
+  dependency one-by-one preferring already resolved versions or the most recent
+  versions. Never backtracks.
+
+* New lockfile format.
+
+* Various fixes to semver version/constraint parsing and matching. Things are
+  more aligned with how node-semver works now.
+
 ## 0.1.21 @ preview
 
 * Change `devDependencies` to be installed as regular dependencies of the root

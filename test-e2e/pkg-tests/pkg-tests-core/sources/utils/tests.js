@@ -43,6 +43,18 @@ exports.definePackage = async function(packageJson: {name: string, version: stri
   });
 };
 
+exports.defineLocalPackage = async function(
+  packagePath: string,
+  packageJson: {name: string, version: string},
+) {
+  const {name, version} = packageJson;
+  invariant(name != null, 'Missing "name" in package.json');
+  invariant(version != null, 'Missing "version" in package.json');
+
+  await fsUtils.mkdir(packagePath);
+  await fsUtils.writeJson(path.join(packagePath, 'package.json'), packageJson);
+};
+
 exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegistry> {
   if (getPackageRegistry.promise) {
     return getPackageRegistry.promise;
@@ -409,9 +421,22 @@ type Layout = {
   dependencies: {[name: string]: Layout},
 };
 
-exports.crawlLayout = async function crawlLayout(directory: string): Promise<Layout> {
-  const packageJsonPath = path.join(directory, 'package.json');
+exports.crawlLayout = async function crawlLayout(directory: string): Promise<?Layout> {
+  const esyLinkPath = path.join(directory, '_esylink');
   const nodeModulesPath = path.join(directory, 'node_modules');
+
+  let packageJsonPath;
+  if (await fsUtils.exists(esyLinkPath)) {
+    let sourcePath = await fsUtils.readFile(esyLinkPath, 'utf8');
+    sourcePath = sourcePath.trim();
+    packageJsonPath = path.join(sourcePath, 'package.json');
+  } else {
+    packageJsonPath = path.join(directory, 'package.json');
+  }
+
+  if (!await fsUtils.exists(packageJsonPath)) {
+    return null;
+  }
   const packageJson = await fsUtils.readJson(packageJsonPath);
   const dependencies = {};
 
@@ -421,7 +446,9 @@ exports.crawlLayout = async function crawlLayout(directory: string): Promise<Lay
       items.map(async name => {
         const depDirectory = path.join(directory, 'node_modules', name);
         const dep = await crawlLayout(depDirectory);
-        dependencies[dep.name] = dep;
+        if (dep != null) {
+          dependencies[dep.name] = dep;
+        }
       }),
     );
   }

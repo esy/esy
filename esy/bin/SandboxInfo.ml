@@ -91,15 +91,19 @@ let readCache (cfg : Config.t) =
     let f ic =
       let%lwt info = (Lwt_io.read_value ic : t Lwt.t) in
       let%bind isStale =
-        let checkMtime (path, mtime) =
-          let%bind { Unix.st_mtime = curMtime; _ } = Fs.stat path in
-          return (curMtime > mtime)
+        let%bind checks =
+          RunAsync.List.joinAll (
+            let f (path, mtime) =
+              match%lwt Fs.stat path with
+              | Ok { Unix.st_mtime = curMtime; _ } -> return (curMtime > mtime)
+              | Error _ -> return true
+            in
+            List.map ~f info.sandbox.manifestInfo
+          )
         in
-        info.sandbox.manifestInfo
-        |> List.map ~f:checkMtime
-        |> RunAsync.List.joinAll
+        return (List.exists ~f:(fun x -> x) checks)
       in
-      if List.exists ~f:(fun x -> x) isStale
+      if isStale
       then return None
       else return (Some info)
     in

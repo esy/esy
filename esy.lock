@@ -358,7 +358,7 @@
   peerDependencies:
     ocaml "*"
 
-"@opam/jbuilder@ >= 1.0.0-beta10", "@opam/jbuilder@ >= 1.0.0-beta12", "@opam/jbuilder@ >= 1.0.0-beta14", "@opam/jbuilder@ >= 1.0.0-beta17", "@opam/jbuilder@ >= 1.0.0-beta181", "@opam/jbuilder@ >= 1.0.0-beta7", "@opam/jbuilder@ >= 1.0.0-beta9", "@opam/jbuilder@*", "@opam/jbuilder@^1.0.0-beta18":
+"@opam/jbuilder@ >= 1.0.0-beta10", "@opam/jbuilder@ >= 1.0.0-beta12", "@opam/jbuilder@ >= 1.0.0-beta14", "@opam/jbuilder@ >= 1.0.0-beta17", "@opam/jbuilder@ >= 1.0.0-beta181", "@opam/jbuilder@ >= 1.0.0-beta7", "@opam/jbuilder@ >= 1.0.0-beta9", "@opam/jbuilder@*", "@opam/jbuilder@^1.0.0-beta20":
   version "1.0.0-beta20"
   uid "1648206284a54407f6eee01ed950fff7"
   resolved "@opam/jbuilder@1.0.0-beta20-1648206284a54407f6eee01ed950fff7.tgz"
@@ -594,7 +594,7 @@
 
 "@opam/ppx_derivers@ >= 1.0.0", "@opam/ppx_derivers@*":
   version "1.0.0"
-  uid "8f34e516ed653f2d9d6fbae0d01e64d8"
+  uid "9a473fcbc90d0e2716008fca78704eaa"
   resolved "@opam/ppx_derivers@1.0.0-8f34e516ed653f2d9d6fbae0d01e64d8.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"

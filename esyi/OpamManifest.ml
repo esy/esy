@@ -69,7 +69,7 @@ type t = {
   optDependencies: Dependencies.t;
   available: [ | `IsNotAvailable  | `Ok ] ;
   source: PackageInfo.Source.t;
-  exportedEnv: PackageJson.ExportedEnv.t
+  exportedEnv: PackageInfo.ExportedEnv.t
 }
 
 module ParseDeps = struct
@@ -368,7 +368,7 @@ let toPackageJson manifest version =
         "build", `List (commandListToJson manifest.build);
         "install", `List (commandListToJson manifest.install);
         "buildsInSource", `Bool true;
-        "exportedEnv", PackageJson.ExportedEnv.to_yojson exportedEnv;
+        "exportedEnv", PackageInfo.ExportedEnv.to_yojson exportedEnv;
       ];
       "peerDependencies", Dependencies.to_yojson manifest.peerDependencies;
       "optDependencies", Dependencies.to_yojson manifest.optDependencies;
@@ -408,9 +408,9 @@ let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
   let ocamlRequirement =
     let req = findVariable "available" file_contents in
     let req = Option.map ~f:OpamAvailable.getOCamlVersion req in
-    Option.orDefault ~default:NpmVersion.Formula.any req
+    Option.orDefault ~default:SemverVersion.Formula.any req
   in
-  let ourMinimumOcamlVersion = NpmVersion.Version.parseExn "4.2.3" in
+  let ourMinimumOcamlVersion = SemverVersion.Version.parseExn "4.2.3" in
   let isAvailable =
     let isAvailable =
       let v = findVariable "available" file_contents in
@@ -426,7 +426,7 @@ let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
       PackageInfo.Req.ofSpec
         ~name:"ocaml"
         ~spec:(
-          Npm NpmVersion.Formula.(DNF.conj
+          Npm SemverVersion.Formula.(DNF.conj
             ocamlRequirement
             (OR [AND [Constraint.GTE ourMinimumOcamlVersion]]))
           )
@@ -434,12 +434,12 @@ let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
     let substDep =
       PackageInfo.Req.ofSpec
         ~name:"@esy-ocaml/substs"
-        ~spec:((Npm (NpmVersion.Formula.any))[@explicit_arity ])
+        ~spec:(Npm SemverVersion.Formula.any)
     in
     let esyInstallerDep =
       PackageInfo.Req.ofSpec
         ~name:"@esy-ocaml/esy-installer"
-        ~spec:(Npm NpmVersion.Formula.any)
+        ~spec:(Npm SemverVersion.Formula.any)
     in
     (ocamlDep, substDep, esyInstallerDep)
   in
@@ -493,7 +493,7 @@ let parseUrl { OpamParserTypes. file_contents; file_name } =
   match findArchive file_contents file_name with
   | None -> begin
     match findVariable "git" file_contents with
-    | Some (String (_, git)) -> return (PackageInfo.SourceSpec.Git (git, None), [])
+    | Some (String (_, remote)) -> return (PackageInfo.SourceSpec.Git {remote; ref = None}, [])
     | _ ->
       let problem = Problem.make "no archive found" in
       error problem

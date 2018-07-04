@@ -31,6 +31,10 @@ let getToolAndArgs (tool, args) =
   let args = List.rev args in
   tool, args
 
+let getToolAndLine (tool, args) =
+  let args = List.rev args in
+  tool, Array.of_list (tool::args)
+
 let getTool (tool, _args) = tool
 
 let getArgs (_tool, args) = List.rev args
@@ -47,7 +51,8 @@ let pp ppf (tool, args) =
   | [] -> Fmt.(pf ppf "%s" tool)
   | args ->
     let args = List.rev args in
-    Fmt.(pf ppf "@[<2>%s@ %a@]" tool (list ~sep:sp string) args)
+    let line = List.map ~f:Filename.quote (tool::args) in
+    Fmt.(pf ppf "@[<h>%a@]" (list ~sep:sp string) line)
 
 let isExecutable (stats : Unix.stats) =
   let userExecute = 0b001000000 in
