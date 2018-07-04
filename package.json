@@ -30,6 +30,12 @@
     ],
     "buildsInSource": "_build"
   },
+  "scripts": {
+    "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
+    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
+    "bootstrap:esy-install": "cd esy-install && yarn install",
+    "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh"
+  },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
     "@opam/bos": "^0.2.0",
@@ -66,6 +72,7 @@
     "ocaml": "~4.6.0"
   },
   "devDependencies": {
+    "esy-bash": "^0.1.9",
     "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
     "@opam/ocp-indent": "*",

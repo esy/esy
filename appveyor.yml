@@ -1,0 +1,28 @@
+platform:
+    - x64
+
+cache:
+    - '%LocalAppData%\.opam'
+
+install:
+    - npm install -g rimraf
+    - npm install -g yarn
+    - git submodule update --init --recursive
+    - npm install esy-bash
+    - appveyor-retry yarn run bootstrap:esy-install
+    - npm run bootstrap:install-opam
+    - npm run bootstrap:install-dependencies
+
+build_script:
+# Reset %PATH% to avoid cygwin DLL conflicts with cause
+# *** fatal error - cygheap base mismatch detected
+    - echo $PATH
+    - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin
+    - npm run bootstrap:build
+    - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
+
+artifacts:
+    - path: _release
+      name: esy-windows
+
+test: off
