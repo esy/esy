@@ -9,6 +9,9 @@ module Expr = struct
     | Bool of bool
     | Condition of t * t * t
     | And of t * t
+    | Or of t * t
+    | Not of t
+    | Rel of relop * t * t
     | Colon
     | PathSep
     | OpamVar of opamVar
@@ -17,7 +20,10 @@ module Expr = struct
   and opamVar = string list * string
 
   and name = string option * string
-    [@@deriving (show, eq)]
+
+  and relop =
+    | EQ
+    | NEQ
 end
 
 
