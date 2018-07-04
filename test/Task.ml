@@ -64,10 +64,8 @@ module TestCommandExpr = struct
     resolution = Some "ok";
   }
 
-  let task = Task.ofPackage pkg
-
-  let check f =
-    match task with
+  let check ?system pkg f =
+    match Task.ofPackage ?system pkg with
     | Ok task ->
       f task
     | Error err ->
@@ -75,7 +73,7 @@ module TestCommandExpr = struct
       false
 
   let%test "#{...} inside esy.build" =
-    check (fun task ->
+    check pkg (fun task ->
       Task.CommandList.equal
         task.buildCommands
         [["cp"; "./hello"; "%store%/s/pkg-1.0.0-d7d07b72/bin"];
@@ -83,14 +81,14 @@ module TestCommandExpr = struct
     )
 
   let%test "#{self...} inside esy.install" =
-    check (fun task ->
+    check pkg (fun task ->
       Task.CommandList.equal
         task.installCommands
         [["cp"; "./man"; "%store%/s/pkg-1.0.0-d7d07b72/man"]]
     )
 
   let%test "#{...} inside esy.exportedEnv" =
-    check (fun task ->
+    check pkg (fun task ->
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
