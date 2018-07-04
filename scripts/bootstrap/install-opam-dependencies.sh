@@ -14,6 +14,7 @@ opam install --yes cmdliner
 opam install --yes lwt.3.3.0
 opam install --yes lwt_ppx
 opam install --yes menhir
+opam install --yes ppx_inline_test
 opam install --yes ppx_let
 opam install --yes ppx_deriving_yojson
 opam install --yes yojson
