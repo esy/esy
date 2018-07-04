@@ -1,3 +1,3 @@
 [submodule "esy-install"]
 	path = esy-install/esy-install
-  url = https://github.com/esy-ocaml/esy-install.git
+  url = https://github.com/bryphe/esy-install.git
