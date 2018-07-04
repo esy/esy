@@ -21,9 +21,6 @@ make _release/bin/esy-install.js
 echo "make: postinstall.sh"
 make _release/bin/esyInstallRelease.js
 
-echo "make: postinstall.sh"
-make _release/scripts/postinstall.sh
-
 echo "make: package.json"
 make _release/package.json
 
