@@ -9,12 +9,6 @@ set -o pipefail
 
 cp scripts/bootstrap/Makefile.bootstrap Makefile
 
-echo "Bootstrap round 1"
-make bootstrap
-
-echo "Bootstrap round 2"
-make bootstrap
-
 echo "jbuilder:build esy-build-package"
 jbuilder build _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 
