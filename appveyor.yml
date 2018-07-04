@@ -23,7 +23,7 @@ build_script:
     - npm run temp:ocamlfind
     - npm run temp:cygwin:check-dll
     - npm run bootstrap:build
-    - C:\appveyor\esy\_release\_build\default\esy\bin\esyCommand.exe help
+    - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
 
 artifacts:
     - path: _release
