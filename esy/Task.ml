@@ -11,17 +11,20 @@ module ConfigPath = Config.ConfigPath
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
     match System.host with
+    | System.Unknown
     | System.Darwin
     | System.Linux
+    | System.Unix
     | System.Cygwin -> "/"
-    | System.Other _ -> "\\"
+    | System.Windows -> "\\"
   in
   let colon =
     match name, system with
-    | Some "OCAMLPATH", (System.Linux | System.Darwin) -> ":"
-    | Some "OCAMLPATH", (System.Cygwin | System.Other _) -> ";"
-    | _, (System.Linux | System.Darwin | System.Cygwin) -> ":"
-    | _, System.Other _ -> ";"
+    (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)
+    | Some "OCAMLPATH", (System.Linux | System.Darwin | System.Unix | System.Unknown) -> ":"
+    | Some "OCAMLPATH", (System.Cygwin | System.Windows) -> ";"
+    | _, (System.Linux | System.Darwin | System.Unix | System.Unknown | System.Cygwin) -> ":"
+    | _, System.Windows -> ";"
   in
   let scope name =
     match name with
