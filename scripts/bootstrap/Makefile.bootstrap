@@ -4,7 +4,7 @@ ESY_EXT := $(shell command -v esy 2> /dev/null)
 
 RELEASE_TAG ?= latest
 BIN = $(PWD)/node_modules/.bin
-PROJECTS = esy esy-build-package esyi
+PROJECTS = esy esy-build-package
 
 #
 # Tools
@@ -127,14 +127,6 @@ $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esyi/bin/esyi-darwin.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esyi/bin/esyi.exe $(@)
-
-$(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
-	@mkdir -p $(@D)
-	@touch $(@)
 
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
