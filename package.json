@@ -61,7 +61,7 @@
     "@esy-ocaml/reason": "^3.2.0",
     "fastreplacestring": "esy-ocaml/FastReplaceString.git#9450b6",
     "esy-solve-cudf": "^0.0.3",
-    "esy-bash": "^0.1.9"
+    "esy-bash": "^0.1.10"
   },
   "resolutions": {
     "**/@opam/sexplib0": "100000000.11.0",
