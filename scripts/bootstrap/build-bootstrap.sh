@@ -32,3 +32,6 @@ make _release/_build/default/esy/bin/esyCommand.exe
 
 echo "make: fastreplacestring"
 make _release/bin/fastreplacestring
+
+cd _release
+npm install @esy-ocaml/esy-opam

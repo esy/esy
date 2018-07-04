@@ -27,7 +27,7 @@ test_script:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - git clone https://github.com/esy-ocaml/esy-reason-project C:\esy-reason-project
     - cd esy-reason-project
-    - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe install
+    - appveyor-retry C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe install
 
 artifacts:
     - path: _release
