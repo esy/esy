@@ -107,6 +107,22 @@ let eval ~pathSep ~colon ~scope string =
       let%bind a = evalToBool a in
       let%bind b = evalToBool b in
       return (V.Bool (a && b))
+    | E.Or (a, b) ->
+      let%bind a = evalToBool a in
+      let%bind b = evalToBool b in
+      return (V.Bool (a || b))
+    | E.Not a ->
+      let%bind a = evalToBool a in
+      return (V.Bool (not a))
+    | E.Rel (relop, a, b) ->
+      let%bind a = eval a in
+      let%bind b = eval b in
+      let r =
+        match relop with
+        | E.EQ -> V.equal a b
+        | E.NEQ -> not (V.equal a b)
+      in
+      return (V.Bool r)
     | E.Concat exprs ->
       let f s expr =
         let%bind v = evalToString expr in

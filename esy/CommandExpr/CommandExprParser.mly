@@ -9,13 +9,20 @@
 %token DOLLAR
 %token AT
 %token AND
+%token OR
+%token EQ
+%token NEQ
+%token NOT
 %token PLUS
 %token PAREN_LEFT
 %token PAREN_RIGHT
 %token EOF
 
 %left QUESTION_MARK
+%left OR
 %left AND
+%left EQ NEQ
+%left NOT
 
 %{
 
@@ -57,11 +64,24 @@ atom:
   | e = atomEnv { e }
   | e = atomCond { e }
   | e = atomAnd { e }
+  | e = atomOr { e }
+  | e = atomEq { e }
+  | e = atomNeq { e }
+  | NOT; e = atom { E.Not e }
   | SLASH { E.PathSep }
   | COLON { E.Colon }
 
 atomAnd:
   a = atom; AND; b = atom { E.And (a, b) }
+
+atomOr:
+  a = atom; OR; b = atom { E.Or (a, b) }
+
+atomEq:
+  a = atom; EQ; b = atom { E.Rel (E.EQ, a, b) }
+
+atomNeq:
+  a = atom; NEQ; b = atom { E.Rel (E.NEQ, a, b) }
 
 %inline atomCond:
   cond = atom; QUESTION_MARK; t = restrictedExpr; COLON; e = restrictedExpr { E.Condition (cond, t, e) }

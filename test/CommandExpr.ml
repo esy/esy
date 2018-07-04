@@ -1,12 +1,13 @@
 open Esy.CommandExpr
 open Esy.CommandExpr.Expr
 
-let expectParseOk s expectedTokens =
+let expectParseOk s expr =
   match parse s with
-  | Ok tokens ->
-    if not (equal tokens expectedTokens) then (
-      Printf.printf "Expected: %s\n" (show expectedTokens);
-      Printf.printf "     Got: %s\n" (show tokens);
+  | Ok res ->
+    if not (equal res expr) then (
+      Format.printf " Parsing:@[<v 2>@\n%s@]@\n" s;
+      Format.printf "Expected:@[<v 2>@\n%a@]@\n" pp expr;
+      Format.printf "     Got:@[<v 2>@\n%a@]@\n" pp res;
       false
     ) else
       true
@@ -125,6 +126,152 @@ let%test "parse conj" =
       (Var (Some "async", "installed"))
       ))
 
+let%test "parse disj" =
+  expectParseOk
+    "#{lwt.installed || async.installed}"
+    (Or (
+      (Var (Some "lwt", "installed")),
+      (Var (Some "async", "installed"))
+      ))
+
+let%test "parse eq" =
+  expectParseOk
+    "#{lwt.installed == async.installed}"
+    (Rel (
+      EQ,
+      (Var (Some "lwt", "installed")),
+      (Var (Some "async", "installed"))
+      ))
+
+let%test "parse neq" =
+  expectParseOk
+    "#{lwt.installed != async.installed}"
+    (Rel (
+      NEQ,
+      (Var (Some "lwt", "installed")),
+      (Var (Some "async", "installed"))
+      ))
+
+let%test "parse precedence disj / conj" =
+  expectParseOk
+    "#{lwt || async && mirage}"
+    (Or (
+      Var (None, "lwt"),
+      And (
+        Var (None, "async"),
+        Var (None, "mirage")
+      )
+    ))
+  && expectParseOk
+    "#{mirage && lwt || async}"
+    (Or (
+      And (
+        Var (None, "mirage"),
+        Var (None, "lwt")
+      ),
+      Var (None, "async")
+    ))
+  && expectParseOk
+    "#{(lwt || async) && mirage}"
+    (And (
+      Or (
+        Var (None, "lwt"),
+        Var (None, "async")
+      ),
+      Var (None, "mirage")
+    ))
+  && expectParseOk
+    "#{mirage && (lwt || async)}"
+    (And (
+      Var (None, "mirage"),
+      Or (
+        Var (None, "lwt"),
+        Var (None, "async")
+      )
+    ))
+
+let%test "parse precedence conj / eq" =
+  expectParseOk
+    "#{lwt == async && mirage}"
+    (And (
+      Rel (
+        EQ,
+        Var (None, "lwt"),
+        Var (None, "async")
+      ),
+      Var (None, "mirage")
+    ))
+  && expectParseOk
+    "#{lwt != async && mirage}"
+    (And (
+      Rel (
+        NEQ,
+        Var (None, "lwt"),
+        Var (None, "async")
+      ),
+      Var (None, "mirage")
+    ))
+  && expectParseOk
+    "#{mirage && lwt == async}"
+    (And (
+      Var (None, "mirage"),
+      Rel (
+        EQ,
+        Var (None, "lwt"),
+        Var (None, "async")
+      )
+    ))
+  && expectParseOk
+    "#{mirage && lwt != async}"
+    (And (
+      Var (None, "mirage"),
+      Rel (
+        NEQ,
+        Var (None, "lwt"),
+        Var (None, "async")
+      )
+    ))
+  && expectParseOk
+    "#{(mirage && lwt) != async}"
+      (Rel (
+        NEQ,
+        And (
+          Var (None, "mirage"),
+          Var (None, "lwt")
+        ),
+        Var (None, "async")
+      ))
+
+let%test "parse precedence not" =
+  expectParseOk
+    "#{!lwt == async}"
+    (Rel (
+      EQ,
+      Not (Var (None, "lwt")),
+      Var (None, "async")
+    ))
+  && expectParseOk
+    "#{lwt == !async}"
+    (Rel (
+      EQ,
+      Var (None, "lwt"),
+      Not (Var (None, "async"))
+    ))
+  && expectParseOk
+    "#{!lwt != async}"
+    (Rel (
+      NEQ,
+      Not (Var (None, "lwt")),
+      Var (None, "async")
+    ))
+  && expectParseOk
+    "#{lwt != !async}"
+    (Rel (
+      NEQ,
+      Var (None, "lwt"),
+      Not (Var (None, "async"))
+    ))
+
 let%test "parse opam global" =
   expectParseOk
     "%{name}%"
@@ -170,8 +317,9 @@ let expectRenderOk scope s expected =
   match render ~scope s with
   | Ok v ->
     if v <> expected then (
-      Printf.printf "Expected: %s\n" expected;
-      Printf.printf "     Got: %s\n" v;
+      Format.printf "  Render:@[<v 2>@\n%s@]@\n" s;
+      Format.printf "Expected:@[<v 2>@\n%s@]@\n" expected;
+      Format.printf "     Got:@[<v 2>@\n%s@]@\n" v;
       false
     ) else
       true
@@ -196,6 +344,7 @@ let scope = function
 | None, "isTrue" -> Some (Value.Bool true)
 | None, "isFalse" -> Some (Value.Bool false)
 | None, "opam:os" -> Some (Value.String "MSDOS")
+| None, "os" -> Some (Value.String "OS/2")
 | Some "self", "lib" -> Some (Value.String "store/lib")
 | Some "@opam/pkg", "lib" -> Some (Value.String "store/opam-pkg/lib")
 | Some "@opam/pkg1", "installed" -> Some (Value.Bool true)
@@ -209,7 +358,11 @@ let%test "render" =
   && expectRenderOk scope "#{self.lib / $NAME}" "store/lib/$NAME"
   && expectRenderOk scope "#{isTrue ? 'ok' : 'oops'}" "ok"
   && expectRenderOk scope "#{isFalse ? 'oops' : 'ok'}" "ok"
+  && expectRenderOk scope "#{!isFalse ? 'ok' : 'oops'}" "ok"
   && expectRenderOk scope "#{isFalse && isTrue ? 'oops' : 'ok'}" "ok"
+  && expectRenderOk scope "#{isFalse || isTrue ? 'ok' : 'oops'}" "ok"
+  && expectRenderOk scope "#{os == 'OS/2' ? 'ok' : 'oops'}" "ok"
+  && expectRenderOk scope "#{os != 'macOs' ? 'ok' : 'oops'}" "ok"
 
 
 let%test "render opam" =

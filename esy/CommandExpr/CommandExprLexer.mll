@@ -26,6 +26,10 @@ rule read tokens = parse
 
 and expr tokens = parse
  | '&' '&'      { expr (AND::tokens) lexbuf }
+ | '|' '|'      { expr (OR::tokens) lexbuf }
+ | '=' '='      { expr (EQ::tokens) lexbuf }
+ | '!' '='      { expr (NEQ::tokens) lexbuf }
+ | '!'          { expr (NOT::tokens) lexbuf }
  | space        { expr tokens lexbuf }
  | '('          { expr (PAREN_LEFT::tokens) lexbuf }
  | ')'          { expr (PAREN_RIGHT::tokens) lexbuf }
