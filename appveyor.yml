@@ -7,6 +7,8 @@ cache:
 install:
     - npm install -g rimraf
     - npm install -g yarn
+    - git clone https://github.com/esy-ocaml/esy-reason-project /esy-reason-project
+    - cd C:\esy-reason-project
     - git submodule update --init --recursive
     - npm install esy-bash
     - npm install esy-ocaml/FastReplaceString.git#9450b6
@@ -14,8 +16,6 @@ install:
     - appveyor-retry yarn run bootstrap:esy-install
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
-    - git clone https://github.com/esy-ocaml/esy-reason-project /esy-reason-project
-    - cd C:\esy-reason-project
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
