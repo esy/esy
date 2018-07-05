@@ -7,7 +7,6 @@ cache:
 install:
     - npm install -g rimraf
     - npm install -g yarn
-    - which appveyor-retry
     - git submodule update --init --recursive
     - npm install esy-bash
     - npm install esy-ocaml/FastReplaceString.git#9450b6
@@ -26,7 +25,7 @@ build_script:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - git clone https://github.com/esy-ocaml/esy-reason-project /esy-reason-project
     - cd C:\esy-reason-project
-    - appveyor-retry C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe install
+    - appveyor-retry C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
 
 artifacts:
     - path: _release
