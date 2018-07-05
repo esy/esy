@@ -5,6 +5,7 @@ cache:
     - '%LocalAppData%\.opam'
 
 install:
+    - where appveyor-retry.cmd
     - npm install -g rimraf
     - npm install -g yarn
     - git submodule update --init --recursive
