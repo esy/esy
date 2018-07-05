@@ -7,12 +7,6 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__Config.cmti" {"EsyInstaller__Config.cmti"}
   "_build/install/default/lib/esyi/Config.rei" {"Config.rei"}
   "_build/install/default/lib/esyi/Config.re" {"Config.re"}
-  "_build/install/default/lib/esyi/EsyInstaller__DebianVersion.cmi" {"EsyInstaller__DebianVersion.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__DebianVersion.cmx" {"EsyInstaller__DebianVersion.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__DebianVersion.cmt" {"EsyInstaller__DebianVersion.cmt"}
-  "_build/install/default/lib/esyi/EsyInstaller__DebianVersion.cmti" {"EsyInstaller__DebianVersion.cmti"}
-  "_build/install/default/lib/esyi/DebianVersion.mli" {"DebianVersion.mli"}
-  "_build/install/default/lib/esyi/DebianVersion.ml" {"DebianVersion.ml"}
   "_build/install/default/lib/esyi/EsyInstaller.cmi" {"EsyInstaller.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller.cmx" {"EsyInstaller.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller.cmt" {"EsyInstaller.cmt"}

@@ -1,7 +1,23 @@
 module MakeFormula = Version.Formula.Make
 
 (** opam versions are Debian-style versions *)
-module Version = DebianVersion
+module Version = struct
+  type t = OpamPackage.Version.t
+
+  let equal a b = OpamPackage.Version.compare a b = 0
+  let compare = OpamPackage.Version.compare
+  let show = OpamPackage.Version.to_string
+  let pp fmt v = Fmt.pf fmt "%s" (show v)
+  let parse v = Ok (OpamPackage.Version.of_string v)
+  let parseExn v = OpamPackage.Version.of_string v
+  let prerelease _v = false
+  let stripPrerelease v = v
+  let toString = OpamPackage.Version.to_string
+  let to_yojson v = `String (show v)
+  let of_yojson = function
+    | `String v -> parse v
+    | _ -> Error "expected a string"
+end
 
 (**
  * Npm formulas over opam versions.
@@ -14,31 +30,6 @@ module Formula = struct
 
   module C = Constraint
 
-  let nextForCaret v =
-    let next =
-      match Version.AsSemver.major v with
-      | Some 0 -> Version.AsSemver.nextPatch v
-      | Some _ -> Version.AsSemver.nextMinor v
-      | None -> None
-    in match next with
-    | Some next -> Ok next
-    | None ->
-      let msg = Printf.sprintf
-        "unable to apply ^ version operator to %s"
-        (Version.toString v)
-      in
-      Error msg
-
-  let nextForTilde v =
-    match Version.AsSemver.nextPatch v with
-    | Some next -> Ok next
-    | None ->
-      let msg = Printf.sprintf
-        "unable to apply ~ version operator to %s"
-        (Version.toString v)
-      in
-      Error msg
-
   let parseRel text =
     let module String = Astring.String in
     let open Result.Syntax in
@@ -47,15 +38,11 @@ module Formula = struct
     | text ->
       begin match text.[0], text.[1] with
       | '^', _ ->
-        let text = String.Sub.(text |> v ~start:1 |> to_string) in
-        let%bind v = Version.parse text in
-        let%bind next = nextForCaret v in
-        return [C.GTE v; C.LT next]
+        let msg = Printf.sprintf "%s: ^ is not supported for opam versions" text in
+        error msg
       | '~', _ ->
-        let text = String.Sub.(text |> v ~start:1 |> to_string) in
-        let%bind v = Version.parse text in
-        let%bind next = nextForTilde v in
-        return [C.GTE v; C.LT next]
+        let msg = Printf.sprintf "%s: ~ is not supported for opam versions" text in
+        error msg
       | '=', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in

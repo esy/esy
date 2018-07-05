@@ -27,7 +27,7 @@ end
 module Version : sig
   type t =
       Npm of SemverVersion.Version.t
-    | Opam of DebianVersion.t
+    | Opam of OpamVersion.Version.t
     | Source of Source.t
 
   val compare : t -> t -> int
