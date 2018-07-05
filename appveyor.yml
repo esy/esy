@@ -28,6 +28,7 @@ build_script:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - git clone https://github.com/esy-ocaml/esy-reason-project /esy-reason-project
     - cd C:\esy-reason-project
+# One-off test case until we get test suite working
     - ls
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe install
 
