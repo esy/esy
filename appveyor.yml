@@ -22,8 +22,6 @@ build_script:
     - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin
     - npm run bootstrap:build
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
-
-test_script:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - git clone https://github.com/esy-ocaml/esy-reason-project C:\esy-reason-project
     - cd esy-reason-project
