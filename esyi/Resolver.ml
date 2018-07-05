@@ -1,8 +1,8 @@
-module VersionSpec = PackageInfo.VersionSpec
-module SourceSpec = PackageInfo.SourceSpec
-module Version = PackageInfo.Version
-module Source = PackageInfo.Source
-module Req = PackageInfo.Req
+module VersionSpec = Package.VersionSpec
+module SourceSpec = Package.SourceSpec
+module Version = Package.Version
+module Source = Package.Source
+module Req = Package.Req
 
 module Resolution = struct
   type t = {
@@ -18,7 +18,7 @@ module Resolution = struct
 end
 
 module PackageCache = Memoize.Make(struct
-  type key = (string * PackageInfo.Version.t)
+  type key = (string * Package.Version.t)
   type value = Package.t RunAsync.t
 end)
 
@@ -151,12 +151,12 @@ let package ~(resolution : Resolution.t) resolver =
     let%bind pkg = RunAsync.ofRun (
       match manifest with
       | `PackageJson manifest ->
-        Package.ofManifest
+        Manifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
       | `Opam manifest ->
-        Package.ofOpamManifest
+        OpamManifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
@@ -190,13 +190,13 @@ let resolve ~req resolver =
         in
 
         let f (version, manifest) =
-          let version = PackageInfo.Version.Npm version in
+          let version = Package.Version.Npm version in
           let resolution = {Resolution. name; version} in
 
           (* precache manifest so we don't have to fetch it once more *)
           let key = (resolution.name, resolution.version) in
           PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-            Lwt.return (Package.ofManifest ~version manifest)
+            Lwt.return (Manifest.toPackage ~version manifest)
           end;
 
           resolution

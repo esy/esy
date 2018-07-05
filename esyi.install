@@ -71,12 +71,6 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__Package.cmti" {"EsyInstaller__Package.cmti"}
   "_build/install/default/lib/esyi/Package.mli" {"Package.mli"}
   "_build/install/default/lib/esyi/Package.ml" {"Package.ml"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageInfo.cmi" {"EsyInstaller__PackageInfo.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageInfo.cmx" {"EsyInstaller__PackageInfo.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageInfo.cmt" {"EsyInstaller__PackageInfo.cmt"}
-  "_build/install/default/lib/esyi/EsyInstaller__PackageInfo.cmti" {"EsyInstaller__PackageInfo.cmti"}
-  "_build/install/default/lib/esyi/PackageInfo.mli" {"PackageInfo.mli"}
-  "_build/install/default/lib/esyi/PackageInfo.ml" {"PackageInfo.ml"}
   "_build/install/default/lib/esyi/EsyInstaller__PackagePath.cmi" {"EsyInstaller__PackagePath.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller__PackagePath.cmx" {"EsyInstaller__PackagePath.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller__PackagePath.cmt" {"EsyInstaller__PackagePath.cmt"}

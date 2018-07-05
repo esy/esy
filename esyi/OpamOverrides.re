@@ -1,5 +1,5 @@
 module PackageNameMap = Map.Make(OpamManifest.PackageName);
-module Dependencies = PackageInfo.Dependencies;
+module Dependencies = Package.Dependencies;
 
 module Override = {
   module Opam = {
@@ -36,12 +36,10 @@ module Override = {
   type t = {
     build: [@default None] option(list(Command.t)),
     install: [@default None] option(list(Command.t)),
-    dependencies:
-      [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
+    dependencies: [@default Package.Dependencies.empty] Package.Dependencies.t,
     peerDependencies:
-      [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
-    exportedEnv:
-      [@default PackageInfo.ExportedEnv.empty] PackageInfo.ExportedEnv.t,
+      [@default Package.Dependencies.empty] Package.Dependencies.t,
+    exportedEnv: [@default Package.ExportedEnv.empty] Package.ExportedEnv.t,
     opam: [@default Opam.empty] Opam.t,
   };
 };
@@ -173,7 +171,7 @@ let get = (overrides, name: OpamManifest.PackageName.t, version) =>
 let apply = (manifest: OpamManifest.t, override: Override.t) => {
   let source =
     switch (override.opam.Override.Opam.source) {
-    | Some(source) => PackageInfo.Source.Archive(source.url, source.checksum)
+    | Some(source) => Package.Source.Archive(source.url, source.checksum)
     | None => manifest.source
     };
 

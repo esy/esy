@@ -1,8 +1,8 @@
 module Version = SemverVersion.Version
 module String = Astring.String
-module Resolutions = PackageInfo.Resolutions
-module Source = PackageInfo.Source
-module Dependencies = PackageInfo.Dependencies
+module Resolutions = Package.Resolutions
+module Source = Package.Source
+module Dependencies = Package.Dependencies
 
 (* This is used just to read the Json.t *)
 module PackageJson = struct
@@ -86,3 +86,35 @@ module Root = struct
     let manifest = ofPackageJson pkgJson in
     return {manifest; resolutions = pkgJson.PackageJson.resolutions}
 end
+
+let toPackage ?name ?version (manifest : t) =
+  let open Run.Syntax in
+  let name =
+    match name with
+    | Some name -> name
+    | None -> manifest.name
+  in
+  let version =
+    match version with
+    | Some version -> version
+    | None -> Package.Version.Npm (SemverVersion.Version.parseExn manifest.version)
+  in
+  let source =
+    match version with
+    | Package.Version.Source src -> src
+    | _ -> manifest.source
+  in
+  return {
+    Package.
+    name;
+    version;
+    dependencies = manifest.dependencies;
+    devDependencies = manifest.devDependencies;
+    source;
+    opam = None;
+    kind =
+      if manifest.hasEsyManifest
+      then Esy
+      else Npm
+  }
+

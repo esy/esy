@@ -19,8 +19,8 @@ val mem : pkg:Package.t -> t -> bool
 val findVersions : name:string -> t -> Package.t list
 
 (** Find a specific version of a package. *)
-val findVersion : name:string -> version:PackageInfo.Version.t -> t -> Package.t option
-val findVersionExn : name:string -> version:PackageInfo.Version.t -> t -> Package.t
+val findVersion : name:string -> version:Package.Version.t -> t -> Package.t option
+val findVersionExn : name:string -> version:Package.Version.t -> t -> Package.t
 
 (**
  * Mapping from universe to CUDF.

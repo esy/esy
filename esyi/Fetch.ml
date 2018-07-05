@@ -1,4 +1,4 @@
-module Version = PackageInfo.Version
+module Version = Package.Version
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
@@ -169,10 +169,10 @@ module Layout = struct
   let%test_module "optimize" = (module struct
 
     let make name version dependencies =
-      let version = PackageInfo.Version.Npm (SemverVersion.Version.parseExn version) in
+      let version = Package.Version.Npm (SemverVersion.Version.parseExn version) in
       let record = Record.{
         name; version;
-        source = PackageInfo.Source.NoSource; opam = None;
+        source = Package.Source.NoSource; opam = None;
       } in
       Solution.make record dependencies
 
@@ -452,12 +452,12 @@ module Layout = struct
       let path = Path.(path / "node_modules" // v record.Record.name) in
       let sourcePath =
         match record.Record.source with
-        | PackageInfo.Source.Archive _
-        | PackageInfo.Source.Git _
-        | PackageInfo.Source.Github _
-        | PackageInfo.Source.LocalPath _
-        | PackageInfo.Source.NoSource -> path
-        | PackageInfo.Source.LocalPathLink path -> path
+        | Package.Source.Archive _
+        | Package.Source.Git _
+        | Package.Source.Github _
+        | Package.Source.LocalPath _
+        | Package.Source.NoSource -> path
+        | Package.Source.LocalPathLink path -> path
       in
       let isDirectDependencyOfRoot = Record.Set.mem record directDependencies in
       let layout = {path; sourcePath; record; isDirectDependencyOfRoot}::layout in

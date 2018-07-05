@@ -1,26 +1,26 @@
 module String = Astring.String
-module Source = PackageInfo.Source
+module Source = Package.Source
 
 module Dist = struct
   type t = {
     name : string;
-    version : PackageInfo.Version.t;
-    source : PackageInfo.Source.t;
+    version : Package.Version.t;
+    source : Package.Source.t;
     tarballPath : Path.t option;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name PackageInfo.Version.pp dist.version
+    Fmt.pf fmt "%s@%a" dist.name Package.Version.pp dist.version
 end
 
 let packageKey (pkg : Solution.Record.t) =
-  let version = PackageInfo.Version.toString pkg.version in
+  let version = Package.Version.toString pkg.version in
   match pkg.opam with
   | None -> Printf.sprintf "%s__%s" pkg.name version
   | Some opam ->
     let opamHash =
       opam
-      |> PackageInfo.OpamInfo.show
+      |> Package.OpamInfo.show
       |> Digest.string
       |> Digest.to_hex
       |> String.Sub.v ~start:0 ~stop:8
@@ -36,18 +36,18 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
   let doFetch path =
     match source with
 
-    | PackageInfo.Source.LocalPath _ ->
+    | Package.Source.LocalPath _ ->
       let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
       failwith msg
 
-    | PackageInfo.Source.LocalPathLink _ ->
+    | Package.Source.LocalPathLink _ ->
       (* this case is handled separately *)
       return ()
 
-    | PackageInfo.Source.NoSource ->
+    | Package.Source.NoSource ->
       return ()
 
-    | PackageInfo.Source.Archive (url, _checksum)  ->
+    | Package.Source.Archive (url, _checksum)  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
@@ -57,7 +57,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
       Fs.withTempDir f
 
-    | PackageInfo.Source.Github github ->
+    | Package.Source.Github github ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -74,7 +74,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
       Fs.withTempDir f
 
-    | PackageInfo.Source.Git git ->
+    | Package.Source.Git git ->
       let%bind () = Git.clone ~dst:path ~remote:git.remote () in
       let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
       let%bind () = Fs.rmPath Path.(path / ".git") in
@@ -92,7 +92,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
 
       let%bind () =
         match opam with
-        | Some {PackageInfo.OpamInfo. packageJson; files; patches} ->
+        | Some {Package.OpamInfo. packageJson; files; patches} ->
 
           let%bind () = removeEsyJsonIfExists() in
 
@@ -166,7 +166,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
     | _, false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
-          let msg = Format.asprintf "fetching %a" PackageInfo.Source.pp source in
+          let msg = Format.asprintf "fetching %a" Package.Source.pp source in
           RunAsync.withContext msg (
             let%bind () = Fs.createDir sourcePath in
             let%bind () = doFetch sourcePath in

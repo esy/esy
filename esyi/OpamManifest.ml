@@ -1,4 +1,4 @@
-module Dependencies = PackageInfo.Dependencies
+module Dependencies = Package.Dependencies
 
 module PackageName : sig
   type t
@@ -68,8 +68,8 @@ type t = {
   peerDependencies: Dependencies.t;
   optDependencies: Dependencies.t;
   available: [ | `IsNotAvailable  | `Ok ] ;
-  source: PackageInfo.Source.t;
-  exportedEnv: PackageInfo.ExportedEnv.t
+  source: Package.Source.t;
+  exportedEnv: Package.ExportedEnv.t
 }
 
 module ParseDeps = struct
@@ -200,18 +200,18 @@ let processDeps ~emitWarning deps =
     match ParseDeps.parse ~emitWarning dep with
     | Ok (Some (name, formula, `Link)) ->
       let name = PackageName.(name |> ofString |> toNpm) in
-      let spec = PackageInfo.VersionSpec.Opam formula in
-      let req = PackageInfo.Req.ofSpec ~name ~spec in
+      let spec = Package.VersionSpec.Opam formula in
+      let req = Package.Req.ofSpec ~name ~spec in
       return (req::deps, buildDeps, devDeps)
     | Ok (Some (name, formula, `Build)) ->
       let name = PackageName.(name |> ofString |> toNpm) in
-      let spec = PackageInfo.VersionSpec.Opam formula in
-      let req = PackageInfo.Req.ofSpec ~name ~spec in
+      let spec = Package.VersionSpec.Opam formula in
+      let req = Package.Req.ofSpec ~name ~spec in
       return (deps, req::buildDeps, devDeps)
     | Ok (Some (name, formula, `Test)) ->
       let name = PackageName.(name |> ofString |> toNpm) in
-      let spec = PackageInfo.VersionSpec.Opam formula in
-      let req = PackageInfo.Req.ofSpec ~name ~spec in
+      let spec = Package.VersionSpec.Opam formula in
+      let req = Package.Req.ofSpec ~name ~spec in
       return (deps, buildDeps, req::devDeps)
     | Ok None ->
       return (deps, buildDeps, devDeps)
@@ -363,12 +363,12 @@ let toPackageJson manifest version =
   let packageJson =
     `Assoc [
       "name", `String npmName;
-      "version", `String (PackageInfo.Version.toNpmVersion version);
+      "version", `String (Package.Version.toNpmVersion version);
       "esy", `Assoc [
         "build", `List (commandListToJson manifest.build);
         "install", `List (commandListToJson manifest.install);
         "buildsInSource", `Bool true;
-        "exportedEnv", PackageInfo.ExportedEnv.to_yojson exportedEnv;
+        "exportedEnv", Package.ExportedEnv.to_yojson exportedEnv;
       ];
       "peerDependencies", Dependencies.to_yojson manifest.peerDependencies;
       "optDependencies", Dependencies.to_yojson manifest.optDependencies;
@@ -376,7 +376,7 @@ let toPackageJson manifest version =
     ]
   in
   {
-    PackageInfo.OpamInfo.packageJson = packageJson;
+    Package.OpamInfo.packageJson = packageJson;
     files = (manifest.files);
     patches = (manifest.patches)
   }
@@ -423,7 +423,7 @@ let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
   in
   let (ocamlDep, substDep, esyInstallerDep) =
     let ocamlDep =
-      PackageInfo.Req.ofSpec
+      Package.Req.ofSpec
         ~name:"ocaml"
         ~spec:(
           Npm SemverVersion.Formula.(DNF.conj
@@ -432,12 +432,12 @@ let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
           )
     in
     let substDep =
-      PackageInfo.Req.ofSpec
+      Package.Req.ofSpec
         ~name:"@esy-ocaml/substs"
         ~spec:(Npm SemverVersion.Formula.any)
     in
     let esyInstallerDep =
-      PackageInfo.Req.ofSpec
+      Package.Req.ofSpec
         ~name:"@esy-ocaml/esy-installer"
         ~spec:(Npm SemverVersion.Formula.any)
     in
@@ -482,7 +482,7 @@ let parseManifest ~name ~version { OpamParserTypes. file_contents; file_name } =
     buildDependencies = Dependencies.empty;
     peerDependencies = Dependencies.empty;
     available = isAvailable;
-    source = PackageInfo.Source.NoSource;
+    source = Package.Source.NoSource;
     exportedEnv = []
   } in
 
@@ -493,7 +493,7 @@ let parseUrl { OpamParserTypes. file_contents; file_name } =
   match findArchive file_contents file_name with
   | None -> begin
     match findVariable "git" file_contents with
-    | Some (String (_, remote)) -> return (PackageInfo.SourceSpec.Git {remote; ref = None}, [])
+    | Some (String (_, remote)) -> return (Package.SourceSpec.Git {remote; ref = None}, [])
     | _ ->
       let problem = Problem.make "no archive found" in
       error problem
@@ -504,7 +504,7 @@ let parseUrl { OpamParserTypes. file_contents; file_name } =
         | Some (String (_, checksum)) -> Some checksum
         | _ -> None
       in
-      return (PackageInfo.SourceSpec.Archive (archive, checksum), [])
+      return (Package.SourceSpec.Archive (archive, checksum), [])
 
 let runParsePath ~parser path =
   let open RunAsync.Syntax in
@@ -526,3 +526,30 @@ let runParsePath ~parser path =
     logProblem Logs.Error p;%lwt
     error "error reading opam file"
 
+let toPackage ?name ?version (manifest : t) =
+  let open Run.Syntax in
+  let name =
+    match name with
+    | Some name -> name
+    | None -> PackageName.toNpm manifest.name
+  in
+  let version =
+    match version with
+    | Some version -> version
+    | None -> Package.Version.Opam manifest.version
+  in
+  let source =
+    match version with
+    | Package.Version.Source src -> src
+    | _ -> manifest.source
+  in
+  return {
+    Package.
+    name;
+    version;
+    dependencies = manifest.dependencies;
+    devDependencies = manifest.devDependencies;
+    source;
+    opam = Some (toPackageJson manifest version);
+    kind = Esy;
+  }

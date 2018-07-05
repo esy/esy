@@ -21,14 +21,14 @@ type t = {
   install: string list list ;
   patches: string list ;
   files: (Path.t * string) list ;
-  dependencies: PackageInfo.Dependencies.t ;
-  buildDependencies: PackageInfo.Dependencies.t ;
-  devDependencies: PackageInfo.Dependencies.t ;
-  peerDependencies: PackageInfo.Dependencies.t ;
-  optDependencies: PackageInfo.Dependencies.t ;
+  dependencies: Package.Dependencies.t ;
+  buildDependencies: Package.Dependencies.t ;
+  devDependencies: Package.Dependencies.t ;
+  peerDependencies: Package.Dependencies.t ;
+  optDependencies: Package.Dependencies.t ;
   available: [ `IsNotAvailable  | `Ok ] ;
-  source: PackageInfo.Source.t ;
-  exportedEnv: PackageInfo.ExportedEnv.t
+  source: Package.Source.t ;
+  exportedEnv: Package.ExportedEnv.t
 }
 
 type 'v parser
@@ -38,12 +38,14 @@ val parseManifest :
   -> version:OpamVersion.Version.t
   -> t parser
 
-val parseUrl : PackageInfo.SourceSpec.t parser
+val parseUrl : Package.SourceSpec.t parser
 
 (** Run parser and log all errors, warnings *)
 val runParsePath : parser:'v parser -> Path.t -> 'v RunAsync.t
 
 val toPackageJson :
   t
-  -> PackageInfo.Version.t
-  -> PackageInfo.OpamInfo.t
+  -> Package.Version.t
+  -> Package.OpamInfo.t
+
+val toPackage : ?name:string -> ?version:Package.Version.t -> t -> Package.t Run.t

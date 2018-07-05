@@ -13,7 +13,7 @@ type t = private {
   cfg: Config.t;
   resolver: Resolver.t;
   universe: Universe.t;
-  resolutions : PackageInfo.Resolutions.t;
+  resolutions : Package.Resolutions.t;
 }
 
 (**
@@ -25,21 +25,21 @@ type t = private {
 val make :
   cfg:Config.t
   -> ?resolver:Resolver.t
-  -> resolutions:PackageInfo.Resolutions.t
+  -> resolutions:Package.Resolutions.t
   -> unit
   -> t RunAsync.t
 
 (** Add dependencies to the solver *)
 val add :
-  dependencies:PackageInfo.Dependencies.t
+  dependencies:Package.Dependencies.t
   -> t
-  -> (t * PackageInfo.Dependencies.t) RunAsync.t
+  -> (t * Package.Dependencies.t) RunAsync.t
 
 (**
  * Solve dependencies for the root
  *)
 val solve :
   cfg:Config.t
-  -> resolutions:PackageInfo.Resolutions.t
+  -> resolutions:Package.Resolutions.t
   -> Package.t
   -> Solution.t RunAsync.t

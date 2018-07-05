@@ -8,10 +8,10 @@ module Api = {
         let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.ofManifest(
+            Manifest.toPackage(
               ~version=
-                PackageInfo.Version.Source(
-                  PackageInfo.Source.LocalPath(cfg.basePath),
+                Package.Version.Source(
+                  Package.Source.LocalPath(cfg.basePath),
                 ),
               manifest.manifest,
             ),
@@ -48,10 +48,10 @@ module Api = {
         let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
           RunAsync.ofRun(
-            Package.ofManifest(
+            Manifest.toPackage(
               ~version=
-                PackageInfo.Version.Source(
-                  PackageInfo.Source.LocalPath(cfg.basePath),
+                Package.Version.Source(
+                  Package.Source.LocalPath(cfg.basePath),
                 ),
               manifest.Manifest.Root.manifest,
             ),
@@ -114,15 +114,10 @@ module Api = {
           ~parser=OpamManifest.parseManifest(~name, ~version),
           path,
         );
-      return(
-        OpamManifest.{...manifest, source: PackageInfo.Source.NoSource},
-      );
+      return(OpamManifest.{...manifest, source: Package.Source.NoSource});
     };
-    let {PackageInfo.OpamInfo.packageJson, _} =
-      OpamManifest.toPackageJson(
-        manifest,
-        PackageInfo.Version.Opam(version),
-      );
+    let {Package.OpamInfo.packageJson, _} =
+      OpamManifest.toPackageJson(manifest, Package.Version.Opam(version));
     print_endline(Yojson.Safe.pretty_to_string(packageJson));
     return();
   };

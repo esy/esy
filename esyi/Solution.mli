@@ -8,8 +8,8 @@
 module Record : sig
   type t = {
     name: string;
-    version: PackageInfo.Version.t;
-    source: PackageInfo.Source.t;
+    version: Package.Version.t;
+    source: Package.Source.t;
 
     (**
     * We store OpamInfo.t as part of the lockfile as we want to lock against:
@@ -17,7 +17,7 @@ module Record : sig
     *   2. changes in esy-opam-override
     *   3. changes in opam repository (yes, it is mutable)
     *)
-    opam: PackageInfo.OpamInfo.t option;
+    opam: Package.OpamInfo.t option;
   }
 
   val pp : t Fmt.t

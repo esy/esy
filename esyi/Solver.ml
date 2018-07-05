@@ -1,10 +1,10 @@
-module Source = PackageInfo.Source
-module SourceSpec = PackageInfo.SourceSpec
-module Version = PackageInfo.Version
-module VersionSpec = PackageInfo.VersionSpec
-module Dependencies = PackageInfo.Dependencies
-module Req = PackageInfo.Req
-module Resolutions = PackageInfo.Resolutions
+module Source = Package.Source
+module SourceSpec = Package.SourceSpec
+module Version = Package.Version
+module VersionSpec = Package.VersionSpec
+module Dependencies = Package.Dependencies
+module Req = Package.Req
+module Resolutions = Package.Resolutions
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"
@@ -208,7 +208,7 @@ let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let rewriteReq req =
-    match PackageInfo.Resolutions.apply solver.resolutions req with
+    match Package.Resolutions.apply solver.resolutions req with
     | Some req -> req
     | None -> req
   in

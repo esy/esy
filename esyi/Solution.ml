@@ -1,14 +1,14 @@
-module Dependencies = PackageInfo.Dependencies
-module Version = PackageInfo.Version
-module Source = PackageInfo.Source
-module Req = PackageInfo.Req
+module Dependencies = Package.Dependencies
+module Version = Package.Version
+module Source = Package.Source
+module Req = Package.Req
 
 module Record = struct
   type t = {
     name: string ;
     version: Version.t ;
     source: Source.t ;
-    opam: PackageInfo.OpamInfo.t option;
+    opam: Package.OpamInfo.t option;
   } [@@deriving yojson]
 
   let ofPackage (pkg : Package.t) = {
@@ -90,7 +90,7 @@ let dependenciesHash (manifest : Manifest.Root.t) =
     in
     List.fold_left
       ~f ~init:digest
-      (PackageInfo.Resolutions.entries resolutions)
+      (Package.Resolutions.entries resolutions)
   in
   let digest =
     Digest.string ""
