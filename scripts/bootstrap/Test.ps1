@@ -11,5 +11,5 @@ cd C:/erp
 ls
 
 mkdir C:/esy-home
-$env:HOME=C:/esy-home
+$env:HOME="C:/esy-home"
 C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
