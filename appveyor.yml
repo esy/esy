@@ -5,6 +5,8 @@ cache:
     - '%LocalAppData%\.opam'
 
 install:
+# TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
+    - . ./scripts/bootstrap/Test.ps1
     - npm install -g rimraf
     - npm install -g yarn
 # This whole 'bootstrapping' duplication of our install / build will go away
@@ -25,11 +27,6 @@ build_script:
     - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent
     - npm run bootstrap:build
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
-# TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
-    - git clone https://github.com/esy-ocaml/esy-reason-project /esy-reason-project
-    - cd C:\esy-reason-project
-# One-off test case until we get test suite working
-    - ls
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe install
 
 artifacts:
