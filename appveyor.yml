@@ -7,6 +7,9 @@ cache:
 install:
     - npm install -g rimraf
     - npm install -g yarn
+# This whole 'bootstrapping' duplication of our install / build will go away
+# once we have an `esy` build published for Windows that supports a minimal set of primitives
+# to support our current build system.
     - git submodule update --init --recursive
     - npm install esy-bash
     - npm install esy-ocaml/FastReplaceString.git#9450b6
