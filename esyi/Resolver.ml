@@ -27,12 +27,7 @@ module SourceCache = Memoize.Make(struct
   type value = Source.t RunAsync.t
 end)
 
-module NpmResolutionCache = Memoize.Make(struct
-  type key = string
-  type value = Resolution.t list RunAsync.t
-end)
-
-module OpamResolutionCache = Memoize.Make(struct
+module ResolutionCache = Memoize.Make(struct
   type key = string
   type value = Resolution.t list RunAsync.t
 end)
@@ -78,8 +73,7 @@ type t = {
   srcCache: SourceCache.t;
   npmRegistryQueue : LwtTaskQueue.t;
   opamRegistry : OpamRegistry.t;
-  npmResolutionCache : NpmResolutionCache.t;
-  opamResolutionCache : OpamResolutionCache.t;
+  resolutionCache : ResolutionCache.t;
 }
 
 let make ~cfg () =
@@ -92,8 +86,7 @@ let make ~cfg () =
     srcCache = SourceCache.make ();
     npmRegistryQueue;
     opamRegistry;
-    npmResolutionCache = NpmResolutionCache.make ();
-    opamResolutionCache = OpamResolutionCache.make ();
+    resolutionCache = ResolutionCache.make ();
   }
 
 let package ~(resolution : Resolution.t) resolver =
@@ -181,7 +174,7 @@ let resolve ~req resolver =
   | VersionSpec.Npm _ ->
 
     let%bind resolutions =
-      NpmResolutionCache.compute resolver.npmResolutionCache name begin fun name ->
+      ResolutionCache.compute resolver.resolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
         let%bind versions =
           LwtTaskQueue.submit
@@ -215,7 +208,7 @@ let resolve ~req resolver =
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =
-      OpamResolutionCache.compute resolver.opamResolutionCache name begin fun name ->
+      ResolutionCache.compute resolver.resolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
         let%bind opamName = RunAsync.ofRun (OpamManifest.PackageName.ofNpm name) in
         let%bind versions = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
