@@ -219,8 +219,8 @@ let resolve ~req resolver =
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
         let%bind opamName = RunAsync.ofRun (OpamManifest.PackageName.ofNpm name) in
         let%bind versions = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
-        let f (version, _) =
-          let version = Version.Opam version in
+        let f (resolution : OpamRegistry.resolution) =
+          let version = Version.Opam resolution.version in
           {Resolution. name; version}
         in
         return (List.map ~f versions)

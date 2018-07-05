@@ -17,7 +17,7 @@ type t = {
   pathsCache : OpamPathsByVersion.t;
 }
 
-type pkg = {
+type resolution = {
   name: PackageName.t;
   opam: Path.t;
   url: Path.t;
@@ -40,14 +40,6 @@ let init ~cfg () =
     pathsCache = OpamPathsByVersion.make ();
     overrides;
   }
-
-let filterNone items =
-  let rec aux items = function
-    | [] -> items
-    | None::rest -> aux items rest
-    | (Some item)::rest -> aux (item::items) rest
-  in
-  List.rev (aux [] items)
 
 let getVersionIndex registry ~(name : PackageName.t) =
   let f name =
@@ -103,11 +95,7 @@ let versions registry ~(name : PackageName.t) =
     |> List.map ~f:(fun (version, _path) -> getPackage registry ~name ~version)
     |> RunAsync.List.joinAll
   in
-  return (
-    items
-    |> filterNone
-    |> List.map ~f:(fun manifest -> (manifest.version, manifest))
-  )
+  return (List.filterNone items)
 
 let resolveSourceSpec spec =
   let open RunAsync.Syntax in

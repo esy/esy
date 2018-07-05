@@ -1,6 +1,6 @@
 type t
 
-type pkg = {
+type resolution = {
   name: OpamManifest.PackageName.t;
   opam: Path.t;
   url: Path.t;
@@ -12,7 +12,7 @@ val init : cfg:Config.t -> unit -> t RunAsync.t
 val versions :
   t
   -> name : OpamManifest.PackageName.t
-  -> (OpamVersion.Version.t * pkg) list RunAsync.t
+  -> resolution list RunAsync.t
 
 val version :
     t
