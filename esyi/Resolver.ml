@@ -141,7 +141,7 @@ let package ~(resolution : Resolution.t) resolver =
         end
     in
 
-    let%bind pkg = RunAsync.ofRun (
+    let%bind pkg =
       match manifest with
       | `PackageJson manifest ->
         Manifest.toPackage
@@ -149,11 +149,11 @@ let package ~(resolution : Resolution.t) resolver =
           ~version:resolution.version
           manifest
       | `Opam manifest ->
-        OpamManifest.toPackage
+        OpamRegistry.Manifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
-    ) in
+    in
 
     return pkg
   end

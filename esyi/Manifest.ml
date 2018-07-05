@@ -88,7 +88,7 @@ module Root = struct
 end
 
 let toPackage ?name ?version (manifest : t) =
-  let open Run.Syntax in
+  let open RunAsync.Syntax in
   let name =
     match name with
     | Some name -> name

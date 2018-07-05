@@ -7,6 +7,24 @@ type resolution = {
   url: Path.t;
 }
 
+module Manifest : sig
+  type t = {
+    name : OpamManifest.PackageName.t;
+    version : OpamVersion.Version.t;
+    opam : OpamFile.OPAM.t;
+    url : OpamFile.URL.t option;
+  }
+
+  val ofFile :
+    name:OpamManifest.PackageName.t
+    -> version:OpamVersion.Version.t
+    -> ?url:Fpath.t
+    -> Fpath.t
+    -> t RunAsync.t
+
+  val toPackage : t -> Package.t RunAsync.t
+end
+
 val init : cfg:Config.t -> unit -> t RunAsync.t
 
 val versions :
@@ -18,4 +36,4 @@ val version :
     t
     -> name : OpamManifest.PackageName.t
     -> version : OpamVersion.Version.t
-    -> OpamManifest.t option RunAsync.t
+    -> Manifest.t option RunAsync.t

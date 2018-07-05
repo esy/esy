@@ -7,14 +7,10 @@ module Api = {
       {
         let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
-          RunAsync.ofRun(
-            Manifest.toPackage(
-              ~version=
-                Package.Version.Source(
-                  Package.Source.LocalPath(cfg.basePath),
-                ),
-              manifest.manifest,
-            ),
+          Manifest.toPackage(
+            ~version=
+              Package.Version.Source(Package.Source.LocalPath(cfg.basePath)),
+            manifest.manifest,
           );
         let%bind solution =
           Solver.solve(~cfg, ~resolutions=manifest.resolutions, root);
@@ -47,14 +43,10 @@ module Api = {
       {
         let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
         let%bind root =
-          RunAsync.ofRun(
-            Manifest.toPackage(
-              ~version=
-                Package.Version.Source(
-                  Package.Source.LocalPath(cfg.basePath),
-                ),
-              manifest.Manifest.Root.manifest,
-            ),
+          Manifest.toPackage(
+            ~version=
+              Package.Version.Source(Package.Source.LocalPath(cfg.basePath)),
+            manifest.Manifest.Root.manifest,
           );
         let%bind solver =
           Solver.make(

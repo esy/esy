@@ -24,6 +24,30 @@ type resolution = {
   url: Path.t;
 }
 
+module Manifest = struct
+  type t = {
+    name: PackageName.t;
+    version: Version.t;
+    opam: OpamFile.OPAM.t;
+    url: OpamFile.URL.t option;
+  }
+
+  let ofFile ~name ~version ?url opam =
+    let open RunAsync.Syntax in
+    let%bind opam =
+      let%bind data = Fs.readFile opam in
+      return (OpamFile.OPAM.read_from_string data)
+    in
+    let%bind url =
+      match url with
+      | Some url ->
+        let%bind data = Fs.readFile url in
+        return (Some (OpamFile.URL.read_from_string data))
+      | None -> return None
+    in
+    return {name; version; opam; url;}
+end
+
 let init ~cfg () =
   let open RunAsync.Syntax in
   let%bind repoPath =
@@ -155,27 +179,15 @@ let version registry ~(name : PackageName.t) ~version =
   let open RunAsync.Syntax in
   match%bind getPackage registry ~name ~version with
   | None -> return None
-  | Some { opam = opamFilename; url = urlFilename; name; version } ->
-    let%bind sourceSpec =
-      if%bind Fs.exists urlFilename
-      then
-        OpamManifest.runParsePath
-          ~parser:OpamManifest.parseUrl
-          urlFilename
-      else return SourceSpec.NoSource
+  | Some { opam; url; name; version } ->
+    let%bind pkg = Manifest.ofFile ~name ~version ~url opam
+    (* TODO: apply overrides *)
+    (* begin match%bind OpamOverrides.get registry.overrides name version with *)
+    (*   | None -> *)
+    (*     return (Some manifest) *)
+    (*   | Some override -> *)
+    (*     let manifest = OpamOverrides.apply manifest override in *)
+    (*     return (Some manifest) *)
+    (* end *)
     in
-    let%bind source = resolveSourceSpec sourceSpec in
-    let%bind manifest =
-      let%bind manifest = OpamManifest.runParsePath
-        ~parser:(OpamManifest.parseManifest ~name ~version)
-        opamFilename
-      in
-      return OpamManifest.{manifest with source}
-    in
-    begin match%bind OpamOverrides.get registry.overrides name version with
-      | None ->
-        return (Some manifest)
-      | Some override ->
-        let manifest = OpamOverrides.apply manifest override in
-        return (Some manifest)
-    end
+    return (Some pkg)
