@@ -5,7 +5,6 @@ cache:
     - '%LocalAppData%\.opam'
 
 install:
-    - where appveyor-retry.cmd
     - npm install -g rimraf
     - npm install -g yarn
     - git submodule update --init --recursive
@@ -20,7 +19,7 @@ build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
     - echo $PATH
-    - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin
+    - set PATH=C:\Windows\System32;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent
     - npm run bootstrap:build
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
