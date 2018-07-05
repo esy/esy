@@ -9,3 +9,5 @@ git clone https://github.com/esy-ocaml/esy-reason-project C:/erp
 Write-Host "Clone complete!"
 cd C:/erp
 ls
+
+C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
