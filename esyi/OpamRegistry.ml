@@ -19,9 +19,9 @@ type t = {
 
 type resolution = {
   name: PackageName.t;
+  version: Version.t;
   opam: Path.t;
   url: Path.t;
-  version: Version.t;
 }
 
 let init ~cfg () =

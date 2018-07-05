@@ -69,7 +69,7 @@ type t = {
   optDependencies: Dependencies.t;
   available: [ | `IsNotAvailable  | `Ok ] ;
   source: Package.Source.t;
-  exportedEnv: Package.ExportedEnv.t
+  exportedEnv: Package.ExportedEnv.t;
 }
 
 module ParseDeps = struct
