@@ -6,7 +6,7 @@ cache:
 
 install:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
-    - . ./scripts/bootstrap/Test.ps1
+    - ./scripts/bootstrap/Test.ps1
     - npm install -g rimraf
     - npm install -g yarn
 # This whole 'bootstrapping' duplication of our install / build will go away
