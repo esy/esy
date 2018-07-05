@@ -7,6 +7,7 @@ cache:
 install:
     - npm install -g rimraf
     - npm install -g yarn
+    - which appveyor-retry
     - git submodule update --init --recursive
     - npm install esy-bash
     - npm install esy-ocaml/FastReplaceString.git#9450b6
