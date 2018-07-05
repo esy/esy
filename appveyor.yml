@@ -23,8 +23,8 @@ build_script:
     - npm run bootstrap:build
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
-    - git clone https://github.com/esy-ocaml/esy-reason-project C:\esy-reason-project
-    - cd esy-reason-project
+    - git clone https://github.com/esy-ocaml/esy-reason-project /esy-reason-project
+    - cd /esy-reason-project
     - appveyor-retry C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe install
 
 artifacts:
