@@ -59,7 +59,7 @@
     "@opam/re": "^1.7.1",
     "@opam/yaml": "*",
     "@opam/yojson": "*",
-    "esy-bash": "^0.1.11",
+    "esy-bash": "^0.1.12",
     "esy-solve-cudf": "^0.0.3",
     "fastreplacestring": "github:esy-ocaml/FastReplaceString#9450b6"
   },
