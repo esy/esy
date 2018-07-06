@@ -1,50 +1,10 @@
 module Source = Package.Source
 module SourceSpec = Package.SourceSpec
-module VersionMap = Map.Make(OpamVersion.Version)
 module String = Astring.String
 
-module PackageName : sig
-  type t
-
-  val toNpm : t -> string
-  val ofNpm : string -> t Run.t
-  val ofNpmExn : string -> t
-
-  val toString : t -> string
-  val ofString : string -> t
-
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-
-end = struct
-  module String = Astring.String
-  type t = string
-
-  let toNpm name = "@opam/" ^ name
-
-  let ofNpm name =
-    match String.cut ~sep:"/" name with
-    | Some ("@opam", name) -> Ok name
-    | Some _
-    | None ->
-      let msg = Printf.sprintf "%s: missing @opam/ prefix" name in
-      Run.error msg
-
-  let ofNpmExn name =
-    match Run.toResult (ofNpm name) with
-    | Ok name -> name
-    | Error err -> raise (Invalid_argument err)
-
-  let toString name = name
-  let ofString name = name
-
-  let compare = String.compare
-  let equal = String.equal
-end
-
 module OpamPathsByVersion = Memoize.Make(struct
-  type key = PackageName.t
-  type value = Path.t VersionMap.t RunAsync.t
+  type key = OpamPackage.Name.t
+  type value = Path.t OpamPackage.Version.Map.t RunAsync.t
 end)
 
 type t = {
@@ -54,16 +14,16 @@ type t = {
 }
 
 type resolution = {
-  name: PackageName.t;
-  version: OpamVersion.Version.t;
+  name: OpamPackage.Name.t;
+  version: OpamPackage.Version.t;
   opam: Path.t;
   url: Path.t option;
 }
 
 module Manifest = struct
   type t = {
-    name: PackageName.t;
-    version: OpamVersion.Version.t;
+    name: OpamPackage.Name.t;
+    version: OpamPackage.Version.t;
     opam: OpamFile.OPAM.t;
     url: OpamFile.URL.t option;
   }
@@ -169,30 +129,30 @@ let init ~cfg () =
     (* overrides; *)
   }
 
-let getVersionIndex registry ~(name : PackageName.t) =
+let getVersionIndex registry ~(name : OpamPackage.Name.t) =
   let f name =
     let open RunAsync.Syntax in
     let path = Path.(
       registry.repoPath
       / "packages"
-      / PackageName.toString name
+      / OpamPackage.Name.to_string name
     ) in
     let%bind entries = Fs.listDir path in
     let f index entry =
       let version = match String.cut ~sep:"." entry with
-        | None -> OpamVersion.Version.parseExn ""
-        | Some (_name, version) -> OpamVersion.Version.parseExn version
+        | None -> OpamPackage.Version.of_string ""
+        | Some (_name, version) -> OpamPackage.Version.of_string version
       in
-      VersionMap.add version Path.(path / entry) index
+      OpamPackage.Version.Map.add version Path.(path / entry) index
     in
-    return (List.fold_left ~init:VersionMap.empty ~f entries)
+    return (List.fold_left ~init:OpamPackage.Version.Map.empty ~f entries)
   in
   OpamPathsByVersion.compute registry.pathsCache name f
 
-let getPackage registry ~(name : PackageName.t) ~(version : OpamVersion.Version.t) =
+let getPackage registry ~(name : OpamPackage.Name.t) ~(version : OpamPackage.Version.t) =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
-  match VersionMap.find_opt version index with
+  match OpamPackage.Version.Map.find_opt version index with
   | None -> return None
   | Some packagePath ->
     (* TODO: load & parse manifets, then check available flag here *)
@@ -210,72 +170,18 @@ let getPackage registry ~(name : PackageName.t) ~(version : OpamVersion.Version.
       version
     })
 
-let versions registry ~(name : PackageName.t) =
+let versions registry ~(name : OpamPackage.Name.t) =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
   let%bind items =
     index
-    |> VersionMap.bindings
+    |> OpamPackage.Version.Map.bindings
     |> List.map ~f:(fun (version, _path) -> getPackage registry ~name ~version)
     |> RunAsync.List.joinAll
   in
   return (List.filterNone items)
 
-(* let resolveSourceSpec spec = *)
-(*   let open RunAsync.Syntax in *)
-
-(*   let errorResolvingSpec spec = *)
-(*       let msg = *)
-(*         Format.asprintf *)
-(*           "unable to resolve: %a" *)
-(*           SourceSpec.pp spec *)
-(*       in *)
-(*       error msg *)
-(*   in *)
-
-(*   match spec with *)
-(*   | SourceSpec.NoSource -> *)
-(*     return Source.NoSource *)
-
-(*   | SourceSpec.Archive (url, Some checksum) -> *)
-(*     return (Source.Archive (url, checksum)) *)
-(*   | SourceSpec.Archive (url, None) -> *)
-(*     return (Source.Archive (url, "fake-checksum-fix-me")) *)
-
-(*   | SourceSpec.Git {remote; ref = Some ref} -> begin *)
-(*     match%bind Git.lsRemote ~ref ~remote () with *)
-(*     | Some commit -> return (Source.Git {remote; commit}) *)
-(*     | None when Git.isCommitLike ref -> return (Source.Git {remote; commit = ref}) *)
-(*     | None -> errorResolvingSpec spec *)
-(*     end *)
-(*   | SourceSpec.Git {remote; ref = None} -> begin *)
-(*     match%bind Git.lsRemote ~remote () with *)
-(*     | Some commit -> return (Source.Git {remote; commit}) *)
-(*     | None -> errorResolvingSpec spec *)
-(*     end *)
-
-(*   | SourceSpec.Github {user; repo; ref = Some ref} -> begin *)
-(*     let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in *)
-(*     match%bind Git.lsRemote ~ref ~remote () with *)
-(*     | Some commit -> return (Source.Github {user; repo; commit}) *)
-(*     | None when Git.isCommitLike ref -> return (Source.Github {user; repo; commit = ref}) *)
-(*     | None -> errorResolvingSpec spec *)
-(*     end *)
-(*   | SourceSpec.Github {user; repo; ref = None} -> begin *)
-(*     let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in *)
-(*     match%bind Git.lsRemote ~remote () with *)
-(*     | Some commit -> return (Source.Github {user; repo; commit}) *)
-(*     | None -> errorResolvingSpec spec *)
-(*     end *)
-
-(*   | SourceSpec.LocalPath path -> *)
-(*     return (Source.LocalPath path) *)
-
-(*   | SourceSpec.LocalPathLink path -> *)
-(*     return (Source.LocalPathLink path) *)
-
-
-let version registry ~(name : PackageName.t) ~version =
+let version registry ~(name : OpamPackage.Name.t) ~version =
   let open RunAsync.Syntax in
   match%bind getPackage registry ~name ~version with
   | None -> return None

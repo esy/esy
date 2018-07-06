@@ -33,6 +33,11 @@ module ResolutionCache = Memoize.Make(struct
   type value = Resolution.t list RunAsync.t
 end)
 
+let toOpamName name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", name) -> OpamPackage.Name.of_string name
+  | _ -> failwith ("invalid opam package name: " ^ name)
+
 module Github = struct
 
   let remote ~user ~repo =
@@ -134,11 +139,13 @@ let package ~(resolution : Resolution.t) resolver =
         in
         return (`PackageJson manifest)
       | Version.Opam version ->
-        let name = OpamRegistry.PackageName.ofNpmExn resolution.name in
-        begin match%bind OpamRegistry.version resolver.opamRegistry ~name ~version with
+        begin match%bind
+          let name = toOpamName resolution.name in
+          OpamRegistry.version resolver.opamRegistry ~name ~version
+        with
           | Some manifest ->
             return (`Opam manifest)
-          | None -> error ("no such opam package: " ^ OpamRegistry.PackageName.toString name)
+          | None -> error ("no such opam package: " ^ resolution.name)
         end
     in
 
@@ -269,10 +276,10 @@ let resolve ~(name : string) ~(formula : DepFormula.t) (resolver : t) =
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
-        let%bind opamName = RunAsync.ofRun (OpamRegistry.PackageName.ofNpm name) in
         let%bind versions =
           match%bind
-            OpamRegistry.versions resolver.opamRegistry ~name:opamName
+            let name = toOpamName name in
+            OpamRegistry.versions ~name resolver.opamRegistry
           with
           | [] ->
             let msg = Format.asprintf "no opam package %s found" name in
