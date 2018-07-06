@@ -116,8 +116,8 @@ let init ~cfg () =
   let%bind repoPath =
     match cfg.Config.opamRepository with
     | Config.Local local -> return local
-    | Config.Remote (_remote, local) ->
-      (* let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in *)
+    | Config.Remote (remote, local) ->
+      let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
       return local
   in
 
