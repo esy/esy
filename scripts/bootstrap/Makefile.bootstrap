@@ -130,9 +130,9 @@ $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
 
-$(RELEASE_ROOT)/bin/fastreplacestring-darwin:
+$(RELEASE_ROOT)/bin/fastreplacestring:
 	@mkdir -p $(@D)
-	@cp $$(esy which fastreplacestring) $(@)
+	@cp $(PWD)/bin/fastreplacestring $(@)
 
 $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)
