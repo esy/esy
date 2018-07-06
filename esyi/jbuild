@@ -10,6 +10,7 @@
                     ppxlib
                     ppx_inline_test)))
   (inline_tests)
+  (modules (:standard \ OpamAvailable OpamManifest OpamOverrides))
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries (
               esy-lib

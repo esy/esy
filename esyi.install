@@ -33,22 +33,6 @@ lib: [
   "_build/install/default/lib/esyi/EsyInstaller__NpmRegistry.cmti" {"EsyInstaller__NpmRegistry.cmti"}
   "_build/install/default/lib/esyi/NpmRegistry.rei" {"NpmRegistry.rei"}
   "_build/install/default/lib/esyi/NpmRegistry.re" {"NpmRegistry.re"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamAvailable.cmi" {"EsyInstaller__OpamAvailable.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamAvailable.cmx" {"EsyInstaller__OpamAvailable.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamAvailable.cmt" {"EsyInstaller__OpamAvailable.cmt"}
-  "_build/install/default/lib/esyi/OpamAvailable.re" {"OpamAvailable.re"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamManifest.cmi" {"EsyInstaller__OpamManifest.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamManifest.cmx" {"EsyInstaller__OpamManifest.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamManifest.cmt" {"EsyInstaller__OpamManifest.cmt"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamManifest.cmti" {"EsyInstaller__OpamManifest.cmti"}
-  "_build/install/default/lib/esyi/OpamManifest.mli" {"OpamManifest.mli"}
-  "_build/install/default/lib/esyi/OpamManifest.ml" {"OpamManifest.ml"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamOverrides.cmi" {"EsyInstaller__OpamOverrides.cmi"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamOverrides.cmx" {"EsyInstaller__OpamOverrides.cmx"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamOverrides.cmt" {"EsyInstaller__OpamOverrides.cmt"}
-  "_build/install/default/lib/esyi/EsyInstaller__OpamOverrides.cmti" {"EsyInstaller__OpamOverrides.cmti"}
-  "_build/install/default/lib/esyi/OpamOverrides.rei" {"OpamOverrides.rei"}
-  "_build/install/default/lib/esyi/OpamOverrides.re" {"OpamOverrides.re"}
   "_build/install/default/lib/esyi/EsyInstaller__OpamRegistry.cmi" {"EsyInstaller__OpamRegistry.cmi"}
   "_build/install/default/lib/esyi/EsyInstaller__OpamRegistry.cmx" {"EsyInstaller__OpamRegistry.cmx"}
   "_build/install/default/lib/esyi/EsyInstaller__OpamRegistry.cmt" {"EsyInstaller__OpamRegistry.cmt"}

@@ -54,7 +54,7 @@ module Api = {
             ~resolutions=manifest.Manifest.Root.resolutions,
             (),
           );
-        let%bind (solver, _) =
+        let%bind solver =
           Solver.add(~dependencies=root.Package.dependencies, solver);
         let (cudfUniverse, _) = Universe.toCudf(solver.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
@@ -81,38 +81,34 @@ module Api = {
         };
       }
     );
-
-  let importOpam =
-      (~path: Path.t, ~name: option(string), ~version: option(string), _cfg) => {
-    open RunAsync.Syntax;
-
-    let version =
-      switch (version) {
-      | Some(version) => OpamVersion.Version.parseExn(version)
-      | None => OpamVersion.Version.parseExn("1.0.0")
-      };
-
-    let%bind name =
-      RunAsync.ofRun(
-        switch (name) {
-        | Some(name) => OpamManifest.PackageName.ofNpm("@opam/" ++ name)
-        | None => OpamManifest.PackageName.ofNpm("@opam/unknown-opam-package")
-        },
-      );
-
-    let%bind manifest = {
-      let%bind manifest =
-        OpamManifest.runParsePath(
-          ~parser=OpamManifest.parseManifest(~name, ~version),
-          path,
-        );
-      return(OpamManifest.{...manifest, source: Package.Source.NoSource});
-    };
-    let {Package.OpamInfo.packageJson, _} =
-      OpamManifest.toPackageJson(manifest, Package.Version.Opam(version));
-    print_endline(Yojson.Safe.pretty_to_string(packageJson));
-    return();
-  };
+  /* let importOpam = */
+  /*     (~path: Path.t, ~name: option(string), ~version: option(string), _cfg) => { */
+  /*   open RunAsync.Syntax; */
+  /*   let version = */
+  /*     switch (version) { */
+  /*     | Some(version) => OpamVersion.Version.parseExn(version) */
+  /*     | None => OpamVersion.Version.parseExn("1.0.0") */
+  /*     }; */
+  /*   let%bind name = */
+  /*     RunAsync.ofRun( */
+  /*       switch (name) { */
+  /*       | Some(name) => OpamManifest.PackageName.ofNpm("@opam/" ++ name) */
+  /*       | None => OpamManifest.PackageName.ofNpm("@opam/unknown-opam-package") */
+  /*       }, */
+  /*     ); */
+  /*   let%bind manifest = { */
+  /*     let%bind manifest = */
+  /*       OpamManifest.runParsePath( */
+  /*         ~parser=OpamManifest.parseManifest(~name, ~version), */
+  /*         path, */
+  /*       ); */
+  /*     return(OpamManifest.{...manifest, source: Package.Source.NoSource}); */
+  /*   }; */
+  /*   let {Package.OpamInfo.packageJson, _} = */
+  /*     OpamManifest.toPackageJson(manifest, Package.Version.Opam(version)); */
+  /*   print_endline(Yojson.Safe.pretty_to_string(packageJson)); */
+  /*   return(); */
+  /* }; */
 };
 
 module CommandLineInterface = {
@@ -319,42 +315,42 @@ module CommandLineInterface = {
     (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
   };
 
-  let opamImportCommand = {
-    let doc = "Import opam file";
-    let info = Term.info("import-opam", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = (cfg, name, version, path) =>
-      run(Api.importOpam(~path, ~name, ~version, cfg));
-    let nameTerm = {
-      let doc = "Name of the opam package";
-      Arg.(
-        value & opt(some(string), None) & info(["opam-name"], ~docs, ~doc)
-      );
-    };
-    let versionTerm = {
-      let doc = "Version of the opam package";
-      Arg.(
-        value
-        & opt(some(string), None)
-        & info(["opam-version"], ~docs, ~doc)
-      );
-    };
-    let pathTerm = {
-      let doc = "Path to the opam file.";
-      Arg.(
-        required & pos(0, some(Cli.pathConv), None) & info([], ~docs, ~doc)
-      );
-    };
-    (
-      Term.(ret(const(cmd) $ cfgTerm $ nameTerm $ versionTerm $ pathTerm)),
-      info,
-    );
-  };
+  /* let opamImportCommand = { */
+  /*   let doc = "Import opam file"; */
+  /*   let info = Term.info("import-opam", ~version, ~doc, ~sdocs, ~exits); */
+  /*   let cmd = (cfg, name, version, path) => */
+  /*     run(Api.importOpam(~path, ~name, ~version, cfg)); */
+  /*   let nameTerm = { */
+  /*     let doc = "Name of the opam package"; */
+  /*     Arg.( */
+  /*       value & opt(some(string), None) & info(["opam-name"], ~docs, ~doc) */
+  /*     ); */
+  /*   }; */
+  /*   let versionTerm = { */
+  /*     let doc = "Version of the opam package"; */
+  /*     Arg.( */
+  /*       value */
+  /*       & opt(some(string), None) */
+  /*       & info(["opam-version"], ~docs, ~doc) */
+  /*     ); */
+  /*   }; */
+  /*   let pathTerm = { */
+  /*     let doc = "Path to the opam file."; */
+  /*     Arg.( */
+  /*       required & pos(0, some(Cli.pathConv), None) & info([], ~docs, ~doc) */
+  /*     ); */
+  /*   }; */
+  /*   ( */
+  /*     Term.(ret(const(cmd) $ cfgTerm $ nameTerm $ versionTerm $ pathTerm)), */
+  /*     info, */
+  /*   ); */
+  /* }; */
 
   let commands = [
     installCommand,
     solveCommand,
     fetchCommand,
-    opamImportCommand,
+    /* opamImportCommand, */
     printCudfUniverse,
   ];
 

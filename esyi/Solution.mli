@@ -23,8 +23,6 @@ module Record : sig
   val pp : t Fmt.t
   val equal : t -> t -> bool
 
-  val ofPackage : Package.t -> t
-
   module Map : Map.S with type key := t
   module Set : Set.S with type elt := t
 end

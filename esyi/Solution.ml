@@ -1,4 +1,3 @@
-module Dependencies = Package.Dependencies
 module Version = Package.Version
 module Source = Package.Source
 module Req = Package.Req
@@ -10,13 +9,6 @@ module Record = struct
     source: Source.t ;
     opam: Package.OpamInfo.t option;
   } [@@deriving yojson]
-
-  let ofPackage (pkg : Package.t) = {
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    opam = pkg.opam;
-  }
 
   let compare a b =
     let c = String.compare a.name b.name in
@@ -98,10 +90,10 @@ let dependenciesHash (manifest : Manifest.Root.t) =
       ~resolutions:manifest.Manifest.Root.resolutions
     |> hashDependencies
       ~prefix:"dependencies"
-      ~dependencies:(Dependencies.toList manifest.manifest.dependencies)
+      ~dependencies:manifest.manifest.dependencies
     |> hashDependencies
       ~prefix:"devDependencies"
-      ~dependencies:(Dependencies.toList manifest.manifest.devDependencies)
+      ~dependencies:manifest.manifest.devDependencies
   in
   Digest.to_hex digest
 
