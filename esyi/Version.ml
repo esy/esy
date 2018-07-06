@@ -20,17 +20,29 @@ module Constraint = struct
 
     type t =
       | EQ of Version.t
+      | NEQ of Version.t
       | GT of Version.t
       | GTE of Version.t
       | LT of Version.t
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving (yojson, show, eq)]
+      [@@deriving (yojson, eq)]
+
+    let pp fmt = function
+      | EQ v -> Fmt.pf fmt "=%a" Version.pp v
+      | NEQ v -> Fmt.pf fmt "!=%a" Version.pp v
+      | GT v -> Fmt.pf fmt ">%a" Version.pp v
+      | GTE v -> Fmt.pf fmt ">=%a" Version.pp v
+      | LT v -> Fmt.pf fmt "<%a" Version.pp v
+      | LTE v -> Fmt.pf fmt "<=%a" Version.pp v
+      | NONE -> Fmt.pf fmt "NONE"
+      | ANY -> Fmt.pf fmt "*"
 
     let matchesSimple ~version constr =
       match constr with
       | EQ a -> Version.compare a version = 0
+      | NEQ a -> Version.compare a version != 0
       | ANY -> true
       | NONE -> false
 
@@ -39,9 +51,10 @@ module Constraint = struct
       | LT a -> Version.compare a version > 0
       | LTE a -> Version.compare a version >= 0
 
-    let matches ~matchPrerelease ~version constr  =
+    let matches ?(matchPrerelease=VersionSet.empty) ~version constr  =
       match Version.prerelease version, constr with
       | _, EQ _
+      | _, NEQ _
       | _, NONE
       | false, ANY
       | false, GT _
@@ -58,19 +71,15 @@ module Constraint = struct
         then matchesSimple ~version constr
         else false
 
-    let rec toString constr =
-      match constr with
-      | EQ a -> Version.toString a
-      | ANY -> "*"
-      | NONE -> "none"
-      | GT a -> "> " ^ Version.toString a
-      | GTE a -> ">= " ^ Version.toString a
-      | LT a -> "< " ^ Version.toString a
-      | LTE a -> "<= " ^ Version.toString a
+    let toString c =
+      Format.asprintf "%a" pp c
+
+    let show = toString
 
     let rec map ~f constr =
       match constr with
-      | EQ a-> EQ (f a)
+      | EQ a -> EQ (f a)
+      | NEQ a -> NEQ (f a)
       | ANY -> ANY
       | NONE -> NONE
       | GT a -> GT (f a)
@@ -88,26 +97,19 @@ module Formula = struct
     module Constraint = Constraint.Make(Version)
     module VersionSet = Constraint.VersionSet
 
-    type 'f conj = AND of 'f list [@@deriving (show, yojson, eq)]
-    type 'f disj = OR of 'f list [@@deriving (show, yojson, eq)]
-
-    let any cond formulas =
-      List.exists ~f:cond formulas
-
-    let rec every cond = function
-      | f::rest -> if cond f then every cond rest else false
-      | [] -> true
+    type 'f conj = 'f list [@@deriving (show, yojson, eq)]
+    type 'f disj = 'f list [@@deriving (show, yojson, eq)]
 
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving (show, yojson, eq)]
+        [@@deriving (yojson, eq)]
 
       let unit constr =
-        OR [AND [constr]]
+        [[constr]]
 
-      let matches ~version (OR formulas) =
-        let matchesConj (AND formulas) =
+      let matches ~version (formulas) =
+        let matchesConj (formulas) =
           (* Within each conjunction we allow prelease versions to be matched
            * but only those were mentioned in any of the constraints of the
            * conjunction, so that:
@@ -120,6 +122,7 @@ module Formula = struct
               | Constraint.NONE
               | Constraint.ANY -> vs
               | Constraint.EQ v
+              | Constraint.NEQ v
               | Constraint.LTE v
               | Constraint.LT v
               | Constraint.GTE v
@@ -130,56 +133,89 @@ module Formula = struct
             in
             List.fold_left ~f ~init:VersionSet.empty formulas
           in
-          every (Constraint.matches ~matchPrerelease ~version) formulas
+          List.for_all ~f:(Constraint.matches ~matchPrerelease ~version) formulas
         in
-        any matchesConj formulas
+        List.exists ~f:matchesConj formulas
 
-      let rec toString (OR formulas) =
-        formulas
-        |> List.map ~f:(fun (AND formulas) ->
-          formulas
-          |> List.map ~f:Constraint.toString
-          |> String.concat " && ")
-        |> String.concat " || "
+      let pp fmt f =
+        let ppConj = Fmt.(list ~sep:(unit " && ") Constraint.pp) in
+        Fmt.(list ~sep:(unit " || ") ppConj) fmt f
 
-      let rec map ~f (OR formulas) =
-        let mapConj (AND formulas) =
-          AND (List.map ~f:(Constraint.map ~f) formulas)
-        in OR (List.map ~f:mapConj formulas)
+      let show f =
+        Format.asprintf "%a" pp f
 
-      let conj (OR a) (OR b) =
+      let toString = show
+
+      let rec map ~f formulas =
+        let mapConj (formulas) =
+          (List.map ~f:(Constraint.map ~f) formulas)
+        in (List.map ~f:mapConj formulas)
+
+      let conj a b =
         let items =
           let items = [] in
-          let f items (AND a) =
-            let f items (AND b) =
-              (AND (a @ b)::items)
+          let f items a =
+            let f items b =
+              ((a @ b)::items)
             in
             List.fold_left ~f ~init:items b
           in
           List.fold_left ~f ~init:items a
-        in OR items
+        in items
 
-      let disj (OR a) (OR b) =
-        OR (a @ b)
+      let disj a b =
+        (a @ b)
 
     end
 
     module CNF = struct
+      [@@@ocaml.warning "-32"]
       type t =
         Constraint.t disj conj
         [@@deriving yojson]
 
-      let rec toString (AND formulas) =
-        formulas
-        |> List.map ~f:(fun (OR formulas) ->
-          let formulas =
-          formulas
-          |> List.map ~f:Constraint.toString
-          |> String.concat " || "
-          in "(" ^ formulas ^ ")")
-        |> String.concat " && "
+      let pp fmt f =
+        let ppDisj fmt = function
+          | [] -> Fmt.unit "true" fmt ()
+          | [disj] -> Constraint.pp fmt disj
+          | disjs ->
+            Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Constraint.pp) disjs
+        in
+        Fmt.(list ~sep:(unit " && ") ppDisj) fmt f
 
-      let show = toString
+      let show f =
+        Format.asprintf "%a" pp f
+
+      let toString = show
+
+      let matches ~version (formulas) =
+        let matchesDisj (formulas) =
+          (* Within each conjunction we allow prelease versions to be matched
+           * but only those were mentioned in any of the constraints of the
+           * conjunction, so that:
+           *  1.0.0-alpha.2 matches >=1.0.0.alpha1
+           *  1.0.0-alpha.2 does not match >=0.9.0
+           *  1.0.0-alpha.2 does not match >=0.9.0 <2.0.0
+           *)
+          let matchPrerelease =
+            let f vs = function
+              | Constraint.NONE
+              | Constraint.ANY -> vs
+              | Constraint.EQ v
+              | Constraint.NEQ v
+              | Constraint.LTE v
+              | Constraint.LT v
+              | Constraint.GTE v
+              | Constraint.GT v ->
+                if Version.prerelease v
+                then VersionSet.add (Version.stripPrerelease v) vs
+                else vs
+            in
+            List.fold_left ~f ~init:VersionSet.empty formulas
+          in
+          List.exists ~f:(Constraint.matches ~matchPrerelease ~version) formulas
+        in
+        List.for_all ~f:matchesDisj formulas
     end
 
     type constr = Constraint.t
@@ -187,18 +223,18 @@ module Formula = struct
     let ofDnfToCnf (f : DNF.t)  =
       let f : CNF.t =
         match f with
-        | OR [] -> AND []
-        | OR ((AND constrs)::conjs) ->
-          let init : constr disj list = List.map ~f:(fun r -> OR [r]) constrs in
+        | [] -> []
+        | (constrs::conjs) ->
+          let init : constr disj list = List.map ~f:(fun r -> [r]) constrs in
           let conjs =
-            let addConj (cnf : constr disj list) (AND conj) =
+            let addConj (cnf : constr disj list) conj =
               cnf
-              |> List.map ~f:(fun (OR constrs) -> List.map ~f:(fun r -> OR (r::constrs)) conj)
+              |> List.map ~f:(fun constrs -> List.map ~f:(fun r -> r::constrs) conj)
               |> List.flatten
             in
             List.fold_left ~f:addConj ~init conjs
           in
-          AND conjs
+          conjs
       in f
 
     module Parse = struct
@@ -211,7 +247,7 @@ module Formula = struct
           |> Str.global_replace (Str.regexp "< +") "<"
         in
         let items = String.split_on_char ' ' item in
-        AND (List.map ~f:parse items)
+        List.map ~f:parse items
 
       let disjunction ~parse version =
         let version = String.trim version in
@@ -219,10 +255,10 @@ module Formula = struct
         let items = List.map ~f:parse items in
         let items =
           match items with
-          | [] -> [AND [Constraint.ANY]]
+          | [] -> [[Constraint.ANY]]
           | items -> items
         in
-        OR (items)
+        items
     end
   end
 end
@@ -247,19 +283,18 @@ let%test_module "Formula" = (module struct
   module F = Formula.Make(Version)
   module C = F.Constraint
   open C
-  open F
 
   let%test "ofDnfToCnf: 1" =
-    F.ofDnfToCnf (OR [AND [C.EQ 1]]) = AND [OR [EQ 1]]
+    F.ofDnfToCnf ([[C.EQ 1]]) = [[EQ 1]]
 
   let%test "ofDnfToCnf: 1 && 2" =
-    F.ofDnfToCnf (OR [AND [EQ 1; EQ 2]]) = AND [OR [EQ 1]; OR[EQ 2]]
+    F.ofDnfToCnf ([[EQ 1; EQ 2]]) = [[EQ 1]; [EQ 2]]
 
   let%test "ofDnfToCnf: 1 && 2 || 3" =
-    F.ofDnfToCnf (OR [AND [EQ 1; EQ 2]; AND [EQ 3]])
-    = AND [OR [EQ 3; EQ 1]; OR[EQ 3; EQ 2]]
+    F.ofDnfToCnf ([[EQ 1; EQ 2]; [EQ 3]])
+    = [[EQ 3; EQ 1]; [EQ 3; EQ 2]]
 
   let%test "ofDnfToCnf: 1 && 2 || 3 && 4" =
-    F.ofDnfToCnf (OR [AND [EQ 1; EQ 2]; AND [EQ 3; EQ 4]])
-    = AND [OR [EQ 3; EQ 1]; OR [EQ 4; EQ 1]; OR [EQ 3; EQ 2]; OR [EQ 4; EQ 2]]
+    F.ofDnfToCnf ([[EQ 1; EQ 2]; [EQ 3; EQ 4]])
+    = [[EQ 3; EQ 1]; [EQ 4; EQ 1]; [EQ 3; EQ 2]; [EQ 4; EQ 2]]
 end)

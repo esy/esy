@@ -1,4 +1,5 @@
 module MakeFormula = Version.Formula.Make
+module MakeConstraint = Version.Constraint.Make
 
 (** opam versions are Debian-style versions *)
 module Version = struct
@@ -7,7 +8,7 @@ module Version = struct
   let equal a b = OpamPackage.Version.compare a b = 0
   let compare = OpamPackage.Version.compare
   let show = OpamPackage.Version.to_string
-  let pp fmt v = Fmt.pf fmt "%s" (show v)
+  let pp fmt v = Fmt.pf fmt "opam:%s" (show v)
   let parse v = Ok (OpamPackage.Version.of_string v)
   let parseExn v = OpamPackage.Version.of_string v
   let prerelease _v = false
@@ -19,6 +20,8 @@ module Version = struct
     | _ -> Error "expected a string"
 end
 
+module Constraint = MakeConstraint(Version)
+
 (**
  * Npm formulas over opam versions.
  *)
@@ -26,7 +29,7 @@ module Formula = struct
 
   include MakeFormula(Version)
 
-  let any: DNF.t = OR [AND [Constraint.ANY]];
+  let any: DNF.t = [[Constraint.ANY]];
 
   module C = Constraint
 
@@ -79,13 +82,13 @@ module Formula = struct
         | Ok v -> v
         | Error err -> failwith ("Error: " ^ err)
       in
-      let (AND conjs) = Parse.conjunction ~parse v in
+      let (conjs) = Parse.conjunction ~parse v in
       let conjs =
         let f conjs c = conjs @ c in
         List.fold_left ~init:[] ~f conjs
       in
       let conjs = match conjs with | [] -> [C.ANY] | conjs -> conjs in
-      AND conjs
+      conjs
     in
     Parse.disjunction ~parse:parseSimple v
 
@@ -98,9 +101,9 @@ module Formula = struct
       then failwith ("Received: " ^ (DNF.show pf))
       else ()
 
-    let%test_unit _ = parsesOk ">=1.7.0" (OR [AND [C.GTE (v "1.7.0")]])
-    let%test_unit _ = parsesOk "*" (OR [AND [C.ANY]])
-    let%test_unit _ = parsesOk "" (OR [AND [C.ANY]])
+    let%test_unit _ = parsesOk ">=1.7.0" ([[C.GTE (v "1.7.0")]])
+    let%test_unit _ = parsesOk "*" ([[C.ANY]])
+    let%test_unit _ = parsesOk "" ([[C.ANY]])
 
   end)
 

@@ -1,4 +1,5 @@
 module MakeFormula = Version.Formula.Make
+module MakeConstraint = Version.Constraint.Make
 
 module Version = struct
   type t = {
@@ -49,7 +50,7 @@ module Version = struct
   let show = toString
 
   let pp fmt v =
-    Fmt.string fmt (toString v)
+    Fmt.pf fmt "npm:%s" (toString v)
 
   let prerelease v = match v.prerelease, v.build with
   | [], [] -> false
@@ -395,10 +396,12 @@ module Version = struct
 
 end
 
+module Constraint = MakeConstraint(Version)
+
 module Formula = struct
   include MakeFormula(Version)
 
-  let any: DNF.t = OR [AND [Constraint.ANY]]
+  let any: DNF.t = [[Constraint.ANY]]
 
   module Parser = struct
     let sliceToEnd text num =
@@ -628,7 +631,7 @@ module Formula = struct
         let f vs v = vs @ (parseSimple v) in
         List.fold_left ~f ~init:[] vs
       in
-      AND vs
+      vs
 
     let parseNpmRange v =
       let v =
@@ -660,7 +663,7 @@ module Formula = struct
           | `Raw (prerelease, build) ->
             Constraint.LT (Version.make ~prerelease ~build 0 0 0)
         in
-        AND [left; right]
+        [left; right]
       | _ ->
         let msg = Printf.sprintf "invalid version: %s" v in
         failwith msg
@@ -721,108 +724,108 @@ module Formula = struct
       let open Constraint in
       let open Version in
       [
-        "", Ok (OR [AND [ANY]]);
-        " ", Ok (OR [AND [ANY]]);
-        "  ", Ok (OR [AND [ANY]]);
-        "*", Ok (OR [AND [ANY]]);
-        "* ", Ok (OR [AND [ANY]]);
-        " *", Ok (OR [AND [ANY]]);
-        " * ", Ok (OR [AND [ANY]]);
+        "", Ok ([[ANY]]);
+        " ", Ok ([[ANY]]);
+        "  ", Ok ([[ANY]]);
+        "*", Ok ([[ANY]]);
+        "* ", Ok ([[ANY]]);
+        " *", Ok ([[ANY]]);
+        " * ", Ok ([[ANY]]);
 
-        "1.x", Ok (OR [AND [GTE (make 1 0 0); LT (make 2 0 0)]]);
-        "1.x.x", Ok (OR [AND [GTE (make 1 0 0); LT (make 2 0 0)]]);
-        "1.1.x", Ok (OR [AND [GTE (make 1 1 0); LT (make 1 2 0)]]);
+        "1.x", Ok ([[GTE (make 1 0 0); LT (make 2 0 0)]]);
+        "1.x.x", Ok ([[GTE (make 1 0 0); LT (make 2 0 0)]]);
+        "1.1.x", Ok ([[GTE (make 1 1 0); LT (make 1 2 0)]]);
 
-        "1", Ok (OR [AND [GTE (make 1 0 0); LT (make 2 0 0)]]);
-        "1.1", Ok (OR [AND [GTE (make 1 1 0); LT (make 1 2 0)]]);
+        "1", Ok ([[GTE (make 1 0 0); LT (make 2 0 0)]]);
+        "1.1", Ok ([[GTE (make 1 1 0); LT (make 1 2 0)]]);
 
-        "1.1.1", Ok (OR [AND [EQ Version.(make 1 1 1)]]);
-        "=1.1.1", Ok (OR [AND [EQ Version.(make 1 1 1)]]);
+        "1.1.1", Ok ([[EQ Version.(make 1 1 1)]]);
+        "=1.1.1", Ok ([[EQ Version.(make 1 1 1)]]);
 
-        ">1", Ok (OR [AND [GT Version.(make 1 0 0)]]);
-        ">1.1", Ok (OR [AND [GT Version.(make 1 1 0)]]);
-        ">1.1.1", Ok (OR [AND [GT Version.(make 1 1 1)]]);
+        ">1", Ok ([[GT Version.(make 1 0 0)]]);
+        ">1.1", Ok ([[GT Version.(make 1 1 0)]]);
+        ">1.1.1", Ok ([[GT Version.(make 1 1 1)]]);
 
-        ">1.x", Ok (OR [AND [GT Version.(make 1 0 0)]]);
-        ">1.x.x", Ok (OR [AND [GT Version.(make 1 0 0)]]);
-        ">1.1.x", Ok (OR [AND [GT Version.(make 1 1 0)]]);
+        ">1.x", Ok ([[GT Version.(make 1 0 0)]]);
+        ">1.x.x", Ok ([[GT Version.(make 1 0 0)]]);
+        ">1.1.x", Ok ([[GT Version.(make 1 1 0)]]);
 
-        "<1.x", Ok (OR [AND [LT Version.(make 1 0 0)]]);
-        "<1.x.x", Ok (OR [AND [LT Version.(make 1 0 0)]]);
-        "<1.1.x", Ok (OR [AND [LT Version.(make 1 1 0)]]);
+        "<1.x", Ok ([[LT Version.(make 1 0 0)]]);
+        "<1.x.x", Ok ([[LT Version.(make 1 0 0)]]);
+        "<1.1.x", Ok ([[LT Version.(make 1 1 0)]]);
 
-        "<1", Ok (OR [AND [LT Version.(make 1 0 0)]]);
-        "<1.1", Ok (OR [AND [LT Version.(make 1 1 0)]]);
-        "<1.1.1", Ok (OR [AND [LT Version.(make 1 1 1)]]);
+        "<1", Ok ([[LT Version.(make 1 0 0)]]);
+        "<1.1", Ok ([[LT Version.(make 1 1 0)]]);
+        "<1.1.1", Ok ([[LT Version.(make 1 1 1)]]);
 
-        ">=1.x", Ok (OR [AND [GTE Version.(make 1 0 0)]]);
-        ">=1.x.x", Ok (OR [AND [GTE Version.(make 1 0 0)]]);
-        ">=1.1.x", Ok (OR [AND [GTE Version.(make 1 1 0)]]);
+        ">=1.x", Ok ([[GTE Version.(make 1 0 0)]]);
+        ">=1.x.x", Ok ([[GTE Version.(make 1 0 0)]]);
+        ">=1.1.x", Ok ([[GTE Version.(make 1 1 0)]]);
 
-        ">=1", Ok (OR [AND [GTE Version.(make 1 0 0)]]);
-        ">=1.1", Ok (OR [AND [GTE Version.(make 1 1 0)]]);
-        ">=1.1.1", Ok (OR [AND [GTE Version.(make 1 1 1)]]);
+        ">=1", Ok ([[GTE Version.(make 1 0 0)]]);
+        ">=1.1", Ok ([[GTE Version.(make 1 1 0)]]);
+        ">=1.1.1", Ok ([[GTE Version.(make 1 1 1)]]);
 
-        "<=1.x", Ok (OR [AND [LTE Version.(make 1 0 0)]]);
-        "<=1.x.x", Ok (OR [AND [LTE Version.(make 1 0 0)]]);
-        "<=1.1.x", Ok (OR [AND [LTE Version.(make 1 1 0)]]);
+        "<=1.x", Ok ([[LTE Version.(make 1 0 0)]]);
+        "<=1.x.x", Ok ([[LTE Version.(make 1 0 0)]]);
+        "<=1.1.x", Ok ([[LTE Version.(make 1 1 0)]]);
 
-        "<=1", Ok (OR [AND [LTE Version.(make 1 0 0)]]);
-        "<=1.1", Ok (OR [AND [LTE Version.(make 1 1 0)]]);
-        "<=1.1.1", Ok (OR [AND [LTE Version.(make 1 1 1)]]);
+        "<=1", Ok ([[LTE Version.(make 1 0 0)]]);
+        "<=1.1", Ok ([[LTE Version.(make 1 1 0)]]);
+        "<=1.1.1", Ok ([[LTE Version.(make 1 1 1)]]);
 
-        ">=1.1.1-alpha", Ok (OR [AND [GTE Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
-        ">1.1.1-alpha", Ok (OR [AND [GT Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
-        "<=1.1.1-alpha", Ok (OR [AND [LTE Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
-        "<1.1.1-alpha", Ok (OR [AND [LT Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
+        ">=1.1.1-alpha", Ok ([[GTE Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
+        ">1.1.1-alpha", Ok ([[GT Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
+        "<=1.1.1-alpha", Ok ([[LTE Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
+        "<1.1.1-alpha", Ok ([[LT Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
 
 
-        "> 1", Ok (OR [AND [GT Version.(make 1 0 0)]]);
-        "> 1.1", Ok (OR [AND [GT Version.(make 1 1 0)]]);
-        "> 1.1.1", Ok (OR [AND [GT Version.(make 1 1 1)]]);
-        ">= 1", Ok (OR [AND [GTE Version.(make 1 0 0)]]);
-        ">= 1.1", Ok (OR [AND [GTE Version.(make 1 1 0)]]);
-        ">= 1.1.1", Ok (OR [AND [GTE Version.(make 1 1 1)]]);
-        "< 1", Ok (OR [AND [LT Version.(make 1 0 0)]]);
-        "< 1.1", Ok (OR [AND [LT Version.(make 1 1 0)]]);
-        "< 1.1.1", Ok (OR [AND [LT Version.(make 1 1 1)]]);
-        "<= 1", Ok (OR [AND [LTE Version.(make 1 0 0)]]);
-        "<= 1.1", Ok (OR [AND [LTE Version.(make 1 1 0)]]);
-        "<= 1.1.1", Ok (OR [AND [LTE Version.(make 1 1 1)]]);
+        "> 1", Ok ([[GT Version.(make 1 0 0)]]);
+        "> 1.1", Ok ([[GT Version.(make 1 1 0)]]);
+        "> 1.1.1", Ok ([[GT Version.(make 1 1 1)]]);
+        ">= 1", Ok ([[GTE Version.(make 1 0 0)]]);
+        ">= 1.1", Ok ([[GTE Version.(make 1 1 0)]]);
+        ">= 1.1.1", Ok ([[GTE Version.(make 1 1 1)]]);
+        "< 1", Ok ([[LT Version.(make 1 0 0)]]);
+        "< 1.1", Ok ([[LT Version.(make 1 1 0)]]);
+        "< 1.1.1", Ok ([[LT Version.(make 1 1 1)]]);
+        "<= 1", Ok ([[LTE Version.(make 1 0 0)]]);
+        "<= 1.1", Ok ([[LTE Version.(make 1 1 0)]]);
+        "<= 1.1.1", Ok ([[LTE Version.(make 1 1 1)]]);
 
-        " > 1", Ok (OR [AND [GT Version.(make 1 0 0)]]);
-        " > 1.1", Ok (OR [AND [GT Version.(make 1 1 0)]]);
-        " > 1.1.1", Ok (OR [AND [GT Version.(make 1 1 1)]]);
-        " >= 1", Ok (OR [AND [GTE Version.(make 1 0 0)]]);
-        " >= 1.1", Ok (OR [AND [GTE Version.(make 1 1 0)]]);
-        " >= 1.1.1", Ok (OR [AND [GTE Version.(make 1 1 1)]]);
-        " < 1", Ok (OR [AND [LT Version.(make 1 0 0)]]);
-        " < 1.1", Ok (OR [AND [LT Version.(make 1 1 0)]]);
-        " < 1.1.1", Ok (OR [AND [LT Version.(make 1 1 1)]]);
-        " <= 1", Ok (OR [AND [LTE Version.(make 1 0 0)]]);
-        " <= 1.1", Ok (OR [AND [LTE Version.(make 1 1 0)]]);
-        " <= 1.1.1", Ok (OR [AND [LTE Version.(make 1 1 1)]]);
+        " > 1", Ok ([[GT Version.(make 1 0 0)]]);
+        " > 1.1", Ok ([[GT Version.(make 1 1 0)]]);
+        " > 1.1.1", Ok ([[GT Version.(make 1 1 1)]]);
+        " >= 1", Ok ([[GTE Version.(make 1 0 0)]]);
+        " >= 1.1", Ok ([[GTE Version.(make 1 1 0)]]);
+        " >= 1.1.1", Ok ([[GTE Version.(make 1 1 1)]]);
+        " < 1", Ok ([[LT Version.(make 1 0 0)]]);
+        " < 1.1", Ok ([[LT Version.(make 1 1 0)]]);
+        " < 1.1.1", Ok ([[LT Version.(make 1 1 1)]]);
+        " <= 1", Ok ([[LTE Version.(make 1 0 0)]]);
+        " <= 1.1", Ok ([[LTE Version.(make 1 1 0)]]);
+        " <= 1.1.1", Ok ([[LTE Version.(make 1 1 1)]]);
 
-        "1.1.1 || 2.2.2", Ok (OR [AND [EQ Version.(make 1 1 1)]; AND [EQ Version.(make 2 2 2)]]);
-        "1 || 2.2.2", Ok (OR [
-          AND [GTE Version.(make 1 0 0); LT Version.(make 2 0 0)];
-          AND [EQ Version.(make 2 2 2)]
+        "1.1.1 || 2.2.2", Ok ([[EQ Version.(make 1 1 1)]; [EQ Version.(make 2 2 2)]]);
+        "1 || 2.2.2", Ok ([
+          [GTE Version.(make 1 0 0); LT Version.(make 2 0 0)];
+          [EQ Version.(make 2 2 2)]
         ]);
-        "1 || 2", Ok (OR [
-          AND [GTE Version.(make 1 0 0); LT Version.(make 2 0 0)];
-          AND [GTE Version.(make 2 0 0); LT Version.(make 3 0 0)];
+        "1 || 2", Ok ([
+          [GTE Version.(make 1 0 0); LT Version.(make 2 0 0)];
+          [GTE Version.(make 2 0 0); LT Version.(make 3 0 0)];
         ]);
-        "1 || 2 || 3", Ok (OR [
-          AND [GTE Version.(make 1 0 0); LT Version.(make 2 0 0)];
-          AND [GTE Version.(make 2 0 0); LT Version.(make 3 0 0)];
-          AND [GTE Version.(make 3 0 0); LT Version.(make 4 0 0)];
+        "1 || 2 || 3", Ok ([
+          [GTE Version.(make 1 0 0); LT Version.(make 2 0 0)];
+          [GTE Version.(make 2 0 0); LT Version.(make 3 0 0)];
+          [GTE Version.(make 3 0 0); LT Version.(make 4 0 0)];
         ]);
-        ">1.1.1 || <2.2.2", Ok (OR [AND [GT Version.(make 1 1 1)]; AND [LT Version.(make 2 2 2)]]);
+        ">1.1.1 || <2.2.2", Ok ([[GT Version.(make 1 1 1)]; [LT Version.(make 2 2 2)]]);
 
-        ">1.1.1 <2.2.2", Ok (OR [AND [GT Version.(make 1 1 1); LT Version.(make 2 2 2)]]);
-        ">1.1.1  <2.2.2", Ok (OR [AND [GT Version.(make 1 1 1); LT Version.(make 2 2 2)]]);
-        ">1  <2.2.2", Ok (OR [AND [GT Version.(make 1 0 0); LT Version.(make 2 2 2)]]);
-        "> 1  <2 <3", Ok (OR [AND [
+        ">1.1.1 <2.2.2", Ok ([[GT Version.(make 1 1 1); LT Version.(make 2 2 2)]]);
+        ">1.1.1  <2.2.2", Ok ([[GT Version.(make 1 1 1); LT Version.(make 2 2 2)]]);
+        ">1  <2.2.2", Ok ([[GT Version.(make 1 0 0); LT Version.(make 2 2 2)]]);
+        "> 1  <2 <3", Ok ([[
           GT Version.(make 1 0 0);
           LT Version.(make 2 0 0);
           LT Version.(make 3 0 0);
