@@ -35,7 +35,11 @@ let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
       % (Path.to_string(task.sourcePath) ++ "/")
       % p(task.buildPath)
     );
-  Bos.OS.Cmd.run(cmd);
+
+  /* `rsync` doesn't work natively on Windows, so on Windows,
+   * we need to run it in the cygwin bash environment.
+   */
+  EsyBash.run(cmd);
 };
 
 let withLock = (lockPath: Path.t, f) => {
