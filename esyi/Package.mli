@@ -1,3 +1,6 @@
+type 'a disj = 'a list
+type 'a conj = 'a list
+
 (**
  * This represent the concrete and stable location from which we can download
  * some package.
@@ -64,12 +67,15 @@ end
 (**
  * This representes a concrete version which at some point will be resolved to a
  * concrete version Version.t.
+ *
+ * TODO: remove it
  *)
 module VersionSpec : sig
   type t =
       Npm of SemverVersion.Formula.DNF.t
     | Opam of OpamVersion.Formula.DNF.t
     | Source of SourceSpec.t
+
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
 
@@ -77,8 +83,11 @@ module VersionSpec : sig
   val ofVersion : Version.t -> t
 end
 
+(**
+ * TODO: remove it
+ *)
 module Req : sig
-  type t
+  type t = private {name : string; spec : VersionSpec.t}
 
   val pp : Format.formatter -> t -> unit
 
@@ -92,35 +101,58 @@ module Req : sig
   val spec : t -> VersionSpec.t
 end
 
-(**
- * A collection of dependency requests.
- *
- * There maybe possible multiple requests of the same name.
- * TODO: Make sure there's no requests of the same name possible and provide
- *       explicit API for conjuction/override.
- *)
+(** A single dependency constraint. *)
+module Dep : sig
+  type t = {
+    name : string;
+    req : req;
+  }
+
+  and req =
+    | Npm of SemverVersion.Formula.Constraint.t
+    | Opam of OpamVersion.Formula.Constraint.t
+    | Source of SourceSpec.t
+
+  val pp : t Fmt.t
+  val matches : name : string -> version : Version.t -> t -> bool
+end
+
+(** A formula for a dependency. *)
+module DepFormula : sig
+  type t =
+    | Npm of SemverVersion.Formula.CNF.t
+    | Opam of OpamVersion.Formula.CNF.t
+    | Source of SourceSpec.t
+
+  val matches : version : Version.t -> t -> bool
+  val pp : t Fmt.t
+end
+
+(** A formula which mentions multiple dependencies. *)
 module Dependencies : sig
-  type t
+  type t = Dep.t disj conj
 
   val empty : t
 
-  val add : req:Req.t -> t -> t
-  val addMany : reqs:Req.t list -> t -> t
+  val override : dep:Dep.t -> t -> t
+  val overrideMany : deps:Dep.t list -> t -> t
 
-  val override : req:Req.t -> t -> t
-  val overrideMany : reqs:Req.t list -> t -> t
+  val mapDeps : f:(Dep.t -> 'a) -> t -> 'a disj conj
+  val filterDeps : f:(Dep.t -> bool) -> t -> t
 
-  val map : f:(Req.t -> Req.t) -> t -> t
+  val subformulaForPackage : name:string -> t -> t option
 
-  val findByName : name:string -> t -> Req.t option
-
-  val toList : t -> Req.t list
-  val ofList : Req.t list -> t
+  (**
+   * Produce a list of pkgname, approx depformula for each pkg mentioned in a
+   * depformula.
+   *
+   * Note that the dep formulas are approximate and should not be used for dep
+   * solving directly but rathe to prune unrelated versions.
+   *)
+  val describeByPackageName : t -> (string * DepFormula.t) list
 
   val pp : t Fmt.t
-
-  val of_yojson : Json.t -> (t, string) result
-  val to_yojson : t -> Json.t
+  val show : t -> string
 end
 
 module Resolutions : sig
@@ -128,7 +160,7 @@ module Resolutions : sig
 
   val empty : t
   val find : t -> string -> Version.t option
-  val apply : t -> Req.t -> Req.t option
+  val apply : t -> Dep.t -> Dep.t option
 
   val entries : t -> (string * Version.t) list
 
@@ -160,7 +192,7 @@ end
 type t = {
   name : string;
   version : Version.t;
-  source : Source.t;
+  source : source;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
 
@@ -168,6 +200,10 @@ type t = {
   opam : OpamInfo.t option;
   kind : kind;
 }
+
+and source =
+  | Source of Source.t
+  | SourceSpec of SourceSpec.t
 
 and kind =
   | Esy

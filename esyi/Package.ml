@@ -1,5 +1,8 @@
 module String = Astring.String
 
+type 'a disj = 'a list
+type 'a conj = 'a list
+
 module Parse = struct
   let cutWith sep v =
     match String.cut ~sep v with
@@ -161,6 +164,44 @@ module SourceSpec = struct
 
   let pp fmt spec =
     Fmt.pf fmt "%s" (toString spec)
+
+  let matches ~source spec =
+    match spec, source with
+    | LocalPath p1, Source.LocalPath p2 ->
+      Path.equal p1 p2
+    | LocalPath p1, Source.LocalPathLink p2 ->
+      Path.equal p1 p2
+    | LocalPath _, _ -> false
+
+    | LocalPathLink p1, Source.LocalPathLink p2 ->
+      Path.equal p1 p2
+    | LocalPathLink _, _ -> false
+
+    | Github ({ref = Some specRef; _} as spec), Source.Github src ->
+      String.(
+        equal src.user spec.user
+        && equal src.repo spec.repo
+        && equal src.commit specRef
+      )
+    | Github ({ref = None; _} as spec), Source.Github src ->
+      String.(equal spec.user src.user && equal spec.repo src.repo)
+    | Github _, _ -> false
+
+
+    | Git ({ref = Some specRef; _} as spec), Source.Git src ->
+      String.(
+        equal spec.remote src.remote
+        && equal specRef src.commit
+      )
+    | Git ({ref = None; _} as spec), Source.Git src ->
+      String.(equal spec.remote src.remote)
+    | Git _, _ -> false
+
+    | Archive (url1, _), Source.Archive (url2, _)  ->
+      String.equal url1 url2
+    | Archive _, _ -> false
+
+    | NoSource, _ -> false
 end
 
 (**
@@ -195,45 +236,9 @@ module VersionSpec = struct
       OpamVersion.Formula.DNF.matches ~version formula
     | Opam _, _ -> false
 
-    | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPath p2) ->
-      Path.equal p1 p2
-    | Source (SourceSpec.LocalPath p1), Version.Source (Source.LocalPathLink p2) ->
-      Path.equal p1 p2
-    | Source (SourceSpec.LocalPath _), _ -> false
-
-    | Source (SourceSpec.LocalPathLink p1), Version.Source (Source.LocalPathLink p2) ->
-      Path.equal p1 p2
-    | Source (SourceSpec.LocalPathLink _), _ -> false
-
-    | Source (SourceSpec.Github ({ref = Some specRef; _} as spec)),
-      Version.Source (Source.Github src) ->
-      String.(
-        equal src.user spec.user
-        && equal src.repo spec.repo
-        && equal src.commit specRef
-      )
-    | Source (SourceSpec.Github ({ref = None; _} as spec)),
-      Version.Source (Source.Github src) ->
-      String.(equal spec.user src.user && equal spec.repo src.repo)
-    | Source (SourceSpec.Github _), _ -> false
-
-
-    | Source (SourceSpec.Git ({ref = Some specRef; _} as spec)),
-      Version.Source (Source.Git src) ->
-      String.(
-        equal spec.remote src.remote
-        && equal specRef src.commit
-      )
-    | Source (SourceSpec.Git ({ref = None; _} as spec)),
-      Version.Source (Source.Git src) ->
-      String.(equal spec.remote src.remote)
-    | Source (SourceSpec.Git _), _ -> false
-
-    | Source (SourceSpec.Archive (url1, _)), Version.Source (Source.Archive (url2, _))  ->
-      String.equal url1 url2
-    | Source (SourceSpec.Archive _), _ -> false
-
-    | Source (SourceSpec.NoSource), _ -> false
+    | Source srcSpec, Version.Source src ->
+      SourceSpec.matches ~source:src srcSpec
+    | Source _, _ -> false
 
 
   let ofVersion (version : Version.t) =
@@ -414,67 +419,168 @@ module Req = struct
   let spec req = req.spec
 end
 
+module Dep = struct
+  type t = {
+    name : string;
+    req : req;
+  }
+
+  and req =
+    | Npm of SemverVersion.Formula.Constraint.t
+    | Opam of OpamVersion.Formula.Constraint.t
+    | Source of SourceSpec.t
+
+  let matches ~name ~version dep =
+    name = dep.name &&
+      match version, dep.req with
+      | Version.Npm version, Npm c -> SemverVersion.Constraint.matches ~version c
+      | Version.Npm _, _ -> false
+      | Version.Opam version, Opam c -> OpamVersion.Constraint.matches ~version c
+      | Version.Opam _, _ -> false
+      | Version.Source source, Source c -> SourceSpec.matches ~source c
+      | Version.Source _, _ -> false
+
+  let pp fmt {name; req;} =
+    let ppReq fmt = function
+      | Npm c -> SemverVersion.Formula.Constraint.pp fmt c
+      | Opam c -> OpamVersion.Formula.Constraint.pp fmt c
+      | Source src -> SourceSpec.pp fmt src
+    in
+    Fmt.pf fmt "%s@%a" name ppReq req
+
+end
+
+module DepFormula = struct
+  type t =
+    | Npm of SemverVersion.Formula.CNF.t
+    | Opam of OpamVersion.Formula.CNF.t
+    | Source of SourceSpec.t
+
+  let matches ~version formula =
+    match version, formula with
+    | Version.Npm version, Npm formula ->
+      SemverVersion.Formula.CNF.matches ~version formula
+    | Version.Npm _, _ -> false
+
+    | Version.Opam version, Opam formula ->
+      OpamVersion.Formula.CNF.matches ~version formula
+    | Version.Opam _, _ -> false
+
+    | Version.Source source, Source sourceSpec ->
+      SourceSpec.matches ~source sourceSpec
+    | Version.Source _, _ -> false
+
+  let pp fmt = function
+    | Npm f -> SemverVersion.Formula.CNF.pp fmt f
+    | Opam f -> OpamVersion.Formula.CNF.pp fmt f
+    | Source srcSpec -> SourceSpec.pp fmt srcSpec
+
+end
+
 module Dependencies = struct
 
-  type t = Req.t list
+  type t = Dep.t disj conj
 
   let empty = []
 
-  let add ~req deps = req::deps
-  let addMany ~reqs deps = reqs @ deps
+  let mapDeps ~f formula =
+    List.map ~f:(List.map ~f) formula
 
-  let override ~req deps =
-    let f (seen, deps) r =
-      if r.Req.name = req.Req.name
-      then `Seen, req::deps
-      else seen, r::deps
+  let filterDeps ~f formula =
+    let f formula disj =
+      match List.filter ~f disj with
+      | [] -> formula
+      | disj -> disj::formula
     in
-    match List.fold_left ~f ~init:(`Never, []) deps with
-    | `Never, deps -> req::deps
-    | `Seen, deps -> deps
+    List.fold_left ~f ~init:[] formula
 
-  let overrideMany ~reqs deps =
-    let f deps req = override ~req deps in
-    List.fold_left ~f ~init:deps reqs
+  let override ~dep formula =
+    let f (edep : Dep.t) =
+      if edep.name = dep.Dep.name
+      then dep
+      else edep
+    in
+    mapDeps ~f formula
 
-  let map ~f deps = List.map ~f deps
+  let overrideMany ~deps formula =
+    let f deps dep = override ~dep deps in
+    List.fold_left ~f ~init:formula deps
 
-  let findByName ~name deps =
-    let f req = req.Req.name = name in
-    List.find_opt ~f deps
+  let subformulaForPackage ~name:forName formula =
+    let f {Dep.name; _} = name = forName in
+    match filterDeps ~f formula with
+    | [] -> None
+    | formula -> Some formula
 
-  let toList deps = deps
-  let ofList deps = deps
+  let describeByPackageName (formula : t) =
+    let desc =
+      let f desc disj =
+        let up =
+          let f byName {Dep. name; req} =
+            match StringMap.find_opt name byName, req with
+            | Some (npm, opam, source), Dep.Npm c ->
+              StringMap.add name (c::npm, opam, source) byName
+            | Some (npm, opam, source), Dep.Opam c ->
+              StringMap.add name (npm, c::opam, source) byName
+            | Some (npm, opam, source), Dep.Source c ->
+              StringMap.add name (npm, opam, c::source) byName
+            | None, Dep.Npm c ->
+              StringMap.add name ([c], [], []) byName
+            | None, Dep.Opam c ->
+              StringMap.add name ([], [c], []) byName
+            | None, Dep.Source c ->
+              StringMap.add name ([], [], [c]) byName
+          in
+          List.fold_left ~f ~init:StringMap.empty disj
+        in
+        let merge _k a b =
+          match a, b with
+          | None, None -> None
+          | Some a, None -> Some a
+          | None, Some (npmu, opamu, sourceu) ->
+            let npm = match npmu with | [] -> [] | f -> [f] in
+            let opam = match opamu with | [] -> [] | f -> [f] in
+            Some (npm, opam, sourceu)
+          | Some (npm, opam, source), Some (npmu, opamu, sourceu) ->
+            let npm = match npmu with | [] -> npm | f -> f::npm in
+            let opam = match opamu with | [] -> opam | f -> f::opam in
+            Some (npm, opam, sourceu @ source)
+        in
+        StringMap.merge merge desc up
+      in
+      List.fold_left ~f ~init:StringMap.empty formula
+    in
+    let f name (npm, opam, sources) formulas =
+      let formulas =
+        List.fold_left
+          ~f:(fun formulas source -> (name, DepFormula.Source source)::formulas)
+          ~init:formulas sources
+      in
+      let formulas =
+        match npm with
+        | [] -> formulas
+        | f -> (name, DepFormula.Npm f)::formulas
+      in
+      let formulas =
+        match opam with
+        | [] -> formulas
+        | f -> (name, DepFormula.Opam f)::formulas
+      in
+      formulas
+    in
+    StringMap.fold f desc []
 
   let pp fmt deps =
-    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
-
-  let of_yojson json =
-    let open Result.Syntax in
-    let%bind items = Json.Parse.assoc json in
-    let f deps (name, json) =
-      let%bind spec = Json.Parse.string json in
-      let req = Req.make ~name ~spec in
-      return (req::deps)
+    let ppDisj fmt disj =
+      match disj with
+      | [] -> Fmt.unit "true" fmt ()
+      | [dep] -> Dep.pp fmt dep
+      | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Dep.pp) deps
     in
-    Result.List.foldLeft ~f ~init:empty items
+    Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
 
-  let to_yojson (deps : t) =
-    let items =
-      let f req = (req.Req.name, Req.to_yojson req) in
-      List.map ~f deps
-    in
-    `Assoc items
-
-  let%test "overrideMany overrides dependency" =
-    let a = [Req.make ~name:"prev" ~spec:"1.0.0"; Req.make ~name:"pkg" ~spec:"^1.0.0"] in
-    let b = [Req.make ~name:"pkg" ~spec:"^2.0.0"; Req.make ~name:"new" ~spec:"1.0.0"] in
-    let r = overrideMany ~reqs:b a in
-    r = [
-      Req.make ~name:"new" ~spec:"1.0.0";
-      Req.make ~name:"prev" ~spec:"1.0.0";
-      Req.make ~name:"pkg" ~spec:"^2.0.0";
-    ]
+  let show deps =
+    Format.asprintf "%a" pp deps
 end
 
 module Resolutions = struct
@@ -521,12 +627,16 @@ module Resolutions = struct
       Result.List.foldLeft ~f ~init:empty items
     | _ -> Error "expected object"
 
-  let apply resolutions req =
-    let name = Req.name req in
-    match find resolutions name with
+  let apply resolutions (dep : Dep.t) =
+    match find resolutions dep.name with
     | Some version ->
-      let spec = VersionSpec.ofVersion version in
-      Some (Req.ofSpec ~name ~spec)
+      let req =
+        match version with
+        | Version.Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
+        | Version.Opam v -> Dep.Opam (OpamVersion.Constraint.EQ v)
+        | Version.Source src -> Dep.Source (SourceSpec.ofSource src)
+      in
+      Some {dep with req}
     | None -> None
 
 end
@@ -595,17 +705,20 @@ end
 type t = {
   name : string;
   version : Version.t;
-  source : Source.t;
-  dependencies: (Dependencies.t [@default Dependencies.empty]);
-  devDependencies: (Dependencies.t [@default Dependencies.empty]);
+  source : source;
+  dependencies: Dependencies.t;
+  devDependencies: Dependencies.t;
   opam : OpamInfo.t option;
   kind : kind;
 }
 
+and source =
+  | Source of Source.t
+  | SourceSpec of SourceSpec.t
+
 and kind =
   | Esy
   | Npm
-
 
 let pp fmt pkg =
   Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
