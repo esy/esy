@@ -41,7 +41,7 @@ One other complexity is that we use Cygwin for running our build tasks, and the 
 
 The majority of Cygwin utilities can work with either style of paths - therefore, we will prefer the __Windows path, normalized with a forward slash__, for shell invocations.
 
-Some utilities that Cygwin ships with do not support any style of Windows path (either forward or back slash). For those utilities - like `rsync` - we will need to convert the path to a cygwin-style path. Cygwin includes the `cygpath` utility for this, which can convert paths of the form `C:/temp` or `C:\\temp` to cygwin-style paths like `/cygdrive/c/temp`. These exceptions should be few, and primarily used for bootstrapping the `esy` environment internally, as opposed to present in the build scripts.
+Some utilities that Cygwin ships with do not support any style of Windows path (either forward or back slash). For those utilities - like `rsync` - we will need to convert the path to a cygwin-style path. Cygwin includes the `cygpath` utility for this, which can convert paths of the form `C:/temp` or `C:\\temp` to cygwin-style paths like `/cygdrive/c/temp`. These exceptions should be few, and primarily encountered in bootstrapping the `esy` environment internally, as opposed to present in the build scripts.
 
 ### Cross-platform environment variables
 
