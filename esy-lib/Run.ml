@@ -9,6 +9,17 @@ and contextItem =
   | Line of string
   | LogOutput of (string * string)
 
+let ppContextItem fmt = function
+  | Line line ->
+    Fmt.pf fmt "@[<h>%s@]" line
+  | LogOutput (filename, out) ->
+    Fmt.pf fmt "@[<v 2>%s@\n%a@]" filename Fmt.text out
+
+let ppContext = Fmt.(list ~sep:(unit "@\n") ppContextItem)
+
+let ppError fmt (msg, context) =
+  Fmt.pf fmt "@[<v 2>%s@\n%a@]" msg ppContext context
+
 let return v =
   Ok v
 
@@ -39,27 +50,8 @@ let withContextOfLog ?(header="Log output:") content v =
     let item = LogOutput (header, content) in
     Error (msg, item::context)
 
-let formatError (msg, context) =
-  let rec formatContext result = function
-  | [] -> result
-  | (Line msg)::context ->
-    let result = (Printf.sprintf "  While %s" msg)::result in
-    formatContext result context
-  | (LogOutput (header, content))::context ->
-    let lines =
-      content
-      |> String.split_on_char '\n'
-      |> List.map ~f:(fun line -> "    " ^ line)
-    in
-    let lines =
-      ("  " ^ header)::lines
-      |> String.concat "\n"
-    in
-    formatContext (lines::result) context
-  in
-  match formatContext [] context with
-  | [] -> Printf.sprintf "Error: %s" msg
-  | context -> Printf.sprintf "Error: %s\n%s" msg (String.concat "\n" context)
+let formatError error =
+  Format.asprintf "%a" ppError error
 
 let ofStringError v =
   match v with
