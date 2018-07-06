@@ -25,6 +25,7 @@ build_script:
     - echo $PATH
     - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
     - npm run bootstrap:build
+    - npm run bootstrap:unit-test
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - powershell scripts/bootstrap/Test.ps1
