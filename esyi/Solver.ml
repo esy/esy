@@ -206,12 +206,26 @@ let solutionRecordOfPkg ~solver (pkg : Package.t) =
     | Package.SourceSpec sourceSpec ->
       Resolver.resolveSource ~name:pkg.name ~sourceSpec solver.resolver
   in
+
+  let%bind files =
+    match pkg.opam with
+    | Some opam -> opam.files ()
+    | None -> return []
+  in
+
+  let manifest =
+    match pkg.opam with
+    | Some opam -> Some opam.manifest
+    | None -> None
+  in
+
   return {
     Solution.Record.
     name = pkg.name;
     version = pkg.version;
     source;
-    opam = pkg.opam;
+    manifest;
+    files;
   }
 
 let make ~cfg ?resolver ~resolutions () =

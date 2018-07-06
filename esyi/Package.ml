@@ -693,13 +693,20 @@ module ExportedEnv = struct
 
 end
 
+module File = struct
+  [@@@ocaml.warning "-32"]
+  type t = {
+    name : Path.t;
+    content : string
+  } [@@deriving (yojson, show)]
+end
+
 module OpamInfo = struct
   type t = {
-    packageJson : Json.t;
-    files : (Path.t * string) list;
-    patches : string list;
+    manifest : Json.t;
+    files : unit -> File.t list RunAsync.t;
   }
-  [@@deriving (yojson, show)]
+  [@@deriving show]
 end
 
 type t = {

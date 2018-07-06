@@ -11,6 +11,7 @@ module Manifest : sig
   type t = {
     name : OpamPackage.Name.t;
     version : OpamPackage.Version.t;
+    path : Path.t;
     opam : OpamFile.OPAM.t;
     url : OpamFile.URL.t option;
   }

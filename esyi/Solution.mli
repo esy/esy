@@ -10,14 +10,8 @@ module Record : sig
     name: string;
     version: Package.Version.t;
     source: Package.Source.t;
-
-    (**
-    * We store OpamInfo.t as part of the lockfile as we want to lock against:
-    *   1. changes in the opam->esy conversion algo
-    *   2. changes in esy-opam-override
-    *   3. changes in opam repository (yes, it is mutable)
-    *)
-    opam: Package.OpamInfo.t option;
+    files : Package.File.t list;
+    manifest : Json.t option;
   }
 
   val pp : t Fmt.t

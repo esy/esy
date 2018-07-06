@@ -4,10 +4,11 @@ module Req = Package.Req
 
 module Record = struct
   type t = {
-    name: string ;
-    version: Version.t ;
-    source: Source.t ;
-    opam: Package.OpamInfo.t option;
+    name: string;
+    version: Version.t;
+    source: Source.t;
+    files : Package.File.t list;
+    manifest : Json.t option;
   } [@@deriving yojson]
 
   let compare a b =

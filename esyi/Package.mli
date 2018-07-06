@@ -178,14 +178,21 @@ module ExportedEnv : sig
   val to_yojson : t Json.encoder
 end
 
+module File : sig
+  type t = {
+    name : Path.t;
+    content : string
+  }
+
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
+end
+
 module OpamInfo : sig
   type t = {
-    packageJson : Json.t;
-    files : (Path.t * string) list;
-    patches : string list;
+    manifest : Json.t;
+    files : unit -> File.t list RunAsync.t;
   }
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
   val show : t -> string
 end
 

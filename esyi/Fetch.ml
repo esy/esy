@@ -172,7 +172,7 @@ module Layout = struct
       let version = Package.Version.Npm (SemverVersion.Version.parseExn version) in
       let record = Record.{
         name; version;
-        source = Package.Source.NoSource; opam = None;
+        source = Package.Source.NoSource; manifest = None; files = [];
       } in
       Solution.make record dependencies
 

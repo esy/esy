@@ -15,20 +15,20 @@ end
 
 let packageKey (pkg : Solution.Record.t) =
   let version = Package.Version.toString pkg.version in
-  match pkg.opam with
+  match pkg.manifest with
   | None -> Printf.sprintf "%s__%s" pkg.name version
-  | Some opam ->
-    let opamHash =
-      opam
-      |> Package.OpamInfo.show
+  | Some json ->
+    let manifestHash =
+      json
+      |> Yojson.Safe.to_string
       |> Digest.string
       |> Digest.to_hex
       |> String.Sub.v ~start:0 ~stop:8
       |> String.Sub.to_string
     in
-    Printf.sprintf "%s__%s__%s" pkg.name version opamHash
+    Printf.sprintf "%s__%s__%s" pkg.name version manifestHash
 
-let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} as record) =
+let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; manifest; files} as record) =
   let open RunAsync.Syntax in
 
   let key = packageKey record in
@@ -91,42 +91,29 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
 
       let%bind () =
-        match opam with
-        | Some {Package.OpamInfo. packageJson; files; patches} ->
-
+        match manifest with
+        | Some json ->
           let%bind () = removeEsyJsonIfExists() in
-
-          let%bind () =
-            Fs.writeJsonFile ~json:packageJson Path.(path / "package.json")
-          in
-
-          let%bind () =
-            let f (relPath, data) =
-              let name = Path.append path relPath in
-              let dirname = Path.parent name in
-              let%bind () = Fs.createDir dirname in
-              (* TODO: move this to the place we read data from *)
-              let data =
-                if String.get data (String.length data - 1) == '\n'
-                then data
-                else data ^ "\n"
-              in
-              let%bind () = Fs.writeFile ~data name in
-              return()
-            in
-            List.map ~f files |> RunAsync.List.waitAll
-          in
-
-          let%bind() =
-            let f patch =
-              let patch = Path.(path / patch) in
-              Patch.apply ~strip:1 ~root:path ~patch ()
-            in RunAsync.List.processSeq ~f patches
-          in
-          return()
-
+          let%bind () = Fs.writeJsonFile ~json Path.(path / "package.json") in
+          return ()
         | None -> return ()
+      in
 
+      let%bind () =
+        let f {Package.File. name; content} =
+          let name = Path.append path name in
+          let dirname = Path.parent name in
+          let%bind () = Fs.createDir dirname in
+          (* TODO: move this to the place we read data from *)
+          let contents =
+            if String.get content (String.length content - 1) == '\n'
+            then content
+            else content ^ "\n"
+          in
+          let%bind () = Fs.writeFile ~data:contents name in
+          return()
+        in
+        List.map ~f files |> RunAsync.List.waitAll
       in
 
       let%bind () =
