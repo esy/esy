@@ -27,3 +27,7 @@ C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
 C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
 
 exitIfFailed
+
+C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe build
+
+exitIfFailed
