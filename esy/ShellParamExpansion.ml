@@ -5,7 +5,6 @@ let sanitizeShellParameters str =
     let sanitizedString = Str.global_replace backSlashRegex "/" str in
     sanitizedString;;
 
-
 let parse_exn v =
   let lexbuf = Lexing.from_string v in
   read [] `Init lexbuf
