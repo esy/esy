@@ -5,6 +5,7 @@ cache:
     - '%LocalAppData%\.opam'
 
 install:
+    - which git
     - npm install -g rimraf
     - npm install -g yarn
 # This whole 'bootstrapping' duplication of our install / build will go away
