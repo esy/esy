@@ -14,8 +14,28 @@ type t
 (** Make new resolver *)
 val make : cfg:Config.t -> unit -> t RunAsync.t
 
-(** Resolve package request into a list of resolutions *)
-val resolve : req:Package.Req.t -> t -> (Package.Req.t * Resolution.t list) RunAsync.t
+(**
+ * Resolve package request into a list of resolutions
+ *
+ * TODO: return info about resolved sources as well.
+ *)
+val resolve :
+  name:string
+  -> formula:Package.DepFormula.t
+  -> t
+  -> Resolution.t list RunAsync.t
+
+(**
+ * Resolve source spec into source.
+ *)
+val resolveSource :
+  name:string
+  -> sourceSpec:Package.SourceSpec.t
+  -> t
+  -> Package.Source.t RunAsync.t
 
 (** Fetch the package metadata given the resolution. *)
-val package : resolution:Resolution.t -> t -> Package.t RunAsync.t
+val package :
+  resolution:Resolution.t
+  -> t
+  -> Package.t RunAsync.t
