@@ -2,7 +2,35 @@ module Version = SemverVersion.Version
 module String = Astring.String
 module Resolutions = Package.Resolutions
 module Source = Package.Source
-module Dependencies = Package.Dependencies
+module Req = Package.Req
+module Dep = Package.Dep
+
+module Dependencies = struct
+
+  type t = Req.t list
+
+  let empty = []
+
+  let pp fmt deps =
+    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
+
+  let of_yojson json =
+    let open Result.Syntax in
+    let%bind items = Json.Parse.assoc json in
+    let f deps (name, json) =
+      let%bind spec = Json.Parse.string json in
+      let req = Req.make ~name ~spec in
+      return (req::deps)
+    in
+    Result.List.foldLeft ~f ~init:empty items
+
+  let to_yojson (deps : t) =
+    let items =
+      let f req = (req.Req.name, Req.to_yojson req) in
+      List.map ~f deps
+    in
+    `Assoc items
+end
 
 (* This is used just to read the Json.t *)
 module PackageJson = struct
@@ -101,20 +129,47 @@ let toPackage ?name ?version (manifest : t) =
   in
   let source =
     match version with
-    | Package.Version.Source src -> src
-    | _ -> manifest.source
+    | Package.Version.Source src -> Package.Source src
+    | _ -> Package.Source manifest.source
   in
-  return {
+
+  let translateDependencies reqs =
+    let f reqs (req : Req.t) =
+      let update =
+        match req.spec with
+        | Package.VersionSpec.Npm formula ->
+          let f (c : SemverVersion.Constraint.t) =
+            {Dep. name = req.name; req = Npm c}
+          in
+          let formula = SemverVersion.Formula.ofDnfToCnf formula in
+          List.map ~f:(List.map ~f) formula
+        | Package.VersionSpec.Opam formula ->
+          let f (c : OpamVersion.Constraint.t) =
+            {Dep. name = req.name; req = Opam c}
+          in
+          let formula = OpamVersion.Formula.ofDnfToCnf formula in
+          List.map ~f:(List.map ~f) formula
+        | Package.VersionSpec.Source spec ->
+          [[{Dep. name = req.name; req = Source spec}]]
+      in
+      reqs @ update
+    in
+    List.fold_left ~f ~init:[] reqs
+  in
+
+  let pkg = {
     Package.
     name;
     version;
-    dependencies = manifest.dependencies;
-    devDependencies = manifest.devDependencies;
+    dependencies = translateDependencies manifest.dependencies;
+    devDependencies = translateDependencies manifest.devDependencies;
     source;
     opam = None;
     kind =
       if manifest.hasEsyManifest
       then Esy
       else Npm
-  }
+  } in
+
+  return pkg
 
