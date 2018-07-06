@@ -2,6 +2,14 @@ module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 
 let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
+  open Run;
+
+  /* `rsync` is one utility that DOES NOT respect Windows paths.
+   *  Therefore, we need to normalize the paths to Cygwin-style (on POSIX systems, this is a no-op)
+   */
+  let%bind buildPath = EsyBash.normalizePathForCygwin(Bos.Cmd.p(task.buildPath));
+  let%bind sourcePath = EsyBash.normalizePathForCygwin(Path.to_string(task.sourcePath));
+
   let cmd =
     Bos.Cmd.(
       empty
