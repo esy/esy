@@ -342,12 +342,14 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
             name = "release-env";
             version = pkg.version;
             dependencies = [Package.Dependency pkg];
-            buildCommands = None;
-            installCommands = None;
-            buildType = Package.BuildType.OutOfSource;
             sourceType = Package.SourceType.Development;
-            exportedEnv = [];
             sandboxEnv = pkg.sandboxEnv;
+            build = Package.EsyBuild {
+              buildCommands = None;
+              installCommands = None;
+              buildType = Package.BuildType.OutOfSource;
+              exportedEnv = [];
+            };
             sourcePath = pkg.sourcePath;
             resolution = None;
           } in

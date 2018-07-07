@@ -148,13 +148,19 @@ let buildId
   (dependencies : dependency list) =
   let digest acc update = Digest.string (acc ^ "--" ^ update) in
   let id =
-    List.fold_left ~f:digest ~init:"" [
+    match pkg.build with
+    | Package.EsyBuild build ->
+      List.fold_left ~f:digest ~init:"" [
+        Package.CommandList.show build.buildCommands;
+        Package.CommandList.show build.installCommands;
+        Package.BuildType.show build.buildType;
+        Package.SandboxEnv.show rootPkg.sandboxEnv;
+      ]
+  in
+  let id =
+    List.fold_left ~f:digest ~init:id [
       pkg.name;
       pkg.version;
-      Package.CommandList.show pkg.buildCommands;
-      Package.CommandList.show pkg.installCommands;
-      Package.BuildType.show pkg.buildType;
-      Package.SandboxEnv.show rootPkg.sandboxEnv;
       (match pkg.resolution with
        | Some resolved -> resolved
        | None -> "")
@@ -458,11 +464,11 @@ let ofPackage
         ConfigPath.(storePath / Config.storeBuildTree / basename)
       in
       let rootPath =
-        match pkg.buildType, sourceType with
-        | InSource, _
-        | JBuilderLike, Immutable -> buildPath
-        | JBuilderLike, Development
-        | OutOfSource, _ -> pkg.sourcePath
+        match pkg.build, sourceType with
+        | Package.EsyBuild {buildType = InSource; _}, _
+        | Package.EsyBuild {buildType = JBuilderLike; _}, Immutable -> buildPath
+        | Package.EsyBuild {buildType = JBuilderLike; _}, Development
+        | Package.EsyBuild {buildType = OutOfSource; _}, _ -> pkg.sourcePath
       in {
         rootPath;
         buildPath;
@@ -547,6 +553,7 @@ let ofPackage
       lookup bindingsForExportedEnv, lookup bindingsForCommands
     in
 
+
     let%bind globalEnv, localEnv =
       let f acc Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
@@ -563,8 +570,13 @@ let ofPackage
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
         )
       in
+
       let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
-        Run.List.foldLeft ~f ~init:(true, [], []) pkg.exportedEnv
+        let exportedEnv =
+          match pkg.build with
+          | Package.EsyBuild {exportedEnv; _} -> exportedEnv
+        in
+        Run.List.foldLeft ~f ~init:(true, [], []) exportedEnv
       in
       let%bind globalEnv = if injectCamlLdLibraryPath then
         let%bind value = renderCommandExpr
@@ -724,12 +736,20 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        (CommandList.render ~system ~env ~scope:scopeForCommands pkg.buildCommands)
+        begin
+        match pkg.build with
+        | Package.EsyBuild {buildCommands; _} ->
+          CommandList.render ~system ~env ~scope:scopeForCommands buildCommands
+        end
     in
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        (CommandList.render ~system ~env ~scope:scopeForCommands pkg.installCommands)
+        begin
+        match pkg.build with
+        | Package.EsyBuild {installCommands; _} ->
+          CommandList.render ~system ~env ~scope:scopeForCommands installCommands
+        end
     in
 
     let task: t = {
@@ -791,11 +811,13 @@ let sandboxEnv (pkg : Package.t) =
     name = "installation_env";
     version = pkg.version;
     dependencies = (Package.Dependency pkg)::devDependencies;
-    buildCommands = None;
-    installCommands = None;
-    buildType = Package.BuildType.OutOfSource;
     sourceType = Package.SourceType.Development;
-    exportedEnv = [];
+    build = Package.EsyBuild {
+      buildCommands = None;
+      installCommands = None;
+      buildType = Package.BuildType.OutOfSource;
+      exportedEnv = [];
+    };
     sandboxEnv = pkg.sandboxEnv;
     sourcePath = pkg.sourcePath;
     resolution = None;
@@ -831,6 +853,12 @@ module DependencyGraph = DependencyGraph.Make(struct
   end)
 
 let toBuildProtocol (task : task) =
+  let buildType =
+    match task.pkg.build with
+    | Package.EsyBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
+    | Package.EsyBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
+    | Package.EsyBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
+  in
   EsyBuildPackage.BuildTask.ConfigFile.{
     id = task.id;
     name = task.pkg.name;
@@ -839,11 +867,7 @@ let toBuildProtocol (task : task) =
         | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
         | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
       );
-    buildType = (match task.pkg.buildType with
-        | Package.BuildType.InSource -> EsyBuildPackage.BuildTask.BuildType.InSource
-        | Package.BuildType.JBuilderLike -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-        | Package.BuildType.OutOfSource -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-      );
+    buildType;
     build = task.buildCommands;
     install = task.installCommands;
     sourcePath = ConfigPath.toString task.paths.sourcePath;

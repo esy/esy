@@ -280,16 +280,20 @@ type t = {
   name : string;
   version : string;
   dependencies : dependencies;
-  buildCommands : CommandList.t;
-  installCommands : CommandList.t;
-  buildType : BuildType.t;
-  sourceType : SourceType.t;
-  exportedEnv : ExportedEnv.t;
-  sandboxEnv : SandboxEnv.t;
   sourcePath : Config.ConfigPath.t;
+  sourceType : SourceType.t;
+  sandboxEnv : SandboxEnv.t;
   resolution : string option;
-}
-[@@deriving (show, eq, ord)]
+  build : build;
+} [@@deriving (show, eq, ord)]
+
+and build =
+  | EsyBuild of {
+      buildCommands : CommandList.t;
+      installCommands : CommandList.t;
+      buildType : BuildType.t;
+      exportedEnv : ExportedEnv.t;
+    }
 
 and dependencies =
   dependency list

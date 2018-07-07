@@ -180,12 +180,15 @@ let ofDir = (cfg: Config.t) => {
             name: manifest.name,
             version: manifest.version,
             dependencies,
-            buildCommands: esyManifest.Package.EsyManifest.build,
-            installCommands: esyManifest.install,
-            buildType: esyManifest.buildsInSource,
             sourceType,
-            exportedEnv: esyManifest.exportedEnv,
             sandboxEnv: esyManifest.sandboxEnv,
+            build:
+              Package.EsyBuild({
+                buildCommands: esyManifest.Package.EsyManifest.build,
+                installCommands: esyManifest.install,
+                buildType: esyManifest.buildsInSource,
+                exportedEnv: esyManifest.exportedEnv,
+              }),
             sourcePath: ConfigPath.ofPath(cfg, sourcePath),
             resolution: manifest._resolved,
           };
