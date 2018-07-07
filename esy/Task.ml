@@ -38,7 +38,7 @@ module CommandList = struct
     string list list
     [@@deriving (show, eq, ord)]
 
-  let render ~system ~env ~scope (commands : Package.CommandList.t) =
+  let render ~system ~env ~scope (commands : Manifest.CommandList.t) =
     let open Run.Syntax in
     let env = Environment.Closed.value env in
     let envScope name =
@@ -53,9 +53,9 @@ module CommandList = struct
           ShellParamExpansion.render ~scope:envScope v
         in
         function
-        | Package.CommandList.Command.Parsed args ->
+        | Manifest.CommandList.Command.Parsed args ->
           Result.List.map ~f:render args
-        | Package.CommandList.Command.Unparsed string ->
+        | Manifest.CommandList.Command.Unparsed string ->
           let%bind string = render string in
           let%bind args = ShellSplit.split string in
           return args
@@ -78,7 +78,7 @@ type t = {
   localEnv : Environment.binding list;
   paths : paths;
 
-  sourceType : Package.SourceType.t;
+  sourceType : Manifest.SourceType.t;
 
   dependencies : dependency list;
 }
@@ -151,10 +151,10 @@ let buildId
     match pkg.build with
     | Package.EsyBuild build ->
       List.fold_left ~f:digest ~init:"" [
-        Package.CommandList.show build.buildCommands;
-        Package.CommandList.show build.installCommands;
-        Package.BuildType.show build.buildType;
-        Package.SandboxEnv.show rootPkg.sandboxEnv;
+        Manifest.CommandList.show build.buildCommands;
+        Manifest.CommandList.show build.installCommands;
+        Manifest.BuildType.show build.buildType;
+        Manifest.SandboxEnv.show rootPkg.sandboxEnv;
       ]
   in
   let id =
@@ -436,15 +436,15 @@ let ofPackage
 
     let sourceType =
       match forceImmutable, pkg.sourceType with
-      | true, _ -> Package.SourceType.Immutable
+      | true, _ -> Manifest.SourceType.Immutable
       | false, sourceType -> sourceType
     in
 
     let paths =
       let storePath =
         match sourceType with
-        | Package.SourceType.Immutable -> ConfigPath.store
-        | Package.SourceType.Development -> ConfigPath.localStore
+        | Manifest.SourceType.Immutable -> ConfigPath.store
+        | Manifest.SourceType.Development -> ConfigPath.localStore
       in
       let buildPath =
         ConfigPath.(storePath / Config.storeBuildTree / id)
@@ -555,17 +555,17 @@ let ofPackage
 
 
     let%bind globalEnv, localEnv =
-      let f acc Package.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
+      let f acc Manifest.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
         let context = Printf.sprintf "processing exportedEnv $%s" name in
         Run.withContext context (
           let%bind value = renderCommandExpr ~system ~name ~scope:scopeForExportEnv value in
           match envScope with
-          | Package.ExportedEnv.Global ->
+          | Manifest.ExportedEnv.Global ->
             let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath in
             let globalEnv = Environment.{origin = Some pkg; name; value = Value value}::globalEnv in
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
-          | Package.ExportedEnv.Local ->
+          | Manifest.ExportedEnv.Local ->
             let localEnv = Environment.{origin = Some pkg; name; value = Value value}::localEnv in
             Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
         )
@@ -811,11 +811,11 @@ let sandboxEnv (pkg : Package.t) =
     name = "installation_env";
     version = pkg.version;
     dependencies = (Package.Dependency pkg)::devDependencies;
-    sourceType = Package.SourceType.Development;
+    sourceType = Manifest.SourceType.Development;
     build = Package.EsyBuild {
       buildCommands = None;
       installCommands = None;
-      buildType = Package.BuildType.OutOfSource;
+      buildType = Manifest.BuildType.OutOfSource;
       exportedEnv = [];
     };
     sandboxEnv = pkg.sandboxEnv;
@@ -864,8 +864,8 @@ let toBuildProtocol (task : task) =
     name = task.pkg.name;
     version = task.pkg.version;
     sourceType = (match task.sourceType with
-        | Package.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
-        | Package.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
+        | Manifest.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
+        | Manifest.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
       );
     buildType;
     build = task.buildCommands;

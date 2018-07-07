@@ -63,6 +63,10 @@ lib: [
   "_build/install/default/lib/esy/Esy__LockfileParser.cmx" {"Esy__LockfileParser.cmx"}
   "_build/install/default/lib/esy/Esy__LockfileParser.cmt" {"Esy__LockfileParser.cmt"}
   "_build/install/default/lib/esy/LockfileParser.ml" {"LockfileParser.ml"}
+  "_build/install/default/lib/esy/Esy__Manifest.cmi" {"Esy__Manifest.cmi"}
+  "_build/install/default/lib/esy/Esy__Manifest.cmx" {"Esy__Manifest.cmx"}
+  "_build/install/default/lib/esy/Esy__Manifest.cmt" {"Esy__Manifest.cmt"}
+  "_build/install/default/lib/esy/Manifest.ml" {"Manifest.ml"}
   "_build/install/default/lib/esy/Esy__NpmRelease.cmi" {"Esy__NpmRelease.cmi"}
   "_build/install/default/lib/esy/Esy__NpmRelease.cmx" {"Esy__NpmRelease.cmx"}
   "_build/install/default/lib/esy/Esy__NpmRelease.cmt" {"Esy__NpmRelease.cmt"}

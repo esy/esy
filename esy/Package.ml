@@ -1,299 +1,42 @@
-(**
- * A list of commands as specified in "esy.build" and "esy.install".
- *)
-module CommandList = struct
-
-  module Command = struct
-
-    type t =
-      | Parsed of string list
-      | Unparsed of string
-      [@@deriving (show, to_yojson, eq, ord)]
-
-    let of_yojson (json : Json.t) =
-      match json with
-      | `String command -> Ok (Unparsed command)
-      | `List command ->
-        begin match Json.Parse.(list string (`List command)) with
-        | Ok args -> Ok (Parsed args)
-        | Error err -> Error err
-        end
-      | _ -> Error "expected either a string or an array of strings"
-
-  end
-
-  type t =
-    Command.t list option
-    [@@deriving (show, eq, ord)]
-
-  let of_yojson (json : Json.t) =
-    let open Result.Syntax in
-    let commands =
-      match json with
-      | `Null -> Ok []
-      | `List commands ->
-        Json.Parse.list Command.of_yojson (`List commands)
-      | `String command ->
-        let%bind command = Command.of_yojson (`String command) in
-        Ok [command]
-      | _ -> Error "expected either a null, a string or an array"
-    in
-    match%bind commands with
-    | [] -> Ok None
-    | commands -> Ok (Some commands)
-
-  let to_yojson commands =
-    match commands with
-    | None -> `List []
-    | Some commands -> `List (List.map ~f:Command.to_yojson commands)
-
-end
-
-(**
- * Scripts with keys as specified in "scripts".
- *)
-module Scripts = struct
-
-  type script = {
-    command : Cmd.t;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    script StringMap.t
-    [@@deriving (eq, ord)]
-
-  let empty = StringMap.empty
-
-  let pp =
-    let open Fmt in
-    let ppBinding = hbox (pair (quote string) (quote pp_script)) in
-    vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
-
-  let of_yojson =
-    let errorMsg =
-      "A command in \"scripts\" expects a string or an array of strings"
-    in
-    let script (json: Json.t) =
-      match Json.Parse.cmd ~errorMsg json with
-      | Ok command -> Ok {command;}
-      | Error err -> Error err
-    in
-    Json.Parse.stringMap script
-
-  let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
-
-  type scripts = t
-  let scripts_of_yojson = of_yojson
-
-  module ParseManifest = struct
-    type t = {
-      scripts: (scripts [@default empty]);
-    } [@@deriving (of_yojson { strict = false })]
-
-    let parse json =
-      match of_yojson json with
-      | Ok pkg -> Ok pkg.scripts
-      | Error err -> Error err
-  end
-end
-
-(**
- * Environment for the entire sandbox as specified in "esy.sandboxEnv".
- *)
-module SandboxEnv = struct
-
-  type item = {
-    name : string;
-    value : string;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
-
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result.Syntax in
-      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
-      | `String value ->
-        Ok ({name = k; value;}::items)
-      | _ -> Error "expected string"
-      in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
-end
-
-(**
- * Environment exported from a package as specified in "esy.exportedEnv".
- *)
-module ExportedEnv = struct
-
-  type scope =
-    | Local
-    | Global
-    [@@deriving (show, eq, ord)]
-
-  let scope_of_yojson = function
-    | `String "global" -> Ok Global
-    | `String "local" -> Ok Local
-    | _ -> Error "expected either \"local\" or \"global\""
-
-  module Item = struct
-    type t = {
-      value : string [@key "val"];
-      scope : (scope [@default Local]);
-      exclusive : (bool [@default false]);
-    }
-    [@@deriving of_yojson]
-  end
-
-  type item = {
-    name : string;
-    value : string;
-    scope : scope;
-    exclusive : bool;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
-
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result.Syntax in
-      let f items (k, v) =
-        let%bind {Item. value; scope; exclusive} = Item.of_yojson v in
-        Ok ({name = k; value; scope; exclusive}::items)
-      in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
-
-end
-
-module BuildType = struct
-  type t =
-    | InSource
-    | OutOfSource
-    | JBuilderLike
-    [@@deriving (show, eq, ord)]
-
-  let of_yojson = function
-    | `String "_build" -> Ok JBuilderLike
-    | `Bool true -> Ok InSource
-    | `Bool false -> Ok OutOfSource
-    | _ -> Error "expected false, true or \"_build\""
-
-end
-
-module SourceType = struct
-  type t =
-    | Immutable
-    | Development
-    [@@deriving (show, eq, ord)]
-end
-
-module EsyReleaseConfig = struct
+module EsyBuild = struct
   type t = {
-    releasedBinaries: string list;
-    deleteFromBinaryRelease: (string list [@default []]);
-  } [@@deriving (show, of_yojson { strict = false })]
+    buildCommands : Manifest.CommandList.t;
+    installCommands : Manifest.CommandList.t;
+    buildType : Manifest.BuildType.t;
+    exportedEnv : Manifest.ExportedEnv.t;
+  } [@@deriving (show, eq, ord)]
 end
 
-module EsyManifest = struct
+module OpamBuild = struct
+  type t = OpamFile.OPAM.t
 
-  type t = {
-    build: (CommandList.t [@default None]);
-    install: (CommandList.t [@default None]);
-    buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
-    exportedEnv: (ExportedEnv.t [@default []]);
-    sandboxEnv: (SandboxEnv.t [@default []]);
-    release: (EsyReleaseConfig.t option [@default None]);
-  } [@@deriving (show, of_yojson { strict = false })]
+  let pp fmt _v =
+    Fmt.pf fmt "<opam>"
 
-  let empty = {
-    build = None;
-    install = None;
-    buildsInSource = BuildType.OutOfSource;
-    exportedEnv = [];
-    sandboxEnv = [];
-    release = None;
-  }
-end
+  let equal = OpamFile.OPAM.equal
 
-module ManifestDependencyMap = struct
-  type t = string StringMap.t
+  let compare a b =
+    if equal a b
+    then 0
+    else 1
 
-  let pp =
-    let open Fmt in
-    let ppBinding = hbox (pair (quote string) (quote string)) in
-    vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
-
-  let of_yojson =
-    Json.Parse.(stringMap string)
-
-end
-
-module Manifest = struct
-  type t = {
-    name : string;
-    version : string;
-    description : (string option [@default None]);
-    license : (Json.t option [@default None]);
-    dependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
-    peerDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
-    devDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
-    optDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
-    buildTimeDependencies : (ManifestDependencyMap.t [@default StringMap.empty]);
-    esy: EsyManifest.t option [@default None];
-    _resolved: (string option [@default None]);
-  } [@@deriving (show, of_yojson { strict = false })]
-
-  let ofFile path =
-    let open RunAsync.Syntax in
-    if%bind (Fs.exists path) then (
-      let%bind json = Fs.readJsonFile path in
-      match of_yojson json with
-      | Ok manifest -> return (Some (manifest, json))
-      | Error err -> error err
-    ) else
-      return None
-
-  let ofDir (path : Path.t) =
-    let open RunAsync.Syntax in
-    let esyJson = Path.(path / "esy.json")
-    and packageJson = Path.(path / "package.json")
-    in match%bind ofFile esyJson with
-    | None -> begin match%bind ofFile packageJson with
-      | Some (manifest, json) -> return (Some (manifest, packageJson, json))
-      | None -> return None
-      end
-    | Some (manifest, json) -> return (Some (manifest, esyJson, json))
 end
 
 type t = {
   id : string;
   name : string;
   version : string;
-  dependencies : dependencies;
-  sourcePath : Config.ConfigPath.t;
-  sourceType : SourceType.t;
-  sandboxEnv : SandboxEnv.t;
-  resolution : string option;
-  build : build;
+  dependencies : dependencies [@eq.skip];
+  sourcePath : Config.ConfigPath.t [@skip];
+  sourceType : Manifest.SourceType.t [@skip];
+  sandboxEnv : Manifest.SandboxEnv.t [@skip];
+  resolution : string option [@skip];
+  build : build [@skip];
 } [@@deriving (show, eq, ord)]
 
 and build =
-  | EsyBuild of {
-      buildCommands : CommandList.t;
-      installCommands : CommandList.t;
-      buildType : BuildType.t;
-      exportedEnv : ExportedEnv.t;
-    }
+  | EsyBuild of EsyBuild.t
+  | OpamBuild of OpamBuild.t
 
 and dependencies =
   dependency list
@@ -309,7 +52,6 @@ and dependency =
     pkgName: string;
     reason: string;
   }
-  [@@deriving (show, ord)]
 
 type pkg = t
 type pkg_dependency = dependency
@@ -321,6 +63,28 @@ let packageOf (dep : dependency) = match dep with
 | DevDependency pkg
 | BuildTimeDependency pkg -> Some pkg
 | InvalidDependency _ -> None
+
+let readEsyManifest (path : Path.t) =
+  let open RunAsync.Syntax in
+  let%bind json = Fs.readJsonFile path in
+  let%bind manifest = RunAsync.ofRun (Json.parseJsonWith Manifest.Esy.of_yojson json) in
+  return manifest
+
+let ofDir (path : Path.t) =
+  let open RunAsync.Syntax in
+  let esyJson = Path.(path / "esy.json") in
+  let packageJson = Path.(path / "package.json") in
+  (* let opam = Path.(path / "opam") in *)
+  if%bind Fs.exists esyJson
+  then
+    let%bind manifest = readEsyManifest esyJson in
+    return (Some (manifest, esyJson))
+  else if%bind Fs.exists packageJson
+  then
+    let%bind manifest = readEsyManifest esyJson in
+    return (Some (manifest, esyJson))
+  else
+    return None
 
 module DependencyGraph = DependencyGraph.Make(struct
 

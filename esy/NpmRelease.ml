@@ -1,7 +1,4 @@
 module StringSet = Set.Make(String)
-module Manifest = Package.Manifest
-module EsyManifest = Package.EsyManifest
-module EsyReleaseConfig = Package.EsyReleaseConfig
 
 type config = {
   name : string;
@@ -187,7 +184,7 @@ execute "$@"
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
-  let%bind manifestOpt = Manifest.ofDir cfg.Config.sandboxPath in
+  let%bind manifestOpt = Manifest.Esy.ofDir cfg.Config.sandboxPath in
   let%bind manifest = match manifestOpt with
   | Some (manifest, _path, _json) -> return manifest
   | None -> error "no manifest found"
@@ -195,28 +192,28 @@ let configure ~(cfg : Config.t) =
   let%bind releaseCfg =
     RunAsync.ofOption ~err:"no release config found" (
       let open Option.Syntax in
-      let%bind esyManifest = manifest.Manifest.esy in
-      let%bind releaseCfg = esyManifest.EsyManifest.release in
+      let%bind esyManifest = manifest.Manifest.Esy.esy in
+      let%bind releaseCfg = esyManifest.Manifest.EsyManifest.release in
       return releaseCfg
     )
   in
   return {
-    name = manifest.Manifest.name;
-    version = manifest.Manifest.version;
-    license = manifest.Manifest.license;
-    description = manifest.Manifest.description;
-    releasedBinaries = releaseCfg.EsyReleaseConfig.releasedBinaries;
-    deleteFromBinaryRelease = releaseCfg.EsyReleaseConfig.deleteFromBinaryRelease;
+    name = manifest.Manifest.Esy.name;
+    version = manifest.version;
+    license = manifest.license;
+    description = manifest.description;
+    releasedBinaries = releaseCfg.Manifest.EsyReleaseConfig.releasedBinaries;
+    deleteFromBinaryRelease = releaseCfg.Manifest.EsyReleaseConfig.deleteFromBinaryRelease;
   }
 
 let dependenciesForRelease (task : Task.t) =
   let f deps dep = match dep with
     | Task.Dependency ({
-        sourceType = Package.SourceType.Immutable;
+        sourceType = Manifest.SourceType.Immutable;
         _
       } as task)
     | Task.BuildTimeDependency ({
-        sourceType = Package.SourceType.Immutable; _
+        sourceType = Manifest.SourceType.Immutable; _
       } as task) ->
       (task, dep)::deps
     | Task.Dependency _
@@ -261,8 +258,8 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let devModeIds =
     let f s task =
       match task.Task.pkg.sourceType with
-      | Package.SourceType.Immutable -> s
-      | Package.SourceType.Development -> StringSet.add task.id s
+      | Manifest.SourceType.Immutable -> s
+      | Manifest.SourceType.Development -> StringSet.add task.id s
     in
     List.fold_left
       ~init:StringSet.empty
@@ -342,12 +339,12 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
             name = "release-env";
             version = pkg.version;
             dependencies = [Package.Dependency pkg];
-            sourceType = Package.SourceType.Development;
+            sourceType = Manifest.SourceType.Development;
             sandboxEnv = pkg.sandboxEnv;
             build = Package.EsyBuild {
               buildCommands = None;
               installCommands = None;
-              buildType = Package.BuildType.OutOfSource;
+              buildType = Manifest.BuildType.OutOfSource;
               exportedEnv = [];
             };
             sourcePath = pkg.sourcePath;

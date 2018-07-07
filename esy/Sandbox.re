@@ -4,7 +4,7 @@ module ConfigPath = Config.ConfigPath;
 [@deriving show]
 type t = {
   root: Package.t,
-  scripts: Package.Scripts.t,
+  scripts: Manifest.Scripts.t,
   manifestInfo: list((Path.t, float)),
 };
 
@@ -109,22 +109,22 @@ let ofDir = (cfg: Config.t) => {
 
     let loadDependencies = manifest => {
       let (>>=) = Lwt.(>>=);
-      let ignoreCircularDep = Option.isNone(manifest.Package.Manifest.esy);
+      let ignoreCircularDep = Option.isNone(manifest.Manifest.Esy.esy);
       Lwt.return([])
       >>= addDeps(
             ~ignoreCircularDep,
             ~make=pkg => Package.PeerDependency(pkg),
-            manifest.Package.Manifest.peerDependencies,
+            manifest.Manifest.Esy.peerDependencies,
           )
       >>= addDeps(
             ~ignoreCircularDep,
             ~make=pkg => Package.Dependency(pkg),
-            manifest.Package.Manifest.dependencies,
+            manifest.Manifest.Esy.dependencies,
           )
       >>= addDeps(
             ~ignoreCircularDep,
             ~make=pkg => Package.BuildTimeDependency(pkg),
-            manifest.Package.Manifest.buildTimeDependencies,
+            manifest.Manifest.Esy.buildTimeDependencies,
           )
       >>= addDeps(
             ~ignoreCircularDep,
@@ -139,7 +139,7 @@ let ofDir = (cfg: Config.t) => {
               ~ignoreCircularDep,
               ~skipUnresolved=true,
               ~make=pkg => Package.DevDependency(pkg),
-              manifest.Package.Manifest.devDependencies,
+              manifest.Manifest.Esy.devDependencies,
               dependencies,
             );
           } else {
@@ -151,7 +151,7 @@ let ofDir = (cfg: Config.t) => {
     let packageOfManifest = (~sourcePath, manifest, manifestPath, json) => {
       manifestInfo := PathSet.add(manifestPath, manifestInfo^);
       let%lwt dependencies = loadDependencies(manifest);
-      switch (manifest.Package.Manifest.esy) {
+      switch (manifest.Manifest.Esy.esy) {
       | None => return((`NonEsyPkg(dependencies), json))
       | Some(esyManifest) =>
         let sourceType = {
@@ -163,15 +163,15 @@ let ofDir = (cfg: Config.t) => {
                 | Package.PeerDependency(pkg)
                 | Package.BuildTimeDependency(pkg)
                 | Package.OptDependency(pkg) =>
-                  pkg.sourceType == Package.SourceType.Development
+                  pkg.sourceType == Manifest.SourceType.Development
                 | Package.DevDependency(_)
                 | Package.InvalidDependency(_) => false,
               dependencies,
             );
           switch (hasDepWithSourceTypeDevelopment, manifest._resolved) {
-          | (true, _) => Package.SourceType.Development
-          | (false, None) => Package.SourceType.Development
-          | (false, Some(_)) => Package.SourceType.Immutable
+          | (true, _) => Manifest.SourceType.Development
+          | (false, None) => Manifest.SourceType.Development
+          | (false, Some(_)) => Manifest.SourceType.Immutable
           };
         };
         let pkg =
@@ -184,7 +184,7 @@ let ofDir = (cfg: Config.t) => {
             sandboxEnv: esyManifest.sandboxEnv,
             build:
               Package.EsyBuild({
-                buildCommands: esyManifest.Package.EsyManifest.build,
+                buildCommands: esyManifest.Manifest.EsyManifest.build,
                 installCommands: esyManifest.install,
                 buildType: esyManifest.buildsInSource,
                 exportedEnv: esyManifest.exportedEnv,
@@ -204,7 +204,7 @@ let ofDir = (cfg: Config.t) => {
         return(path);
       };
 
-    switch%bind (Package.Manifest.ofDir(sourcePath)) {
+    switch%bind (Manifest.Esy.ofDir(sourcePath)) {
     | Some((manifest, manifestPath, json)) =>
       packageOfManifest(~sourcePath, manifest, manifestPath, json)
     | None => error("unable to find manifest")
@@ -225,7 +225,7 @@ let ofDir = (cfg: Config.t) => {
          })
       |> RunAsync.List.joinAll;
     let%bind scripts =
-      Package.Scripts.ParseManifest.parse(json)
+      Manifest.Scripts.ParseManifest.parse(json)
       |> Run.ofStringError
       |> RunAsync.ofRun;
     let sandbox = {root, scripts, manifestInfo};
