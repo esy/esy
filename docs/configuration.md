@@ -134,17 +134,17 @@ Similar to npm and yarn, esy supports custom project specific commands via
 
 The example above defines two new commands.
 
-The command `esy build-dev` is defined as a shortcut for the following
+The command `esy build-dev` is configured to be a shortcut for the following
 invocation:
 
 ```bash
 esy build jbuilder build --dev
 ```
 
-While the command `esy test` is defined as:
+While the command `esy test` is defined to be a shortcut for:
 
 ```bash
-esy jbuild runtest
+esy jbuilder runtest
 ```
 
 Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
