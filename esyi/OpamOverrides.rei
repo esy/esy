@@ -1,11 +1,9 @@
 type t
 
-type override
+let init :
+  (~cfg: Config.t, unit)
+  => RunAsync.t(t);
 
-let init : (~cfg: Config.t, unit) => RunAsync.t(t);
-
-let get :
-  (t, OpamManifest.PackageName.t, OpamVersion.Version.t)
-  => RunAsync.t(option(override))
-
-let apply : (OpamManifest.t, override) => OpamManifest.t;
+let find :
+  (~name : OpamPackage.Name.t, ~version : OpamPackage.Version.t, t)
+  => RunAsync.t(option(Package.OpamOverride.t));

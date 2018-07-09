@@ -178,20 +178,85 @@ module ExportedEnv : sig
   val to_yojson : t Json.encoder
 end
 
+module NpmDependencies : sig
+  type t = Req.t conj
+  val empty : t
+  val pp : t Fmt.t
+  val of_yojson : t Json.decoder
+  val to_yojson : t Json.encoder
+  val toDependencies : t -> Dependencies.t
+end
+
 module File : sig
   type t = {
     name : Path.t;
     content : string
   }
 
+  val equal : t -> t -> bool
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
 end
 
-module OpamInfo : sig
+module OpamOverride : sig
+  module Opam : sig
+    type t = {
+      source: source option;
+      files: File.t list;
+    }
+
+    and source = {
+      url: string;
+      checksum: string;
+    }
+
+    val empty : t
+  end
+
   type t = {
-    manifest : Json.t;
+    build : string list list option;
+    install : string list list option;
+    dependencies : NpmDependencies.t;
+    peerDependencies : NpmDependencies.t;
+    exportedEnv : ExportedEnv.t;
+    opam : Opam.t;
+  }
+  val to_yojson : t -> Json.t
+  val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
+  val equal : t -> t -> bool
+  val pp : Format.formatter -> t -> unit
+  val show : t -> string
+  val empty : t
+end
+
+module Opam : sig
+  module OpamFile : sig
+    type t = OpamFile.OPAM.t
+    val pp : t Fmt.t
+    val to_yojson : t Json.encoder
+    val of_yojson : t Json.decoder
+  end
+
+  module OpamName : sig
+    type t = OpamPackage.Name.t
+    val pp : t Fmt.t
+    val to_yojson : t Json.encoder
+    val of_yojson : t Json.decoder
+  end
+
+  module OpamVersion : sig
+    type t = OpamPackage.Version.t
+    val pp : t Fmt.t
+    val to_yojson : t Json.encoder
+    val of_yojson : t Json.decoder
+  end
+
+  type t = {
+    name : OpamName.t;
+    version : OpamVersion.t;
+    opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
+    override : OpamOverride.t;
   }
   val show : t -> string
 end
@@ -202,9 +267,7 @@ type t = {
   source : source;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
-
-  (* TODO: make it non specific to opam. *)
-  opam : OpamInfo.t option;
+  opam : Opam.t option;
   kind : kind;
 }
 

@@ -1,6 +1,7 @@
 module Source = Package.Source
 module SourceSpec = Package.SourceSpec
 module String = Astring.String
+module Override = Package.OpamOverride
 
 module OpamPathsByVersion = Memoize.Make(struct
   type key = OpamPackage.Name.t
@@ -9,7 +10,7 @@ end)
 
 type t = {
   repoPath : Path.t;
-  (* overrides : OpamOverrides.t; *)
+  overrides : OpamOverrides.t;
   pathsCache : OpamPathsByVersion.t;
 }
 
@@ -19,25 +20,6 @@ type resolution = {
   opam: Path.t;
   url: Path.t option;
 }
-
-module PackageJson = struct
-
-  type t = {
-    name : string;
-    version : string;
-    esy : esy;
-    dependencies : dependencies;
-    optDependencies : dependencies;
-  } [@@deriving to_yojson]
-
-  and esy = {
-    build : string list list;
-    install : string list list;
-    buildsInSource : bool;
-  }
-
-  and dependencies = string StringMap.t
-end
 
 let readOpamFiles (path : Path.t) () =
   let open RunAsync.Syntax in
@@ -61,6 +43,7 @@ module Manifest = struct
     path : Path.t;
     opam: OpamFile.OPAM.t;
     url: OpamFile.URL.t option;
+    override : Override.t;
   }
 
   let ofFile ~name ~version ?url opam =
@@ -77,29 +60,35 @@ module Manifest = struct
         return (Some (OpamFile.URL.read_from_string data))
       | None -> return None
     in
-    return {name; version; opam; url; path}
+    return {name; version; opam; url; path; override = Override.empty;}
 
-  let toPackage ~name ~version {name = _; version = _; opam; url; path} =
+  let toPackage ~name ~version {name = opamName; version = opamVersion; opam; url; path; override} =
     let open RunAsync.Syntax in
     let context = Format.asprintf "processing %a opam package" Path.pp path in
     RunAsync.withContext context (
+
       let%bind source =
-        match url with
-        | Some url ->
-          let {OpamUrl. backend; path; hash; _} = OpamFile.URL.url url in
-          begin match backend, hash with
-          | `http, Some hash ->
-            return (Package.Source (Package.Source.Archive (path, hash)))
-          | `http, None ->
-            (* TODO: what to do here? fail or resolve? *)
-            return (Package.SourceSpec (Package.SourceSpec.Archive (path, None)))
-          | `rsync, _ -> error "unsupported source for opam: rsync"
-          | `hg, _ -> error "unsupported source for opam: hg"
-          | `darcs, _ -> error "unsupported source for opam: darcs"
-          | `git, ref ->
-            return (Package.SourceSpec (Package.SourceSpec.Git {remote = path; ref}))
+        match override.Override.opam.Override.Opam.source with
+        | Some source ->
+          return (Package.Source (Package.Source.Archive (source.url, source.checksum)))
+        | None -> begin
+          match url with
+          | Some url ->
+            let {OpamUrl. backend; path; hash; _} = OpamFile.URL.url url in
+            begin match backend, hash with
+            | `http, Some hash ->
+              return (Package.Source (Package.Source.Archive (path, hash)))
+            | `http, None ->
+              (* TODO: what to do here? fail or resolve? *)
+              return (Package.SourceSpec (Package.SourceSpec.Archive (path, None)))
+            | `rsync, _ -> error "unsupported source for opam: rsync"
+            | `hg, _ -> error "unsupported source for opam: hg"
+            | `darcs, _ -> error "unsupported source for opam: darcs"
+            | `git, ref ->
+              return (Package.SourceSpec (Package.SourceSpec.Git {remote = path; ref}))
+            end
+          | None -> return (Package.Source Package.Source.NoSource)
           end
-        | None -> return (Package.Source Package.Source.NoSource)
       in
 
       let translateFormula f =
@@ -135,18 +124,20 @@ module Manifest = struct
         return (translateFormula f)
       in
 
-      let translateCommandList cmds =
-        let env _name = Some (OpamVariable.B true) in
-        try return (OpamFilter.commands env cmds)
-        with Failure msg -> error msg
-      in
-
       let%bind dependencies =
-        RunAsync.withContext "processing depends field" (
-          translateFilteredFormula
-            ~build:true ~post:true ~test:false ~doc:false ~dev:false
-            (OpamFile.OPAM.depends opam)
-        )
+        let%bind depends =
+          RunAsync.withContext "processing depends field" (
+            translateFilteredFormula
+              ~build:true ~post:true ~test:false ~doc:false ~dev:false
+              (OpamFile.OPAM.depends opam)
+          )
+        in
+        let depends =
+          depends
+          @ Package.NpmDependencies.toDependencies override.Package.OpamOverride.dependencies
+          @ Package.NpmDependencies.toDependencies override.Package.OpamOverride.peerDependencies
+        in
+        return depends
       in
 
       let%bind devDependencies =
@@ -157,86 +148,10 @@ module Manifest = struct
         )
       in
 
-      let%bind optDependencies =
-        RunAsync.withContext "processing depopts field" (
-          let%bind f =
-            try return (
-              OpamFilter.filter_deps
-                ~build:true ~post:true ~test:true ~doc:true ~dev:true
-                (OpamFile.OPAM.depopts opam))
-            with Failure msg -> error msg
-          in
-          return (translateFormula f)
-        )
+      let readOpamFilesForPackage path () =
+        let%bind files = readOpamFiles path () in
+        return (files @ override.Override.opam.files)
       in
-
-      let dependenciesToMapOfNames deps =
-        let f map deps =
-          let f map {Package.Dep. name;_} = StringMap.add name "*" map in
-          List.fold_left ~f ~init:map deps
-        in
-        List.fold_left ~f ~init:StringMap.empty deps
-      in
-
-      let%bind build = RunAsync.withContext "processing build field" (
-        opam
-        |> OpamFile.OPAM.build
-        |> translateCommandList
-      ) in
-
-      let%bind install = RunAsync.withContext "processing install field" (
-        opam
-        |> OpamFile.OPAM.install
-        |> translateCommandList
-      ) in
-
-      let%bind patches = RunAsync.withContext "processing patch field" (
-        RunAsync.ofRun (
-          let open Run.Syntax in
-
-          let env _name = Some (OpamVariable.B true) in
-
-          let evalFilter = function
-            | basename, None -> return (basename, true)
-            | basename, Some filter ->
-              let%bind filter =
-                try return (OpamFilter.eval_to_bool env filter)
-                with Failure msg -> error msg
-              in return (basename, filter)
-          in
-
-          let%bind filtered =
-            opam
-            |> OpamFile.OPAM.patches
-            |> Result.List.map ~f:evalFilter
-          in
-
-          let toCommand (basename, _) =
-            let basename = OpamFilename.Base.to_string basename in
-            ["patch"; "--strip"; "1"; "--input"; basename]
-          in
-
-          return (
-            filtered
-            |> List.filter ~f:(fun (_, v) -> v)
-            |> List.map ~f:toCommand
-          )
-        )
-      ) in
-
-      let packageJson = {
-        name;
-        version = Package.Version.toString version;
-        PackageJson.
-        esy = {
-          PackageJson.
-          build = patches @ build;
-          install;
-          buildsInSource = true
-        };
-        dependencies = dependenciesToMapOfNames dependencies;
-        optDependencies = dependenciesToMapOfNames optDependencies;
-      } in
 
       return {
         Package.
@@ -245,9 +160,12 @@ module Manifest = struct
         kind = Package.Esy;
         source;
         opam = Some {
-          Package.OpamInfo.
-          files = readOpamFiles path;
-          manifest = PackageJson.to_yojson packageJson;
+          Package.Opam.
+          name = opamName;
+          version = opamVersion;
+          files = readOpamFilesForPackage path;
+          opam = opam;
+          override = {override with opam = Override.Opam.empty};
         };
         dependencies;
         devDependencies;
@@ -265,12 +183,12 @@ let init ~cfg () =
       return local
   in
 
-  (* and overrides = OpamOverrides.init ~cfg () in *)
+  let%bind overrides = OpamOverrides.init ~cfg () in
 
   return {
     repoPath;
     pathsCache = OpamPathsByVersion.make ();
-    (* overrides; *)
+    overrides;
   }
 
 let getVersionIndex registry ~(name : OpamPackage.Name.t) =
@@ -330,14 +248,8 @@ let version registry ~(name : OpamPackage.Name.t) ~version =
   match%bind getPackage registry ~name ~version with
   | None -> return None
   | Some { opam; url; name; version } ->
-    let%bind pkg = Manifest.ofFile ~name ~version ?url opam
-    (* TODO: apply overrides *)
-    (* begin match%bind OpamOverrides.get registry.overrides name version with *)
-    (*   | None -> *)
-    (*     return (Some manifest) *)
-    (*   | Some override -> *)
-    (*     let manifest = OpamOverrides.apply manifest override in *)
-    (*     return (Some manifest) *)
-    (* end *)
-    in
-    return (Some pkg)
+    let%bind pkg = Manifest.ofFile ~name ~version ?url opam in
+    begin match%bind OpamOverrides.find ~name ~version registry.overrides with
+    | None -> return (Some pkg)
+    | Some override -> return (Some {pkg with Manifest. override})
+    end

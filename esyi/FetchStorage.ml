@@ -15,20 +15,34 @@ end
 
 let packageKey (pkg : Solution.Record.t) =
   let version = Package.Version.toString pkg.version in
-  match pkg.manifest with
+  match pkg.opam with
   | None -> Printf.sprintf "%s__%s" pkg.name version
-  | Some json ->
+  | Some opam ->
     let manifestHash =
-      json
+      opam.opam
+      |> Package.Opam.OpamFile.to_yojson
       |> Yojson.Safe.to_string
       |> Digest.string
       |> Digest.to_hex
       |> String.Sub.v ~start:0 ~stop:8
       |> String.Sub.to_string
     in
-    Printf.sprintf "%s__%s__%s" pkg.name version manifestHash
+    begin match opam.override with
+    | Some override ->
+      let overrideHash =
+        override
+        |> Package.OpamOverride.to_yojson
+        |> Yojson.Safe.to_string
+        |> Digest.string
+        |> Digest.to_hex
+        |> String.Sub.v ~start:0 ~stop:8
+        |> String.Sub.to_string
+      in
+      Printf.sprintf "%s__%s__%s__%s" pkg.name version manifestHash overrideHash
+    | None -> Printf.sprintf "%s__%s__%s" pkg.name version manifestHash
+    end
 
-let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; manifest; files} as record) =
+let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; files} as record) =
   let open RunAsync.Syntax in
 
   let key = packageKey record in
@@ -91,10 +105,24 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; manifest; 
       in
 
       let%bind () =
-        match manifest with
-        | Some json ->
+        match opam with
+        | Some { name; version; opam; override } ->
           let%bind () = removeEsyJsonIfExists() in
-          let%bind () = Fs.writeJsonFile ~json Path.(path / "package.json") in
+          let data =
+            Format.asprintf
+              "name: \"%a\"\nversion: \"%a\"\n%a"
+              Package.Opam.OpamName.pp name
+              Package.Opam.OpamVersion.pp version
+              Package.Opam.OpamFile.pp opam
+          in
+          let%bind () = Fs.writeFile ~data Path.(path / "opam") in
+          let%bind () =
+            match override with
+            | Some override ->
+              let json = Package.OpamOverride.to_yojson override in
+              Fs.writeJsonFile ~json Path.(path / "opam.override.json")
+            | None -> return ()
+          in
           return ()
         | None -> return ()
       in

@@ -52,9 +52,14 @@ module Manifest = struct
 
   let ofDir path =
     let open RunAsync.Syntax in
-    let%bind json = Fs.readJsonFile Path.(path / "package.json") in
-    let%bind manifest = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
-    return manifest
+    let filename = Path.(path / "package.json") in
+    if%bind Fs.exists filename
+    then
+      let%bind json = Fs.readJsonFile filename in
+      let%bind manifest = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
+      return (Some manifest)
+    else
+      return None
 
   let packageCommands (path : Path.t) manifest =
     let makePathToCmd cmdPath = Path.(path // v cmdPath |> normalize) in
@@ -172,7 +177,7 @@ module Layout = struct
       let version = Package.Version.Npm (SemverVersion.Version.parseExn version) in
       let record = Record.{
         name; version;
-        source = Package.Source.NoSource; manifest = None; files = [];
+        source = Package.Source.NoSource; opam = None; files = [];
       } in
       Solution.make record dependencies
 
@@ -623,7 +628,11 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
         in
         failwith msg
     in
-    let layout = Layout.ofSolution ~path:cfg.basePath solution in
+    let layout =
+      Layout.ofSolution
+        ~path:cfg.basePath
+        solution
+    in
     let%bind installed =
       layout
       |> List.map ~f
@@ -638,10 +647,12 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let%bind () =
     let queue = LwtTaskQueue.create ~concurrency:1 () in
 
-    let f (installation, manifest) =
-      LwtTaskQueue.submit
-        queue
-        (runLifecycle ~installation ~manifest)
+    let f = function
+      | (installation, Some manifest) ->
+        LwtTaskQueue.submit
+          queue
+          (runLifecycle ~installation ~manifest)
+      | (_installation, None) -> return ()
     in
 
     let%bind () =
@@ -665,14 +676,16 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
       return ()
     in
 
-    let installBinWrappersForPkg (item, manifest) =
-      Manifest.packageCommands item.Layout.path manifest
-      |> List.map ~f:installBinWrapper
-      |> RunAsync.List.waitAll
+    let installBinWrappersForPkg = function
+      | (installation, Some manifest) ->
+        Manifest.packageCommands installation.Layout.path manifest
+        |> List.map ~f:installBinWrapper
+        |> RunAsync.List.waitAll
+      | (_installation, None) -> return ()
     in
 
     installed
-    |> List.filter ~f:(fun (item, _) -> item.Layout.isDirectDependencyOfRoot)
+    |> List.filter ~f:(fun (installation, _) -> installation.Layout.isDirectDependencyOfRoot)
     |> List.map ~f:installBinWrappersForPkg
     |> RunAsync.List.waitAll
   in

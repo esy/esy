@@ -256,7 +256,7 @@ module Req = struct
   type t = {
     name: string;
     spec: VersionSpec.t;
-  }
+  } [@@deriving eq]
 
   let toString {name; spec} =
     name ^ "@" ^ (VersionSpec.toString spec)
@@ -642,7 +642,9 @@ module Resolutions = struct
 end
 
 module ExportedEnv = struct
-  type t = item list
+
+  [@@@ocaml.warning "-32"]
+  type t = item list [@@deriving (show, eq)]
 
   and item = {
     name : string;
@@ -698,13 +700,146 @@ module File = struct
   type t = {
     name : Path.t;
     content : string
-  } [@@deriving (yojson, show)]
+  } [@@deriving (yojson, show, eq)]
 end
 
-module OpamInfo = struct
+module NpmDependencies = struct
+
+  type t = Req.t list [@@deriving eq]
+
+  let empty = []
+
+  let pp fmt deps =
+    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
+
+  let of_yojson json =
+    let open Result.Syntax in
+    let%bind items = Json.Parse.assoc json in
+    let f deps (name, json) =
+      let%bind spec = Json.Parse.string json in
+      let req = Req.make ~name ~spec in
+      return (req::deps)
+    in
+    Result.List.foldLeft ~f ~init:empty items
+
+  let to_yojson (deps : t) =
+    let items =
+      let f req = (req.Req.name, Req.to_yojson req) in
+      List.map ~f deps
+    in
+    `Assoc items
+
+  let toDependencies reqs =
+    let f reqs (req : Req.t) =
+      let update =
+        match req.spec with
+        | VersionSpec.Npm formula ->
+          let f (c : SemverVersion.Constraint.t) =
+            {Dep. name = req.name; req = Npm c}
+          in
+          let formula = SemverVersion.Formula.ofDnfToCnf formula in
+          List.map ~f:(List.map ~f) formula
+        | VersionSpec.Opam formula ->
+          let f (c : OpamVersion.Constraint.t) =
+            {Dep. name = req.name; req = Opam c}
+          in
+          let formula = OpamVersion.Formula.ofDnfToCnf formula in
+          List.map ~f:(List.map ~f) formula
+        | VersionSpec.Source spec ->
+          [[{Dep. name = req.name; req = Source spec}]]
+      in
+      reqs @ update
+    in
+    List.fold_left ~f ~init:[] reqs
+
+end
+
+module OpamOverride = struct
+  module Opam = struct
+    [@@@ocaml.warning "-32"]
+    type t = {
+      source: (source option [@default None]);
+      files: (File.t list [@default []]);
+    } [@@deriving (yojson, eq, show)]
+
+    and source = {
+      url: string;
+      checksum: string;
+    }
+
+    let empty = {source = None; files = [];}
+
+  end
+
+  module Command = struct
+    [@@@ocaml.warning "-32"]
+    type t = string list [@@deriving (eq, show)]
+
+    let of_yojson (json : Json.t) =
+      match json with
+      | `List _ -> Json.Parse.(list string) json
+      | `String cmd -> Ok [cmd]
+      | _ -> Error "expected either a list or a string"
+
+    let to_yojson (cmd : t) =
+      `List (List.map ~f:(fun cmd -> `String cmd) cmd)
+  end
+
   type t = {
-    manifest : Json.t;
+    build: (Command.t list option [@default None]);
+    install: (Command.t list option [@default None]);
+    dependencies: (NpmDependencies.t [@default NpmDependencies.empty]);
+    peerDependencies: (NpmDependencies.t [@default NpmDependencies.empty]) ;
+    exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
+    opam: (Opam.t [@default Opam.empty]);
+  } [@@deriving (yojson, eq, show)]
+
+  let empty =
+    {
+      build = None;
+      install = None;
+      dependencies = NpmDependencies.empty;
+      peerDependencies = NpmDependencies.empty;
+      exportedEnv = ExportedEnv.empty;
+      opam = Opam.empty;
+    }
+end
+
+module Opam = struct
+
+  module OpamFile = struct
+    type t = OpamFile.OPAM.t
+    let pp fmt opam = Fmt.string fmt (OpamFile.OPAM.write_to_string opam)
+    let to_yojson opam = `String (OpamFile.OPAM.write_to_string opam)
+    let of_yojson = function
+      | `String s -> Ok (OpamFile.OPAM.read_from_string s)
+      | _ -> Error "expected string"
+  end
+
+  module OpamName = struct
+    type t = OpamPackage.Name.t
+    let pp fmt name = Fmt.string fmt (OpamPackage.Name.to_string name)
+    let to_yojson name = `String (OpamPackage.Name.to_string name)
+    let of_yojson = function
+      | `String name -> Ok (OpamPackage.Name.of_string name)
+      | _ -> Error "expected string"
+  end
+
+  module OpamVersion = struct
+    type t = OpamPackage.Version.t
+    let pp fmt name = Fmt.string fmt (OpamPackage.Version.to_string name)
+    let to_yojson name = `String (OpamPackage.Version.to_string name)
+    let of_yojson = function
+      | `String name -> Ok (OpamPackage.Version.of_string name)
+      | _ -> Error "expected string"
+  end
+
+  type t = {
+    name : OpamName.t;
+    version : OpamVersion.t;
+    opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
+    override : OpamOverride.t;
   }
   [@@deriving show]
 end
@@ -715,7 +850,7 @@ type t = {
   source : source;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
-  opam : OpamInfo.t option;
+  opam : Opam.t option;
   kind : kind;
 }
 

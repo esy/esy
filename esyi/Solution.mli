@@ -6,12 +6,22 @@
  * This is minimal info needed to fetch and build a package.
  *)
 module Record : sig
+
+  module Opam : sig
+    type t = {
+      name : Package.Opam.OpamName.t;
+      version : Package.Opam.OpamVersion.t;
+      opam : Package.Opam.OpamFile.t;
+      override : Package.OpamOverride.t option;
+    }
+  end
+
   type t = {
     name: string;
     version: Package.Version.t;
     source: Package.Source.t;
     files : Package.File.t list;
-    manifest : Json.t option;
+    opam : Opam.t option;
   }
 
   val pp : t Fmt.t

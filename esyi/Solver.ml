@@ -213,9 +213,18 @@ let solutionRecordOfPkg ~solver (pkg : Package.t) =
     | None -> return []
   in
 
-  let manifest =
+  let opam =
     match pkg.opam with
-    | Some opam -> Some opam.manifest
+    | Some opam -> Some {
+        Solution.Record.Opam.
+        name = opam.name;
+        version = opam.version;
+        opam = opam.opam;
+        override =
+          if Package.OpamOverride.equal opam.override Package.OpamOverride.empty
+          then None
+          else Some opam.override;
+      }
     | None -> None
   in
 
@@ -224,8 +233,8 @@ let solutionRecordOfPkg ~solver (pkg : Package.t) =
     name = pkg.name;
     version = pkg.version;
     source;
-    manifest;
     files;
+    opam;
   }
 
 let make ~cfg ?resolver ~resolutions () =

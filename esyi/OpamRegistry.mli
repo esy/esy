@@ -14,14 +14,8 @@ module Manifest : sig
     path : Path.t;
     opam : OpamFile.OPAM.t;
     url : OpamFile.URL.t option;
+    override : Package.OpamOverride.t;
   }
-
-  val ofFile :
-    name:OpamPackage.Name.t
-    -> version:OpamPackage.Version.t
-    -> ?url:Fpath.t
-    -> Fpath.t
-    -> t RunAsync.t
 
   val toPackage :
     name : string

@@ -3,12 +3,22 @@ module Source = Package.Source
 module Req = Package.Req
 
 module Record = struct
+
+  module Opam = struct
+    type t = {
+      name : Package.Opam.OpamName.t;
+      version : Package.Opam.OpamVersion.t;
+      opam : Package.Opam.OpamFile.t;
+      override : Package.OpamOverride.t option;
+    } [@@deriving yojson]
+  end
+
   type t = {
     name: string;
     version: Version.t;
     source: Source.t;
     files : Package.File.t list;
-    manifest : Json.t option;
+    opam : Opam.t option;
   } [@@deriving yojson]
 
   let compare a b =
