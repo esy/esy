@@ -10,13 +10,13 @@ module ConfigPath = Config.ConfigPath
 
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
-    match System.host with
+    match system with
     | System.Unknown
     | System.Darwin
     | System.Linux
     | System.Unix
+    | System.Windows
     | System.Cygwin -> "/"
-    | System.Windows -> "\\"
   in
   let colon =
     match name, system with
@@ -596,21 +596,21 @@ let ofPackage
             name = "PATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
-              Value (value ^ ":$PATH")
+              Value (value ^ System.envSep ^ "$PATH")
           }
           and manPath = Environment.{
             origin = Some task.pkg;
             name = "MAN_PATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
-              Value (value ^ ":$MAN_PATH")
+              Value (value ^ System.envSep ^ "$MAN_PATH")
           }
           and ocamlpath = Environment.{
             origin = Some task.pkg;
             name = "OCAMLPATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "lib" |> toString) in
-              Value (value ^ ":$OCAMLPATH")
+              Value (value ^ System.envSep ^ "$OCAMLPATH")
           } in
           path::manPath::ocamlpath::task.globalEnv
         in

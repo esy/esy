@@ -22,6 +22,11 @@ let host =
     | "Cygwin" -> Cygwin
     | _ -> Unknown
 
+let envSep = 
+    match host with 
+    | Windows -> ";"
+    | _ -> ":"
+
 let toString = function
   | Darwin -> "darwin"
   | Linux -> "linux"
