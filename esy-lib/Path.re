@@ -9,6 +9,12 @@ let remPrefix = rem_prefix;
 let user = () => Run.ofBosError(Bos.OS.Dir.user());
 let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
+let backSlashRegex = Str.regexp("\\\\");
+
+let normalizePathSlashes = p => {
+    Str.global_replace(backSlashRegex, "/", p);
+};
+
 /**
  * Convert a path to a string and replace a prefix to ~ if it's happened to be a
  * a user home directory.

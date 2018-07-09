@@ -1,10 +1,5 @@
 include ShellParamExpansionParser
 
-let sanitizeShellParameters str = 
-    let backSlashRegex = Str.regexp "\\\\" in
-    let sanitizedString = Str.global_replace backSlashRegex "/" str in
-    sanitizedString;;
-
 let parse_exn v =
   let lexbuf = Lexing.from_string v in
   read [] `Init lexbuf
@@ -37,4 +32,4 @@ let render ?(fallback=Some "") ~(scope : scope) v =
       end
   in
   let%bind segments = Result.List.foldLeft ~f ~init:[] tokens in
-  Ok (segments |> List.rev |> String.concat "" |> sanitizeShellParameters)
+  Ok (segments |> List.rev |> String.concat "" |> EsyLib.Path.normalizePathSlashes)

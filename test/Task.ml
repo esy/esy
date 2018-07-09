@@ -118,10 +118,12 @@ module TestCommandExpr = struct
     )
 
   let%test "#{...} inside esy.exportedEnv" =
+      print_endline("START");
     check pkg (fun task ->
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
+                print_endline("val: " ^ value);
           Some (value = "%store%/i/dep-1.0.0-54f35bf6/ok")
         | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
           Some (value = "%store%/i/dep-1.0.0-54f35bf6/ok-by-name")
