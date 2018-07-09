@@ -17,7 +17,7 @@ let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
       % "--quiet"
       % "--archive"
       % "--exclude"
-      % p(task.buildPath)
+      % buildPath
       % "--exclude"
       % "node_modules"
       % "--exclude"
@@ -32,8 +32,8 @@ let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
        * origPath rather than the origPath itself into destPath, see "man rsync" for
        * details.
        */
-      % (Path.to_string(task.sourcePath) ++ "/")
-      % p(task.buildPath)
+      % (sourcePath ++ "/")
+      % buildPath
     );
 
   /* `rsync` doesn't work natively on Windows, so on Windows,
