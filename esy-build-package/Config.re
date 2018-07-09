@@ -67,9 +67,10 @@ let create =
         | None => Bos.OS.Dir.current()
         };
       let storePadding = {
-        let prefixPathLength = String.length(Fpath.to_string(prefixPath));
-        let paddingLength = maxStorePaddingLength - prefixPathLength;
-        String.make(paddingLength, '_');
+        /* TODO: Fork for windows */
+        /* let prefixPathLength = String.length(Fpath.to_string(prefixPath)); */
+        /* let paddingLength = maxStorePaddingLength - prefixPathLength; */
+        String.make(1, '_');
       };
       let storePath = prefixPath / (storeVersion ++ storePadding);
       let localStorePath =
