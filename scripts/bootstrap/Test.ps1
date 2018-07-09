@@ -20,7 +20,6 @@ ls
 mkdir C:/esy-home
 $env:HOME="C:/esy-home"
 
-
 # "Integration Test" for now
 # This requires retries on all platforms at the moment:
 C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
