@@ -184,9 +184,11 @@ execute "$@"
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
-  let%bind manifestOpt = Manifest.Esy.ofDir cfg.Config.sandboxPath in
+  let%bind manifestOpt = Manifest.ofDir cfg.Config.sandboxPath in
   let%bind manifest = match manifestOpt with
-  | Some (manifest, _path, _json) -> return manifest
+  | Some (Manifest.Esy manifest, _path) -> return manifest
+  | Some (Manifest.Opam _, _path) ->
+    error "packages with opam manifests do not support release"
   | None -> error "no manifest found"
   in
   let%bind releaseCfg =
@@ -345,8 +347,8 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
               buildCommands = None;
               installCommands = None;
               buildType = Manifest.BuildType.OutOfSource;
-              exportedEnv = [];
             };
+            exportedEnv = [];
             sourcePath = pkg.sourcePath;
             resolution = None;
           } in

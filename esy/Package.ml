@@ -3,36 +3,39 @@ module EsyBuild = struct
     buildCommands : Manifest.CommandList.t;
     installCommands : Manifest.CommandList.t;
     buildType : Manifest.BuildType.t;
-    exportedEnv : Manifest.ExportedEnv.t;
-  } [@@deriving (show, eq, ord)]
+  } [@@deriving (show, ord, eq)]
 end
 
 module OpamBuild = struct
-  type t = OpamFile.OPAM.t
+  type t = {
+    name : string;
+    version : string;
+    buildCommands : commands;
+    installCommands : commands;
+    patches : (OpamFilename.Base.t * OpamTypes.filter option) list;
+  }
 
-  let pp fmt _v =
-    Fmt.pf fmt "<opam>"
+  and commands =
+    | Opam of OpamTypes.command list
+    | Override of Manifest.CommandList.t
 
-  let equal = OpamFile.OPAM.equal
-
-  let compare a b =
-    if equal a b
-    then 0
-    else 1
-
+  let pp fmt _v = Fmt.pf fmt "<opam>"
+  let compare _a _b = 0
+  let equal _a _b = false
 end
 
 type t = {
   id : string;
   name : string;
   version : string;
-  dependencies : dependencies [@eq.skip];
-  sourcePath : Config.ConfigPath.t [@skip];
-  sourceType : Manifest.SourceType.t [@skip];
-  sandboxEnv : Manifest.SandboxEnv.t [@skip];
-  resolution : string option [@skip];
-  build : build [@skip];
-} [@@deriving (show, eq, ord)]
+  dependencies : dependencies;
+  sourcePath : Config.ConfigPath.t;
+  sourceType : Manifest.SourceType.t;
+  sandboxEnv : Manifest.SandboxEnv.t;
+  exportedEnv : Manifest.ExportedEnv.t;
+  resolution : string option;
+  build : build;
+} [@@deriving (show, ord, eq)]
 
 and build =
   | EsyBuild of EsyBuild.t
@@ -40,11 +43,9 @@ and build =
 
 and dependencies =
   dependency list
-  [@@deriving show]
 
 and dependency =
   | Dependency of t
-  | PeerDependency of t
   | OptDependency of t
   | DevDependency of t
   | BuildTimeDependency of t
@@ -58,7 +59,6 @@ type pkg_dependency = dependency
 
 let packageOf (dep : dependency) = match dep with
 | Dependency pkg
-| PeerDependency pkg
 | OptDependency pkg
 | DevDependency pkg
 | BuildTimeDependency pkg -> Some pkg
@@ -104,8 +104,7 @@ module DependencyGraph = DependencyGraph.Make(struct
       | Dependency pkg
       | OptDependency pkg
       | DevDependency pkg
-      | BuildTimeDependency pkg
-      | PeerDependency pkg -> (pkg, dep)::acc
+      | BuildTimeDependency pkg -> (pkg, dep)::acc
       | InvalidDependency _ -> acc
     in
     pkg.dependencies

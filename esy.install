@@ -100,7 +100,7 @@ lib: [
   "_build/install/default/lib/esy/Esy__Sandbox.cmi" {"Esy__Sandbox.cmi"}
   "_build/install/default/lib/esy/Esy__Sandbox.cmx" {"Esy__Sandbox.cmx"}
   "_build/install/default/lib/esy/Esy__Sandbox.cmt" {"Esy__Sandbox.cmt"}
-  "_build/install/default/lib/esy/Sandbox.re" {"Sandbox.re"}
+  "_build/install/default/lib/esy/Sandbox.ml" {"Sandbox.ml"}
   "_build/install/default/lib/esy/Esy__SandboxTools.cmi" {"Esy__SandboxTools.cmi"}
   "_build/install/default/lib/esy/Esy__SandboxTools.cmx" {"Esy__SandboxTools.cmx"}
   "_build/install/default/lib/esy/Esy__SandboxTools.cmt" {"Esy__SandboxTools.cmt"}
