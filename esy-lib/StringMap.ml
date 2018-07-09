@@ -13,6 +13,10 @@ let values map =
   let f _k v vs = v::vs in
   fold f map []
 
+let keys map =
+  let f k _v ks = k::ks in
+  fold f map []
+
 let to_yojson v_to_yojson map =
   let items =
     let f k v items = (k, v_to_yojson v)::items in
