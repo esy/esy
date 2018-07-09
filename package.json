@@ -70,8 +70,11 @@
     "**/@opam/sexplib0": "100000000.11.0",
     "**/@opam/result": "1.2.0",
     "**/@opam/lwt": "3.3.0",
+    "**/@opam/lwt_log": "1.0.0",
     "**/@opam/ocaml-migrate-parsetree": "1.0.10",
-    "**/@opam/opam-core": "^2.0.0-rc3"
+    "**/@opam/opam-core": "^2.0.0-rc3",
+    "**/@opam/opam-format": "^2.0.0-rc3",
+    "**/@opam/opam-file-format": "^2.0.0-rc3"
   },
   "peerDependencies": {
     "ocaml": "~4.6.0"
