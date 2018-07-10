@@ -105,6 +105,10 @@ lib: [
   "_build/install/default/lib/esy-lib/EsyLib__StringSet.cmx" {"EsyLib__StringSet.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__StringSet.cmt" {"EsyLib__StringSet.cmt"}
   "_build/install/default/lib/esy-lib/StringSet.ml" {"StringSet.ml"}
+  "_build/install/default/lib/esy-lib/EsyLib__System.cmi" {"EsyLib__System.cmi"}
+  "_build/install/default/lib/esy-lib/EsyLib__System.cmx" {"EsyLib__System.cmx"}
+  "_build/install/default/lib/esy-lib/EsyLib__System.cmt" {"EsyLib__System.cmt"}
+  "_build/install/default/lib/esy-lib/System.ml" {"System.ml"}
   "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmi" {"EsyLib__Tarball.cmi"}
   "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmx" {"EsyLib__Tarball.cmx"}
   "_build/install/default/lib/esy-lib/EsyLib__Tarball.cmt" {"EsyLib__Tarball.cmt"}
