@@ -10,10 +10,10 @@ set -o pipefail
 cp scripts/bootstrap/Makefile.bootstrap Makefile
 
 echo "jbuilder:build esy-build-package"
-jbuilder build _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
+jbuilder build --dev _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 
 echo "jbuilder: build esy"
-jbuilder build _build/default/esy/bin/esyCommand.exe
+jbuilder build --dev _build/default/esy/bin/esyCommand.exe
 
 echo "make: esy-install"
 make _release/bin/esy-install.js
