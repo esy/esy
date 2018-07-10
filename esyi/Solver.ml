@@ -3,6 +3,7 @@ module SourceSpec = Package.SourceSpec
 module Version = Package.Version
 module VersionSpec = Package.VersionSpec
 module Dependencies = Package.Dependencies
+module NpmDependencies = Package.NpmDependencies
 module Req = Package.Req
 module Resolutions = Package.Resolutions
 module DepFormula = Package.DepFormula
@@ -460,6 +461,19 @@ let solveDependenciesNaively
   finish ();%lwt
   return roots
 
+let solveOCamlReq ~cfg req =
+  let open RunAsync.Syntax in
+  let%bind resolver = Resolver.make ~cfg () in
+  let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
+  begin match findResolutionForRequest ~req resolutions with
+  | Some res ->
+    Logs_lwt.app (fun m -> m "using %a" Resolver.Resolution.pp res);%lwt
+    return (Some res.version)
+  | None ->
+    Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
+    return None
+  end
+
 let solve ~cfg ~resolutions (root : Package.t) =
   let open RunAsync.Syntax in
 
@@ -473,35 +487,37 @@ let solve ~cfg ~resolutions (root : Package.t) =
       error msg
   in
 
-  let dependencies, ocamlReq =
+  let reqs, ocamlReq =
     match root.dependencies, root.devDependencies with
     | Dependencies.NpmFormula reqs, Dependencies.NpmFormula devReqs ->
       (* we override dependencies with devDependencies for the root project *)
-      let reqs = Package.NpmDependencies.override reqs devReqs in
-      let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in
-      let dependencies = Dependencies.NpmFormula reqs in
-      dependencies, ocamlReq
+      let reqs = NpmDependencies.override reqs devReqs in
+      let ocamlReq = NpmDependencies.find ~name:"ocaml" reqs in
+      reqs, ocamlReq
     | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
-  let%bind ocamlVersion =
+  let%bind ocamlVersion, reqs =
     match ocamlReq with
     | Some req ->
-      let%bind resolver = Resolver.make ~cfg () in
-      let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
-      begin match findResolutionForRequest ~req resolutions with
-      | Some res ->
-        Logs_lwt.app (fun m -> m "using %a" Resolver.Resolution.pp res);%lwt
-        return (Some res.version)
-      | None ->
-        Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
-        return None
-      end
+      let%bind version = solveOCamlReq ~cfg req in
+      let reqs =
+        match version with
+        | Some version ->
+          let ocamlReq = Req.ofSpec ~name:req.name ~spec:(VersionSpec.ofVersion version) in
+          NpmDependencies.override reqs [ocamlReq]
+        | None -> reqs
+      in
+      return (version, reqs)
     | None ->
       Logs_lwt.app (fun m -> m "no ocaml constraint defined");%lwt
-      return None
+      return (None, reqs)
   in
 
+  let dependencies =
+    let dependencies = Dependencies.NpmFormula reqs in
+    Dependencies.applyResolutions resolutions dependencies
+  in
 
   let%bind solver =
     let%bind resolver = Resolver.make ?ocamlVersion ~cfg () in
