@@ -90,6 +90,15 @@ module Scripts = struct
       | Ok pkg -> Ok pkg.scripts
       | Error err -> Error err
   end
+
+  let ofFile (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind json = Fs.readJsonFile path in
+    RunAsync.ofRun (
+      let open Run.Syntax in
+      let%bind data = Json.parseJsonWith ParseManifest.of_yojson json in
+      return data.ParseManifest.scripts
+    )
 end
 
 (**

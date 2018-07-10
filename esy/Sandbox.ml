@@ -72,7 +72,7 @@ let ofDir (cfg : Config.t) =
             else
               Lwt.return_error (pkgName, "circular dependency"))
           else begin match%lwt loadPackageCached depPackagePath (path :: stack) with
-            | Ok result -> Lwt.return_ok (pkgName, result)
+            | Ok (pkg, _) -> Lwt.return_ok (pkgName, pkg)
             | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
           end
         | Ok None -> Lwt.return_ok (pkgName, `Unresolved)
@@ -242,7 +242,8 @@ let ofDir (cfg : Config.t) =
 
     match%bind Manifest.ofDir sourcePath with
     | Some (manifest, manifestPath) ->
-      packageOfManifest ~sourcePath manifest manifestPath
+      let%bind pkg = packageOfManifest ~sourcePath manifest manifestPath in
+      return (pkg, manifestPath)
     | None ->
       error "unable to find manifest"
 
@@ -252,7 +253,8 @@ let ofDir (cfg : Config.t) =
   in
 
   match%bind loadPackageCached cfg.sandboxPath [] with
-  | `EsyPkg root ->
+  | `EsyPkg root, manifestPath ->
+
     let%bind manifestInfo =
       let statPath path =
         let%bind stat = Fs.stat path in
@@ -263,8 +265,12 @@ let ofDir (cfg : Config.t) =
       |> List.map ~f:statPath
       |> RunAsync.List.joinAll
     in
-    let scripts = Manifest.Scripts.empty in
-    let sandbox: t = {root;scripts;manifestInfo} in
-    return sandbox
+
+    let%bind scripts =
+      Manifest.Scripts.ofFile manifestPath
+    in
+
+    return {root;scripts;manifestInfo}
+
   | _ ->
     error "root package missing esy config"
