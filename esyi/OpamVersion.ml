@@ -1,5 +1,6 @@
 module MakeFormula = Version.Formula.Make
 module MakeConstraint = Version.Constraint.Make
+module String = Astring.String
 
 (** opam versions are Debian-style versions *)
 module Version = struct
@@ -18,7 +19,35 @@ module Version = struct
   let of_yojson = function
     | `String v -> parse v
     | _ -> Error "expected a string"
+
+  let ofSemver v =
+    let v = SemverVersion.Version.toString v in
+    parse v
 end
+
+let caretRange v =
+  match SemverVersion.Version.parse v with
+  | Ok v ->
+    let open Result.Syntax in
+    let ve =
+      if v.major = 0
+      then {v with minor = v.minor + 1}
+      else {v with major = v.major + 1}
+    in
+    let%bind v = Version.ofSemver v in
+    let%bind ve = Version.ofSemver ve in
+    Ok (v, ve)
+  | Error _ -> Error ("^ cannot be applied to: " ^ v)
+
+let tildaRange v =
+  match SemverVersion.Version.parse v with
+  | Ok v ->
+    let open Result.Syntax in
+    let ve = {v with minor = v.minor + 1} in
+    let%bind v = Version.ofSemver v in
+    let%bind ve = Version.ofSemver ve in
+    Ok (v, ve)
+  | Error _ -> Error ("~ cannot be applied to: " ^ v)
 
 module Constraint = MakeConstraint(Version)
 
@@ -41,11 +70,13 @@ module Formula = struct
     | text ->
       begin match text.[0], text.[1] with
       | '^', _ ->
-        let msg = Printf.sprintf "%s: ^ is not supported for opam versions" text in
-        error msg
+        let v = String.Sub.(text |> v ~start:1 |> to_string) in
+        let%bind v, ve = caretRange v in
+        return [C.GTE v; C.LT ve]
       | '~', _ ->
-        let msg = Printf.sprintf "%s: ~ is not supported for opam versions" text in
-        error msg
+        let v = String.Sub.(text |> v ~start:1 |> to_string) in
+        let%bind v, ve = tildaRange v in
+        return [C.GTE v; C.LT ve]
       | '=', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
