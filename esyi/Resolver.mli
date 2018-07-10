@@ -6,6 +6,8 @@ module Resolution : sig
   }
 
   val pp : t Fmt.t
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
 end
 
 (** Package request resolver *)
@@ -21,7 +23,7 @@ val make : cfg:Config.t -> unit -> t RunAsync.t
  *)
 val resolve :
   name:string
-  -> formula:Package.DepFormula.t
+  -> spec:Package.VersionSpec.t
   -> t
   -> Resolution.t list RunAsync.t
 

@@ -9,7 +9,7 @@ module Resolution = struct
   type t = {
     name: string;
     version: Version.t
-  }
+  } [@@deriving (eq, ord)]
 
   let cmpByVersion a b =
     Version.compare a.version b.version
@@ -226,12 +226,12 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       return (Source.LocalPathLink p)
   end
 
-let resolve ~(name : string) ~(formula : DepFormula.t) (resolver : t) =
+let resolve ~(name : string) ~(spec : VersionSpec.t) (resolver : t) =
   let open RunAsync.Syntax in
 
-  match formula with
+  match spec with
 
-  | DepFormula.Npm _ ->
+  | VersionSpec.Npm _ ->
 
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun name ->
@@ -267,12 +267,12 @@ let resolve ~(name : string) ~(formula : DepFormula.t) (resolver : t) =
     let resolutions =
       resolutions
       |> List.sort ~cmp:Resolution.cmpByVersion
-      |> List.filter ~f:(fun r -> DepFormula.matches ~version:r.Resolution.version formula)
+      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
     return resolutions
 
-  | DepFormula.Opam _ ->
+  | VersionSpec.Opam _ ->
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun name ->
         let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
@@ -297,12 +297,12 @@ let resolve ~(name : string) ~(formula : DepFormula.t) (resolver : t) =
     let resolutions =
       resolutions
       |> List.sort ~cmp:Resolution.cmpByVersion
-      |> List.filter ~f:(fun r -> DepFormula.matches ~version:r.Resolution.version formula)
+      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
     return resolutions
 
-  | DepFormula.Source sourceSpec ->
+  | VersionSpec.Source sourceSpec ->
     let%bind source = resolveSource ~name ~sourceSpec resolver in
     let version = Version.Source source in
     return [{Resolution. name; version}]

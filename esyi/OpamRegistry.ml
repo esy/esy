@@ -147,26 +147,27 @@ module Manifest = struct
       in
 
       let%bind dependencies =
-        let%bind depends =
+        let%bind formula =
           RunAsync.withContext "processing depends field" (
             translateFilteredFormula
               ~build:true ~post:true ~test:false ~doc:false ~dev:false
               (OpamFile.OPAM.depends opam)
           )
         in
-        let depends =
-          depends
-          @ Package.NpmDependencies.toDependencies override.Package.OpamOverride.dependencies
-          @ Package.NpmDependencies.toDependencies override.Package.OpamOverride.peerDependencies
-        in
-        return depends
+        let formula =
+          formula
+          @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.dependencies
+          @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.peerDependencies
+        in return (Package.Dependencies.OpamFormula formula)
       in
 
       let%bind devDependencies =
         RunAsync.withContext "processing depends field" (
-          translateFilteredFormula
-            ~build:true ~post:true ~test:false ~doc:false ~dev:false
-            (OpamFile.OPAM.depends opam)
+          let%bind formula =
+            translateFilteredFormula
+              ~build:true ~post:true ~test:false ~doc:false ~dev:false
+              (OpamFile.OPAM.depends opam)
+          in return (Package.Dependencies.OpamFormula formula)
         )
       in
 

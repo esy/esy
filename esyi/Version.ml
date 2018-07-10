@@ -27,7 +27,7 @@ module Constraint = struct
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving (yojson, eq)]
+      [@@deriving (yojson, eq, ord)]
 
     let pp fmt = function
       | EQ v -> Fmt.pf fmt "=%a" Version.pp v
@@ -97,13 +97,13 @@ module Formula = struct
     module Constraint = Constraint.Make(Version)
     module VersionSet = Constraint.VersionSet
 
-    type 'f conj = 'f list [@@deriving (show, yojson, eq)]
-    type 'f disj = 'f list [@@deriving (show, yojson, eq)]
+    type 'f conj = 'f list [@@deriving (show, yojson, eq, ord)]
+    type 'f disj = 'f list [@@deriving (show, yojson, eq, ord)]
 
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving (yojson, eq)]
+        [@@deriving (yojson, eq, ord)]
 
       let unit constr =
         [[constr]]

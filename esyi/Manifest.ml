@@ -4,7 +4,8 @@ module Resolutions = Package.Resolutions
 module Source = Package.Source
 module Req = Package.Req
 module Dep = Package.Dep
-module Dependencies = Package.NpmDependencies
+module NpmDependencies = Package.NpmDependencies
+module Dependencies = Package.Dependencies
 
 (* This is used just to read the Json.t *)
 module PackageJson = struct
@@ -12,8 +13,8 @@ module PackageJson = struct
     name : string;
     version : string;
     resolutions : (Resolutions.t [@default Resolutions.empty]);
-    dependencies : (Dependencies.t [@default Dependencies.empty]);
-    devDependencies : (Dependencies.t [@default Dependencies.empty]);
+    dependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
+    devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     dist : (dist option [@default None]);
     esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
@@ -43,8 +44,8 @@ end
 type t = {
   name : string;
   version : string;
-  dependencies : Dependencies.t;
-  devDependencies : Dependencies.t;
+  dependencies : NpmDependencies.t;
+  devDependencies : NpmDependencies.t;
   source : Source.t;
   hasEsyManifest : bool;
 }
@@ -111,8 +112,8 @@ let toPackage ?name ?version (manifest : t) =
     Package.
     name;
     version;
-    dependencies = Dependencies.toDependencies manifest.dependencies;
-    devDependencies = Dependencies.toDependencies manifest.devDependencies;
+    dependencies = Dependencies.NpmFormula manifest.dependencies;
+    devDependencies = Dependencies.NpmFormula manifest.devDependencies;
     source;
     opam = None;
     kind =

@@ -19,51 +19,48 @@ type t = {
   resolutions : Resolutions.t;
 }
 
-let ppDepFormula fmt = function
-  | DepFormula.Npm _ -> Fmt.unit "npm" fmt ()
-  | DepFormula.Opam _ -> Fmt.unit "opam" fmt ()
-  | DepFormula.Source srcSpec -> SourceSpec.pp fmt srcSpec
-
 module Explanation = struct
 
-  type t = reason list
+  module Reason = struct
 
-  and reason =
-    | Conflict of chain * chain
-    | Missing of chain * Resolver.Resolution.t list
+    type t =
+      | Conflict of {left : chain; right : chain}
+      | Missing of {name : string; path : chain; available : Resolver.Resolution.t list}
+      [@@deriving ord]
 
-  and chain =
-    Package.Dependencies.t * Package.t list
+    and chain =
+      Package.t list
+
+    let ppChain fmt path =
+      let ppPkgName fmt pkg = Fmt.string fmt pkg.Package.name in
+      let sep = Fmt.unit " -> " in
+      Fmt.pf fmt "%a" Fmt.(list ~sep ppPkgName) (List.rev path)
+
+    let pp fmt = function
+      | Missing {name; path; available;} ->
+        Fmt.pf fmt
+          "No packages matching:@;@[<v 2>@;%s %a@;@;Versions available:@;@[<v 2>@;%a@]@]"
+          name
+          ppChain path
+          (Fmt.list Resolver.Resolution.pp) available
+      | Conflict {left; right;} ->
+        Fmt.pf fmt
+          "@[<v 2>Conflicting dependencies:@;@%a@;%a@]"
+          ppChain left ppChain right
+
+    module Set = Set.Make(struct
+      type nonrec t = t
+      let compare = compare
+    end)
+  end
+
+  type t = Reason.t list
 
   let empty = []
 
   let pp fmt reasons =
-
-    let ppEm pp = Fmt.styled `Bold pp in
-    let ppErr pp = Fmt.styled `Bold (Fmt.styled `Red pp) in
-
-    let ppChain fmt (req, path) =
-      let ppPkgName fmt pkg = Fmt.string fmt pkg.Package.name in
-      let sep = Fmt.unit " -> " in
-      Fmt.pf fmt
-        "@[<v>%a@,(required by %a)@]"
-        (ppErr Dependencies.pp) req Fmt.(list ~sep (ppEm ppPkgName)) (List.rev path)
-    in
-
-    let ppReason fmt = function
-      | Missing (chain, available) ->
-        Fmt.pf fmt
-          "No packages matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
-          ppChain chain
-          (Fmt.list Resolver.Resolution.pp) available
-      | Conflict (chaina, chainb) ->
-        Fmt.pf fmt
-          "@[<v 2>Conflicting dependencies:@;@%a@;%a@]"
-          ppChain chaina ppChain chainb
-    in
-
     let sep = Fmt.unit "@;@;" in
-    Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep ppReason) reasons
+    Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep Reason.pp) reasons
 
   let collectReasons ~resolver:_ ~cudfMapping ~root reasons =
     let open RunAsync.Syntax in
@@ -108,47 +105,21 @@ module Explanation = struct
       resolve
     in
 
-    let resolveReq name requestor =
-      match Dependencies.subformulaForPackage ~name requestor.Package.dependencies with
-      | Some deps -> deps
-      | None ->
-        let msg = Printf.sprintf "inconsistent state: no request found for %s" name in
-        failwith msg
-    in
-
     let resolveReqViaDepChain pkg =
       let requestor, path = resolveDepChain pkg in
-      let req = resolveReq pkg.name requestor in
-      (req, requestor, path)
+      (requestor, path)
     in
 
-    let reasons =
-      let seenConflictFor depsa depsb reasons =
-        let f = function
-          | Conflict ((edepsa, _), (edepsb, _)) ->
-            Dependencies.(show edepsa = show depsa && show edepsb = show depsb)
-          | Missing _ -> false
-        in
-        List.exists ~f reasons
-      in
-      let seenMissingFor deps reasons =
-        let f = function
-          | Missing ((edeps, _), _) ->
-            Dependencies.(show deps = show edeps)
-          | Conflict _ -> false
-        in
-        List.exists ~f reasons
-      in
+    let%bind reasons =
       let f reasons = function
         | Algo.Diagnostic.Conflict (pkga, pkgb, _) ->
           let pkga = Universe.CudfMapping.decodePkgExn pkga cudfMapping in
           let pkgb = Universe.CudfMapping.decodePkgExn pkgb cudfMapping in
-          let reqa, requestora, patha = resolveReqViaDepChain pkga in
-          let reqb, requestorb, pathb = resolveReqViaDepChain pkgb in
-          if not (seenConflictFor reqa reqb reasons)
-          then
-            let conflict = Conflict ((reqa, requestora::patha), (reqb, requestorb::pathb)) in
-            return (conflict::reasons)
+          let requestora, patha = resolveReqViaDepChain pkga in
+          let requestorb, pathb = resolveReqViaDepChain pkgb in
+          let conflict = Reason.Conflict {left = requestora::patha; right = requestorb::pathb} in
+          if not (Reason.Set.mem conflict reasons)
+          then return (Reason.Set.add conflict reasons)
           else return reasons
         | Algo.Diagnostic.Missing (pkg, vpkglist) ->
           let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
@@ -161,26 +132,18 @@ module Explanation = struct
           in
           let f reasons (name, _) =
             let name = Universe.CudfMapping.decodePkgName name in
-            let req = resolveReq name pkg in
-            if not (seenMissingFor req reasons)
-            then
-              let chain = (req, pkg::path) in
-              (* let%bind _req, available = *)
-              (*   let req = Req.make ~name:(Req.name req) ~spec:"*" in *)
-              (*   Resolver.resolve ~req resolver *)
-              (* in *)
-              let available = [] in (* TODO *)
-              let missing = Missing (chain, available) in
-              return (missing::reasons)
+            let missing = Reason.Missing {name; path = pkg::path; available = []} in
+            if not (Reason.Set.mem missing reasons)
+            then return (Reason.Set.add missing reasons)
             else return reasons
           in
           RunAsync.List.foldLeft ~f ~init:reasons vpkglist
         | _ -> return reasons
       in
-      RunAsync.List.foldLeft ~f ~init:[] reasons
+      RunAsync.List.foldLeft ~f ~init:Reason.Set.empty reasons
     in
 
-    reasons
+    return (Reason.Set.elements reasons)
 
   let explain ~resolver ~cudfMapping ~root cudf =
     let open RunAsync.Syntax in
@@ -253,15 +216,6 @@ let make ~cfg ?resolver ~resolutions () =
 let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
-  let rewriteDepsWithResolutions deps =
-    let f dep =
-      match Package.Resolutions.apply solver.resolutions dep with
-      | Some dep -> dep
-      | None -> dep
-    in
-    Dependencies.mapDeps ~f deps
-  in
-
   let universe = ref solver.universe in
   let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
 
@@ -278,19 +232,21 @@ let add ~(dependencies : Dependencies.t) solver =
     else return ()
 
   and addDependencies dependencies =
-    dependencies
-    |> rewriteDepsWithResolutions
-    |> Dependencies.describeByPackageName
-    |> List.map ~f:(fun (name, formula) -> addNameWithFormula name formula)
-    |> RunAsync.List.waitAll
+    let dependencies =
+      Dependencies.applyResolutions solver.resolutions dependencies
+    in
 
-  and addNameWithFormula name formula =
+    let reqs = Dependencies.toApproximateRequests dependencies in
+    let f (req : Req.t) = addDependency ~spec:req.spec req.name in
+    RunAsync.List.waitAll (List.map ~f reqs)
+
+  and addDependency ~spec name =
     let%lwt () =
       let status = Format.asprintf "%s" name in
       report status
     in
     let%bind resolutions =
-      Resolver.resolve ~name ~formula solver.resolver
+      Resolver.resolve ~name ~spec solver.resolver
     in
 
     let%bind packages =
@@ -337,7 +293,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     source = Package.Source Source.NoSource;
     opam = None;
     dependencies;
-    devDependencies = Dependencies.empty;
+    devDependencies = Dependencies.NpmFormula [];
     kind = Esy;
   } in
 
@@ -412,33 +368,40 @@ let solveDependenciesNaively
     Hashtbl.add installed pkg.Package.name pkg
   in
 
-  let resolveOfInstalled name formula =
+  let resolveOfInstalled req =
 
     let rec findFirstMatching = function
       | [] -> None
       | pkg::pkgs ->
-        if Package.DepFormula.matches ~version:pkg.Package.version formula
+        if Req.matches
+          ~name:pkg.Package.name
+          ~version:pkg.Package.version
+          req
         then Some pkg
         else findFirstMatching pkgs
     in
 
-    findFirstMatching (Hashtbl.find_all installed name)
+    findFirstMatching (Hashtbl.find_all installed req.name)
   in
 
-  let resolveOfOutside name formula =
+  let resolveOfOutside req =
     let rec findFirstMatching = function
       | [] -> None
       | res::rest ->
-        if Package.DepFormula.matches ~version:res.Resolver.Resolution.version formula
+        if
+          Req.matches
+            ~name:res.Resolver.Resolution.name
+            ~version:res.Resolver.Resolution.version
+            req
         then Some res
         else findFirstMatching rest
     in
 
     let%lwt () =
-      let status = Format.asprintf "%s@%a" name ppDepFormula formula in
+      let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions = Resolver.resolve ~name ~formula solver.resolver in
+    let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     let resolutions = List.rev resolutions in
     match findFirstMatching resolutions with
     | Some resolution ->
@@ -447,12 +410,12 @@ let solveDependenciesNaively
     | None -> return None
   in
 
-  let resolve name formula =
+  let resolve (req : Req.t) =
     let%bind pkg =
-      match resolveOfInstalled name formula with
-      | None -> begin match%bind resolveOfOutside name formula with
+      match resolveOfInstalled req with
+      | None -> begin match%bind resolveOfOutside req with
         | None ->
-          let msg = Format.asprintf "unable to find a match for %s" name in
+          let msg = Format.asprintf "unable to find a match for %a" Req.pp req in
           error msg
         | Some pkg -> return pkg
         end
@@ -463,25 +426,29 @@ let solveDependenciesNaively
 
   let rec solveDependencies ~seen dependencies =
 
-    let dependenciesByName =
-      dependencies
-      |> Dependencies.describeByPackageName
+    let reqs = match dependencies with
+    | Dependencies.NpmFormula reqs -> reqs
+    | Dependencies.OpamFormula _ ->
+      (* TODO: cause opam formulas should be solved by the proper dependency
+       * solver we skip solving them, but we need some sanity check here *)
+      Dependencies.toApproximateRequests dependencies
     in
 
     (** This prefetches resolutions which can result in an overfetch but makes
      * things happen much faster. *)
     let%bind _ =
-      dependenciesByName
-      |> List.map ~f:(fun (name, formula) -> Resolver.resolve ~name ~formula solver.resolver)
+      let f (req : Req.t) = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
+      reqs
+      |> List.map ~f
       |> RunAsync.List.joinAll
     in
 
-    let f roots (name, formula) =
-      if StringSet.mem name seen
+    let f roots (req : Req.t) =
+      if StringSet.mem req.name seen
       then return roots
       else begin
-        let seen = StringSet.add name seen in
-        let%bind pkg = resolve name formula in
+        let seen = StringSet.add req.name seen in
+        let%bind pkg = resolve req in
         addToInstalled pkg;
         let%bind dependencies = solveDependencies ~seen pkg.Package.dependencies in
         let%bind record = solutionRecordOfPkg ~solver pkg in
@@ -489,7 +456,7 @@ let solveDependenciesNaively
         return (root::roots)
       end
     in
-    RunAsync.List.foldLeft ~f ~init:[] dependenciesByName
+    RunAsync.List.foldLeft ~f ~init:[] reqs
   in
 
   let%bind roots = solveDependencies ~seen:StringSet.empty dependencies in
@@ -511,7 +478,10 @@ let solve ~cfg ~resolutions (root : Package.t) =
 
   let dependencies =
     (* we conj dependencies with devDependencies for the root project *)
-    root.dependencies @ root.devDependencies
+    match root.dependencies, root.devDependencies with
+    | Dependencies.NpmFormula dependencies, Dependencies.NpmFormula devDependencies ->
+      Dependencies.NpmFormula (dependencies @ devDependencies)
+    | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
   let%bind solver =

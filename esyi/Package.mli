@@ -99,6 +99,8 @@ module Req : sig
 
   val name : t -> string
   val spec : t -> VersionSpec.t
+
+  val matches : name:string -> version:Version.t -> t -> bool
 end
 
 (** A single dependency constraint. *)
@@ -128,19 +130,30 @@ module DepFormula : sig
   val pp : t Fmt.t
 end
 
-(** A formula which mentions multiple dependencies. *)
-module Dependencies : sig
-  type t = Dep.t disj conj
+module Resolutions : sig
+  type t
 
   val empty : t
+  val find : t -> string -> Version.t option
 
-  val override : dep:Dep.t -> t -> t
-  val overrideMany : deps:Dep.t list -> t -> t
+  val entries : t -> (string * Version.t) list
 
-  val mapDeps : f:(Dep.t -> 'a) -> t -> 'a disj conj
-  val filterDeps : f:(Dep.t -> bool) -> t -> t
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
+end
 
-  val subformulaForPackage : name:string -> t -> t option
+module Dependencies : sig
+  type t =
+    | OpamFormula of Dep.t disj conj
+    | NpmFormula of Req.t conj
+
+  (* val override : dep:Dep.t -> t -> t *)
+  (* val overrideMany : deps:Dep.t list -> t -> t *)
+
+  (* val mapDeps : f:(Dep.t -> 'a) -> t -> 'a disj conj *)
+  (* val filterDeps : f:(Dep.t -> bool) -> t -> t *)
+
+  (* val subformulaForPackage : name:string -> t -> t option *)
 
   (**
    * Produce a list of pkgname, approx depformula for each pkg mentioned in a
@@ -149,23 +162,14 @@ module Dependencies : sig
    * Note that the dep formulas are approximate and should not be used for dep
    * solving directly but rathe to prune unrelated versions.
    *)
-  val describeByPackageName : t -> (string * DepFormula.t) list
+  (* TODO: remove *)
+  (* val describeByPackageName : t -> (string * DepFormula.t) list *)
 
   val pp : t Fmt.t
   val show : t -> string
-end
 
-module Resolutions : sig
-  type t
-
-  val empty : t
-  val find : t -> string -> Version.t option
-  val apply : t -> Dep.t -> Dep.t option
-
-  val entries : t -> (string * Version.t) list
-
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
+  val toApproximateRequests : t -> Req.t list
+  val applyResolutions : Resolutions.t -> t -> t
 end
 
 module ExportedEnv : sig
@@ -184,7 +188,7 @@ module NpmDependencies : sig
   val pp : t Fmt.t
   val of_yojson : t Json.decoder
   val to_yojson : t Json.encoder
-  val toDependencies : t -> Dependencies.t
+  val toOpamFormula : t -> Dep.t disj conj
 end
 
 module File : sig
@@ -279,6 +283,7 @@ and kind =
   | Esy
   | Npm
 
+val isOpamPackageName : string -> bool
 val pp : t Fmt.t
 val compare : t -> t -> int
 
