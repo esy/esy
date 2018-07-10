@@ -2,6 +2,7 @@ module StringSet = Set.Make(String)
 module Manifest = Package.Manifest
 module EsyManifest = Package.EsyManifest
 module EsyReleaseConfig = Package.EsyReleaseConfig
+module Store = EsyLib.Store
 
 type config = {
   name : string;
@@ -120,7 +121,7 @@ else
   printError;
   exit 1;
 fi
-|} (shellSafe id) (shellSafe bin) Config.storeVersion Config.maxStorePaddingLength execute
+|} (shellSafe id) (shellSafe bin) Store.version Store.maxStorePaddingLength execute
 
 let makeBinWrapper ~cfg ~bin =
   let execute = Printf.sprintf {|
