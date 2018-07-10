@@ -67,7 +67,7 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
           resolveCmdInEnv ~env prg
         | _ -> Ok prg
       in
-      return (prg, Array.of_list (prg::args))
+      return ("", Array.of_list (prg::args))
     ) in
 
   let env = Option.map env ~f:(fun env -> env
