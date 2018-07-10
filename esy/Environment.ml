@@ -193,14 +193,3 @@ end = struct
     let%bind value = Value.ofBindings bindings in
     Ok (value, bindings)
 end
-
-module PathLike = struct
-
-  let make (name : string) (value : string list) =
-    let sep = match System.host, name with
-      | System.Cygwin, "OCAMLPATH" -> ";"
-      | _ -> ":"
-    in
-    value |> String.concat sep
-
-end
