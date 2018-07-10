@@ -133,7 +133,11 @@ module Explanation = struct
           in
           let f reasons (name, _) =
             let name = Universe.CudfMapping.decodePkgName name in
-            let%bind available = Resolver.resolve ~name resolver in
+            let%lwt available =
+              match%lwt Resolver.resolve ~name resolver with
+              | Ok available -> Lwt.return available
+              | Error _ -> Lwt.return []
+            in
             let missing = Reason.Missing {name; path = pkg::path; available} in
             if not (Reason.Set.mem missing reasons)
             then return (Reason.Set.add missing reasons)
@@ -247,8 +251,10 @@ let add ~(dependencies : Dependencies.t) solver =
     in
 
     let reqs = Dependencies.toApproximateRequests dependencies in
-    let f (req : Req.t) = addDependency ~spec:req.spec req.name in
-    RunAsync.List.waitAll (List.map ~f reqs)
+    RunAsync.List.waitAll (
+      let f (req : Req.t) = addDependency ~spec:req.spec req.name in
+      List.map ~f reqs
+    )
 
   and addDependency ~spec name =
     let%lwt () =
