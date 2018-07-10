@@ -1,3 +1,5 @@
+module Store = EsyLib.Store
+
 type t = {
   esyVersion : string;
   sandboxPath : Path.t;
@@ -12,34 +14,6 @@ type t = {
 type config = t
 
 let defaultPrefixPath = Path.v "~/.esy"
-
-let storeInstallTree = "i"
-let storeBuildTree = "b"
-let storeStageTree = "s"
-
-let storeVersion = "3"
-
-let maxStorePaddingLength =
-  (*
-   * This is restricted by POSIX, Linux enforces this but macOS is more
-   * forgiving.
-   *)
-  let maxShebangLength = 127 in
-  (*
-   * We reserve that amount of chars from padding so ocamlrun can be placed in
-   * shebang lines
-   *)
-  let ocamlrunStorePath = "ocaml-n.00.000-########/bin/ocamlrun" in
-  maxShebangLength
-  - String.length "!#"
-  - String.length (
-      "/"
-      ^ storeVersion
-      ^ "/"
-      ^ storeInstallTree
-      ^ "/"
-      ^ ocamlrunStorePath
-    )
 
 let initStore (path: Path.t) =
   let open Result.Syntax in
@@ -66,20 +40,14 @@ let create
     in
 
     let%bind storePath =
-      let%bind storePadding =
-        let prefixPathLength = String.length (Fpath.to_string prefixPath) in
-        let paddingLength = maxStorePaddingLength - prefixPathLength in
-        if paddingLength < 0
-        then Error (`Msg "prefixPath is too deep in the filesystem")
-        else Ok (String.make paddingLength '_')
-      in
-      Ok Path.(prefixPath / (storeVersion ^ storePadding))
+      let storePadding = Store.getPadding prefixPath in
+      Ok Path.(prefixPath / (Store.version ^ storePadding))
     in
     let localStorePath =
       Path.(sandboxPath / "node_modules" / ".cache" / "_esy" / "store")
     in
     let storeLinkPath =
-      Path.(prefixPath / storeVersion)
+      Path.(prefixPath / Store.version)
     in
 
     let%bind () = initStore storePath in

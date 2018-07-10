@@ -1,3 +1,5 @@
+module Store = EsyLib.Store;
+
 [@deriving show]
 type t = {
   sandboxPath: Fpath.t,
@@ -5,37 +7,6 @@ type t = {
   localStorePath: Fpath.t,
   rsyncCmd: string,
   fastreplacestringCmd: string,
-};
-
-let storeInstallTree = "i";
-
-let storeBuildTree = "b";
-
-let storeStageTree = "s";
-
-let storeVersion = "3";
-
-let maxStorePaddingLength = {
-  /*
-   * This is restricted by POSIX, Linux enforces this but macOS is more
-   * forgiving.
-   */
-  let maxShebangLength = 127;
-  /*
-   * We reserve that amount of chars from padding so ocamlrun can be placed in
-   * shebang lines
-   */
-  let ocamlrunStorePath = "ocaml-n.00.000-########/bin/ocamlrun";
-  maxShebangLength
-  - String.length("!#")
-  - String.length(
-      "/"
-      ++ storeVersion
-      ++ "/"
-      ++ storeInstallTree
-      ++ "/"
-      ++ ocamlrunStorePath,
-    );
 };
 
 /**
@@ -66,12 +37,7 @@ let create =
         | Some(v) => Ok(v)
         | None => Bos.OS.Dir.current()
         };
-      let storePadding = {
-        let prefixPathLength = String.length(Fpath.to_string(prefixPath));
-        let paddingLength = maxStorePaddingLength - prefixPathLength;
-        String.make(paddingLength, '_');
-      };
-      let storePath = prefixPath / (storeVersion ++ storePadding);
+      let storePath = prefixPath / (Store.version ++ Store.getPadding(prefixPath));
       let localStorePath =
         sandboxPath / "node_modules" / ".cache" / "_esy" / "store";
       Ok({
