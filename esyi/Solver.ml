@@ -39,7 +39,7 @@ module Explanation = struct
     let pp fmt = function
       | Missing {name; path; available;} ->
         Fmt.pf fmt
-          "No packages matching:@;@[<v 2>@;%s %a@;@;Versions available:@;@[<v 2>@;%a@]@]"
+          "No packages matching:@;@[<v 2>@;%s (required by %a)@;@;Versions available:@;@[<v 2>@;%a@]@]"
           name
           ppChain path
           (Fmt.list Resolver.Resolution.pp) available
@@ -62,7 +62,7 @@ module Explanation = struct
     let sep = Fmt.unit "@;@;" in
     Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep Reason.pp) reasons
 
-  let collectReasons ~resolver:_ ~cudfMapping ~root reasons =
+  let collectReasons ~resolver ~cudfMapping ~root reasons =
     let open RunAsync.Syntax in
 
     (* Find a pair of requestor, path for the current package.
@@ -132,7 +132,8 @@ module Explanation = struct
           in
           let f reasons (name, _) =
             let name = Universe.CudfMapping.decodePkgName name in
-            let missing = Reason.Missing {name; path = pkg::path; available = []} in
+            let%bind available = Resolver.resolve ~name resolver in
+            let missing = Reason.Missing {name; path = pkg::path; available} in
             if not (Reason.Set.mem missing reasons)
             then return (Reason.Set.add missing reasons)
             else return reasons
@@ -483,7 +484,6 @@ let solve ~cfg ~resolutions (root : Package.t) =
     | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
-
   let%bind ocamlVersion =
     match ocamlReq with
     | Some req ->
@@ -491,11 +491,15 @@ let solve ~cfg ~resolutions (root : Package.t) =
       let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
       begin match findResolutionForRequest ~req resolutions with
       | Some res ->
-        Logs_lwt.app (fun m -> m "using ocaml@%a" Package.Version.pp res.version);%lwt
+        Logs_lwt.app (fun m -> m "using %a" Resolver.Resolution.pp res);%lwt
         return (Some res.version)
-      | None -> return None
+      | None ->
+        Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
+        return None
       end
-    | None -> return None
+    | None ->
+      Logs_lwt.app (fun m -> m "no ocaml constraint defined");%lwt
+      return None
   in
 
 

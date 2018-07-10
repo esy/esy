@@ -27,7 +27,7 @@ val make :
  *)
 val resolve :
   name:string
-  -> spec:Package.VersionSpec.t
+  -> ?spec:Package.VersionSpec.t
   -> t
   -> Resolution.t list RunAsync.t
 

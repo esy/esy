@@ -203,10 +203,9 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
   in
 
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
-    let%lwt () = Logs_lwt.app (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
+    let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
     match sourceSpec with
     | SourceSpec.Github {user; repo; ref} ->
-      let%lwt () = Logs_lwt.app (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
       let remote = Github.remote ~user ~repo in
       let%bind commit = Git.lsRemote ?ref ~remote () in
       begin match commit, ref with
@@ -221,7 +220,6 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       end
 
     | SourceSpec.Git {remote; ref} ->
-      let%lwt () = Logs_lwt.app (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
       let%bind commit = Git.lsRemote ?ref ~remote () in
       begin match commit, ref  with
       | Some commit, _ ->
@@ -250,8 +248,17 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       return (Source.LocalPathLink p)
   end
 
-let resolve ~(name : string) ~(spec : VersionSpec.t) (resolver : t) =
+let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
+
+  let spec =
+    match spec with
+    | None ->
+      if Package.isOpamPackageName name
+      then VersionSpec.Opam [[OpamVersion.Constraint.ANY]]
+      else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+    | Some spec -> spec
+  in
 
   match spec with
 
