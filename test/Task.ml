@@ -167,7 +167,7 @@ let checkEnvExists ~name ~value task =
         {
           ExportedEnv.
           name = "OCAMLLIB";
-          value = "#{os == 'cygwin' ? ('lib' / 'ocaml') : 'lib'}";
+          value = "#{os == 'windows' ? ('lib' / 'ocaml') : 'lib'}";
           exclusive = false;
           scope = Local;
         };
@@ -177,15 +177,15 @@ let checkEnvExists ~name ~value task =
       pkg with
       dependencies = [Dependency dep];
     } in
-    check pkg (fun task ->
+    check ~system:System.Linux pkg (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib" task
     )
     &&
-    check ~system:System.Cygwin pkg (fun task ->
+    check ~system:System.Windows pkg (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one;two" task
-      && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
+      && checkEnvExists ~name:"PATH" ~value:"/bin;/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib/ocaml" task
     )
 

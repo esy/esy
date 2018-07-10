@@ -32,4 +32,4 @@ let render ?(fallback=Some "") ~(scope : scope) v =
       end
   in
   let%bind segments = Result.List.foldLeft ~f ~init:[] tokens in
-  Ok (segments |> List.rev |> String.concat "")
+  Ok (segments |> List.rev |> String.concat "" |> EsyLib.Path.normalizePathSlashes)

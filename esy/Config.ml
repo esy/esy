@@ -198,7 +198,10 @@ end = struct
       end
     end
 
-  let toString = Path.to_string
+  let toString p =
+      let ret = Path.to_string p in
+      let normalized = EsyLib.Path.normalizePathSlashes ret in
+      normalized
 
   let pp = Path.pp
   let to_yojson = Path.to_yojson
