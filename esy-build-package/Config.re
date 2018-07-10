@@ -37,7 +37,8 @@ let create =
         | Some(v) => Ok(v)
         | None => Bos.OS.Dir.current()
         };
-      let storePath = prefixPath / (Store.version ++ Store.getPadding(prefixPath));
+      let%bind padding = Store.getPadding(prefixPath);
+      let storePath = prefixPath / (Store.version ++ padding);
       let localStorePath =
         sandboxPath / "node_modules" / ".cache" / "_esy" / "store";
       Ok({

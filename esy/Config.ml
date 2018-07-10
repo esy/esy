@@ -40,7 +40,7 @@ let create
     in
 
     let%bind storePath =
-      let storePadding = Store.getPadding prefixPath in
+      let%bind storePadding = Store.getPadding prefixPath in
       Ok Path.(prefixPath / (Store.version ^ storePadding))
     in
     let localStorePath =
