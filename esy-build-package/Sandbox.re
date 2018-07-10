@@ -74,8 +74,8 @@ module Windows = {
              * because we need the current PATH/env to pick up node and run the shell
              */
             let jsonString = convertEnvToJsonString(env);
-            let%bind environmentTempFile = putTempFile(jsonString)
-            let commandAsList = Bos.Cmd.to_list(command)
+            let%bind environmentTempFile = putTempFile(jsonString);
+            let commandAsList = Bos.Cmd.to_list(command);
 
             /* Normalize slashes in the command we send to esy-bash */
             let normalizedCommands = Bos.Cmd.of_list(List.map(EsyLib.Path.normalizePathSlashes, commandAsList));

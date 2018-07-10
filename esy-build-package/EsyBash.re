@@ -52,7 +52,7 @@ let normalizePathForCygwin = (path) => {
             Ok(result);
         };
         | _ => Ok(path)
-    }
+    };
 };
 
 let toEsyBashCommand = (~env=None, cmd) => {
@@ -73,7 +73,7 @@ let toEsyBashCommand = (~env=None, cmd) => {
                 ...allCommands,
             ]));
         | _ => Ok(cmd)
-        };
+    };
 };
 
 /**
