@@ -161,6 +161,17 @@ module Explanation = struct
 
 end
 
+let rec findResolutionForRequest ~req = function
+  | [] -> None
+  | res::rest ->
+    if
+      Req.matches
+        ~name:res.Resolver.Resolution.name
+        ~version:res.Resolver.Resolution.version
+        req
+    then Some res
+    else findResolutionForRequest ~req rest
+
 let solutionRecordOfPkg ~solver (pkg : Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
@@ -202,15 +213,12 @@ let solutionRecordOfPkg ~solver (pkg : Package.t) =
 
 let make ~cfg ?resolver ~resolutions () =
   let open RunAsync.Syntax in
-
   let%bind resolver =
     match resolver with
-    | Some resolver -> return resolver
     | None -> Resolver.make ~cfg ()
+    | Some resolver -> return resolver
   in
-
   let universe = ref Universe.empty in
-
   return {cfg; resolver; universe = !universe; resolutions}
 
 let add ~(dependencies : Dependencies.t) solver =
@@ -385,25 +393,13 @@ let solveDependenciesNaively
   in
 
   let resolveOfOutside req =
-    let rec findFirstMatching = function
-      | [] -> None
-      | res::rest ->
-        if
-          Req.matches
-            ~name:res.Resolver.Resolution.name
-            ~version:res.Resolver.Resolution.version
-            req
-        then Some res
-        else findFirstMatching rest
-    in
-
     let%lwt () =
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
     let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     let resolutions = List.rev resolutions in
-    match findFirstMatching resolutions with
+    match findResolutionForRequest ~req resolutions with
     | Some resolution ->
       let%bind pkg = Resolver.package ~resolution solver.resolver in
       return (Some pkg)
@@ -476,16 +472,36 @@ let solve ~cfg ~resolutions (root : Package.t) =
       error msg
   in
 
-  let dependencies =
-    (* we conj dependencies with devDependencies for the root project *)
+  let dependencies, ocamlReq =
     match root.dependencies, root.devDependencies with
-    | Dependencies.NpmFormula dependencies, Dependencies.NpmFormula devDependencies ->
-      Dependencies.NpmFormula (dependencies @ devDependencies)
+    | Dependencies.NpmFormula reqs, Dependencies.NpmFormula devReqs ->
+      (* we override dependencies with devDependencies for the root project *)
+      let reqs = Package.NpmDependencies.override reqs devReqs in
+      let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in
+      let dependencies = Dependencies.NpmFormula reqs in
+      dependencies, ocamlReq
     | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
+
+  let%bind ocamlVersion =
+    match ocamlReq with
+    | Some req ->
+      let%bind resolver = Resolver.make ~cfg () in
+      let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
+      begin match findResolutionForRequest ~req resolutions with
+      | Some res ->
+        Logs_lwt.app (fun m -> m "using ocaml@%a" Package.Version.pp res.version);%lwt
+        return (Some res.version)
+      | None -> return None
+      end
+    | None -> return None
+  in
+
+
   let%bind solver =
-    let%bind solver = make ~cfg ~resolutions () in
+    let%bind resolver = Resolver.make ?ocamlVersion ~cfg () in
+    let%bind solver = make ~resolver ~cfg ~resolutions () in
     let%bind solver = add ~dependencies solver in
     return solver
   in

@@ -235,7 +235,12 @@ let getVersionIndex registry ~(name : OpamPackage.Name.t) =
   in
   OpamPathsByVersion.compute registry.pathsCache name f
 
-let getPackage ~(name : OpamPackage.Name.t) ~(version : OpamPackage.Version.t) registry =
+let getPackage
+  ?ocamlVersion
+  ~(name : OpamPackage.Name.t)
+  ~(version : OpamPackage.Version.t)
+  registry
+  =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
   match OpamPackage.Version.Map.find_opt version index with
@@ -250,9 +255,20 @@ let getPackage ~(name : OpamPackage.Name.t) ~(version : OpamPackage.Version.t) r
     in
 
     let%bind available =
-      let env name =
-        print_endline ("var: " ^ (OpamVariable.Full.to_string name));
-        None
+      let env (var : OpamVariable.Full.t) =
+        let scope = OpamVariable.Full.scope var in
+        let name = OpamVariable.Full.variable var in
+        let v =
+          let open Option.Syntax in
+          let open OpamVariable in
+          match scope, OpamVariable.to_string name with
+          | OpamVariable.Full.Global, "ocaml-version" ->
+            let%bind ocamlVersion = ocamlVersion in
+            return (string (OpamPackage.Version.to_string ocamlVersion))
+          | OpamVariable.Full.Global, _ -> None
+          | OpamVariable.Full.Self, _ -> None
+          | OpamVariable.Full.Package _, _ -> None
+        in v
       in
       let%bind opam = readOpamFile ~name ~version registry in
       let formula = OpamFile.OPAM.available opam in
@@ -264,18 +280,18 @@ let getPackage ~(name : OpamPackage.Name.t) ~(version : OpamPackage.Version.t) r
     then return (Some { name; opam; url; version })
     else return None
 
-let versions registry ~(name : OpamPackage.Name.t) =
+let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
   let%bind resolutions =
     index
     |> OpamPackage.Version.Map.bindings
-    |> List.map ~f:(fun (version, _path) -> getPackage ~name ~version registry)
+    |> List.map ~f:(fun (version, _path) -> getPackage ?ocamlVersion ~name ~version registry)
     |> RunAsync.List.joinAll
   in
   return (List.filterNone resolutions)
 
-let version registry ~(name : OpamPackage.Name.t) ~version =
+let version ~(name : OpamPackage.Name.t) ~version registry =
   let open RunAsync.Syntax in
   match%bind getPackage registry ~name ~version with
   | None -> return None

@@ -14,7 +14,11 @@ end
 type t
 
 (** Make new resolver *)
-val make : cfg:Config.t -> unit -> t RunAsync.t
+val make :
+  ?ocamlVersion:Package.Version.t
+  -> cfg:Config.t
+  -> unit
+  -> t RunAsync.t
 
 (**
  * Resolve package request into a list of resolutions

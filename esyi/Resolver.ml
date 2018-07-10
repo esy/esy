@@ -38,6 +38,25 @@ let toOpamName name =
   | Some ("", name) -> OpamPackage.Name.of_string name
   | _ -> failwith ("invalid opam package name: " ^ name)
 
+let toOpamOcamlVersion version =
+  match version with
+  | Some (Package.Version.Npm { major; minor; patch; _ }) ->
+    let minor =
+      if minor < 10
+      then "0" ^ (string_of_int minor)
+      else string_of_int minor
+    in
+    let patch =
+      if patch < 1000
+      then patch
+      else patch / 1000
+    in
+    let v = Printf.sprintf "%i.%s.%i" major minor patch in
+    Some (OpamVersion.Version.parseExn v)
+  | Some (Package.Version.Opam v) -> Some v
+  | Some (Package.Version.Source _) -> None
+  | None -> None
+
 module Github = struct
 
   let remote ~user ~repo =
@@ -79,10 +98,11 @@ type t = {
   srcCache: SourceCache.t;
   npmRegistryQueue : LwtTaskQueue.t;
   opamRegistry : OpamRegistry.t;
+  ocamlVersion : Package.Version.t option;
   resolutionCache : ResolutionCache.t;
 }
 
-let make ~cfg () =
+let make ?ocamlVersion ~cfg () =
   let open RunAsync.Syntax in
   let%bind opamRegistry = OpamRegistry.init ~cfg () in
   let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
@@ -92,6 +112,7 @@ let make ~cfg () =
     srcCache = SourceCache.make ();
     npmRegistryQueue;
     opamRegistry;
+    ocamlVersion;
     resolutionCache = ResolutionCache.make ();
   }
 
@@ -141,7 +162,10 @@ let package ~(resolution : Resolution.t) resolver =
       | Version.Opam version ->
         begin match%bind
           let name = toOpamName resolution.name in
-          OpamRegistry.version resolver.opamRegistry ~name ~version
+          OpamRegistry.version
+            ~name
+            ~version
+            resolver.opamRegistry
         with
           | Some manifest ->
             return (`Opam manifest)
@@ -235,7 +259,7 @@ let resolve ~(name : string) ~(spec : VersionSpec.t) (resolver : t) =
 
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun name ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
+        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
           match%bind
             LwtTaskQueue.submit
@@ -275,16 +299,13 @@ let resolve ~(name : string) ~(spec : VersionSpec.t) (resolver : t) =
   | VersionSpec.Opam _ ->
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun name ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
+        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
-          match%bind
-            let name = toOpamName name in
-            OpamRegistry.versions ~name resolver.opamRegistry
-          with
-          | [] ->
-            let msg = Format.asprintf "no opam package %s found" name in
-            error msg
-          | versions -> return versions
+          let name = toOpamName name in
+          OpamRegistry.versions
+            ?ocamlVersion:(toOpamOcamlVersion resolver.ocamlVersion)
+            ~name
+            resolver.opamRegistry
         in
         let f (resolution : OpamRegistry.resolution) =
           let version = Version.Opam resolution.version in

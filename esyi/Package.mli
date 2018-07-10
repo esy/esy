@@ -189,6 +189,8 @@ module NpmDependencies : sig
   val of_yojson : t Json.decoder
   val to_yojson : t Json.encoder
   val toOpamFormula : t -> Dep.t disj conj
+  val override : t -> t -> t
+  val find : name:string -> t -> Req.t option
 end
 
 module File : sig

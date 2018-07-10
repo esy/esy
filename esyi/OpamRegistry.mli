@@ -27,12 +27,13 @@ end
 val init : cfg:Config.t -> unit -> t RunAsync.t
 
 val versions :
-  t
+  ?ocamlVersion:OpamVersion.Version.t
   -> name : OpamPackage.Name.t
+  -> t
   -> resolution list RunAsync.t
 
 val version :
-    t
-    -> name : OpamPackage.Name.t
+    name : OpamPackage.Name.t
     -> version : OpamPackage.Version.t
+    -> t
     -> Manifest.t option RunAsync.t

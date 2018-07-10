@@ -582,6 +582,22 @@ module NpmDependencies = struct
       reqs @ update
     in
     List.fold_left ~f ~init:[] reqs
+
+  let override deps update =
+    let byName =
+      let f byName (req : Req.t) = StringMap.add req.name req byName in
+      List.fold_left ~f ~init:StringMap.empty update
+    in
+    let f (req : Req.t) =
+      match StringMap.find_opt req.name byName with
+      | Some updateReq -> updateReq
+      | None -> req
+    in
+    List.map ~f deps
+
+  let find ~name reqs =
+    let f (req : Req.t) = req.name = name in
+    List.find_opt ~f reqs
 end
 
 
