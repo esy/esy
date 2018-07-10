@@ -229,41 +229,42 @@ let ofDir (cfg : Config.t) =
         end
     in
 
-  let pathToEsyLink = Path.(path / "_esylink") in
+    let pathToEsyLink = Path.(path / "_esylink") in
 
-  let%bind sourcePath =
-    if%bind Fs.exists pathToEsyLink
-    then
-      let%bind path = Fs.readFile pathToEsyLink in
-      return (Path.v (String.trim path))
-    else
-      return path
-  in
+    let%bind sourcePath =
+      if%bind Fs.exists pathToEsyLink
+      then
+        let%bind path = Fs.readFile pathToEsyLink in
+        return (Path.v (String.trim path))
+      else
+        return path
+    in
 
-  match%bind Manifest.ofDir sourcePath with
-  | Some (manifest, manifestPath) ->
-    packageOfManifest ~sourcePath manifest manifestPath
-  | None ->
-    error "unable to find manifest"
+    match%bind Manifest.ofDir sourcePath with
+    | Some (manifest, manifestPath) ->
+      packageOfManifest ~sourcePath manifest manifestPath
+    | None ->
+      error "unable to find manifest"
 
   and loadPackageCached (path : Path.t) stack =
     let compute _ = loadPackage path stack in
     Memoize.compute packageCache path compute
   in
 
-    match%bind loadPackageCached cfg.sandboxPath [] with
-    | `EsyPkg root ->
-      let%bind manifestInfo =
-        !manifestInfo
-        |> PathSet.elements
-        |> List.map
-              ~f:(fun path ->
-                  let%bind stat = Fs.stat path in
-                  return (path, stat.Unix.st_mtime))
-        |> RunAsync.List.joinAll
+  match%bind loadPackageCached cfg.sandboxPath [] with
+  | `EsyPkg root ->
+    let%bind manifestInfo =
+      let statPath path =
+        let%bind stat = Fs.stat path in
+        return (path, stat.Unix.st_mtime)
       in
-      let scripts = Manifest.Scripts.empty in
-      let sandbox: t = {root;scripts;manifestInfo} in
-      return sandbox
-    | _ ->
-      error "root package missing esy config"
+      !manifestInfo
+      |> PathSet.elements
+      |> List.map ~f:statPath
+      |> RunAsync.List.joinAll
+    in
+    let scripts = Manifest.Scripts.empty in
+    let sandbox: t = {root;scripts;manifestInfo} in
+    return sandbox
+  | _ ->
+    error "root package missing esy config"
