@@ -61,7 +61,7 @@ let convertEnvToJsonString = (env) => {
 };
 
 module Windows = {
-    let sandboxExec = config => {
+    let sandboxExec = _config => {
         let prepare = (~env, command) => {
             open Run;
             open Bos.OS.Cmd;
