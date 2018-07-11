@@ -13,7 +13,7 @@ let ppContextItem fmt = function
   | Line line ->
     Fmt.pf fmt "@[<h>%s@]" line
   | LogOutput (filename, out) ->
-    Fmt.pf fmt "@[<v 2>%s@\n%a@]" filename Fmt.text out
+    Fmt.pf fmt "@[<h 2>%s@\n%a@]" filename Fmt.text out
 
 let ppContext = Fmt.(list ~sep:(unit "@\n") ppContextItem)
 
