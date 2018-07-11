@@ -1,14 +1,15 @@
-module VersionSpec = PackageInfo.VersionSpec
-module SourceSpec = PackageInfo.SourceSpec
-module Version = PackageInfo.Version
-module Source = PackageInfo.Source
-module Req = PackageInfo.Req
+module VersionSpec = Package.VersionSpec
+module SourceSpec = Package.SourceSpec
+module Version = Package.Version
+module Source = Package.Source
+module Req = Package.Req
+module DepFormula = Package.DepFormula
 
 module Resolution = struct
   type t = {
     name: string;
     version: Version.t
-  }
+  } [@@deriving (eq, ord)]
 
   let cmpByVersion a b =
     Version.compare a.version b.version
@@ -18,7 +19,7 @@ module Resolution = struct
 end
 
 module PackageCache = Memoize.Make(struct
-  type key = (string * PackageInfo.Version.t)
+  type key = (string * Package.Version.t)
   type value = Package.t RunAsync.t
 end)
 
@@ -27,15 +28,34 @@ module SourceCache = Memoize.Make(struct
   type value = Source.t RunAsync.t
 end)
 
-module NpmResolutionCache = Memoize.Make(struct
+module ResolutionCache = Memoize.Make(struct
   type key = string
   type value = Resolution.t list RunAsync.t
 end)
 
-module OpamResolutionCache = Memoize.Make(struct
-  type key = string
-  type value = Resolution.t list RunAsync.t
-end)
+let toOpamName name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", name) -> OpamPackage.Name.of_string name
+  | _ -> failwith ("invalid opam package name: " ^ name)
+
+let toOpamOcamlVersion version =
+  match version with
+  | Some (Package.Version.Npm { major; minor; patch; _ }) ->
+    let minor =
+      if minor < 10
+      then "0" ^ (string_of_int minor)
+      else string_of_int minor
+    in
+    let patch =
+      if patch < 1000
+      then patch
+      else patch / 1000
+    in
+    let v = Printf.sprintf "%i.%s.%i" major minor patch in
+    Some (OpamVersion.Version.parseExn v)
+  | Some (Package.Version.Opam v) -> Some v
+  | Some (Package.Version.Source _) -> None
+  | None -> None
 
 module Github = struct
 
@@ -78,13 +98,17 @@ type t = {
   srcCache: SourceCache.t;
   npmRegistryQueue : LwtTaskQueue.t;
   opamRegistry : OpamRegistry.t;
-  npmResolutionCache : NpmResolutionCache.t;
-  opamResolutionCache : OpamResolutionCache.t;
+  ocamlVersion : Package.Version.t option;
+  resolutionCache : ResolutionCache.t;
 }
 
-let make ~cfg () =
+let make ?ocamlVersion ?opamRegistry ~cfg () =
   let open RunAsync.Syntax in
-  let%bind opamRegistry = OpamRegistry.init ~cfg () in
+  let%bind opamRegistry =
+    match opamRegistry with
+    | Some opamRegistry -> return opamRegistry
+    | None -> OpamRegistry.init ~cfg ()
+  in
   let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
   return {
     cfg;
@@ -92,8 +116,8 @@ let make ~cfg () =
     srcCache = SourceCache.make ();
     npmRegistryQueue;
     opamRegistry;
-    npmResolutionCache = NpmResolutionCache.make ();
-    opamResolutionCache = OpamResolutionCache.make ();
+    ocamlVersion;
+    resolutionCache = ResolutionCache.make ();
   }
 
 let package ~(resolution : Resolution.t) resolver =
@@ -140,40 +164,104 @@ let package ~(resolution : Resolution.t) resolver =
         in
         return (`PackageJson manifest)
       | Version.Opam version ->
-        let name = OpamManifest.PackageName.ofNpmExn resolution.name in
-        begin match%bind OpamRegistry.version resolver.opamRegistry ~name ~version with
+        begin match%bind
+          let name = toOpamName resolution.name in
+          OpamRegistry.version
+            ~name
+            ~version
+            resolver.opamRegistry
+        with
           | Some manifest ->
             return (`Opam manifest)
-          | None -> error ("no such opam package: " ^ OpamManifest.PackageName.toString name)
+          | None -> error ("no such opam package: " ^ resolution.name)
         end
     in
 
-    let%bind pkg = RunAsync.ofRun (
+    let%bind pkg =
       match manifest with
       | `PackageJson manifest ->
-        Package.ofManifest
+        Manifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
       | `Opam manifest ->
-        Package.ofOpamManifest
+        OpamRegistry.Manifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
-    ) in
+    in
 
     return pkg
   end
 
-let resolve ~req resolver =
+let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
   let open RunAsync.Syntax in
 
-  let name = Req.name req in
-  let spec = Req.spec req in
-
-  let errorResolvingReq req msg =
-    let msg = Format.asprintf "unable to resolve %a: %s" Req.pp req msg in
+  let errorResolvingSource msg =
+    let msg =
+      Format.asprintf
+        "unable to resolve %s@%a: %s"
+        name SourceSpec.pp sourceSpec msg
+    in
     error msg
+  in
+
+  SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
+    let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
+    match sourceSpec with
+    | SourceSpec.Github {user; repo; ref} ->
+      let remote = Github.remote ~user ~repo in
+      let%bind commit = Git.lsRemote ?ref ~remote () in
+      begin match commit, ref with
+      | Some commit, _ ->
+        return (Source.Github {user; repo; commit})
+      | None, Some ref ->
+        if Git.isCommitLike ref
+        then return (Source.Github {user; repo; commit = ref})
+        else errorResolvingSource "cannot resolve commit"
+      | None, None ->
+        errorResolvingSource "cannot resolve commit"
+      end
+
+    | SourceSpec.Git {remote; ref} ->
+      let%bind commit = Git.lsRemote ?ref ~remote () in
+      begin match commit, ref  with
+      | Some commit, _ ->
+        return (Source.Git {remote; commit})
+      | None, Some ref ->
+        if Git.isCommitLike ref
+        then return (Source.Git {remote; commit = ref})
+        else errorResolvingSource "cannot resolve commit"
+      | None, None ->
+        errorResolvingSource "cannot resolve commit"
+      end
+
+    | SourceSpec.NoSource ->
+      return (Source.NoSource)
+
+    | SourceSpec.Archive (url, None) ->
+      (* TODO: acquire checksum *)
+      return (Source.Archive (url, "fakechecksum"))
+    | SourceSpec.Archive (url, Some checksum) ->
+      return (Source.Archive (url, checksum))
+
+    | SourceSpec.LocalPath p ->
+      return (Source.LocalPath p)
+
+    | SourceSpec.LocalPathLink p ->
+      return (Source.LocalPathLink p)
+  end
+
+let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+  let open RunAsync.Syntax in
+
+  let spec =
+    match spec with
+    | None ->
+      if Package.isOpamPackageName name
+      then VersionSpec.Opam [[OpamVersion.Constraint.ANY]]
+      else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+    | Some spec -> spec
   in
 
   match spec with
@@ -181,22 +269,28 @@ let resolve ~req resolver =
   | VersionSpec.Npm _ ->
 
     let%bind resolutions =
-      NpmResolutionCache.compute resolver.npmResolutionCache name begin fun name ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
+      ResolutionCache.compute resolver.resolutionCache name begin fun name ->
+        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
-          LwtTaskQueue.submit
-            resolver.npmRegistryQueue
-            (fun () -> NpmRegistry.versions ~cfg:resolver.cfg name)
+          match%bind
+            LwtTaskQueue.submit
+              resolver.npmRegistryQueue
+              (fun () -> NpmRegistry.versions ~cfg:resolver.cfg name)
+          with
+          | [] ->
+            let msg = Format.asprintf "no npm package %s found" name in
+            error msg
+          | versions -> return versions
         in
 
         let f (version, manifest) =
-          let version = PackageInfo.Version.Npm version in
+          let version = Package.Version.Npm version in
           let resolution = {Resolution. name; version} in
 
           (* precache manifest so we don't have to fetch it once more *)
           let key = (resolution.name, resolution.version) in
           PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-            Lwt.return (Package.ofManifest ~version manifest)
+            Manifest.toPackage ~version manifest
           end;
 
           resolution
@@ -207,20 +301,25 @@ let resolve ~req resolver =
 
     let resolutions =
       resolutions
-      |> List.sort ~cmp:Resolution.cmpByVersion
+      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return (req, resolutions)
+    return (resolutions, None)
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =
-      OpamResolutionCache.compute resolver.opamResolutionCache name begin fun name ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" name) in
-        let%bind opamName = RunAsync.ofRun (OpamManifest.PackageName.ofNpm name) in
-        let%bind versions = OpamRegistry.versions resolver.opamRegistry ~name:opamName in
-        let f (version, _) =
-          let version = Version.Opam version in
+      ResolutionCache.compute resolver.resolutionCache name begin fun name ->
+        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
+        let%bind versions =
+          let name = toOpamName name in
+          OpamRegistry.versions
+            ?ocamlVersion:(toOpamOcamlVersion resolver.ocamlVersion)
+            ~name
+            resolver.opamRegistry
+        in
+        let f (resolution : OpamRegistry.resolution) =
+          let version = Version.Opam resolution.version in
           {Resolution. name; version}
         in
         return (List.map ~f versions)
@@ -229,79 +328,14 @@ let resolve ~req resolver =
 
     let resolutions =
       resolutions
-      |> List.sort ~cmp:Resolution.cmpByVersion
+      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return (req, resolutions)
+    return (resolutions, None)
 
-  | VersionSpec.Source (SourceSpec.Github {user; repo; ref} as srcSpec) ->
-    let%bind source = SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
-      let%lwt () = Logs_lwt.app (fun m -> m "resolving %s" (Req.toString req)) in
-      let remote = Github.remote ~user ~repo in
-      let%bind commit = Git.lsRemote ?ref ~remote () in
-      match commit, ref with
-      | Some commit, _ ->
-        return (Source.Github {user; repo; commit})
-      | None, Some ref ->
-        if Git.isCommitLike ref
-        then return (Source.Github {user; repo; commit = ref})
-        else errorResolvingReq req "cannot resolve commit"
-      | None, None ->
-        errorResolvingReq req "cannot resolve commit"
-    end in
+  | VersionSpec.Source sourceSpec ->
+    let%bind source = resolveSource ~name ~sourceSpec resolver in
     let version = Version.Source source in
-    let req =
-      let commit =
-        match source with
-        | Source.Github {commit;_} -> commit
-        | _ -> assert false
-      in
-      let source = SourceSpec.Github {user;repo;ref = Some commit;} in
-      Req.ofSpec ~name ~spec:(VersionSpec.Source source)
-    in
-    return (req, [{Resolution. name; version}])
-
-  | VersionSpec.Source (SourceSpec.Git {remote; ref} as srcSpec) ->
-    let%bind source = SourceCache.compute resolver.srcCache srcSpec begin fun _ ->
-      let%lwt () = Logs_lwt.app (fun m -> m "resolving %s" (Req.toString req)) in
-      let%bind commit = Git.lsRemote ?ref ~remote () in
-      match commit, ref  with
-      | Some commit, _ ->
-        return (Source.Git {remote; commit})
-      | None, Some ref ->
-        if Git.isCommitLike ref
-        then return (Source.Git {remote; commit = ref})
-        else errorResolvingReq req "cannot resolve commit"
-      | None, None ->
-        errorResolvingReq req "cannot resolve commit"
-    end in
-    let version = Version.Source source in
-    let req =
-      let commit =
-        match source with
-        | Source.Git {commit;_} -> commit
-        | _ -> assert false
-      in
-      let source = SourceSpec.Git {remote;ref = Some commit;} in
-      Req.ofSpec ~name ~spec:(VersionSpec.Source source)
-    in
-    return (req, [{Resolution. name; version}])
-
-  | VersionSpec.Source SourceSpec.NoSource ->
-    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
-    error "no source dependencies are not supported"
-
-  | VersionSpec.Source (SourceSpec.Archive _) ->
-    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
-    error "archive dependencies are not supported"
-
-  | VersionSpec.Source (SourceSpec.LocalPath p) ->
-    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
-    let version = Version.Source (Source.LocalPath p) in
-    return (req, [{Resolution. name; version}])
-
-  | VersionSpec.Source (SourceSpec.LocalPathLink p) ->
-    let%lwt () = Logs_lwt.debug (fun m -> m "Resolving %s" (Req.toString req)) in
-    let version = Version.Source (Source.LocalPathLink p) in
-    return (req, [{Resolution. name; version}])
+    let versionSpec = VersionSpec.ofVersion version in
+    return ([{Resolution. name; version}], Some versionSpec)

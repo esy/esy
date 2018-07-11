@@ -1,54 +1,4 @@
-module PackageNameMap = Map.Make(OpamManifest.PackageName);
-module Dependencies = PackageInfo.Dependencies;
-
-module Override = {
-  module Opam = {
-    [@deriving of_yojson]
-    type t = {
-      source: [@default None] option(source),
-      files,
-    }
-    and source = {
-      url: string,
-      checksum: string,
-    }
-    and files = list(file)
-    and file = {
-      name: Path.t,
-      content: string,
-    };
-
-    let empty = {source: None, files: []};
-  };
-
-  module Command = {
-    type t = list(string);
-
-    let of_yojson = (json: Json.t) =>
-      switch (json) {
-      | `List(_) => Json.Parse.(list(string, json))
-      | `String(cmd) => Ok([cmd])
-      | _ => Error("expected either a list or a string")
-      };
-  };
-
-  [@deriving of_yojson]
-  type t = {
-    build: [@default None] option(list(Command.t)),
-    install: [@default None] option(list(Command.t)),
-    dependencies:
-      [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
-    peerDependencies:
-      [@default PackageInfo.Dependencies.empty] PackageInfo.Dependencies.t,
-    exportedEnv:
-      [@default PackageInfo.ExportedEnv.empty] PackageInfo.ExportedEnv.t,
-    opam: [@default Opam.empty] Opam.t,
-  };
-};
-
-type t = PackageNameMap.t(list((OpamVersion.Formula.DNF.t, Fpath.t)));
-
-type override = Override.t;
+type t = OpamPackage.Name.Map.t(list((OpamVersion.Formula.DNF.t, Fpath.t)));
 
 let rec yamlToJson = value =>
   switch (value) {
@@ -70,6 +20,8 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
         switch (cfg.Config.esyOpamOverride) {
         | Config.Local(path) => return(path)
         | Config.Remote(remote, local) =>
+          let%lwt () =
+            Logs_lwt.app(m => m("checking %s for updates...", remote));
           let%bind () =
             Git.ShallowClone.update(~branch="5", ~dst=local, remote);
           return(local);
@@ -81,10 +33,9 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
 
       let parseOverrideSpec = spec =>
         switch (String.cut(~sep=".", spec)) {
-        | None => (
-            OpamManifest.PackageName.ofString(spec),
-            OpamVersion.Formula.any,
-          )
+        | None =>
+          Some((OpamPackage.Name.of_string(spec), OpamVersion.Formula.any))
+        | Some(("", _)) => None
         | Some((name, constr)) =>
           let constr =
             String.map(
@@ -94,24 +45,26 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
               constr,
             );
           let constr = OpamVersion.Formula.parse(constr);
-          (OpamManifest.PackageName.ofString(name), constr);
+          Some((OpamPackage.Name.of_string(name), constr));
         };
 
       let overrides = {
-        let f = (overrides, dirName) => {
-          let (name, formula) = parseOverrideSpec(dirName);
-          let items =
-            switch (PackageNameMap.find_opt(name, overrides)) {
-            | Some(items) => items
-            | None => []
-            };
-          PackageNameMap.add(
-            name,
-            [(formula, Path.(packagesDir / dirName)), ...items],
-            overrides,
-          );
-        };
-        List.fold_left(~f, ~init=PackageNameMap.empty, names);
+        let f = (overrides, dirName) =>
+          switch (parseOverrideSpec(dirName)) {
+          | Some((name, formula)) =>
+            let items =
+              switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
+              | Some(items) => items
+              | None => []
+              };
+            OpamPackage.Name.Map.add(
+              name,
+              [(formula, Path.(packagesDir / dirName)), ...items],
+              overrides,
+            );
+          | None => overrides
+          };
+        List.fold_left(~f, ~init=OpamPackage.Name.Map.empty, names);
       };
 
       return(overrides);
@@ -127,7 +80,9 @@ let load = baseDir => {
       "Reading " ++ Path.toString(packageJson),
       {
         let%bind json = Fs.readJsonFile(packageJson);
-        RunAsync.ofRun(Json.parseJsonWith(Override.of_yojson, json));
+        RunAsync.ofRun(
+          Json.parseJsonWith(Package.OpamOverride.of_yojson, json),
+        );
       },
     );
   } else {
@@ -138,7 +93,9 @@ let load = baseDir => {
         let%bind yaml =
           Yaml.of_string(data) |> Run.ofBosError |> RunAsync.ofRun;
         let json = yamlToJson(yaml);
-        RunAsync.ofRun(Json.parseJsonWith(Override.of_yojson, json));
+        RunAsync.ofRun(
+          Json.parseJsonWith(Package.OpamOverride.of_yojson, json),
+        );
       } else {
         error(
           "must have either package.json or package.yaml "
@@ -149,9 +106,9 @@ let load = baseDir => {
   };
 };
 
-let get = (overrides, name: OpamManifest.PackageName.t, version) =>
+let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
   RunAsync.Syntax.(
-    switch (PackageNameMap.find_opt(name, overrides)) {
+    switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
     | Some(items) =>
       switch (
         List.find_opt(
@@ -169,37 +126,3 @@ let get = (overrides, name: OpamManifest.PackageName.t, version) =>
     | None => return(None)
     }
   );
-
-let apply = (manifest: OpamManifest.t, override: Override.t) => {
-  let source =
-    switch (override.opam.Override.Opam.source) {
-    | Some(source) => PackageInfo.Source.Archive(source.url, source.checksum)
-    | None => manifest.source
-    };
-
-  let files =
-    manifest.files
-    @ List.map(
-        ~f=f => Override.Opam.(f.name, f.content),
-        override.opam.files,
-      );
-  {
-    ...manifest,
-    build: Option.orDefault(~default=manifest.build, override.Override.build),
-    install:
-      Option.orDefault(~default=manifest.install, override.Override.install),
-    dependencies:
-      Dependencies.overrideMany(
-        ~reqs=Dependencies.toList(override.Override.dependencies),
-        manifest.dependencies,
-      ),
-    peerDependencies:
-      Dependencies.overrideMany(
-        ~reqs=Dependencies.toList(override.Override.peerDependencies),
-        manifest.peerDependencies,
-      ),
-    files,
-    source,
-    exportedEnv: override.Override.exportedEnv,
-  };
-};
