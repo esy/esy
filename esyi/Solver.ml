@@ -296,11 +296,17 @@ let add ~(dependencies : Dependencies.t) solver =
     in
     let%bind resolutions, spec =
       Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver
+      |> RunAsync.withContext (Format.asprintf "resolving %a" Req.pp req)
     in
 
     let%bind packages =
+      let fetchPackage resolution =
+        Resolver.package ~resolution solver.resolver
+        |> RunAsync.withContext (
+            Format.asprintf "resolving metadata %a" Resolver.Resolution.pp resolution)
+      in
       resolutions
-      |> List.map ~f:(fun resolution -> Resolver.package ~resolution solver.resolver)
+      |> List.map ~f:fetchPackage
       |> RunAsync.List.joinAll
     in
 
