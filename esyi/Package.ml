@@ -413,7 +413,8 @@ module Req = struct
             begin match SemverVersion.Formula.parse spec with
               | Ok v -> VersionSpec.Npm v
               | Error err ->
-                failwith err
+                let msg = Printf.sprintf "error parsing semver formula: %s" err in
+                failwith msg
             end
           end
       in
