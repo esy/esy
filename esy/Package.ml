@@ -13,6 +13,7 @@ module OpamBuild = struct
     buildCommands : commands;
     installCommands : commands;
     patches : (OpamFilename.Base.t * OpamTypes.filter option) list;
+    substs : OpamFilename.Base.t list;
   }
 
   and commands =

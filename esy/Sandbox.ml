@@ -193,6 +193,7 @@ let ofDir (cfg : Config.t) =
                 Package.OpamBuild.Opam (OpamFile.OPAM.install manifest.opam)
               end;
             patches = OpamFile.OPAM.patches manifest.opam;
+            substs = OpamFile.OPAM.substs manifest.opam;
           };
           sourcePath = ConfigPath.ofPath cfg sourcePath;
           resolution = Some ("opam:" ^ Manifest.Opam.version manifest)

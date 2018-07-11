@@ -345,7 +345,10 @@ module Opam = struct
         ~build:true ~test:false ~post:true ~doc:false ~dev:false
         (OpamFile.OPAM.depends opam)
     in
-    "ocaml"::"@esy-ocaml/esy-installer"::dependencies
+    "ocaml"
+    ::"@esy-ocaml/esy-installer"
+    ::"@esy-ocaml/substs"
+    ::dependencies
 
   let optDependencies {opam;_} =
     listPackageNamesOfFormula

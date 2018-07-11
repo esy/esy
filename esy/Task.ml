@@ -864,6 +864,17 @@ let ofPackage
       with Failure msg -> error msg
     in
 
+    let opamSubstsToCommands substs =
+      let commands =
+        let f basename =
+          let basename = OpamFilename.Base.to_string basename in
+          ["substs"; basename ^ ".in"]
+        in
+        List.map ~f substs
+      in
+      return commands
+    in
+
     let opamPatchesToCommands patches =
       Run.withContext "processing patch field" (
         let open Run.Syntax in
@@ -903,19 +914,23 @@ let ofPackage
         | Package.OpamBuild ({
             buildCommands = Package.OpamBuild.Opam buildCommands;
             patches;
+            substs;
             _
           } as build) ->
+          let%bind applySubstsCommands = opamSubstsToCommands substs in
           let%bind applyPatchesCommands = opamPatchesToCommands patches in
           let%bind buildCommands = renderOpamCommands build buildCommands in
-          return (applyPatchesCommands @ buildCommands)
+          return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
         | Package.OpamBuild ({
             buildCommands = Package.OpamBuild.Override buildCommands;
             patches;
+            substs;
             _
           }) ->
+          let%bind applySubstsCommands = opamSubstsToCommands substs in
           let%bind applyPatchesCommands = opamPatchesToCommands patches in
           let%bind buildCommands = renderEsyCommands buildCommands in
-          return (applyPatchesCommands @ buildCommands)
+          return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
         end
     in
     let%bind installCommands =
