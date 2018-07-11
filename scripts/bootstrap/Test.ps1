@@ -11,7 +11,7 @@ function exitIfFailed() {
 }
 
 Write-Host "Cloning test repo.."
-git clone https://github.com/esy-ocaml/esy-reason-project C:/erp
+git clone https://github.com/bryphe/esy-minimal-ocamlbuild-project C:/erp
 exitIfFailed
 Write-Host "Clone complete!"
 cd C:/erp
@@ -28,6 +28,6 @@ C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
 
 exitIfFailed
 
-# TODO: Bring this back when we have a project that can build successfully!
-# C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe build
-# exitIfFailed
+TODO: Bring this back when we have a project that can build successfully!
+C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe build
+exitIfFailed
