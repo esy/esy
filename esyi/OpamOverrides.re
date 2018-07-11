@@ -31,8 +31,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
       let%bind names = Fs.listDir(packagesDir);
       module String = Astring.String;
 
-      let parseOverrideSpec = spec => {
-        print_endline(spec);
+      let parseOverrideSpec = spec =>
         switch (String.cut(~sep=".", spec)) {
         | None =>
           Some((OpamPackage.Name.of_string(spec), OpamVersion.Formula.any))
@@ -48,7 +47,6 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
           let constr = OpamVersion.Formula.parse(constr);
           Some((OpamPackage.Name.of_string(name), constr));
         };
-      };
 
       let overrides = {
         let f = (overrides, dirName) =>
