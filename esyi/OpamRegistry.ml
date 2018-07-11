@@ -156,6 +156,18 @@ module Manifest = struct
         in
         let formula =
           formula
+          @ [
+              [{
+                Package.Dep.
+                name = "@esy-ocaml/esy-installer";
+                req = Npm SemverVersion.Constraint.ANY;
+              }];
+              [{
+                Package.Dep.
+                name = "@esy-ocaml/substs";
+                req = Npm SemverVersion.Constraint.ANY;
+              }];
+            ]
           @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.dependencies
           @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.peerDependencies
         in return (Package.Dependencies.OpamFormula formula)
