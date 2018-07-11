@@ -299,10 +299,14 @@ let getPackage
 let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
+  let queue = LwtTaskQueue.create ~concurrency:2 () in
   let%bind resolutions =
+    let getPackageVersion version () =
+      getPackage ?ocamlVersion ~name ~version registry
+    in
     index
     |> OpamPackage.Version.Map.bindings
-    |> List.map ~f:(fun (version, _path) -> getPackage ?ocamlVersion ~name ~version registry)
+    |> List.map ~f:(fun (version, _path) -> LwtTaskQueue.submit queue (getPackageVersion version))
     |> RunAsync.List.joinAll
   in
   return (List.filterNone resolutions)
