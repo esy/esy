@@ -301,7 +301,7 @@ let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
 
     let resolutions =
       resolutions
-      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
+      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion a b)
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
@@ -328,7 +328,7 @@ let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
 
     let resolutions =
       resolutions
-      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
+      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion a b)
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 

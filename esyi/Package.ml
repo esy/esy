@@ -276,7 +276,7 @@ module VersionSpec = struct
 
   let toString = function
     | Npm formula -> SemverVersion.Formula.DNF.toString formula
-    | Opam formula -> "opam:" ^ OpamVersion.Formula.DNF.toString formula
+    | Opam formula -> OpamVersion.Formula.DNF.toString formula
     | Source src -> SourceSpec.toString src
 
   let pp fmt spec =
@@ -413,9 +413,7 @@ module Req = struct
             begin match SemverVersion.Formula.parse spec with
               | Ok v -> VersionSpec.Npm v
               | Error err ->
-                Logs.warn (fun m ->
-                  m "invalid version spec %s treating as *:@\n  %s" spec err);
-                VersionSpec.Npm SemverVersion.Formula.any
+                failwith err
             end
           end
       in
@@ -562,10 +560,10 @@ module NpmDependencies = struct
     in
     Result.List.foldLeft ~f ~init:empty items
 
-  let to_yojson (deps : t) =
+  let to_yojson (reqs : t) =
     let items =
-      let f req = (req.Req.name, Req.to_yojson req) in
-      List.map ~f deps
+      let f (req : Req.t) = (req.name, VersionSpec.to_yojson req.spec) in
+      List.map ~f reqs
     in
     `Assoc items
 

@@ -50,7 +50,7 @@ module Version = struct
   let show = toString
 
   let pp fmt v =
-    Fmt.pf fmt "npm:%s" (toString v)
+    Fmt.pf fmt "%s" (toString v)
 
   let prerelease v = match v.prerelease, v.build with
   | [], [] -> false
