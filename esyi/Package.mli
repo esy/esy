@@ -98,7 +98,7 @@ module Req : sig
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
 
-  val make : name:string -> spec:string -> t
+  val make : name:string -> spec:string -> (t, string) result
   val ofSpec : name:string -> spec:VersionSpec.t -> t
 
   val name : t -> string

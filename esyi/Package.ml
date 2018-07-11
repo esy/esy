@@ -393,32 +393,33 @@ module Req = struct
     | None -> tryParseGitHubSpec v
 
   let make ~name ~spec =
+    let open Result.Syntax in
     if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
     then
       let spec = VersionSpec.Source (SourceSpec.LocalPath (Path.v spec)) in
-      {name; spec}
+      Ok {name; spec}
     else
-      let spec =
+      let%bind spec =
         match String.cut ~sep:"/" name with
         | Some ("@opam", _opamName) -> begin
           match tryParseSourceSpec spec with
-          | Some spec -> VersionSpec.Source spec
-          | None -> VersionSpec.Opam (OpamVersion.Formula.parse spec)
+          | Some spec -> Ok (VersionSpec.Source spec)
+          | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parse spec))
           end
         | Some _
         | None -> begin
           match tryParseSourceSpec spec with
-          | Some spec -> VersionSpec.Source spec
+          | Some spec -> Ok (VersionSpec.Source spec)
           | None ->
             begin match SemverVersion.Formula.parse spec with
-              | Ok v -> VersionSpec.Npm v
+              | Ok v -> Ok (VersionSpec.Npm v)
               | Error err ->
                 let msg = Printf.sprintf "error parsing semver formula: %s" err in
-                failwith msg
+                Error msg
             end
           end
       in
-      {name; spec;}
+      Ok {name; spec;}
 
   let%test_module "parsing" = (module struct
 
@@ -460,13 +461,18 @@ module Req = struct
     ]
 
     let expectParsesTo req e =
-      if VersionSpec.equal req.spec e
-      then true
-      else (
-        Format.printf "@[<v>     got: %a@\nexpected: %a@\n@]"
-          VersionSpec.pp req.spec VersionSpec.pp e;
+      match req with
+      | Ok req ->
+        if VersionSpec.equal req.spec e
+        then true
+        else (
+          Format.printf "@[<v>     got: %a@\nexpected: %a@\n@]"
+            VersionSpec.pp req.spec VersionSpec.pp e;
+          false
+        )
+      | Error err ->
+        Format.printf "@[<v>     error: %s@]" err;
         false
-      )
 
     let%test "parsing" =
       let f passes (req, e) =
@@ -556,7 +562,7 @@ module NpmDependencies = struct
     let%bind items = Json.Parse.assoc json in
     let f deps (name, json) =
       let%bind spec = Json.Parse.string json in
-      let req = Req.make ~name ~spec in
+      let%bind req = Req.make ~name ~spec in
       return (req::deps)
     in
     Result.List.foldLeft ~f ~init:empty items
