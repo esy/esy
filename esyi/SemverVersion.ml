@@ -141,7 +141,7 @@ module Version = struct
       in
       Ok (prerelease, build)
     | None ->
-      let msg = Printf.sprintf "unable to prerelease and build: %s" v in
+      let msg = Printf.sprintf "unable to parse prerelease part: %s" v in
       Error msg
 
   let parse version =
@@ -450,6 +450,11 @@ module Formula = struct
       | `Raw (prerelease, build) -> Version.make ~prerelease ~build 0 0 0
 
     let parsePartial version =
+      let version =
+        match version.[0] = '=' with
+        | true -> sliceToEnd version 1
+        | false -> version
+      in
       let version =
         match version.[0] = 'v' with
         | true -> sliceToEnd version 1
