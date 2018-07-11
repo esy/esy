@@ -65,7 +65,6 @@ let resolveCmd path cmd =
   let find p =
     let p = let open Path in (v p) / cmd in
     let%bind p = EsyBash.normalizePathForWindows p in
-    /* print_endline("Checking path: " ^ (Fpath.to_string p) ^ " for cmd: " ^ cmd); */
     let%bind stats = Bos.OS.Path.stat p in
     match stats.Unix.st_kind, isExecutable stats with
     | Unix.S_REG, true -> Ok (Some p)

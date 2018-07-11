@@ -10,7 +10,6 @@ type t('a, 'b) =
 
 let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 
-
 let rec realpath = (p: Fpath.t) => {
   open Result.Syntax;
   let%bind p =
