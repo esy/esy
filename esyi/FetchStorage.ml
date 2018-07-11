@@ -1,34 +1,48 @@
 module String = Astring.String
-module Source = PackageInfo.Source
+module Source = Package.Source
 
 module Dist = struct
   type t = {
     name : string;
-    version : PackageInfo.Version.t;
-    source : PackageInfo.Source.t;
+    version : Package.Version.t;
+    source : Package.Source.t;
     tarballPath : Path.t option;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name PackageInfo.Version.pp dist.version
+    Fmt.pf fmt "%s@%a" dist.name Package.Version.pp dist.version
 end
 
 let packageKey (pkg : Solution.Record.t) =
-  let version = PackageInfo.Version.toString pkg.version in
+  let version = Package.Version.toString pkg.version in
   match pkg.opam with
   | None -> Printf.sprintf "%s__%s" pkg.name version
   | Some opam ->
-    let opamHash =
-      opam
-      |> PackageInfo.OpamInfo.show
+    let manifestHash =
+      opam.opam
+      |> Package.Opam.OpamFile.to_yojson
+      |> Yojson.Safe.to_string
       |> Digest.string
       |> Digest.to_hex
       |> String.Sub.v ~start:0 ~stop:8
       |> String.Sub.to_string
     in
-    Printf.sprintf "%s__%s__%s" pkg.name version opamHash
+    begin match opam.override with
+    | Some override ->
+      let overrideHash =
+        override
+        |> Package.OpamOverride.to_yojson
+        |> Yojson.Safe.to_string
+        |> Digest.string
+        |> Digest.to_hex
+        |> String.Sub.v ~start:0 ~stop:8
+        |> String.Sub.to_string
+      in
+      Printf.sprintf "%s__%s__%s__%s" pkg.name version manifestHash overrideHash
+    | None -> Printf.sprintf "%s__%s__%s" pkg.name version manifestHash
+    end
 
-let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} as record) =
+let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; files} as record) =
   let open RunAsync.Syntax in
 
   let key = packageKey record in
@@ -36,18 +50,18 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
   let doFetch path =
     match source with
 
-    | PackageInfo.Source.LocalPath _ ->
+    | Package.Source.LocalPath _ ->
       let msg = "Fetching " ^ name ^ ": NOT IMPLEMENTED" in
       failwith msg
 
-    | PackageInfo.Source.LocalPathLink _ ->
+    | Package.Source.LocalPathLink _ ->
       (* this case is handled separately *)
       return ()
 
-    | PackageInfo.Source.NoSource ->
+    | Package.Source.NoSource ->
       return ()
 
-    | PackageInfo.Source.Archive (url, _checksum)  ->
+    | Package.Source.Archive (url, _checksum)  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
@@ -57,7 +71,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
       Fs.withTempDir f
 
-    | PackageInfo.Source.Github github ->
+    | Package.Source.Github github ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -74,7 +88,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
       in
       Fs.withTempDir f
 
-    | PackageInfo.Source.Git git ->
+    | Package.Source.Git git ->
       let%bind () = Git.clone ~dst:path ~remote:git.remote () in
       let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
       let%bind () = Fs.rmPath Path.(path / ".git") in
@@ -92,41 +106,43 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
 
       let%bind () =
         match opam with
-        | Some {PackageInfo.OpamInfo. packageJson; files; patches} ->
-
+        | Some { name; version; opam; override } ->
           let%bind () = removeEsyJsonIfExists() in
-
+          let data =
+            Format.asprintf
+              "name: \"%a\"\nversion: \"%a\"\n%a"
+              Package.Opam.OpamName.pp name
+              Package.Opam.OpamVersion.pp version
+              Package.Opam.OpamFile.pp opam
+          in
+          let%bind () = Fs.createDir Path.(path / "_esy") in
+          let%bind () = Fs.writeFile ~data Path.(path / "_esy" / "opam") in
           let%bind () =
-            Fs.writeJsonFile ~json:packageJson Path.(path / "package.json")
+            match override with
+            | Some override ->
+              let json = Package.OpamOverride.to_yojson override in
+              Fs.writeJsonFile ~json Path.(path / "_esy" / "override.json")
+            | None -> return ()
           in
-
-          let%bind () =
-            let f (relPath, data) =
-              let name = Path.append path relPath in
-              let dirname = Path.parent name in
-              let%bind () = Fs.createDir dirname in
-              (* TODO: move this to the place we read data from *)
-              let data =
-                if String.get data (String.length data - 1) == '\n'
-                then data
-                else data ^ "\n"
-              in
-              let%bind () = Fs.writeFile ~data name in
-              return()
-            in
-            List.map ~f files |> RunAsync.List.waitAll
-          in
-
-          let%bind() =
-            let f patch =
-              let patch = Path.(path / patch) in
-              Patch.apply ~strip:1 ~root:path ~patch ()
-            in RunAsync.List.processSeq ~f patches
-          in
-          return()
-
+          return ()
         | None -> return ()
+      in
 
+      let%bind () =
+        let f {Package.File. name; content} =
+          let name = Path.append path name in
+          let dirname = Path.parent name in
+          let%bind () = Fs.createDir dirname in
+          (* TODO: move this to the place we read data from *)
+          let contents =
+            if String.get content (String.length content - 1) == '\n'
+            then content
+            else content ^ "\n"
+          in
+          let%bind () = Fs.writeFile ~data:contents name in
+          return()
+        in
+        List.map ~f files |> RunAsync.List.waitAll
       in
 
       let%bind () =
@@ -166,7 +182,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; _} a
     | _, false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind () =
-          let msg = Format.asprintf "fetching %a" PackageInfo.Source.pp source in
+          let msg = Format.asprintf "fetching %a" Package.Source.pp source in
           RunAsync.withContext msg (
             let%bind () = Fs.createDir sourcePath in
             let%bind () = doFetch sourcePath in

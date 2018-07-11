@@ -431,7 +431,7 @@ let devExec cfg cmd =
   let cmd =
     let tool, args = Cmd.getToolAndArgs cmd in
     let script =
-      Package.Scripts.find
+      Manifest.Scripts.find
         tool
         info.SandboxInfo.sandbox.scripts
     in
@@ -811,11 +811,11 @@ let () =
   let dependenciesForExport (task : Task.t) =
     let f deps dep = match dep with
       | Task.Dependency ({
-          sourceType = Package.SourceType.Immutable;
+          sourceType = Manifest.SourceType.Immutable;
           _
         } as task)
       | Task.BuildTimeDependency ({
-          sourceType = Package.SourceType.Immutable; _
+          sourceType = Manifest.SourceType.Immutable; _
         } as task) ->
         (task, dep)::deps
       | Task.Dependency _

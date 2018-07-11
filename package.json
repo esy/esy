@@ -53,6 +53,8 @@
     "@opam/lwt_ppx": "^1.1.0",
     "@opam/menhir": "*",
     "@opam/opam-file-format": "*",
+    "@opam/opam-format": "*",
+    "@opam/opam-core": "*",
     "@opam/ppx_deriving": "^4.2.1",
     "@opam/ppx_deriving_yojson": "^3.1.0",
     "@opam/ppx_inline_test": "^100000000.10.0",
@@ -68,7 +70,11 @@
     "**/@opam/sexplib0": "100000000.11.0",
     "**/@opam/result": "1.2.0",
     "**/@opam/lwt": "3.3.0",
-    "**/@opam/ocaml-migrate-parsetree": "1.0.10"
+    "**/@opam/lwt_log": "1.0.0",
+    "**/@opam/ocaml-migrate-parsetree": "1.0.10",
+    "**/@opam/opam-core": "^2.0.0-rc3",
+    "**/@opam/opam-format": "^2.0.0-rc3",
+    "**/@opam/opam-file-format": "^2.0.0-rc3"
   },
   "peerDependencies": {
     "ocaml": "~4.6.0"
