@@ -10,7 +10,11 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
           let%lwt () =
             Logs_lwt.app(m => m("checking %s for updates...", remote));
           let%bind () =
-            Git.ShallowClone.update(~branch="5", ~dst=local, remote);
+            Git.ShallowClone.update(
+              ~branch=Config.esyOpamOverrideVersion,
+              ~dst=local,
+              remote,
+            );
           return(local);
         };
       let packagesDir = Path.(repoPath / "packages");
