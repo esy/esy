@@ -262,6 +262,9 @@ let getPackage
           let open Option.Syntax in
           let open OpamVariable in
           match scope, OpamVariable.to_string name with
+          | OpamVariable.Full.Global, "preinstalled" ->
+            return (bool false)
+          | OpamVariable.Full.Global, "compiler"
           | OpamVariable.Full.Global, "ocaml-version" ->
             let%bind ocamlVersion = ocamlVersion in
             return (string (OpamPackage.Version.to_string ocamlVersion))
