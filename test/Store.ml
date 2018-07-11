@@ -17,7 +17,6 @@ let%test "Validate padding length on other platforms is not 1" =
         | Error(_) -> false
         | _ -> true
 
-
 let%test "Validate an error is given if the path is too long" =
     let superLongPath = String.make 260 'a' in
     let prefixPath = Fpath.v superLongPath in
