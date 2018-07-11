@@ -823,6 +823,7 @@ let ofPackage
         let path v = string (ConfigPath.toString v) in
         let v =
           match scope, to_string var with
+          | Full.Global, "os" -> Some (string (System.toString system))
           | Full.Global, "ocaml-native" -> Some (bool true)
           | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
           | Full.Global, "make" -> Some (string "make")
