@@ -29,6 +29,7 @@ build_script:
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - powershell scripts/bootstrap/Test.ps1
+    - powershell scripts/bootstrap/Test-e2e.ps1
 
 artifacts:
     - path: _release
