@@ -449,7 +449,6 @@ let solveDependenciesNaively
       report status
     in
     let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
-    let resolutions = List.rev resolutions in
     match findResolutionForRequest ~req resolutions with
     | Some resolution ->
       let%bind pkg = Resolver.package ~resolution solver.resolver in
