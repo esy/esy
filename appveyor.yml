@@ -2,7 +2,7 @@ platform:
     - x64
 
 cache:
-    - 'C:\Users\appveyor\.opam'
+    - C:\Users\appveyor\.opam
 
 install:
     - where git
