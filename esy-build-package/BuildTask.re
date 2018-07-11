@@ -1,5 +1,6 @@
 module Path = EsyLib.Path;
 module Result = EsyLib.Result;
+module Store = EsyLib.Store;
 module Let_syntax = Result.Syntax.Let_syntax;
 
 module SourceType = {
@@ -163,13 +164,13 @@ module ConfigFile = {
       version: specConfig.version,
       buildType: specConfig.buildType,
       sourceType: specConfig.sourceType,
-      installPath: Path.(storePath / Config.storeInstallTree / specConfig.id),
-      stagePath: Path.(storePath / Config.storeStageTree / specConfig.id),
-      buildPath: Path.(storePath / Config.storeBuildTree / specConfig.id),
+      installPath: Path.(storePath / Store.installTree / specConfig.id),
+      stagePath: Path.(storePath / Store.stageTree / specConfig.id),
+      buildPath: Path.(storePath / Store.buildTree / specConfig.id),
       infoPath:
-        Path.(storePath / Config.storeBuildTree / (specConfig.id ++ ".info")),
+        Path.(storePath / Store.buildTree / (specConfig.id ++ ".info")),
       lockPath:
-        Path.(storePath / Config.storeBuildTree / (specConfig.id ++ ".lock")),
+        Path.(storePath / Store.buildTree / (specConfig.id ++ ".lock")),
       sourcePath,
       env,
       install,

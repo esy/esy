@@ -94,11 +94,11 @@ let runTask
   let performBuildIfNeeded () =
     let f () =
     match task.sourceType with
-    | Package.SourceType.Immutable ->
+    | Manifest.SourceType.Immutable ->
       if%bind Fs.exists installPath
       then return ()
       else buildTask ~buildOnly cfg task
-    | Package.SourceType.Development ->
+    | Manifest.SourceType.Development ->
       if Task.isRoot ~cfg task then
         buildTask ~buildOnly cfg task
       else (

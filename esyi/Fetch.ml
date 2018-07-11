@@ -1,4 +1,4 @@
-module Version = PackageInfo.Version
+module Version = Package.Version
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
@@ -52,9 +52,14 @@ module Manifest = struct
 
   let ofDir path =
     let open RunAsync.Syntax in
-    let%bind json = Fs.readJsonFile Path.(path / "package.json") in
-    let%bind manifest = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
-    return manifest
+    let filename = Path.(path / "package.json") in
+    if%bind Fs.exists filename
+    then
+      let%bind json = Fs.readJsonFile filename in
+      let%bind manifest = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
+      return (Some manifest)
+    else
+      return None
 
   let packageCommands (path : Path.t) manifest =
     let makePathToCmd cmdPath = Path.(path // v cmdPath |> normalize) in
@@ -169,10 +174,10 @@ module Layout = struct
   let%test_module "optimize" = (module struct
 
     let make name version dependencies =
-      let version = PackageInfo.Version.Npm (SemverVersion.Version.parseExn version) in
+      let version = Package.Version.Npm (SemverVersion.Version.parseExn version) in
       let record = Record.{
         name; version;
-        source = PackageInfo.Source.NoSource; opam = None;
+        source = Package.Source.NoSource; opam = None; files = [];
       } in
       Solution.make record dependencies
 
@@ -452,12 +457,12 @@ module Layout = struct
       let path = Path.(path / "node_modules" // v record.Record.name) in
       let sourcePath =
         match record.Record.source with
-        | PackageInfo.Source.Archive _
-        | PackageInfo.Source.Git _
-        | PackageInfo.Source.Github _
-        | PackageInfo.Source.LocalPath _
-        | PackageInfo.Source.NoSource -> path
-        | PackageInfo.Source.LocalPathLink path -> path
+        | Package.Source.Archive _
+        | Package.Source.Git _
+        | Package.Source.Github _
+        | Package.Source.LocalPath _
+        | Package.Source.NoSource -> path
+        | Package.Source.LocalPathLink path -> path
       in
       let isDirectDependencyOfRoot = Record.Set.mem record directDependencies in
       let layout = {path; sourcePath; record; isDirectDependencyOfRoot}::layout in
@@ -597,9 +602,9 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   (* Layout all dists into node_modules *)
 
   let%bind installed =
-    let queue = LwtTaskQueue.create ~concurrency:8 () in
+    let queue = LwtTaskQueue.create ~concurrency:2 () in
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
-    let f ({Layout.path; sourcePath;record;_} as installation) =
+    let f ({Layout.path; sourcePath;record;_} as installation) () =
       match Record.Map.find_opt record dists with
       | Some dist ->
         let%lwt () =
@@ -607,9 +612,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
           report status
         in
         let%bind () =
-          LwtTaskQueue.submit
-            queue
-            (fun () -> FetchStorage.install ~cfg ~path dist)
+          FetchStorage.install ~cfg ~path dist
         in
         let%bind manifest = Manifest.ofDir sourcePath in
         return (installation, manifest)
@@ -623,13 +626,30 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
         in
         failwith msg
     in
-    let layout = Layout.ofSolution ~path:cfg.basePath solution in
+
+    let layout =
+      Layout.ofSolution
+        ~path:cfg.basePath
+        solution
+    in
+
     let%bind installed =
+      let install installation =
+        let msg =
+          Format.asprintf
+            "installing %a"
+            Layout.pp_installation installation
+        in
+        LwtTaskQueue.submit queue (f installation)
+        |> RunAsync.withContext msg
+      in
       layout
-      |> List.map ~f
+      |> List.map ~f:install
       |> RunAsync.List.joinAll
     in
+
     let%lwt () = finish () in
+
     return installed
   in
 
@@ -638,10 +658,18 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let%bind () =
     let queue = LwtTaskQueue.create ~concurrency:1 () in
 
-    let f (installation, manifest) =
-      LwtTaskQueue.submit
-        queue
-        (runLifecycle ~installation ~manifest)
+    let f = function
+      | (installation, Some manifest) ->
+        let msg =
+          Format.asprintf
+            "running lifecycle %a"
+            Layout.pp_installation installation
+        in
+        LwtTaskQueue.submit
+          queue
+          (runLifecycle ~installation ~manifest)
+        |> RunAsync.withContext msg
+      | (_installation, None) -> return ()
     in
 
     let%bind () =
@@ -665,14 +693,16 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
       return ()
     in
 
-    let installBinWrappersForPkg (item, manifest) =
-      Manifest.packageCommands item.Layout.path manifest
-      |> List.map ~f:installBinWrapper
-      |> RunAsync.List.waitAll
+    let installBinWrappersForPkg = function
+      | (installation, Some manifest) ->
+        Manifest.packageCommands installation.Layout.path manifest
+        |> List.map ~f:installBinWrapper
+        |> RunAsync.List.waitAll
+      | (_installation, None) -> return ()
     in
 
     installed
-    |> List.filter ~f:(fun (item, _) -> item.Layout.isDirectDependencyOfRoot)
+    |> List.filter ~f:(fun (installation, _) -> installation.Layout.isDirectDependencyOfRoot)
     |> List.map ~f:installBinWrappersForPkg
     |> RunAsync.List.waitAll
   in
