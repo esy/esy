@@ -56,6 +56,26 @@ let normalizePathForCygwin = (path) => {
 };
 
 /**
+* Helper utility to normalize paths to a Windows style.
+* ie, "/usr/bin" -> "C:\path\to\installed\cygwin\usr\bin"
+* On non-windows platforms, this is a no-op
+*/
+let normalizePathForWindows (path) => {
+    open Run;
+    switch (System.host) {
+        | System.Windows => {
+            let%bind rootPath = getCygPath();
+            /* Use the `cygpath` utility with the `-w` flag to resolve to a Windows path */
+            let ic = Unix.open_process_in(Fpath.to_string(rootPath) ++ "-w \"" ++ path ++ " \"")
+            let result = String.trim(input_line(ic));
+            let () = close_in(ic);
+            Ok(result);
+        };
+        | _ => Ok(path)
+    }
+}
+
+/**
  * Helper utility to run a command with 'esy-bash'.
  * On Windows, this runs the command in a Cygwin environment
  * On other platforms, this is equivalent to running the command directly with Bos.OS.Cmd.run
