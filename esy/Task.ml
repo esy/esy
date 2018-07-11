@@ -788,26 +788,25 @@ let ofPackage
 
     let opamEnvByDependency =
       let f map (task : t) =
-        let open OpamVariable in
-        let path v = string (ConfigPath.toString v) in
-        let name, version = match task.pkg.build with
-          | Package.OpamBuild {name; version;_} -> name, version
-          | Package.EsyBuild _ -> task.pkg.name, task.pkg.version
-        in
-        let vars = StringMap.(
-          empty
-          |> add "name" (string name)
-          |> add "version" (string version)
-          |> add "bin" (path ConfigPath.(task.paths.installPath / "bin"))
-          |> add "sbin" (path ConfigPath.(task.paths.installPath / "sbin"))
-          |> add "etc" (path ConfigPath.(task.paths.installPath / "etc"))
-          |> add "doc" (path ConfigPath.(task.paths.installPath / "doc"))
-          |> add "man" (path ConfigPath.(task.paths.installPath / "man"))
-          |> add "share" (path ConfigPath.(task.paths.installPath / "share"))
-          |> add "lib" (path ConfigPath.(task.paths.installPath / "lib"))
-          |> add "build" (path task.paths.buildPath)
-        ) in
-        StringMap.add task.pkg.name vars map
+        match task.pkg.build with
+        | Package.OpamBuild {name; version;_} ->
+          let open OpamVariable in
+          let path v = string (ConfigPath.toString v) in
+          let vars = StringMap.(
+            empty
+            |> add "name" (string name)
+            |> add "version" (string version)
+            |> add "bin" (path ConfigPath.(task.paths.installPath / "bin"))
+            |> add "sbin" (path ConfigPath.(task.paths.installPath / "sbin"))
+            |> add "etc" (path ConfigPath.(task.paths.installPath / "etc"))
+            |> add "doc" (path ConfigPath.(task.paths.installPath / "doc"))
+            |> add "man" (path ConfigPath.(task.paths.installPath / "man"))
+            |> add "share" (path ConfigPath.(task.paths.installPath / "share"))
+            |> add "lib" (path ConfigPath.(task.paths.installPath / "lib"))
+            |> add "build" (path task.paths.buildPath)
+          ) in
+          StringMap.add name vars map
+        | Package.EsyBuild _ -> map
       in
       List.fold_left
         ~init:StringMap.empty
