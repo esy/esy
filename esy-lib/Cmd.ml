@@ -83,9 +83,11 @@ let resolveCmd path cmd =
       end
   in
   match cmd.[0] with
-  | '.'
-  | '/' -> Ok cmd
-  | _ -> resolve path
+  /* **TEMPORARY HACK** to unblock Windows - just skip the resolution and assume the command is available! */
+  | _ -> Ok cmd
+  /* | '.' */
+  /* | '/' -> Ok cmd */
+  /* | _ -> resolve path */
 
 let resolveInvocation path (tool, args) =
   let open Result.Syntax in
