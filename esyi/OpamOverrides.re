@@ -1,18 +1,5 @@
 type t = OpamPackage.Name.Map.t(list((OpamVersion.Formula.DNF.t, Fpath.t)));
 
-let rec yamlToJson = value =>
-  switch (value) {
-  | `A(items) => `List(List.map(~f=yamlToJson, items))
-  | `O(items) =>
-    `Assoc(
-      List.map(~f=((name, value)) => (name, yamlToJson(value)), items),
-    )
-  | `String(s) => `String(s)
-  | `Float(s) => `Float(s)
-  | `Bool(b) => `Bool(b)
-  | `Null => `Null
-  };
-
 let init = (~cfg, ()) : RunAsync.t(t) =>
   RunAsync.Syntax.(
     {
@@ -74,8 +61,8 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
 let load = baseDir => {
   open RunAsync.Syntax;
   let packageJson = Path.(baseDir / "package.json");
-  let packageYaml = Path.(baseDir / "package.yaml");
-  if%bind (Fs.exists(packageJson)) {
+  let filesPath = Path.(baseDir / "files");
+  let%bind override =
     RunAsync.withContext(
       "Reading " ++ Path.toString(packageJson),
       {
@@ -85,25 +72,30 @@ let load = baseDir => {
         );
       },
     );
-  } else {
-    RunAsync.withContext(
-      "Reading " ++ Path.toString(packageYaml),
-      if%bind (Fs.exists(packageYaml)) {
-        let%bind data = Fs.readFile(packageYaml);
-        let%bind yaml =
-          Yaml.of_string(data) |> Run.ofBosError |> RunAsync.ofRun;
-        let json = yamlToJson(yaml);
-        RunAsync.ofRun(
-          Json.parseJsonWith(Package.OpamOverride.of_yojson, json),
-        );
-      } else {
-        error(
-          "must have either package.json or package.yaml "
-          ++ Path.toString(baseDir),
-        );
-      },
-    );
-  };
+  let%bind files =
+    if%bind (Fs.exists(filesPath)) {
+      let f = (files, path, _stat) =>
+        switch (Path.relativize(~root=filesPath, path)) {
+        | Some(name) =>
+          let%bind content = Fs.readFile(path);
+          let file = {Package.File.name, content};
+          return([file, ...files]);
+        | None =>
+          /* This case isn't really possible but... */
+          return(files)
+        };
+      let%bind files = Fs.fold(~init=[], ~f, filesPath);
+      return(files);
+    } else {
+      return([]);
+    };
+  return({
+    ...override,
+    Package.OpamOverride.opam: {
+      ...override.Package.OpamOverride.opam,
+      Package.OpamOverride.Opam.files,
+    },
+  });
 };
 
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
