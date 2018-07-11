@@ -64,28 +64,6 @@ let packageOf (dep : dependency) = match dep with
 | BuildTimeDependency pkg -> Some pkg
 | InvalidDependency _ -> None
 
-let readEsyManifest (path : Path.t) =
-  let open RunAsync.Syntax in
-  let%bind json = Fs.readJsonFile path in
-  let%bind manifest = RunAsync.ofRun (Json.parseJsonWith Manifest.Esy.of_yojson json) in
-  return manifest
-
-let ofDir (path : Path.t) =
-  let open RunAsync.Syntax in
-  let esyJson = Path.(path / "esy.json") in
-  let packageJson = Path.(path / "package.json") in
-  (* let opam = Path.(path / "opam") in *)
-  if%bind Fs.exists esyJson
-  then
-    let%bind manifest = readEsyManifest esyJson in
-    return (Some (manifest, esyJson))
-  else if%bind Fs.exists packageJson
-  then
-    let%bind manifest = readEsyManifest esyJson in
-    return (Some (manifest, esyJson))
-  else
-    return None
-
 module DependencyGraph = DependencyGraph.Make(struct
 
   type t = pkg
