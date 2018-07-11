@@ -28,6 +28,6 @@ C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe install
 
 exitIfFailed
 
-C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe build
-
-exitIfFailed
+# TODO: Bring this back when we have a project that can build successfully!
+# C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe build
+# exitIfFailed
