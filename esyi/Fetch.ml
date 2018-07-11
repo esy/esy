@@ -602,9 +602,9 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   (* Layout all dists into node_modules *)
 
   let%bind installed =
-    let queue = LwtTaskQueue.create ~concurrency:8 () in
+    let queue = LwtTaskQueue.create ~concurrency:2 () in
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
-    let f ({Layout.path; sourcePath;record;_} as installation) =
+    let f ({Layout.path; sourcePath;record;_} as installation) () =
       match Record.Map.find_opt record dists with
       | Some dist ->
         let%lwt () =
@@ -612,9 +612,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
           report status
         in
         let%bind () =
-          LwtTaskQueue.submit
-            queue
-            (fun () -> FetchStorage.install ~cfg ~path dist)
+          FetchStorage.install ~cfg ~path dist
         in
         let%bind manifest = Manifest.ofDir sourcePath in
         return (installation, manifest)
@@ -628,17 +626,30 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
         in
         failwith msg
     in
+
     let layout =
       Layout.ofSolution
         ~path:cfg.basePath
         solution
     in
+
     let%bind installed =
+      let install installation =
+        let msg =
+          Format.asprintf
+            "installing %a"
+            Layout.pp_installation installation
+        in
+        LwtTaskQueue.submit queue (f installation)
+        |> RunAsync.withContext msg
+      in
       layout
-      |> List.map ~f
+      |> List.map ~f:install
       |> RunAsync.List.joinAll
     in
+
     let%lwt () = finish () in
+
     return installed
   in
 
@@ -649,9 +660,15 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
     let f = function
       | (installation, Some manifest) ->
+        let msg =
+          Format.asprintf
+            "running lifecycle %a"
+            Layout.pp_installation installation
+        in
         LwtTaskQueue.submit
           queue
           (runLifecycle ~installation ~manifest)
+        |> RunAsync.withContext msg
       | (_installation, None) -> return ()
     in
 
