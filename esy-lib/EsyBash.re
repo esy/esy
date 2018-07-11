@@ -88,9 +88,9 @@ let getEsyBashPath = () => {
 * On non-Windows platforms, this is a noop
 */
 let normalizePathForCygwin = (path) => {
-    open Result.Syntax;
     switch (System.host) {
         | System.Windows => {
+            open Result.Syntax;
             let%bind rootPath = getCygPath();
             let ic = Unix.open_process_in(Fpath.to_string(rootPath) ++ " \"" ++ path ++ " \"")
             let result = String.trim(input_line(ic));
@@ -106,18 +106,28 @@ let normalizePathForCygwin = (path) => {
 * ie, "/usr/bin" -> "C:\path\to\installed\cygwin\usr\bin"
 * On non-windows platforms, this is a no-op
 */
-let normalizePathForWindows = (path) => {
+let normalizePathForWindows = (path: Fpath.t) => {
     open Result.Syntax;
     switch (System.host) {
         | System.Windows => {
-            let%bind rootPath = getCygPath();
-            /* Use the `cygpath` utility with the `-w` flag to resolve to a Windows path */
-            let ic = Unix.open_process_in(Fpath.to_string(rootPath) ++ "-w \"" ++ path ++ " \"")
-            let result = String.trim(input_line(ic));
-            let () = close_in(ic);
-            Ok(result);
+            let pathAsString = Fpath.to_string(path);
+            switch (pathAsString.[0]) {
+                /* We assume that if the path coming in to normalize is a leading slash,
+                 * it should be converted from a Unix path to a Windows path.
+                 */
+                | '\\' => {
+                    let%bind rootPath = getCygPath();
+                    /* Use the `cygpath` utility with the `-w` flag to resolve to a Windows path */
+                    let commandToRun = (String.trim(Fpath.to_string(rootPath)) ++ " -w " ++  Path.normalizePathSlashes(Fpath.to_string(path)));
+                    let ic = Unix.open_process_in(commandToRun)
+                    let result = Fpath.v(String.trim(input_line(ic)));
+                    let () = close_in(ic);
+                    Ok(result);
+                };
+                | _ => Ok(path);
+            };
         };
-        | _ => Ok(path)
+        | _ => Ok(path);
     };
 };
 
