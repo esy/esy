@@ -18,7 +18,6 @@ const esyCommandPath = os.platform() === "win32" ? '../../_build/default/esy/bin
 const ESYCOMMAND = require.resolve(esyCommandPath);
 
 const getBashCommandAndArgs = () => {
-
     switch (os.platform()) {
         case "win32": 
             // Pick up esy-bash from the root as opposed to installing it again
