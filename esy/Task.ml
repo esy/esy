@@ -7,6 +7,7 @@
 *)
 
 module ConfigPath = Config.ConfigPath
+module Store = EsyLib.Store
 
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
@@ -499,21 +500,21 @@ let ofPackage
         | Manifest.SourceType.Development -> ConfigPath.localStore
       in
       let buildPath =
-        ConfigPath.(storePath / Config.storeBuildTree / id)
+        ConfigPath.(storePath / Store.buildTree / id)
       in
       let buildInfoPath =
         let name = id ^ ".info" in
-        ConfigPath.(storePath / Config.storeBuildTree / name)
+        ConfigPath.(storePath / Store.buildTree / name)
       in
       let stagePath =
-        ConfigPath.(storePath / Config.storeStageTree / id)
+        ConfigPath.(storePath / Store.stageTree / id)
       in
       let installPath =
-        ConfigPath.(storePath / Config.storeInstallTree / id)
+        ConfigPath.(storePath / Store.installTree / id)
       in
       let logPath =
         let basename = id ^ ".log" in
-        ConfigPath.(storePath / Config.storeBuildTree / basename)
+        ConfigPath.(storePath / Store.buildTree / basename)
       in
       let rootPath =
         match pkg.build, sourceType with
@@ -1157,7 +1158,7 @@ let importBuild (cfg : Config.t) buildPath =
       (buildPath |> Path.basename, `Dir)
   in
   let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
-  let outputPath = Path.(cfg.storePath / Config.storeInstallTree / buildId) in
+  let outputPath = Path.(cfg.storePath / Store.installTree / buildId) in
   if%bind Fs.exists outputPath
   then (
     let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
@@ -1183,7 +1184,7 @@ let importBuild (cfg : Config.t) buildPath =
       in
       importFromDir stagePath
     | `Archive ->
-      let stagePath = Path.(cfg.storePath / Config.storeStageTree / buildId) in
+      let stagePath = Path.(cfg.storePath / Store.stageTree / buildId) in
       let%bind () =
         let cmd = Cmd.(
           v "tar"
