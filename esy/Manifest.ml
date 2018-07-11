@@ -380,8 +380,8 @@ let ofDir (path : Path.t) =
       let%bind manifest = Esy.ofFile filename in
       return (Some (Esy manifest, filename))
     else
-      let filename = Path.(path / "_esy.opam") in
-      let overrideFilename = Path.(path / "_esy.override.json") in
+      let filename = Path.(path / "_esy" / "opam") in
+      let overrideFilename = Path.(path / "_esy" / "override.json") in
       if%bind Fs.exists filename
       then
         let%bind manifest = Opam.ofFile filename in

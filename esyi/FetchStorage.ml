@@ -115,12 +115,13 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; file
               Package.Opam.OpamVersion.pp version
               Package.Opam.OpamFile.pp opam
           in
-          let%bind () = Fs.writeFile ~data Path.(path / "_esy.opam") in
+          let%bind () = Fs.createDir Path.(path / "_esy") in
+          let%bind () = Fs.writeFile ~data Path.(path / "_esy" / "opam") in
           let%bind () =
             match override with
             | Some override ->
               let json = Package.OpamOverride.to_yojson override in
-              Fs.writeJsonFile ~json Path.(path / "_esy.override.json")
+              Fs.writeJsonFile ~json Path.(path / "_esy" / "override.json")
             | None -> return ()
           in
           return ()
