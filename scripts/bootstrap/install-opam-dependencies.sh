@@ -20,7 +20,7 @@ opam install --yes ppx_deriving_yojson
 opam install --yes yojson
 opam install --yes bos
 opam install --yes re
+opam install --yes opam-format
 
 echo "** Installed packages:"
-
 ocamlfind list
