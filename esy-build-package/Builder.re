@@ -1,3 +1,4 @@
+module EsyBash = EsyLib.EsyBash;
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 
