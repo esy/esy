@@ -268,17 +268,19 @@ module Esy = struct
   let version manifest = manifest.version
 
   let dependencies manifest =
-    (Dependencies.keys manifest.dependencies)
-    @ (Dependencies.keys manifest.peerDependencies)
+    StringSet.of_list (
+      (Dependencies.keys manifest.dependencies)
+      @ (Dependencies.keys manifest.peerDependencies)
+    )
 
   let devDependencies manifest =
-    Dependencies.keys manifest.devDependencies
+    StringSet.of_list (Dependencies.keys manifest.devDependencies)
 
   let optDependencies manifest =
-    Dependencies.keys manifest.optDependencies
+    StringSet.of_list (Dependencies.keys manifest.optDependencies)
 
   let buildTimeDependencies manifest =
-    Dependencies.keys manifest.buildTimeDependencies
+    StringSet.of_list (Dependencies.keys manifest.buildTimeDependencies)
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
@@ -292,6 +294,8 @@ module OpamOverride = struct
     build : (CommandList.t option [@default None]);
     install : (CommandList.t option [@default None]);
     exportedEnv : (ExportedEnv.t [@default ExportedEnv.empty]);
+    dependencies : (Esy.Dependencies.t [@default Esy.Dependencies.empty]);
+
   } [@@deriving of_yojson {strict = false}]
 
   let ofFile (path : Path.t) =
@@ -339,21 +343,33 @@ module Opam = struct
     in
     List.map ~f atoms
 
-  let dependencies {opam;_} =
+  let dependencies {opam; override} =
     let dependencies =
       listPackageNamesOfFormula
         ~build:true ~test:false ~post:true ~doc:false ~dev:false
         (OpamFile.OPAM.depends opam)
     in
-    "ocaml"
-    ::"@esy-ocaml/esy-installer"
-    ::"@esy-ocaml/substs"
-    ::dependencies
+    let dependencies =
+      "ocaml"
+      ::"@esy-ocaml/esy-installer"
+      ::"@esy-ocaml/substs"
+      ::dependencies
+    in
+    let dependencies =
+      match override with
+      | Some {OpamOverride. dependencies = overrideDependencies; _} ->
+        (StringMap.keys overrideDependencies) @ dependencies
+      | None -> dependencies
+    in
+    StringSet.of_list dependencies
 
   let optDependencies {opam;_} =
-    listPackageNamesOfFormula
-      ~build:true ~test:false ~post:true ~doc:false ~dev:false
-      (OpamFile.OPAM.depopts opam)
+    let dependencies =
+      listPackageNamesOfFormula
+        ~build:true ~test:false ~post:true ~doc:false ~dev:false
+        (OpamFile.OPAM.depopts opam)
+    in
+    StringSet.of_list dependencies
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in

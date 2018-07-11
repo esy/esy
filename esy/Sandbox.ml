@@ -59,7 +59,7 @@ let ofDir (cfg : Config.t) =
       ?(skipUnresolved= false)
       ~ignoreCircularDep
       ~make
-      (dependencies : string list)
+      (dependencies : StringSet.t)
       prevDependencies =
 
       let resolve (pkgName : string) =
@@ -80,7 +80,9 @@ let ofDir (cfg : Config.t) =
       in
 
       let%lwt dependencies =
-        Lwt_list.map_s (fun pkgName -> resolve pkgName) dependencies
+        dependencies
+        |> StringSet.elements
+        |> Lwt_list.map_s (fun pkgName -> resolve pkgName)
       in
 
       let f dependencies =
