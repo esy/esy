@@ -31,9 +31,12 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
       let%bind names = Fs.listDir(packagesDir);
       module String = Astring.String;
 
-      let parseOverrideSpec = spec =>
+      let parseOverrideSpec = spec => {
+        print_endline(spec);
         switch (String.cut(~sep=".", spec)) {
-        | None => (OpamPackage.Name.of_string(spec), OpamVersion.Formula.any)
+        | None =>
+          Some((OpamPackage.Name.of_string(spec), OpamVersion.Formula.any))
+        | Some(("", _)) => None
         | Some((name, constr)) =>
           let constr =
             String.map(
@@ -43,23 +46,26 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
               constr,
             );
           let constr = OpamVersion.Formula.parse(constr);
-          (OpamPackage.Name.of_string(name), constr);
+          Some((OpamPackage.Name.of_string(name), constr));
         };
+      };
 
       let overrides = {
-        let f = (overrides, dirName) => {
-          let (name, formula) = parseOverrideSpec(dirName);
-          let items =
-            switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
-            | Some(items) => items
-            | None => []
-            };
-          OpamPackage.Name.Map.add(
-            name,
-            [(formula, Path.(packagesDir / dirName)), ...items],
-            overrides,
-          );
-        };
+        let f = (overrides, dirName) =>
+          switch (parseOverrideSpec(dirName)) {
+          | Some((name, formula)) =>
+            let items =
+              switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
+              | Some(items) => items
+              | None => []
+              };
+            OpamPackage.Name.Map.add(
+              name,
+              [(formula, Path.(packagesDir / dirName)), ...items],
+              overrides,
+            );
+          | None => overrides
+          };
         List.fold_left(~f, ~init=OpamPackage.Name.Map.empty, names);
       };
 
