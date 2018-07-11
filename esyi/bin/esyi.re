@@ -54,7 +54,7 @@ module Api = {
             ~resolutions=manifest.Manifest.Root.resolutions,
             (),
           );
-        let%bind solver =
+        let%bind (solver, _) =
           Solver.add(~dependencies=root.Package.dependencies, solver);
         let (cudfUniverse, _) = Universe.toCudf(solver.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);

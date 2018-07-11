@@ -22,6 +22,8 @@ module Source : sig
 
   val pp : t Fmt.t
   val equal : t -> t -> bool
+
+  module Map : Map.S with type key := t
 end
 
 (**
@@ -62,6 +64,8 @@ module SourceSpec : sig
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
   val pp : t Fmt.t
+
+  module Map : Map.S with type key := t
 end
 
 (**

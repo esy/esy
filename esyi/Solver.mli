@@ -33,7 +33,7 @@ val make :
 val add :
   dependencies:Package.Dependencies.t
   -> t
-  -> t RunAsync.t
+  -> (t * Package.Dependencies.t) RunAsync.t
 
 (**
  * Solve dependencies for the root

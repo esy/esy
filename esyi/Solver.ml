@@ -135,7 +135,7 @@ module Explanation = struct
             let name = Universe.CudfMapping.decodePkgName name in
             let%lwt available =
               match%lwt Resolver.resolve ~name resolver with
-              | Ok available -> Lwt.return available
+              | Ok (available, _) -> Lwt.return available
               | Error _ -> Lwt.return []
             in
             let missing = Reason.Missing {name; path = pkg::path; available} in
@@ -233,36 +233,69 @@ let add ~(dependencies : Dependencies.t) solver =
   let universe = ref solver.universe in
   let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
 
-  let rec addPkg (pkg : Package.t) =
+  let rec addPackage (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
     then
       match pkg.kind with
       | Package.Esy ->
         universe := Universe.add ~pkg !universe;
-        let%bind () = addDependencies pkg.dependencies in
-        universe := Universe.add ~pkg !universe;
+        let%bind dependencies = addDependencies pkg.dependencies in
+        universe := (
+          let pkg = {pkg with dependencies} in
+          Universe.add ~pkg !universe
+        );
         return ()
       | Package.Npm -> return ()
     else return ()
 
-  and addDependencies dependencies =
+  and addDependencies (dependencies : Dependencies.t) =
     let dependencies =
       Dependencies.applyResolutions solver.resolutions dependencies
     in
 
-    let reqs = Dependencies.toApproximateRequests dependencies in
-    RunAsync.List.waitAll (
-      let f (req : Req.t) = addDependency ~spec:req.spec req.name in
-      List.map ~f reqs
-    )
+    match dependencies with
+    | Dependencies.NpmFormula reqs ->
+      let%bind reqs = RunAsync.List.joinAll (
+        let f (req : Req.t) = addDependency req in
+        List.map ~f reqs
+      ) in
+      return (Dependencies.NpmFormula reqs)
 
-  and addDependency ~spec name =
+    | Dependencies.OpamFormula formula ->
+      let%bind rewrites =
+        let f rewrites (req : Req.t) =
+          let%bind nextReq = addDependency req in
+          match req.spec, nextReq.Req.spec with
+          | VersionSpec.Source prev, VersionSpec.Source next ->
+            return (SourceSpec.Map.add prev next rewrites)
+          | _ -> return rewrites
+        in
+        let reqs = Dependencies.toApproximateRequests dependencies in
+        RunAsync.List.foldLeft ~f ~init:SourceSpec.Map.empty reqs
+      in
+
+      let formula =
+        let f (dep : Package.Dep.t) =
+          match dep.req with
+          | Package.Dep.Source src -> begin
+            match SourceSpec.Map.find_opt src rewrites with
+            | Some nextSrc -> {dep with req = Package.Dep.Source nextSrc}
+            | None -> dep
+            end
+          | _ -> dep
+        in
+        List.map ~f:(List.map ~f) formula
+      in
+
+      return (Dependencies.OpamFormula formula)
+
+  and addDependency (req : Req.t) =
     let%lwt () =
-      let status = Format.asprintf "%s" name in
+      let status = Format.asprintf "%s" req.name in
       report status
     in
-    let%bind resolutions =
-      Resolver.resolve ~name ~spec solver.resolver
+    let%bind resolutions, spec =
+      Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver
     in
 
     let%bind packages =
@@ -273,19 +306,23 @@ let add ~(dependencies : Dependencies.t) solver =
 
     let%bind () =
       packages
-      |> List.map ~f:addPkg
+      |> List.map ~f:addPackage
       |> RunAsync.List.waitAll
     in
 
-    return ()
+    return (
+      match spec with
+      | Some spec -> Req.ofSpec ~name:req.name ~spec
+      | None -> req
+    )
   in
 
-  let%bind () = addDependencies dependencies in
+  let%bind dependencies = addDependencies dependencies in
 
   let%lwt () = finish () in
 
   (* TODO: return rewritten deps *)
-  return {solver with universe = !universe}
+  return ({solver with universe = !universe}, dependencies)
 
 let printCudfDoc doc =
   let o = IO.output_string () in
@@ -405,7 +442,7 @@ let solveDependenciesNaively
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
+    let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     let resolutions = List.rev resolutions in
     match findResolutionForRequest ~req resolutions with
     | Some resolution ->
@@ -470,7 +507,7 @@ let solveDependenciesNaively
 let solveOCamlReq ~cfg req =
   let open RunAsync.Syntax in
   let%bind resolver = Resolver.make ~cfg () in
-  let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
+  let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
   begin match findResolutionForRequest ~req resolutions with
   | Some res ->
     Logs_lwt.app (fun m -> m "using %a" Resolver.Resolution.pp res);%lwt
@@ -520,16 +557,13 @@ let solve ~cfg ~resolutions (root : Package.t) =
       return (None, reqs)
   in
 
-  let dependencies =
-    let dependencies = Dependencies.NpmFormula reqs in
-    Dependencies.applyResolutions resolutions dependencies
-  in
+  let dependencies = Dependencies.NpmFormula reqs in
 
-  let%bind solver =
-    let%bind resolver = Resolver.make ?ocamlVersion ~cfg () in
+  let%bind solver, dependencies =
+    let%bind resolver  = Resolver.make ?ocamlVersion ~cfg () in
     let%bind solver = make ~resolver ~cfg ~resolutions () in
-    let%bind solver = add ~dependencies solver in
-    return solver
+    let%bind solver, dependencies = add ~dependencies solver in
+    return (solver, dependencies)
   in
 
   (* Solve runtime dependencies first *)

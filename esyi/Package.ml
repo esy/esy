@@ -67,6 +67,10 @@ module Source = struct
   let pp fmt src =
     Fmt.pf fmt "%s" (toString src)
 
+  module Map = Map.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
 end
 
 (**
@@ -251,6 +255,11 @@ module SourceSpec = struct
     | Archive _, _ -> false
 
     | NoSource, _ -> false
+
+  module Map = Map.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
 end
 
 (**

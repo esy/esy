@@ -301,7 +301,7 @@ let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return resolutions
+    return (resolutions, None)
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =
@@ -328,9 +328,10 @@ let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return resolutions
+    return (resolutions, None)
 
   | VersionSpec.Source sourceSpec ->
     let%bind source = resolveSource ~name ~sourceSpec resolver in
     let version = Version.Source source in
-    return [{Resolution. name; version}]
+    let versionSpec = VersionSpec.ofVersion version in
+    return ([{Resolution. name; version}], Some versionSpec)

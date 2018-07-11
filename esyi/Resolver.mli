@@ -22,14 +22,12 @@ val make :
 
 (**
  * Resolve package request into a list of resolutions
- *
- * TODO: return info about resolved sources as well.
  *)
 val resolve :
   name:string
   -> ?spec:Package.VersionSpec.t
   -> t
-  -> Resolution.t list RunAsync.t
+  -> (Resolution.t list * Package.VersionSpec.t option) RunAsync.t
 
 (**
  * Resolve source spec into source.
