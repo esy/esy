@@ -16,6 +16,7 @@ type t
 (** Make new resolver *)
 val make :
   ?ocamlVersion:Package.Version.t
+  -> ?opamRegistry:OpamRegistry.t
   -> cfg:Config.t
   -> unit
   -> t RunAsync.t

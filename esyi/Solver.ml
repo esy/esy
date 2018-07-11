@@ -504,9 +504,9 @@ let solveDependenciesNaively
   finish ();%lwt
   return roots
 
-let solveOCamlReq ~cfg req =
+let solveOCamlReq ~cfg ~opamRegistry req =
   let open RunAsync.Syntax in
-  let%bind resolver = Resolver.make ~cfg () in
+  let%bind resolver = Resolver.make ~opamRegistry ~cfg () in
   let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
   begin match findResolutionForRequest ~req resolutions with
   | Some res ->
@@ -540,10 +540,12 @@ let solve ~cfg ~resolutions (root : Package.t) =
     | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
+  let%bind opamRegistry = OpamRegistry.init ~cfg () in
+
   let%bind ocamlVersion, reqs =
     match ocamlReq with
     | Some req ->
-      let%bind version = solveOCamlReq ~cfg req in
+      let%bind version = solveOCamlReq ~cfg ~opamRegistry req in
       let reqs =
         match version with
         | Some version ->
@@ -560,7 +562,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
   let dependencies = Dependencies.NpmFormula reqs in
 
   let%bind solver, dependencies =
-    let%bind resolver  = Resolver.make ?ocamlVersion ~cfg () in
+    let%bind resolver  = Resolver.make ?ocamlVersion ~opamRegistry ~cfg () in
     let%bind solver = make ~resolver ~cfg ~resolutions () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)

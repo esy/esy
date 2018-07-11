@@ -214,6 +214,7 @@ let init ~cfg () =
     match cfg.Config.opamRepository with
     | Config.Local local -> return local
     | Config.Remote (remote, local) ->
+      Logs_lwt.app (fun m -> m "checking %s for updates..." remote);%lwt
       let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
       return local
   in

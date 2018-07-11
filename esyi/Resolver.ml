@@ -102,9 +102,13 @@ type t = {
   resolutionCache : ResolutionCache.t;
 }
 
-let make ?ocamlVersion ~cfg () =
+let make ?ocamlVersion ?opamRegistry ~cfg () =
   let open RunAsync.Syntax in
-  let%bind opamRegistry = OpamRegistry.init ~cfg () in
+  let%bind opamRegistry =
+    match opamRegistry with
+    | Some opamRegistry -> return opamRegistry
+    | None -> OpamRegistry.init ~cfg ()
+  in
   let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
   return {
     cfg;
