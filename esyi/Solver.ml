@@ -344,6 +344,46 @@ let parseCudfSolution ~cudfUniverse data =
 let solveDependencies ~installed ~strategy dependencies solver =
   let open RunAsync.Syntax in
 
+  let runSolver filenameIn filenameOut =
+    let cmd = Cmd.(
+      solver.cfg.Config.esySolveCmd
+      % ("--strategy=" ^ strategy)
+      % ("--timeout=" ^ string_of_float(solver.cfg.solveTimeout))
+      % p filenameIn
+      % p filenameOut
+    ) in
+
+    let f p =
+      let readAndClose ic =
+        Lwt.finalize
+          (fun () -> Lwt_io.read ic)
+          (fun () -> Lwt_io.close ic)
+      in
+      let%lwt stdout = readAndClose p#stdout
+          and stderr = readAndClose p#stderr in
+      match%lwt p#status with
+      | Unix.WEXITED 0 ->
+        RunAsync.return ()
+      | _ ->
+        let msg =
+          Format.asprintf
+            "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+            Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
+        in
+        RunAsync.error msg
+    in
+
+    let cmd = Cmd.getToolAndLine cmd in
+    try%lwt
+      Lwt_process.with_process_full cmd f
+    with
+    | Unix.Unix_error (err, _, _) ->
+      let msg = Unix.error_message err in
+      RunAsync.error msg
+    | _ ->
+      RunAsync.error "error running cudf solver"
+  in
+
   let dummyRoot = {
     Package.
     name = "ROOT";
@@ -369,21 +409,43 @@ let solveDependencies ~installed ~strategy dependencies solver =
     let cudf =
       Some preamble, Cudf.get_packages cudfUniverse, request
     in
-    let dataIn = printCudfDoc cudf in
-    let%bind dataOut = Fs.withTempFile ~data:dataIn (fun filename ->
-      let cmd = Cmd.(
-        solver.cfg.Config.esySolveCmd
-        % ("--strategy=" ^ strategy)
-        % ("--timeout=" ^ string_of_float(solver.cfg.solveTimeout))
-        % p filename) in
-      ChildProcess.runOut cmd
-    ) in
-    return (parseCudfSolution ~cudfUniverse dataOut)
+    Fs.withTempDir (fun path ->
+      let%bind filenameIn =
+        let filename = Path.(path / "in.cudf") in
+        let%bind () = Fs.writeFile ~data:(printCudfDoc cudf) filename in
+        return filename
+      in
+      let filenameOut = Path.(path / "out.cudf") in
+      let%bind () = runSolver filenameIn filenameOut in
+      let%bind result =
+        let%bind dataOut = Fs.readFile filenameOut in
+        let dataOut = String.trim dataOut in
+        if String.length dataOut = 0
+        then return None
+        else (
+          let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
+          return (Some solution)
+        )
+      in
+      return result
+    )
   in
 
-  match%lwt solution with
+  match%bind solution with
 
-  | Error _ ->
+  | Some (_preamble, cudfUniv) ->
+
+    let packages =
+      cudfUniv
+      |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
+      |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
+      |> List.filter ~f:(fun p -> p.Package.name <> dummyRoot.Package.name)
+      |> Package.Set.of_list
+    in
+
+    return (Ok packages)
+
+  | None ->
     let cudf = preamble, cudfUniverse, request in
     begin match%bind
       Explanation.explain
@@ -395,18 +457,6 @@ let solveDependencies ~installed ~strategy dependencies solver =
     | Some reasons -> return (Error reasons)
     | None -> return (Error Explanation.empty)
     end
-
-  | Ok (_preamble, cudfUniv) ->
-
-    let packages =
-      cudfUniv
-      |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
-      |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
-      |> List.filter ~f:(fun p -> p.Package.name <> dummyRoot.Package.name)
-      |> Package.Set.of_list
-    in
-
-    return (Ok packages)
 
 let solveDependenciesNaively
   ~(installed : Package.Set.t)
