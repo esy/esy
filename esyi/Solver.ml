@@ -230,7 +230,7 @@ let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let universe = ref solver.universe in
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving esy packages" () in
 
   let rec addPackage (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
@@ -416,7 +416,10 @@ let solveDependencies ~installed ~strategy dependencies solver =
         return filename
       in
       let filenameOut = Path.(path / "out.cudf") in
+      let report, finish = solver.cfg.createProgressReporter ~name:"solving esy constraints" () in
+      let%lwt () = report "running solver" in
       let%bind () = runSolver filenameIn filenameOut in
+      let%lwt () = finish () in
       let%bind result =
         let%bind dataOut = Fs.readFile filenameOut in
         let dataOut = String.trim dataOut in
@@ -464,7 +467,7 @@ let solveDependenciesNaively
   (solver : t) =
   let open RunAsync.Syntax in
 
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving npm packages" () in
 
   let installed =
     let tbl = Hashtbl.create 100 in
@@ -519,7 +522,9 @@ let solveDependenciesNaively
     return pkg
   in
 
-  let rec solveDependencies ~seen dependencies =
+  let solved = ref Package.Map.empty in
+
+  let rec solveDependencies dependencies =
 
     let reqs = match dependencies with
     | Dependencies.NpmFormula reqs -> reqs
@@ -529,32 +534,57 @@ let solveDependenciesNaively
       Dependencies.toApproximateRequests dependencies
     in
 
-    (** This prefetches resolutions which can result in an overfetch but makes
-     * things happen much faster. *)
-    let%bind _ =
-      let f (req : Req.t) = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
-      reqs
-      |> List.map ~f
-      |> RunAsync.List.joinAll
+    let%bind pkgs =
+      let%bind pkgs =
+        let f req =
+          let%bind pkg = resolve req in
+          addToInstalled pkg;
+          return pkg
+        in
+        reqs
+        |> List.map ~f
+        |> RunAsync.List.joinAll
+      in
+      return (pkgs |> Package.Set.of_list |> Package.Set.elements)
     in
 
-    let f roots (req : Req.t) =
-      if StringSet.mem req.name seen
-      then return roots
-      else begin
-        let seen = StringSet.add req.name seen in
-        let%bind pkg = resolve req in
-        addToInstalled pkg;
-        let%bind dependencies = solveDependencies ~seen pkg.Package.dependencies in
-        let%bind record = solutionRecordOfPkg ~solver pkg in
-        let root = Solution.make record dependencies in
-        return (root::roots)
-      end
+    let%bind () =
+      let f (pkg : Package.t) =
+        match Package.Map.find_opt pkg !solved with
+        | Some _ -> return ()
+        | None ->
+          let%bind dependencies = solveDependencies pkg.dependencies in
+          solved := Package.Map.add pkg dependencies !solved;
+          return ()
+      in
+      pkgs
+      |> List.map ~f
+      |> RunAsync.List.waitAll
     in
-    RunAsync.List.foldLeft ~f ~init:[] reqs
+
+    return pkgs
   in
 
-  let%bind roots = solveDependencies ~seen:StringSet.empty dependencies in
+  let%bind pkgs = solveDependencies dependencies in
+
+  let%bind roots =
+    let solved = !solved in
+    let rec makeRoot (pkg : Package.t) =
+      let dependencies = Package.Map.find pkg solved in
+      let%bind dependencies = makeRoots dependencies in
+      let%bind record = solutionRecordOfPkg ~solver pkg in
+      let root = Solution.make record dependencies in
+      return root
+    and makeRoots pkgs =
+      let f roots pkg =
+        let%bind root = makeRoot pkg in
+        return (root::roots)
+      in
+      RunAsync.List.foldLeft ~f ~init:[] pkgs
+    in
+    makeRoots pkgs
+  in
+
   finish ();%lwt
   return roots
 
