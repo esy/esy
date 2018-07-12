@@ -7,12 +7,8 @@ doTest () {
 
   run esy install
 
-  run esy add link:../dep
   run esy build
   assertStdout 'esy dep' 'HELLO'
-
-  run esy add link:../another-dep
-  run esy build
   assertStdout 'esy another-dep' 'HELLO'
 
   info "modify dep sources"
