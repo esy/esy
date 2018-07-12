@@ -36,4 +36,15 @@ artifacts:
       name: Windows Build
       type: File
 
+deploy:
+    - provider: Github
+    - repository: esy/esy
+      auth_token:
+          secure: J4V6+1KHu8UiApItmxPWArb5oMf1WnQyAc9H4GtBzEo620zFin0oRLYQ0DxCz1VW
+      draft: false
+      prerelease: false
+      force_update: true
+      on:
+          appveyor_repo_tag: true
+
 test: off
