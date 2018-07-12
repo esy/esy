@@ -265,7 +265,7 @@ let withBuildEnvUnlocked =
   let run = cmd => {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
-    let cmd= EsyLib.Cmd.toBosCmd(cmd);
+    let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind exec = prepare(~env, cmd);
     let%bind ((), (_runInfo, runStatus)) =
       Bos.OS.Cmd.(
