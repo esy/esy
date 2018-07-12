@@ -15,10 +15,10 @@
               esy-lib
               str
               cudf
-              yaml
               ppx_deriving_yojson.runtime
               yojson
               logs
               logs.lwt
               dose3.algo
+              opam-format
               opam-file-format))))

@@ -159,8 +159,8 @@ let formatPackageInfo = (~built: bool, task: Task.t) => {
   let version = Chalk.grey("@" ++ pkg.version);
   let status =
     switch (task.sourceType, built) {
-    | (Package.SourceType.Immutable, true) => Chalk.green("[built]")
-    | (Package.SourceType.Immutable, false)
+    | (Manifest.SourceType.Immutable, true) => Chalk.green("[built]")
+    | (Manifest.SourceType.Immutable, false)
     | (_, _) => Chalk.blue("[build pending]")
     };
   let line = Printf.sprintf("%s%s %s", pkg.name, version, status);

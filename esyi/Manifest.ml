@@ -1,17 +1,29 @@
 module Version = SemverVersion.Version
 module String = Astring.String
-module Resolutions = PackageInfo.Resolutions
-module Source = PackageInfo.Source
-module Dependencies = PackageInfo.Dependencies
+module Resolutions = Package.Resolutions
+module Source = Package.Source
+module Req = Package.Req
+module Dep = Package.Dep
+module NpmDependencies = Package.NpmDependencies
+module Dependencies = Package.Dependencies
+
+let find (path : Path.t) =
+  let open RunAsync.Syntax in
+  let esyJson = Path.(path / "esy.json") in
+  let packageJson = Path.(path / "package.json") in
+  if%bind Fs.exists esyJson
+  then return esyJson
+  else if%bind Fs.exists packageJson
+  then return packageJson
+  else error "no package.json found"
 
 (* This is used just to read the Json.t *)
 module PackageJson = struct
   type t = {
     name : string;
     version : string;
-    resolutions : (Resolutions.t [@default Resolutions.empty]);
-    dependencies : (Dependencies.t [@default Dependencies.empty]);
-    devDependencies : (Dependencies.t [@default Dependencies.empty]);
+    dependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
+    devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     dist : (dist option [@default None]);
     esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
@@ -26,23 +38,13 @@ module PackageJson = struct
     let%bind data = Fs.readJsonFile path in
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith of_yojson data) in
     return pkgJson
-
-  let ofDir (path : Path.t) =
-    let open RunAsync.Syntax in
-    let esyJson = Path.(path / "esy.json") in
-    let packageJson = Path.(path / "package.json") in
-    if%bind Fs.exists esyJson
-    then ofFile esyJson
-    else if%bind Fs.exists packageJson
-    then ofFile packageJson
-    else error "no package.json found"
 end
 
 type t = {
   name : string;
   version : string;
-  dependencies : Dependencies.t;
-  devDependencies : Dependencies.t;
+  dependencies : NpmDependencies.t;
+  devDependencies : NpmDependencies.t;
   source : Source.t;
   hasEsyManifest : bool;
 }
@@ -71,7 +73,9 @@ let of_yojson json =
 
 let ofDir (path : Path.t) =
   let open RunAsync.Syntax in
-  let%bind pkgJson = PackageJson.ofDir path in
+  let%bind filename = find path in
+  let%bind json = Fs.readJsonFile filename in
+  let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
   return (ofPackageJson pkgJson)
 
 module Root = struct
@@ -80,9 +84,53 @@ module Root = struct
     resolutions : Resolutions.t;
   }
 
+  module ParseResolutions = struct
+    type t = {
+      resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
+    } [@@deriving of_yojson { strict = false }]
+  end
+
   let ofDir (path : Path.t) =
     let open RunAsync.Syntax in
-    let%bind pkgJson = PackageJson.ofDir path in
+    let%bind filename = find path in
+    let%bind json = Fs.readJsonFile filename in
+    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
+    let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith ParseResolutions.of_yojson json) in
     let manifest = ofPackageJson pkgJson in
-    return {manifest; resolutions = pkgJson.PackageJson.resolutions}
+    return {manifest; resolutions = resolutions.ParseResolutions.resolutions}
 end
+
+let toPackage ?name ?version (manifest : t) =
+  let open RunAsync.Syntax in
+  let name =
+    match name with
+    | Some name -> name
+    | None -> manifest.name
+  in
+  let version =
+    match version with
+    | Some version -> version
+    | None -> Package.Version.Npm (SemverVersion.Version.parseExn manifest.version)
+  in
+  let source =
+    match version with
+    | Package.Version.Source src -> Package.Source src
+    | _ -> Package.Source manifest.source
+  in
+
+  let pkg = {
+    Package.
+    name;
+    version;
+    dependencies = Dependencies.NpmFormula manifest.dependencies;
+    devDependencies = Dependencies.NpmFormula manifest.devDependencies;
+    source;
+    opam = None;
+    kind =
+      if manifest.hasEsyManifest
+      then Esy
+      else Npm
+  } in
+
+  return pkg
+

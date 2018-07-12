@@ -21,6 +21,8 @@ and checkoutCfg = [
 
 let resolvedPrefix = "esyi5-";
 
+let esyOpamOverrideVersion = "6";
+
 let configureCheckout = (~defaultRemote, ~defaultLocal) =>
   fun
   | Some(`RemoteLocal(remote, local)) => Remote(remote, local)

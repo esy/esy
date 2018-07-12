@@ -6,24 +6,26 @@
  * This is minimal info needed to fetch and build a package.
  *)
 module Record : sig
+
+  module Opam : sig
+    type t = {
+      name : Package.Opam.OpamName.t;
+      version : Package.Opam.OpamVersion.t;
+      opam : Package.Opam.OpamFile.t;
+      override : Package.OpamOverride.t option;
+    }
+  end
+
   type t = {
     name: string;
-    version: PackageInfo.Version.t;
-    source: PackageInfo.Source.t;
-
-    (**
-    * We store OpamInfo.t as part of the lockfile as we want to lock against:
-    *   1. changes in the opam->esy conversion algo
-    *   2. changes in esy-opam-override
-    *   3. changes in opam repository (yes, it is mutable)
-    *)
-    opam: PackageInfo.OpamInfo.t option;
+    version: Package.Version.t;
+    source: Package.Source.t;
+    files : Package.File.t list;
+    opam : Opam.t option;
   }
 
   val pp : t Fmt.t
   val equal : t -> t -> bool
-
-  val ofPackage : Package.t -> t
 
   module Map : Map.S with type key := t
   module Set : Set.S with type elt := t

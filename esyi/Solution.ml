@@ -1,22 +1,25 @@
-module Dependencies = PackageInfo.Dependencies
-module Version = PackageInfo.Version
-module Source = PackageInfo.Source
-module Req = PackageInfo.Req
+module Version = Package.Version
+module Source = Package.Source
+module Req = Package.Req
 
 module Record = struct
-  type t = {
-    name: string ;
-    version: Version.t ;
-    source: Source.t ;
-    opam: PackageInfo.OpamInfo.t option;
-  } [@@deriving yojson]
 
-  let ofPackage (pkg : Package.t) = {
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    opam = pkg.opam;
-  }
+  module Opam = struct
+    type t = {
+      name : Package.Opam.OpamName.t;
+      version : Package.Opam.OpamVersion.t;
+      opam : Package.Opam.OpamFile.t;
+      override : Package.OpamOverride.t option;
+    } [@@deriving yojson]
+  end
+
+  type t = {
+    name: string;
+    version: Version.t;
+    source: Source.t;
+    files : Package.File.t list;
+    opam : Opam.t option;
+  } [@@deriving yojson]
 
   let compare a b =
     let c = String.compare a.name b.name in
@@ -90,7 +93,7 @@ let dependenciesHash (manifest : Manifest.Root.t) =
     in
     List.fold_left
       ~f ~init:digest
-      (PackageInfo.Resolutions.entries resolutions)
+      (Package.Resolutions.entries resolutions)
   in
   let digest =
     Digest.string ""
@@ -98,10 +101,10 @@ let dependenciesHash (manifest : Manifest.Root.t) =
       ~resolutions:manifest.Manifest.Root.resolutions
     |> hashDependencies
       ~prefix:"dependencies"
-      ~dependencies:(Dependencies.toList manifest.manifest.dependencies)
+      ~dependencies:manifest.manifest.dependencies
     |> hashDependencies
       ~prefix:"devDependencies"
-      ~dependencies:(Dependencies.toList manifest.manifest.devDependencies)
+      ~dependencies:manifest.manifest.devDependencies
   in
   Digest.to_hex digest
 

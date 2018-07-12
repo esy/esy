@@ -26,6 +26,7 @@
               str
               astring
               esy-build-package
+              opam-format
               ))
   ))
 

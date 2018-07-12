@@ -2,7 +2,7 @@ platform:
     - x64
 
 cache:
-    - '%LocalAppData%\.opam'
+    - C:\Users\appveyor\.opam
 
 install:
     - where git

@@ -11,11 +11,12 @@ let runGit cmd =
     | Unix.WEXITED 0 ->
       RunAsync.return ()
     | _ ->
-      Logs_lwt.err (fun m -> m
-        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-      );%lwt
-      RunAsync.error "error running command"
+      let msg =
+        Format.asprintf
+          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
+      in
+      RunAsync.error msg
   in
   try%lwt
     let cmd = Cmd.getToolAndLine cmd in
@@ -43,10 +44,14 @@ let clone ?branch ?depth ~dst ~remote () =
   in
   runGit cmd
 
-let pull ?(force=false) ?depth ~remote ~repo ~branchSpec () =
+let pull ?(force=false) ?(ffOnly=false) ?depth ~remote ~repo ~branchSpec () =
   let cmd =
     let open Cmd in
     let cmd = v "git" % "-C" % p repo % "pull" in
+    let cmd = match ffOnly with
+      | true -> cmd % "--ff-only"
+      | false -> cmd
+    in
     let cmd = match force with
       | true -> cmd % "--force"
       | false -> cmd
@@ -65,8 +70,13 @@ let checkout ~ref ~repo () =
 
 let lsRemote ?ref ~remote () =
   let open RunAsync.Syntax in
+  let cmd = Cmd.(v "git"  % "ls-remote" % remote) in
+  let cmd =
+    match ref with
+    | Some ref -> Cmd.(cmd % ref)
+    | None -> cmd
+  in
   let ref = Option.orDefault ~default:"master" ref in
-  let cmd = Cmd.(v "git"  % "ls-remote" % remote % ref) in
   let%bind out = ChildProcess.runOut cmd in
   match out |> String.trim |> String.split_on_char '\n' with
   | [] ->
@@ -89,24 +99,34 @@ let isCommitLike v =
 module ShallowClone = struct
 
   let update ~branch ~dst source =
-    let open RunAsync.Syntax in
-    if%bind Fs.exists dst then
+    let rec aux ?(retry=true) () =
+      let open RunAsync.Syntax in
+      if%bind Fs.exists dst then
 
-      let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
-      and localCommit = lsRemote ~ref:branch ~remote:(Path.toString dst) () in
+        let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
+        and localCommit = lsRemote ~remote:(Path.toString dst) () in
 
-      if remoteCommit = localCommit
-      then return ()
+        if remoteCommit = localCommit
+        then return ()
+        else (
+          let branchSpec = branch ^ ":" ^ branch in
+          let pulling = pull
+            ~branchSpec
+            ~force:true
+            ~depth:1
+            ~remote:source
+            ~repo:dst
+            ()
+          in
+          match%lwt pulling with
+          | Ok () -> return ()
+          | Error _ when retry ->
+            let%bind () = Fs.rmPath dst in
+            aux ~retry:false ()
+          | Error err -> Lwt.return (Error err)
+        )
       else
-        let branchSpec = branch ^ ":" ^ branch in
-        pull
-          ~branchSpec
-          ~depth:1
-          ~force:true
-          ~remote:source
-          ~repo:dst
-          ()
-    else
-      let%bind () = Fs.createDir (Path.parent dst) in
-      clone ~branch ~depth:1 ~remote:source ~dst ()
+        let%bind () = Fs.createDir (Path.parent dst) in
+        clone ~branch ~depth:1 ~remote:source ~dst ()
+    in aux ()
 end

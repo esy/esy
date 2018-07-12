@@ -8,5 +8,5 @@ doTest () {
 
   # test that error output has relevant info
   echo "$out" | grep "invalid dependency dep: unable to resolve package"
-  echo "$out" | grep "While processing package:"
+  echo "$out" | grep "processing package: with-dep@1.0.0"
 }

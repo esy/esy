@@ -1,7 +1,7 @@
-module Dependencies = PackageInfo.Dependencies
-module Version = PackageInfo.Version
-module VersionSpec = PackageInfo.VersionSpec
-module Req = PackageInfo.Req
+module Dependencies = Package.Dependencies
+module Version = Package.Version
+module VersionSpec = Package.VersionSpec
+module Req = Package.Req
 
 module CudfName = struct
 
@@ -53,7 +53,7 @@ let findVersionExn ~name ~version (univ : t) =
     let msg =
       Printf.sprintf
         "inconsistent state: package not in the universr %s@%s"
-        name (PackageInfo.Version.toString version)
+        name (Package.Version.toString version)
     in
     failwith msg
 
@@ -67,11 +67,11 @@ let findVersions ~name (univ : t) =
 
 module CudfVersionMap = struct
 
-  module VersionSet = Set.Make(PackageInfo.Version)
+  module VersionSet = Set.Make(Package.Version)
 
   type t = {
-    cudfVersionToVersion: ((string * int), PackageInfo.Version.t) Hashtbl.t ;
-    versionToCudfVersion: ((string * PackageInfo.Version.t), int) Hashtbl.t;
+    cudfVersionToVersion: ((string * int), Package.Version.t) Hashtbl.t ;
+    versionToCudfVersion: ((string * Package.Version.t), int) Hashtbl.t;
     versions : (string, VersionSet.t) Hashtbl.t;
   }
 
@@ -122,7 +122,7 @@ module CudfVersionMap = struct
       let msg =
         Printf.sprintf
           "inconsistent state: found a package not in the cudf version map %s@%s"
-          name (PackageInfo.Version.toString version)
+          name (Package.Version.toString version)
       in
       failwith msg
 
@@ -161,15 +161,12 @@ module CudfMapping = struct
     let cudfVersion = CudfVersionMap.findCudfVersionExn ~name ~version:pkg.version vmap in
     Cudf.lookup_package cudfUniv (name, cudfVersion)
 
-  let encodeReqExn (req : Req.t) (univ, _cudfUniv, vmap)  =
-    let name = Req.name req in
-    let spec = Req.spec req in
-
+  let encodeDepExn ~name ~matches (univ, _cudfUniv, vmap)  =
     let versions = findVersions ~name univ in
 
     let versionsMatched =
       List.filter
-        ~f:(fun pkg -> VersionSpec.matches ~version:pkg.Package.version spec)
+        ~f:matches
         versions
     in
 
@@ -219,14 +216,53 @@ let toCudf ?(installed=Package.Set.empty) univ =
     List.iteri ~f pkgs;
   in
 
-  let encodeReq req =
-    let name = Req.name req in
-    let versions = findVersions ~name univ in
-    if not (seen name) then (
-      markAsSeen name;
+  let encodeOpamDep (dep : Package.Dep.t) =
+    let versions = findVersions ~name:dep.name univ in
+    if not (seen dep.name) then (
+      markAsSeen dep.name;
       updateVersionMap versions;
     );
-    CudfMapping.encodeReqExn req (univ, cudfUniv, cudfVersionMap)
+    let matches pkg =
+      Package.Dep.matches
+        ~name:pkg.Package.name
+        ~version:pkg.Package.version
+        dep
+    in
+    CudfMapping.encodeDepExn
+      ~name:dep.name
+      ~matches
+      (univ, cudfUniv, cudfVersionMap)
+  in
+
+  let encodeNpmReq (req : Package.Req.t) =
+    let versions = findVersions ~name:req.name univ in
+    if not (seen req.name) then (
+      markAsSeen req.name;
+      updateVersionMap versions;
+    );
+    let matches pkg =
+      Package.Req.matches
+        ~name:pkg.Package.name
+        ~version:pkg.Package.version
+        req
+    in
+    CudfMapping.encodeDepExn ~name:req.name ~matches (univ, cudfUniv, cudfVersionMap)
+  in
+
+  let encodeDeps (deps : Dependencies.t) =
+    match deps with
+    | Package.Dependencies.OpamFormula deps ->
+      let f deps =
+        let f deps dep = deps @ (encodeOpamDep dep) in
+        List.fold_left ~f ~init:[] deps
+      in
+      List.map ~f deps
+    | Package.Dependencies.NpmFormula reqs ->
+      let reqs =
+        let f (req : Package.Req.t) = StringMap.mem req.name univ.pkgs in
+        List.filter ~f reqs
+      in
+      List.map ~f:encodeNpmReq reqs
   in
 
   let encodePkg (pkg : Package.t) =
@@ -237,19 +273,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
         cudfVersionMap
     in
 
-    let depends =
-
-      let onlyExisting (req : Req.t) =
-        match StringMap.find_opt (Req.name req) univ.pkgs with
-        | Some _ -> true
-        | None -> false
-      in
-
-      pkg.dependencies
-      |> Dependencies.toList
-      |> List.filter ~f:onlyExisting
-      |> List.map ~f:encodeReq
-    in
+    let depends = encodeDeps pkg.dependencies in
     let cudfName = CudfName.ofString pkg.name in
     let cudfPkg = {
       Cudf.default_package with
