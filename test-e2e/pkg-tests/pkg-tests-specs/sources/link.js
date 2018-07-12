@@ -23,19 +23,19 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {dep: `link:./dep`},
         },
         async ({path, run, source}) => {
           await definePackage({
             name: 'depdep',
             version: '1.0.0',
-            esy: true,
+            esy: {},
           });
           await defineLocalPackage(join(path, 'dep'), {
             name: 'dep',
             version: '1.0.0',
-            esy: true,
+            esy: {},
             dependencies: {
               depdep: '*',
             },

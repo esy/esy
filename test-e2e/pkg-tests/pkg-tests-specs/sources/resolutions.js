@@ -21,7 +21,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {dep: `1.0.0`},
           resolutions: {dep: `2.0.0`},
         },
@@ -29,12 +29,12 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await definePackage({
             name: 'dep',
             version: '1.0.0',
-            esy: true,
+            esy: {},
           });
           await definePackage({
             name: 'dep',
             version: '2.0.0',
-            esy: true,
+            esy: {},
           });
 
           await run(`install`);
@@ -59,7 +59,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {dep: `1.0.0`},
           resolutions: {depDep: `2.0.0`},
         },
@@ -67,17 +67,17 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await definePackage({
             name: 'dep',
             version: '1.0.0',
-            esy: true,
+            esy: {},
             dependencies: {depDep: `1.0.0`},
           });
           await definePackage({
             name: 'depDep',
-            esy: true,
+            esy: {},
             version: '1.0.0',
           });
           await definePackage({
             name: 'depDep',
-            esy: true,
+            esy: {},
             version: '2.0.0',
           });
 
