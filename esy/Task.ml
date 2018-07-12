@@ -9,6 +9,16 @@
 module ConfigPath = Config.ConfigPath
 module Store = EsyLib.Store
 
+let toOCamlVersion version =
+  match String.split_on_char '.' version with
+  | major::minor::patch::[] ->
+    let patch =
+      let v = try int_of_string patch with _ -> 0 in
+      if v < 1000 then v else v / 1000
+    in
+    major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
+  | _ -> version
+
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
     match system with
@@ -463,6 +473,13 @@ let ofPackage
 
   and taskOfPackage ~(includeSandboxEnv: bool) (pkg : Package.t) =
 
+    let ocamlVersion =
+      let f pkg = pkg.Package.name = "ocaml" in
+      match Package.DependencyGraph.find ~f pkg with
+      | Some pkg -> Some (toOCamlVersion pkg.version)
+      | None -> None
+    in
+
     let isRoot = pkg.id = rootPkg.id in
 
     let shouldIncludeDependencyInEnv = function
@@ -823,6 +840,10 @@ let ofPackage
       let v =
         match scope, to_string var with
         | Full.Global, "os" -> Some (string (System.toString system))
+        | Full.Global, "ocaml-version" ->
+          let open Option.Syntax in
+          let%bind ocamlVersion = ocamlVersion in
+          Some (string ocamlVersion)
         | Full.Global, "ocaml-native" -> Some (bool true)
         | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
         | Full.Global, "make" -> Some (string "make")
