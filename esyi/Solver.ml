@@ -6,7 +6,6 @@ module Dependencies = Package.Dependencies
 module NpmDependencies = Package.NpmDependencies
 module Req = Package.Req
 module Resolutions = Package.Resolutions
-module DepFormula = Package.DepFormula
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"

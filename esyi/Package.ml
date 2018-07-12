@@ -521,33 +521,6 @@ module Dep = struct
 
 end
 
-module DepFormula = struct
-  type t =
-    | Npm of SemverVersion.Formula.CNF.t
-    | Opam of OpamVersion.Formula.CNF.t
-    | Source of SourceSpec.t
-
-  let matches ~version formula =
-    match version, formula with
-    | Version.Npm version, Npm formula ->
-      SemverVersion.Formula.CNF.matches ~version formula
-    | Version.Npm _, _ -> false
-
-    | Version.Opam version, Opam formula ->
-      OpamVersion.Formula.CNF.matches ~version formula
-    | Version.Opam _, _ -> false
-
-    | Version.Source source, Source sourceSpec ->
-      SourceSpec.matches ~source sourceSpec
-    | Version.Source _, _ -> false
-
-  let pp fmt = function
-    | Npm f -> SemverVersion.Formula.CNF.pp fmt f
-    | Opam f -> OpamVersion.Formula.CNF.pp fmt f
-    | Source srcSpec -> SourceSpec.pp fmt srcSpec
-
-end
-
 module NpmDependencies = struct
 
   type t = Req.t conj [@@deriving eq]
@@ -666,95 +639,6 @@ module Dependencies = struct
       in
       let reqs = List.map ~f:applyToReq reqs in
       NpmFormula reqs
-
-
-(*   let mapDeps ~f formula = *)
-(*     List.map ~f:(List.map ~f) formula *)
-
-(*   let filterDeps ~f formula = *)
-(*     let f formula disj = *)
-(*       match List.filter ~f disj with *)
-(*       | [] -> formula *)
-(*       | disj -> disj::formula *)
-(*     in *)
-(*     List.fold_left ~f ~init:[] formula *)
-
-(*   let override ~dep formula = *)
-(*     let f (edep : Dep.t) = *)
-(*       if edep.name = dep.Dep.name *)
-(*       then dep *)
-(*       else edep *)
-(*     in *)
-(*     mapDeps ~f formula *)
-
-  (* let overrideMany ~deps formula = *)
-  (*   let f deps dep = override ~dep deps in *)
-  (*   List.fold_left ~f ~init:formula deps *)
-
-  (* let subformulaForPackage ~name:forName formula = *)
-  (*   let f {Dep.name; _} = name = forName in *)
-  (*   match filterDeps ~f formula with *)
-  (*   | [] -> None *)
-  (*   | formula -> Some formula *)
-
-  (* TODO: remove *)
-  (* let describeByPackageName (formula : t) = *)
-  (*   let desc = *)
-  (*     let f desc disj = *)
-  (*       let up = *)
-  (*         let f byName {Dep. name; req} = *)
-  (*           match StringMap.find_opt name byName, req with *)
-  (*           | Some (npm, opam, source), Dep.Npm c -> *)
-  (*             StringMap.add name (c::npm, opam, source) byName *)
-  (*           | Some (npm, opam, source), Dep.Opam c -> *)
-  (*             StringMap.add name (npm, c::opam, source) byName *)
-  (*           | Some (npm, opam, source), Dep.Source c -> *)
-  (*             StringMap.add name (npm, opam, c::source) byName *)
-  (*           | None, Dep.Npm c -> *)
-  (*             StringMap.add name ([c], [], []) byName *)
-  (*           | None, Dep.Opam c -> *)
-  (*             StringMap.add name ([], [c], []) byName *)
-  (*           | None, Dep.Source c -> *)
-  (*             StringMap.add name ([], [], [c]) byName *)
-  (*         in *)
-  (*         List.fold_left ~f ~init:StringMap.empty disj *)
-  (*       in *)
-  (*       let merge _k a b = *)
-  (*         match a, b with *)
-  (*         | None, None -> None *)
-  (*         | Some a, None -> Some a *)
-  (*         | None, Some (npmu, opamu, sourceu) -> *)
-  (*           let npm = match npmu with | [] -> [] | f -> [f] in *)
-  (*           let opam = match opamu with | [] -> [] | f -> [f] in *)
-  (*           Some (npm, opam, sourceu) *)
-  (*         | Some (npm, opam, source), Some (npmu, opamu, sourceu) -> *)
-  (*           let npm = match npmu with | [] -> npm | f -> f::npm in *)
-  (*           let opam = match opamu with | [] -> opam | f -> f::opam in *)
-  (*           Some (npm, opam, sourceu @ source) *)
-  (*       in *)
-  (*       StringMap.merge merge desc up *)
-  (*     in *)
-  (*     List.fold_left ~f ~init:StringMap.empty formula *)
-  (*   in *)
-  (*   let f name (npm, opam, sources) formulas = *)
-  (*     let formulas = *)
-  (*       List.fold_left *)
-  (*         ~f:(fun formulas source -> (name, DepFormula.Source source)::formulas) *)
-  (*         ~init:formulas sources *)
-  (*     in *)
-  (*     let formulas = *)
-  (*       match npm with *)
-  (*       | [] -> formulas *)
-  (*       | f -> (name, DepFormula.Npm f)::formulas *)
-  (*     in *)
-  (*     let formulas = *)
-  (*       match opam with *)
-  (*       | [] -> formulas *)
-  (*       | f -> (name, DepFormula.Opam f)::formulas *)
-  (*     in *)
-  (*     formulas *)
-  (*   in *)
-  (*   StringMap.fold f desc [] *)
 
   let pp fmt deps =
     match deps with

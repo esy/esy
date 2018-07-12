@@ -3,7 +3,6 @@ module SourceSpec = Package.SourceSpec
 module Version = Package.Version
 module Source = Package.Source
 module Req = Package.Req
-module DepFormula = Package.DepFormula
 
 module Resolution = struct
   type t = {
