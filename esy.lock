@@ -1026,9 +1026,9 @@ esy-bash@^0.1.13:
     download "^7.0.0"
     mkdirp "^0.5.1"
 
-esy-solve-cudf@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/esy-solve-cudf/-/esy-solve-cudf-0.0.3.tgz#9dbf90d357a5e7bdd20c5a975c6a2d67dd6f26dd"
+esy-solve-cudf@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/esy-solve-cudf/-/esy-solve-cudf-0.1.0.tgz#f572f95366883870dc02173e8bcbaaa918b64d04"
 
 ext-list@^2.0.0:
   version "2.2.2"
