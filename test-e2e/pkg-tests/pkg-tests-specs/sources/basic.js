@@ -144,7 +144,50 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           });
           await definePackage({
             name: 'apkg-dep',
-            esy: true,
+            esy: {},
+            version: '2.0.0',
+          });
+
+          await run(`install`);
+
+          await expect(source(`require('apkg-dep/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'apkg-dep',
+              version: `2.0.0`,
+            },
+          );
+        },
+      ),
+    );
+
+    test(
+      `it should prefer esy._dependenciesForNewEsyInstaller`,
+      makeTemporaryEnv(
+        {
+          name: 'root',
+          version: '1.0.0',
+          dependencies: {apkg: `1.0.0`},
+          esy: {},
+        },
+        async ({path, run, source}) => {
+          await definePackage({
+            name: 'apkg',
+            version: '1.0.0',
+            esy: {
+              _dependenciesForNewEsyInstaller: {
+                'apkg-dep': `2.0.0`
+              }
+            },
+            dependencies: {'apkg-dep': `1.0.0`},
+          });
+          await definePackage({
+            name: 'apkg-dep',
+            esy: {},
+            version: '1.0.0',
+          });
+          await definePackage({
+            name: 'apkg-dep',
+            esy: {},
             version: '2.0.0',
           });
 
