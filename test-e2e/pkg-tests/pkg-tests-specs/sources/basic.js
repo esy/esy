@@ -20,7 +20,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {[`no-deps`]: `1.0.0`},
         },
         async ({path, run, source}) => {
@@ -40,7 +40,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {[`one-fixed-dep`]: `1.0.0`},
         },
         async ({path, run, source}) => {
@@ -66,7 +66,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {[`one-range-dep`]: `1.0.0`},
         },
         async ({path, run, source}) => {
@@ -92,19 +92,19 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         {
           name: 'root',
           version: '1.0.0',
-          esy: true,
+          esy: {},
           dependencies: {'dep-via-resolution': `1.0.0`},
           resolutions: {'dep-via-resolution': `2.0.0`},
         },
         async ({path, run, source}) => {
           await definePackage({
             name: 'dep-via-resolution',
-            esy: true,
+            esy: {},
             version: '1.0.0',
           });
           await definePackage({
             name: 'dep-via-resolution',
-            esy: true,
+            esy: {},
             version: '2.0.0',
           });
 
@@ -127,24 +127,67 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           name: 'root',
           version: '1.0.0',
           dependencies: {apkg: `1.0.0`},
-          esy: true,
+          esy: {},
           resolutions: {'apkg-dep': `2.0.0`},
         },
         async ({path, run, source}) => {
           await definePackage({
             name: 'apkg',
             version: '1.0.0',
-            esy: true,
+            esy: {},
             dependencies: {'apkg-dep': `1.0.0`},
           });
           await definePackage({
             name: 'apkg-dep',
-            esy: true,
+            esy: {},
             version: '1.0.0',
           });
           await definePackage({
             name: 'apkg-dep',
-            esy: true,
+            esy: {},
+            version: '2.0.0',
+          });
+
+          await run(`install`);
+
+          await expect(source(`require('apkg-dep/package.json')`)).resolves.toMatchObject(
+            {
+              name: 'apkg-dep',
+              version: `2.0.0`,
+            },
+          );
+        },
+      ),
+    );
+
+    test(
+      `it should prefer esy._dependenciesForNewEsyInstaller`,
+      makeTemporaryEnv(
+        {
+          name: 'root',
+          version: '1.0.0',
+          dependencies: {apkg: `1.0.0`},
+          esy: {},
+        },
+        async ({path, run, source}) => {
+          await definePackage({
+            name: 'apkg',
+            version: '1.0.0',
+            esy: {
+              _dependenciesForNewEsyInstaller: {
+                'apkg-dep': `2.0.0`
+              }
+            },
+            dependencies: {'apkg-dep': `1.0.0`},
+          });
+          await definePackage({
+            name: 'apkg-dep',
+            esy: {},
+            version: '1.0.0',
+          });
+          await definePackage({
+            name: 'apkg-dep',
+            esy: {},
             version: '2.0.0',
           });
 

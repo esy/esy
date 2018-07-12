@@ -19,13 +19,20 @@ let find (path : Path.t) =
 
 (* This is used just to read the Json.t *)
 module PackageJson = struct
+
+  module EsyJson = struct
+    type t = {
+      _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
+    } [@@deriving of_yojson { strict = false }]
+  end
+
   type t = {
     name : string;
     version : string;
     dependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     dist : (dist option [@default None]);
-    esy : (Json.t option [@default None]);
+    esy : (EsyJson.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
 
   and dist = {
@@ -54,17 +61,26 @@ type manifest = t
 let name manifest = manifest.name
 let version manifest = Version.parseExn manifest.version
 
-let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) = {
-  name = pkgJson.name;
-  version = pkgJson.version;
-  dependencies = pkgJson.dependencies;
-  devDependencies = pkgJson.devDependencies;
-  hasEsyManifest = Option.isSome pkgJson.esy;
-  source =
-    match pkgJson.dist with
-    | Some dist -> Source.Archive (dist.PackageJson.tarball, dist.PackageJson.shasum)
-    | None -> source;
-}
+let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
+  let dependencies =
+    match pkgJson.esy with
+    | None
+    | Some {_dependenciesForNewEsyInstaller= None} ->
+      pkgJson.dependencies
+    | Some {_dependenciesForNewEsyInstaller= Some dependencies} ->
+      dependencies
+  in
+  {
+    name = pkgJson.name;
+    version = pkgJson.version;
+    dependencies;
+    devDependencies = pkgJson.devDependencies;
+    hasEsyManifest = Option.isSome pkgJson.esy;
+    source =
+      match pkgJson.dist with
+      | Some dist -> Source.Archive (dist.PackageJson.tarball, dist.PackageJson.shasum)
+      | None -> source;
+  }
 
 let of_yojson json =
   let open Result.Syntax in
