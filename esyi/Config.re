@@ -7,6 +7,7 @@ type t = {
   opamRepository: checkout,
   npmRegistry: string,
   solveTimeout: float,
+  skipRepositoryUpdate: bool,
   createProgressReporter:
     (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
@@ -39,6 +40,7 @@ let make =
       ~solveTimeout=8.0,
       ~esySolveCmd,
       ~createProgressReporter,
+      ~skipRepositoryUpdate,
       basePath,
     ) =>
   RunAsync.Syntax.(
@@ -82,6 +84,7 @@ let make =
         opamRepository,
         esyOpamOverride,
         npmRegistry,
+        skipRepositoryUpdate,
         solveTimeout,
       });
     }

@@ -214,9 +214,18 @@ let init ~cfg () =
     match cfg.Config.opamRepository with
     | Config.Local local -> return local
     | Config.Remote (remote, local) ->
-      Logs_lwt.app (fun m -> m "checking %s for updates..." remote);%lwt
-      let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
-      return local
+      let update () =
+        Logs_lwt.app (fun m -> m "checking %s for updates..." remote);%lwt
+        let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
+        return local
+      in
+
+      if cfg.skipRepositoryUpdate
+      then (
+        if%bind Fs.exists local
+        then return local
+        else update ()
+      ) else update ()
   in
 
   let%bind overrides = OpamOverrides.init ~cfg () in

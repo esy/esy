@@ -184,6 +184,11 @@ module CommandLineInterface = {
     );
   };
 
+  let skipRepositoryUpdateArg = {
+    let doc = "Skip updating opam-repository and esy-opam-overrides repositories.";
+    Arg.(value & flag & info(["skip-repository-update"], ~docs, ~doc));
+  };
+
   let cfgTerm = {
     let parse =
         (
@@ -193,6 +198,7 @@ module CommandLineInterface = {
           esyOpamOverride,
           npmRegistry,
           solveTimeout,
+          skipRepositoryUpdate,
           (),
         ) => {
       open RunAsync.Syntax;
@@ -222,6 +228,7 @@ module CommandLineInterface = {
         ~opamRepository?,
         ~esyOpamOverride?,
         ~solveTimeout?,
+        ~skipRepositoryUpdate,
         sandboxPath,
       );
     };
@@ -233,6 +240,7 @@ module CommandLineInterface = {
       $ esyOpamOverrideArg
       $ npmRegistryArg
       $ solveTimeoutArg
+      $ skipRepositoryUpdateArg
       $ Cli.setupLogTerm
     );
   };

@@ -13,6 +13,8 @@ type t = {
 
   solveTimeout: float,
 
+  skipRepositoryUpdate: bool,
+
   createProgressReporter:
     (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
@@ -37,6 +39,7 @@ let make : (
     ~esySolveCmd: Cmd.t,
     ~createProgressReporter:
       (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
+    ~skipRepositoryUpdate: bool,
     Fpath.t
   ) => RunAsync.t(t)
 
