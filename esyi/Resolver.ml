@@ -159,7 +159,7 @@ let package ~(resolution : Resolution.t) resolver =
         let%bind manifest =
           LwtTaskQueue.submit
             resolver.npmRegistryQueue
-            (fun () -> NpmRegistry.version ~cfg:resolver.cfg resolution.name version)
+            (NpmRegistry.version ~cfg:resolver.cfg ~name:resolution.name ~version)
         in
         return (`PackageJson manifest)
       | Version.Opam version ->
@@ -251,7 +251,7 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       return (Source.LocalPathLink p)
   end
 
-let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
 
   let spec =
@@ -274,7 +274,7 @@ let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
           match%bind
             LwtTaskQueue.submit
               resolver.npmRegistryQueue
-              (fun () -> NpmRegistry.versions ~cfg:resolver.cfg name)
+              (NpmRegistry.versions ~fullMetadata ~cfg:resolver.cfg ~name)
           with
           | [] ->
             let msg = Format.asprintf "no npm package %s found" name in

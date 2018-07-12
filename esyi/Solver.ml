@@ -294,7 +294,7 @@ let add ~(dependencies : Dependencies.t) solver =
       report status
     in
     let%bind resolutions, spec =
-      Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver
+      Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
       |> RunAsync.withContext (Format.asprintf "resolving %a" Req.pp req)
     in
 
