@@ -2,11 +2,29 @@
 
 ## 0.1.28 @ preview
 
+* New implementation of opam support.
+
+  esy now uses `opam-format` package from opam to understand `opam` file
+  metadata. Both `esy` and `esyi` read directly `opam` files to parse `build`
+  commands and `depends` formulas.
+
 * Fix mystical "unable to stat" error.
 
   This was caused by sandbox staleness cache check which wasn't robust against
   removal of manifests from sandbox. This usually happens when you switch
   between branches.
+
+* Windows Support (WIP)
+
+  Bryan Phelps (@bryphe) started working on native Windows support for esy!
+
+  It's not ready yet but hige progress has been made already:
+
+  - Bootstrapped building of esy on Windows via OPAM
+  - Enable esy install command on Windows
+  - First round of fixes for esy build (#232, #233)
+
+  Thanks @bryphe!
 
 ## 0.1.27 @ preview
 

@@ -41,3 +41,5 @@ let make : (
   ) => RunAsync.t(t)
 
 let resolvedPrefix : string;
+
+let esyOpamOverrideVersion : string;

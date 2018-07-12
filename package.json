@@ -60,7 +60,6 @@
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/re": "^1.7.1",
-    "@opam/yaml": "*",
     "@opam/yojson": "*",
     "esy-bash": "^0.1.13",
     "esy-solve-cudf": "^0.0.3",
