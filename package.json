@@ -35,6 +35,7 @@
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
+    "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash jbuilder runtest test"
   },
   "dependencies": {

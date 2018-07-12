@@ -35,3 +35,6 @@ make _release/bin/fastreplacestring
 
 cd _release
 npm install @esy-ocaml/esy-opam
+
+echo "release: copy esy-bash"
+cp -r ../node_modules/esy-bash node_modules/esy-bash

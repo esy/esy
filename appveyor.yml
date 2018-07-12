@@ -29,9 +29,11 @@ build_script:
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - powershell scripts/bootstrap/Test.ps1
+    - npm run bootstrap:make-release-package
 
 artifacts:
-    - path: _release
-      name: esy-windows
+    - path: _platformrelease/*.tar.gz
+      name: Windows Build
+      type: File
 
 test: off
