@@ -12,10 +12,41 @@ module Parse = struct
     | None -> Error ("missing " ^ sep)
 end
 
+module Checksum = struct
+
+  type t =
+  | Md5 of string
+  | Sha1 of string
+  [@@deriving eq, ord]
+
+  let pp fmt v =
+    match v with
+    | Md5 v -> Fmt.pf fmt "md5:%s" v
+    | Sha1 v -> Fmt.pf fmt "sha1:%s" v
+
+  let show v =
+    match v with
+    | Md5 v -> "md5:" ^ v
+    | Sha1 v -> "sha1:" ^ v
+
+  let parse v =
+    match String.cut ~sep:":" v with
+    | Some ("md5", v) -> Ok (Md5 v)
+    | Some ("sha1", v) -> Ok (Sha1 v)
+    | Some (kind, _) -> Error ("unknown checkum kind: " ^ kind)
+    | None -> Ok (Sha1 v)
+
+  let to_yojson v = `String (show v)
+  let of_yojson json =
+    match json with
+    | `String v -> parse v
+    | _ -> Error "expected string"
+end
+
 module Source = struct
 
   type t =
-    | Archive of {url : string ; checksum : string }
+    | Archive of {url : string ; checksum : Checksum.t }
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
@@ -23,13 +54,12 @@ module Source = struct
     | NoSource
     [@@deriving (ord, eq)]
 
-
   let toString = function
     | Github {user; repo; commit; _} ->
       Printf.sprintf "github:%s/%s#%s" user repo commit
     | Git {remote; commit; _} ->
       Printf.sprintf "git:%s#%s" remote commit
-    | Archive {url; checksum} -> "archive:" ^ url ^ "#" ^ checksum
+    | Archive {url; checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
     | LocalPath path -> "path:" ^ Path.toString(path)
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
@@ -46,6 +76,7 @@ module Source = struct
       return (Git {remote; commit})
     | "archive", v ->
       let%bind url, checksum = Parse.cutWith "#" v in
+      let%bind checksum = Checksum.parse checksum in
       return (Archive {url; checksum})
     | "no-source", "" ->
       return NoSource
@@ -183,7 +214,7 @@ end
  *)
 module SourceSpec = struct
   type t =
-    | Archive of {url : string; checksum : string option;}
+    | Archive of {url : string; checksum : Checksum.t option;}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
@@ -196,7 +227,7 @@ module SourceSpec = struct
     | Github {user; repo; ref = Some ref} -> Printf.sprintf "github:%s/%s#%s" user repo ref
     | Git {remote; ref = None} -> Printf.sprintf "git:%s" remote
     | Git {remote; ref = Some ref} -> Printf.sprintf "git:%s#%s" remote ref
-    | Archive {url; checksum = Some checksum} -> "archive:" ^ url ^ "#" ^ checksum
+    | Archive {url; checksum = Some checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
     | Archive {url; checksum = None} -> "archive:" ^ url
     | LocalPath path -> "path:" ^ Path.toString(path)
     | LocalPathLink path -> "link:" ^ Path.toString(path)
@@ -339,6 +370,14 @@ module Req = struct
     | Some (spec, "") -> spec, None
     | Some (spec, ref) -> spec, Some ref
 
+  let parseChecksum spec =
+    let open Result.Syntax in
+    match parseRef spec with
+    | spec, None -> return (spec, None)
+    | spec, Some checksum ->
+      let%bind checksum = Checksum.parse checksum in
+      return (spec, Some checksum)
+
   let tryParseGitHubSpec text =
 
     let normalizeGithubRepo repo =
@@ -376,21 +415,22 @@ module Req = struct
     | None -> None
 
   let tryParseSourceSpec v =
+    let open Result.Syntax in
     match parseProto v with
-    | Some ("link:", v) -> Some (SourceSpec.LocalPathLink (Path.v v))
-    | Some ("file:", v) -> Some (SourceSpec.LocalPath (Path.v v))
+    | Some ("link:", v) -> return (Some (SourceSpec.LocalPathLink (Path.v v)))
+    | Some ("file:", v) -> return (Some (SourceSpec.LocalPath (Path.v v)))
     | Some ("https:", _)
     | Some ("http:", _) ->
-      let url, checksum = parseRef v in
-      Some (SourceSpec.Archive {url; checksum})
+      let%bind url, checksum = parseChecksum v in
+      return (Some (SourceSpec.Archive {url; checksum}))
     | Some ("git+", v) ->
       let remote, ref = parseRef v in
-      Some (SourceSpec.Git {remote;ref;})
+      return (Some (SourceSpec.Git {remote;ref;}))
     | Some ("git:", _) ->
       let remote, ref = parseRef v in
-      Some (SourceSpec.Git {remote;ref;})
+      return (Some (SourceSpec.Git {remote;ref;}))
     | Some _
-    | None -> tryParseGitHubSpec v
+    | None -> return (tryParseGitHubSpec v)
 
   let make ~name ~spec =
     let open Result.Syntax in
@@ -402,13 +442,13 @@ module Req = struct
       let%bind spec =
         match String.cut ~sep:"/" name with
         | Some ("@opam", _opamName) -> begin
-          match tryParseSourceSpec spec with
+          match%bind tryParseSourceSpec spec with
           | Some spec -> Ok (VersionSpec.Source spec)
           | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parse spec))
           end
         | Some _
         | None -> begin
-          match tryParseSourceSpec spec with
+          match%bind tryParseSourceSpec spec with
           | Some spec -> Ok (VersionSpec.Source spec)
           | None ->
             begin match SemverVersion.Formula.parse spec with
@@ -437,10 +477,28 @@ module Req = struct
       VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
 
       make ~name:"pkg" ~spec:"https://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive {url = "https://some/url"; checksum = Some "checksum"});
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "https://some/url";
+        checksum = Some (Checksum.Sha1 "checksum");
+      });
 
       make ~name:"pkg" ~spec:"http://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive {url = "http://some/url"; checksum =Some "checksum"});
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "http://some/url";
+        checksum = Some (Checksum.Sha1 "checksum");
+      });
+
+      make ~name:"pkg" ~spec:"http://some/url#sha1:checksum",
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "http://some/url";
+        checksum = Some (Checksum.Sha1 "checksum");
+      });
+
+      make ~name:"pkg" ~spec:"http://some/url#md5:checksum",
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "http://some/url";
+        checksum = Some (Checksum.Md5 "checksum");
+      });
 
       make ~name:"pkg" ~spec:"file:./some/file",
       VersionSpec.Source (SourceSpec.LocalPath (Path.v "./some/file"));

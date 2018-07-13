@@ -1,13 +1,28 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
+module Checksum : sig
+  type t =
+    | Md5 of string
+    | Sha1 of string
+
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val pp : t Fmt.t
+  val show : t -> string
+  val parse : string -> (t, string) result
+
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
+end
+
 (**
  * This represent the concrete and stable location from which we can download
  * some package.
  *)
 module Source : sig
   type t =
-    | Archive of {url : string ; checksum : string}
+    | Archive of {url : string ; checksum : Checksum.t}
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
@@ -55,7 +70,7 @@ end
  *)
 module SourceSpec : sig
   type t =
-    | Archive of {url : string ; checksum : string option}
+    | Archive of {url : string ; checksum : Checksum.t option}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t

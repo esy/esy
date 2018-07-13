@@ -79,7 +79,10 @@ let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
     source =
       match pkgJson.dist with
       | Some dist ->
-        Source.Archive {url = dist.PackageJson.tarball; checksum = dist.PackageJson.shasum}
+        Source.Archive {
+          url = dist.PackageJson.tarball;
+          checksum = Package.Checksum.Sha1 dist.PackageJson.shasum;
+        }
       | None -> source;
   }
 
