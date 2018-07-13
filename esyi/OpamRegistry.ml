@@ -14,6 +14,12 @@ module OpamFiles = Memoize.Make(struct
 end)
 
 type t = {
+  init : unit -> registry RunAsync.t;
+  lock : Lwt_mutex.t;
+  mutable registry : registry option;
+}
+
+and registry = {
   repoPath : Path.t;
   overrides : OpamOverrides.t;
   pathsCache : OpamPathsByVersion.t;
@@ -208,38 +214,52 @@ module Manifest = struct
     )
 end
 
-let init ~cfg () =
-  let open RunAsync.Syntax in
-  let%bind repoPath =
-    match cfg.Config.opamRepository with
-    | Config.Local local -> return local
-    | Config.Remote (remote, local) ->
-      let update () =
-        Logs_lwt.app (fun m -> m "checking %s for updates..." remote);%lwt
-        let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
-        return local
-      in
-
-      if cfg.skipRepositoryUpdate
-      then (
-        if%bind Fs.exists local
-        then return local
-        else update ()
-      ) else update ()
-  in
-
-  let%bind overrides = OpamOverrides.init ~cfg () in
-
-  return {
-    repoPath;
-    pathsCache = OpamPathsByVersion.make ();
-    opamCache = OpamFiles.make ();
-    overrides;
-  }
-
-let getVersionIndex registry ~(name : OpamPackage.Name.t) =
-  let f name =
+let make ~cfg () =
+  let init () =
     let open RunAsync.Syntax in
+    let%bind repoPath =
+      match cfg.Config.opamRepository with
+      | Config.Local local -> return local
+      | Config.Remote (remote, local) ->
+        let update () =
+          Logs_lwt.app (fun m -> m "checking %s for updates..." remote);%lwt
+          let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
+          return local
+        in
+
+        if cfg.skipRepositoryUpdate
+        then (
+          if%bind Fs.exists local
+          then return local
+          else update ()
+        ) else update ()
+    in
+
+    let%bind overrides = OpamOverrides.init ~cfg () in
+
+    return {
+      repoPath;
+      pathsCache = OpamPathsByVersion.make ();
+      opamCache = OpamFiles.make ();
+      overrides;
+    }
+  in {init; lock = Lwt_mutex.create (); registry = None;}
+
+let initRegistry (registry : t) =
+  let init () =
+    let open RunAsync.Syntax in
+    match registry.registry with
+    | Some v -> return v
+    | None ->
+      let%bind v = registry.init () in
+      registry.registry <- Some v;
+      return v
+  in
+  Lwt_mutex.with_lock registry.lock init
+
+let getVersionIndex (registry : registry) ~(name : OpamPackage.Name.t) =
+  let open RunAsync.Syntax in
+  let f name =
     let path = Path.(
       registry.repoPath
       / "packages"
@@ -261,7 +281,7 @@ let getPackage
   ?ocamlVersion
   ~(name : OpamPackage.Name.t)
   ~(version : OpamPackage.Version.t)
-  registry
+  (registry : registry)
   =
   let open RunAsync.Syntax in
   let%bind index = getVersionIndex registry ~name in
@@ -307,6 +327,7 @@ let getPackage
 
 let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
   let open RunAsync.Syntax in
+  let%bind registry = initRegistry registry in
   let%bind index = getVersionIndex registry ~name in
   let queue = LwtTaskQueue.create ~concurrency:2 () in
   let%bind resolutions =
@@ -322,6 +343,7 @@ let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
 
 let version ~(name : OpamPackage.Name.t) ~version registry =
   let open RunAsync.Syntax in
+  let%bind registry = initRegistry registry in
   match%bind getPackage registry ~name ~version with
   | None -> return None
   | Some { opam = _; url; name; version } ->
