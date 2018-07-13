@@ -1,4 +1,5 @@
 module Source = Package.Source
+module Version = Package.Version
 module SourceSpec = Package.SourceSpec
 module String = Astring.String
 module Override = Package.OpamOverride
@@ -105,21 +106,30 @@ module Manifest = struct
         | None -> begin
           match url with
           | Some url ->
-            let {OpamUrl. backend; path; hash; _} = OpamFile.URL.url url in
-            begin match backend, hash with
-            | `http, Some hash ->
+            let%bind checksum =
+              let checksums = OpamFile.URL.checksum url in
+              let f c =
+                match OpamHash.kind c with
+                | `MD5 -> Checksum.Md5 (OpamHash.contents c)
+                | `SHA256 -> Checksum.Sha256 (OpamHash.contents c)
+                | `SHA512 -> Checksum.Sha512 (OpamHash.contents c)
+              in
+              match List.map ~f checksums with
+              | [] ->
+                error (Format.asprintf "no checksum provided for %s@%a" name Version.pp version)
+              | checksum::_ -> return checksum
+            in
+            let u = OpamFile.URL.url url in
+            begin match u.backend with
+            | `http ->
               return (Package.Source (Package.Source.Archive {
-                url = path;
-                checksum = Checksum.Md5 hash;
+                url = OpamUrl.to_string u;
+                checksum;
               }))
-            | `http, None ->
-              (* TODO: what to do here? fail or resolve? *)
-              return (Package.SourceSpec (Package.SourceSpec.Archive {url = path; checksum = None}))
-            | `rsync, _ -> error "unsupported source for opam: rsync"
-            | `hg, _ -> error "unsupported source for opam: hg"
-            | `darcs, _ -> error "unsupported source for opam: darcs"
-            | `git, ref ->
-              return (Package.SourceSpec (Package.SourceSpec.Git {remote = path; ref}))
+            | `rsync -> error "unsupported source for opam: rsync"
+            | `hg -> error "unsupported source for opam: hg"
+            | `darcs -> error "unsupported source for opam: darcs"
+            | `git -> error "unsupported source for opam: git"
             end
           | None -> return (Package.Source Package.Source.NoSource)
           end
