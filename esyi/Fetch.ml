@@ -48,6 +48,7 @@ module Manifest = struct
     name : string;
     bin : (Bin.t option [@default None]);
     scripts : (Scripts.t [@default Scripts.empty]);
+    esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
 
   let ofDir path =
@@ -659,7 +660,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
     let queue = LwtTaskQueue.create ~concurrency:1 () in
 
     let f = function
-      | (installation, Some manifest) ->
+      | (installation, Some ({Manifest. esy = None; _} as manifest)) ->
         let msg =
           Format.asprintf
             "running lifecycle %a"
@@ -669,6 +670,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
           queue
           (runLifecycle ~installation ~manifest)
         |> RunAsync.withContext msg
+      | (_installation, Some {Manifest. esy = Some _; _})
       | (_installation, None) -> return ()
     in
 
