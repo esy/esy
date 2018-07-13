@@ -238,8 +238,8 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
     | SourceSpec.NoSource ->
       return (Source.NoSource)
 
-    | SourceSpec.Archive {url = _; checksum = None} ->
-      failwith "archive sources without checksums are not implemented"
+    | SourceSpec.Archive {url; checksum = None} ->
+      failwith ("archive sources without checksums are not implemented: " ^ url)
     | SourceSpec.Archive {url; checksum = Some checksum} ->
       return (Source.Archive {url; checksum})
 
