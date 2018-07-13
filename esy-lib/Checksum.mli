@@ -1,8 +1,10 @@
-type t =
-  | Md5 of string
-  | Sha1 of string
-  | Sha256 of string
-  | Sha512 of string
+type t = kind * string
+
+and kind =
+  | Md5
+  | Sha1
+  | Sha256
+  | Sha512
 
 val equal : t -> t -> bool
 val compare : t -> t -> int

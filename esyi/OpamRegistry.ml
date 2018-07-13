@@ -101,7 +101,7 @@ module Manifest = struct
         | Some source ->
           return (Package.Source (Package.Source.Archive {
             url = source.url;
-            checksum = Checksum.Md5 source.checksum;
+            checksum = Checksum.Md5, source.checksum;
           }))
         | None -> begin
           match url with
@@ -110,9 +110,9 @@ module Manifest = struct
               let checksums = OpamFile.URL.checksum url in
               let f c =
                 match OpamHash.kind c with
-                | `MD5 -> Checksum.Md5 (OpamHash.contents c)
-                | `SHA256 -> Checksum.Sha256 (OpamHash.contents c)
-                | `SHA512 -> Checksum.Sha512 (OpamHash.contents c)
+                | `MD5 -> Checksum.Md5, OpamHash.contents c
+                | `SHA256 -> Checksum.Sha256, OpamHash.contents c
+                | `SHA512 -> Checksum.Sha512, OpamHash.contents c
               in
               match List.map ~f checksums with
               | [] ->

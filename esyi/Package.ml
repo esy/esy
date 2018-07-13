@@ -448,25 +448,25 @@ module Req = struct
       make ~name:"pkg" ~spec:"https://some/url#checksum",
       VersionSpec.Source (SourceSpec.Archive {
         url = "https://some/url";
-        checksum = Some (Checksum.Sha1 "checksum");
+        checksum = Some (Checksum.Sha1, "checksum");
       });
 
       make ~name:"pkg" ~spec:"http://some/url#checksum",
       VersionSpec.Source (SourceSpec.Archive {
         url = "http://some/url";
-        checksum = Some (Checksum.Sha1 "checksum");
+        checksum = Some (Checksum.Sha1, "checksum");
       });
 
       make ~name:"pkg" ~spec:"http://some/url#sha1:checksum",
       VersionSpec.Source (SourceSpec.Archive {
         url = "http://some/url";
-        checksum = Some (Checksum.Sha1 "checksum");
+        checksum = Some (Checksum.Sha1, "checksum");
       });
 
       make ~name:"pkg" ~spec:"http://some/url#md5:checksum",
       VersionSpec.Source (SourceSpec.Archive {
         url = "http://some/url";
-        checksum = Some (Checksum.Md5 "checksum");
+        checksum = Some (Checksum.Md5, "checksum");
       });
 
       make ~name:"pkg" ~spec:"file:./some/file",
