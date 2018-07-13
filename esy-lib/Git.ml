@@ -89,10 +89,9 @@ let lsRemote ?ref ~remote () =
 let isCommitLikeRe = Str.regexp "^[0-9abcdef]+$"
 let isCommitLike v =
   let len = String.length v in
-  match len with
-  | 40 | 6 ->
-    Str.string_match isCommitLikeRe v 0
-  | _ -> false
+  if len >= 6
+  then Str.string_match isCommitLikeRe v 0
+  else false
 
 module ShallowClone = struct
 
