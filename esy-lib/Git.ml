@@ -76,12 +76,10 @@ let lsRemote ?ref ~remote () =
     | Some ref -> Cmd.(cmd % ref)
     | None -> cmd
   in
-  let ref = Option.orDefault ~default:"master" ref in
   let%bind out = ChildProcess.runOut cmd in
   match out |> String.trim |> String.split_on_char '\n' with
   | [] ->
-    let msg = Printf.sprintf "Unable to resolve ref: %s" ref in
-    error msg
+    return None
   | line::_ ->
     let commit = line |> String.split_on_char '\t' |> List.hd in
     if commit = ""
