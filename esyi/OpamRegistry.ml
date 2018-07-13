@@ -100,7 +100,7 @@ module Manifest = struct
         | Some source ->
           return (Package.Source (Package.Source.Archive {
             url = source.url;
-            checksum = Package.Checksum.Md5 source.checksum;
+            checksum = Checksum.Md5 source.checksum;
           }))
         | None -> begin
           match url with
@@ -110,7 +110,7 @@ module Manifest = struct
             | `http, Some hash ->
               return (Package.Source (Package.Source.Archive {
                 url = path;
-                checksum = Package.Checksum.Md5 hash;
+                checksum = Checksum.Md5 hash;
               }))
             | `http, None ->
               (* TODO: what to do here? fail or resolve? *)
