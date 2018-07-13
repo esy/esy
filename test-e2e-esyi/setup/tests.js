@@ -63,7 +63,7 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
   return (getPackageRegistry.promise = (async () => {
     const packageRegistry = new Map();
     for (const packageFile of await fsUtils.walk(
-      `${require('pkg-tests-fixtures')}/packages`,
+      path.join(__dirname, '../fixtures'),
       {
         filter: ['package.json'],
       },
