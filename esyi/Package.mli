@@ -7,7 +7,7 @@ type 'a conj = 'a list
  *)
 module Source : sig
   type t =
-      Archive of string * string
+    | Archive of {url : string ; checksum : string}
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
@@ -55,7 +55,7 @@ end
  *)
 module SourceSpec : sig
   type t =
-      Archive of string * string option
+    | Archive of {url : string ; checksum : string option}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t

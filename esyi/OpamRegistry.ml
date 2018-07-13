@@ -98,17 +98,17 @@ module Manifest = struct
       let%bind source =
         match override.Override.opam.Override.Opam.source with
         | Some source ->
-          return (Package.Source (Package.Source.Archive (source.url, source.checksum)))
+          return (Package.Source (Package.Source.Archive {url = source.url; checksum = source.checksum}))
         | None -> begin
           match url with
           | Some url ->
             let {OpamUrl. backend; path; hash; _} = OpamFile.URL.url url in
             begin match backend, hash with
             | `http, Some hash ->
-              return (Package.Source (Package.Source.Archive (path, hash)))
+              return (Package.Source (Package.Source.Archive {url = path; checksum = hash}))
             | `http, None ->
               (* TODO: what to do here? fail or resolve? *)
-              return (Package.SourceSpec (Package.SourceSpec.Archive (path, None)))
+              return (Package.SourceSpec (Package.SourceSpec.Archive {url = path; checksum = None}))
             | `rsync, _ -> error "unsupported source for opam: rsync"
             | `hg, _ -> error "unsupported source for opam: hg"
             | `darcs, _ -> error "unsupported source for opam: darcs"

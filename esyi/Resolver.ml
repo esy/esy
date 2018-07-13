@@ -238,11 +238,11 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
     | SourceSpec.NoSource ->
       return (Source.NoSource)
 
-    | SourceSpec.Archive (url, None) ->
+    | SourceSpec.Archive {url; checksum = None} ->
       (* TODO: acquire checksum *)
-      return (Source.Archive (url, "fakechecksum"))
-    | SourceSpec.Archive (url, Some checksum) ->
-      return (Source.Archive (url, checksum))
+      return (Source.Archive {url; checksum = "fakechecksum"})
+    | SourceSpec.Archive {url; checksum = Some checksum} ->
+      return (Source.Archive {url; checksum})
 
     | SourceSpec.LocalPath p ->
       return (Source.LocalPath p)

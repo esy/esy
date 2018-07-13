@@ -15,7 +15,7 @@ end
 module Source = struct
 
   type t =
-    | Archive of string * string
+    | Archive of {url : string ; checksum : string }
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
@@ -29,7 +29,7 @@ module Source = struct
       Printf.sprintf "github:%s/%s#%s" user repo commit
     | Git {remote; commit; _} ->
       Printf.sprintf "git:%s#%s" remote commit
-    | Archive (url, checksum) -> "archive:" ^ url ^ "#" ^ checksum
+    | Archive {url; checksum} -> "archive:" ^ url ^ "#" ^ checksum
     | LocalPath path -> "path:" ^ Path.toString(path)
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
@@ -46,7 +46,7 @@ module Source = struct
       return (Git {remote; commit})
     | "archive", v ->
       let%bind url, checksum = Parse.cutWith "#" v in
-      return (Archive (url, checksum))
+      return (Archive {url; checksum})
     | "no-source", "" ->
       return NoSource
     | "path", p ->
@@ -183,7 +183,7 @@ end
  *)
 module SourceSpec = struct
   type t =
-    | Archive of string * string option
+    | Archive of {url : string; checksum : string option;}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
@@ -196,8 +196,8 @@ module SourceSpec = struct
     | Github {user; repo; ref = Some ref} -> Printf.sprintf "github:%s/%s#%s" user repo ref
     | Git {remote; ref = None} -> Printf.sprintf "git:%s" remote
     | Git {remote; ref = Some ref} -> Printf.sprintf "git:%s#%s" remote ref
-    | Archive (url, Some checksum) -> "archive:" ^ url ^ "#" ^ checksum
-    | Archive (url, None) -> "archive:" ^ url
+    | Archive {url; checksum = Some checksum} -> "archive:" ^ url ^ "#" ^ checksum
+    | Archive {url; checksum = None} -> "archive:" ^ url
     | LocalPath path -> "path:" ^ Path.toString(path)
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
@@ -206,7 +206,7 @@ module SourceSpec = struct
 
   let ofSource (source : Source.t) =
     match source with
-    | Source.Archive (url, checksum) -> Archive (url, Some checksum)
+    | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}
     | Source.Git {remote; commit} ->
       Git {remote; ref =  Some commit}
     | Source.Github {user; repo; commit} ->
@@ -250,7 +250,7 @@ module SourceSpec = struct
       String.(equal spec.remote src.remote)
     | Git _, _ -> false
 
-    | Archive (url1, _), Source.Archive (url2, _)  ->
+    | Archive {url = url1; _}, Source.Archive {url = url2; _}  ->
       String.equal url1 url2
     | Archive _, _ -> false
 
@@ -382,7 +382,7 @@ module Req = struct
     | Some ("https:", _)
     | Some ("http:", _) ->
       let url, checksum = parseRef v in
-      Some (SourceSpec.Archive (url, checksum))
+      Some (SourceSpec.Archive {url; checksum})
     | Some ("git+", v) ->
       let remote, ref = parseRef v in
       Some (SourceSpec.Git {remote;ref;})
@@ -437,10 +437,10 @@ module Req = struct
       VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
 
       make ~name:"pkg" ~spec:"https://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive ("https://some/url", Some "checksum"));
+      VersionSpec.Source (SourceSpec.Archive {url = "https://some/url"; checksum = Some "checksum"});
 
       make ~name:"pkg" ~spec:"http://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive ("http://some/url", Some "checksum"));
+      VersionSpec.Source (SourceSpec.Archive {url = "http://some/url"; checksum =Some "checksum"});
 
       make ~name:"pkg" ~spec:"file:./some/file",
       VersionSpec.Source (SourceSpec.LocalPath (Path.v "./some/file"));

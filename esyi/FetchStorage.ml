@@ -61,7 +61,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; file
     | Package.Source.NoSource ->
       return ()
 
-    | Package.Source.Archive (url, _checksum)  ->
+    | Package.Source.Archive {url; checksum = _}  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
