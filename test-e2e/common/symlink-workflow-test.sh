@@ -5,7 +5,7 @@ doTest () {
 
   cd ./app || exit 1
 
-  run esy install
+  run esy install --skip-repository-update
 
   run esy build
   assertStdout 'esy dep' 'HELLO'
