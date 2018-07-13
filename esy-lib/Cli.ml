@@ -26,6 +26,7 @@ module ProgressReporter = struct
   let clearStatus r =
     Lwt_mutex.with_lock r.statusLock begin fun () ->
       hide r.status;%lwt
+      Lwt_io.flush Lwt_io.stderr;%lwt
       r.status <- "";
       Lwt.return ()
     end

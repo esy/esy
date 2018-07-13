@@ -245,11 +245,15 @@ module CommandLineInterface = {
     );
   };
 
-  let run = v =>
-    switch (Lwt_main.run(v)) {
-    | Ok () => `Ok()
-    | Error(err) => `Error((false, Run.formatError(err)))
-    };
+  let run = v => {
+    let result =
+      switch (Lwt_main.run(v)) {
+      | Ok () => `Ok()
+      | Error(err) => `Error((false, Run.formatError(err)))
+      };
+    Lwt_main.run(Cli.Progress.clearStatus());
+    result;
+  };
 
   let runWithConfig = (f, cfg) => {
     let cfg = Lwt_main.run(cfg);
@@ -304,7 +308,7 @@ module CommandLineInterface = {
 
   let run = () => {
     Printexc.record_backtrace(true);
-    Term.(exit(Cli.eval(~defaultCommand, ~commands, ())));
+    Term.(exit(eval_choice(~argv=Sys.argv, defaultCommand, commands)));
   };
 };
 
