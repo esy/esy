@@ -78,7 +78,11 @@ let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
     hasEsyManifest = Option.isSome pkgJson.esy;
     source =
       match pkgJson.dist with
-      | Some dist -> Source.Archive (dist.PackageJson.tarball, dist.PackageJson.shasum)
+      | Some dist ->
+        Source.Archive {
+          url = dist.PackageJson.tarball;
+          checksum = Checksum.Sha1, dist.PackageJson.shasum;
+        }
       | None -> source;
   }
 

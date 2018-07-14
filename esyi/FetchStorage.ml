@@ -61,11 +61,12 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; file
     | Package.Source.NoSource ->
       return ()
 
-    | Package.Source.Archive (url, _checksum)  ->
+    | Package.Source.Archive {url; checksum}  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
         let%bind () = Curl.download ~output:tarballPath url in
+        let%bind () = Checksum.checkFile ~path:tarballPath checksum in
         let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
         return ()
       in
