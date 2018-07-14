@@ -12,7 +12,9 @@ doTest () {
   assertStdout 'esy another-dep' 'HELLO'
 
   info "modify dep sources"
+  run stat -f "%m" ../dep/dep
   printf "#!/bin/bash\necho HELLO_MODIFIED\n" > ../dep/dep
+  run stat -f "%m" ../dep/dep
   cat ../dep/dep
 
   run esy build
