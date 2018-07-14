@@ -1,12 +1,25 @@
-module ProgressReporter = struct
+let isCi =
+  match Sys.getenv_opt "CI" with
+  | Some _ -> true
+  | None -> false
+
+module ProgressReporter : sig
+  type t
+  val make : unit -> t
+  val status : t -> string
+  val setStatus : string -> t -> unit Lwt.t
+  val clearStatus : t -> unit Lwt.t
+end = struct
 
   type t = {
     mutable status : string;
     statusLock : Lwt_mutex.t;
+    enabled : bool;
   }
 
   let make () =
-    {status = ""; statusLock = Lwt_mutex.create ()}
+    let enabled = (not isCi) && Unix.isatty Unix.stderr in
+    {status = ""; statusLock = Lwt_mutex.create (); enabled}
 
   let hide s =
     let len = String.length s in
@@ -24,22 +37,25 @@ module ProgressReporter = struct
     r.status
 
   let clearStatus r =
-    Lwt_mutex.with_lock r.statusLock begin fun () ->
-      hide r.status;%lwt
-      Lwt_io.flush Lwt_io.stderr;%lwt
-      r.status <- "";
-      Lwt.return ()
-    end
+    if r.enabled
+    then
+      Lwt_mutex.with_lock r.statusLock begin fun () ->
+        hide r.status;%lwt
+        Lwt_io.flush Lwt_io.stderr;%lwt
+        r.status <- "";
+        Lwt.return ()
+      end
+    else Lwt.return ()
 
   let setStatus status r =
-    Lwt_mutex.with_lock r.statusLock begin fun () ->
-      hide r.status;%lwt
-      r.status <- status;
-      show r.status
-    end
-
-  let finish r =
-    Lwt_main.run (hide r.status)
+    if r.enabled
+    then
+      Lwt_mutex.with_lock r.statusLock begin fun () ->
+        hide r.status;%lwt
+        r.status <- status;
+        show r.status
+      end
+    else Lwt.return ()
 end
 
 module Progress = struct
@@ -51,7 +67,7 @@ module Progress = struct
   let finish () =
     match !reporter with
     | None -> ()
-    | Some reporter -> ProgressReporter.finish reporter
+    | Some reporter -> Lwt_main.run (ProgressReporter.clearStatus reporter)
 
   let setStatus status =
     match !reporter with
@@ -66,7 +82,7 @@ module Progress = struct
   let status () =
     match !reporter with
     | None -> ""
-    | Some reporter -> reporter.status
+    | Some reporter -> ProgressReporter.status reporter
 end
 
 let pathConv =

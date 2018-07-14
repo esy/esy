@@ -103,10 +103,10 @@ type t = {
 
 let make ?ocamlVersion ?opamRegistry ~cfg () =
   let open RunAsync.Syntax in
-  let%bind opamRegistry =
+  let opamRegistry =
     match opamRegistry with
-    | Some opamRegistry -> return opamRegistry
-    | None -> OpamRegistry.init ~cfg ()
+    | Some opamRegistry -> opamRegistry
+    | None -> OpamRegistry.make ~cfg ()
   in
   let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
   return {

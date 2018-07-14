@@ -624,7 +624,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
     | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
-  let%bind opamRegistry = OpamRegistry.init ~cfg () in
+  let opamRegistry = OpamRegistry.make ~cfg () in
 
   let%bind ocamlVersion, reqs =
     match ocamlReq with

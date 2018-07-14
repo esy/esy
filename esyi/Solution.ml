@@ -110,7 +110,6 @@ let dependenciesHash (manifest : Manifest.Root.t) =
 
 module LockfileV1 = struct
 
-
   type t = {
     hash : string;
     root : string;
@@ -193,13 +192,29 @@ module LockfileV1 = struct
     let open RunAsync.Syntax in
     if%bind Fs.exists path
     then
-      let%bind json = Fs.readJsonFile path in
-      let%bind lockfile = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
-      if lockfile.hash = dependenciesHash manifest
-      then
-        let solution = solutionOfLockfile ~cfg lockfile.node lockfile.root in
-        return (Some solution)
-      else return None
+      let%lwt lockfile =
+        let%bind json = Fs.readJsonFile path in
+        RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+      in
+      match lockfile with
+      | Ok lockfile ->
+        if lockfile.hash = dependenciesHash manifest
+        then
+          let solution = solutionOfLockfile ~cfg lockfile.node lockfile.root in
+          return (Some solution)
+        else return None
+      | Error _ ->
+        let msg =
+          let path =
+            Option.orDefault
+              ~default:path
+              (Path.relativize ~root:cfg.Config.basePath path)
+          in
+          Format.asprintf
+            "corrupted %a lockfile@\nyou might want to remove it and install from scratch"
+            Path.pp path
+        in
+        error msg
     else
       return None
 

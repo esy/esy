@@ -12,11 +12,8 @@ doTest () {
   assertStdout 'esy another-dep' 'HELLO'
 
   info "modify dep sources"
-  cat <<EOF > ../dep/dep
-  #!/bin/bash
-
-  echo HELLO_MODIFIED
-EOF
+  printf "#!/bin/bash\necho HELLO_MODIFIED\n" > ../dep/dep
+  cat ../dep/dep
 
   run esy build
   assertStdout 'esy dep' 'HELLO_MODIFIED'

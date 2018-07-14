@@ -24,7 +24,7 @@ module Manifest : sig
     -> Package.t RunAsync.t
 end
 
-val init : cfg:Config.t -> unit -> t RunAsync.t
+val make : cfg:Config.t -> unit -> t
 
 val versions :
   ?ocamlVersion:OpamVersion.Version.t
