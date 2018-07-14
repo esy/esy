@@ -5,7 +5,7 @@ type t = {
 
   basePath: Path.t,
   lockfilePath: Path.t,
-  tarballCachePath: Path.t,
+  cacheTarballsPath: Path.t,
 
   esyOpamOverride: checkout,
   opamRepository: checkout,
@@ -33,6 +33,7 @@ and checkoutCfg = [
 let make : (
     ~npmRegistry: string=?,
     ~cachePath: Fpath.t=?,
+    ~cacheTarballsPath: Fpath.t=?,
     ~opamRepository: checkoutCfg=?,
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,

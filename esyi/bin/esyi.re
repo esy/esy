@@ -157,6 +157,15 @@ module CommandLineInterface = {
     );
   };
 
+  let cacheTarballsPath = {
+    let doc = "Specifies tarballs cache directory.";
+    Arg.(
+      value
+      & opt(some(Cli.pathConv), None)
+      & info(["cache-tarballs-path"], ~docs, ~doc)
+    );
+  };
+
   let cachePathArg = {
     let doc = "Specifies cache directory..";
     let env = Arg.env_var("ESYI__CACHE", ~doc);
@@ -194,6 +203,7 @@ module CommandLineInterface = {
         (
           cachePath,
           sandboxPath,
+          cacheTarballsPath,
           opamRepository,
           esyOpamOverride,
           npmRegistry,
@@ -224,6 +234,7 @@ module CommandLineInterface = {
         ~esySolveCmd,
         ~createProgressReporter,
         ~cachePath?,
+        ~cacheTarballsPath?,
         ~npmRegistry?,
         ~opamRepository?,
         ~esyOpamOverride?,
@@ -236,6 +247,7 @@ module CommandLineInterface = {
       const(parse)
       $ cachePathArg
       $ sandboxPathArg
+      $ cacheTarballsPath
       $ opamRepositoryArg
       $ esyOpamOverrideArg
       $ npmRegistryArg
