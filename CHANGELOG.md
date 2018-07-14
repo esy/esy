@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.1.29 @ preview
+
+* Installation process now checks integrity of packages download from npm and
+  opam registries.
+
+* Speed up installation process.
+
+* Fix `esy install` command output.
+
+* Other improvements to `esy install`.
+
 ## 0.1.28 @ preview
 
 * New implementation of opam support.
