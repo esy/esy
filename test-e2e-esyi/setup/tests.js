@@ -12,7 +12,12 @@ const semver = require('semver');
 
 const fsUtils = require('./fs');
 
-export type PackageEntry = Map<string, {|path: string, packageJson: Object|}>;
+export type PackageDesc = {|
+  path: string,
+  packageJson: Object,
+  shasum?: string,
+|};
+export type PackageEntry = Map<string, PackageDesc>;
 export type PackageRegistry = Map<string, PackageEntry>;
 
 export type PackageRunDriver = (
@@ -23,7 +28,10 @@ export type PackageRunDriver = (
 
 export type PackageDriver = any;
 
-exports.definePackage = async function(packageJson: {name: string, version: string}) {
+exports.definePackage = async function(
+  packageJson: {name: string, version: string},
+  options: {shasum?: string} = {},
+) {
   const packageRegistry = await exports.getPackageRegistry();
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
@@ -40,6 +48,7 @@ exports.definePackage = async function(packageJson: {name: string, version: stri
   packageEntry.set(version, {
     path: packagePath,
     packageJson,
+    shasum: options.shasum,
   });
 };
 
@@ -62,12 +71,9 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
 
   return (getPackageRegistry.promise = (async () => {
     const packageRegistry = new Map();
-    for (const packageFile of await fsUtils.walk(
-      path.join(__dirname, '../fixtures'),
-      {
-        filter: ['package.json'],
-      },
-    )) {
+    for (const packageFile of await fsUtils.walk(path.join(__dirname, '../fixtures'), {
+      filter: ['package.json'],
+    })) {
       const packageJson = await fsUtils.readJson(packageFile);
       const {name, version} = packageJson;
 
@@ -249,7 +255,9 @@ exports.startPackageServer = function startPackageServer(
             return {
               [version]: Object.assign({}, packageVersionEntry.packageJson, {
                 dist: {
-                  shasum: await exports.getPackageArchiveHash(name, version),
+                  shasum:
+                    packageVersionEntry.shasum ||
+                    (await exports.getPackageArchiveHash(name, version)),
                   tarball: await exports.getPackageHttpArchivePath(name, version),
                 },
               }),
