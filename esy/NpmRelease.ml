@@ -16,7 +16,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Value.t) =
     |> List.map ~f:(fun (name, value) -> "\"" ^ name ^ "=" ^ value ^ "\"")
     |> String.concat ";"
   in
-  Printf.sprintf {| let () = Unix.execvpe "%s" Sys.argv [|%s|] |} bin environmentString
+  Printf.sprintf {| let () = Unix.execve "%s" Sys.argv [|%s|] |} bin environmentString
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
@@ -189,8 +189,20 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     (* Emit wrappers for released binaries *)
     let%bind () =
       let%bind env = RunAsync.ofRun (Environment.Value.bindToConfig cfg env) in
+
       let generateBinaryWrapper name =
-        let data = makeBinWrapper ~environment:env ~bin:name in
+        let resolveBinInEnv ~env prg =
+          let path =
+            let v = match StringMap.find_opt "PATH" env with
+              | Some v  -> v
+              | None -> ""
+            in
+            String.split_on_char ':' v
+          in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
+        in
+
+        let%bind namePath = resolveBinInEnv ~env name in
+        let data = makeBinWrapper ~environment:env ~bin:namePath in
         let exePath = Path.(binPath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data exePath in
         let cmd = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p exePath) in
