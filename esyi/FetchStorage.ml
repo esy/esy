@@ -14,34 +14,34 @@ module Dist = struct
 end
 
 let cacheId source (record : Solution.Record.t) =
+
+  let hash vs =
+    vs
+    |> String.concat ~sep:"__"
+    |> Digest.string
+    |> Digest.to_hex
+    |> String.Sub.v ~start:0 ~stop:8
+    |> String.Sub.to_string
+  in
+  let version = Package.Version.toString record.version in
   let source = Package.Source.toString source in
   match record.opam with
   | None ->
-    Printf.sprintf "%s__%s" record.name source
+    Printf.sprintf "%s__%s__%s" record.name version (hash [source])
   | Some opam ->
-    let manifestHash =
+    let h = hash [
+      source;
       opam.opam
       |> Package.Opam.OpamFile.to_yojson
-      |> Yojson.Safe.to_string
-      |> Digest.string
-      |> Digest.to_hex
-      |> String.Sub.v ~start:0 ~stop:8
-      |> String.Sub.to_string
-    in
-    begin match opam.override with
-    | Some override ->
-      let overrideHash =
+      |> Yojson.Safe.to_string;
+      (match opam.override with
+      | Some override ->
         override
         |> Package.OpamOverride.to_yojson
         |> Yojson.Safe.to_string
-        |> Digest.string
-        |> Digest.to_hex
-        |> String.Sub.v ~start:0 ~stop:8
-        |> String.Sub.to_string
-      in
-      Printf.sprintf "%s__%s__%s__%s" record.name source manifestHash overrideHash
-    | None -> Printf.sprintf "%s__%s__%s" record.name source manifestHash
-    end
+      | None -> "");
+    ] in
+    Printf.sprintf "%s__%s__%s" record.name version h
 
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
