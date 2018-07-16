@@ -215,7 +215,7 @@ module Manifest = struct
         name;
         version;
         kind = Package.Esy;
-        source;
+        source = source, [];
         opam = Some {
           Package.Opam.
           name = opamName;

@@ -144,7 +144,7 @@ let toPackage ?name ?version (manifest : t) =
     version;
     dependencies = Dependencies.NpmFormula manifest.dependencies;
     devDependencies = Dependencies.NpmFormula manifest.devDependencies;
-    source;
+    source = source, [];
     opam = None;
     kind =
       if manifest.hasEsyManifest

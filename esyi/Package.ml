@@ -838,7 +838,7 @@ end
 type t = {
   name : string;
   version : Version.t;
-  source : source;
+  source : source * source list;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
