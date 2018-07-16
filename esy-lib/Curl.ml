@@ -8,6 +8,8 @@ type response =
   | Success of string
   | NotFound
 
+type headers = string StringMap.t
+
 type url = string
 
 let parseStdout stdout =
@@ -80,6 +82,35 @@ let getOrNotFound ?accept url =
     | None -> cmd
   in
   runCurl cmd
+
+let head url =
+  let open RunAsync.Syntax in
+
+  let parseResponse response =
+    match StringLabels.split_on_char ~sep:'\n' response with
+    | [] -> StringMap.empty
+    | _::lines ->
+      let f headers line =
+        match String.cut ~sep:":" line with
+        | None -> headers
+        | Some (name, value) ->
+          let name = name |> String.trim |> String.Ascii.lowercase in
+          let value = String.trim value in
+          StringMap.add name value headers
+      in
+      List.fold_left ~f ~init:StringMap.empty lines
+  in
+
+  let cmd = Cmd.(
+    v "curl"
+    % "--head"
+    % "--silent"
+    % "--fail"
+    % "--location" % url
+  ) in
+  match%bind runCurl cmd with
+  | Success response -> return (parseResponse response)
+  | NotFound -> RunAsync.error "not found"
 
 let get ?accept url =
   let open RunAsync.Syntax in

@@ -6,6 +6,7 @@ type t = {
   basePath: Path.t,
   lockfilePath: Path.t,
   cacheTarballsPath: Path.t,
+  opamArchivesIndexPath: Path.t,
 
   esyOpamOverride: checkout,
   opamRepository: checkout,
