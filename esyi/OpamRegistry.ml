@@ -314,6 +314,7 @@ module Manifest = struct
           let env var =
             match OpamVariable.Full.to_string var with
             | "test" -> Some (OpamVariable.B test)
+            | "doc" -> Some (OpamVariable.B doc)
             | _ -> None
           in
           let f = OpamFilter.partial_filter_formula env f in
