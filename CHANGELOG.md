@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.31 @ preview
+
+* Fix for converting opam `depends`.
+
 ## 0.1.30 @ preview
 
 * Support resolving packages to multiple sources (main + mirrors).
