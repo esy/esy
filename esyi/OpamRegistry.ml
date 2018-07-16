@@ -96,44 +96,65 @@ module Manifest = struct
     let context = Format.asprintf "processing %a opam package" Path.pp path in
     RunAsync.withContext context (
 
-      let%bind source =
-        match override.Override.opam.Override.Opam.source with
-        | Some source ->
-          return (Package.Source (Package.Source.Archive {
-            url = source.url;
-            checksum = Checksum.Md5, source.checksum;
-          }))
-        | None -> begin
-          match url with
-          | Some url ->
-            let%bind checksum =
-              let checksums = OpamFile.URL.checksum url in
-              let f c =
-                match OpamHash.kind c with
-                | `MD5 -> Checksum.Md5, OpamHash.contents c
-                | `SHA256 -> Checksum.Sha256, OpamHash.contents c
-                | `SHA512 -> Checksum.Sha512, OpamHash.contents c
-              in
-              match List.map ~f checksums with
-              | [] ->
-                error (Format.asprintf "no checksum provided for %s@%a" name Version.pp version)
-              | checksum::_ -> return checksum
+      let%bind source = RunAsync.ofRun (
+        let open Run.Syntax in
+
+        let sourceOfOpamUrl url =
+
+          let%bind checksum =
+            let checksums = OpamFile.URL.checksum url in
+            let f c =
+              match OpamHash.kind c with
+              | `MD5 -> Checksum.Md5, OpamHash.contents c
+              | `SHA256 -> Checksum.Sha256, OpamHash.contents c
+              | `SHA512 -> Checksum.Sha512, OpamHash.contents c
             in
-            let u = OpamFile.URL.url url in
-            begin match u.backend with
+            match List.map ~f checksums with
+            | [] ->
+              error (Format.asprintf "no checksum provided for %s@%a" name Version.pp version)
+            | checksum::_ -> return checksum
+          in
+
+          let convert (url : OpamUrl.t) =
+            match url.backend with
             | `http ->
               return (Package.Source (Package.Source.Archive {
-                url = OpamUrl.to_string u;
+                url = OpamUrl.to_string url;
                 checksum;
               }))
             | `rsync -> error "unsupported source for opam: rsync"
             | `hg -> error "unsupported source for opam: hg"
             | `darcs -> error "unsupported source for opam: darcs"
             | `git -> error "unsupported source for opam: git"
-            end
-          | None -> return (Package.Source Package.Source.NoSource)
+          in
+
+          let%bind main = convert (OpamFile.URL.url url) in
+          let mirrors =
+            let f mirrors url =
+              match convert url with
+              | Ok mirror -> mirror::mirrors
+              | Error _ -> mirrors
+            in
+            List.fold_left ~f ~init:[] (OpamFile.URL.mirrors url)
+          in
+          return (main, mirrors)
+        in
+
+        match override.Override.opam.Override.Opam.source with
+        | Some source ->
+          let main = Package.Source (Package.Source.Archive {
+            url = source.url;
+            checksum = Checksum.Md5, source.checksum;
+          }) in
+          return (main, [])
+        | None -> begin
+          match url with
+          | Some url -> sourceOfOpamUrl url
+          | None ->
+            let main = Package.Source Package.Source.NoSource in
+            return (main, [])
           end
-      in
+      ) in
 
       let translateFormula f =
         let translateAtom ((name, relop) : OpamFormula.atom) =
@@ -215,7 +236,7 @@ module Manifest = struct
         name;
         version;
         kind = Package.Esy;
-        source = source, [];
+        source;
         opam = Some {
           Package.Opam.
           name = opamName;
