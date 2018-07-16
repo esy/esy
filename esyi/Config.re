@@ -3,6 +3,7 @@ type t = {
   basePath: Path.t,
   lockfilePath: Path.t,
   cacheTarballsPath: Path.t,
+  opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
@@ -65,6 +66,8 @@ let make =
         };
       let%bind () = Fs.createDir(cacheTarballsPath);
 
+      let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
+
       let opamRepository = {
         let defaultRemote = "https://github.com/ocaml/opam-repository";
         let defaultLocal = Path.(cachePath / "opam-repository");
@@ -86,6 +89,7 @@ let make =
         basePath,
         lockfilePath: Path.(basePath / "esyi.lock.json"),
         cacheTarballsPath,
+        opamArchivesIndexPath,
         opamRepository,
         esyOpamOverride,
         npmRegistry,
