@@ -2,11 +2,13 @@ type t = {
   esySolveCmd: Cmd.t,
   basePath: Path.t,
   lockfilePath: Path.t,
-  tarballCachePath: Path.t,
+  cacheTarballsPath: Path.t,
+  opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
   solveTimeout: float,
+  skipRepositoryUpdate: bool,
   createProgressReporter:
     (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
@@ -34,11 +36,13 @@ let make =
     (
       ~npmRegistry=?,
       ~cachePath=?,
+      ~cacheTarballsPath=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
       ~solveTimeout=8.0,
       ~esySolveCmd,
       ~createProgressReporter,
+      ~skipRepositoryUpdate,
       basePath,
     ) =>
   RunAsync.Syntax.(
@@ -55,8 +59,14 @@ let make =
           ),
         );
 
-      let tarballCachePath = Path.(cachePath / "tarballs");
-      let%bind () = Fs.createDir(tarballCachePath);
+      let cacheTarballsPath =
+        switch (cacheTarballsPath) {
+        | Some(cacheTarballsPath) => cacheTarballsPath
+        | None => Path.(cachePath / "tarballs")
+        };
+      let%bind () = Fs.createDir(cacheTarballsPath);
+
+      let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
 
       let opamRepository = {
         let defaultRemote = "https://github.com/ocaml/opam-repository";
@@ -78,10 +88,12 @@ let make =
         esySolveCmd,
         basePath,
         lockfilePath: Path.(basePath / "esyi.lock.json"),
-        tarballCachePath,
+        cacheTarballsPath,
+        opamArchivesIndexPath,
         opamRepository,
         esyOpamOverride,
         npmRegistry,
+        skipRepositoryUpdate,
         solveTimeout,
       });
     }

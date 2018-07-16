@@ -11,9 +11,9 @@ exports.execFile = function(
     cp.execFile(path, args, options, (error, stdout, stderr) => {
       if (error) {
         reject(`
-          ${error}
-          STDOUT: ${stdout}
-          STDERR: ${stderr}
+          ${String(error)}
+          STDOUT: ${String(stdout)}
+          STDERR: ${String(stderr)}
         `);
       } else {
         resolve({stdout, stderr});

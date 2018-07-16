@@ -18,7 +18,7 @@ let ppContextItem fmt = function
 let ppContext = Fmt.(list ~sep:(unit "@\n") ppContextItem)
 
 let ppError fmt (msg, context) =
-  Fmt.pf fmt "@[<v 2>%s@\n%a@]" msg ppContext context
+  Fmt.pf fmt "@[<v 2>@[<h>%a@]@\n%a@]" Fmt.text msg ppContext context
 
 let return v =
   Ok v

@@ -48,6 +48,7 @@ module Manifest = struct
     name : string;
     bin : (Bin.t option [@default None]);
     scripts : (Scripts.t [@default Scripts.empty]);
+    esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
 
   let ofDir path =
@@ -177,7 +178,7 @@ module Layout = struct
       let version = Package.Version.Npm (SemverVersion.Version.parseExn version) in
       let record = Record.{
         name; version;
-        source = Package.Source.NoSource; opam = None; files = [];
+        source = Package.Source.NoSource, []; opam = None; files = [];
       } in
       Solution.make record dependencies
 
@@ -456,7 +457,8 @@ module Layout = struct
       let record = Solution.record root in
       let path = Path.(path / "node_modules" // v record.Record.name) in
       let sourcePath =
-        match record.Record.source with
+        let main, _ = record.Record.source in
+        match main with
         | Package.Source.Archive _
         | Package.Source.Git _
         | Package.Source.Github _
@@ -659,7 +661,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
     let queue = LwtTaskQueue.create ~concurrency:1 () in
 
     let f = function
-      | (installation, Some manifest) ->
+      | (installation, Some ({Manifest. esy = None; _} as manifest)) ->
         let msg =
           Format.asprintf
             "running lifecycle %a"
@@ -669,6 +671,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
           queue
           (runLifecycle ~installation ~manifest)
         |> RunAsync.withContext msg
+      | (_installation, Some {Manifest. esy = Some _; _})
       | (_installation, None) -> return ()
     in
 

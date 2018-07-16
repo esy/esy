@@ -68,32 +68,35 @@ module Formula = struct
     match String.trim text with
     | "*"  | "" -> return [C.ANY]
     | text ->
-      begin match text.[0], text.[1] with
-      | '^', _ ->
+      let len = String.length text in
+      let fst = if len > 0 then Some text.[0] else None in
+      let snd = if len > 1 then Some text.[1] else None in
+      begin match fst, snd with
+      | Some '^', _ ->
         let v = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v, ve = caretRange v in
         return [C.GTE v; C.LT ve]
-      | '~', _ ->
+      | Some '~', _ ->
         let v = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v, ve = tildaRange v in
         return [C.GTE v; C.LT ve]
-      | '=', _ ->
+      | Some '=', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         return [C.EQ v]
-      | '<', '=' ->
+      | Some '<', Some '=' ->
         let text = String.Sub.(text |> v ~start:2 |> to_string) in
         let%bind v = Version.parse text in
         return [C.LTE v]
-      | '<', _ ->
+      | Some '<', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         return [C.LT v]
-      | '>', '=' ->
+      | Some '>', Some '=' ->
         let text = String.Sub.(text |> v ~start:2 |> to_string) in
         let%bind v = Version.parse text in
         return [C.GTE v]
-      | '>', _ ->
+      | Some '>', _ ->
         let text = String.Sub.(text |> v ~start:1 |> to_string) in
         let%bind v = Version.parse text in
         return [C.GT v]

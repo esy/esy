@@ -76,12 +76,10 @@ let lsRemote ?ref ~remote () =
     | Some ref -> Cmd.(cmd % ref)
     | None -> cmd
   in
-  let ref = Option.orDefault ~default:"master" ref in
   let%bind out = ChildProcess.runOut cmd in
   match out |> String.trim |> String.split_on_char '\n' with
   | [] ->
-    let msg = Printf.sprintf "Unable to resolve ref: %s" ref in
-    error msg
+    return None
   | line::_ ->
     let commit = line |> String.split_on_char '\t' |> List.hd in
     if commit = ""
@@ -91,10 +89,9 @@ let lsRemote ?ref ~remote () =
 let isCommitLikeRe = Str.regexp "^[0-9abcdef]+$"
 let isCommitLike v =
   let len = String.length v in
-  match len with
-  | 40 | 6 ->
-    Str.string_match isCommitLikeRe v 0
-  | _ -> false
+  if len >= 6
+  then Str.string_match isCommitLikeRe v 0
+  else false
 
 module ShallowClone = struct
 

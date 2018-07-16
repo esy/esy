@@ -6,7 +6,6 @@ module Dependencies = Package.Dependencies
 module NpmDependencies = Package.NpmDependencies
 module Req = Package.Req
 module Resolutions = Package.Resolutions
-module DepFormula = Package.DepFormula
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"
@@ -180,11 +179,18 @@ let rec findResolutionForRequest ~req = function
 
 let solutionRecordOfPkg ~solver (pkg : Package.t) =
   let open RunAsync.Syntax in
+
   let%bind source =
-    match pkg.source with
-    | Package.Source source -> return source
-    | Package.SourceSpec sourceSpec ->
-      Resolver.resolveSource ~name:pkg.name ~sourceSpec solver.resolver
+    let resolve source =
+      match source with
+      | Package.Source source -> return source
+      | Package.SourceSpec sourceSpec ->
+        Resolver.resolveSource ~name:pkg.name ~sourceSpec solver.resolver
+    in
+    let main, mirrors = pkg.source in
+    let%bind main = resolve main and
+              mirrors = RunAsync.List.joinAll (List.map ~f:resolve mirrors) in
+    return (main, mirrors)
   in
 
   let%bind files =
@@ -231,7 +237,7 @@ let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let universe = ref solver.universe in
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving esy packages" () in
 
   let rec addPackage (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
@@ -295,7 +301,7 @@ let add ~(dependencies : Dependencies.t) solver =
       report status
     in
     let%bind resolutions, spec =
-      Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver
+      Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
       |> RunAsync.withContext (Format.asprintf "resolving %a" Req.pp req)
     in
 
@@ -345,11 +351,51 @@ let parseCudfSolution ~cudfUniverse data =
 let solveDependencies ~installed ~strategy dependencies solver =
   let open RunAsync.Syntax in
 
+  let runSolver filenameIn filenameOut =
+    let cmd = Cmd.(
+      solver.cfg.Config.esySolveCmd
+      % ("--strategy=" ^ strategy)
+      % ("--timeout=" ^ string_of_float(solver.cfg.solveTimeout))
+      % p filenameIn
+      % p filenameOut
+    ) in
+
+    let f p =
+      let readAndClose ic =
+        Lwt.finalize
+          (fun () -> Lwt_io.read ic)
+          (fun () -> Lwt_io.close ic)
+      in
+      let%lwt stdout = readAndClose p#stdout
+          and stderr = readAndClose p#stderr in
+      match%lwt p#status with
+      | Unix.WEXITED 0 ->
+        RunAsync.return ()
+      | _ ->
+        let msg =
+          Format.asprintf
+            "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+            Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
+        in
+        RunAsync.error msg
+    in
+
+    let cmd = Cmd.getToolAndLine cmd in
+    try%lwt
+      Lwt_process.with_process_full cmd f
+    with
+    | Unix.Unix_error (err, _, _) ->
+      let msg = Unix.error_message err in
+      RunAsync.error msg
+    | _ ->
+      RunAsync.error "error running cudf solver"
+  in
+
   let dummyRoot = {
     Package.
     name = "ROOT";
     version = Version.parseExn "0.0.0";
-    source = Package.Source Source.NoSource;
+    source = Package.Source Source.NoSource, [];
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
@@ -370,21 +416,46 @@ let solveDependencies ~installed ~strategy dependencies solver =
     let cudf =
       Some preamble, Cudf.get_packages cudfUniverse, request
     in
-    let dataIn = printCudfDoc cudf in
-    let%bind dataOut = Fs.withTempFile ~data:dataIn (fun filename ->
-      let cmd = Cmd.(
-        solver.cfg.Config.esySolveCmd
-        % ("--strategy=" ^ strategy)
-        % ("--timeout=" ^ string_of_float(solver.cfg.solveTimeout))
-        % p filename) in
-      ChildProcess.runOut cmd
-    ) in
-    return (parseCudfSolution ~cudfUniverse dataOut)
+    Fs.withTempDir (fun path ->
+      let%bind filenameIn =
+        let filename = Path.(path / "in.cudf") in
+        let%bind () = Fs.writeFile ~data:(printCudfDoc cudf) filename in
+        return filename
+      in
+      let filenameOut = Path.(path / "out.cudf") in
+      let report, finish = solver.cfg.createProgressReporter ~name:"solving esy constraints" () in
+      let%lwt () = report "running solver" in
+      let%bind () = runSolver filenameIn filenameOut in
+      let%lwt () = finish () in
+      let%bind result =
+        let%bind dataOut = Fs.readFile filenameOut in
+        let dataOut = String.trim dataOut in
+        if String.length dataOut = 0
+        then return None
+        else (
+          let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
+          return (Some solution)
+        )
+      in
+      return result
+    )
   in
 
-  match%lwt solution with
+  match%bind solution with
 
-  | Error _ ->
+  | Some (_preamble, cudfUniv) ->
+
+    let packages =
+      cudfUniv
+      |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
+      |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
+      |> List.filter ~f:(fun p -> p.Package.name <> dummyRoot.Package.name)
+      |> Package.Set.of_list
+    in
+
+    return (Ok packages)
+
+  | None ->
     let cudf = preamble, cudfUniverse, request in
     begin match%bind
       Explanation.explain
@@ -397,25 +468,13 @@ let solveDependencies ~installed ~strategy dependencies solver =
     | None -> return (Error Explanation.empty)
     end
 
-  | Ok (_preamble, cudfUniv) ->
-
-    let packages =
-      cudfUniv
-      |> Cudf.get_packages ~filter:(fun p -> p.Cudf.installed)
-      |> List.map ~f:(fun p -> Universe.CudfMapping.decodePkgExn p cudfMapping)
-      |> List.filter ~f:(fun p -> p.Package.name <> dummyRoot.Package.name)
-      |> Package.Set.of_list
-    in
-
-    return (Ok packages)
-
 let solveDependenciesNaively
   ~(installed : Package.Set.t)
   (dependencies : Dependencies.t)
   (solver : t) =
   let open RunAsync.Syntax in
 
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving" () in
+  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving npm packages" () in
 
   let installed =
     let tbl = Hashtbl.create 100 in
@@ -470,7 +529,9 @@ let solveDependenciesNaively
     return pkg
   in
 
-  let rec solveDependencies ~seen dependencies =
+  let solved = ref Package.Map.empty in
+
+  let rec solveDependencies dependencies =
 
     let reqs = match dependencies with
     | Dependencies.NpmFormula reqs -> reqs
@@ -480,32 +541,57 @@ let solveDependenciesNaively
       Dependencies.toApproximateRequests dependencies
     in
 
-    (** This prefetches resolutions which can result in an overfetch but makes
-     * things happen much faster. *)
-    let%bind _ =
-      let f (req : Req.t) = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
-      reqs
-      |> List.map ~f
-      |> RunAsync.List.joinAll
+    let%bind pkgs =
+      let%bind pkgs =
+        let f req =
+          let%bind pkg = resolve req in
+          addToInstalled pkg;
+          return pkg
+        in
+        reqs
+        |> List.map ~f
+        |> RunAsync.List.joinAll
+      in
+      return (pkgs |> Package.Set.of_list |> Package.Set.elements)
     in
 
-    let f roots (req : Req.t) =
-      if StringSet.mem req.name seen
-      then return roots
-      else begin
-        let seen = StringSet.add req.name seen in
-        let%bind pkg = resolve req in
-        addToInstalled pkg;
-        let%bind dependencies = solveDependencies ~seen pkg.Package.dependencies in
-        let%bind record = solutionRecordOfPkg ~solver pkg in
-        let root = Solution.make record dependencies in
-        return (root::roots)
-      end
+    let%bind () =
+      let f (pkg : Package.t) =
+        match Package.Map.find_opt pkg !solved with
+        | Some _ -> return ()
+        | None ->
+          let%bind dependencies = solveDependencies pkg.dependencies in
+          solved := Package.Map.add pkg dependencies !solved;
+          return ()
+      in
+      pkgs
+      |> List.map ~f
+      |> RunAsync.List.waitAll
     in
-    RunAsync.List.foldLeft ~f ~init:[] reqs
+
+    return pkgs
   in
 
-  let%bind roots = solveDependencies ~seen:StringSet.empty dependencies in
+  let%bind pkgs = solveDependencies dependencies in
+
+  let%bind roots =
+    let solved = !solved in
+    let rec makeRoot (pkg : Package.t) =
+      let dependencies = Package.Map.find pkg solved in
+      let%bind dependencies = makeRoots dependencies in
+      let%bind record = solutionRecordOfPkg ~solver pkg in
+      let root = Solution.make record dependencies in
+      return root
+    and makeRoots pkgs =
+      let f roots pkg =
+        let%bind root = makeRoot pkg in
+        return (root::roots)
+      in
+      RunAsync.List.foldLeft ~f ~init:[] pkgs
+    in
+    makeRoots pkgs
+  in
+
   finish ();%lwt
   return roots
 
@@ -545,7 +631,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
     | _ -> failwith "only npm formulas are supported for the root manifest"
   in
 
-  let%bind opamRegistry = OpamRegistry.init ~cfg () in
+  let opamRegistry = OpamRegistry.make ~cfg () in
 
   let%bind ocamlVersion, reqs =
     match ocamlReq with

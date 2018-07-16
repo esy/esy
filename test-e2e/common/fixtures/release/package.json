@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "dependencies": {
-    "release-dep": "./dependencies/release-dep"
+    "release-dep": "link:./dependencies/release-dep"
   },
   "esy": {
     "build": [
