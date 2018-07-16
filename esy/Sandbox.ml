@@ -5,7 +5,7 @@ type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
   manifestInfo : (Path.t * float) list;
-} [@@deriving show]
+}
 
 let packagePathAt ?scope ~name basedir =
   match scope with
