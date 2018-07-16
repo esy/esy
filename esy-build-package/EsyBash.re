@@ -52,7 +52,28 @@ let normalizePathForCygwin = (path) => {
             Ok(result);
         };
         | _ => Ok(path)
-    }
+    };
+};
+
+let toEsyBashCommand = (~env=None, cmd) => {
+    open Run;
+    let environmentFilePath = switch (env) {
+        | None => []
+        | Some(fp) => ["--env", fp]
+    };
+
+    switch (System.host) {
+        | Windows => 
+            let commands = Bos.Cmd.to_list(cmd);
+            let%bind esyBashPath = getEsyBashPath();
+            let allCommands = List.append(environmentFilePath, commands);
+            Ok(Bos.Cmd.of_list([
+                "node",
+                Fpath.to_string(esyBashPath),
+                ...allCommands,
+            ]));
+        | _ => Ok(cmd)
+    };
 };
 
 /**
@@ -61,17 +82,7 @@ let normalizePathForCygwin = (path) => {
  * On other platforms, this is equivalent to running the command directly with Bos.OS.Cmd.run
  */
 let run = (cmd) => {
-    switch (System.host) {
-        | Windows => 
-            open Run;
-            let commands = Bos.Cmd.to_list(cmd);
-            let%bind esyBashPath = getEsyBashPath()
-            let esyBashCommand = Bos.Cmd.of_list([
-                "node",
-                Fpath.to_string(esyBashPath),
-                ...commands,
-            ]);
-            Bos.OS.Cmd.run(esyBashCommand)
-        | _ => Bos.OS.Cmd.run(cmd)
-    };
+    open Run;
+    let%bind augmentedCommand = toEsyBashCommand(cmd);
+    Bos.OS.Cmd.run(augmentedCommand);
 };
