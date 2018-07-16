@@ -169,7 +169,7 @@ let fetch ~(cfg : Config.t) ({Solution.Record. name; version; source; opam; file
 
     in
 
-    let tarballPath = Path.(cfg.tarballCachePath // v key |> addExt "tgz") in
+    let tarballPath = Path.(cfg.cacheTarballsPath // v key |> addExt "tgz") in
 
     let dist = {Dist. tarballPath = Some tarballPath; name; version; source} in
     let%bind tarballIsInCache = Fs.exists tarballPath in
