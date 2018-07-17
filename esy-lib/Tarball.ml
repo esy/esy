@@ -18,7 +18,7 @@ let copyAll ~src ~dst () =
   let open RunAsync.Syntax in
   let%bind items = Fs.listDir src in
   let f item = Fs.copyPath ~src:Path.(src / item) ~dst:Path.(dst / item) in
-  RunAsync.List.waitAll (List.map ~f items)
+  RunAsync.List.processSeq ~f items
 
 let run cmd =
   let f p =
