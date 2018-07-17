@@ -79,7 +79,7 @@ module Windows = {
 
             /* Normalize slashes in the command we send to esy-bash */
             let normalizedCommands = Bos.Cmd.of_list(List.map(EsyLib.Path.normalizePathSlashes, commandAsList));
-            let%bind augmentedEsyCommand = EsyBash.toEsyBashCommand(~env=Some(Fpath.to_string(environmentTempFile)), normalizedCommands);
+            let%bind augmentedEsyCommand = EsyLib.EsyBash.toEsyBashCommand(~env=Some(Fpath.to_string(environmentTempFile)), normalizedCommands);
 
             let exec = (~err) => {
                 run_io(~err, augmentedEsyCommand);
