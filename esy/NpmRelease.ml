@@ -13,6 +13,10 @@ let makeBinWrapper ~bin ~(environment : Environment.Value.t) =
   let environmentString =
     environment
     |> Astring.String.Map.bindings
+    |> List.filter ~f:(fun (name, _) -> match name with
+        | "cur__original_root" | "cur__root" -> false
+        | _ -> true
+      )
     |> List.map ~f:(fun (name, value) -> "\"" ^ name ^ "=" ^ value ^ "\"")
     |> String.concat ";"
   in
