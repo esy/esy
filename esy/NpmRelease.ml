@@ -201,11 +201,14 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
         let%bind namePath = resolveBinInEnv ~env name in
+        (* Create the .ml file that we will later compile and write it to disk *)
         let data = makeBinWrapper ~environment:env ~bin:namePath in
         let mlPath = Path.(binPath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
+        (* Compile the wrapper to a binary *)
         let compile = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p mlPath) in
         let%bind () = ChildProcess.run compile in
+        (* Replace the storePath with a string of equal length containing only _ *)
         let%bind origPrefix, destPrefix =
           let nextStorePrefix = String.make (String.length (Path.toString cfg.storePath)) '_' in
           return (cfg.storePath, Path.v nextStorePrefix)
