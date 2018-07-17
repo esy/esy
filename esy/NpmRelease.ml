@@ -200,13 +200,18 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
             String.split_on_char ':' v
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
-
         let%bind namePath = resolveBinInEnv ~env name in
         let data = makeBinWrapper ~environment:env ~bin:namePath in
-        let exePath = Path.(binPath / (name ^ ".ml")) in
-        let%bind () = Fs.writeFile ~data exePath in
-        let cmd = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p exePath) in
-        ChildProcess.run cmd
+        let mlPath = Path.(binPath / (name ^ ".ml")) in
+        let%bind () = Fs.writeFile ~data mlPath in
+        let compile = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p mlPath) in
+        let%bind () = ChildProcess.run compile in
+        let%bind origPrefix, destPrefix =
+          let nextStorePrefix = String.make (String.length (Path.toString cfg.storePath)) '_' in
+          return (cfg.storePath, Path.v nextStorePrefix)
+        in
+        let%bind () = Fs.writeFile ~data:(Path.to_string destPrefix) Path.(binPath / "_storePath") in
+        Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
       in
       releaseCfg.releasedBinaries
       |> List.map ~f:generateBinaryWrapper
