@@ -9,7 +9,9 @@
         "-c",
         "echo '#!/bin/bash\necho \\\\ #{self.name}  \\\\' > #{self.target_dir / self.name}"
       ],
-      "chmod +x $cur__target_dir/$cur__name"
+      "chmod +x $cur__target_dir/$cur__name",
+      "echo File: #{self.target_dir / self.name",
+      "cat #{self.target_dir / self.name}"
     ],
     "install": [
       "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
