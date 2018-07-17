@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 
 const {
   tests: {startPackageServer, definePackage},

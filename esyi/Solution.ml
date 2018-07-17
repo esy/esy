@@ -13,6 +13,28 @@ module Record = struct
     } [@@deriving yojson]
   end
 
+  module Source = struct
+    type t = Package.Source.t * Package.Source.t list
+
+    let to_yojson = function
+      | main, [] -> Package.Source.to_yojson main
+      | main, mirrors -> `List (List.map ~f:Package.Source.to_yojson (main::mirrors))
+
+    let of_yojson (json : Json.t) =
+      let open Result.Syntax in
+      match json with
+      | `String _ ->
+        let%bind source = Package.Source.of_yojson json in
+        return (source, [])
+      | `List _ ->
+        begin match%bind Json.Parse.list Package.Source.of_yojson json with
+        | main::mirrors -> return (main, mirrors)
+        | [] -> error "expected a non empty array or a string"
+        end
+      | _ -> error "expected a non empty array or a string"
+
+  end
+
   type t = {
     name: string;
     version: Version.t;
@@ -110,7 +132,6 @@ let dependenciesHash (manifest : Manifest.Root.t) =
 
 module LockfileV1 = struct
 
-
   type t = {
     hash : string;
     root : string;
@@ -132,15 +153,21 @@ module LockfileV1 = struct
       | Version.Source _ -> record.version
     in
     let source =
-      match record.source with
-      | Source.LocalPathLink p ->
-        Source.LocalPathLink (f p)
-      | Source.LocalPath p ->
-        Source.LocalPath (f p)
-      | Source.Archive _
-      | Source.Git _
-      | Source.Github _
-      | Source.NoSource -> record.source
+      let f source =
+        match source with
+        | Source.LocalPathLink p ->
+          Source.LocalPathLink (f p)
+        | Source.LocalPath p ->
+          Source.LocalPath (f p)
+        | Source.Archive _
+        | Source.Git _
+        | Source.Github _
+        | Source.NoSource -> source
+      in
+      let main, mirrors = record.source in
+      let main = f main in
+      let mirrors = List.map ~f mirrors in
+      main, mirrors
     in
     {record with source; version}
 
@@ -193,13 +220,29 @@ module LockfileV1 = struct
     let open RunAsync.Syntax in
     if%bind Fs.exists path
     then
-      let%bind json = Fs.readJsonFile path in
-      let%bind lockfile = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
-      if lockfile.hash = dependenciesHash manifest
-      then
-        let solution = solutionOfLockfile ~cfg lockfile.node lockfile.root in
-        return (Some solution)
-      else return None
+      let%lwt lockfile =
+        let%bind json = Fs.readJsonFile path in
+        RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+      in
+      match lockfile with
+      | Ok lockfile ->
+        if lockfile.hash = dependenciesHash manifest
+        then
+          let solution = solutionOfLockfile ~cfg lockfile.node lockfile.root in
+          return (Some solution)
+        else return None
+      | Error _ ->
+        let msg =
+          let path =
+            Option.orDefault
+              ~default:path
+              (Path.relativize ~root:cfg.Config.basePath path)
+          in
+          Format.asprintf
+            "corrupted %a lockfile@\nyou might want to remove it and install from scratch"
+            Path.pp path
+        in
+        error msg
     else
       return None
 

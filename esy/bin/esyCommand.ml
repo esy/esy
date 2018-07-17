@@ -59,6 +59,9 @@ module EsyRuntime = struct
   let esyBuildPackageCommand =
     resolveCommand "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
+  let esyiCommand =
+    resolveCommand "../../esyi/bin/esyi.exe"
+
   let esyInstallRelease =
     resolve "../../../../bin/esyInstallRelease.js"
 
@@ -212,6 +215,23 @@ let configTerm =
       ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
+
+let runEsyInstallCommand cfg name args =
+  let open RunAsync.Syntax in
+  let%bind cfg = cfg in
+  let env = esyEnvOverride cfg in
+  match%lwt EsyRuntime.esyiCommand with
+  | Ok cmd ->
+    let%bind cmd =
+      match name with
+      | Some name ->
+        return Cmd.(v cmd % name |> addArgs args)
+      | None ->
+        return Cmd.(v cmd |> addArgs args)
+    in
+    ChildProcess.run ~env cmd
+  | Error _err ->
+    RunAsync.error "unable to find esyi command"
 
 let runCommandViaNode cfg name args =
   let open RunAsync.Syntax in
@@ -1042,10 +1062,15 @@ let () =
     Term.(ret (const cmd $ const ())), info
   in
 
-  let makeCommandDelegatingToJsImpl ~name ~doc =
+  let makeCommandDelegatingToJsImpl ?delegateCommand ~name ~doc () =
+    let delegateCommand =
+      match delegateCommand with
+      | Some delegateCommand -> delegateCommand
+      | None -> name
+    in
     let info = Term.info name ~version:EsyRuntime.version ~doc ~sdocs ~exits in
     let cmd args cfg () =
-      let f = runCommandViaNode cfg name args in
+      let f = runCommandViaNode cfg delegateCommand args in
       runAsyncCommand ~info f
     in
     let argTerm =
@@ -1054,10 +1079,48 @@ let () =
     Term.(ret (const cmd $ argTerm $ configTerm $ Cli.setupLogTerm)), info
   in
 
-  let installCommand =
+  let makeCommandDelegatingToEsyInstall ?name ~doc () =
+    let info = Term.info
+      (Option.orDefault ~default:"install" name)
+      ~version:EsyRuntime.version
+      ~doc ~sdocs ~exits
+    in
+    let cmd args cfg () =
+      let f = runEsyInstallCommand cfg name args in
+      runAsyncCommand ~info f
+    in
+    let argTerm =
+      Arg.(value & (pos_all string []) & (info [] ~docv:"COMMAND"))
+    in
+    Term.(ret (const cmd $ argTerm $ configTerm $ Cli.setupLogTerm)), info
+  in
+
+  let legacyInstallCommand =
     makeCommandDelegatingToJsImpl
-      ~name:"install"
+      ~delegateCommand:"install"
+      ~name:"legacy-install"
+      ~doc:"Install dependencies (legacy yarn based implementation)"
+      ()
+  in
+
+  let installCommand =
+    makeCommandDelegatingToEsyInstall
       ~doc:"Install dependencies"
+      ()
+  in
+
+  let solveCommand =
+    makeCommandDelegatingToEsyInstall
+      ~name:"solve"
+      ~doc:"Install dependencies"
+      ()
+  in
+
+  let fetchCommand =
+    makeCommandDelegatingToEsyInstall
+      ~name:"fetch"
+      ~doc:"Install dependencies"
+      ()
   in
 
   let makeAlias command alias =
@@ -1095,22 +1158,22 @@ let () =
     exportBuildCommand;
     importBuildCommand;
 
+    installCommand;
+    solveCommand;
+    fetchCommand;
+
     releaseCommand;
 
     (* commands implemented via JS *)
-    installCommand;
-    makeCommandDelegatingToJsImpl
-      ~name:"add"
-      ~doc:"Add new dependency";
-    makeCommandDelegatingToJsImpl
-      ~name:"install-cache"
-      ~doc:"Manage installation cache";
+    legacyInstallCommand;
     makeCommandDelegatingToJsImpl
       ~name:"init"
-      ~doc:"Initialize new project";
+      ~doc:"Initialize new project"
+      ();
     makeCommandDelegatingToJsImpl
       ~name:"import-opam"
-      ~doc:"Produce esy package metadata from OPAM package metadata";
+      ~doc:"Produce esy package metadata from OPAM package metadata"
+      ();
 
     (* aliases *)
     makeAlias buildCommand "b";
@@ -1151,8 +1214,6 @@ let () =
   | Some "init"
   | Some "import-opam"
   | Some "install"
-  | Some "add"
-  | Some "install-cache"
   | Some "x"
   | Some "b"
   | Some "build" ->

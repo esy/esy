@@ -15,7 +15,7 @@ end
 module Source = struct
 
   type t =
-    | Archive of string * string
+    | Archive of {url : string ; checksum : Checksum.t }
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
@@ -23,13 +23,12 @@ module Source = struct
     | NoSource
     [@@deriving (ord, eq)]
 
-
   let toString = function
     | Github {user; repo; commit; _} ->
       Printf.sprintf "github:%s/%s#%s" user repo commit
     | Git {remote; commit; _} ->
       Printf.sprintf "git:%s#%s" remote commit
-    | Archive (url, checksum) -> "archive:" ^ url ^ "#" ^ checksum
+    | Archive {url; checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
     | LocalPath path -> "path:" ^ Path.toString(path)
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
@@ -46,7 +45,8 @@ module Source = struct
       return (Git {remote; commit})
     | "archive", v ->
       let%bind url, checksum = Parse.cutWith "#" v in
-      return (Archive (url, checksum))
+      let%bind checksum = Checksum.parse checksum in
+      return (Archive {url; checksum})
     | "no-source", "" ->
       return NoSource
     | "path", p ->
@@ -183,7 +183,7 @@ end
  *)
 module SourceSpec = struct
   type t =
-    | Archive of string * string option
+    | Archive of {url : string; checksum : Checksum.t option;}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
@@ -196,8 +196,8 @@ module SourceSpec = struct
     | Github {user; repo; ref = Some ref} -> Printf.sprintf "github:%s/%s#%s" user repo ref
     | Git {remote; ref = None} -> Printf.sprintf "git:%s" remote
     | Git {remote; ref = Some ref} -> Printf.sprintf "git:%s#%s" remote ref
-    | Archive (url, Some checksum) -> "archive:" ^ url ^ "#" ^ checksum
-    | Archive (url, None) -> "archive:" ^ url
+    | Archive {url; checksum = Some checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
+    | Archive {url; checksum = None} -> "archive:" ^ url
     | LocalPath path -> "path:" ^ Path.toString(path)
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
@@ -206,7 +206,7 @@ module SourceSpec = struct
 
   let ofSource (source : Source.t) =
     match source with
-    | Source.Archive (url, checksum) -> Archive (url, Some checksum)
+    | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}
     | Source.Git {remote; commit} ->
       Git {remote; ref =  Some commit}
     | Source.Github {user; repo; commit} ->
@@ -250,7 +250,7 @@ module SourceSpec = struct
       String.(equal spec.remote src.remote)
     | Git _, _ -> false
 
-    | Archive (url1, _), Source.Archive (url2, _)  ->
+    | Archive {url = url1; _}, Source.Archive {url = url2; _}  ->
       String.equal url1 url2
     | Archive _, _ -> false
 
@@ -339,6 +339,14 @@ module Req = struct
     | Some (spec, "") -> spec, None
     | Some (spec, ref) -> spec, Some ref
 
+  let parseChecksum spec =
+    let open Result.Syntax in
+    match parseRef spec with
+    | spec, None -> return (spec, None)
+    | spec, Some checksum ->
+      let%bind checksum = Checksum.parse checksum in
+      return (spec, Some checksum)
+
   let tryParseGitHubSpec text =
 
     let normalizeGithubRepo repo =
@@ -376,21 +384,22 @@ module Req = struct
     | None -> None
 
   let tryParseSourceSpec v =
+    let open Result.Syntax in
     match parseProto v with
-    | Some ("link:", v) -> Some (SourceSpec.LocalPathLink (Path.v v))
-    | Some ("file:", v) -> Some (SourceSpec.LocalPath (Path.v v))
+    | Some ("link:", v) -> return (Some (SourceSpec.LocalPathLink (Path.v v)))
+    | Some ("file:", v) -> return (Some (SourceSpec.LocalPath (Path.v v)))
     | Some ("https:", _)
     | Some ("http:", _) ->
-      let url, checksum = parseRef v in
-      Some (SourceSpec.Archive (url, checksum))
+      let%bind url, checksum = parseChecksum v in
+      return (Some (SourceSpec.Archive {url; checksum}))
     | Some ("git+", v) ->
       let remote, ref = parseRef v in
-      Some (SourceSpec.Git {remote;ref;})
+      return (Some (SourceSpec.Git {remote;ref;}))
     | Some ("git:", _) ->
       let remote, ref = parseRef v in
-      Some (SourceSpec.Git {remote;ref;})
+      return (Some (SourceSpec.Git {remote;ref;}))
     | Some _
-    | None -> tryParseGitHubSpec v
+    | None -> return (tryParseGitHubSpec v)
 
   let make ~name ~spec =
     let open Result.Syntax in
@@ -402,13 +411,13 @@ module Req = struct
       let%bind spec =
         match String.cut ~sep:"/" name with
         | Some ("@opam", _opamName) -> begin
-          match tryParseSourceSpec spec with
+          match%bind tryParseSourceSpec spec with
           | Some spec -> Ok (VersionSpec.Source spec)
           | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parse spec))
           end
         | Some _
         | None -> begin
-          match tryParseSourceSpec spec with
+          match%bind tryParseSourceSpec spec with
           | Some spec -> Ok (VersionSpec.Source spec)
           | None ->
             begin match SemverVersion.Formula.parse spec with
@@ -437,10 +446,28 @@ module Req = struct
       VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
 
       make ~name:"pkg" ~spec:"https://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive ("https://some/url", Some "checksum"));
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "https://some/url";
+        checksum = Some (Checksum.Sha1, "checksum");
+      });
 
       make ~name:"pkg" ~spec:"http://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive ("http://some/url", Some "checksum"));
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "http://some/url";
+        checksum = Some (Checksum.Sha1, "checksum");
+      });
+
+      make ~name:"pkg" ~spec:"http://some/url#sha1:checksum",
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "http://some/url";
+        checksum = Some (Checksum.Sha1, "checksum");
+      });
+
+      make ~name:"pkg" ~spec:"http://some/url#md5:checksum",
+      VersionSpec.Source (SourceSpec.Archive {
+        url = "http://some/url";
+        checksum = Some (Checksum.Md5, "checksum");
+      });
 
       make ~name:"pkg" ~spec:"file:./some/file",
       VersionSpec.Source (SourceSpec.LocalPath (Path.v "./some/file"));
@@ -518,33 +545,6 @@ module Dep = struct
       | Source src -> SourceSpec.pp fmt src
     in
     Fmt.pf fmt "%s@%a" name ppReq req
-
-end
-
-module DepFormula = struct
-  type t =
-    | Npm of SemverVersion.Formula.CNF.t
-    | Opam of OpamVersion.Formula.CNF.t
-    | Source of SourceSpec.t
-
-  let matches ~version formula =
-    match version, formula with
-    | Version.Npm version, Npm formula ->
-      SemverVersion.Formula.CNF.matches ~version formula
-    | Version.Npm _, _ -> false
-
-    | Version.Opam version, Opam formula ->
-      OpamVersion.Formula.CNF.matches ~version formula
-    | Version.Opam _, _ -> false
-
-    | Version.Source source, Source sourceSpec ->
-      SourceSpec.matches ~source sourceSpec
-    | Version.Source _, _ -> false
-
-  let pp fmt = function
-    | Npm f -> SemverVersion.Formula.CNF.pp fmt f
-    | Opam f -> OpamVersion.Formula.CNF.pp fmt f
-    | Source srcSpec -> SourceSpec.pp fmt srcSpec
 
 end
 
@@ -666,95 +666,6 @@ module Dependencies = struct
       in
       let reqs = List.map ~f:applyToReq reqs in
       NpmFormula reqs
-
-
-(*   let mapDeps ~f formula = *)
-(*     List.map ~f:(List.map ~f) formula *)
-
-(*   let filterDeps ~f formula = *)
-(*     let f formula disj = *)
-(*       match List.filter ~f disj with *)
-(*       | [] -> formula *)
-(*       | disj -> disj::formula *)
-(*     in *)
-(*     List.fold_left ~f ~init:[] formula *)
-
-(*   let override ~dep formula = *)
-(*     let f (edep : Dep.t) = *)
-(*       if edep.name = dep.Dep.name *)
-(*       then dep *)
-(*       else edep *)
-(*     in *)
-(*     mapDeps ~f formula *)
-
-  (* let overrideMany ~deps formula = *)
-  (*   let f deps dep = override ~dep deps in *)
-  (*   List.fold_left ~f ~init:formula deps *)
-
-  (* let subformulaForPackage ~name:forName formula = *)
-  (*   let f {Dep.name; _} = name = forName in *)
-  (*   match filterDeps ~f formula with *)
-  (*   | [] -> None *)
-  (*   | formula -> Some formula *)
-
-  (* TODO: remove *)
-  (* let describeByPackageName (formula : t) = *)
-  (*   let desc = *)
-  (*     let f desc disj = *)
-  (*       let up = *)
-  (*         let f byName {Dep. name; req} = *)
-  (*           match StringMap.find_opt name byName, req with *)
-  (*           | Some (npm, opam, source), Dep.Npm c -> *)
-  (*             StringMap.add name (c::npm, opam, source) byName *)
-  (*           | Some (npm, opam, source), Dep.Opam c -> *)
-  (*             StringMap.add name (npm, c::opam, source) byName *)
-  (*           | Some (npm, opam, source), Dep.Source c -> *)
-  (*             StringMap.add name (npm, opam, c::source) byName *)
-  (*           | None, Dep.Npm c -> *)
-  (*             StringMap.add name ([c], [], []) byName *)
-  (*           | None, Dep.Opam c -> *)
-  (*             StringMap.add name ([], [c], []) byName *)
-  (*           | None, Dep.Source c -> *)
-  (*             StringMap.add name ([], [], [c]) byName *)
-  (*         in *)
-  (*         List.fold_left ~f ~init:StringMap.empty disj *)
-  (*       in *)
-  (*       let merge _k a b = *)
-  (*         match a, b with *)
-  (*         | None, None -> None *)
-  (*         | Some a, None -> Some a *)
-  (*         | None, Some (npmu, opamu, sourceu) -> *)
-  (*           let npm = match npmu with | [] -> [] | f -> [f] in *)
-  (*           let opam = match opamu with | [] -> [] | f -> [f] in *)
-  (*           Some (npm, opam, sourceu) *)
-  (*         | Some (npm, opam, source), Some (npmu, opamu, sourceu) -> *)
-  (*           let npm = match npmu with | [] -> npm | f -> f::npm in *)
-  (*           let opam = match opamu with | [] -> opam | f -> f::opam in *)
-  (*           Some (npm, opam, sourceu @ source) *)
-  (*       in *)
-  (*       StringMap.merge merge desc up *)
-  (*     in *)
-  (*     List.fold_left ~f ~init:StringMap.empty formula *)
-  (*   in *)
-  (*   let f name (npm, opam, sources) formulas = *)
-  (*     let formulas = *)
-  (*       List.fold_left *)
-  (*         ~f:(fun formulas source -> (name, DepFormula.Source source)::formulas) *)
-  (*         ~init:formulas sources *)
-  (*     in *)
-  (*     let formulas = *)
-  (*       match npm with *)
-  (*       | [] -> formulas *)
-  (*       | f -> (name, DepFormula.Npm f)::formulas *)
-  (*     in *)
-  (*     let formulas = *)
-  (*       match opam with *)
-  (*       | [] -> formulas *)
-  (*       | f -> (name, DepFormula.Opam f)::formulas *)
-  (*     in *)
-  (*     formulas *)
-  (*   in *)
-  (*   StringMap.fold f desc [] *)
 
   let pp fmt deps =
     match deps with
@@ -927,7 +838,7 @@ end
 type t = {
   name : string;
   version : Version.t;
-  source : source;
+  source : source * source list;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;

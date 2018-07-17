@@ -19,7 +19,7 @@ module Record : sig
   type t = {
     name: string;
     version: Package.Version.t;
-    source: Package.Source.t;
+    source: Package.Source.t * Package.Source.t list;
     files : Package.File.t list;
     opam : Opam.t option;
   }

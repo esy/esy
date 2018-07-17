@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 0.1.31 @ preview
+
+* Fix for converting opam `depends`.
+
+## 0.1.30 @ preview
+
+* Support resolving packages to multiple sources (main + mirrors).
+
+  Currently only `@opam/*` packages take an advantage of that by:
+
+  - Reading `mirrors` attribute of `url` files im opam repository.
+
+  - Using `/opam-urls.txt` index.
+
+* Add `--cache-tarballs-path` to `esy install` and `esy fetch` commands.
+
+  This option can be used to implement offline workflow where packages sources
+  are "vendored" along the sandbox code and installation can be performed while
+  offline.
+
+* Fix `esy legacy-install` command to use main opam repository.
+
+  Previously it was accidentally using mingw overlay of opam repository.
+
+## 0.1.29 @ preview
+
+* Installation process now checks integrity of packages download from npm and
+  opam registries.
+
+* Speed up installation process.
+
+* Fix `esy install` command output.
+
+* Other improvements to `esy install`.
+
 ## 0.1.28 @ preview
 
 * New implementation of opam support.
