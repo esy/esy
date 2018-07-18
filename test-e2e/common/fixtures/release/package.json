@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "license": "MIT",
   "dependencies": {
-    "release-dep": "link:./dependencies/release-dep"
+    "release-dep": "link:./dependencies/release-dep",
+    "ocaml": "^4.6.1"
   },
   "esy": {
     "build": [
