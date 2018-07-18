@@ -248,7 +248,6 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let%bind namePath = resolveBinInEnv ~env:value name in
         (* Create the .ml file that we will later compile and write it to disk *)
         let data = makeBinWrapper ~environment:bindings ~bin:namePath in
-        print_endline data;
         let mlPath = Path.(stagePath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
