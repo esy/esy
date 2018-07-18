@@ -190,6 +190,7 @@ console.log(
 			"postinstall.js",
 			"platform-linux/",
 			"platform-darwin/"
+			"platform-windows-x64/"
 		]
 	}, null, 2));
 endef
@@ -198,44 +199,8 @@ export MAKE_PACKAGE_JSON
 $(RELEASE_ROOT)/package.json:
 	@node -e "$$MAKE_PACKAGE_JSON" > $(@)
 
-define POSTINSTALL_JS
-var path = require('path');
-var fs = require('fs');
-var platform = process.platform;
-
-switch (platform) {
-  case 'linux':
-  case 'darwin':
-    fs.renameSync(
-      path.join(__dirname, 'platform-' + platform, '_build'),
-      path.join(__dirname, '_build')
-    );
-    fs.renameSync(
-      path.join(__dirname, 'platform-' + platform, 'bin', 'fastreplacestring'),
-      path.join(__dirname, 'bin', 'fastreplacestring')
-    );
-
-    fs.unlinkSync(path.join(__dirname, 'bin', 'esy'));
-    fs.symlinkSync(
-      path.join(__dirname, '_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
-      path.join(__dirname, 'bin', 'esy')
-  	);
-
-		fs.unlinkSync(path.join(__dirname, 'bin', 'esyi'));
-    fs.symlinkSync(
-      path.join(__dirname, '_build', 'default', 'esyi', 'bin', 'esyi.exe'),
-      path.join(__dirname, 'bin', 'esyi')
-  	);
-    break;
-  default:
-    console.warn("error: no release built for the " + platform + " platform");
-    process.exit(1);
-}
-endef
-export POSTINSTALL_JS
-
 $(RELEASE_ROOT)/postinstall.js:
-	@echo "$$POSTINSTALL_JS" > $(@)
+	@cp scripts/release-postinstall.js $(@)
 
 #
 # Platform Specific Release
