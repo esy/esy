@@ -59,46 +59,122 @@ module Record = struct
   module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
+module Id = struct
+  type t = string * Package.Version.t [@@deriving (ord, eq)]
+
+  let rec parse v =
+    let open Result.Syntax in
+    match Astring.String.cut ~sep:"@" v with
+    | Some ("", name) ->
+      let%bind name, version = parse name in
+      return ("@" ^ name, version)
+    | Some (name, version) ->
+      let%bind version = Version.parse version in
+      return (name, version)
+    | None -> Error "invalid id"
+
+  let to_yojson (name, version) =
+    `String (name ^ "@" ^ Version.toString version)
+
+  let of_yojson = function
+    | `String v -> parse v
+    | _ -> Error "expected string"
+
+  let ofRecord (record : Record.t) =
+    record.name, record.version
+
+  module Set = Set.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+
+  module Map = struct
+    include Map.Make(struct
+      type nonrec t = t
+      let compare = compare
+    end)
+
+    let to_yojson v_to_yojson map =
+      let items =
+        let f (name, version) v items =
+          let k = name ^ "@" ^ Version.toString version in
+          (k, v_to_yojson v)::items
+        in
+        fold f map []
+      in
+      `Assoc items
+
+    let of_yojson v_of_yojson =
+      let open Result.Syntax in
+      function
+      | `Assoc items ->
+        let f map (k, v) =
+          let%bind k = parse k in
+          let%bind v = v_of_yojson v in
+          return (add k v map)
+        in
+        Result.List.foldLeft ~f ~init:empty items
+      | _ -> error "expected an object"
+  end
+end
 
 [@@@ocaml.warning "-32"]
-type solution = t [@@deriving (to_yojson, eq)]
+type solution = t
 
-and t = root
+and t = {
+  root : Id.t option;
+  records : Record.t Id.Map.t;
+  dependencies : Id.Set.t Id.Map.t;
+} [@@deriving eq]
 
-and root = {
-  record: Record.t;
-  dependencies: root StringMap.t;
+let root sol =
+  match sol.root with
+  | Some id -> Id.Map.find_opt id sol.records
+  | None -> None
+
+let dependencies (r : Record.t) sol =
+  let id = Id.ofRecord r in
+  match Id.Map.find_opt id sol.dependencies with
+  | None -> Record.Set.empty
+  | Some ids ->
+    let f id set =
+      let record =
+        try Id.Map.find id sol.records
+        with Not_found ->
+          let msg =
+            Format.asprintf
+              "inconsistent solution, missing record for %a"
+              Fmt.(pair ~sep:(unit "@") string Version.pp) id
+          in
+          failwith msg
+      in
+      Record.Set.add record set
+    in
+    Id.Set.fold f ids Record.Set.empty
+
+let records sol =
+  let f _k record records = Record.Set.add record records in
+  Id.Map.fold f sol.records Record.Set.empty
+
+let empty = {
+  root = None;
+  records = Id.Map.empty;
+  dependencies = Id.Map.empty;
 }
 
-let rec pp fmt root =
-  let ppItem = Fmt.(pair nop pp) in
-  Fmt.pf fmt
-    "@[<v 2>%a@\n%a@]"
-    Record.pp root.record
-    (StringMap.pp ppItem) root.dependencies
+let add ~(record : Record.t) ~dependencies sol =
+  let id = Id.ofRecord record in
+  let dependencies = Id.Set.of_list dependencies in
+  {
+    sol with
+    records = Id.Map.add id record sol.records;
+    dependencies = Id.Map.add id dependencies sol.dependencies;
+  }
 
-let make record dependencies =
-  let dependencies =
-    let f map (root : t) =
-      StringMap.add root.record.name root map
-    in
-    List.fold_left ~f ~init:StringMap.empty dependencies
-  in
-  {record; dependencies}
-
-let record root = root.record
-let dependencies root = StringMap.values root.dependencies
-
-let findDependency ~name root =
-  StringMap.find_opt name root.dependencies
-
-let fold ~f ~init solution =
-  let rec aux r root =
-    let r = StringMap.fold (fun _k v r -> aux r v) root.dependencies r in
-    let r = f r root.record in
-    r
-  in
-  aux init solution
+let addRoot ~(record : Record.t) ~dependencies sol =
+  let sol = add ~record ~dependencies sol in
+  let id = Id.ofRecord record in
+  {sol with root = Some id;}
 
 let dependenciesHash (manifest : Manifest.Root.t) =
   let hashDependencies ~prefix ~dependencies digest =
@@ -134,13 +210,13 @@ module LockfileV1 = struct
 
   type t = {
     hash : string;
-    root : string;
-    node : node StringMap.t
+    root : Id.t;
+    node : node Id.Map.t
   }
 
   and node = {
     record : Record.t;
-    dependencies : string list;
+    dependencies : Id.t list;
   } [@@deriving yojson]
 
   let mapRecord ~f (record : Record.t) =
@@ -171,7 +247,7 @@ module LockfileV1 = struct
     in
     {record with source; version}
 
-  let relativizeRecord ~cfg record =
+  let relativize ~cfg record =
     let f path =
       if Path.equal path cfg.Config.basePath
       then Path.(v ".")
@@ -185,36 +261,30 @@ module LockfileV1 = struct
     let f path = Path.(cfg.Config.basePath // path |> normalize) in
     mapRecord ~f record
 
-  let rec solutionOfLockfile ~cfg nodes id =
-    match StringMap.find id nodes with
-    | Some {record; dependencies} ->
-      let dependencies = List.map ~f:(solutionOfLockfile ~cfg nodes) dependencies in
+  let solutionOfLockfile ~cfg root node =
+    let f id {record; dependencies} sol =
       let record = derelativize ~cfg record in
-      make record dependencies
-    | None -> raise (Invalid_argument "malformed lockfile")
-
-  let lockfileOfSolution ~cfg (root : solution) =
-    let nodes = StringMap.empty in
-    let rec aux nodes root =
-      let dependencies, nodes =
-        let f (dependencies, nodes) root =
-          let id, nodes = aux nodes root in
-          (id::dependencies, nodes)
-        in
-        List.fold_left ~f ~init:([], nodes) (dependencies root)
-      in
-      let record = record root in
-      let record = relativizeRecord ~cfg record in
-      let id = Format.asprintf "%s@%a" record.name Version.pp record.version in
-      let node = {record; dependencies} in
-      let nodes =
-        if StringMap.mem id nodes
-        then nodes
-        else StringMap.add id node nodes
-      in
-      id, nodes
+      if Id.equal root id
+      then addRoot ~record ~dependencies sol
+      else add ~record ~dependencies sol
     in
-    aux nodes root
+    Id.Map.fold f node empty
+
+  let lockfileOfSolution ~cfg (sol : solution) =
+    let node =
+      let f id record nodes =
+        let record = relativize ~cfg record in
+        let dependencies = Id.Map.find id sol.dependencies in
+        Id.Map.add id {record; dependencies = Id.Set.elements dependencies} nodes
+      in
+      Id.Map.fold f sol.records Id.Map.empty
+    in
+    let root =
+      match sol.root with
+      | Some root -> root
+      | None -> failwith "empty solution"
+    in
+    root, node
 
   let ofFile ~cfg ~(manifest : Manifest.Root.t) (path : Path.t) =
     let open RunAsync.Syntax in
@@ -228,10 +298,10 @@ module LockfileV1 = struct
       | Ok lockfile ->
         if lockfile.hash = dependenciesHash manifest
         then
-          let solution = solutionOfLockfile ~cfg lockfile.node lockfile.root in
+          let solution = solutionOfLockfile ~cfg lockfile.root lockfile.node in
           return (Some solution)
         else return None
-      | Error _ ->
+      | Error err ->
         let msg =
           let path =
             Option.orDefault
@@ -239,8 +309,8 @@ module LockfileV1 = struct
               (Path.relativize ~root:cfg.Config.basePath path)
           in
           Format.asprintf
-            "corrupted %a lockfile@\nyou might want to remove it and install from scratch"
-            Path.pp path
+            "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"
+            Path.pp path Run.ppError err
         in
         error msg
     else
