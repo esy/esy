@@ -23,5 +23,4 @@ opam install --yes re
 opam install --yes opam-format
 
 echo "** Installed packages:"
-
 ocamlfind list

@@ -9,6 +9,8 @@ val return : 'a -> 'a t
 
 val error : string -> 'a t
 
+val ppError : error Fmt.t
+
 (**
  * Wrap computation with a context which will be reported in case of error
  *)

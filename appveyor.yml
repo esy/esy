@@ -2,7 +2,7 @@ platform:
     - x64
 
 cache:
-    - '%LocalAppData%\.opam'
+    - C:\Users\appveyor\.opam
 
 install:
     - where git
@@ -30,9 +30,22 @@ build_script:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - powershell scripts/bootstrap/Test.ps1
     - powershell scripts/bootstrap/Test-e2e.ps1
+    - npm run bootstrap:make-release-package
 
 artifacts:
-    - path: _release
-      name: esy-windows
+    - path: _platformrelease/*.tar.gz
+      name: Windows Build
+      type: File
+
+deploy:
+    - provider: Github
+      repository: esy/esy
+      auth_token:
+          secure: J4V6+1KHu8UiApItmxPWArb5oMf1WnQyAc9H4GtBzEo620zFin0oRLYQ0DxCz1VW
+      draft: false
+      prerelease: false
+      force_update: true
+      on:
+          appveyor_repo_tag: true
 
 test: off

@@ -60,16 +60,36 @@ let isExecutable (stats : Unix.stats) =
   let othersExecute = 0b000000001 in
   (userExecute lor groupExecute lor othersExecute) land stats.Unix.st_perm <> 0
 
+let getPotentialExtensions =
+    match System.host with
+    | Windows -> [""; ".exe"]
+    | _ -> [""]
+
+let checkIfCommandIsAvailable fullPath =
+    let open Result.Syntax in
+    let isExecutable p = 
+        let%bind stats = Bos.OS.Path.stat p in
+        match stats.Unix.st_kind, isExecutable stats with
+        | Unix.S_REG, true -> Ok (Some p)
+        | _ -> Ok None
+    in
+    let extensions = getPotentialExtensions in
+    let evaluate prev next =
+        match prev with
+        | Ok (Some (x)) -> Ok (Some (x))
+        | _ -> 
+            let pathToTest = (Fpath.to_string fullPath) ^ next in
+            let p = Fpath.v pathToTest in
+            isExecutable p
+    in
+    List.fold_left ~f:evaluate ~init:(Ok None) extensions
+
 let resolveCmd path cmd =
   let open Result.Syntax in
   let find p =
     let p = let open Path in (v p) / cmd in
     let%bind p = EsyBash.normalizePathForWindows p in
-    /* print_endline("Checking path: " ^ (Fpath.to_string p) ^ " for cmd: " ^ cmd); */
-    let%bind stats = Bos.OS.Path.stat p in
-    match stats.Unix.st_kind, isExecutable stats with
-    | Unix.S_REG, true -> Ok (Some p)
-    | _ -> Ok None
+    checkIfCommandIsAvailable p
     in
   let rec resolve =
     function

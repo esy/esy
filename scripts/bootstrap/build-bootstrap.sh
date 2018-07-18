@@ -10,10 +10,10 @@ set -o pipefail
 cp scripts/bootstrap/Makefile.bootstrap Makefile
 
 echo "jbuilder:build esy-build-package"
-jbuilder build _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
+jbuilder build --dev _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 
 echo "jbuilder: build esy"
-jbuilder build _build/default/esy/bin/esyCommand.exe
+jbuilder build --dev _build/default/esy/bin/esyCommand.exe
 
 echo "make: esy-install"
 make _release/bin/esy-install.js
@@ -35,3 +35,6 @@ make _release/bin/fastreplacestring
 
 cd _release
 npm install @esy-ocaml/esy-opam
+
+echo "release: copy esy-bash"
+cp -r ../node_modules/esy-bash node_modules/esy-bash

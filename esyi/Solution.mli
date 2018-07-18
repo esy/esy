@@ -19,7 +19,7 @@ module Record : sig
   type t = {
     name: string;
     version: Package.Version.t;
-    source: Package.Source.t;
+    source: Package.Source.t * Package.Source.t list;
     files : Package.File.t list;
     opam : Opam.t option;
   }
@@ -31,27 +31,28 @@ module Record : sig
   module Set : Set.S with type elt := t
 end
 
+module Id : sig
+  type t = string * Package.Version.t
+
+  module Map : Map.S with type key := t
+  module Set : Set.S with type elt := t
+end
+
 (**
  * This represent an isolated dependency root.
  *)
-type t = root
+type t
 
-and root = {
-  record: Record.t;
-  dependencies: root StringMap.t;
-}
+val root : t -> Record.t option
+val dependencies : Record.t -> t -> Record.Set.t
+val records : t -> Record.Set.t
 
-val make : Record.t -> t list -> t
-
-val record : t -> Record.t
-val dependencies : t -> t list
-
-val findDependency : name:string -> t -> t option
-
-val fold : f:('a -> Record.t -> 'a) -> init:'a -> t -> 'a
 val equal : t -> t -> bool
-val pp : Format.formatter -> t -> unit
-val to_yojson : t -> Json.t
+
+val empty : t
+
+val addRoot : record : Record.t -> dependencies : Id.t list -> t -> t
+val add : record : Record.t -> dependencies : Id.t list -> t -> t
 
 (** This is an on disk format for storing solutions. *)
 module LockfileV1 : sig

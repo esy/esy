@@ -5,13 +5,16 @@ type t = {
 
   basePath: Path.t,
   lockfilePath: Path.t,
-  tarballCachePath: Path.t,
+  cacheTarballsPath: Path.t,
+  opamArchivesIndexPath: Path.t,
 
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
 
   solveTimeout: float,
+
+  skipRepositoryUpdate: bool,
 
   createProgressReporter:
     (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
@@ -31,13 +34,17 @@ and checkoutCfg = [
 let make : (
     ~npmRegistry: string=?,
     ~cachePath: Fpath.t=?,
+    ~cacheTarballsPath: Fpath.t=?,
     ~opamRepository: checkoutCfg=?,
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
     ~createProgressReporter:
       (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
+    ~skipRepositoryUpdate: bool,
     Fpath.t
   ) => RunAsync.t(t)
 
 let resolvedPrefix : string;
+
+let esyOpamOverrideVersion : string;

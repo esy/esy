@@ -49,6 +49,42 @@ let package_entry_point = (package_json_path: Fpath.t) => {
   };
 };
 
+let (/) = Fpath.(/);
+
+let rec realpath = (p: Fpath.t) => {
+  open Result.Syntax;
+  let%bind p =
+    if (Fpath.is_abs(p)) {
+      Ok(p);
+    } else {
+      let%bind cwd = Bos.OS.Dir.current();
+      Ok(p |> Fpath.append(cwd) |> Fpath.normalize);
+    };
+  let _realpath = (p: Fpath.t) => {
+    let isSymlinkAndExists = p =>
+      switch (Bos.OS.Path.symlink_stat(p)) {
+      | Ok({Unix.st_kind: Unix.S_LNK, _}) => Ok(true)
+      | _ => Ok(false)
+      };
+    if (Fpath.is_root(p)) {
+      Ok(p);
+    } else {
+      let%bind isSymlink = isSymlinkAndExists(p);
+      if (isSymlink) {
+        let%bind target = Bos.OS.Path.symlink_target(p);
+        realpath(
+          target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
+        );
+      } else {
+        let parent = p |> Fpath.parent |> Fpath.rem_empty_seg;
+        let%bind parent = realpath(parent);
+        Ok(parent / Fpath.basename(p));
+      };
+    };
+  };
+  _realpath(p);
+};
+
 /** Try to resolve an absolute path */
 let resolve_path = path =>
   Result.Syntax.(

@@ -1,7 +1,3 @@
-let (/) = Fpath.(/);
-
-let v = Fpath.v;
-
 type t('a, 'b) =
   result(
     'a,
@@ -10,50 +6,14 @@ type t('a, 'b) =
 
 let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 
-
-let rec realpath = (p: Fpath.t) => {
-  open Result.Syntax;
-  let%bind p =
-    if (Fpath.is_abs(p)) {
-      Ok(p);
-    } else {
-      let%bind cwd = Bos.OS.Dir.current();
-      Ok(p |> Fpath.append(cwd) |> Fpath.normalize);
-    };
-  let _realpath = (p: Fpath.t) => {
-    let isSymlinkAndExists = p =>
-      switch (Bos.OS.Path.symlink_stat(p)) {
-      | Ok({Unix.st_kind: Unix.S_LNK, _}) => Ok(true)
-      | _ => Ok(false)
-      };
-    if (Fpath.is_root(p)) {
-      Ok(p);
-    } else {
-      let%bind isSymlink = isSymlinkAndExists(p);
-      if (isSymlink) {
-        let%bind target = Bos.OS.Path.symlink_target(p);
-        realpath(
-          target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
-        );
-      } else {
-        let parent = p |> Fpath.parent |> Fpath.rem_empty_seg;
-        let%bind parent = realpath(parent);
-        Ok(parent / Fpath.basename(p));
-      };
-    };
-  };
-  _realpath(p);
-};
-
-
 /**
  * Helper method to get the root path of the 'esy-bash' node modules
  */
 let getEsyBashRootPath = () => {
   open Result.Syntax;
   let program = Sys.argv[0];
-  let%bind realpath = realpath(Fpath.v(program))
-  let basedir = Fpath.parent(realpath);
+  let%bind program = NodeResolution.realpath(Fpath.v(program));
+  let basedir = Fpath.parent(program);
   let resolution =
       NodeResolution.resolve(
         "../../../../node_modules/esy-bash/package.json",
@@ -88,9 +48,9 @@ let getEsyBashPath = () => {
 * On non-Windows platforms, this is a noop
 */
 let normalizePathForCygwin = (path) => {
+    open Result.Syntax;
     switch (System.host) {
         | System.Windows => {
-            open Result.Syntax;
             let%bind rootPath = getCygPath();
             let ic = Unix.open_process_in(Fpath.to_string(rootPath) ++ " \"" ++ path ++ " \"")
             let result = String.trim(input_line(ic));
@@ -98,6 +58,27 @@ let normalizePathForCygwin = (path) => {
             Ok(result);
         };
         | _ => Ok(path)
+    };
+};
+
+let toEsyBashCommand = (~env=None, cmd) => {
+    open Result.Syntax;
+    let environmentFilePath = switch (env) {
+        | None => []
+        | Some(fp) => ["--env", fp]
+    };
+
+    switch (System.host) {
+        | Windows => 
+            let commands = Bos.Cmd.to_list(cmd);
+            let%bind esyBashPath = getEsyBashPath();
+            let allCommands = List.append(environmentFilePath, commands);
+            Ok(Bos.Cmd.of_list([
+                "node",
+                Fpath.to_string(esyBashPath),
+                ...allCommands,
+            ]));
+        | _ => Ok(cmd)
     };
 };
 
@@ -137,17 +118,7 @@ let normalizePathForWindows = (path: Fpath.t) => {
  * On other platforms, this is equivalent to running the command directly with Bos.OS.Cmd.run
  */
 let run = (cmd) => {
-    switch (System.host) {
-        | Windows =>
-            open Result.Syntax;
-            let commands = Bos.Cmd.to_list(cmd);
-            let%bind esyBashPath = getEsyBashPath()
-            let esyBashCommand = Bos.Cmd.of_list([
-                "node",
-                Fpath.to_string(esyBashPath),
-                ...commands,
-            ]);
-            Bos.OS.Cmd.run(esyBashCommand)
-        | _ => Bos.OS.Cmd.run(cmd)
-    };
+    open Result.Syntax;
+    let%bind augmentedCommand = toEsyBashCommand(cmd);
+    Bos.OS.Cmd.run(augmentedCommand);
 };

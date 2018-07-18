@@ -23,18 +23,23 @@ let rec retryInCaseOfError = (~num, ~desc, f) =>
   | Error(err) => Lwt.return(Error(err))
   };
 
-let versions = (~cfg: Config.t, name) => {
+let versions = (~fullMetadata=false, ~cfg: Config.t, ~name, ()) => {
   open RunAsync.Syntax;
   let desc = Format.asprintf("fetch %s", name);
   let name = Str.global_replace(Str.regexp("/"), "%2f", name);
-  /* Some packages can be unpublished so we handle not found case by ignoring
-   * it */
   switch%bind (
-    retryInCaseOfError(~num=3, ~desc, () =>
-      Curl.getOrNotFound(
-        ~accept="application/vnd.npm.install-v1+json",
-        cfg.npmRegistry ++ "/" ++ name,
-      )
+    retryInCaseOfError(
+      ~num=3,
+      ~desc,
+      () => {
+        let accept =
+          if (fullMetadata) {
+            None;
+          } else {
+            Some("application/vnd.npm.install-v1+json");
+          };
+        Curl.getOrNotFound(~accept?, cfg.npmRegistry ++ "/" ++ name);
+      },
     )
   ) {
   | Curl.NotFound => return([])
@@ -53,7 +58,7 @@ let versions = (~cfg: Config.t, name) => {
   };
 };
 
-let version = (~cfg: Config.t, name: string, version: Version.t) => {
+let version = (~cfg: Config.t, ~name: string, ~version: Version.t, ()) => {
   open RunAsync.Syntax;
   let desc = Format.asprintf("fetch %s@%a", name, Version.pp, version);
   let name = Str.global_replace(Str.regexp("/"), "%2f", name);

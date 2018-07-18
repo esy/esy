@@ -67,7 +67,7 @@ endif
 	@make -C esy-install bootstrap
 	@make build-dev
 	@make -C test-e2e bootstrap
-	@make -C test-e2e/pkg-tests bootstrap
+	@make -C test-e2e-esyi bootstrap
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
 	@make -C site bootstrap
 
@@ -104,7 +104,7 @@ test-e2e::
 	@make -C test-e2e test
 
 test-e2e-esyi::
-	@make -C test-e2e/pkg-tests test
+	@make -C test-e2e-esyi test
 
 test-opam::
 	$(MAKE) -C __tests__/opam

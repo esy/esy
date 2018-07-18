@@ -9,6 +9,16 @@
 module ConfigPath = Config.ConfigPath
 module Store = EsyLib.Store
 
+let toOCamlVersion version =
+  match String.split_on_char '.' version with
+  | major::minor::patch::[] ->
+    let patch =
+      let v = try int_of_string patch with _ -> 0 in
+      if v < 1000 then v else v / 1000
+    in
+    major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
+  | _ -> version
+
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
     match system with
@@ -463,6 +473,13 @@ let ofPackage
 
   and taskOfPackage ~(includeSandboxEnv: bool) (pkg : Package.t) =
 
+    let ocamlVersion =
+      let f pkg = pkg.Package.name = "ocaml" in
+      match Package.DependencyGraph.find ~f pkg with
+      | Some pkg -> Some (toOCamlVersion pkg.version)
+      | None -> None
+    in
+
     let isRoot = pkg.id = rootPkg.id in
 
     let shouldIncludeDependencyInEnv = function
@@ -742,12 +759,18 @@ let ofPackage
         else []
       in
 
+      let defaultPath =
+          match System.host with
+          | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
+          | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      in
+
       let finalEnv = Environment.(
           let v = [
             {
               name = "PATH";
               value = Value (Option.orDefault
-                               ~default:"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+                               ~default:defaultPath
                                finalPath);
               origin = None;
             };
@@ -815,53 +838,59 @@ let ofPackage
         dependenciesTasks
     in
 
-    let renderOpamCommands (build : Package.OpamBuild.t) commands =
-      let env (name : OpamVariable.Full.t) =
-        let open OpamVariable in
-        let var = Full.variable name in
-        let scope = Full.scope name in
-        let path v = string (ConfigPath.toString v) in
-        let v =
-          match scope, to_string var with
-          | Full.Global, "ocaml-native" -> Some (bool true)
-          | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
-          | Full.Global, "make" -> Some (string "make")
-          | Full.Global, "name" -> Some (string build.name)
-          | Full.Global, "version" -> Some (string build.version)
-          | Full.Global, "jobs" -> Some (string "4")
-          | Full.Global, "prefix" -> Some (path paths.stagePath)
-          | Full.Global, "bin" -> Some (path ConfigPath.(paths.stagePath / "bin"))
-          | Full.Global, "sbin" -> Some (path ConfigPath.(paths.stagePath / "sbin"))
-          | Full.Global, "etc" -> Some (path ConfigPath.(paths.stagePath / "etc"))
-          | Full.Global, "doc" -> Some (path ConfigPath.(paths.stagePath / "doc"))
-          | Full.Global, "man" -> Some (path ConfigPath.(paths.stagePath / "man"))
-          | Full.Global, "share" -> Some (path ConfigPath.(paths.stagePath / "share"))
-          | Full.Global, "lib" -> Some (path ConfigPath.(paths.stagePath / "lib"))
-          | Full.Global, "build" -> Some (path paths.buildPath)
-          | Full.Global, "pinned" -> Some (bool false)
-          | Full.Global, _ -> None
-          | Full.Self, _ -> None
-          | Full.Package pkg, "installed" ->
-            let pkg = OpamPackage.Name.to_string pkg in
-            begin match StringMap.find_opt pkg opamEnvByDependency with
-            | Some _ -> Some (bool true)
-            | None -> Some (bool false)
-            end
-          | Full.Package pkg, "enable" ->
-            let pkg = OpamPackage.Name.to_string pkg in
-            begin match StringMap.find_opt pkg opamEnvByDependency with
-            | Some _ -> Some (string "enable")
-            | None -> Some (string "disable")
-            end
-          | Full.Package pkg, name ->
-            let open Option.Syntax in
-            let pkg = OpamPackage.Name.to_string pkg in
-            let%bind vars = StringMap.find_opt pkg opamEnvByDependency in
-            StringMap.find_opt name vars
-        in
-        v
+    let opamEnv (build : Package.OpamBuild.t) (name : OpamVariable.Full.t) =
+      let open OpamVariable in
+      let var = Full.variable name in
+      let scope = Full.scope name in
+      let path v = string (ConfigPath.toString v) in
+      let v =
+        match scope, to_string var with
+        | Full.Global, "os" -> Some (string (System.toString system))
+        | Full.Global, "ocaml-version" ->
+          let open Option.Syntax in
+          let%bind ocamlVersion = ocamlVersion in
+          Some (string ocamlVersion)
+        | Full.Global, "ocaml-native" -> Some (bool true)
+        | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
+        | Full.Global, "make" -> Some (string "make")
+        | Full.Global, "name" -> Some (string build.name)
+        | Full.Global, "version" -> Some (string build.version)
+        | Full.Global, "jobs" -> Some (string "4")
+        | Full.Global, "prefix" -> Some (path paths.stagePath)
+        | Full.Global, "bin" -> Some (path ConfigPath.(paths.stagePath / "bin"))
+        | Full.Global, "sbin" -> Some (path ConfigPath.(paths.stagePath / "sbin"))
+        | Full.Global, "etc" -> Some (path ConfigPath.(paths.stagePath / "etc"))
+        | Full.Global, "doc" -> Some (path ConfigPath.(paths.stagePath / "doc"))
+        | Full.Global, "man" -> Some (path ConfigPath.(paths.stagePath / "man"))
+        | Full.Global, "share" -> Some (path ConfigPath.(paths.stagePath / "share"))
+        | Full.Global, "lib" -> Some (path ConfigPath.(paths.stagePath / "lib"))
+        | Full.Global, "build" -> Some (path paths.buildPath)
+        | Full.Global, "pinned" -> Some (bool false)
+        | Full.Global, _ -> None
+        | Full.Self, _ -> None
+        | Full.Package pkg, "installed" ->
+          let pkg = OpamPackage.Name.to_string pkg in
+          begin match StringMap.find_opt pkg opamEnvByDependency with
+          | Some _ -> Some (bool true)
+          | None -> Some (bool false)
+          end
+        | Full.Package pkg, "enable" ->
+          let pkg = OpamPackage.Name.to_string pkg in
+          begin match StringMap.find_opt pkg opamEnvByDependency with
+          | Some _ -> Some (string "enable")
+          | None -> Some (string "disable")
+          end
+        | Full.Package pkg, name ->
+          let open Option.Syntax in
+          let pkg = OpamPackage.Name.to_string pkg in
+          let%bind vars = StringMap.find_opt pkg opamEnvByDependency in
+          StringMap.find_opt name vars
       in
-      try return (OpamFilter.commands env commands)
+      v
+    in
+
+    let renderOpamCommands (build : Package.OpamBuild.t) commands =
+      try return (OpamFilter.commands (opamEnv build) commands)
       with Failure msg -> error msg
     in
 
@@ -876,17 +905,15 @@ let ofPackage
       return commands
     in
 
-    let opamPatchesToCommands patches =
+    let opamPatchesToCommands build patches =
       Run.withContext "processing patch field" (
         let open Run.Syntax in
-
-        let env _name = Some (OpamVariable.B true) in
 
         let evalFilter = function
           | basename, None -> return (basename, true)
           | basename, Some filter ->
             let%bind filter =
-              try return (OpamFilter.eval_to_bool env filter)
+              try return (OpamFilter.eval_to_bool (opamEnv build) filter)
               with Failure msg -> error msg
             in return (basename, filter)
         in
@@ -919,7 +946,7 @@ let ofPackage
             _
           } as build) ->
           let%bind applySubstsCommands = opamSubstsToCommands substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands patches in
+          let%bind applyPatchesCommands = opamPatchesToCommands build patches in
           let%bind buildCommands = renderOpamCommands build buildCommands in
           return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
         | Package.OpamBuild ({
@@ -927,9 +954,9 @@ let ofPackage
             patches;
             substs;
             _
-          }) ->
+          } as build) ->
           let%bind applySubstsCommands = opamSubstsToCommands substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands patches in
+          let%bind applyPatchesCommands = opamPatchesToCommands build patches in
           let%bind buildCommands = renderEsyCommands buildCommands in
           return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
         end
