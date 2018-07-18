@@ -189,7 +189,7 @@ console.log(
 			"bin/",
 			"postinstall.js",
 			"platform-linux/",
-			"platform-darwin/"
+			"platform-darwin/",
 			"platform-windows-x64/"
 		]
 	}, null, 2));
