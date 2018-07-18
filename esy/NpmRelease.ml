@@ -26,17 +26,17 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
     |> String.concat ";"
   in
   Printf.sprintf {|
-    let curEnv = Unix.environment ()
 
     let curEnvMap =
+      let curEnv = Unix.environment () in
       let table = Hashtbl.create (Array.length curEnv) in
       let f item =
-        match String.index_opt item '=' with
-        | Some idx ->
+        try (
+          let idx = String.index item '=' in
           let name = String.sub item 0 idx in
           let value = String.sub item (idx + 1) (String.length item - idx - 1) in
           Hashtbl.replace table name value
-        | None -> ()
+        ) with Not_found -> ()
       in
       Array.iter f curEnv;
       table
@@ -51,12 +51,13 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
         in
         let f (name, value) =
           let value = Str.global_substitute findVarRe replace value in
-          Hashtbl.replace curEnvMap name value;
-          name ^ "=" ^ value
+          Hashtbl.replace curEnvMap name value
         in
-        Array.map f [|%s|]
+        Array.iter f [|%s|];
+        let f name value items = (name ^ "=" ^ value)::items in
+        Array.of_list (Hashtbl.fold f curEnvMap [])
       in
-      Unix.execve "%s" Sys.argv (Array.append curEnv env)
+      Unix.execve "%s" Sys.argv env
   |} environmentString bin
 
 let configure ~(cfg : Config.t) =
