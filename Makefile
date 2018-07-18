@@ -155,8 +155,8 @@ $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)
 	@cp $(<) $(@)
 
-$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin: PLATFORM=$(@:$(RELEASE_ROOT)/platform-%=%)
-$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin:
+$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin $(RELEASE_ROOT)/platform-windows-x64: PLATFORM=$(@:$(RELEASE_ROOT)/platform-%=%)
+$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin $(RELEASE_ROOT)/platform-windows-x64:
 	@wget \
 		-q --show-progress \
 		-O $(RELEASE_ROOT)/$(PLATFORM).tgz \
