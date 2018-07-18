@@ -23,6 +23,9 @@
       "releasedBinaries": [
         "release.exe",
         "release-dep.exe"
+      ],
+      "deleteFromBinaryRelease": [
+        "ocaml-*"
       ]
     }
   }
