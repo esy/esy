@@ -33,6 +33,9 @@ make _release/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 echo "make: release esy"
 make _release/_build/default/esy/bin/esyCommand.exe
 
+echo "make: release esyi"
+make _release/_build/default/esyi/bin/esyi.exe
+
 echo "make: fastreplacestring"
 make _release/bin/fastreplacestring
 
