@@ -128,6 +128,7 @@ RELEASE_ROOT = _release
 RELEASE_FILES = \
 	platform-linux \
 	platform-darwin \
+	platform-windows-x64 \
 	bin/esy \
 	bin/esyi \
 	bin/esyInstallRelease.js \
