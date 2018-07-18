@@ -518,7 +518,7 @@ let runLifecycleScript ~installation ~name script =
   let%lwt () = Logs_lwt.app
     (fun m ->
       m "%a: running %a lifecycle"
-      Layout.pp_installation installation
+      Record.pp installation.Layout.record
       Fmt.(styled `Bold string) name
     )
   in
