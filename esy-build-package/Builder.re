@@ -1,6 +1,7 @@
 module EsyBash = EsyLib.EsyBash;
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
+module System = EsyLib.System;
 
 let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
   open Run;
@@ -260,7 +261,7 @@ let withBuildEnvUnlocked =
   let%bind prepare = Sandbox.sandboxExec({allowWrite: sandboxConfig});
   let path =
     switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(':', path)
+    | Some(path) => String.split_on_char(System.envSep.[0], path)
     | None => []
     };
   let run = cmd => {

@@ -68,7 +68,7 @@ let getPotentialExtensions =
 let checkIfCommandIsAvailable fullPath =
     let open Result.Syntax in
     let isExecutable p = 
-        print_endline("Cmd::resolveCmd - checking executable: " ^ Fpath.to_string(p));
+        print_endline("Cmd::resolveCmd - checking executable3: " ^ Fpath.to_string(p));
         let%bind stats = Bos.OS.Path.stat p in
         match stats.Unix.st_kind, isExecutable stats with
         | Unix.S_REG, true -> Ok (Some p)
@@ -89,7 +89,9 @@ let resolveCmd path cmd =
   let open Result.Syntax in
   let find p =
     let p = let open Path in (v p) / cmd in
+    print_endline("Before resolution: " ^ Fpath.to_string(p));
     let%bind p = EsyBash.normalizePathForWindows p in
+    print_endline("After resolution: " ^ Fpath.to_string(p));
     checkIfCommandIsAvailable p
     in
   let rec resolve =
