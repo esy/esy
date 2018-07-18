@@ -16,11 +16,11 @@ var platform = process.platform;
 
 const copyPlatformBinaries = (platformPath) => {
     fs.renameSync(
-        path.join(__dirname, 'platformPath-' + platformPath, '_build'),
+        path.join(__dirname, 'platform-' + platformPath, '_build'),
         path.join(__dirname, '_build')
     );
     fs.renameSync(
-        path.join(__dirname, 'platformPath-' + platformPath, 'bin', 'fastreplacestring'),
+        path.join(__dirname, 'platform-' + platformPath, 'bin', 'fastreplacestring'),
         path.join(__dirname, 'bin', 'fastreplacestring')
     );
 
