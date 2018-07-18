@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.1.32 @ preview
+
+* More efficient installation layout for npm packages.
+
+* Fix installation of circular npm dependencies.
+
 ## 0.1.31 @ preview
 
 * Fix for converting opam `depends`.
