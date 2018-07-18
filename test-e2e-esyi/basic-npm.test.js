@@ -1,5 +1,6 @@
 /* @flow */
 
+const {join} = require('path');
 const setup = require('./setup');
 
 describe(`Basic tests for npm packages`, () => {
@@ -68,6 +69,111 @@ describe(`Basic tests for npm packages`, () => {
             },
           },
         });
+      },
+    ),
+  );
+
+  test(
+    `it should correctly install bin wrappers into node_modules/.bin (single bin)`,
+    setup.makeTemporaryEnv(
+      {
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      },
+      async ({path, run, source}) => {
+        await setup.definePackage({
+          name: 'depDep',
+          version: '1.0.0',
+          dependencies: {depDep: `1.0.0`},
+          bin: './depDep.exe',
+        });
+        const depPath = await setup.definePackage({
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {depDep: `1.0.0`},
+          bin: './dep.exe',
+        });
+
+        await setup.makeFakeBinary(join(depPath, 'dep.exe'), {
+          exitCode: 0,
+          output: 'HELLO',
+        });
+
+        await run(`install`);
+
+        {
+          const binPath = join(path, 'node_modules', '.bin', 'dep');
+          expect(await setup.exists(binPath)).toBeTruthy();
+
+          const p = await setup.execFile(binPath, [], {});
+          expect(p.stdout.toString().trim()).toBe('HELLO');
+        }
+
+        // only root deps has their bin installed
+        expect(
+          await setup.exists(join(path, 'node_modules', '.bin', 'depDep')),
+        ).toBeFalsy();
+      },
+    ),
+  );
+
+  test(
+    `it should correctly install bin wrappers into node_modules/.bin (multiple bins)`,
+    setup.makeTemporaryEnv(
+      {
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      },
+      async ({path, run, source}) => {
+        await setup.definePackage({
+          name: 'depDep',
+          version: '1.0.0',
+          dependencies: {depDep: `1.0.0`},
+          bin: './depDep.exe',
+        });
+        const depPath = await setup.definePackage({
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {depDep: `1.0.0`},
+          bin: {
+            dep: './dep.exe',
+            dep2: './dep2.exe',
+          },
+        });
+
+        await setup.makeFakeBinary(join(depPath, 'dep.exe'), {
+          exitCode: 0,
+          output: 'HELLO',
+        });
+        await setup.makeFakeBinary(join(depPath, 'dep2.exe'), {
+          exitCode: 0,
+          output: 'HELLO2',
+        });
+
+        await run(`install`);
+
+        {
+          const binPath = join(path, 'node_modules', '.bin', 'dep');
+          expect(await setup.exists(binPath)).toBeTruthy();
+
+          const p = await setup.execFile(binPath, [], {});
+          expect(p.stdout.toString().trim()).toBe('HELLO');
+        }
+
+        {
+          const binPath = join(path, 'node_modules', '.bin', 'dep2');
+          expect(await setup.exists(binPath)).toBeTruthy();
+
+          const p = await setup.execFile(binPath, [], {});
+          expect(p.stdout.toString().trim()).toBe('HELLO2');
+        }
+
+        // only root deps has their bin installed
+        expect(
+          await setup.exists(join(path, 'node_modules', '.bin', 'depDep')),
+        ).toBeFalsy();
       },
     ),
   );

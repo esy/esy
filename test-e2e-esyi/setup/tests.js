@@ -50,6 +50,7 @@ exports.definePackage = async function(
     packageJson,
     shasum: options.shasum,
   });
+  return packagePath;
 };
 
 exports.defineLocalPackage = async function(
