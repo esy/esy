@@ -270,6 +270,7 @@ function getStorePathForPrefix(prefix) {
 var cwd = process.cwd();
 var releasePackagePath = cwd;
 var releaseExportPath = path.join(releasePackagePath, '_export');
+var releaseBinPath = path.join(releasePackagePath, 'bin');
 var storePath = getStorePathForPrefix(releasePackagePath);
 
 /**
@@ -297,6 +298,12 @@ function importBuild(filename, storePath) {
           return fsRename(buildStagePath, buildFinalPath);
         });
       });
+    })
+    .then(function () {
+      return fsReadFile(path.join(releaseBinPath, '_storePath')).then(function (prevStorePath) {
+        prevStorePath = prevStorePath.toString();
+        return rewritePaths(releaseBinPath, prevStorePath, storePath);
+      })
     });
   });
 }
@@ -313,7 +320,7 @@ function rewritePaths(path, from, to) {
   }
 
   return fsWalk(path).then(function(files) {
-    return processWithConcurrencyLimit(files, process, 20);
+    return processWithConcurrencyLimit(files, process, concurrency);
   });
 }
 
@@ -322,6 +329,12 @@ function rewritePathInFile(filename, origPath, destPath) {
     if (!stat.isFile()) {
       return;
     }
+
+    // without this it will forever try to replace the paths
+    if (filename.indexOf("_storePath") !== -1) {
+      return;
+    }
+
     return fsReadFile(filename).then(function(content) {
       var offset = content.indexOf(origPath);
       var needRewrite = offset > -1;
@@ -405,6 +418,7 @@ Promise.resolve()
   .then(
     function() {
       info('Done!');
+      process.exit(0);
     },
     function(err) {
       error(err);
