@@ -12,8 +12,11 @@ cp scripts/bootstrap/Makefile.bootstrap Makefile
 echo "jbuilder:build esy-build-package"
 jbuilder build --dev _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 
-echo "jbuilder: build esy"
+echo "jbuilder:build esy"
 jbuilder build --dev _build/default/esy/bin/esyCommand.exe
+
+echo "jbuilder:build esyi"
+jbuilder build --dev _build/default/esyi/bin/esyi.exe
 
 echo "make: esy-install"
 make _release/bin/esy-install.js
