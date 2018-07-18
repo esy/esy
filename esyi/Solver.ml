@@ -470,6 +470,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
 
 let solveDependenciesNaively
   ~(installed : Package.Set.t)
+  ~(root : Package.t)
   (dependencies : Dependencies.t)
   (solver : t) =
   let open RunAsync.Syntax in
@@ -483,7 +484,7 @@ let solveDependenciesNaively
   in
 
   let addToInstalled pkg =
-    Hashtbl.add installed pkg.Package.name pkg
+    Hashtbl.replace installed pkg.Package.name pkg
   in
 
   let resolveOfInstalled req =
@@ -529,71 +530,88 @@ let solveDependenciesNaively
     return pkg
   in
 
-  let solved = ref Package.Map.empty in
+  let lookupDependencies, addDependencies =
+    let solved = Hashtbl.create 100 in
+    let key pkg = pkg.Package.name ^ "." ^ (Version.toString pkg.Package.version) in
+    let lookup pkg =
+      Hashtbl.find_opt solved (key pkg)
+    in
+    let register pkg task =
+      Hashtbl.add solved (key pkg) task
+    in
+    lookup, register
+  in
 
-  let rec solveDependencies dependencies =
-
-    let reqs = match dependencies with
-    | Dependencies.NpmFormula reqs -> reqs
-    | Dependencies.OpamFormula _ ->
-      (* TODO: cause opam formulas should be solved by the proper dependency
-       * solver we skip solving them, but we need some sanity check here *)
-      Dependencies.toApproximateRequests dependencies
+  let solveDependencies dependencies =
+    let reqs =
+      match dependencies with
+      | Dependencies.NpmFormula reqs -> reqs
+      | Dependencies.OpamFormula _ ->
+        (* TODO: cause opam formulas should be solved by the proper dependency
+        * solver we skip solving them, but we need some sanity check here *)
+        Dependencies.toApproximateRequests dependencies
     in
 
     let%bind pkgs =
-      let%bind pkgs =
-        let f req =
-          let%bind pkg = resolve req in
-          addToInstalled pkg;
-          return pkg
-        in
-        reqs
-        |> List.map ~f
-        |> RunAsync.List.joinAll
+      let f req =
+        let%bind pkg = resolve req in
+        addToInstalled pkg;
+        return pkg
       in
-      return (pkgs |> Package.Set.of_list |> Package.Set.elements)
-    in
-
-    let%bind () =
-      let f (pkg : Package.t) =
-        match Package.Map.find_opt pkg !solved with
-        | Some _ -> return ()
-        | None ->
-          let%bind dependencies = solveDependencies pkg.dependencies in
-          solved := Package.Map.add pkg dependencies !solved;
-          return ()
-      in
-      pkgs
+      reqs
       |> List.map ~f
-      |> RunAsync.List.waitAll
+      |> RunAsync.List.joinAll
     in
-
-    return pkgs
+    return (Package.Set.elements (Package.Set.of_list pkgs))
   in
 
-  let%bind pkgs = solveDependencies dependencies in
+  let rec loop seen = function
+    | pkg::rest ->
+      begin match Package.Set.mem pkg seen with
+      | true ->
+        loop seen rest
+      | false ->
+        Logs_lwt.app (fun m -> m "processing %a" Package.pp pkg);%lwt
+        let seen = Package.Set.add pkg seen in
+        let%bind dependencies = solveDependencies pkg.dependencies in
+        addDependencies pkg dependencies;
+        loop seen (rest @ dependencies)
+      end
+    | [] -> return ()
+  in
 
-  let%bind roots =
-    let solved = !solved in
-    let rec makeRoot (pkg : Package.t) =
-      let dependencies = Package.Map.find pkg solved in
-      let%bind dependencies = makeRoots dependencies in
-      let%bind record = solutionRecordOfPkg ~solver pkg in
-      let root = Solution.make record dependencies in
-      return root
-    and makeRoots pkgs =
-      let f roots pkg =
-        let%bind root = makeRoot pkg in
-        return (root::roots)
-      in
-      RunAsync.List.foldLeft ~f ~init:[] pkgs
+  let%bind () =
+    let%bind dependencies = solveDependencies dependencies in
+    let%bind () = loop Package.Set.empty dependencies in
+    addDependencies root dependencies;
+    return ()
+  in
+
+  let%bind packagesToDependencies =
+    let rec aux res = function
+      | pkg::rest ->
+        begin match Package.Map.find_opt pkg res with
+        | Some _ -> aux res rest
+        | None ->
+          let deps =
+            match lookupDependencies pkg with
+            | Some deps -> deps
+            | None -> assert false
+          in
+          let res =
+            let deps = List.map ~f:(fun pkg -> (pkg.Package.name, pkg.Package.version)) deps in
+            Package.Map.add pkg deps res
+          in
+          aux res (rest @ deps)
+        end
+      | [] -> return res
     in
-    makeRoots pkgs
+    aux Package.Map.empty [root]
   in
 
   finish ();%lwt
-  return roots
+
+  return packagesToDependencies
 
 let solveOCamlReq ~cfg ~opamRegistry req =
   let open RunAsync.Syntax in
@@ -653,7 +671,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
   let dependencies = Dependencies.NpmFormula reqs in
 
   let%bind solver, dependencies =
-    let%bind resolver  = Resolver.make ?ocamlVersion ~opamRegistry ~cfg () in
+    let%bind resolver = Resolver.make ?ocamlVersion ~opamRegistry ~cfg () in
     let%bind solver = make ~resolver ~cfg ~resolutions () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
@@ -670,16 +688,29 @@ let solve ~cfg ~resolutions (root : Package.t) =
     in getResultOrExplain res
   in
 
-  let%bind dependencies =
+  let%bind packagesToDependencies =
     solveDependenciesNaively
       ~installed
+      ~root
       dependencies
       solver
   in
 
-  let%bind solution =
+  let%bind sol =
+    let%bind sol =
+      let f solution (pkg, dependencies) =
+        let%bind record = solutionRecordOfPkg ~solver pkg in
+        let solution = Solution.add ~record ~dependencies solution in
+        return solution
+      in
+      packagesToDependencies
+      |> Package.Map.bindings
+      |> RunAsync.List.foldLeft ~f ~init:Solution.empty
+    in
+
     let%bind record = solutionRecordOfPkg ~solver root in
-    return (Solution.make record dependencies)
+    let dependencies = Package.Map.find root packagesToDependencies in
+    return (Solution.addRoot ~record ~dependencies sol)
   in
 
-  return solution
+  return sol
