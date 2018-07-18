@@ -211,18 +211,20 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
         let compile = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p mlPath) in
-        let%bind () = ChildProcess.run compile in
-        (* Replace the storePath with a string of equal length containing only _ *)
-        let%bind origPrefix, destPrefix =
-          let nextStorePrefix = String.make (String.length (Path.toString cfg.storePath)) '_' in
-          return (cfg.storePath, Path.v nextStorePrefix)
-        in
-        let%bind () = Fs.writeFile ~data:(Path.to_string destPrefix) Path.(binPath / "_storePath") in
-        Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
+        ChildProcess.run compile
       in
-      releaseCfg.releasedBinaries
-      |> List.map ~f:generateBinaryWrapper
-      |> RunAsync.List.waitAll
+      let%bind () = 
+        releaseCfg.releasedBinaries
+        |> List.map ~f:generateBinaryWrapper
+        |> RunAsync.List.waitAll
+      in
+      (* Replace the storePath with a string of equal length containing only _ *)
+      let (origPrefix, destPrefix) =
+        let nextStorePrefix = String.make (String.length (Path.toString Config.(cfg.storePath))) '_' in
+        (Config.(cfg.storePath), Path.v nextStorePrefix)
+      in
+      let%bind () = Fs.writeFile ~data:(Path.to_string destPrefix) Path.(binPath / "_storePath") in
+      Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
     in
 
     (* Emit package.json *)
