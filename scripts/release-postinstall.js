@@ -11,6 +11,7 @@
 var path = require('path');
 var cp = require('child_process');
 var fs = require('fs');
+var os = require('os');
 var platform = process.platform;
 
 const copyPlatformBinaries = (platformPath) => {
