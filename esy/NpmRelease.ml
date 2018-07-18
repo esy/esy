@@ -9,18 +9,55 @@ type config = {
   deleteFromBinaryRelease : string list;
 }
 
-let makeBinWrapper ~bin ~(environment : Environment.Value.t) =
+let makeBinWrapper ~bin ~(environment : Environment.t) =
   let environmentString =
     environment
-    |> Astring.String.Map.bindings
-    |> List.filter ~f:(fun (name, _) -> match name with
+    |> List.filter ~f:(fun {Environment. name; _} ->
+        match name with
         | "cur__original_root" | "cur__root" -> false
         | _ -> true
       )
-    |> List.map ~f:(fun (name, value) -> "\"" ^ name ^ "=" ^ value ^ "\"")
+    |> List.map ~f:(fun {Environment. name; value; _} ->
+        match value with
+        | Environment.Value value ->
+          "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\""
+        | Environment.ExpandedValue value ->
+          "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\"")
     |> String.concat ";"
   in
-  Printf.sprintf {| let () = Unix.execve "%s" Sys.argv [|%s|] |} bin environmentString
+  Printf.sprintf {|
+    let curEnv = Unix.environment ()
+
+    let curEnvMap =
+      let table = Hashtbl.create (Array.length curEnv) in
+      let f item =
+        match String.index_opt item '=' with
+        | Some idx ->
+          let name = String.sub item 0 idx in
+          let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+          Hashtbl.replace table name value
+        | None -> ()
+      in
+      Array.iter f curEnv;
+      table
+
+    let () =
+      let env =
+        let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
+        let replace v =
+          let name = Str.matched_group 1 v in
+          try Hashtbl.find curEnvMap name
+          with Not_found -> ""
+        in
+        let f (name, value) =
+          let value = Str.global_substitute findVarRe replace value in
+          Hashtbl.replace curEnvMap name value;
+          name ^ "=" ^ value
+        in
+        Array.map f [|%s|]
+      in
+      Unix.execve "%s" Sys.argv (Array.append curEnv env)
+  |} environmentString bin
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
@@ -179,12 +216,15 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           resolution = None;
         } in
         let%bind task = Task.ofPackage
-            ~term:(Some "$TERM")
+            ~initTerm:(Some "$TERM")
+            ~initPath:"$PATH"
+            ~initManPath:"$MAN_PATH"
+            ~initCamlLdLibraryPath:"$CAML_LD_LIBRARY_PATH"
             ~forceImmutable:true
             ~overrideShell:false
             synPkg
         in
-        return (Environment.Closed.value task.Task.env)
+        return task.Task.env
       ) in
 
     let binPath = Path.(outputPath / "bin") in
@@ -192,7 +232,8 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let%bind env = RunAsync.ofRun (Environment.Value.bindToConfig cfg env) in
+      let%bind bindings = RunAsync.ofRun (Environment.bindToConfig cfg (Environment.Closed.bindings env)) in
+      let%bind value = RunAsync.ofRun (Environment.Value.bindToConfig cfg (Environment.Closed.value env)) in
 
       let generateBinaryWrapper stagePath name =
         let resolveBinInEnv ~env prg =
@@ -204,13 +245,19 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
             String.split_on_char ':' v
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
-        let%bind namePath = resolveBinInEnv ~env name in
+        let%bind namePath = resolveBinInEnv ~env:value name in
         (* Create the .ml file that we will later compile and write it to disk *)
-        let data = makeBinWrapper ~environment:env ~bin:namePath in
+        let data = makeBinWrapper ~environment:bindings ~bin:namePath in
+        print_endline data;
         let mlPath = Path.(stagePath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
-        let compile = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p mlPath) in
+        let compile = Cmd.(
+          v (p ocamlopt)
+          % "-o" % p Path.(binPath / name)
+          % "unix.cmxa" % "str.cmxa"
+          % p mlPath
+        ) in
         ChildProcess.run compile
       in
       let%bind () =
