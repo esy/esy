@@ -759,12 +759,18 @@ let ofPackage
         else []
       in
 
+      let defaultPath =
+          match System.host with
+          | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
+          | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      in
+
       let finalEnv = Environment.(
           let v = [
             {
               name = "PATH";
               value = Value (Option.orDefault
-                               ~default:"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+                               ~default:defaultPath
                                finalPath);
               origin = None;
             };
