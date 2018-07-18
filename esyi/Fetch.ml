@@ -635,7 +635,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   (* Layout all dists into node_modules *)
 
   let%bind installed =
-    let queue = LwtTaskQueue.create ~concurrency:2 () in
+    let queue = LwtTaskQueue.create ~concurrency:4 () in
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
     let f ({Layout.path; sourcePath;record;_} as installation) () =
       match Record.Map.find_opt record dists with
