@@ -123,6 +123,7 @@ module Layout = struct
         let insert (modules, path) =
           Hashtbl.replace modules record.Record.name (`Here record);
           Hashtbl.replace thisModules record.Record.name (`WasHere record);
+          let path = Path.(path // v record.Record.name) in
           let sourcePath =
             let main, _ = record.Record.source in
             match main with
@@ -134,7 +135,7 @@ module Layout = struct
             | Package.Source.LocalPathLink path -> path
           in
           let installation = {
-            path = Path.(path // v record.Record.name);
+            path;
             sourcePath;
             record;
             isDirectDependencyOfRoot = Record.Set.mem record directDependencies;
