@@ -13,6 +13,7 @@ doTest () {
 
   info "modify dep sources"
   printf "#!/bin/bash\necho HELLO_MODIFIED\n" > ../dep/dep
+  touch ../dep/dep
   cat ../dep/dep
 
   run esy build

@@ -2,14 +2,6 @@ module Version = Package.Version
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
-let uniqueRecordsOfSolution (solution : Solution.t) =
-  let set =
-    let f set record = Record.Set.add record set in
-    Solution.fold ~init:Record.Set.empty ~f solution
-  in
-  let set = Record.Set.remove (Solution.record solution) set in
-  Record.Set.elements set
-
 module Manifest = struct
 
   module Scripts = struct
@@ -94,407 +86,439 @@ module Layout = struct
   }
 
   let pp_installation fmt installation =
-    Record.pp fmt installation.record
+    Fmt.pf fmt "%a at %a"
+      Record.pp installation.record
+      Path.pp installation.path
 
-  let optimize (solution : Solution.t) =
+  let pp =
+    Fmt.(list ~sep:(unit "@\n") pp_installation)
 
-    let index =
-      let rec build root (deps, index) =
-        let rootDeps, index =
-          let f _name dep (deps, index) =
-            let deps, index = build dep (deps, index) in
-            let deps = Record.Set.add dep.Solution.record deps in
-            deps, index
+  let ofSolution ~path (sol : Solution.t) =
+    match Solution.root sol with
+    | None -> []
+    | Some root ->
+      let directDependencies = Solution.dependencies root sol in
+
+      let rec findInsertionPoint record = function
+        | [] -> `None
+        | ((modules, _) as item)::deeper ->
+          begin match Hashtbl.find_opt modules record.Record.name with
+          | Some (`Here er) when Record.equal er record -> `Done
+          | Some (`WasHere er) when Record.equal er record -> `Done
+          | None ->
+            begin match findInsertionPoint record deeper with
+            | `Ok nextItem -> `Ok nextItem
+            | `Done -> `Done
+            | `None -> `Ok (item, item::deeper)
+            end
+          | Some (`Here _) -> `None
+          | Some (`WasHere _) -> `None
+          end
+      in
+
+      let layoutRecord ~this ~breadcrumb ~layout record =
+
+        let thisModules, _ = this in
+
+        let insert (modules, path) =
+          Hashtbl.replace modules record.Record.name (`Here record);
+          Hashtbl.replace thisModules record.Record.name (`WasHere record);
+          let path = Path.(path // v record.Record.name) in
+          let sourcePath =
+            let main, _ = record.Record.source in
+            match main with
+            | Package.Source.Archive _
+            | Package.Source.Git _
+            | Package.Source.Github _
+            | Package.Source.LocalPath _
+            | Package.Source.NoSource -> path
+            | Package.Source.LocalPathLink path -> path
           in
-          StringMap.fold f root.Solution.dependencies (Record.Set.empty, index)
+          let installation = {
+            path;
+            sourcePath;
+            record;
+            isDirectDependencyOfRoot = Record.Set.mem record directDependencies;
+          } in
+          installation::layout
         in
-        let index = Record.Map.add root.Solution.record rootDeps index in
-        let deps = Record.Set.union deps rootDeps in
-        deps, index
+
+        match findInsertionPoint record breadcrumb with
+        | `Done -> None
+        | `Ok (here, breadcrumb) -> Some (insert here, breadcrumb)
+        | `None -> Some (insert this, this::breadcrumb)
       in
-      let _, index = build solution (Record.Set.empty, Record.Map.empty) in
-      index
-    in
 
-    let canMove dep dest =
-      let aux (record : Record.t) =
-        match StringMap.find record.name dest with
-        | None -> true
-        | Some edep ->
-          Record.equal record edep.Solution.record
-      in
-      aux dep.Solution.record && (
-        match Record.Map.find_opt dep.Solution.record index with
-        | Some deps -> Record.Set.for_all aux deps
-        | None -> true
-      )
-    in
+      let rec layoutDependencies ~seen ~breadcrumb ~layout record =
 
-    let move ~dep (orig, dest) =
-      let name = dep.Solution.record.name in
-      let dest = StringMap.add name dep dest in
-      let orig = StringMap.remove name orig in
-      orig, dest
-    in
-
-    let rec optDependencies name (root : Solution.t) (parentDependencies : Solution.t StringMap.t) =
-      let root = optRoot root in
-
-      let dependencies, parentDependencies =
-        let f _name dep (dependencies, parentDependencies) =
-          if canMove dep parentDependencies
-          then move ~dep (dependencies, parentDependencies)
-          else dependencies, parentDependencies
+        let this =
+          let modules = Hashtbl.create 100 in
+          let path =
+            match breadcrumb with
+            | (_modules, path)::_ -> Path.(path // v record.Record.name / "node_modules")
+            | [] -> Path.(path / "node_modules")
+          in
+          modules, path
         in
-        StringMap.fold
-          f
-          root.Solution.dependencies
-          (root.Solution.dependencies, parentDependencies)
-      in
 
-      let root = {root with dependencies} in
-      let parentDependencies = StringMap.add name root parentDependencies in
-      root, parentDependencies
+        let dependencies = Solution.dependencies record sol in
 
-    and optRoot (root : Solution.t) =
-      let dependencies =
-        let f name dep dependencies =
-          let _ ,dependencies = optDependencies name dep dependencies
-          in dependencies
+        let layout, dependenciesWithBreadcrumbs =
+          let f r (layout, dependenciesWithBreadcrumbs) =
+            match layoutRecord ~this ~breadcrumb ~layout r with
+            | Some (layout, breadcrumb) -> layout, (r, breadcrumb)::dependenciesWithBreadcrumbs
+            | None -> layout, dependenciesWithBreadcrumbs
+          in
+          Record.Set.fold f dependencies (layout, [])
         in
-        StringMap.fold
-          f
-          root.dependencies
-          root.dependencies
+
+        let layout =
+          let seen = Record.Set.add record seen in
+          let f layout (r, breadcrumb) =
+              match Record.Set.mem r seen with
+              | true -> layout
+              | false -> layoutDependencies ~seen ~breadcrumb ~layout r
+          in
+          List.fold_left ~f ~init:layout dependenciesWithBreadcrumbs
+        in
+
+        layout
       in
-      {root with dependencies}
-    in
 
-    optRoot solution
+      let layout =
+        layoutDependencies ~seen:Record.Set.empty ~breadcrumb:[] ~layout:[] root
+      in
 
-  let%test_module "optimize" = (module struct
+      (* Sort the layout so we can have stable order of operations *)
+      let layout =
+        let cmp a b = Path.compare a.path b.path in
+        List.sort ~cmp layout
+      in
 
-    let make name version dependencies =
-      let version = Package.Version.Npm (SemverVersion.Version.parseExn version) in
-      let record = Record.{
-        name; version;
-        source = Package.Source.NoSource, []; opam = None; files = [];
-      } in
-      Solution.make record dependencies
+      (layout : t)
 
+  let%test_module "Layout" = (module struct
 
-    let%test "optimize1" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "dep" "1.0.0" [];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let r name version = ({
+      Record.
+      name;
+      version = Version.Npm (SemverVersion.Version.parseExn version);
+      source = Package.Source.NoSource, [];
+      files = [];
+      opam = None;
+    } : Record.t)
 
-    let%test "optimize2" =
-      let s = make "root" "1.0.0" [
-        make "dep" "1.0.0" [];
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let id name version =
+      let version = version ^ ".0.0" in
+      let version = Version.Npm (SemverVersion.Version.parseExn version) in
+      ((name, version) : Solution.Id.t)
 
-    let%test "optimize3" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "dep" "2.0.0" [];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ];
-          make "dep" "2.0.0" [];
-        ]
-      )
+    let expect layout expectation =
+      let convert =
+        let f (installation : installation) =
+          Format.asprintf "%a" Record.pp installation.record,
+          Path.toString installation.path
+        in
+        List.map ~f layout
+      in
+      if Pervasives.compare convert expectation = 0
+      then true
+      else begin
+        Format.printf "Got:@[<v 2>@\n%a@]@\n" pp layout;
+        false
+      end
 
-    let%test "optimize4" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "b" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "b" "1.0.0" [];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let%test "simple" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "a" "1") ~dependencies:[]
+        |> add ~record:(r "b" "1") ~dependencies:[]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+      ]
 
-    let%test "optimize5" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "b" "1.0.0" [
-          make "dep" "2.0.0" [];
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "b" "1.0.0" [
-            make "dep" "2.0.0" [];
-          ];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let%test "simple2" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "a" "1") ~dependencies:[]
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+      ]
 
-    let%test "optimize6" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "b" "1.0.0" [
-          make "dep" "2.0.0" [];
-        ];
-        make "dep" "2.0.0" [];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ];
-          make "b" "1.0.0" [];
-          make "dep" "2.0.0" [];
-        ]
-      )
+    let%test "simple3" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "c" "1") ~dependencies:[]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "c@1.0.0", "./node_modules/c";
+      ]
 
-    let%test "optimize7" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "b" "1.0.0" [
-          make "dep" "2.0.0" [];
-        ];
-        make "dep" "3.0.0" [];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ];
-          make "b" "1.0.0" [
-            make "dep" "2.0.0" [];
-          ];
-          make "dep" "3.0.0" [];
-        ]
-      )
+    let%test "conflict" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "a" "1") ~dependencies:[]
+        |> add ~record:(r "a" "2") ~dependencies:[]
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "a@2.0.0", "./node_modules/b/node_modules/a";
+      ]
 
-    let%test "optimize8" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "dep" "1.0.0" [];
-        ];
-        make "b" "1.0.0" [
-          make "bb" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "b" "1.0.0" [];
-          make "bb" "1.0.0" [];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let%test "conflict2" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "shared" "1") ~dependencies:[]
+        |> add ~record:(r "a" "1") ~dependencies:[id "shared" "1"]
+        |> add ~record:(r "a" "2") ~dependencies:[id "shared" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "a@2.0.0", "./node_modules/b/node_modules/a";
+        "shared@1.0.0", "./node_modules/shared";
+      ]
 
-    let%test "optimize9" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "bb" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-        make "b" "1.0.0" [
-          make "bb" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "b" "1.0.0" [];
-          make "bb" "1.0.0" [];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let%test "conflict3" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "shared" "1") ~dependencies:[]
+        |> add ~record:(r "shared" "2") ~dependencies:[]
+        |> add ~record:(r "a" "1") ~dependencies:[id "shared" "1"]
+        |> add ~record:(r "a" "2") ~dependencies:[id "shared" "2"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "shared@1.0.0", "./node_modules/a/node_modules/shared";
+        "b@1.0.0", "./node_modules/b";
+        "a@2.0.0", "./node_modules/b/node_modules/a";
+        "shared@2.0.0", "./node_modules/shared";
+      ]
 
-    let%test "optimize10" =
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "bb" "2.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-        make "b" "1.0.0" [
-          make "bb" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "b" "1.0.0" [
-            make "bb" "1.0.0" [];
-          ];
-          make "bb" "2.0.0" [];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let%test "conflict4" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "c" "1") ~dependencies:[]
+        |> add ~record:(r "c" "2") ~dependencies:[]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "c@1.0.0", "./node_modules/a/node_modules/c";
+        "b@1.0.0", "./node_modules/b";
+        "c@2.0.0", "./node_modules/c";
+      ]
 
-    let%test "optimize11" =
-      let optimize = optimize in
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "bb" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-        make "b" "1.0.0" [
-          make "bb" "2.0.0" [
-            make "dep" "2.0.0" [];
-          ]
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "bb" "1.0.0" [];
-          make "dep" "1.0.0" [];
-          make "b" "1.0.0" [
-            make "bb" "2.0.0" [];
-            make "dep" "2.0.0" [];
-          ];
-        ]
-      )
+    let%test "nested" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "d" "1") ~dependencies:[]
+        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "c@1.0.0", "./node_modules/c";
+        "d@1.0.0", "./node_modules/d";
+      ]
 
-    let%test "optimize12" =
-      let optimize = optimize in
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "aa" "1.0.0" [
-            make "dep" "2.0.0" [];
-          ];
-        ];
-        make "dep" "1.0.0" [];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [
-            make "aa" "1.0.0" [];
-            make "dep" "2.0.0" [];
-          ];
-          make "dep" "1.0.0" [];
-        ]
-      )
+    let%test "nested conflict" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "d" "1") ~dependencies:[]
+        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "c" "2") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "c@1.0.0", "./node_modules/a/node_modules/c";
+        "b@1.0.0", "./node_modules/b";
+        "c@2.0.0", "./node_modules/c";
+        "d@1.0.0", "./node_modules/d";
+      ]
 
-    let%test "optimize13" =
-      let optimize = optimize in
-      let s = make "root" "1.0.0" [
-        make "a" "1.0.0" [
-          make "bb" "1.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-        make "b" "1.0.0" [
-          make "bb" "2.0.0" [
-            make "dep" "1.0.0" [];
-          ]
-        ];
-      ] in
-      Solution.equal (optimize s) (
-        make "root" "1.0.0" [
-          make "a" "1.0.0" [];
-          make "bb" "1.0.0" [];
-          make "dep" "1.0.0" [];
-          make "b" "1.0.0" [
-            make "bb" "2.0.0" [];
-          ];
-        ]
-      )
+    let%test "nested conflict 2" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "d" "1") ~dependencies:[]
+        |> add ~record:(r "d" "2") ~dependencies:[]
+        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "c" "2") ~dependencies:[id "d" "2"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "c@1.0.0", "./node_modules/a/node_modules/c";
+        "d@1.0.0", "./node_modules/a/node_modules/d";
+        "b@1.0.0", "./node_modules/b";
+        "c@2.0.0", "./node_modules/c";
+        "d@2.0.0", "./node_modules/d";
+      ]
+
+    let%test "nested conflict 3" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "d" "1") ~dependencies:[]
+        |> add ~record:(r "d" "2") ~dependencies:[]
+        |> add ~record:(r "b" "1") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "d" "2"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "d@1.0.0", "./node_modules/b/node_modules/d";
+        "d@2.0.0", "./node_modules/d";
+      ]
+
+    let%test "nested conflict 4" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "d" "1") ~dependencies:[]
+        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "c" "2") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "c@1.0.0", "./node_modules/a/node_modules/c";
+        "b@1.0.0", "./node_modules/b";
+        "c@2.0.0", "./node_modules/c";
+        "d@1.0.0", "./node_modules/d";
+      ]
+
+    let%test "nested conflict 5" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "d" "1") ~dependencies:[]
+        |> add ~record:(r "d" "2") ~dependencies:[]
+        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
+        |> add ~record:(r "c" "2") ~dependencies:[id "d" "2"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "c@1.0.0", "./node_modules/a/node_modules/c";
+        "d@1.0.0", "./node_modules/a/node_modules/d";
+        "b@1.0.0", "./node_modules/b";
+        "c@2.0.0", "./node_modules/c";
+        "d@2.0.0", "./node_modules/d";
+      ]
+
+    let%test "nested conflict 6" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "punycode" "1") ~dependencies:[]
+        |> add ~record:(r "punycode" "2") ~dependencies:[]
+        |> add ~record:(r "url" "1") ~dependencies:[id "punycode" "2"]
+        |> add ~record:(r "browserify" "1") ~dependencies:[id "punycode" "1"; id "url" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "browserify" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "browserify@1.0.0", "./node_modules/browserify";
+        "punycode@1.0.0", "./node_modules/punycode";
+        "url@1.0.0", "./node_modules/url";
+        "punycode@2.0.0", "./node_modules/url/node_modules/punycode";
+      ]
+
+    let%test "loop 1" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+      ]
+
+    let%test "loop 2" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "c" "1") ~dependencies:[]
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"; id "c" "1"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "c@1.0.0", "./node_modules/c";
+      ]
+
+    let%test "loop 3" =
+      let sol = Solution.(
+        empty
+        |> add ~record:(r "c" "1") ~dependencies:[id "a" "1"]
+        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
+        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"; id "c" "1"]
+        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+      ) in
+      let layout = ofSolution ~path:(Path.v ".") sol in
+      expect layout [
+        "a@1.0.0", "./node_modules/a";
+        "b@1.0.0", "./node_modules/b";
+        "c@1.0.0", "./node_modules/c";
+      ]
 
   end)
-
-  let ofSolution ~path (solution : Solution.t) =
-
-    let directDependencies =
-      solution.dependencies
-      |> StringMap.values
-      |> List.map ~f:(fun root -> root.Solution.record)
-      |> Record.Set.of_list
-    in
-
-    let rec layoutRecord ~path layout root =
-      let record = Solution.record root in
-      let path = Path.(path / "node_modules" // v record.Record.name) in
-      let sourcePath =
-        let main, _ = record.Record.source in
-        match main with
-        | Package.Source.Archive _
-        | Package.Source.Git _
-        | Package.Source.Github _
-        | Package.Source.LocalPath _
-        | Package.Source.NoSource -> path
-        | Package.Source.LocalPathLink path -> path
-      in
-      let isDirectDependencyOfRoot = Record.Set.mem record directDependencies in
-      let layout = {path; sourcePath; record; isDirectDependencyOfRoot}::layout in
-      layoutDependenciess ~path layout root
-
-    and layoutDependenciess ~path layout root =
-      List.fold_left
-        ~f:(layoutRecord ~path)
-        ~init:layout
-        (Solution.dependencies root)
-    in
-
-    let layout =
-      layoutDependenciess ~path [] (optimize solution)
-    in
-
-    (* Sort the layout so we can have a stable order of operations *)
-    let layout =
-      let cmp a b = Path.compare a.path b.path in
-      List.sort ~cmp layout
-    in
-
-    (layout : t)
 end
 
 let runLifecycleScript ~installation ~name script =
   let%lwt () = Logs_lwt.app
     (fun m ->
       m "%a: running %a lifecycle"
-      Layout.pp_installation installation
+      Record.pp installation.Layout.record
       Fmt.(styled `Bold string) name
     )
   in
@@ -569,7 +593,14 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let records = uniqueRecordsOfSolution solution in
+  let records =
+    match Solution.root solution with
+    | Some root ->
+      let all = Solution.records solution in
+      Record.Set.remove root all
+    | None ->
+      Solution.records solution
+  in
 
   (* Fetch all records *)
 
@@ -590,6 +621,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
         return (record, dist)
       in
       records
+      |> Record.Set.elements
       |> List.map ~f:fetch
       |> RunAsync.List.joinAll
     in
@@ -604,7 +636,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   (* Layout all dists into node_modules *)
 
   let%bind installed =
-    let queue = LwtTaskQueue.create ~concurrency:2 () in
+    let queue = LwtTaskQueue.create ~concurrency:4 () in
     let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
     let f ({Layout.path; sourcePath;record;_} as installation) () =
       match Record.Map.find_opt record dists with

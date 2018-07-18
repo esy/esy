@@ -388,31 +388,29 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/lwt@ < 4.0.0", "@opam/lwt@ >= 2.7.0", "@opam/lwt@ >= 3.0.0", "@opam/lwt@*", "@opam/lwt@3.3.0", "@opam/lwt@^3.3.0":
-  version "3.3.0"
-  uid d6527433462fadf2f1b8168dbb5cf10e
-  resolved "@opam/lwt@3.3.0-7a557303c8bfd71515f716b5429733b0.tgz"
+"@opam/lwt@ >= 2.7.0", "@opam/lwt@ >= 3.0.0", "@opam/lwt@ >= 4.0.0", "@opam/lwt@*", "@opam/lwt@4.1.0", "@opam/lwt@^4.0.0":
+  version "4.1.0"
+  uid "34537b5bf1d47520a40a8f05897971b7"
+  resolved "@opam/lwt@4.1.0-34537b5bf1d47520a40a8f05897971b7.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
     "@opam/cppo" " >= 1.1.0"
     "@opam/jbuilder" " >= 1.0.0-beta14"
-    "@opam/ocaml-migrate-parsetree" "*"
     "@opam/ocamlfind" " >= 1.7.3--1"
-    "@opam/ppx_tools_versioned" " >= 5.0.1"
     "@opam/result" "*"
   peerDependencies:
     ocaml " >= 4.2.0"
 
-"@opam/lwt_log@*", "@opam/lwt_log@1.0.0":
-  version "1.0.0"
-  uid "3829ffefe8b440333e33f5780946442b"
-  resolved "@opam/lwt_log@1.0.0-3829ffefe8b440333e33f5780946442b.tgz"
+"@opam/lwt_log@*":
+  version "1.1.0"
+  uid a5ed5c2c180f7d47ed17e08091e343da
+  resolved "@opam/lwt_log@1.1.0-a5ed5c2c180f7d47ed17e08091e343da.tgz"
   dependencies:
     "@esy-ocaml/esy-installer" "^0.0.0"
     "@esy-ocaml/substs" "^0.0.1"
-    "@opam/jbuilder" "*"
-    "@opam/lwt" " < 4.0.0"
+    "@opam/jbuilder" " >= 1.0.0-beta10"
+    "@opam/lwt" " >= 4.0.0"
   peerDependencies:
     ocaml "*"
 
