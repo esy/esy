@@ -10,6 +10,6 @@ doTest () {
   run npmGlobal pack
   run npmGlobal -g install ./release-*.tgz
 
-  assertStdout "$TEST_NPM_PREFIX/bin/release.exe" RELEASE-HELLO
+  NAME=ME assertStdout "$TEST_NPM_PREFIX/bin/release.exe" RELEASE-HELLO-FROM-ME
   assertStdout "$TEST_NPM_PREFIX/bin/release-dep.exe" RELEASE-DEP-HELLO
 }

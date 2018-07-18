@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## NEXT
+
+* Convert release wrappers from bash to native
+
 ## 0.1.32 @ preview
 
 * More efficient installation layout for npm packages.
