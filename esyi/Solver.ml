@@ -571,7 +571,6 @@ let solveDependenciesNaively
       | true ->
         loop seen rest
       | false ->
-        Logs_lwt.app (fun m -> m "processing %a" Package.pp pkg);%lwt
         let seen = Package.Set.add pkg seen in
         let%bind dependencies = solveDependencies pkg.dependencies in
         addDependencies pkg dependencies;
