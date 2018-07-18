@@ -194,7 +194,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     let%bind () =
       let%bind env = RunAsync.ofRun (Environment.Value.bindToConfig cfg env) in
 
-      let generateBinaryWrapper name =
+      let generateBinaryWrapper stagePath name =
         let resolveBinInEnv ~env prg =
           let path =
             let v = match StringMap.find_opt "PATH" env with
@@ -207,16 +207,18 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let%bind namePath = resolveBinInEnv ~env name in
         (* Create the .ml file that we will later compile and write it to disk *)
         let data = makeBinWrapper ~environment:env ~bin:namePath in
-        let mlPath = Path.(binPath / (name ^ ".ml")) in
+        let mlPath = Path.(stagePath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
         let compile = Cmd.(v (p ocamlopt) % "-o" % p Path.(binPath / name) % "unix.cmxa" % p mlPath) in
         ChildProcess.run compile
       in
-      let%bind () = 
-        releaseCfg.releasedBinaries
-        |> List.map ~f:generateBinaryWrapper
-        |> RunAsync.List.waitAll
+      let%bind () =
+        Fs.withTempDir (fun stagePath ->
+          releaseCfg.releasedBinaries
+          |> List.map ~f:(generateBinaryWrapper stagePath)
+          |> RunAsync.List.waitAll
+        )
       in
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
