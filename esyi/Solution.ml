@@ -219,6 +219,17 @@ module LockfileV1 = struct
     dependencies : Id.t list;
   } [@@deriving yojson]
 
+  let mapId ~f ((name, version) : Id.t) =
+    let version =
+      match version with
+      | Version.Source (Source.LocalPath p) ->
+        Version.Source (Source.LocalPath (f p))
+      | Version.Npm _
+      | Version.Opam _
+      | Version.Source _ -> version
+    in
+    name, version
+
   let mapRecord ~f (record : Record.t) =
     let version =
       match record.version with
@@ -247,23 +258,12 @@ module LockfileV1 = struct
     in
     {record with source; version}
 
-  let relativize ~cfg record =
-    let f path =
-      if Path.equal path cfg.Config.basePath
-      then Path.(v ".")
-      else match Path.relativize ~root:cfg.Config.basePath path with
-      | Some path -> path
-      | None -> path
-    in
-    mapRecord ~f record
-
-  let derelativize ~cfg record =
-    let f path = Path.(cfg.Config.basePath // path |> normalize) in
-    mapRecord ~f record
-
   let solutionOfLockfile ~cfg root node =
+    let derelativize path = Path.(cfg.Config.basePath // path |> normalize) in
+    let root = mapId ~f:derelativize root in
     let f id {record; dependencies} sol =
-      let record = derelativize ~cfg record in
+      let record = mapRecord ~f:derelativize record in
+      let id = mapId ~f:derelativize id in
       if Id.equal root id
       then addRoot ~record ~dependencies sol
       else add ~record ~dependencies sol
@@ -271,17 +271,25 @@ module LockfileV1 = struct
     Id.Map.fold f node empty
 
   let lockfileOfSolution ~cfg (sol : solution) =
+    let relativize path =
+      if Path.equal path cfg.Config.basePath
+      then Path.(v ".")
+      else match Path.relativize ~root:cfg.Config.basePath path with
+      | Some path -> path
+      | None -> path
+    in
     let node =
       let f id record nodes =
-        let record = relativize ~cfg record in
         let dependencies = Id.Map.find id sol.dependencies in
+        let id = mapId ~f:relativize id in
+        let record = mapRecord ~f:relativize record in
         Id.Map.add id {record; dependencies = Id.Set.elements dependencies} nodes
       in
       Id.Map.fold f sol.records Id.Map.empty
     in
     let root =
       match sol.root with
-      | Some root -> root
+      | Some root -> mapId ~f:relativize root
       | None -> failwith "empty solution"
     in
     root, node
