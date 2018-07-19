@@ -8,7 +8,7 @@ const ESYCOMMAND = require.resolve('../../bin/esy');
 
 const promiseExec = promisify(childProcess.exec);
 
-it('Build - has build time deps', done => {
+it('Build - no deps', done => {
   expect.assertions(1);
   return initFixture('./build/fixtures/no-deps')
     .then(TEST_PATH => {
