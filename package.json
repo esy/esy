@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.1.27",
+  "version": "0.1.32",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
@@ -35,11 +35,12 @@
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
+    "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash jbuilder runtest test"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
-    "@esy-ocaml/reason": "^3.2.0",
+    "@esy-ocaml/reason": "~3.2.0",
     "@opam/bos": "^0.2.0",
     "@opam/cmdliner": "^1.0.2",
     "@opam/cudf": "0.9",
@@ -49,7 +50,7 @@
     "@opam/jbuilder": "^1.0.0-beta20",
     "@opam/lambda-term": "^1.11.0",
     "@opam/logs": "^0.6.2",
-    "@opam/lwt": "^3.3.0",
+    "@opam/lwt": "^4.0.0",
     "@opam/lwt_ppx": "^1.1.0",
     "@opam/menhir": "*",
     "@opam/opam-file-format": "*",
@@ -60,18 +61,16 @@
     "@opam/ppx_inline_test": "^100000000.10.0",
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/re": "^1.7.1",
-    "@opam/yaml": "*",
     "@opam/yojson": "*",
     "esy-bash": "^0.1.13",
-    "esy-solve-cudf": "^0.0.3",
+    "esy-solve-cudf": "^0.1.0",
     "fastreplacestring": "github:esy-ocaml/FastReplaceString#9450b6"
   },
   "resolutions": {
     "**/@opam/sexplib0": "100000000.11.0",
+    "**/@opam/lwt": "4.1.0",
     "**/@opam/result": "1.2.0",
-    "**/@opam/lwt": "3.3.0",
-    "**/@opam/lwt_log": "1.0.0",
-    "**/@opam/ocaml-migrate-parsetree": "1.0.10",
+    "**/@opam/ocaml-migrate-parsetree": "1.0.11",
     "**/@opam/opam-core": "^2.0.0-rc3",
     "**/@opam/opam-format": "^2.0.0-rc3",
     "**/@opam/opam-file-format": "^2.0.0-rc3"

@@ -1,5 +1,7 @@
+module EsyBash = EsyLib.EsyBash;
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
+module System = EsyLib.System;
 
 let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
   open Run;
@@ -256,19 +258,20 @@ let withBuildEnvUnlocked =
     | Some(term) => Astring.String.Map.add("TERM", term, task.env)
     | None => task.env
     };
-  let%bind exec = Sandbox.sandboxExec({allowWrite: sandboxConfig});
+  let%bind prepare = Sandbox.sandboxExec({allowWrite: sandboxConfig});
   let path =
     switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(':', path)
+    | Some(path) => String.split_on_char(System.envSep.[0], path)
     | None => []
     };
   let run = cmd => {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
+    let%bind exec = prepare(~env, cmd);
     let%bind ((), (_runInfo, runStatus)) =
       Bos.OS.Cmd.(
-        in_null |> exec(~err=Bos.OS.Cmd.err_run_out, ~env, cmd) |> out_stdout
+        in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout
       );
     switch (runStatus) {
     | `Exited(0) => Ok()
@@ -279,9 +282,10 @@ let withBuildEnvUnlocked =
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
+    let%bind exec = prepare(~env, cmd);
     let%bind ((), (_runInfo, runStatus)) =
       Bos.OS.Cmd.(
-        in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr, ~env, cmd) |> out_stdout
+        in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout
       );
     switch (runStatus) {
     | `Exited(0) => Ok()

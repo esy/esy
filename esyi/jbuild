@@ -15,7 +15,6 @@
               esy-lib
               str
               cudf
-              yaml
               ppx_deriving_yojson.runtime
               yojson
               logs

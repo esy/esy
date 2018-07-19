@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo RELEASE-HELLO
+echo "RELEASE-HELLO-FROM-$NAME"

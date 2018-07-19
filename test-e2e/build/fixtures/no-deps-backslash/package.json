@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "no-deps-backslash",
   "version": "1.0.0",
   "license": "MIT",
   "esy": {
@@ -7,16 +7,12 @@
       [
         "bash",
         "-c",
-        "echo '#!/bin/bash\necho $cur__name' > $cur__target_dir/$cur__name"
+        "echo '#!/bin/bash\necho \\\\\\\\ #{self.name}  \\\\\\\\' > #{self.target_dir / self.name}"
       ],
       "chmod +x $cur__target_dir/$cur__name"
     ],
     "install": [
       "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
     ]
-  },
-  "dependencies": {
-    "dep": "link:../dep",
-    "another-dep": "link:../another-dep"
   }
 }

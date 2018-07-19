@@ -9,187 +9,65 @@ type config = {
   deleteFromBinaryRelease : string list;
 }
 
-let shellSafe s =
-  let escape = function
-    | '-' -> 'h'
-    | '.' -> 'd'
-    | '_' -> '_'
-    | '@' -> 'a'
-    | c -> c
+let makeBinWrapper ~bin ~(environment : Environment.t) =
+  let environmentString =
+    environment
+    |> List.filter ~f:(fun {Environment. name; _} ->
+        match name with
+        | "cur__original_root" | "cur__root" -> false
+        | _ -> true
+      )
+    |> List.map ~f:(fun {Environment. name; value; _} ->
+        match value with
+        | Environment.Value value ->
+          "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\""
+        | Environment.ExpandedValue value ->
+          "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\"")
+    |> String.concat ";"
   in
-  s |> String.uppercase_ascii |> String.map escape
+  Printf.sprintf {|
 
-let makeBinWrapperChrome ~cfg ~bin ~execute =
-  let id = cfg.name ^ "-" ^ cfg.version in
-  Printf.sprintf {|#!/bin/bash
+    let curEnvMap =
+      let curEnv = Unix.environment () in
+      let table = Hashtbl.create (Array.length curEnv) in
+      let f item =
+        try (
+          let idx = String.index item '=' in
+          let name = String.sub item 0 idx in
+          let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+          Hashtbl.replace table name value
+        ) with Not_found -> ()
+      in
+      Array.iter f curEnv;
+      table
 
-ESY__PACKAGE_NAME="%s"
-ESY__BIN_NAME="%s"
-
-IS_RELEASE_BIN_ENV_SOURCED="ENV__${ESY__PACKAGE_NAME}__${ESY__BIN_NAME}"
-IS_RELEASE_ENV_SOURCED="ENV__${ESY__PACKAGE_NAME}"
-
-printError() {
-  echo >&2 "ERROR:";
-  echo >&2 "$0 command is not installed correctly. ";
-  TROUBLESHOOTING="When installing <package_name>, did you see any errors in the log? "
-  TROUBLESHOOTING="$TROUBLESHOOTING - What does (which <binary_name>) return? "
-  TROUBLESHOOTING="$TROUBLESHOOTING - Please file a github issue on <package_name>'s repo."
-  echo >&2 "$TROUBLESHOOTING";
-}
-
-if [ -z ${!IS_RELEASE_BIN_ENV_SOURCED+x} ]; then
-  if [ -z ${!IS_RELEASE_ENV_SOURCED+x} ]; then
-
-    #
-    # Define $SCRIPTDIR
-    #
-
-    SOURCE="${BASH_SOURCE[0]}"
-    while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-      SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-      SOURCE="$(readlink "$SOURCE")"
-      # if $SOURCE was a relative symlink, we need to resolve it relative to the
-      # path where the symlink file was located
-      [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE"
-    done
-    SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-
-    #
-    # Esy utility functions
-    #
-
-    esyStrLength() {
-      # run in a subprocess to override $LANG variable
-      LANG=C /bin/bash -c 'echo "${#0}"' "$1"
-    }
-
-    esyRepeatCharacter() {
-      local chToRepeat="$1"
-      local times="$2"
-      printf "%%0.s$chToRepeat" $(seq 1 "$times")
-    }
-
-    esyGetStorePathFromPrefix() {
-      local prefix="$1"
-      # Remove trailing slash if any.
-      prefix="${prefix%%/}"
-
-      prefixLength=$(esyStrLength "$prefix")
-      paddingLength=$((ESY__STORE_PADDING_LENGTH - prefixLength))
-
-      # Discover how much of the reserved relocation padding must be consumed.
-      if [ "$paddingLength" -lt "0" ]; then
-        echo "$prefix is too deep inside filesystem, Esy won't be able to relocate binaries"
-        exit 1;
-      fi
-
-      padding=$(esyRepeatCharacter '_' "$paddingLength")
-      echo "$prefix/$ESY__STORE_VERSION$padding"
-    }
-
-    #
-    # Esy Release Env
-    #
-
-    ESY__STORE_VERSION="%s"
-    ESY__STORE_PADDING_LENGTH="%d"
-    ESY__RELEASE=$(dirname "$SCRIPTDIR")
-
-    ESY__STORE=$(esyGetStorePathFromPrefix "$ESY__RELEASE")
-    if [ $? -ne 0 ]; then
-      echo >&2 "error: $ESY__STORE"
-      exit 1
-    fi
-
-    export ESY__RELEASE
-    export ESY__STORE
-
-    source "$ESY__RELEASE/releaseEnv"
-
-    export "$IS_RELEASE_ENV_SOURCED"="sourced"
-    export "$IS_RELEASE_BIN_ENV_SOURCED"="sourced"
-  fi
-
-  %s
-
-else
-  printError;
-  exit 1;
-fi
-|} (shellSafe id) (shellSafe bin) Store.version Store.maxStorePaddingLength execute
-
-let makeBinWrapper ~cfg ~bin =
-  let execute = Printf.sprintf {|
-    BINNAME="%s"
-
-    command -v ${BINNAME} >/dev/null 2>&1 || {
-      printError;
-      exit 1;
-    }
-
-    if [ "$1" == "----where" ]; then
-      which "${BINNAME}"
-    else
-      exec "${BINNAME}" "$@"
-    fi
-  |} bin in
-  makeBinWrapperChrome ~cfg ~bin ~execute
-
-let makeSandboxBin ~cfg ~bin =
-  let releasedBinariesStr = String.concat ", " cfg.releasedBinaries in
-  let execute = Printf.sprintf {|
-function execute() {
-  local name="%s"
-  local releasedBinaries="%s"
-  local bin="%s"
-
-  if [[ "$1" == ""  ]]; then
-    cat << EOF
-Welcome to ${name}
-
-The following commands are available: ${releasedBinaries}
-
-Note:
-
-- ${bin} bash
-
-  Starts a sandboxed bash shell with access to the ${name} environment.
-
-  Running builds and scripts from within "${bin} bash" will typically increase
-  the performance as environment is already sourced.
-
-- <command name> ----where
-
-  Prints the location of <command name>
-
-  Example: ocaml ----where
-
-EOF
-  else
-    if [ "$1" == "bash" ]; then
-      # Important to pass --noprofile, and --rcfile so that the user's
-      # .bashrc doesn't run and the npm global packages don't get put in front
-      # of the already constructed PATH.
-      bash --noprofile --rcfile <(echo "export PS1=\"[${name} sandbox] \"")
-    else
-      echo "Invalid argument $1, type ${bin} for help"
-    fi
-  fi
-}
-
-execute "$@"
-  |} cfg.name releasedBinariesStr bin in
-  makeBinWrapperChrome ~cfg ~bin ~execute
+    let () =
+      let env =
+        let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
+        let replace v =
+          let name = Str.matched_group 1 v in
+          try Hashtbl.find curEnvMap name
+          with Not_found -> ""
+        in
+        let f (name, value) =
+          let value = Str.global_substitute findVarRe replace value in
+          Hashtbl.replace curEnvMap name value
+        in
+        Array.iter f [|%s|];
+        let f name value items = (name ^ "=" ^ value)::items in
+        Array.of_list (Hashtbl.fold f curEnvMap [])
+      in
+      Unix.execve "%s" Sys.argv env
+  |} environmentString bin
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
   let%bind manifestOpt = Manifest.ofDir cfg.Config.sandboxPath in
   let%bind manifest = match manifestOpt with
-  | Some (Manifest.Esy manifest, _path) -> return manifest
-  | Some (Manifest.Opam _, _path) ->
-    error "packages with opam manifests do not support release"
-  | None -> error "no manifest found"
+    | Some (Manifest.Esy manifest, _path) -> return manifest
+    | Some (Manifest.Opam _, _path) ->
+      error "packages with opam manifests do not support release"
+    | None -> error "no manifest found"
   in
   let%bind releaseCfg =
     RunAsync.ofOption ~err:"no release config found" (
@@ -215,8 +93,8 @@ let dependenciesForRelease (task : Task.t) =
         _
       } as task)
     | Task.BuildTimeDependency ({
-        sourceType = Manifest.SourceType.Immutable; _
-      } as task) ->
+          sourceType = Manifest.SourceType.Immutable; _
+        } as task) ->
       (task, dep)::deps
     | Task.Dependency _
     | Task.DevDependency _
@@ -229,6 +107,7 @@ let dependenciesForRelease (task : Task.t) =
 let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let open RunAsync.Syntax in
 
+
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
   let%bind releaseCfg = configure ~cfg in
 
@@ -239,6 +118,21 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     * between stores (b/c of a fixed path length).
     *)
   let%bind task = RunAsync.ofRun (Task.ofPackage ~forceImmutable:true sandbox.Sandbox.root) in
+
+  (* Path to ocamlopt executable *)
+  let%bind ocamlopt = RunAsync.ofRun (
+      let open Run.Syntax in
+      let%bind ocaml =
+        match Task.DependencyGraph.find ~f:(fun task -> task.pkg.name = "ocaml") task with
+        | Some(ocaml) -> return ocaml
+        | None -> error "ocaml isn't available in the sandbox"
+      in
+      let ocamlopt =
+        let installPath = Config.ConfigPath.toPath cfg ocaml.Task.paths.installPath in
+        Path.(installPath / "bin" / "ocamlopt")
+      in
+      return ocamlopt
+    ) in
 
   let tasks = Task.DependencyGraph.traverse ~traverse:dependenciesForRelease task in
 
@@ -302,73 +196,84 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
 
+    let%bind env = RunAsync.ofRun (
+        let open Run.Syntax in
+        let pkg = sandbox.Sandbox.root in
+        let synPkg = {
+          Package.
+          id = "__release_env__";
+          name = "release-env";
+          version = pkg.version;
+          dependencies = [Package.Dependency pkg];
+          sourceType = Manifest.SourceType.Development;
+          sandboxEnv = pkg.sandboxEnv;
+          build = Package.EsyBuild {
+              buildCommands = None;
+              installCommands = None;
+              buildType = Manifest.BuildType.OutOfSource;
+            };
+          exportedEnv = [];
+          sourcePath = pkg.sourcePath;
+          resolution = None;
+        } in
+        let%bind task = Task.ofPackage
+            ~initTerm:(Some "$TERM")
+            ~initPath:"$PATH"
+            ~initManPath:"$MAN_PATH"
+            ~initCamlLdLibraryPath:"$CAML_LD_LIBRARY_PATH"
+            ~forceImmutable:true
+            ~overrideShell:false
+            synPkg
+        in
+        return task.Task.env
+      ) in
+
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let generateBinaryWrapper name =
-        let data = makeBinWrapper ~cfg:releaseCfg ~bin:name in
-        let%bind () = Fs.writeFile ~data Path.(binPath / name) in
-        let%bind () = Fs.chmod 0o755 Path.(binPath / name) in
-        return ()
-      in
-      releaseCfg.releasedBinaries
-      |> List.map ~f:generateBinaryWrapper
-      |> RunAsync.List.waitAll
-    in
+      let%bind bindings = RunAsync.ofRun (Environment.bindToConfig cfg (Environment.Closed.bindings env)) in
+      let%bind value = RunAsync.ofRun (Environment.Value.bindToConfig cfg (Environment.Closed.value env)) in
 
-    let sandboxEntryBin = releaseCfg.name ^ "-sandbox" in
-
-    (* Emit sandbox entry script *)
-    let%bind () =
-      let data = makeSandboxBin ~cfg:releaseCfg ~bin:sandboxEntryBin in
-      let%bind () = Fs.writeFile ~data Path.(binPath / sandboxEntryBin) in
-      let%bind () = Fs.chmod 0o755 Path.(binPath / sandboxEntryBin) in
-      return ()
-    in
-
-    (* Emit release env *)
-    let%bind () =
-      let%bind data = RunAsync.ofRun (
-        let open Run.Syntax in
-
-        let%bind env =
-          let pkg = sandbox.Sandbox.root in
-          let synPkg = {
-            Package.
-            id = "__release_env__";
-            name = "release-env";
-            version = pkg.version;
-            dependencies = [Package.Dependency pkg];
-            sourceType = Manifest.SourceType.Development;
-            sandboxEnv = pkg.sandboxEnv;
-            build = Package.EsyBuild {
-              buildCommands = None;
-              installCommands = None;
-              buildType = Manifest.BuildType.OutOfSource;
-            };
-            exportedEnv = [];
-            sourcePath = pkg.sourcePath;
-            resolution = None;
-          } in
-          let%bind task = Task.ofPackage
-            ~term:(Some "$TERM")
-            ~forceImmutable:true
-            ~overrideShell:false
-            synPkg
-          in
-          return (Environment.Closed.bindings task.Task.env)
+      let generateBinaryWrapper stagePath name =
+        let resolveBinInEnv ~env prg =
+          let path =
+            let v = match StringMap.find_opt "PATH" env with
+              | Some v  -> v
+              | None -> ""
+            in
+            String.split_on_char ':' v
+          in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
-
-        Environment.renderToShellSource
-          ~localStorePath:(Path.v "/local/store/does/not/exist")
-          ~storePath:(Path.v "$ESY__STORE")
-          ~sandboxPath:(Path.v "$ESY__RELEASE")
-        env
-      ) in
-      let%bind () = Fs.writeFile ~data Path.(outputPath / "releaseEnv") in
-      return ()
+        let%bind namePath = resolveBinInEnv ~env:value name in
+        (* Create the .ml file that we will later compile and write it to disk *)
+        let data = makeBinWrapper ~environment:bindings ~bin:namePath in
+        let mlPath = Path.(stagePath / (name ^ ".ml")) in
+        let%bind () = Fs.writeFile ~data mlPath in
+        (* Compile the wrapper to a binary *)
+        let compile = Cmd.(
+          v (p ocamlopt)
+          % "-o" % p Path.(binPath / name)
+          % "unix.cmxa" % "str.cmxa"
+          % p mlPath
+        ) in
+        ChildProcess.run compile
+      in
+      let%bind () =
+        Fs.withTempDir (fun stagePath ->
+          releaseCfg.releasedBinaries
+          |> List.map ~f:(generateBinaryWrapper stagePath)
+          |> RunAsync.List.waitAll
+        )
+      in
+      (* Replace the storePath with a string of equal length containing only _ *)
+      let (origPrefix, destPrefix) =
+        let nextStorePrefix = String.make (String.length (Path.toString Config.(cfg.storePath))) '_' in
+        (Config.(cfg.storePath), Path.v nextStorePrefix)
+      in
+      let%bind () = Fs.writeFile ~data:(Path.to_string destPrefix) Path.(binPath / "_storePath") in
+      Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
     in
 
     (* Emit package.json *)
@@ -382,17 +287,17 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           ];
           "bin", `Assoc (
             let f name = name, `String ("bin/" ^ name) in
-            List.map ~f (sandboxEntryBin::releaseCfg.releasedBinaries)
+            List.map ~f releaseCfg.releasedBinaries
           )
         ]
         in
         let items = match releaseCfg.license with
-        | Some license -> ("license", license)::items
-        | None -> items
+          | Some license -> ("license", license)::items
+          | None -> items
         in
         let items = match releaseCfg.description with
-        | Some description -> ("description", `String description)::items
-        | None -> items
+          | Some description -> ("description", `String description)::items
+          | None -> items
         in
         `Assoc items
       in
