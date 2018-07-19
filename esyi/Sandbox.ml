@@ -4,7 +4,7 @@ type t = {
   root : Package.t;
   dependencies : Package.Dependencies.t;
   resolutions : Manifest.Resolutions.t;
-  ocamlReq : Package.Req.t;
+  ocamlReq : Package.Req.t option;
 }
 
 module EsyManifest = struct
@@ -77,11 +77,7 @@ let ofDir ~cfg (path : Path.t) =
       Package.NpmDependencies.override manifest.Manifest.dependencies manifest.devDependencies
     in
 
-    let ocamlReq =
-      Option.orDefault
-        ~default:ocamlReqAny
-        (Package.NpmDependencies.find ~name:"ocaml" reqs)
-    in
+    let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in
 
     let%bind root = 
       let version = Package.Version.Source (Package.Source.LocalPath path) in
@@ -121,7 +117,7 @@ let ofDir ~cfg (path : Path.t) =
         root;
         resolutions = Manifest.Resolutions.empty;
         dependencies;
-        ocamlReq = ocamlReqAny;
+        ocamlReq = Some ocamlReqAny;
       }
     | None -> error "unable to find either package.json or opam files"
     end

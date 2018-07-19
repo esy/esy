@@ -17,7 +17,7 @@ type t = {
   resolutions : Manifest.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
-  ocamlReq : Package.Req.t;
+  ocamlReq : Package.Req.t option;
 }
 
 (** Read sandbox out of directory given the config. *)

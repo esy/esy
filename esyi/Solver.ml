@@ -640,25 +640,31 @@ let solve (sandbox : Sandbox.t) =
 
   let opamRegistry = OpamRegistry.make ~cfg:sandbox.cfg () in
 
-  let%bind ocamlVersion = solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry sandbox.ocamlReq in
+  let%bind dependencies, ocamlVersion =
+    match sandbox.ocamlReq with
+    | None -> return (sandbox.dependencies, None)
+    | Some ocamlReq ->
+      let%bind ocamlVersion = solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry ocamlReq in
 
-  let dependencies =
-    match ocamlVersion, sandbox.dependencies with
-    | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
-      let ocamlSpec = Package.VersionSpec.ofVersion ocamlVersion in
-      let ocamlReq = Req.ofSpec ~name:"ocaml" ~spec:ocamlSpec in
-      let reqs = Package.NpmDependencies.override reqs [ocamlReq] in
-      Package.Dependencies.NpmFormula reqs
-    | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
-      let req =
-        match ocamlVersion with
-        | Package.Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
-        | Package.Version.Source src -> Package.Dep.Source (Package.SourceSpec.ofSource src)
-        | Package.Version.Opam v -> Package.Dep.Opam (OpamVersion.Constraint.EQ v)
+      let dependencies =
+        match ocamlVersion, sandbox.dependencies with
+        | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
+          let ocamlSpec = Package.VersionSpec.ofVersion ocamlVersion in
+          let ocamlReq = Req.ofSpec ~name:"ocaml" ~spec:ocamlSpec in
+          let reqs = Package.NpmDependencies.override reqs [ocamlReq] in
+          Package.Dependencies.NpmFormula reqs
+        | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
+          let req =
+            match ocamlVersion with
+            | Package.Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
+            | Package.Version.Source src -> Package.Dep.Source (Package.SourceSpec.ofSource src)
+            | Package.Version.Opam v -> Package.Dep.Opam (OpamVersion.Constraint.EQ v)
+          in
+          let ocamlDep = {Package.Dep. name = "ocaml"; req;} in
+          Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])
+        | None, deps -> deps
       in
-      let ocamlDep = {Package.Dep. name = "ocaml"; req;} in
-      Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])
-    | None, deps -> deps
+      return (dependencies, ocamlVersion)
   in
 
   let%bind solver, dependencies =
