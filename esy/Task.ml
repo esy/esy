@@ -374,20 +374,27 @@ let ofPackage
     ?(overrideShell=true)
     ?(forceImmutable=false)
     ?(system=System.host)
+    ?initTerm
+    ?initPath
+    ?initManPath
+    ?initCamlLdLibraryPath
     ?finalPath
-    ?term
     ?finalManPath
     (rootPkg : Package.t)
   =
 
   let cache = Memoize.make ~size:200 () in
 
-  let term =
-    let term = match term with
+  let initTerm =
+    let initTerm = match initTerm with
     | None -> getenv "TERM"
-    | Some term -> term
-    in Option.orDefault ~default:"" term
+    | Some initTerm -> initTerm
+    in Option.orDefault ~default:"" initTerm
   in
+
+  let initPath = Option.orDefault ~default:"" initPath in
+  let initManPath = Option.orDefault ~default:"" initManPath in
+  let initCamlLdLibraryPath = Option.orDefault ~default:"" initCamlLdLibraryPath in
 
   let open Run.Syntax in
 
@@ -733,22 +740,22 @@ let ofPackage
       let initEnv = Environment.[
           {
             name = "TERM";
-            value = Value term;
+            value = Value initTerm;
             origin = None;
           };
           {
             name = "PATH";
-            value = Value "";
+            value = Value initPath;
             origin = None;
           };
           {
             name = "MAN_PATH";
-            value = Value "";
+            value = Value initManPath;
             origin = None;
           };
           {
             name = "CAML_LD_LIBRARY_PATH";
-            value = Value "";
+            value = Value initCamlLdLibraryPath;
             origin = None;
           };
         ] in
