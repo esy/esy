@@ -30,6 +30,32 @@ let bindingListPp = pp
 let bindingListEq = equal
 let bindingListCompare = compare
 
+let bindToConfig (cfg : Config.t) (env : t) =
+  let open Run.Syntax in
+  let render v = 
+    renderPath
+      ~storePath:cfg.storePath
+      ~localStorePath:cfg.localStorePath
+      ~sandboxPath:cfg.sandboxPath
+      v
+  in
+  let f binding =
+    let%bind value =
+      match binding.value with
+      | Value v -> let%bind v = render v in return (Value v)
+      | ExpandedValue v -> let%bind v = render v in return (ExpandedValue v)
+    in return {binding with value}
+  in
+  Result.List.map ~f env
+
+let escapeDoubleQuote value =
+  let re = Str.regexp "\"" in
+  Str.global_replace re "\\\"" value
+
+let escapeSingleQuote value =
+  let re = Str.regexp "'" in
+  Str.global_replace re "''" value
+
 (**
  * Render environment to a string.
  *)
@@ -40,14 +66,6 @@ let renderToShellSource
     ~sandboxPath
     (bindings : binding list) =
   let open Run.Syntax in
-  let escapeDoubleQuote value =
-    let re = Str.regexp "\"" in
-    Str.global_replace re "\\\"" value
-  in
-  let escapeSingleQuote value =
-    let re = Str.regexp "'" in
-    Str.global_replace re "''" value
-  in
   let emptyLines = function
     | [] -> true
     | _ -> false

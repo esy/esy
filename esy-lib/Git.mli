@@ -20,6 +20,7 @@ val clone :
 (** Pull into [repo] from [source] branch [branchSpec] *)
 val pull :
   ?force:bool
+  -> ?ffOnly:bool
   -> ?depth:int
   -> remote:remote
   -> repo:Fpath.t

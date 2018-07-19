@@ -7,7 +7,7 @@ type 'a conj = 'a list
  *)
 module Source : sig
   type t =
-      Archive of string * string
+    | Archive of {url : string ; checksum : Checksum.t}
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
     | LocalPath of Path.t
@@ -55,7 +55,7 @@ end
  *)
 module SourceSpec : sig
   type t =
-      Archive of string * string option
+    | Archive of {url : string ; checksum : Checksum.t option}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
     | LocalPath of Path.t
@@ -71,8 +71,6 @@ end
 (**
  * This representes a concrete version which at some point will be resolved to a
  * concrete version Version.t.
- *
- * TODO: remove it
  *)
 module VersionSpec : sig
   type t =
@@ -87,9 +85,6 @@ module VersionSpec : sig
   val ofVersion : Version.t -> t
 end
 
-(**
- * TODO: remove it
- *)
 module Req : sig
   type t = private {name : string; spec : VersionSpec.t}
 
@@ -123,17 +118,6 @@ module Dep : sig
   val matches : name : string -> version : Version.t -> t -> bool
 end
 
-(** A formula for a dependency. *)
-module DepFormula : sig
-  type t =
-    | Npm of SemverVersion.Formula.CNF.t
-    | Opam of OpamVersion.Formula.CNF.t
-    | Source of SourceSpec.t
-
-  val matches : version : Version.t -> t -> bool
-  val pp : t Fmt.t
-end
-
 module Resolutions : sig
   type t
 
@@ -150,24 +134,6 @@ module Dependencies : sig
   type t =
     | OpamFormula of Dep.t disj conj
     | NpmFormula of Req.t conj
-
-  (* val override : dep:Dep.t -> t -> t *)
-  (* val overrideMany : deps:Dep.t list -> t -> t *)
-
-  (* val mapDeps : f:(Dep.t -> 'a) -> t -> 'a disj conj *)
-  (* val filterDeps : f:(Dep.t -> bool) -> t -> t *)
-
-  (* val subformulaForPackage : name:string -> t -> t option *)
-
-  (**
-   * Produce a list of pkgname, approx depformula for each pkg mentioned in a
-   * depformula.
-   *
-   * Note that the dep formulas are approximate and should not be used for dep
-   * solving directly but rathe to prune unrelated versions.
-   *)
-  (* TODO: remove *)
-  (* val describeByPackageName : t -> (string * DepFormula.t) list *)
 
   val pp : t Fmt.t
   val show : t -> string
@@ -274,7 +240,7 @@ end
 type t = {
   name : string;
   version : Version.t;
-  source : source;
+  source : source * source list;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;

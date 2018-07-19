@@ -3,7 +3,6 @@ module SourceSpec = Package.SourceSpec
 module Version = Package.Version
 module Source = Package.Source
 module Req = Package.Req
-module DepFormula = Package.DepFormula
 
 module Resolution = struct
   type t = {
@@ -104,10 +103,10 @@ type t = {
 
 let make ?ocamlVersion ?opamRegistry ~cfg () =
   let open RunAsync.Syntax in
-  let%bind opamRegistry =
+  let opamRegistry =
     match opamRegistry with
-    | Some opamRegistry -> return opamRegistry
-    | None -> OpamRegistry.init ~cfg ()
+    | Some opamRegistry -> opamRegistry
+    | None -> OpamRegistry.make ~cfg ()
   in
   let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
   return {
@@ -160,7 +159,7 @@ let package ~(resolution : Resolution.t) resolver =
         let%bind manifest =
           LwtTaskQueue.submit
             resolver.npmRegistryQueue
-            (fun () -> NpmRegistry.version ~cfg:resolver.cfg resolution.name version)
+            (NpmRegistry.version ~cfg:resolver.cfg ~name:resolution.name ~version)
         in
         return (`PackageJson manifest)
       | Version.Opam version ->
@@ -239,11 +238,10 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
     | SourceSpec.NoSource ->
       return (Source.NoSource)
 
-    | SourceSpec.Archive (url, None) ->
-      (* TODO: acquire checksum *)
-      return (Source.Archive (url, "fakechecksum"))
-    | SourceSpec.Archive (url, Some checksum) ->
-      return (Source.Archive (url, checksum))
+    | SourceSpec.Archive {url; checksum = None} ->
+      failwith ("archive sources without checksums are not implemented: " ^ url)
+    | SourceSpec.Archive {url; checksum = Some checksum} ->
+      return (Source.Archive {url; checksum})
 
     | SourceSpec.LocalPath p ->
       return (Source.LocalPath p)
@@ -252,7 +250,7 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       return (Source.LocalPathLink p)
   end
 
-let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
 
   let spec =
@@ -275,7 +273,7 @@ let resolve ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
           match%bind
             LwtTaskQueue.submit
               resolver.npmRegistryQueue
-              (fun () -> NpmRegistry.versions ~cfg:resolver.cfg name)
+              (NpmRegistry.versions ~fullMetadata ~cfg:resolver.cfg ~name)
           with
           | [] ->
             let msg = Format.asprintf "no npm package %s found" name in

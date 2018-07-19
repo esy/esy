@@ -15,5 +15,8 @@
       "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "dep": "link:../dep",
+    "another-dep": "link:../another-dep"
+  }
 }
