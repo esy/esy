@@ -2,7 +2,7 @@ type t = {
   cfg : Config.t;
   path : Path.t;
   resolutions : Manifest.Resolutions.t;
-  root : Manifest.t;
+  root : Package.t;
 }
 
 module Read = struct
@@ -26,4 +26,8 @@ end
 let ofDir ~cfg (path : Path.t) =
   let open RunAsync.Syntax in
   let%bind root, resolutions = Read.ofDir path in
+  let%bind root =
+    let version = Package.Version.Source (Package.Source.LocalPath path) in
+    Manifest.toPackage ~version root
+  in
   return {cfg; root; resolutions; path}

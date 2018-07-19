@@ -177,13 +177,8 @@ let addRoot ~(record : Record.t) ~dependencies sol =
   {sol with root = Some id;}
 
 let dependenciesHash (sandbox : Sandbox.t) =
-  let hashDependencies ~prefix ~dependencies digest =
-    let f digest req =
-     Digest.string (digest ^ "__" ^ prefix ^ "__" ^ Req.toString req)
-    in
-    List.fold_left
-      ~f ~init:digest
-      dependencies
+  let hashDependencies ~dependencies digest =
+    Digest.string (digest ^ "__" ^ Package.Dependencies.show dependencies)
   in
   let hashResolutions ~resolutions digest =
     let f digest (key, version) =
@@ -198,11 +193,7 @@ let dependenciesHash (sandbox : Sandbox.t) =
     |> hashResolutions
       ~resolutions:sandbox.resolutions
     |> hashDependencies
-      ~prefix:"dependencies"
       ~dependencies:sandbox.root.dependencies
-    |> hashDependencies
-      ~prefix:"devDependencies"
-      ~dependencies:sandbox.root.devDependencies
   in
   Digest.to_hex digest
 

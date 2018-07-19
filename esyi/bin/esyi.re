@@ -8,19 +8,11 @@ module Api = {
   let solve = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
       {
-        let%bind root =
-          Manifest.toPackage(
-            ~version=
-              Package.Version.Source(
-                Package.Source.LocalPath(sandbox.Sandbox.path),
-              ),
-            sandbox.root,
-          );
         let%bind solution =
           Solver.solve(
             ~cfg=sandbox.cfg,
             ~resolutions=sandbox.Sandbox.resolutions,
-            root,
+            sandbox.root,
           );
         Solution.LockfileV1.toFile(
           ~sandbox,
@@ -45,14 +37,6 @@ module Api = {
   let printCudfUniverse = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
       {
-        let%bind root =
-          Manifest.toPackage(
-            ~version=
-              Package.Version.Source(
-                Package.Source.LocalPath(sandbox.Sandbox.path),
-              ),
-            sandbox.root,
-          );
         let%bind solver =
           Solver.make(
             ~cfg=sandbox.cfg,
@@ -60,7 +44,7 @@ module Api = {
             (),
           );
         let%bind (solver, _) =
-          Solver.add(~dependencies=root.Package.dependencies, solver);
+          Solver.add(~dependencies=sandbox.root.Package.dependencies, solver);
         let (cudfUniverse, _) = Universe.toCudf(solver.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
