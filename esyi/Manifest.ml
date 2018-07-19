@@ -12,10 +12,10 @@ let find (path : Path.t) =
   let esyJson = Path.(path / "esy.json") in
   let packageJson = Path.(path / "package.json") in
   if%bind Fs.exists esyJson
-  then return esyJson
+  then return (Some esyJson)
   else if%bind Fs.exists packageJson
-  then return packageJson
-  else error "no package.json found"
+  then return (Some packageJson)
+  else return None
 
 (* This is used just to read the Json.t *)
 module PackageJson = struct
@@ -93,10 +93,12 @@ let of_yojson json =
 
 let ofDir (path : Path.t) =
   let open RunAsync.Syntax in
-  let%bind filename = find path in
-  let%bind json = Fs.readJsonFile filename in
-  let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
-  return (ofPackageJson pkgJson)
+  match%bind find path with
+  | Some filename ->
+    let%bind json = Fs.readJsonFile filename in
+    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
+    return (ofPackageJson pkgJson)
+  | None -> error "no package.json (or esy.json) found"
 
 let toPackage ?name ?version (manifest : t) =
   let open RunAsync.Syntax in
