@@ -1,8 +1,10 @@
 type t = {
   cfg : Config.t;
   path : Path.t;
-  resolutions : Manifest.Resolutions.t;
   root : Package.t;
+  dependencies : Package.Dependencies.t;
+  resolutions : Manifest.Resolutions.t;
+  ocamlReq : Package.Req.t;
 }
 
 module EsyManifest = struct
@@ -20,11 +22,7 @@ module EsyManifest = struct
       let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.PackageJson.of_yojson json) in
       let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith ParseResolutions.of_yojson json) in
       let manifest = Manifest.ofPackageJson pkgJson in
-      let%bind pkg = 
-        let version = Package.Version.Source (Package.Source.LocalPath path) in
-        Manifest.toPackage ~version manifest
-      in
-      return (Some (pkg, resolutions.ParseResolutions.resolutions))
+      return (Some (manifest, resolutions.ParseResolutions.resolutions))
     | None -> return None
 end
 
@@ -62,7 +60,47 @@ module OpamManifest = struct
         in
         List.fold_left ~f ~init:([], []) pkgs
       in
-      return (Some {
+      return (Some (dependencies, devDependencies))
+end
+
+let ocamlReqAny =
+  Package.Req.make ~name:"ocaml" ~spec:"*"
+  |> Run.ofStringError
+  |> Run.runExn ~err:"invalid ocaml constraint"
+
+let ofDir ~cfg (path : Path.t) =
+  let open RunAsync.Syntax in
+  match%bind EsyManifest.ofDir path with
+  | Some (manifest, resolutions) ->
+
+    let reqs =
+      Package.NpmDependencies.override manifest.Manifest.dependencies manifest.devDependencies
+    in
+
+    let ocamlReq =
+      Option.orDefault
+        ~default:ocamlReqAny
+        (Package.NpmDependencies.find ~name:"ocaml" reqs)
+    in
+
+    let%bind root = 
+      let version = Package.Version.Source (Package.Source.LocalPath path) in
+      Manifest.toPackage ~version manifest
+    in
+
+    return {
+      cfg;
+      path;
+      root;
+      resolutions;
+      ocamlReq;
+      dependencies = Package.Dependencies.NpmFormula reqs;
+    }
+  | None ->
+    begin match%bind OpamManifest.ofDir path with
+    | Some (dependencies, devDependencies) ->
+
+      let root = {
         Package.
         name = "root";
         version = Package.Version.Source (Package.Source.LocalPath path);
@@ -71,15 +109,19 @@ module OpamManifest = struct
         devDependencies = Package.Dependencies.OpamFormula devDependencies;
         opam = None;
         kind = Package.Esy;
-      })
-end
+      } in
 
-let ofDir ~cfg (path : Path.t) =
-  let open RunAsync.Syntax in
-  match%bind EsyManifest.ofDir path with
-  | Some (root, resolutions) -> return {cfg; path; root; resolutions}
-  | None ->
-    begin match%bind OpamManifest.ofDir path with
-    | Some root -> return {cfg; path; root; resolutions = Manifest.Resolutions.empty}
+      let dependencies =
+        Package.Dependencies.OpamFormula (dependencies @ devDependencies)
+      in
+
+      return {
+        cfg;
+        path;
+        root;
+        resolutions = Manifest.Resolutions.empty;
+        dependencies;
+        ocamlReq = ocamlReqAny;
+      }
     | None -> error "unable to find either package.json or opam files"
     end
