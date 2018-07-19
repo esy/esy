@@ -638,36 +638,50 @@ let solve ~cfg ~resolutions (root : Package.t) =
       error msg
   in
 
-  let reqs, ocamlReq =
-    match root.dependencies, root.devDependencies with
-    | Dependencies.NpmFormula reqs, Dependencies.NpmFormula devReqs ->
-      (* we override dependencies with devDependencies for the root project *)
-      let reqs = NpmDependencies.override reqs devReqs in
-      let ocamlReq = NpmDependencies.find ~name:"ocaml" reqs in
-      reqs, ocamlReq
-    | _ -> failwith "only npm formulas are supported for the root manifest"
-  in
-
   let opamRegistry = OpamRegistry.make ~cfg () in
 
-  let%bind ocamlVersion, reqs =
-    match ocamlReq with
-    | Some req ->
-      let%bind version = solveOCamlReq ~cfg ~opamRegistry req in
-      let reqs =
-        match version with
-        | Some version ->
-          let ocamlReq = Req.ofSpec ~name:req.name ~spec:(VersionSpec.ofVersion version) in
-          NpmDependencies.override reqs [ocamlReq]
-        | None -> reqs
+  let%bind dependencies, ocamlVersion =
+
+    let ocamlAnyReq =
+      match Req.make ~name:"ocaml" ~spec:"*" with
+      | Ok v -> v
+      | Error _ -> assert false
+    in
+
+    match root.dependencies, root.devDependencies with
+    | Dependencies.NpmFormula reqs, Dependencies.NpmFormula devReqs ->
+      let reqs, ocamlReq =
+        (* we override dependencies with devDependencies for the root project *)
+        let reqs = NpmDependencies.override reqs devReqs in
+        let ocamlReq = NpmDependencies.find ~name:"ocaml" reqs in
+        reqs, ocamlReq
       in
-      return (version, reqs)
-    | None ->
-      Logs_lwt.app (fun m -> m "no ocaml constraint defined");%lwt
-      return (None, reqs)
+
+      let%bind ocamlVersion, reqs =
+        let req = Option.orDefault ~default:ocamlAnyReq ocamlReq in
+        let%bind version = solveOCamlReq ~cfg ~opamRegistry req in
+        let reqs =
+          match version with
+          | Some version ->
+            let ocamlReq = Req.ofSpec ~name:req.name ~spec:(VersionSpec.ofVersion version) in
+            NpmDependencies.override reqs [ocamlReq]
+          | None -> reqs
+        in
+        return (version, reqs)
+      in
+
+      return (Dependencies.NpmFormula reqs, ocamlVersion)
+    | Dependencies.OpamFormula deps, Dependencies.OpamFormula devDeps ->
+      begin match%bind solveOCamlReq ~cfg ~opamRegistry ocamlAnyReq with
+      | Some (Package.Version.Npm version) ->
+        let ocaml = {Package.Dep. name = "ocaml"; req = Npm (SemverVersion.Constraint.EQ version)} in
+        return (Dependencies.OpamFormula (deps @ devDeps @ [[ocaml]]), Some (Package.Version.Npm version))
+      | _ -> assert false
+      end
+    | _ ->
+      assert false
   in
 
-  let dependencies = Dependencies.NpmFormula reqs in
 
   let%bind solver, dependencies =
     let%bind resolver = Resolver.make ?ocamlVersion ~opamRegistry ~cfg () in
