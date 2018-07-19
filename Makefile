@@ -128,6 +128,7 @@ RELEASE_ROOT = _release
 RELEASE_FILES = \
 	platform-linux \
 	platform-darwin \
+	platform-windows-x64 \
 	bin/esy \
 	bin/esyi \
 	bin/esyInstallRelease.js \
@@ -155,8 +156,8 @@ $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)
 	@cp $(<) $(@)
 
-$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin: PLATFORM=$(@:$(RELEASE_ROOT)/platform-%=%)
-$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin:
+$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin $(RELEASE_ROOT)/platform-windows-x64: PLATFORM=$(@:$(RELEASE_ROOT)/platform-%=%)
+$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin $(RELEASE_ROOT)/platform-windows-x64:
 	@wget \
 		-q --show-progress \
 		-O $(RELEASE_ROOT)/$(PLATFORM).tgz \
@@ -189,7 +190,8 @@ console.log(
 			"bin/",
 			"postinstall.js",
 			"platform-linux/",
-			"platform-darwin/"
+			"platform-darwin/",
+			"platform-windows-x64/"
 		]
 	}, null, 2));
 endef
@@ -198,44 +200,8 @@ export MAKE_PACKAGE_JSON
 $(RELEASE_ROOT)/package.json:
 	@node -e "$$MAKE_PACKAGE_JSON" > $(@)
 
-define POSTINSTALL_JS
-var path = require('path');
-var fs = require('fs');
-var platform = process.platform;
-
-switch (platform) {
-  case 'linux':
-  case 'darwin':
-    fs.renameSync(
-      path.join(__dirname, 'platform-' + platform, '_build'),
-      path.join(__dirname, '_build')
-    );
-    fs.renameSync(
-      path.join(__dirname, 'platform-' + platform, 'bin', 'fastreplacestring'),
-      path.join(__dirname, 'bin', 'fastreplacestring')
-    );
-
-    fs.unlinkSync(path.join(__dirname, 'bin', 'esy'));
-    fs.symlinkSync(
-      path.join(__dirname, '_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
-      path.join(__dirname, 'bin', 'esy')
-  	);
-
-		fs.unlinkSync(path.join(__dirname, 'bin', 'esyi'));
-    fs.symlinkSync(
-      path.join(__dirname, '_build', 'default', 'esyi', 'bin', 'esyi.exe'),
-      path.join(__dirname, 'bin', 'esyi')
-  	);
-    break;
-  default:
-    console.warn("error: no release built for the " + platform + " platform");
-    process.exit(1);
-}
-endef
-export POSTINSTALL_JS
-
 $(RELEASE_ROOT)/postinstall.js:
-	@echo "$$POSTINSTALL_JS" > $(@)
+	@cp scripts/release-postinstall.js $(@)
 
 #
 # Platform Specific Release

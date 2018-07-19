@@ -32,7 +32,7 @@ build_script:
     - npm run bootstrap:make-release-package
 
 artifacts:
-    - path: _platformrelease/*.tar.gz
+    - path: _platformrelease/*.tgz
       name: Windows Build
       type: File
 

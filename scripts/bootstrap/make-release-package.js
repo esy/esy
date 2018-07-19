@@ -39,7 +39,7 @@ const pack = async () => {
     const cygwinPackFolder = await toCygwinPath(packFolder)
 
     console.log(`Creating archive from ${cygwinPackFolder} in ${cygwinDestFolder}.`)
-    await bashExec(`tar -czvf ${cygwinDestFolder}/esy-windows-${version}-${arch}.tar.gz -C ${cygwinPackFolder} .`)
+    await bashExec(`tar -czvf ${cygwinDestFolder}/esy-v${version}-windows-${arch}.tgz -C ${cygwinPackFolder} .`)
 }
 
 pack()
