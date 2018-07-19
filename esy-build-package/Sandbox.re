@@ -46,64 +46,65 @@ module Darwin = {
         ]);
       let command = Bos.Cmd.(sandboxCommand %% command);
 
-      let exec = (~err) => {
-          run_io(~env, ~err, command);
-      };
+      let exec = (~err) => run_io(~env, ~err, command);
       Ok(exec);
     };
     Ok(prepare);
   };
 };
 
-let convertEnvToJsonString = (env) => {
-    let json = BuildTask.Env.to_yojson(env);
-    Yojson.to_string(json);
+let convertEnvToJsonString = env => {
+  let json = BuildTask.Env.to_yojson(env);
+  Yojson.to_string(json);
 };
 
 module Windows = {
-    let sandboxExec = _config => {
-        let prepare = (~env, command) => {
-            open Run;
-            open Bos.OS.Cmd;
+  let sandboxExec = _config => {
+    let prepare = (~env, command) => {
+      open Run;
+      open Bos.OS.Cmd;
 
-            /*
-             * `esy-bash` takes an optional `--env` parameter with the 
-             * environment variables that should be used for the bash session.
-             * 
-             * Just passing the env directly to esy-bash doesn't work,
-             * because we need the current PATH/env to pick up node and run the shell
-             */
-            let jsonString = convertEnvToJsonString(env);
-            let%bind environmentTempFile = putTempFile(jsonString);
-            let commandAsList = Bos.Cmd.to_list(command);
+      /*
+       * `esy-bash` takes an optional `--env` parameter with the
+       * environment variables that should be used for the bash session.
+       *
+       * Just passing the env directly to esy-bash doesn't work,
+       * because we need the current PATH/env to pick up node and run the shell
+       */
+      let jsonString = convertEnvToJsonString(env);
+      let%bind environmentTempFile = putTempFile(jsonString);
+      let commandAsList = Bos.Cmd.to_list(command);
 
-            /* Normalize slashes in the command we send to esy-bash */
-            let normalizedCommands = Bos.Cmd.of_list(List.map(EsyLib.Path.normalizePathSlashes, commandAsList));
-            let%bind augmentedEsyCommand = EsyLib.EsyBash.toEsyBashCommand(~env=Some(Fpath.to_string(environmentTempFile)), normalizedCommands);
+      /* Normalize slashes in the command we send to esy-bash */
+      let normalizedCommands =
+        Bos.Cmd.of_list(
+          List.map(EsyLib.Path.normalizePathSlashes, commandAsList),
+        );
+      let%bind augmentedEsyCommand =
+        EsyLib.EsyBash.toEsyBashCommand(
+          ~env=Some(Fpath.to_string(environmentTempFile)),
+          normalizedCommands,
+        );
 
-            let exec = (~err) => {
-                run_io(~err, augmentedEsyCommand);
-            };
-            Ok(exec);
-        };
-        Ok(prepare);
+      let exec = (~err) => run_io(~err, augmentedEsyCommand);
+      Ok(exec);
     };
-}
+    Ok(prepare);
+  };
+};
 
 module NoSandbox = {
   let sandboxExec = _config => {
     let prepare = (~env, command) => {
-        let exec = (~err) => {
-          Bos.OS.Cmd.run_io(~env, ~err, command);
-        };
-        Ok(exec);
+      let exec = (~err) => Bos.OS.Cmd.run_io(~env, ~err, command);
+      Ok(exec);
     };
     Ok(prepare);
   };
 };
 
 let sandboxExec = config =>
-  switch (EsyLib.System.host) {
+  switch (EsyLib.System.Platform.host) {
   | Windows => Windows.sandboxExec(config)
   | Darwin => Darwin.sandboxExec(config)
   | _ => NoSandbox.sandboxExec(config)

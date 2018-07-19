@@ -22,24 +22,24 @@ let toOCamlVersion version =
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
     match system with
-    | System.Unknown
-    | System.Darwin
-    | System.Linux
-    | System.Unix
-    | System.Windows
-    | System.Cygwin -> "/"
+    | System.Platform.Unknown
+    | System.Platform.Darwin
+    | System.Platform.Linux
+    | System.Platform.Unix
+    | System.Platform.Windows
+    | System.Platform.Cygwin -> "/"
   in
   let colon =
     match name, system with
     (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)
-    | Some "OCAMLPATH", (System.Linux | System.Darwin | System.Unix | System.Unknown) -> ":"
-    | Some "OCAMLPATH", (System.Cygwin | System.Windows) -> ";"
-    | _, (System.Linux | System.Darwin | System.Unix | System.Unknown | System.Cygwin) -> ":"
-    | _, System.Windows -> ";"
+    | Some "OCAMLPATH", (System.Platform.Linux | Darwin | Unix | Unknown) -> ":"
+    | Some "OCAMLPATH", (Cygwin | Windows) -> ";"
+    | _, (Linux | Darwin | Unix | Unknown | Cygwin) -> ":"
+    | _, Windows -> ";"
   in
   let scope name =
     match name with
-    | None, "os" -> Some (CommandExpr.Value.String (System.toString system))
+    | None, "os" -> Some (CommandExpr.Value.String (System.Platform.show system))
     | _ -> scope name
   in
   CommandExpr.render ~pathSep ~colon ~scope expr
@@ -373,7 +373,7 @@ let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?(forceImmutable=false)
-    ?(system=System.host)
+    ?(system=System.Platform.host)
     ?initTerm
     ?initPath
     ?initManPath
@@ -767,7 +767,7 @@ let ofPackage
       in
 
       let defaultPath =
-          match System.host with
+          match System.Platform.host with
           | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
           | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       in
@@ -852,7 +852,7 @@ let ofPackage
       let path v = string (ConfigPath.toString v) in
       let v =
         match scope, to_string var with
-        | Full.Global, "os" -> Some (string (System.toString system))
+        | Full.Global, "os" -> Some (string (System.Platform.show system))
         | Full.Global, "ocaml-version" ->
           let open Option.Syntax in
           let%bind ocamlVersion = ocamlVersion in

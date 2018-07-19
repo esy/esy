@@ -61,7 +61,7 @@ let isExecutable (stats : Unix.stats) =
   (userExecute lor groupExecute lor othersExecute) land stats.Unix.st_perm <> 0
 
 let getPotentialExtensions =
-    match System.host with
+    match System.Platform.host with
     | Windows -> [""; ".exe"]
     | _ -> [""]
 
