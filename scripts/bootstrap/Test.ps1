@@ -17,8 +17,8 @@ Write-Host "Clone complete!"
 cd C:/erp
 ls
 
-mkdir C:/esy-home
-$env:HOME="C:/esy-home"
+mkdir C:/users/appveyor/.esy-home
+$env:HOME="C:/users/appveyor/.esy-home"
 
 # "Integration Test" for now
 # This requires retries on all platforms at the moment:
