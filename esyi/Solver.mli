@@ -38,8 +38,4 @@ val add :
 (**
  * Solve dependencies for the root
  *)
-val solve :
-  cfg:Config.t
-  -> resolutions:Package.Resolutions.t
-  -> Package.t
-  -> Solution.t RunAsync.t
+val solve : Sandbox.t -> Solution.t RunAsync.t

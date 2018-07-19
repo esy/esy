@@ -8,12 +8,7 @@ module Api = {
   let solve = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
       {
-        let%bind solution =
-          Solver.solve(
-            ~cfg=sandbox.cfg,
-            ~resolutions=sandbox.Sandbox.resolutions,
-            sandbox.root,
-          );
+        let%bind solution = Solver.solve(sandbox);
         Solution.LockfileV1.toFile(
           ~sandbox,
           ~solution,
