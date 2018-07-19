@@ -98,28 +98,6 @@ let ofDir (path : Path.t) =
   let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
   return (ofPackageJson pkgJson)
 
-module Root = struct
-  type t = {
-    manifest : manifest;
-    resolutions : Resolutions.t;
-  }
-
-  module ParseResolutions = struct
-    type t = {
-      resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
-    } [@@deriving of_yojson { strict = false }]
-  end
-
-  let ofDir (path : Path.t) =
-    let open RunAsync.Syntax in
-    let%bind filename = find path in
-    let%bind json = Fs.readJsonFile filename in
-    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
-    let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith ParseResolutions.of_yojson json) in
-    let manifest = ofPackageJson pkgJson in
-    return {manifest; resolutions = resolutions.ParseResolutions.resolutions}
-end
-
 let toPackage ?name ?version (manifest : t) =
   let open RunAsync.Syntax in
   let name =

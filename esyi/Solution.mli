@@ -58,15 +58,13 @@ val add : record : Record.t -> dependencies : Id.t list -> t -> t
 module LockfileV1 : sig
 
   val toFile :
-    cfg:Config.t
-    -> manifest:Manifest.Root.t
+    sandbox:Sandbox.t
     -> solution:t
     -> Fpath.t
     -> unit RunAsync.t
 
   val ofFile :
-    cfg:Config.t
-    -> manifest:Manifest.Root.t
+    sandbox:Sandbox.t
     -> Fpath.t
     -> t option RunAsync.t
 end
