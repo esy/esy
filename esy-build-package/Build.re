@@ -272,8 +272,16 @@ let findSourceModTime = (b: t) => {
 
 let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   let%bind b = make(~cfg, task);
-  let%bind () = Store.init(cfg.storePath);
-  let%bind () = Store.init(cfg.localStorePath);
+
+  let initStoreAt = (path: Path.t) => {
+    let%bind () = mkdir(Path.(path / "i"));
+    let%bind () = mkdir(Path.(path / "b"));
+    let%bind () = mkdir(Path.(path / "s"));
+    Ok();
+  };
+
+  let%bind () = initStoreAt(cfg.storePath);
+  let%bind () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
     let doNothing = (_config: Config.t, _b: t) => Run.ok;
