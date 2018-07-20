@@ -12,7 +12,7 @@ it('Build - with linked dep', async done => {
   const TEST_PATH = await initFixture('./build/fixtures/with-linked-dep');
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-  await esyCommands.build(PROJECT_PATH);
+  await esyCommands.build(PROJECT_PATH, TEST_PATH);
 
   const dep = await esyCommands.command(PROJECT_PATH, 'dep');
   const b = await esyCommands.b(PROJECT_PATH, 'dep');
@@ -27,14 +27,14 @@ it('Build - with linked dep', async done => {
   const {stdout} = await esyCommands.x(PROJECT_PATH, 'with-linked-dep');
   expect(stdout).toEqual(expect.stringMatching('with-linked-dep'));
 
-  const noOpBuild = await esyCommands.build(PROJECT_PATH);
+  const noOpBuild = await esyCommands.build(PROJECT_PATH, TEST_PATH);
   expect(noOpBuild.stdout).not.toEqual(
     expect.stringMatching('Building dep@1.0.0: starting'),
   );
 
   await open(path.join(PROJECT_PATH, 'dep', 'dummy'), 'w').then(close);
 
-  const rebuild = await esyCommands.build(PROJECT_PATH);
+  const rebuild = await esyCommands.build(PROJECT_PATH, TEST_PATH);
   // TODO: why is this on stderr?
   expect(rebuild.stderr).toEqual(expect.stringMatching('Building dep@1.0.0: starting'));
 

@@ -8,7 +8,7 @@ it('Build - no deps in source', async done => {
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
   try {
-    await esyCommands.build(PROJECT_PATH);
+    await esyCommands.build(PROJECT_PATH, TEST_PATH);
   } catch (e) {
     console.error(e);
   }

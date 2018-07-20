@@ -10,7 +10,7 @@ describe('Build - with dev dep', () => {
     TEST_PATH = await initFixture('./build/fixtures/with-dev-dep');
     PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-    await esyCommands.build(PROJECT_PATH);
+    await esyCommands.build(PROJECT_PATH, TEST_PATH);
     done();
   });
 

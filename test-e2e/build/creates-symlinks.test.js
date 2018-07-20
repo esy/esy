@@ -7,7 +7,7 @@ it('Build - creats symlinks', async done => {
   const TEST_PATH = await initFixture('./build/fixtures/creates-symlinks');
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-  esyCommands.build(path.resolve(TEST_PATH, 'project'));
+  esyCommands.build(PROJECT_PATH, TEST_PATH);
 
   const dep = await esyCommands.command(PROJECT_PATH, 'dep');
   const bDep = await esyCommands.b(PROJECT_PATH, 'dep');

@@ -10,7 +10,7 @@ describe('Build - has build time deps', async () => {
   beforeAll(async done => {
     TEST_PATH = await initFixture('./build/fixtures/has-build-time-deps');
     PROJECT_PATH = path.resolve(TEST_PATH, 'project');
-    await esyCommands.build(PROJECT_PATH);
+    await esyCommands.build(PROJECT_PATH, TEST_PATH);
     done();
   });
 

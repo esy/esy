@@ -7,7 +7,7 @@ it('Build - with dep _build', async done => {
   const TEST_PATH = await initFixture('./build/fixtures/with-dep-_build');
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-  await esyCommands.build(path.resolve(TEST_PATH, 'project'));
+  await esyCommands.build(PROJECT_PATH, TEST_PATH);
 
   const dep = await esyCommands.command(PROJECT_PATH, 'dep');
   const b = await esyCommands.b(PROJECT_PATH, 'dep');

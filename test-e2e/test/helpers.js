@@ -8,7 +8,11 @@ const ESYCOMMAND = require.resolve('../../bin/esy');
 const promiseExec = promisify(childProcess.exec);
 
 const esyCommands = {
-  build: cwd => promiseExec(`${ESYCOMMAND} build`, {cwd}),
+  build: (cwd, testPath) =>
+    promiseExec(`${ESYCOMMAND} build`, {
+      cwd,
+      env: {...process.env, ESY__PREFIX: testPath},
+    }),
   command: (cwd, command) => promiseExec(`${ESYCOMMAND} ${command}`, {cwd}),
   b: (cwd, command) => promiseExec(`${ESYCOMMAND} b ${command}`, {cwd}),
   x: (cwd, command) => promiseExec(`${ESYCOMMAND} x ${command}`, {cwd}),

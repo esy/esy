@@ -7,7 +7,8 @@ it('Build - custom prefix (not propperly implemented)', async done => {
   const TEST_PATH = await initFixture('./build/fixtures/custom-prefix');
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-  await esyCommands.build(PROJECT_PATH);
+  // same as unset ESY__PREFIX
+  await esyCommands.build(PROJECT_PATH, null);
 
   const {stdout} = await esyCommands.x(PROJECT_PATH, 'custom-prefix');
 
