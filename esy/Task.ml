@@ -1105,22 +1105,22 @@ module DependencyGraph = DependencyGraph.Make(struct
 let toBuildProtocol (task : task) =
   let buildType =
     match task.pkg.build with
-    | Package.EsyBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
-    | Package.EsyBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-    | Package.EsyBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-    | Package.EsyBuild {buildType = Unsafe;_} -> EsyBuildPackage.BuildTask.BuildType.Unsafe
-    | Package.OpamBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
-    | Package.OpamBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-    | Package.OpamBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-    | Package.OpamBuild {buildType = Unsafe;_} -> EsyBuildPackage.BuildTask.BuildType.Unsafe
+    | Package.EsyBuild {buildType = InSource;_} -> EsyBuildPackage.Task.BuildType.InSource
+    | Package.EsyBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.Task.BuildType.JbuilderLike
+    | Package.EsyBuild {buildType = OutOfSource;_} -> EsyBuildPackage.Task.BuildType.OutOfSource
+    | Package.EsyBuild {buildType = Unsafe;_} -> EsyBuildPackage.Task.BuildType.Unsafe
+    | Package.OpamBuild {buildType = InSource;_} -> EsyBuildPackage.Task.BuildType.InSource
+    | Package.OpamBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.Task.BuildType.JbuilderLike
+    | Package.OpamBuild {buildType = OutOfSource;_} -> EsyBuildPackage.Task.BuildType.OutOfSource
+    | Package.OpamBuild {buildType = Unsafe;_} -> EsyBuildPackage.Task.BuildType.Unsafe
   in
-  EsyBuildPackage.BuildTask.ConfigFile.{
+  EsyBuildPackage.Task.ConfigFile.{
     id = task.id;
     name = task.pkg.name;
     version = task.pkg.version;
     sourceType = (match task.sourceType with
-        | Manifest.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
-        | Manifest.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
+        | Manifest.SourceType.Immutable -> EsyBuildPackage.Task.SourceType.Immutable
+        | Manifest.SourceType.Development -> EsyBuildPackage.Task.SourceType.Transient
       );
     buildType;
     build = task.buildCommands;
@@ -1131,7 +1131,7 @@ let toBuildProtocol (task : task) =
 
 let toBuildProtocolString ?(pretty=false) (task : task) =
   let task = toBuildProtocol task in
-  let json = EsyBuildPackage.BuildTask.ConfigFile.to_yojson task in
+  let json = EsyBuildPackage.Task.ConfigFile.to_yojson task in
   if pretty
   then Yojson.Safe.pretty_to_string json
   else Yojson.Safe.to_string json

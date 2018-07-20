@@ -1,6 +1,5 @@
+open EsyBuildPackage;
 module Option = EsyLib.Option;
-module Run = EsyBuildPackage.Run;
-module BuildTask = EsyBuildPackage.BuildTask;
 module File = Bos.OS.File;
 module Dir = Bos.OS.Dir;
 
@@ -41,12 +40,7 @@ let createConfig = (copts: commonOpts) => {
     | None => Error(`Msg("cannot resolve fastreplacestring command"))
     };
   };
-  EsyBuildPackage.Config.create(
-    ~prefixPath,
-    ~sandboxPath,
-    ~fastreplacestringCmd,
-    (),
-  );
+  Config.create(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
@@ -54,9 +48,8 @@ let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind config = createConfig(copts);
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
-  let%bind () =
-    EsyBuildPackage.Builder.build(~buildOnly, ~force, config, task);
+  let%bind task = Task.ofFile(config, buildPath);
+  let%bind () = Builder.build(~buildOnly, ~force, config, task);
   Ok();
 };
 
@@ -65,7 +58,7 @@ let shell = (copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind config = createConfig(copts);
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+  let%bind task = Task.ofFile(config, buildPath);
 
   let runShell = (_run, runInteractive, ()) => {
     let%bind rcFilename =
@@ -100,13 +93,13 @@ let shell = (copts: commonOpts) => {
 
     let ppBanner = (ppf, ()) => {
       Format.open_vbox(0);
-      fmt("Package: %s@%s", ppf, task.BuildTask.name, task.BuildTask.version);
+      fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(BuildTask.Cmd.pp, ppf, ("Build Commands:", task.build));
+      ppList(Task.Cmd.pp, ppf, ("Build Commands:", task.build));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(BuildTask.Cmd.pp, ppf, ("Install Commands:", task.install));
+      ppList(Task.Cmd.pp, ppf, ("Install Commands:", task.install));
       Fmt.cut(ppf, ());
       Format.close_box();
     };
@@ -117,7 +110,7 @@ let shell = (copts: commonOpts) => {
     Format.print_flush();
   };
 
-  let%bind () = EsyBuildPackage.Builder.withBuildEnv(config, task, runShell);
+  let%bind () = Builder.withBuildEnv(config, task, runShell);
   ok;
 };
 
@@ -130,9 +123,8 @@ let exec = (copts, command) => {
     let cmd = Bos.Cmd.of_list(command);
     runInteractive(cmd);
   };
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
-  let%bind () =
-    EsyBuildPackage.Builder.withBuildEnv(config, task, runCommand);
+  let%bind task = Task.ofFile(config, buildPath);
+  let%bind () = Builder.withBuildEnv(config, task, runCommand);
   ok;
 };
 
@@ -148,12 +140,7 @@ let runToCompletion = (~forceExitOnError=false, run) =>
     if (forceExitOnError) {
       exit(exitCode);
     } else {
-      let msg =
-        Printf.sprintf(
-          "command failed:\n%s\nwith exit code: %d",
-          Bos.Cmd.to_string(cmd),
-          exitCode,
-        );
+      let msg = Format.asprintf("@\ncommand failed:@\n%a", Bos.Cmd.pp, cmd);
       `Error((false, msg));
     };
   | _ => `Ok()

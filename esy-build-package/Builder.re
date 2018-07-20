@@ -3,7 +3,7 @@ module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 module System = EsyLib.System;
 
-let relocateSourcePath = (config: Config.t, task: BuildTask.t) =>
+let relocateSourcePath = (config: Config.t, task: Task.t) =>
   Run.
     /* `rsync` is one utility that DOES NOT respect Windows paths.
      *  Therefore, we need to normalize the paths to Cygwin-style (on POSIX systems, this is a no-op)
@@ -78,7 +78,7 @@ let withLock = (lockPath: Path.t, f) => {
   res;
 };
 
-let commitBuildToStore = (config: Config.t, task: BuildTask.t) => {
+let commitBuildToStore = (config: Config.t, task: Task.t) => {
   open Run;
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
     let cmd =
@@ -128,7 +128,7 @@ let commitBuildToStore = (config: Config.t, task: BuildTask.t) => {
   ok;
 };
 
-let relocateBuildPath = (_config: Config.t, task: BuildTask.t) => {
+let relocateBuildPath = (_config: Config.t, task: Task.t) => {
   open Run;
   let savedBuild = task.buildPath / "_build";
   let currentBuild = task.sourcePath / "_build";
@@ -162,7 +162,7 @@ let relocateBuildPath = (_config: Config.t, task: BuildTask.t) => {
   (start, commit);
 };
 
-let findSourceModTime = (task: BuildTask.t) => {
+let findSourceModTime = (task: Task.t) => {
   open Run;
   let visit = (path: Path.t) =>
     fun
@@ -198,22 +198,21 @@ let findSourceModTime = (task: BuildTask.t) => {
   );
 };
 
-let doNothing = (_config: Config.t, _spec: BuildTask.t) => Run.ok;
+let doNothing = (_config: Config.t, _spec: Task.t) => Run.ok;
 
 /**
  * Execute `f` within the build environment for `task`.
  */
-let withBuildEnvUnlocked =
-    (~commit=false, config: Config.t, task: BuildTask.t, f) => {
+let withBuildEnvUnlocked = (~commit=false, config: Config.t, task: Task.t, f) => {
   open Run;
-  let {BuildTask.sourcePath, installPath, buildPath, stagePath, _} = task;
+  let {Task.sourcePath, installPath, buildPath, stagePath, _} = task;
   let (rootPath, prepareRootPath, completeRootPath) =
     switch (task.buildType, task.sourceType) {
     | (InSource, Immutable)
     | (InSource, Transient) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Immutable) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Transient) =>
-      if (BuildTask.isRoot(~config, task)) {
+      if (Task.isRoot(~config, task)) {
         (sourcePath, doNothing, doNothing);
       } else {
         let (start, commit) = relocateBuildPath(config, task);
@@ -274,24 +273,26 @@ let withBuildEnvUnlocked =
     | None => []
     };
   let run = cmd => {
-    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
-    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
-    let cmd = EsyLib.Cmd.toBosCmd(cmd);
-    let%bind exec = prepare(~env, cmd);
-    let%bind ((), (_runInfo, runStatus)) =
+    let%bind ((), (_runInfo, runStatus)) = {
+      let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
+      let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+      let cmd = EsyLib.Cmd.toBosCmd(cmd);
+      let%bind exec = prepare(~env, cmd);
       Bos.OS.Cmd.(in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout);
+    };
     switch (runStatus) {
     | `Exited(0) => Ok()
     | status => Error(`CommandError((cmd, status)))
     };
   };
   let runInteractive = cmd => {
-    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
-    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
-    let cmd = EsyLib.Cmd.toBosCmd(cmd);
-    let%bind exec = prepare(~env, cmd);
-    let%bind ((), (_runInfo, runStatus)) =
+    let%bind ((), (_runInfo, runStatus)) = {
+      let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
+      let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+      let cmd = EsyLib.Cmd.toBosCmd(cmd);
+      let%bind exec = prepare(~env, cmd);
       Bos.OS.Cmd.(in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout);
+    };
     switch (runStatus) {
     | `Exited(0) => Ok()
     | status => Error(`CommandError((cmd, status)))
@@ -351,21 +352,20 @@ let withBuildEnvUnlocked =
   result;
 };
 
-let withBuildEnv = (~commit=false, config: Config.t, task: BuildTask.t, f) =>
+let withBuildEnv = (~commit=false, config: Config.t, task: Task.t, f) =>
   Run.(
     {
       let%bind () = Store.init(config.storePath);
       let%bind () = Store.init(config.localStorePath);
       let perform = () => withBuildEnvUnlocked(~commit, config, task, f);
       switch (task.sourceType) {
-      | BuildTask.SourceType.Transient => withLock(task.lockPath, perform)
-      | BuildTask.SourceType.Immutable => perform()
+      | Task.SourceType.Transient => withLock(task.lockPath, perform)
+      | Task.SourceType.Immutable => perform()
       };
     }
   );
 
-let build =
-    (~buildOnly=true, ~force=false, config: Config.t, task: BuildTask.t) => {
+let build = (~buildOnly=true, ~force=false, config: Config.t, task: Task.t) => {
   open Run;
   Logs.debug(m => m("start %s", task.id));
   let performBuild = sourceModTime => {
@@ -389,7 +389,7 @@ let build =
           };
         _runList(cmds);
       };
-      let {BuildTask.build, install, _} = task;
+      let {Task.build, install, _} = task;
       let%bind () = runList(build);
       let%bind () =
         if (! buildOnly) {
@@ -405,8 +405,8 @@ let build =
     let%bind info = {
       let%bind sourceModTime =
         switch (sourceModTime, task.sourceType) {
-        | (None, BuildTask.SourceType.Transient) =>
-          if (BuildTask.isRoot(~config, task)) {
+        | (None, Task.SourceType.Transient) =>
+          if (Task.isRoot(~config, task)) {
             Ok(None);
           } else {
             Logs.debug(m => m("computing build mtime"));
@@ -428,8 +428,8 @@ let build =
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);
-  | (false, BuildTask.SourceType.Transient) =>
-    if (BuildTask.isRoot(~config, task)) {
+  | (false, Task.SourceType.Transient) =>
+    if (Task.isRoot(~config, task)) {
       performBuild(None);
     } else {
       Logs.debug(m => m("checking for staleness"));
@@ -446,7 +446,7 @@ let build =
         ok;
       };
     }
-  | (false, BuildTask.SourceType.Immutable) =>
+  | (false, Task.SourceType.Immutable) =>
     let%bind installPathExists = exists(task.installPath);
     if (installPathExists) {
       Logs.debug(m => m("build exists in store, skipping"));

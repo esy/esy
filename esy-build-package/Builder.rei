@@ -1,12 +1,12 @@
 let build:
-  (~buildOnly: bool=?, ~force: bool=?, Config.t, BuildTask.t) =>
+  (~buildOnly: bool=?, ~force: bool=?, Config.t, Task.t) =>
   Run.t(unit, 'b);
 
 let withBuildEnv:
   (
     ~commit: bool=?,
     Config.t,
-    BuildTask.t,
+    Task.t,
     (
       Bos.Cmd.t =>
       result(

@@ -9,7 +9,7 @@ type t = {
   sourceModTime: option(float),
 };
 
-let write = (task: BuildTask.t, info: t) => {
+let write = (task: Task.t, info: t) => {
   let write = (oc, ()) => {
     Yojson.Safe.pretty_to_channel(oc, to_yojson(info));
     Run.ok;
@@ -17,7 +17,7 @@ let write = (task: BuildTask.t, info: t) => {
   Result.join(Bos.OS.File.with_oc(task.infoPath, write, ()));
 };
 
-let read = (task: BuildTask.t) => {
+let read = (task: Task.t) => {
   let read =
     Run.(
       if%bind (exists(task.infoPath)) {
