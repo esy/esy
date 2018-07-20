@@ -9,6 +9,8 @@ type t = {
   fastreplacestringCmd: string,
 };
 
+type config = t;
+
 /**
  * Initialize config optionally with prefixPath and sandboxPath.
  *
@@ -51,12 +53,29 @@ let make =
     }
   );
 
-let renderString = (~cfg: t, v) => {
-  let lookupVar =
-    fun
-    | "sandbox" => Some(Path.to_string(cfg.sandboxPath))
-    | "store" => Some(Path.to_string(cfg.storePath))
-    | "localStore" => Some(Path.to_string(cfg.localStorePath))
-    | _ => None;
-  PathSyntax.render(lookupVar, v);
+module Value = {
+  type t = string;
+
+  let sandbox = "%sandbox%";
+  let store = "%store%";
+  let localStore = "%localStore%";
+
+  let show = v => v;
+  let pp = Fmt.string;
+  let equal = String.equal;
+
+  let ofString = v => v;
+
+  let toString = (~cfg, v) => {
+    let lookupVar =
+      fun
+      | "sandbox" => Some(Path.to_string(cfg.sandboxPath))
+      | "store" => Some(Path.to_string(cfg.storePath))
+      | "localStore" => Some(Path.to_string(cfg.localStorePath))
+      | _ => None;
+    PathSyntax.render(lookupVar, v);
+  };
+
+  let of_yojson = EsyLib.Json.Parse.string;
+  let to_yojson = v => `String(v);
 };

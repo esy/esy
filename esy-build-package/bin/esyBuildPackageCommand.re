@@ -96,10 +96,18 @@ let shell = (copts: commonOpts) => {
       fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Fmt.(list(string)), ppf, ("Build Commands:", task.build));
+      ppList(
+        Fmt.(list(Config.Value.pp)),
+        ppf,
+        ("Build Commands:", task.build),
+      );
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Fmt.(list(string)), ppf, ("Install Commands:", task.install));
+      ppList(
+        Fmt.(list(Config.Value.pp)),
+        ppf,
+        ("Install Commands:", task.install),
+      );
       Fmt.cut(ppf, ());
       Format.close_box();
     };

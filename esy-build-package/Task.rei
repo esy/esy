@@ -9,7 +9,7 @@
  */
 
 module Env : {
-  type t = Bos.OS.Env.t;
+  type t = Astring.String.Map.t(Config.Value.t);
   let pp: Fmt.t(t);
   let of_yojson: EsyLib.Json.decoder(t);
   let to_yojson: EsyLib.Json.encoder(t);
@@ -21,9 +21,9 @@ type t = {
   version: string,
   sourceType: SourceType.t,
   buildType: BuildType.t,
-  build: list(list(string)),
-  install: list(list(string)),
-  sourcePath: string,
+  build: list(list(Config.Value.t)),
+  install: list(list(Config.Value.t)),
+  sourcePath: Config.Value.t,
   env: Env.t,
 };
 

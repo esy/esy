@@ -5,22 +5,22 @@ module Let_syntax = Result.Syntax.Let_syntax;
 open Result.Syntax;
 
 module Env = {
-  type t = Bos.OS.Env.t;
+  type t = Astring.String.Map.t(Config.Value.t);
   let pp = (_fmt, _env) => ();
   let of_yojson = (json: Yojson.Safe.json) =>
     switch (json) {
     | `Assoc(items) =>
-      let add_to_map = (res, (key, value)) =>
+      let f = (res, (key, value)) =>
         switch (res, value) {
         | (Ok(res), `String(value)) =>
-          Ok(Astring.String.Map.add(key, value, res))
+          Ok(Astring.String.Map.add(key, Config.Value.ofString(value), res))
         | _ => Error("expected a string value")
         };
-      List.fold_left(add_to_map, Ok(Astring.String.Map.empty), items);
+      List.fold_left(f, Ok(Astring.String.Map.empty), items);
     | _ => Error("expected an object")
     };
   let to_yojson = (env: t) => {
-    let f = (k, v, items) => [(k, `String(v)), ...items];
+    let f = (k, v, items) => [(k, Config.Value.to_yojson(v)), ...items];
     let items = Astring.String.Map.fold(f, env, []);
     `Assoc(items);
   };
@@ -33,9 +33,9 @@ type t = {
   version: string,
   sourceType: SourceType.t,
   buildType: BuildType.t,
-  build: list(list(string)),
-  install: list(list(string)),
-  sourcePath: string,
+  build: list(list(Config.Value.t)),
+  install: list(list(Config.Value.t)),
+  sourcePath: Config.Value.t,
   env: Env.t,
 };
 

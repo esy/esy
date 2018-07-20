@@ -13,7 +13,7 @@ type config = {
 };
 
 type sandbox('err) =
-  (~env: Task.Env.t, Bos.Cmd.t) =>
+  (~env: Bos.OS.Env.t, Bos.Cmd.t) =>
   Run.t(
     (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
     'err,

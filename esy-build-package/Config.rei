@@ -14,4 +14,23 @@ let make : (
   unit
 ) => Run.t(t, _);
 
-let renderString : (~cfg: t, string) => Run.t(string, _);
+type config = t
+
+/* Config parametrized string value */
+module Value: {
+  type t;
+
+  let store : t;
+  let localStore : t;
+  let sandbox : t;
+
+  let show : t => string;
+  let pp : Fmt.t(t);
+  let equal : t => t => bool;
+
+  let ofString: string => t;
+  let toString : (~cfg: config, t) => Run.t(string, _);
+
+  let of_yojson: EsyLib.Json.decoder(t);
+  let to_yojson: EsyLib.Json.encoder(t);
+};

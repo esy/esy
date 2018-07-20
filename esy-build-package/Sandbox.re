@@ -7,7 +7,7 @@ type pattern =
 type config = {allowWrite: list(pattern)};
 
 type sandbox('err) =
-  (~env: Task.Env.t, Bos.Cmd.t) =>
+  (~env: Bos.OS.Env.t, Bos.Cmd.t) =>
   Run.t(
     (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
     'err,
@@ -61,7 +61,11 @@ module Darwin = {
 };
 
 let convertEnvToJsonString = env => {
-  let json = Task.Env.to_yojson(env);
+  let json = {
+    let f = (k, v, items) => [(k, `String(v)), ...items];
+    let items = Astring.String.Map.fold(f, env, []);
+    `Assoc(items);
+  };
   Yojson.Safe.to_string(json);
 };
 

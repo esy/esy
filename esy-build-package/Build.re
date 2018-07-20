@@ -23,7 +23,7 @@ let make = (~cfg: Config.t, task: Task.t) => {
     let f = (k, v) =>
       fun
       | Ok(result) => {
-          let%bind v = Config.renderString(~cfg, v);
+          let%bind v = Config.Value.toString(~cfg, v);
           Ok(Astring.String.Map.add(k, v, result));
         }
       | error => error;
@@ -32,7 +32,7 @@ let make = (~cfg: Config.t, task: Task.t) => {
 
   let renderCommands = (~cfg, cmds) => {
     let f = cmd => {
-      let%bind cmd = Result.List.map(~f=Config.renderString(~cfg), cmd);
+      let%bind cmd = Result.List.map(~f=Config.Value.toString(~cfg), cmd);
       return(Bos.Cmd.of_list(cmd));
     };
     Result.List.map(~f, cmds);
@@ -47,7 +47,7 @@ let make = (~cfg: Config.t, task: Task.t) => {
     };
 
   let%bind sourcePath = {
-    let%bind sourcePath = Config.renderString(~cfg, task.sourcePath);
+    let%bind sourcePath = Config.Value.toString(~cfg, task.sourcePath);
     return(Path.v(sourcePath));
   };
   let installPath = Path.(storePath / EsyLib.Store.installTree / task.id);
@@ -118,7 +118,8 @@ let relocateSourcePath = (config: Config.t, b: t) =>
       }
     );
 
-let isRoot = (b: t) => String.equal(b.task.sourcePath, "%sandbox%");
+let isRoot = (b: t) =>
+  Config.Value.equal(b.task.sourcePath, Config.Value.sandbox);
 
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);

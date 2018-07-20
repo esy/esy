@@ -1114,10 +1114,13 @@ let toBuildProtocol (task : task) =
     version = task.pkg.version;
     sourceType = task.sourceType;
     buildType;
-    build = task.buildCommands;
-    install = task.installCommands;
-    sourcePath = ConfigPath.toString task.paths.sourcePath;
-    env = Environment.Closed.value task.env;
+    build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.ofString) task.buildCommands;
+    install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.ofString) task.installCommands;
+    sourcePath = EsyBuildPackage.Config.Value.ofString (ConfigPath.toString task.paths.sourcePath);
+    env =
+      task.env
+      |> Environment.Closed.value
+      |> Astring.String.Map.map EsyBuildPackage.Config.Value.ofString;
   }
 
 let toBuildProtocolString ?(pretty=false) (task : task) =
