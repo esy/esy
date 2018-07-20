@@ -41,6 +41,9 @@ type t = {
 
 let ofFile = (path: Path.t) => {
   let%bind data = Bos.OS.File.read(path);
-  let%bind task = Json.parseWith(of_yojson, data);
-  return(task);
+  let json = Yojson.Safe.from_string(data);
+  switch (of_yojson(json)) {
+  | Ok(task) => Ok(task)
+  | Error(err) => Error(`Msg(err))
+  };
 };

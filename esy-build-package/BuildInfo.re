@@ -21,8 +21,11 @@ let toFile = (path: EsyLib.Path.t, info: t) => {
 let ofFile = (path: EsyLib.Path.t) =>
   if%bind (exists(path)) {
     let%bind data = Bos.OS.File.read(path);
-    let%bind info = Json.parseWith(of_yojson, data);
-    Ok(Some(info));
+    let json = Yojson.Safe.from_string(data);
+    switch (of_yojson(json)) {
+    | Ok(v) => Ok(Some(v))
+    | Error(_err) => Ok(None)
+    };
   } else {
     Ok(None);
   };
