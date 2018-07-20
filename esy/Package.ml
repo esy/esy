@@ -10,15 +10,12 @@ module OpamBuild = struct
   type t = {
     name : string;
     version : string;
-    buildCommands : commands;
-    installCommands : commands;
+    buildCommands : Manifest.Opam.commands;
+    installCommands : Manifest.Opam.commands;
     patches : (OpamFilename.Base.t * OpamTypes.filter option) list;
     substs : OpamFilename.Base.t list;
+    buildType : Manifest.BuildType.t;
   }
-
-  and commands =
-    | Opam of OpamTypes.command list
-    | Override of Manifest.CommandList.t
 
   let pp fmt _v = Fmt.pf fmt "<opam>"
   let compare _a _b = 0

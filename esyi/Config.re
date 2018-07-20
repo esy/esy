@@ -1,7 +1,5 @@
 type t = {
   esySolveCmd: Cmd.t,
-  basePath: Path.t,
-  lockfilePath: Path.t,
   cacheTarballsPath: Path.t,
   opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
@@ -43,7 +41,7 @@ let make =
       ~esySolveCmd,
       ~createProgressReporter,
       ~skipRepositoryUpdate,
-      basePath,
+      (),
     ) =>
   RunAsync.Syntax.(
     {
@@ -86,8 +84,6 @@ let make =
       return({
         createProgressReporter,
         esySolveCmd,
-        basePath,
-        lockfilePath: Path.(basePath / "esyi.lock.json"),
         cacheTarballsPath,
         opamArchivesIndexPath,
         opamRepository,

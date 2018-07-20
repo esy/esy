@@ -64,6 +64,7 @@ module SourceSpec : sig
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
   val pp : t Fmt.t
+  val ofSource : Source.t -> t
 
   module Map : Map.S with type key := t
 end

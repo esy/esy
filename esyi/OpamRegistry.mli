@@ -10,6 +10,12 @@ type resolution = {
 module Manifest : sig
   type t
 
+  val ofFile :
+    name:OpamTypes.name
+    -> version:OpamTypes.version
+    -> Path.t
+    -> t RunAsync.t
+
   val toPackage :
     name : string
     -> version : Package.Version.t

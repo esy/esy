@@ -22,24 +22,24 @@ let toOCamlVersion version =
 let renderCommandExpr ?name ~system ~scope expr =
   let pathSep =
     match system with
-    | System.Unknown
-    | System.Darwin
-    | System.Linux
-    | System.Unix
-    | System.Windows
-    | System.Cygwin -> "/"
+    | System.Platform.Unknown
+    | System.Platform.Darwin
+    | System.Platform.Linux
+    | System.Platform.Unix
+    | System.Platform.Windows
+    | System.Platform.Cygwin -> "/"
   in
   let colon =
     match name, system with
     (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)
-    | Some "OCAMLPATH", (System.Linux | System.Darwin | System.Unix | System.Unknown) -> ":"
-    | Some "OCAMLPATH", (System.Cygwin | System.Windows) -> ";"
-    | _, (System.Linux | System.Darwin | System.Unix | System.Unknown | System.Cygwin) -> ":"
-    | _, System.Windows -> ";"
+    | Some "OCAMLPATH", (System.Platform.Linux | Darwin | Unix | Unknown) -> ":"
+    | Some "OCAMLPATH", (Cygwin | Windows) -> ";"
+    | _, (Linux | Darwin | Unix | Unknown | Cygwin) -> ":"
+    | _, Windows -> ";"
   in
   let scope name =
     match name with
-    | None, "os" -> Some (CommandExpr.Value.String (System.toString system))
+    | None, "os" -> Some (CommandExpr.Value.String (System.Platform.show system))
     | _ -> scope name
   in
   CommandExpr.render ~pathSep ~colon ~scope expr
@@ -209,14 +209,14 @@ let buildId
       in
       List.fold_left ~f:digest ~init:"" [
         (match build.buildCommands with
-        | Package.OpamBuild.Opam build ->
+        | Manifest.Opam.Commands build ->
           commandsToString build
-        | Package.OpamBuild.Override build ->
+        | Manifest.Opam.OverridenCommands build ->
           Manifest.CommandList.show build);
         (match build.installCommands with
-        | Package.OpamBuild.Opam install ->
+        | Manifest.Opam.Commands install ->
           commandsToString install
-        | Package.OpamBuild.Override install ->
+        | Manifest.Opam.OverridenCommands install ->
           Manifest.CommandList.show install);
         patchesToString build.patches;
       ]
@@ -373,7 +373,7 @@ let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?(forceImmutable=false)
-    ?(system=System.host)
+    ?(system=System.Platform.host)
     ?initTerm
     ?initPath
     ?initManPath
@@ -543,10 +543,22 @@ let ofPackage
       let rootPath =
         match pkg.build, sourceType with
         | Package.EsyBuild {buildType = InSource; _}, _
-        | Package.EsyBuild {buildType = JBuilderLike; _}, Immutable -> buildPath
+        | Package.OpamBuild {buildType = InSource; _}, _  -> buildPath
+
+        | Package.EsyBuild {buildType = JBuilderLike; _}, Immutable
+        | Package.OpamBuild {buildType = JBuilderLike; _}, Immutable -> buildPath
+
         | Package.EsyBuild {buildType = JBuilderLike; _}, Development
-        | Package.EsyBuild {buildType = OutOfSource; _}, _ -> pkg.sourcePath
-        | Package.OpamBuild _, _ -> buildPath
+        | Package.OpamBuild {buildType = JBuilderLike; _}, Development -> pkg.sourcePath
+
+        | Package.EsyBuild {buildType = OutOfSource; _}, _
+        | Package.OpamBuild {buildType = OutOfSource; _}, _ -> pkg.sourcePath
+
+        | Package.EsyBuild {buildType = Unsafe; _}, Immutable
+        | Package.OpamBuild {buildType = Unsafe; _}, Immutable  -> buildPath
+
+        | Package.EsyBuild {buildType = Unsafe; _}, _
+        | Package.OpamBuild {buildType = Unsafe; _}, _  -> pkg.sourcePath
       in {
         rootPath;
         buildPath;
@@ -767,7 +779,7 @@ let ofPackage
       in
 
       let defaultPath =
-          match System.host with
+          match System.Platform.host with
           | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
           | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       in
@@ -852,7 +864,7 @@ let ofPackage
       let path v = string (ConfigPath.toString v) in
       let v =
         match scope, to_string var with
-        | Full.Global, "os" -> Some (string (System.toString system))
+        | Full.Global, "os" -> Some (string (System.Platform.show system))
         | Full.Global, "ocaml-version" ->
           let open Option.Syntax in
           let%bind ocamlVersion = ocamlVersion in
@@ -947,7 +959,7 @@ let ofPackage
         match pkg.build with
         | Package.EsyBuild {buildCommands; _} -> renderEsyCommands buildCommands
         | Package.OpamBuild ({
-            buildCommands = Package.OpamBuild.Opam buildCommands;
+            buildCommands = Manifest.Opam.Commands buildCommands;
             patches;
             substs;
             _
@@ -957,7 +969,7 @@ let ofPackage
           let%bind buildCommands = renderOpamCommands build buildCommands in
           return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
         | Package.OpamBuild ({
-            buildCommands = Package.OpamBuild.Override buildCommands;
+            buildCommands = Manifest.Opam.OverridenCommands buildCommands;
             patches;
             substs;
             _
@@ -976,13 +988,13 @@ let ofPackage
         | Package.EsyBuild {installCommands; _} ->
           renderEsyCommands installCommands
         | Package.OpamBuild ({
-            installCommands = Package.OpamBuild.Opam installCommands;
+            installCommands = Manifest.Opam.Commands installCommands;
             _
           } as build) ->
           let%bind installCommands = renderOpamCommands build installCommands in
           return (installCommands @ [["sh"; "-c"; "(esy-installer || true)"]])
         | Package.OpamBuild ({
-            installCommands = Package.OpamBuild.Override installCommands;
+            installCommands = Manifest.Opam.OverridenCommands installCommands;
             _
           }) ->
           let%bind installCommands = renderEsyCommands installCommands in
@@ -1096,7 +1108,11 @@ let toBuildProtocol (task : task) =
     | Package.EsyBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
     | Package.EsyBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
     | Package.EsyBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-    | Package.OpamBuild _ -> EsyBuildPackage.BuildTask.BuildType.InSource
+    | Package.EsyBuild {buildType = Unsafe;_} -> EsyBuildPackage.BuildTask.BuildType.Unsafe
+    | Package.OpamBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
+    | Package.OpamBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
+    | Package.OpamBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
+    | Package.OpamBuild {buildType = Unsafe;_} -> EsyBuildPackage.BuildTask.BuildType.Unsafe
   in
   EsyBuildPackage.BuildTask.ConfigFile.{
     id = task.id;

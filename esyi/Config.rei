@@ -3,8 +3,6 @@
 type t = {
   esySolveCmd: Cmd.t,
 
-  basePath: Path.t,
-  lockfilePath: Path.t,
   cacheTarballsPath: Path.t,
   opamArchivesIndexPath: Path.t,
 
@@ -42,7 +40,7 @@ let make : (
     ~createProgressReporter:
       (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
     ~skipRepositoryUpdate: bool,
-    Fpath.t
+    unit
   ) => RunAsync.t(t)
 
 let resolvedPrefix : string;

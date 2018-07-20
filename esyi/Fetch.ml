@@ -574,9 +574,9 @@ let runLifecycle ~installation ~(manifest : Manifest.t) () =
   in
   return ()
 
-let isInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
+let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-  let layout = Layout.ofSolution ~path:cfg.basePath solution in
+  let layout = Layout.ofSolution ~path:sandbox.path solution in
   let f installed {Layout.path;_} =
     if not installed
     then return installed
@@ -584,11 +584,11 @@ let isInstalled ~cfg:(cfg : Config.t) (solution : Solution.t) =
   in
   RunAsync.List.foldLeft ~f ~init:true layout
 
-let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
+let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
-  let nodeModulesPath = Path.(cfg.basePath / "node_modules") in
+  let nodeModulesPath = Path.(sandbox.path / "node_modules") in
 
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
@@ -606,7 +606,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
-    let report, finish = cfg.Config.createProgressReporter ~name:"fetching" () in
+    let report, finish = sandbox.cfg.Config.createProgressReporter ~name:"fetching" () in
     let%bind items =
       let fetch record =
         let%bind dist =
@@ -616,7 +616,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
               let status = Format.asprintf "%a" Record.pp record in
               report status
             in
-            FetchStorage.fetch ~cfg record)
+            FetchStorage.fetch ~cfg:sandbox.cfg record)
         in
         return (record, dist)
       in
@@ -637,7 +637,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
   let%bind installed =
     let queue = LwtTaskQueue.create ~concurrency:4 () in
-    let report, finish = cfg.Config.createProgressReporter ~name:"installing" () in
+    let report, finish = sandbox.cfg.Config.createProgressReporter ~name:"installing" () in
     let f ({Layout.path; sourcePath;record;_} as installation) () =
       match Record.Map.find_opt record dists with
       | Some dist ->
@@ -646,7 +646,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
           report status
         in
         let%bind () =
-          FetchStorage.install ~cfg ~path dist
+          FetchStorage.install ~cfg:sandbox.cfg ~path dist
         in
         let%bind manifest = Manifest.ofDir sourcePath in
         return (installation, manifest)
@@ -663,7 +663,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
 
     let layout =
       Layout.ofSolution
-        ~path:cfg.basePath
+        ~path:sandbox.path
         solution
     in
 
@@ -719,7 +719,7 @@ let fetch ~cfg:(cfg : Config.t) (solution : Solution.t) =
   (* populate node_modules/.bin with scripts defined for the direct dependencies *)
 
   let%bind () =
-    let binPath = Path.(cfg.basePath / "node_modules" / ".bin") in
+    let binPath = Path.(sandbox.path / "node_modules" / ".bin") in
     let%bind () = Fs.createDir binPath in
 
     let installBinWrapper (name, path) =

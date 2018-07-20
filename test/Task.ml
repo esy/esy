@@ -98,7 +98,7 @@ module TestCommandExpr = struct
         buildType = Manifest.BuildType.InSource;
       }
     } in
-    check ~system:System.Linux pkg (fun task ->
+    check ~system:System.Platform.Linux pkg (fun task ->
       Task.CommandList.equal
         task.buildCommands
         [["apt-get"; "install"; "pkg"]]
@@ -108,7 +108,7 @@ module TestCommandExpr = struct
         [["make"; "install-linux"]]
     )
     &&
-    check ~system:System.Darwin pkg (fun task ->
+    check ~system:System.Platform.Darwin pkg (fun task ->
       Task.CommandList.equal
         task.buildCommands
         [["true"]]
@@ -185,13 +185,13 @@ let checkEnvExists ~name ~value task =
       pkg with
       dependencies = [Dependency dep];
     } in
-    check ~system:System.Linux pkg (fun task ->
+    check ~system:System.Platform.Linux pkg (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib" task
     )
     &&
-    check ~system:System.Windows pkg (fun task ->
+    check ~system:System.Platform.Windows pkg (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one;two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin;/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib/ocaml" task
