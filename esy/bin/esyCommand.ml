@@ -158,11 +158,12 @@ let configTerm =
     let open RunAsync.Syntax in
 
     let isSandoxPath path =
-      if%bind Fs.exists Path.(path / "package.json")
-      then return true
-      else if%bind Fs.exists Path.(path / "esy.json")
-      then return true
-      else return false
+      let%bind names = Fs.listDir path in
+      let f = function
+        | "esy.json" | "package.json" | "opam" -> true
+        | name -> Path.(name |> v |> has_ext ".opam")
+      in
+      return (List.exists ~f names)
     in
 
     let%bind currentPath = RunAsync.ofRun (Path.current ()) in
