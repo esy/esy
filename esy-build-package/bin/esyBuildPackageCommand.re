@@ -49,7 +49,7 @@ let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind cfg = createConfig(copts);
   let%bind task = Task.ofFile(buildPath);
-  let%bind () = Builder.build(~buildOnly, ~force, ~cfg, task);
+  let%bind () = Build.build(~buildOnly, ~force, ~cfg, task);
   Ok();
 };
 
@@ -110,7 +110,7 @@ let shell = (copts: commonOpts) => {
     Format.print_flush();
   };
 
-  let%bind () = Builder.withBuildEnv(~cfg, task, runShell);
+  let%bind () = Build.withBuild(~cfg, task, runShell);
   ok;
 };
 
@@ -124,7 +124,7 @@ let exec = (copts, command) => {
     runInteractive(cmd);
   };
   let%bind task = Task.ofFile(buildPath);
-  let%bind () = Builder.withBuildEnv(~cfg, task, runCommand);
+  let%bind () = Build.withBuild(~cfg, task, runCommand);
   ok;
 };
 

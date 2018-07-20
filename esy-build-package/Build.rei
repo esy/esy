@@ -1,4 +1,4 @@
-type build = pri {
+type t = pri {
   task: Task.t,
   sourcePath: EsyLib.Path.t,
   storePath: EsyLib.Path.t,
@@ -12,13 +12,13 @@ type build = pri {
   install: list(Bos.Cmd.t),
 };
 
-/** Build task */
+/** Build task. */
 let build:
   (~buildOnly: bool=?, ~force: bool=?, ~cfg: Config.t, Task.t) =>
   Run.t(unit, 'b);
 
-/** Run with a build env */
-let withBuildEnv:
+/** Run computation with build. */
+let withBuild:
   (
     ~commit: bool=?,
     ~cfg: Config.t,
@@ -26,7 +26,7 @@ let withBuildEnv:
     (
       ~run: Bos.Cmd.t => Run.t(unit, 'a),
       ~runInteractive: Bos.Cmd.t => Run.t(unit, 'a),
-      build
+      t
     ) => Run.t(unit, 'b),
   ) =>
   Run.t(unit, 'b);
