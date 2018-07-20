@@ -261,3 +261,5 @@ let ofDir (cfg : Config.t) =
 
   | _ ->
     error "root package missing esy config"
+
+let isSandbox = Manifest.dirHasManifest

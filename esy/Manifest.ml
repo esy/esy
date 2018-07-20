@@ -611,3 +611,12 @@ let ofDir ?(asRoot=false) (path : Path.t) =
       return (Some (Opam manifest, paths))
     | None -> return None
     end
+
+let dirHasManifest (path : Path.t) =
+  let open RunAsync.Syntax in
+  let%bind names = Fs.listDir path in
+  let f = function
+    | "esy.json" | "package.json" | "opam" -> true
+    | name -> Path.(name |> v |> has_ext ".opam")
+  in
+  return (List.exists ~f names)
