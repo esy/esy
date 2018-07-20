@@ -66,7 +66,7 @@ let isExecutable (stats : Unix.stats) =
  * as shell commands are provided there (these paths get converted to their cygwin equivalents and checked).
  *)
 let getAdditionalResolvePaths path =
-    match System.host with
+    match System.Platform.host with
     | Windows -> path @ ["/bin"; "/usr/bin"]
     | _ -> path
 
