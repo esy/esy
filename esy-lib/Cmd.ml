@@ -84,8 +84,19 @@ let checkIfCommandIsAvailable fullPath =
     in
     List.fold_left ~f:evaluate ~init:(Ok None) extensions
 
+(* 
+ * When running from some contexts, like the ChildProcess, only the system paths are provided.
+ * However, on Windows, we also need to check the equivalent of the `bin` and `usr/bin` folders,
+ * as shell commands are provided there (these paths get converted to their cygwin equivalents and checked).
+ *)
+let getAdditionalResolvePaths path = 
+    match System.host with
+    | Windows -> path @ ["/bin"; "/usr/bin"]
+    | _ -> path
+
 let resolveCmd path cmd =
   let open Result.Syntax in
+  let allPaths = getAdditionalResolvePaths path in
   let find p =
     let p = let open Path in (v p) / cmd in
     let%bind p = EsyBash.normalizePathForWindows p in
@@ -107,7 +118,7 @@ let resolveCmd path cmd =
   match cmd.[0] with
   | '.'
   | '/' -> Ok cmd
-  | _ -> resolve path
+  | _ -> resolve allPaths
 
 let resolveInvocation path (tool, args) =
   let open Result.Syntax in
