@@ -60,7 +60,7 @@ let shell = (copts: commonOpts) => {
   let%bind cfg = createConfig(copts);
   let%bind task = Task.ofFile(buildPath);
 
-  let runShell = (_run, runInteractive, ()) => {
+  let runShell = (~run as _, ~runInteractive, _build) => {
     let%bind rcFilename =
       putTempFile({|
         export PS1="[build $cur__name] % ";
@@ -119,7 +119,7 @@ let exec = (copts, command) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind cfg = createConfig(copts);
-  let runCommand = (_run, runInteractive, ()) => {
+  let runCommand = (~run as _, ~runInteractive, _build) => {
     let cmd = Bos.Cmd.of_list(command);
     runInteractive(cmd);
   };

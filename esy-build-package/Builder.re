@@ -423,7 +423,7 @@ let withBuildEnvUnlocked = (~commit=false, config: Config.t, b: build, f) => {
       error;
     };
   let%bind () = prepare();
-  let result = withCwd(rootPath, ~f=f(run, runInteractive));
+  let result = withCwd(rootPath, ~f=() => f(~run, ~runInteractive, b));
   let%bind () = finalize(result);
   result;
 };
@@ -447,7 +447,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
     Logs.app(m =>
       m("# esy-build-package: building: %s@%s", b.task.name, b.task.version)
     );
-    let runBuildAndInstall = (run, _runInteractive, ()) => {
+    let runBuildAndInstall = (~run, ~runInteractive as _, b) => {
       let runList = cmds => {
         let rec aux = cmds =>
           switch (cmds) {
