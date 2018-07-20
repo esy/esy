@@ -359,7 +359,7 @@ end = struct
         opam : OpamFile.OPAM.t;
         override : OpamOverride.t option;
       }
-    | AggregatedRoot of OpamFile.OPAM.t list
+    | AggregatedRoot of (string * OpamFile.OPAM.t) list
 
   and commands =
     | Commands of OpamTypes.command list
@@ -388,6 +388,26 @@ end = struct
     | Installed _ -> BuildType.InSource
     | AggregatedRoot _ -> BuildType.Unsafe
 
+  let replaceNameInCommands name commands =
+    let renderCommand (command : OpamTypes.command) =
+      let args, filter = command in
+      let args =
+        let renderArg (arg : OpamTypes.arg) =
+          let arg, filter = arg in
+          let arg =
+            match arg with
+            | OpamTypes.CIdent "name" -> OpamTypes.CString name
+            | OpamTypes.CString _ -> arg
+            | OpamTypes.CIdent _ -> arg
+          in
+          arg, filter
+        in
+        List.map ~f:renderArg args
+      in
+      args, filter
+    in
+    List.map ~f:renderCommand commands
+
   let buildCommands = function
     | Installed manifest ->
       begin match manifest.override with
@@ -399,7 +419,10 @@ end = struct
       end
     | AggregatedRoot opams ->
       let commands =
-        let f commands opam = commands @ (OpamFile.OPAM.build opam) in
+        let f commands (name, opam) =
+          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.build opam) in
+          commands @ nextCommands
+        in
         List.fold_left ~f ~init:[] opams
       in
       Commands commands
@@ -415,7 +438,10 @@ end = struct
       end
     | AggregatedRoot opams ->
       let commands =
-        let f commands opam = commands @ (OpamFile.OPAM.install opam) in
+        let f commands (name, opam) =
+          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.install opam) in
+          commands @ nextCommands
+        in
         List.fold_left ~f ~init:[] opams
       in
       Commands commands
@@ -495,8 +521,14 @@ end = struct
       | None -> dependencies
       end
     | AggregatedRoot opams ->
-      let f dependencies opam =
-        StringSet.union dependencies (dependsOfOpam opam)
+      let namesPresent =
+        let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+        List.fold_left ~f ~init:StringSet.empty opams
+      in
+      let f dependencies (_name, opam) =
+        let update = dependsOfOpam opam in
+        let update = StringSet.diff update namesPresent in
+        StringSet.union dependencies update
       in
       List.fold_left ~f ~init:StringSet.empty opams
 
@@ -536,7 +568,7 @@ end = struct
   let ofDirAsAggregatedRoot (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind filenames = Fs.listDir path in
-    let paths = 
+    let paths =
       filenames
       |> List.map ~f:(fun name -> Path.(path / name))
       |> List.filter ~f:(fun path ->
@@ -546,7 +578,9 @@ end = struct
       paths
       |> List.map ~f:(fun path ->
         let%bind data = Fs.readFile path in
-        return (OpamFile.OPAM.read_from_string data))
+        let opam = OpamFile.OPAM.read_from_string data in
+        let name = Path.(path |> rem_ext |> basename) in
+        return (name, opam))
       |> RunAsync.List.joinAll
     in
     return (Some (AggregatedRoot opams, Path.Set.of_list paths))

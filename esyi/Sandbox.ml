@@ -27,6 +27,7 @@ let readPackageJsonManifest (path : Path.t) =
 let readAggregatedOpamManifest (path : Path.t) =
   let open RunAsync.Syntax in
   let%bind filenames = Fs.listDir path in
+
   let%bind opams =
     let version = OpamPackage.Version.of_string "dev" in
     filenames
@@ -34,25 +35,45 @@ let readAggregatedOpamManifest (path : Path.t) =
     |> List.filter ~f:(fun path ->
         Path.has_ext ".opam" path || Path.basename path = "opam")
     |> List.map ~f:(fun path ->
-        let name =
-          let name = Path.(path |> rem_ext |> basename) in
-          OpamPackage.Name.of_string name in
-        OpamRegistry.Manifest.ofFile ~name ~version path)
+        let name = Path.(path |> rem_ext |> basename) in
+        let%bind manifest =
+          OpamRegistry.Manifest.ofFile ~name:(OpamPackage.Name.of_string name) ~version path
+        in
+        return (name, manifest))
     |> RunAsync.List.joinAll
   in
+
+  let namesPresent =
+    let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+    List.fold_left ~f ~init:StringSet.empty opams
+  in
+
+  let filterFormulaWithNamesPresent (deps : Package.Dep.t list list) =
+    let filterDep (dep : Package.Dep.t) = not (StringSet.mem dep.name namesPresent) in
+    let filterDisj deps =
+      match List.filter ~f:filterDep deps with
+      | [] -> None
+      | f -> Some f
+    in
+    deps
+    |> List.map ~f:filterDisj
+    |> List.filterNone
+  in
+
   match opams with
   | [] -> return None
   | opams ->
     let%bind pkgs =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
-      let f opam = OpamRegistry.Manifest.toPackage ~name:"root" ~version opam in
+      let f (name, opam) = OpamRegistry.Manifest.toPackage ~name ~version opam in
       RunAsync.List.joinAll (List.map ~f opams)
     in
     let dependencies, devDependencies =
       let f (dependencies, devDependencies) (pkg : Package.t) =
         match pkg.dependencies, pkg.devDependencies with
         | Package.Dependencies.OpamFormula du, Package.Dependencies.OpamFormula ddu ->
-          du @ dependencies, ddu @ devDependencies
+          (filterFormulaWithNamesPresent du) @ dependencies,
+          (filterFormulaWithNamesPresent ddu) @ devDependencies
         | _ -> assert false
       in
       List.fold_left ~f ~init:([], []) pkgs
@@ -74,7 +95,7 @@ let ofDir ~cfg (path : Path.t) =
 
     let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in
 
-    let%bind root = 
+    let%bind root =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
       Manifest.toPackage ~version manifest
     in
