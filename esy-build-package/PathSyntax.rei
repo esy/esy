@@ -1,3 +1,11 @@
+/*
+
+   Special substitution syntax %name%.
+
+   This is used to parametrize tasks with build store locations.
+
+ */
+
 type env = string => option(string);
 
 /** Render string using env. */

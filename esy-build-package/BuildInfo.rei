@@ -1,3 +1,9 @@
+/*
+
+  Information about performed build.
+
+ */
+
 type t = {
   timeSpent: float,
   sourceModTime: option(float),
