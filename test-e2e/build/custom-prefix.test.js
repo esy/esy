@@ -11,8 +11,7 @@ it('Build - custom prefix (not propperly implemented)', async done => {
 
   const {stdout} = await esyCommands.x(PROJECT_PATH, 'custom-prefix');
 
-  const match = expect.stringMatching('custom-prefix');
-  expect(stdout).toEqual(match);
+  expect(stdout).toEqual(expect.stringMatching('custom-prefix'));
 
   done();
 });

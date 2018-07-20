@@ -11,7 +11,7 @@ it('Build - no deps _build', async done => {
 
   const {stdout} = await esyCommands.x(PROJECT_PATH, 'no-deps-_build');
 
-  expect(stdout).toEqual(expect.stringMatching(`no-deps-_build`));
+  expect(stdout).toEqual(expect.stringMatching('no-deps-_build'));
 
   done();
 });
