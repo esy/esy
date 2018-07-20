@@ -6,6 +6,13 @@ type pattern =
 
 type config = {allowWrite: list(pattern)};
 
+type sandbox('err) =
+  (~env: Task.Env.t, Bos.Cmd.t) =>
+  Run.t(
+    (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
+    'err,
+  );
+
 module Darwin = {
   let renderConfig = config => {
     open Sexp;
@@ -103,7 +110,7 @@ module NoSandbox = {
   };
 };
 
-let sandboxExec = config =>
+let init = (config: config) =>
   switch (EsyLib.System.Platform.host) {
   | Windows => Windows.sandboxExec(config)
   | Darwin => Darwin.sandboxExec(config)

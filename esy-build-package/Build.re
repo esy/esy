@@ -350,7 +350,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
       | Some(term) => Astring.String.Map.add("TERM", term, b.env)
       | None => b.env
       };
-    let%bind prepare = Sandbox.sandboxExec({allowWrite: sandboxConfig});
+    let%bind sandboxExec = Sandbox.init({allowWrite: sandboxConfig});
     let path =
       switch (Astring.String.Map.find("PATH", env)) {
       | Some(path) => String.split_on_char(System.envSep.[0], path)
@@ -361,7 +361,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
         let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
         let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
         let cmd = EsyLib.Cmd.toBosCmd(cmd);
-        let%bind exec = prepare(~env, cmd);
+        let%bind exec = sandboxExec(~env, cmd);
         Bos.OS.Cmd.(
           in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout
         );
@@ -376,7 +376,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
         let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
         let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
         let cmd = EsyLib.Cmd.toBosCmd(cmd);
-        let%bind exec = prepare(~env, cmd);
+        let%bind exec = sandboxExec(~env, cmd);
         Bos.OS.Cmd.(
           in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout
         );
