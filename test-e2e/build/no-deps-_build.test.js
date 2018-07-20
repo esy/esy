@@ -1,34 +1,17 @@
-const childProcess = require('child_process');
 const path = require('path');
-const {promisify} = require('util');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, esyCommands} = require('../test/helpers');
 
-const ESYCOMMAND = require.resolve('../../bin/esy');
-
-const promiseExec = promisify(childProcess.exec);
-
-it('Build - no deps _build', done => {
+it('Build - no deps _build', async done => {
   expect.assertions(1);
-  return initFixture('./build/fixtures/no-deps-_build')
-    .then(TEST_PATH => {
-      return promiseExec(`${ESYCOMMAND} build`, {
-        cwd: path.join(TEST_PATH, 'project'),
-      }).then(() => TEST_PATH);
-    })
-    .then(TEST_PATH => {
-      return promiseExec(`${ESYCOMMAND} x no-deps-_build`, {
-        cwd: path.join(TEST_PATH, 'project'),
-      })
-        .then(({stdout}) =>
-          expect(stdout).toEqual(expect.stringMatching(`no-deps-_build`)),
-        )
-        .then(done);
-    })
-    .then(done)
-    .catch(e => {
-      expect(e).toBeNull();
-      console.error(e);
-      done();
-    });
+  const TEST_PATH = await initFixture('./build/fixtures/no-deps-_build');
+  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
+
+  await esyCommands.build(PROJECT_PATH);
+
+  const {stdout} = await esyCommands.x(PROJECT_PATH, 'no-deps-_build');
+
+  expect(stdout).toEqual(expect.stringMatching(`no-deps-_build`));
+
+  done();
 });

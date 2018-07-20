@@ -1,20 +1,12 @@
-const childProcess = require('child_process');
 const path = require('path');
-const {promisify} = require('util');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, esyCommands} = require('../test/helpers');
 
-const ESYCOMMAND = require.resolve('../../bin/esy');
+it('Build - errorneous build', async done => {
+  const TEST_PATH = await initFixture('./build/fixtures/errorneous-build');
+  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-const promiseExec = promisify(childProcess.exec);
+  expect(esyCommands.build(PROJECT_PATH)).rejects.toThrow();
 
-it('Build - errorneous build', () => {
-  expect.assertions(1);
-  return expect(
-    initFixture('./build/fixtures/errorneous-build').then(TEST_PATH => {
-      return promiseExec(`${ESYCOMMAND} build`, {
-        cwd: path.join(TEST_PATH, 'project'),
-      }).then(() => TEST_PATH);
-    }),
-  ).rejects.toThrow();
+  done();
 });
