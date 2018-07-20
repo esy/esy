@@ -3,11 +3,38 @@
  */
 
 const child_process = require('child_process');
+const os = require('os');
 const path = require('path');
 const chalk = require('chalk');
 
 const RUNTIME = require.resolve('./runtime.sh');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+
+// TODO:
+// Once we have a common build path for `esy`, and don't need the windows bootstrapping scripts,
+// we should be able to have a common resolution for the esy command. The windows bootstrapping
+// scripts today don't copy the binaries to a root bin folder.
+const esyCommandPath = os.platform() === "win32" ? '../../_build/default/esy/bin/esyCommand.exe' : '../../bin/esy'
+
+const ESYCOMMAND = require.resolve(esyCommandPath);
+
+const getBashCommandAndArgs = () => {
+    switch (os.platform()) {
+        case "win32": 
+            // Pick up esy-bash from the root as opposed to installing it again
+            const esyBashPath = path.join(__dirname, "..", "..", "node_modules", "esy-bash", "bin", "esy-bash.js");
+            return {
+                command: "node",
+                args: [esyBashPath]
+            }
+            break;
+        default:
+            return {
+                command: "/bin/bash",
+                args: ["-c"]
+            }
+            break;
+    }
+}
 
 module.exports = testRunner;
 
@@ -19,7 +46,10 @@ function testRunner(globalConfig, config, environment, runtime, testPath) {
     source "${testPath}"
     doTest
   `;
-  return spawn('/bin/bash', ['-c', source], {cwd: path.dirname(testPath)}).then(
+
+  const {command, args} = getBashCommandAndArgs();
+
+  return spawn(command, [...args, source], {cwd: path.dirname(testPath)}).then(
     () => {
       const end = +new Date();
       return success({testPath, start, end});
