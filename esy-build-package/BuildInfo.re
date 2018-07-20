@@ -10,18 +10,20 @@ type t = {
 };
 
 let write = (task: Task.t, info: t) => {
+  let infoPath = Task.infoPath(task);
   let write = (oc, ()) => {
     Yojson.Safe.pretty_to_channel(oc, to_yojson(info));
     Run.ok;
   };
-  Result.join(Bos.OS.File.with_oc(task.infoPath, write, ()));
+  Result.join(Bos.OS.File.with_oc(infoPath, write, ()));
 };
 
 let read = (task: Task.t) => {
+  let infoPath = Task.infoPath(task);
   let read =
     Run.(
-      if%bind (exists(task.infoPath)) {
-        let%bind data = Bos.OS.File.read(task.infoPath);
+      if%bind (exists(infoPath)) {
+        let%bind data = Bos.OS.File.read(infoPath);
         let%bind info = Json.parseWith(of_yojson, data);
         Ok(Some(info));
       } else {

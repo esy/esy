@@ -54,8 +54,8 @@ module Darwin = {
 };
 
 let convertEnvToJsonString = env => {
-  let json = Task.Env.to_yojson(env);
-  Yojson.to_string(json);
+  let json = TaskConfig.Env.to_yojson(env);
+  Yojson.Safe.to_string(json);
 };
 
 module Windows = {

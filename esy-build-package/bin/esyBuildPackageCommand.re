@@ -93,13 +93,13 @@ let shell = (copts: commonOpts) => {
 
     let ppBanner = (ppf, ()) => {
       Format.open_vbox(0);
-      fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
+      fmt("Package: %s@%s", ppf, Task.name(task), Task.version(task));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Task.Cmd.pp, ppf, ("Build Commands:", task.build));
+      ppList(Task.Cmd.pp, ppf, ("Build Commands:", Task.build(task)));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Task.Cmd.pp, ppf, ("Install Commands:", task.install));
+      ppList(Task.Cmd.pp, ppf, ("Install Commands:", Task.install(task)));
       Fmt.cut(ppf, ());
       Format.close_box();
     };
