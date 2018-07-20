@@ -176,14 +176,9 @@ let addRoot ~(record : Record.t) ~dependencies sol =
   let id = Id.ofRecord record in
   {sol with root = Some id;}
 
-let dependenciesHash (manifest : Manifest.Root.t) =
-  let hashDependencies ~prefix ~dependencies digest =
-    let f digest req =
-     Digest.string (digest ^ "__" ^ prefix ^ "__" ^ Req.toString req)
-    in
-    List.fold_left
-      ~f ~init:digest
-      dependencies
+let dependenciesHash (sandbox : Sandbox.t) =
+  let hashDependencies ~dependencies digest =
+    Digest.string (digest ^ "__" ^ Package.Dependencies.show dependencies)
   in
   let hashResolutions ~resolutions digest =
     let f digest (key, version) =
@@ -196,13 +191,9 @@ let dependenciesHash (manifest : Manifest.Root.t) =
   let digest =
     Digest.string ""
     |> hashResolutions
-      ~resolutions:manifest.Manifest.Root.resolutions
+      ~resolutions:sandbox.resolutions
     |> hashDependencies
-      ~prefix:"dependencies"
-      ~dependencies:manifest.manifest.dependencies
-    |> hashDependencies
-      ~prefix:"devDependencies"
-      ~dependencies:manifest.manifest.devDependencies
+      ~dependencies:sandbox.root.dependencies
   in
   Digest.to_hex digest
 
@@ -258,8 +249,8 @@ module LockfileV1 = struct
     in
     {record with source; version}
 
-  let solutionOfLockfile ~cfg root node =
-    let derelativize path = Path.(cfg.Config.basePath // path |> normalize) in
+  let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
+    let derelativize path = Path.(sandbox.path // path |> normalize) in
     let root = mapId ~f:derelativize root in
     let f id {record; dependencies} sol =
       let record = mapRecord ~f:derelativize record in
@@ -270,11 +261,11 @@ module LockfileV1 = struct
     in
     Id.Map.fold f node empty
 
-  let lockfileOfSolution ~cfg (sol : solution) =
+  let lockfileOfSolution ~(sandbox : Sandbox.t) (sol : solution) =
     let relativize path =
-      if Path.equal path cfg.Config.basePath
+      if Path.equal path sandbox.path
       then Path.(v ".")
-      else match Path.relativize ~root:cfg.Config.basePath path with
+      else match Path.relativize ~root:sandbox.path path with
       | Some path -> path
       | None -> path
     in
@@ -294,7 +285,7 @@ module LockfileV1 = struct
     in
     root, node
 
-  let ofFile ~cfg ~(manifest : Manifest.Root.t) (path : Path.t) =
+  let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
     let open RunAsync.Syntax in
     if%bind Fs.exists path
     then
@@ -304,9 +295,9 @@ module LockfileV1 = struct
       in
       match lockfile with
       | Ok lockfile ->
-        if lockfile.hash = dependenciesHash manifest
+        if lockfile.hash = dependenciesHash sandbox
         then
-          let solution = solutionOfLockfile ~cfg lockfile.root lockfile.node in
+          let solution = solutionOfLockfile ~sandbox lockfile.root lockfile.node in
           return (Some solution)
         else return None
       | Error err ->
@@ -314,7 +305,7 @@ module LockfileV1 = struct
           let path =
             Option.orDefault
               ~default:path
-              (Path.relativize ~root:cfg.Config.basePath path)
+              (Path.relativize ~root:sandbox.path path)
           in
           Format.asprintf
             "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"
@@ -324,9 +315,9 @@ module LockfileV1 = struct
     else
       return None
 
-  let toFile ~cfg ~(manifest : Manifest.Root.t) ~(solution : solution) (path : Path.t) =
-    let root, node = lockfileOfSolution ~cfg solution in
-    let hash = dependenciesHash manifest in
+  let toFile ~sandbox ~(solution : solution) (path : Path.t) =
+    let root, node = lockfileOfSolution ~sandbox solution in
+    let hash = dependenciesHash sandbox in
     let lockfile = {hash; node; root} in
     let json = to_yojson lockfile in
     Fs.writeJsonFile ~json path

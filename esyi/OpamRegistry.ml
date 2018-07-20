@@ -191,7 +191,19 @@ module Manifest = struct
     archive : OpamArchivesIndex.record option;
   }
 
-  let ofFile ~name ~version ?url registry =
+  let ofFile ~name ~version (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind data = Fs.readFile path in
+    let opam = OpamFile.OPAM.read_from_string data in 
+    return {
+      name; version; path = Path.parent path;
+      opam;
+      url = None;
+      override = Override.empty;
+      archive = None;
+    }
+
+  let ofRegistry ~name ~version ?url registry =
     let open RunAsync.Syntax in
     let path = packagePath ~name ~version registry in
     let%bind opam = readOpamFile ~name ~version registry in
@@ -521,7 +533,7 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
   match%bind getPackage registry ~name ~version with
   | None -> return None
   | Some { opam = _; url; name; version } ->
-    let%bind pkg = Manifest.ofFile ~name ~version ?url registry in
+    let%bind pkg = Manifest.ofRegistry ~name ~version ?url registry in
     begin match%bind OpamOverrides.find ~name ~version registry.overrides with
     | None -> return (Some pkg)
     | Some override -> return (Some {pkg with Manifest. override})

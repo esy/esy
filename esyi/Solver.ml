@@ -625,7 +625,7 @@ let solveOCamlReq ~cfg ~opamRegistry req =
     return None
   end
 
-let solve ~cfg ~resolutions (root : Package.t) =
+let solve (sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
 
   let getResultOrExplain = function
@@ -638,40 +638,38 @@ let solve ~cfg ~resolutions (root : Package.t) =
       error msg
   in
 
-  let reqs, ocamlReq =
-    match root.dependencies, root.devDependencies with
-    | Dependencies.NpmFormula reqs, Dependencies.NpmFormula devReqs ->
-      (* we override dependencies with devDependencies for the root project *)
-      let reqs = NpmDependencies.override reqs devReqs in
-      let ocamlReq = NpmDependencies.find ~name:"ocaml" reqs in
-      reqs, ocamlReq
-    | _ -> failwith "only npm formulas are supported for the root manifest"
-  in
+  let opamRegistry = OpamRegistry.make ~cfg:sandbox.cfg () in
 
-  let opamRegistry = OpamRegistry.make ~cfg () in
+  let%bind dependencies, ocamlVersion =
+    match sandbox.ocamlReq with
+    | None -> return (sandbox.dependencies, None)
+    | Some ocamlReq ->
+      let%bind ocamlVersion = solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry ocamlReq in
 
-  let%bind ocamlVersion, reqs =
-    match ocamlReq with
-    | Some req ->
-      let%bind version = solveOCamlReq ~cfg ~opamRegistry req in
-      let reqs =
-        match version with
-        | Some version ->
-          let ocamlReq = Req.ofSpec ~name:req.name ~spec:(VersionSpec.ofVersion version) in
-          NpmDependencies.override reqs [ocamlReq]
-        | None -> reqs
+      let dependencies =
+        match ocamlVersion, sandbox.dependencies with
+        | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
+          let ocamlSpec = Package.VersionSpec.ofVersion ocamlVersion in
+          let ocamlReq = Req.ofSpec ~name:"ocaml" ~spec:ocamlSpec in
+          let reqs = Package.NpmDependencies.override reqs [ocamlReq] in
+          Package.Dependencies.NpmFormula reqs
+        | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
+          let req =
+            match ocamlVersion with
+            | Package.Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
+            | Package.Version.Source src -> Package.Dep.Source (Package.SourceSpec.ofSource src)
+            | Package.Version.Opam v -> Package.Dep.Opam (OpamVersion.Constraint.EQ v)
+          in
+          let ocamlDep = {Package.Dep. name = "ocaml"; req;} in
+          Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])
+        | None, deps -> deps
       in
-      return (version, reqs)
-    | None ->
-      Logs_lwt.app (fun m -> m "no ocaml constraint defined");%lwt
-      return (None, reqs)
+      return (dependencies, ocamlVersion)
   in
-
-  let dependencies = Dependencies.NpmFormula reqs in
 
   let%bind solver, dependencies =
-    let%bind resolver = Resolver.make ?ocamlVersion ~opamRegistry ~cfg () in
-    let%bind solver = make ~resolver ~cfg ~resolutions () in
+    let%bind resolver = Resolver.make ?ocamlVersion ~opamRegistry ~cfg:sandbox.cfg () in
+    let%bind solver = make ~resolver ~cfg:sandbox.cfg ~resolutions:sandbox.resolutions () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
   in
@@ -690,7 +688,7 @@ let solve ~cfg ~resolutions (root : Package.t) =
   let%bind packagesToDependencies =
     solveDependenciesNaively
       ~installed
-      ~root
+      ~root:sandbox.root
       dependencies
       solver
   in
@@ -707,8 +705,8 @@ let solve ~cfg ~resolutions (root : Package.t) =
       |> RunAsync.List.foldLeft ~f ~init:Solution.empty
     in
 
-    let%bind record = solutionRecordOfPkg ~solver root in
-    let dependencies = Package.Map.find root packagesToDependencies in
+    let%bind record = solutionRecordOfPkg ~solver sandbox.root in
+    let dependencies = Package.Map.find sandbox.root packagesToDependencies in
     return (Solution.addRoot ~record ~dependencies sol)
   in
 

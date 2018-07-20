@@ -1,11 +1,10 @@
-module PathSet = Set.Make(Path)
 module ConfigPath = Config.ConfigPath
 
 type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
   manifestInfo : (Path.t * float) list;
-} [@@deriving show]
+}
 
 let packagePathAt ?scope ~name basedir =
   match scope with
@@ -42,7 +41,7 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 let ofDir (cfg : Config.t) =
   let open RunAsync.Syntax in
 
-  let manifestInfo = ref PathSet.empty in
+  let manifestInfo = ref Path.Set.empty in
 
   let resolutionCache = Memoize.make ~size:200 () in
 
@@ -144,8 +143,8 @@ let ofDir (cfg : Config.t) =
             (Manifest.Opam.optDependencies manifest)
     in
 
-    let packageOfManifest ~sourcePath (manifest : Manifest.t) manifestPath =
-      manifestInfo := (PathSet.add manifestPath (!manifestInfo));
+    let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
+      manifestInfo := (Path.Set.union pathSet (!manifestInfo));
       let%lwt dependencies = loadDependencies manifest in
 
       let hasDepWithSourceTypeDevelopment =
@@ -162,40 +161,22 @@ let ofDir (cfg : Config.t) =
 
       match manifest with
       | Manifest.Opam manifest ->
-        let sourceType = Manifest.SourceType.Immutable in
         let pkg = Package.{
           id = Path.to_string path;
           name = Manifest.Opam.name manifest;
           version = Manifest.Opam.version manifest;
           dependencies;
-          sourceType;
+          sourceType = Manifest.Opam.sourceType manifest;
           sandboxEnv = Manifest.SandboxEnv.empty;
-          exportedEnv = begin
-            match manifest.override with
-            | Some {Manifest.OpamOverride. exportedEnv;_} -> exportedEnv
-            | None -> Manifest.ExportedEnv.empty
-          end;
+          exportedEnv = Manifest.Opam.exportedEnv manifest;
           build = Package.OpamBuild {
             name = Manifest.Opam.opamName manifest;
             version = Manifest.Opam.version manifest;
-            buildCommands = begin
-              match manifest.override with
-              | Some {Manifest.OpamOverride. build = Some build; _} ->
-                Package.OpamBuild.Override build
-              | Some {Manifest.OpamOverride. build = None; _}
-              | None ->
-                Package.OpamBuild.Opam (OpamFile.OPAM.build manifest.opam)
-              end;
-            installCommands = begin
-              match manifest.override with
-              | Some {Manifest.OpamOverride. install = Some install; _} ->
-                Package.OpamBuild.Override install
-              | Some {Manifest.OpamOverride. install = None; _}
-              | None ->
-                Package.OpamBuild.Opam (OpamFile.OPAM.install manifest.opam)
-              end;
-            patches = OpamFile.OPAM.patches manifest.opam;
-            substs = OpamFile.OPAM.substs manifest.opam;
+            buildCommands = Manifest.Opam.buildCommands manifest;
+            installCommands = Manifest.Opam.installCommands manifest;
+            patches = Manifest.Opam.patches manifest;
+            substs = Manifest.Opam.substs manifest;
+            buildType = Manifest.Opam.buildType manifest;
           };
           sourcePath = ConfigPath.ofPath cfg sourcePath;
           resolution = Some ("opam:" ^ Manifest.Opam.version manifest)
@@ -243,10 +224,11 @@ let ofDir (cfg : Config.t) =
         return path
     in
 
-    match%bind Manifest.ofDir sourcePath with
-    | Some (manifest, manifestPath) ->
-      let%bind pkg = packageOfManifest ~sourcePath manifest manifestPath in
-      return (pkg, manifestPath)
+    let asRoot = Path.equal sourcePath cfg.sandboxPath in
+    match%bind Manifest.ofDir ~asRoot sourcePath with
+    | Some (manifest, pathSet) ->
+      let%bind pkg = packageOfManifest ~sourcePath manifest pathSet in
+      return (pkg, pathSet)
     | None ->
       error "unable to find manifest"
 
@@ -256,7 +238,7 @@ let ofDir (cfg : Config.t) =
   in
 
   match%bind loadPackageCached cfg.sandboxPath [] with
-  | `EsyPkg root, manifestPath ->
+  | `EsyPkg root, _ ->
 
     let%bind manifestInfo =
       let statPath path =
@@ -264,13 +246,15 @@ let ofDir (cfg : Config.t) =
         return (path, stat.Unix.st_mtime)
       in
       !manifestInfo
-      |> PathSet.elements
+      |> Path.Set.elements
       |> List.map ~f:statPath
       |> RunAsync.List.joinAll
     in
 
     let%bind scripts =
-      Manifest.Scripts.ofFile manifestPath
+      match%bind Manifest.Esy.findOfDir cfg.sandboxPath with
+      | Some filename -> Manifest.Scripts.ofFile filename
+      | None -> return Manifest.Scripts.empty
     in
 
     return {root;scripts;manifestInfo}

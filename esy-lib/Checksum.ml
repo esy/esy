@@ -44,13 +44,13 @@ let of_yojson json =
   | _ -> Error "expected string"
 
 let md5sum =
-  match System.host with
-  | System.Unix
-  | System.Darwin -> Cmd.(v "md5" % "-q")
-  | System.Linux
-  | System.Cygwin
-  | System.Windows
-  | System.Unknown -> Cmd.(v "md5sum")
+  match System.Platform.host with
+  | System.Platform.Unix
+  | System.Platform.Darwin -> Cmd.(v "md5" % "-q")
+  | System.Platform.Linux
+  | System.Platform.Cygwin
+  | System.Platform.Windows
+  | System.Platform.Unknown -> Cmd.(v "md5sum")
 let sha1sum = Cmd.(v "shasum" % "--algorithm" % "1")
 let sha256sum = Cmd.(v "shasum" % "--algorithm" % "256")
 let sha512sum = Cmd.(v "shasum" % "--algorithm" % "512")

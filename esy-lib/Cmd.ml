@@ -71,7 +71,7 @@ let getAdditionalResolvePaths path =
     | _ -> path
 
 let getPotentialExtensions =
-    match System.host with
+    match System.Platform.host with
     | Windows -> [""; ".exe"]
     | _ -> [""]
 

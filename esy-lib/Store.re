@@ -22,27 +22,20 @@ let maxStorePaddingLength = {
   maxShebangLength
   - String.length("!#")
   - String.length(
-      "/"
-      ++ version
-      ++ "/"
-      ++ installTree
-      ++ "/"
-      ++ ocamlrunStorePath,
+      "/" ++ version ++ "/" ++ installTree ++ "/" ++ ocamlrunStorePath,
     );
 };
 
-let getPadding = (~system=System.host, prefixPath) => {
-    switch (system) {
-        | Windows => Ok("_")
-        | _ => {
-            let prefixPathLength = String.length(Fpath.to_string(prefixPath));
-            let paddingLength = maxStorePaddingLength - prefixPathLength;
+let getPadding = (~system=System.Platform.host, prefixPath) =>
+  switch (system) {
+  | Windows => Ok("_")
+  | _ =>
+    let prefixPathLength = String.length(Fpath.to_string(prefixPath));
+    let paddingLength = maxStorePaddingLength - prefixPathLength;
 
-            if (paddingLength < 0) {
-                Error(`Msg("prefixPath is too deep in the filesystem"))
-            } else {
-                Ok(String.make(paddingLength, '_'))
-            }
-        };
+    if (paddingLength < 0) {
+      Error(`Msg("prefixPath is too deep in the filesystem"));
+    } else {
+      Ok(String.make(paddingLength, '_'));
     };
-};
+  };

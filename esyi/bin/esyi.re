@@ -2,83 +2,64 @@ open EsyInstaller;
 module String = Astring.String;
 
 module Api = {
-  let solve = (cfg: Config.t) =>
+  let lockfilePath = (sandbox: Sandbox.t) =>
+    Path.(sandbox.path / "esyi.lock.json");
+
+  let solve = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
-        let%bind root =
-          Manifest.toPackage(
-            ~version=
-              Package.Version.Source(Package.Source.LocalPath(cfg.basePath)),
-            manifest.manifest,
-          );
-        let%bind solution =
-          Solver.solve(~cfg, ~resolutions=manifest.resolutions, root);
+        let%bind solution = Solver.solve(sandbox);
         Solution.LockfileV1.toFile(
-          ~cfg,
-          ~manifest,
+          ~sandbox,
           ~solution,
-          cfg.lockfilePath,
+          lockfilePath(sandbox),
         );
       }
     );
 
-  let fetch = (cfg: Config.t) =>
+  let fetch = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
-      {
-        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
-        switch%bind (
-          Solution.LockfileV1.ofFile(~cfg, ~manifest, cfg.lockfilePath)
-        ) {
-        | Some(solution) =>
-          let%bind () = Fs.rmPath(Path.(cfg.basePath / "node_modules"));
-          Fetch.fetch(~cfg, solution);
-        | None => error("no lockfile found, run 'esyi solve' first")
-        };
+      switch%bind (
+        Solution.LockfileV1.ofFile(~sandbox, lockfilePath(sandbox))
+      ) {
+      | Some(solution) =>
+        let%bind () = Fs.rmPath(Path.(sandbox.Sandbox.path / "node_modules"));
+        Fetch.fetch(~sandbox, solution);
+      | None => error("no lockfile found, run 'esyi solve' first")
       }
     );
 
-  let printCudfUniverse = (cfg: Config.t) =>
+  let printCudfUniverse = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
       {
-        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
-        let%bind root =
-          Manifest.toPackage(
-            ~version=
-              Package.Version.Source(Package.Source.LocalPath(cfg.basePath)),
-            manifest.Manifest.Root.manifest,
-          );
         let%bind solver =
           Solver.make(
-            ~cfg,
-            ~resolutions=manifest.Manifest.Root.resolutions,
+            ~cfg=sandbox.cfg,
+            ~resolutions=sandbox.Sandbox.resolutions,
             (),
           );
         let%bind (solver, _) =
-          Solver.add(~dependencies=root.Package.dependencies, solver);
+          Solver.add(~dependencies=sandbox.root.Package.dependencies, solver);
         let (cudfUniverse, _) = Universe.toCudf(solver.Solver.universe);
         Cudf_printer.pp_universe(stdout, cudfUniverse);
         return();
       }
     );
 
-  let solveAndFetch = (cfg: Config.t) =>
+  let solveAndFetch = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
-      {
-        let%bind manifest = Manifest.Root.ofDir(cfg.basePath);
-        switch%bind (
-          Solution.LockfileV1.ofFile(~cfg, ~manifest, cfg.lockfilePath)
-        ) {
-        | Some(solution) =>
-          if%bind (Fetch.isInstalled(~cfg, solution)) {
-            return();
-          } else {
-            fetch(cfg);
-          }
-        | None =>
-          let%bind () = solve(cfg);
-          fetch(cfg);
-        };
+      switch%bind (
+        Solution.LockfileV1.ofFile(~sandbox, lockfilePath(sandbox))
+      ) {
+      | Some(solution) =>
+        if%bind (Fetch.isInstalled(~sandbox, solution)) {
+          return();
+        } else {
+          fetch(sandbox);
+        }
+      | None =>
+        let%bind () = solve(sandbox);
+        fetch(sandbox);
       }
     );
 };
@@ -198,12 +179,12 @@ module CommandLineInterface = {
     Arg.(value & flag & info(["skip-repository-update"], ~docs, ~doc));
   };
 
-  let cfgTerm = {
+  let sandboxTerm = {
     let parse =
         (
           cachePath,
-          sandboxPath,
           cacheTarballsPath,
+          sandboxPath,
           opamRepository,
           esyOpamOverride,
           npmRegistry,
@@ -212,13 +193,13 @@ module CommandLineInterface = {
           (),
         ) => {
       open RunAsync.Syntax;
+
       let sandboxPath =
         switch (sandboxPath) {
         | Some(sandboxPath) => sandboxPath
         | None => cwd
         };
-      let%bind esySolveCmd =
-        resolve("esy-solve-cudf/esySolveCudfCommand.exe");
+
       let createProgressReporter = (~name, ()) => {
         let progress = msg => {
           let status = Format.asprintf(".... %s %s", name, msg);
@@ -230,24 +211,28 @@ module CommandLineInterface = {
         };
         (progress, finish);
       };
-      Config.make(
-        ~esySolveCmd,
-        ~createProgressReporter,
-        ~cachePath?,
-        ~cacheTarballsPath?,
-        ~npmRegistry?,
-        ~opamRepository?,
-        ~esyOpamOverride?,
-        ~solveTimeout?,
-        ~skipRepositoryUpdate,
-        sandboxPath,
-      );
+      let%bind esySolveCmd =
+        resolve("esy-solve-cudf/esySolveCudfCommand.exe");
+      let%bind cfg =
+        Config.make(
+          ~esySolveCmd,
+          ~createProgressReporter,
+          ~cachePath?,
+          ~cacheTarballsPath?,
+          ~npmRegistry?,
+          ~opamRepository?,
+          ~esyOpamOverride?,
+          ~solveTimeout?,
+          ~skipRepositoryUpdate,
+          (),
+        );
+      Sandbox.ofDir(~cfg, sandboxPath);
     };
     Term.(
       const(parse)
       $ cachePathArg
-      $ sandboxPathArg
       $ cacheTarballsPath
+      $ sandboxPathArg
       $ opamRepositoryArg
       $ esyOpamOverrideArg
       $ npmRegistryArg
@@ -267,10 +252,10 @@ module CommandLineInterface = {
     result;
   };
 
-  let runWithConfig = (f, cfg) => {
-    let cfg = Lwt_main.run(cfg);
-    switch (cfg) {
-    | Ok(cfg) => run(f(cfg))
+  let runWithSandbox = (f, sandbox) => {
+    let sandbox = Lwt_main.run(sandbox);
+    switch (sandbox) {
+    | Ok(sandbox) => run(f(sandbox))
     | Error(err) => `Error((false, Run.formatError(err)))
     };
   };
@@ -278,37 +263,37 @@ module CommandLineInterface = {
   let defaultCommand = {
     let doc = "Dependency installer";
     let info = Term.info("esyi", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => Api.solveAndFetch(cfg);
-    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
+    let cmd = sandbox => Api.solveAndFetch(sandbox);
+    (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
   let printCudfUniverse = {
     let doc = "Print CUDF universe on stdout";
     let info =
       Term.info("print-cudf-universe", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => Api.printCudfUniverse(cfg);
-    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
+    let cmd = sandbox => Api.printCudfUniverse(sandbox);
+    (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
   let installCommand = {
     let doc = "Solve & fetch dependencies";
     let info = Term.info("install", ~version, ~doc, ~sdocs, ~exits);
     let cmd = cfg => Api.solveAndFetch(cfg);
-    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
+    (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
     let cmd = cfg => Api.solve(cfg);
-    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
+    (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
   let fetchCommand = {
     let doc = "Fetch dependencies using the solution in a lockfile";
     let info = Term.info("fetch", ~version, ~doc, ~sdocs, ~exits);
     let cmd = cfg => Api.fetch(cfg);
-    (Term.(ret(const(runWithConfig(cmd)) $ cfgTerm)), info);
+    (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
   let commands = [

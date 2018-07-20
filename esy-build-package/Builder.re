@@ -3,46 +3,50 @@ module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 module System = EsyLib.System;
 
-let relocateSourcePath = (config: Config.t, task: BuildTask.t) => {
-  open Run;
+let relocateSourcePath = (config: Config.t, task: BuildTask.t) =>
+  Run.
+    /* `rsync` is one utility that DOES NOT respect Windows paths.
+     *  Therefore, we need to normalize the paths to Cygwin-style (on POSIX systems, this is a no-op)
+     */
+    (
+      {
+        let%bind buildPath =
+          EsyBash.normalizePathForCygwin(Bos.Cmd.p(task.buildPath));
+        let%bind sourcePath =
+          EsyBash.normalizePathForCygwin(Path.to_string(task.sourcePath));
 
-  /* `rsync` is one utility that DOES NOT respect Windows paths.
-   *  Therefore, we need to normalize the paths to Cygwin-style (on POSIX systems, this is a no-op)
-   */
-  let%bind buildPath = EsyBash.normalizePathForCygwin(Bos.Cmd.p(task.buildPath));
-  let%bind sourcePath = EsyBash.normalizePathForCygwin(Path.to_string(task.sourcePath));
+        let cmd =
+          Bos.Cmd.(
+            empty
+            % config.rsyncCmd
+            % "--quiet"
+            % "--archive"
+            % "--exclude"
+            % buildPath
+            % "--exclude"
+            % "node_modules"
+            % "--exclude"
+            % "_build"
+            % "--exclude"
+            % "_release"
+            % "--exclude"
+            % "_esybuild"
+            % "--exclude"
+            % "_esyinstall"
+            /* The trailing "/" is important as it makes rsync to sync the contents of
+             * origPath rather than the origPath itself into destPath, see "man rsync" for
+             * details.
+             */
+            % (sourcePath ++ "/")
+            % buildPath
+          );
 
-  let cmd =
-    Bos.Cmd.(
-      empty
-      % config.rsyncCmd
-      % "--quiet"
-      % "--archive"
-      % "--exclude"
-      % buildPath
-      % "--exclude"
-      % "node_modules"
-      % "--exclude"
-      % "_build"
-      % "--exclude"
-      % "_release"
-      % "--exclude"
-      % "_esybuild"
-      % "--exclude"
-      % "_esyinstall"
-      /* The trailing "/" is important as it makes rsync to sync the contents of
-       * origPath rather than the origPath itself into destPath, see "man rsync" for
-       * details.
-       */
-      % (sourcePath ++ "/")
-      % buildPath
+        /* `rsync` doesn't work natively on Windows, so on Windows,
+         * we need to run it in the cygwin bash environment.
+         */
+        EsyBash.run(cmd);
+      }
     );
-
-  /* `rsync` doesn't work natively on Windows, so on Windows,
-   * we need to run it in the cygwin bash environment.
-   */
-  EsyBash.run(cmd);
-};
 
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);
@@ -205,7 +209,8 @@ let withBuildEnvUnlocked =
   let {BuildTask.sourcePath, installPath, buildPath, stagePath, _} = task;
   let (rootPath, prepareRootPath, completeRootPath) =
     switch (task.buildType, task.sourceType) {
-    | (InSource, _) => (buildPath, relocateSourcePath, doNothing)
+    | (InSource, Immutable)
+    | (InSource, Transient) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Immutable) => (buildPath, relocateSourcePath, doNothing)
     | (JbuilderLike, Transient) =>
       if (BuildTask.isRoot(~config, task)) {
@@ -214,7 +219,10 @@ let withBuildEnvUnlocked =
         let (start, commit) = relocateBuildPath(config, task);
         (sourcePath, start, commit);
       }
-    | (OutOfSource, _) => (sourcePath, doNothing, doNothing)
+    | (OutOfSource, Immutable)
+    | (OutOfSource, Transient) => (sourcePath, doNothing, doNothing)
+    | (Unsafe, Immutable)
+    | (Unsafe, Transient) => (sourcePath, doNothing, doNothing)
     };
   let%bind sandboxConfig = {
     open Sandbox;
@@ -230,6 +238,7 @@ let withBuildEnvUnlocked =
     };
     let allowWriteToSourcePath =
       switch (task.buildType) {
+      | Unsafe => [Subpath(Path.to_string(sourcePath))]
       | JbuilderLike => [
           Subpath(Path.to_string(sourcePath / "_build")),
           regex(sourcePath, [".*", "[^/]*\\.install"]),
@@ -270,9 +279,7 @@ let withBuildEnvUnlocked =
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind exec = prepare(~env, cmd);
     let%bind ((), (_runInfo, runStatus)) =
-      Bos.OS.Cmd.(
-        in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout
-      );
+      Bos.OS.Cmd.(in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout);
     switch (runStatus) {
     | `Exited(0) => Ok()
     | status => Error(`CommandError((cmd, status)))
@@ -284,9 +291,7 @@ let withBuildEnvUnlocked =
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
     let%bind exec = prepare(~env, cmd);
     let%bind ((), (_runInfo, runStatus)) =
-      Bos.OS.Cmd.(
-        in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout
-      );
+      Bos.OS.Cmd.(in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout);
     switch (runStatus) {
     | `Exited(0) => Ok()
     | status => Error(`CommandError((cmd, status)))

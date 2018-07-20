@@ -184,9 +184,10 @@ end
 
 module BuildType = struct
   type t =
-    | InSource
-    | OutOfSource
-    | JBuilderLike
+    | InSource (* build can do whatever it wants, we preventively copy all sources *)
+    | OutOfSource (* build doesn't pollute the source tree *)
+    | JBuilderLike (* build only writes into _build dir inside the source tree *)
+    | Unsafe (* build can do whatever it wants, we DON'T apply sandboxing *)
     [@@deriving (show, eq, ord)]
 
   let of_yojson = function
@@ -194,7 +195,6 @@ module BuildType = struct
     | `Bool true -> Ok InSource
     | `Bool false -> Ok OutOfSource
     | _ -> Error "expected false, true or \"_build\""
-
 end
 
 module SourceType = struct
@@ -230,6 +230,7 @@ module EsyManifest = struct
     sandboxEnv = [];
     release = None;
   }
+
 end
 
 module Esy = struct
@@ -287,6 +288,25 @@ module Esy = struct
     let%bind json = Fs.readJsonFile path in
     RunAsync.ofRun (Json.parseJsonWith of_yojson json)
 
+  let findOfDir (path : Path.t) =
+    let open RunAsync.Syntax in
+    let filename = Path.(path / "esy.json") in
+    if%bind Fs.exists filename
+    then return (Some filename)
+    else 
+      let filename = Path.(path / "package.json") in
+      if%bind Fs.exists filename
+      then return (Some filename)
+      else return None
+
+  let ofDir (path : Path.t) =
+    let open RunAsync.Syntax in
+    match%bind findOfDir path with
+    | Some filename ->
+      let%bind manifest = ofFile filename in
+      return (Some (manifest, Path.Set.singleton filename))
+    | None -> return None
+
 end
 
 module OpamOverride = struct
@@ -305,22 +325,142 @@ module OpamOverride = struct
 
 end
 
-module Opam = struct
-  type t = {
-    opam : OpamFile.OPAM.t;
-    override : OpamOverride.t option;
-  }
+module Opam : sig
+  type t
 
-  let opamName {opam;_} =
-    let name = OpamFile.OPAM.name opam in
-    OpamPackage.Name.to_string name
+  type commands =
+    | Commands of OpamTypes.command list
+    | OverridenCommands of CommandList.t
+
+  val opamName : t -> string
+
+  val name : t -> string
+  val version : t -> string
+
+  val sourceType : t -> SourceType.t
+  val buildType : t -> BuildType.t
+
+  val buildCommands : t -> commands
+  val installCommands : t -> commands
+  val exportedEnv : t -> ExportedEnv.t
+
+  val dependencies : t -> StringSet.t
+  val optDependencies : t -> StringSet.t
+
+  val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
+  val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
+
+  val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
+  val substs : t -> OpamTypes.basename list
+
+end = struct
+  type t =
+    | Installed of {
+        opam : OpamFile.OPAM.t;
+        override : OpamOverride.t option;
+      }
+    | AggregatedRoot of (string * OpamFile.OPAM.t) list
+
+  and commands =
+    | Commands of OpamTypes.command list
+    | OverridenCommands of CommandList.t
+
+  let opamName = function
+    | Installed {opam;_} ->
+      let name = OpamFile.OPAM.name opam in
+      OpamPackage.Name.to_string name
+    | AggregatedRoot _ -> "root"
 
   let name manifest =
     "@opam/" ^ (opamName manifest)
 
-  let version {opam;_} =
-    let version = OpamFile.OPAM.version opam in
-    OpamPackage.Version.to_string version
+  let version = function
+    | Installed {opam;_} ->
+      let version = OpamFile.OPAM.version opam in
+      OpamPackage.Version.to_string version
+    | AggregatedRoot _ -> "dev"
+
+  let sourceType = function
+    | Installed _ -> SourceType.Immutable
+    | AggregatedRoot _ -> SourceType.Development
+
+  let buildType = function
+    | Installed _ -> BuildType.InSource
+    | AggregatedRoot _ -> BuildType.Unsafe
+
+  let replaceNameInCommands name commands =
+    let renderCommand (command : OpamTypes.command) =
+      let args, filter = command in
+      let args =
+        let renderArg (arg : OpamTypes.arg) =
+          let arg, filter = arg in
+          let arg =
+            match arg with
+            | OpamTypes.CIdent "name" -> OpamTypes.CString name
+            | OpamTypes.CString _ -> arg
+            | OpamTypes.CIdent _ -> arg
+          in
+          arg, filter
+        in
+        List.map ~f:renderArg args
+      in
+      args, filter
+    in
+    List.map ~f:renderCommand commands
+
+  let buildCommands = function
+    | Installed manifest ->
+      begin match manifest.override with
+      | Some {OpamOverride. build = Some build; _} ->
+        OverridenCommands build
+      | Some {OpamOverride. build = None; _}
+      | None ->
+        Commands (OpamFile.OPAM.build manifest.opam)
+      end
+    | AggregatedRoot opams ->
+      let commands =
+        let f commands (name, opam) =
+          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.build opam) in
+          commands @ nextCommands
+        in
+        List.fold_left ~f ~init:[] opams
+      in
+      Commands commands
+
+  let installCommands = function
+    | Installed manifest ->
+      begin match manifest.override with
+      | Some {OpamOverride. install = Some install; _} ->
+        OverridenCommands install
+      | Some {OpamOverride. install = None; _}
+      | None ->
+        Commands (OpamFile.OPAM.install manifest.opam)
+      end
+    | AggregatedRoot opams ->
+      let commands =
+        let f commands (name, opam) =
+          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.install opam) in
+          commands @ nextCommands
+        in
+        List.fold_left ~f ~init:[] opams
+      in
+      Commands commands
+
+  let patches = function
+    | Installed manifest -> OpamFile.OPAM.patches manifest.opam
+    | AggregatedRoot _ -> []
+
+  let substs = function
+    | Installed manifest -> OpamFile.OPAM.substs manifest.opam
+    | AggregatedRoot _ -> []
+
+  let exportedEnv = function
+    | Installed manifest ->
+      begin match manifest.override with
+      | Some {OpamOverride. exportedEnv;_} -> exportedEnv
+      | None -> ExportedEnv.empty
+      end
+    | AggregatedRoot _ -> ExportedEnv.empty
 
   let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
     let formula =
@@ -343,87 +483,125 @@ module Opam = struct
     in
     List.map ~f atoms
 
-  let dependencies {opam; override} =
+  let dependencies =
+    let dependsOfOpam opam =
+      let f = OpamFile.OPAM.depends opam in
 
-    let f = OpamFile.OPAM.depends opam in
-
-    let f =
-      let env var =
-        match OpamVariable.Full.to_string var with
-        | "test" -> Some (OpamVariable.B false)
-        | "doc" -> Some (OpamVariable.B false)
-        | _ -> None
+      let f =
+        let env var =
+          match OpamVariable.Full.to_string var with
+          | "test" -> Some (OpamVariable.B false)
+          | "doc" -> Some (OpamVariable.B false)
+          | _ -> None
+        in
+        OpamFilter.partial_filter_formula env f
       in
-      OpamFilter.partial_filter_formula env f
-    in
 
-    let dependencies =
-      listPackageNamesOfFormula
-        ~build:true ~test:false ~post:true ~doc:false ~dev:false
-        f
+      let dependencies =
+        listPackageNamesOfFormula
+          ~build:true ~test:false ~post:true ~doc:false ~dev:false
+          f
+      in
+      let dependencies =
+        "ocaml"
+        ::"@esy-ocaml/esy-installer"
+        ::"@esy-ocaml/substs"
+        ::dependencies
+      in
+
+      StringSet.of_list dependencies
     in
-    let dependencies =
-      "ocaml"
-      ::"@esy-ocaml/esy-installer"
-      ::"@esy-ocaml/substs"
-      ::dependencies
-    in
-    let dependencies =
+    function
+    | Installed {opam; override} ->
+      let dependencies = dependsOfOpam opam in
+      begin
       match override with
       | Some {OpamOverride. dependencies = overrideDependencies; _} ->
-        (StringMap.keys overrideDependencies) @ dependencies
+        StringSet.union dependencies (overrideDependencies |> StringMap.keys |> StringSet.of_list)
       | None -> dependencies
-    in
-    StringSet.of_list dependencies
+      end
+    | AggregatedRoot opams ->
+      let namesPresent =
+        let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+        List.fold_left ~f ~init:StringSet.empty opams
+      in
+      let f dependencies (_name, opam) =
+        let update = dependsOfOpam opam in
+        let update = StringSet.diff update namesPresent in
+        StringSet.union dependencies update
+      in
+      List.fold_left ~f ~init:StringSet.empty opams
 
-  let optDependencies {opam;_} =
-    let dependencies =
-      listPackageNamesOfFormula
-        ~build:true ~test:false ~post:true ~doc:false ~dev:false
-        (OpamFile.OPAM.depopts opam)
-    in
-    StringSet.of_list dependencies
+  let optDependencies = function
+    | Installed {opam;_} ->
+      let dependencies =
+        listPackageNamesOfFormula
+          ~build:true ~test:false ~post:true ~doc:false ~dev:false
+          (OpamFile.OPAM.depopts opam)
+      in
+      StringSet.of_list dependencies
+    | AggregatedRoot _ -> StringSet.empty
 
-  let ofFile (path : Path.t) =
+  let ofDirAsInstalled (path : Path.t) =
     let open RunAsync.Syntax in
-    let%bind opam =
-      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
-      let%bind data = Fs.readFile path in
-      return (OpamFile.OPAM.read_from_string ~filename data)
+    let filename = Path.(path / "_esy" / "opam") in
+    let overrideFilename = Path.(path / "_esy" / "override.json") in
+    if%bind Fs.exists filename
+    then
+      let%bind opam =
+        let%bind data = Fs.readFile filename in
+        let filename = OpamFile.make (OpamFilename.of_string (Path.toString filename)) in
+        return (OpamFile.OPAM.read_from_string ~filename data)
+      in
+      let%bind manifest =
+        if%bind Fs.exists overrideFilename
+        then
+          let%bind override = OpamOverride.ofFile overrideFilename in
+          return (Installed {opam; override = Some override})
+        else
+          return (Installed {opam; override = None})
+      in
+      return (Some (manifest, Path.Set.singleton filename))
+    else
+      return None
+
+  let ofDirAsAggregatedRoot (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind filenames = Fs.listDir path in
+    let paths =
+      filenames
+      |> List.map ~f:(fun name -> Path.(path / name))
+      |> List.filter ~f:(fun path ->
+          Path.has_ext ".opam" path || Path.basename path = "opam")
     in
-    return {opam; override = None}
+    let%bind opams =
+      paths
+      |> List.map ~f:(fun path ->
+        let%bind data = Fs.readFile path in
+        let opam = OpamFile.OPAM.read_from_string data in
+        let name = Path.(path |> rem_ext |> basename) in
+        return (name, opam))
+      |> RunAsync.List.joinAll
+    in
+    return (Some (AggregatedRoot opams, Path.Set.of_list paths))
+
 end
 
 type t =
   | Esy of Esy.t
   | Opam of Opam.t
 
-let ofDir (path : Path.t) =
+let ofDir ?(asRoot=false) (path : Path.t) =
   let open RunAsync.Syntax in
-  let filename = Path.(path / "esy.json") in
-  if%bind Fs.exists filename
-  then
-    let%bind manifest = Esy.ofFile filename in
-    return (Some (Esy manifest, filename))
-  else
-    let filename = Path.(path / "package.json") in
-    if%bind Fs.exists filename
-    then
-      let%bind manifest = Esy.ofFile filename in
-      return (Some (Esy manifest, filename))
-    else
-      let filename = Path.(path / "_esy" / "opam") in
-      let overrideFilename = Path.(path / "_esy" / "override.json") in
-      if%bind Fs.exists filename
-      then
-        let%bind manifest = Opam.ofFile filename in
-        let%bind manifest =
-          if%bind Fs.exists overrideFilename
-          then
-            let%bind override = OpamOverride.ofFile overrideFilename in
-            return {manifest with Opam. override = Some override}
-          else return manifest
-        in
-        return (Some (Opam manifest, filename))
-      else
-        return None
+  match%bind Esy.ofDir path with
+  | Some (manifest, paths) -> return (Some (Esy manifest, paths))
+  | None ->
+    let opam =
+      if asRoot
+      then Opam.ofDirAsAggregatedRoot path
+      else Opam.ofDirAsInstalled path
+    in
+    begin match%bind opam with
+    | Some (manifest, paths) -> return (Some (Opam manifest, paths))
+    | None -> return None
+    end
