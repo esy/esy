@@ -40,16 +40,16 @@ let createConfig = (copts: commonOpts) => {
     | None => Error(`Msg("cannot resolve fastreplacestring command"))
     };
   };
-  Config.create(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
+  Config.make(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   open Run;
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
-  let%bind config = createConfig(copts);
-  let%bind task = Task.ofFile(config, buildPath);
-  let%bind () = Builder.build(~buildOnly, ~force, config, task);
+  let%bind cfg = createConfig(copts);
+  let%bind task = Task.ofFile(buildPath);
+  let%bind () = Builder.build(~buildOnly, ~force, ~cfg, task);
   Ok();
 };
 
@@ -57,8 +57,8 @@ let shell = (copts: commonOpts) => {
   open Run;
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
-  let%bind config = createConfig(copts);
-  let%bind task = Task.ofFile(config, buildPath);
+  let%bind cfg = createConfig(copts);
+  let%bind task = Task.ofFile(buildPath);
 
   let runShell = (_run, runInteractive, ()) => {
     let%bind rcFilename =
@@ -93,13 +93,13 @@ let shell = (copts: commonOpts) => {
 
     let ppBanner = (ppf, ()) => {
       Format.open_vbox(0);
-      fmt("Package: %s@%s", ppf, Task.name(task), Task.version(task));
+      fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Task.Cmd.pp, ppf, ("Build Commands:", Task.build(task)));
+      ppList(Fmt.(list(string)), ppf, ("Build Commands:", task.build));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Task.Cmd.pp, ppf, ("Install Commands:", Task.install(task)));
+      ppList(Fmt.(list(string)), ppf, ("Install Commands:", task.install));
       Fmt.cut(ppf, ());
       Format.close_box();
     };
@@ -110,7 +110,7 @@ let shell = (copts: commonOpts) => {
     Format.print_flush();
   };
 
-  let%bind () = Builder.withBuildEnv(config, task, runShell);
+  let%bind () = Builder.withBuildEnv(~cfg, task, runShell);
   ok;
 };
 
@@ -118,13 +118,13 @@ let exec = (copts, command) => {
   open Run;
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
-  let%bind config = createConfig(copts);
+  let%bind cfg = createConfig(copts);
   let runCommand = (_run, runInteractive, ()) => {
     let cmd = Bos.Cmd.of_list(command);
     runInteractive(cmd);
   };
-  let%bind task = Task.ofFile(config, buildPath);
-  let%bind () = Builder.withBuildEnv(config, task, runCommand);
+  let%bind task = Task.ofFile(buildPath);
+  let%bind () = Builder.withBuildEnv(~cfg, task, runCommand);
   ok;
 };
 

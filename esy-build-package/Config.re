@@ -1,6 +1,6 @@
 module Store = EsyLib.Store;
+module Path = EsyLib.Path;
 
-[@deriving show]
 type t = {
   sandboxPath: Fpath.t,
   storePath: Fpath.t,
@@ -15,7 +15,7 @@ type t = {
  * If prefixPath is not provided then ~/.esy is used.
  * If sandboxPath is not provided then $PWD us used.
  */
-let create =
+let make =
     (
       ~prefixPath,
       ~sandboxPath,
@@ -50,3 +50,13 @@ let create =
       });
     }
   );
+
+let renderString = (~cfg: t, v) => {
+  let lookupVar =
+    fun
+    | "sandbox" => Some(Path.to_string(cfg.sandboxPath))
+    | "store" => Some(Path.to_string(cfg.storePath))
+    | "localStore" => Some(Path.to_string(cfg.localStorePath))
+    | _ => None;
+  PathSyntax.render(lookupVar, v);
+};

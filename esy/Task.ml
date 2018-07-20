@@ -1108,7 +1108,7 @@ let toBuildProtocol (task : task) =
     | Package.EsyBuild {buildType;_}
     | Package.OpamBuild {buildType;_} -> buildType
   in
-  EsyBuildPackage.TaskConfig.{
+  EsyBuildPackage.Task.{
     id = task.id;
     name = task.pkg.name;
     version = task.pkg.version;
@@ -1122,7 +1122,7 @@ let toBuildProtocol (task : task) =
 
 let toBuildProtocolString ?(pretty=false) (task : task) =
   let task = toBuildProtocol task in
-  let json = EsyBuildPackage.TaskConfig.to_yojson task in
+  let json = EsyBuildPackage.Task.to_yojson task in
   if pretty
   then Yojson.Safe.pretty_to_string json
   else Yojson.Safe.to_string json

@@ -1,36 +1,33 @@
-module Cmd : {
-  type t = Bos.Cmd.t;
+/*
+
+  Task configuration.
+
+  This represents platform-specific (a list of commands is specific to a
+  platfoerm) but host-agnostic (do not have host specific absolute paths)
+  package builds.
+
+ */
+
+module Env : {
+  type t = Bos.OS.Env.t;
   let pp: Fmt.t(t);
-}
+  let of_yojson: EsyLib.Json.decoder(t);
+  let to_yojson: EsyLib.Json.encoder(t);
+};
 
-type t
+type t = {
+  id: string,
+  name: string,
+  version: string,
+  sourceType: SourceType.t,
+  buildType: BuildType.t,
+  build: list(list(string)),
+  install: list(list(string)),
+  sourcePath: string,
+  env: Env.t,
+};
 
-let pp: Fmt.t(t);
-let show: t => string;
+let of_yojson: EsyLib.Json.decoder(t);
+let to_yojson: EsyLib.Json.encoder(t);
+let ofFile: EsyLib.Path.t => Run.t(t, _);
 
-let id : t => string;
-let name : t => string;
-let version : t => string;
-
-let build : t => list(Bos.Cmd.t);
-let install : t => list(Bos.Cmd.t);
-
-let infoPath : t => EsyLib.Path.t;
-let sourcePath : t => EsyLib.Path.t;
-let stagePath : t => EsyLib.Path.t;
-let installPath : t => EsyLib.Path.t;
-let buildPath : t => EsyLib.Path.t;
-let lockPath : t => EsyLib.Path.t;
-
-let buildType : t => BuildType.t;
-let sourceType : t => SourceType.t;
-
-let env : t => TaskConfig.Env.t
-
-let ofFile :
-  (Config.t, Fpath.t)
-  => result(t, [> `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string) ]);
-
-let isRoot :
-  (~config: Config.t, t)
-  => bool;

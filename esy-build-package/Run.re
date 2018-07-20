@@ -12,6 +12,7 @@ type t('a, 'b) =
 let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 
 let ok = Result.ok;
+let return = v => Ok(v);
 
 let (/) = Fpath.(/);
 
