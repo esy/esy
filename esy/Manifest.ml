@@ -388,26 +388,6 @@ end = struct
     | Installed _ -> BuildType.InSource
     | AggregatedRoot _ -> BuildType.Unsafe
 
-  let replaceNameInCommands name commands =
-    let renderCommand (command : OpamTypes.command) =
-      let args, filter = command in
-      let args =
-        let renderArg (arg : OpamTypes.arg) =
-          let arg, filter = arg in
-          let arg =
-            match arg with
-            | OpamTypes.CIdent "name" -> OpamTypes.CString name
-            | OpamTypes.CString _ -> arg
-            | OpamTypes.CIdent _ -> arg
-          in
-          arg, filter
-        in
-        List.map ~f:renderArg args
-      in
-      args, filter
-    in
-    List.map ~f:renderCommand commands
-
   let buildCommands = function
     | Installed manifest ->
       begin match manifest.override with
@@ -417,15 +397,7 @@ end = struct
       | None ->
         Commands (OpamFile.OPAM.build manifest.opam)
       end
-    | AggregatedRoot opams ->
-      let commands =
-        let f commands (name, opam) =
-          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.build opam) in
-          commands @ nextCommands
-        in
-        List.fold_left ~f ~init:[] opams
-      in
-      Commands commands
+    | AggregatedRoot _ -> Commands []
 
   let installCommands = function
     | Installed manifest ->
@@ -436,15 +408,7 @@ end = struct
       | None ->
         Commands (OpamFile.OPAM.install manifest.opam)
       end
-    | AggregatedRoot opams ->
-      let commands =
-        let f commands (name, opam) =
-          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.install opam) in
-          commands @ nextCommands
-        in
-        List.fold_left ~f ~init:[] opams
-      in
-      Commands commands
+    | AggregatedRoot _ -> Commands []
 
   let patches = function
     | Installed manifest -> OpamFile.OPAM.patches manifest.opam
