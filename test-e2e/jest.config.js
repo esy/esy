@@ -1,7 +1,7 @@
 module.exports = {
   projects: [
     {
-      displayName: 'e2e - JavaScript',
+      displayName: 'e2e - js',
       moduleFileExtensions: ['js'],
       testMatch: ['<rootDir>/**/*.test.js'],
     },
