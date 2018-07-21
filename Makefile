@@ -101,7 +101,7 @@ test-unit::
 	@esy b jbuilder build --dev @runtest
 
 test-e2e::
-	@make -C test-e2e test
+	@(cd test-e2e && make test)
 
 test-e2e-esyi::
 	@make -C test-e2e-esyi test
