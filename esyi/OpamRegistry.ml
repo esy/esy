@@ -367,7 +367,7 @@ module Manifest = struct
         RunAsync.withContext "processing depends field" (
           let%bind formula =
             translateFilteredFormula
-              ~build:true ~post:true ~test:false ~doc:false ~dev:false
+              ~build:false ~post:false ~test:true ~doc:true ~dev:true
               (OpamFile.OPAM.depends opam)
           in return (Package.Dependencies.OpamFormula formula)
         )
