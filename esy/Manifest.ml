@@ -353,6 +353,8 @@ module Opam : sig
   val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
   val substs : t -> OpamTypes.basename list
 
+  val hasMultipleOpamFiles : t -> bool
+
 end = struct
   type t =
     | Installed of {
@@ -364,6 +366,11 @@ end = struct
   and commands =
     | Commands of OpamTypes.command list
     | OverridenCommands of CommandList.t
+
+  let hasMultipleOpamFiles = function
+    | Installed _ -> false
+    | AggregatedRoot ([] | [_]) -> false
+    | AggregatedRoot _ -> true
 
   let opamName = function
     | Installed {opam;_} ->
@@ -388,26 +395,6 @@ end = struct
     | Installed _ -> BuildType.InSource
     | AggregatedRoot _ -> BuildType.Unsafe
 
-  let replaceNameInCommands name commands =
-    let renderCommand (command : OpamTypes.command) =
-      let args, filter = command in
-      let args =
-        let renderArg (arg : OpamTypes.arg) =
-          let arg, filter = arg in
-          let arg =
-            match arg with
-            | OpamTypes.CIdent "name" -> OpamTypes.CString name
-            | OpamTypes.CString _ -> arg
-            | OpamTypes.CIdent _ -> arg
-          in
-          arg, filter
-        in
-        List.map ~f:renderArg args
-      in
-      args, filter
-    in
-    List.map ~f:renderCommand commands
-
   let buildCommands = function
     | Installed manifest ->
       begin match manifest.override with
@@ -417,15 +404,10 @@ end = struct
       | None ->
         Commands (OpamFile.OPAM.build manifest.opam)
       end
-    | AggregatedRoot opams ->
-      let commands =
-        let f commands (name, opam) =
-          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.build opam) in
-          commands @ nextCommands
-        in
-        List.fold_left ~f ~init:[] opams
-      in
-      Commands commands
+    | AggregatedRoot [_name, opam] ->
+      Commands (OpamFile.OPAM.build opam)
+    | AggregatedRoot _ ->
+      Commands []
 
   let installCommands = function
     | Installed manifest ->
@@ -436,15 +418,10 @@ end = struct
       | None ->
         Commands (OpamFile.OPAM.install manifest.opam)
       end
-    | AggregatedRoot opams ->
-      let commands =
-        let f commands (name, opam) =
-          let nextCommands = replaceNameInCommands name (OpamFile.OPAM.install opam) in
-          commands @ nextCommands
-        in
-        List.fold_left ~f ~init:[] opams
-      in
-      Commands commands
+    | AggregatedRoot [_name, opam] ->
+      Commands (OpamFile.OPAM.install opam)
+    | AggregatedRoot _ ->
+      Commands []
 
   let patches = function
     | Installed manifest -> OpamFile.OPAM.patches manifest.opam
@@ -592,9 +569,28 @@ type t =
   | Opam of Opam.t
 
 let ofDir ?(asRoot=false) (path : Path.t) =
+
+  let relative p =
+    match Path.relativize ~root:path p with
+    | Some p -> p
+    | None -> p
+  in
+
+  let ppPaths fmt paths =
+    let paths = Path.Set.map relative paths in
+    let pp = Path.Set.pp ~sep:(Fmt.unit ", ") Path.pp in
+    pp fmt paths
+  in
+
   let open RunAsync.Syntax in
   match%bind Esy.ofDir path with
-  | Some (manifest, paths) -> return (Some (Esy manifest, paths))
+  | Some (manifest, paths) ->
+    let%lwt () =
+      if asRoot
+      then Logs_lwt.app (fun m -> m "found esy manifests: %a" ppPaths paths)
+      else Lwt.return ()
+    in
+    return (Some (Esy manifest, paths))
   | None ->
     let opam =
       if asRoot
@@ -602,6 +598,16 @@ let ofDir ?(asRoot=false) (path : Path.t) =
       else Opam.ofDirAsInstalled path
     in
     begin match%bind opam with
-    | Some (manifest, paths) -> return (Some (Opam manifest, paths))
+    | Some (manifest, paths) ->
+      let%lwt () =
+        if asRoot
+        then (
+          Logs_lwt.app (fun m -> m "found opam manifests: %a" ppPaths paths);%lwt
+          if Opam.hasMultipleOpamFiles manifest
+          then Logs_lwt.warn (fun m -> m "build commands from opam files won't be executed")
+          else Lwt.return ()
+        ) else Lwt.return ()
+      in
+      return (Some (Opam manifest, paths))
     | None -> return None
     end
