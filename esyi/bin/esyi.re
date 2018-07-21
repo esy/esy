@@ -2,30 +2,40 @@ open EsyInstaller;
 module String = Astring.String;
 
 module Api = {
-  let lockfilePath = (sandbox: Sandbox.t) =>
-    Path.(sandbox.path / "esyi.lock.json");
+  let lockfilePath = (sandbox: Sandbox.t) => {
+    open RunAsync.Syntax;
+    let filename = Path.(sandbox.path / "esyi.lock.json");
+    if%bind (Fs.exists(filename)) {
+      let%lwt () =
+        Logs_lwt.warn(m =>
+          m("found esyi.lock.json, please rename it to esy.lock.json")
+        );
+      return(filename);
+    } else {
+      return(Path.(sandbox.path / "esy.lock.json"));
+    };
+  };
 
   let solve = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
       {
         let%bind solution = Solver.solve(sandbox);
-        Solution.LockfileV1.toFile(
-          ~sandbox,
-          ~solution,
-          lockfilePath(sandbox),
-        );
+        let%bind lockfilePath = lockfilePath(sandbox);
+        Solution.LockfileV1.toFile(~sandbox, ~solution, lockfilePath);
       }
     );
 
   let fetch = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
-      switch%bind (
-        Solution.LockfileV1.ofFile(~sandbox, lockfilePath(sandbox))
-      ) {
-      | Some(solution) =>
-        let%bind () = Fs.rmPath(Path.(sandbox.Sandbox.path / "node_modules"));
-        Fetch.fetch(~sandbox, solution);
-      | None => error("no lockfile found, run 'esyi solve' first")
+      {
+        let%bind lockfilePath = lockfilePath(sandbox);
+        switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
+        | Some(solution) =>
+          let%bind () =
+            Fs.rmPath(Path.(sandbox.Sandbox.path / "node_modules"));
+          Fetch.fetch(~sandbox, solution);
+        | None => error("no lockfile found, run 'esyi solve' first")
+        };
       }
     );
 
@@ -48,18 +58,19 @@ module Api = {
 
   let solveAndFetch = (sandbox: Sandbox.t) =>
     RunAsync.Syntax.(
-      switch%bind (
-        Solution.LockfileV1.ofFile(~sandbox, lockfilePath(sandbox))
-      ) {
-      | Some(solution) =>
-        if%bind (Fetch.isInstalled(~sandbox, solution)) {
-          return();
-        } else {
+      {
+        let%bind lockfilePath = lockfilePath(sandbox);
+        switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
+        | Some(solution) =>
+          if%bind (Fetch.isInstalled(~sandbox, solution)) {
+            return();
+          } else {
+            fetch(sandbox);
+          }
+        | None =>
+          let%bind () = solve(sandbox);
           fetch(sandbox);
-        }
-      | None =>
-        let%bind () = solve(sandbox);
-        fetch(sandbox);
+        };
       }
     );
 };
