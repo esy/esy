@@ -6,7 +6,7 @@ const {initFixture} = require('../test/helpers');
 
 it('Build - custom prefix', async () => {
   expect.assertions(1);
-  const p = await initFixture('./build/fixtures/custom-prefix');
+  const p = await initFixture(path.join(__dirname, './fixtures/custom-prefix'));
 
   await p.esy('build', {noEsyPrefix: true});
 

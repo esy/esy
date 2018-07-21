@@ -6,7 +6,7 @@ const {initFixture} = require('../test/helpers');
 
 it('Build - creates symlinks', async () => {
   expect.assertions(4);
-  const p = await initFixture('./build/fixtures/creates-symlinks');
+  const p = await initFixture(path.join(__dirname, './fixtures/creates-symlinks'));
 
   await p.esy('build');
 

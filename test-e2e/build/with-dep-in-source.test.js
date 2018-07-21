@@ -8,7 +8,7 @@ describe('Build - with dep in source', () => {
 
   it('package "dep" should be visible in all envs', async () => {
     expect.assertions(4);
-    const p = await initFixture('./build/fixtures/with-dep-in-source');
+    const p = await initFixture(path.join(__dirname, './fixtures/with-dep-in-source'));
     await p.esy('build');
 
     const expecting = expect.stringMatching('dep');

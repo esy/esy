@@ -6,7 +6,7 @@ const {initFixture} = require('../test/helpers');
 describe('Build - not enough deps', () => {
   it("should fail as there's not enough deps and output relevant info", async () => {
     expect.assertions(2);
-    const p = await initFixture('./build/fixtures/not-enough-deps');
+    const p = await initFixture(path.join(__dirname, './fixtures/not-enough-deps'));
 
     await p.esy('build').catch(e => {
       expect(e.stderr).toEqual(

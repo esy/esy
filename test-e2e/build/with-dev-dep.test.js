@@ -5,11 +5,15 @@ const {initFixture} = require('../test/helpers');
 
 describe('Build - with dev dep', () => {
 
+  let p;
+
+  beforeAll(async () => {
+    p = await initFixture(path.join(__dirname, './fixtures/with-dev-dep'));
+    await p.esy('build');
+  });
+
   it('package "dep" should be visible in all envs', async () => {
     expect.assertions(3);
-
-    const p = await initFixture('./build/fixtures/with-dev-dep');
-    await p.esy('build');
 
     const expecting = expect.stringMatching('dep');
 
@@ -25,9 +29,6 @@ describe('Build - with dev dep', () => {
 
   it('package "dev-dep" should be visible only in command env', async () => {
     expect.assertions(4);
-
-    const p = await initFixture('./build/fixtures/with-dev-dep');
-    await p.esy('build');
 
     const expecting = expect.stringMatching('dev-dep');
 

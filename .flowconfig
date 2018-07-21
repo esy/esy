@@ -1,0 +1,15 @@
+[ignore]
+<PROJECT_ROOT>/esy-install/.*
+<PROJECT_ROOT>/test-e2e-esyi/.*
+<PROJECT_ROOT>/node_modules/@opam/.*
+<PROJECT_ROOT>/node_modules/config-chain/.*
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]

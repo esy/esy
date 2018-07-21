@@ -10,7 +10,7 @@ describe('Build - with linked dep _build',  () => {
   it('package "dep" should be visible in all envs', async () => {
     expect.assertions(4);
 
-    const p = await initFixture('./build/fixtures/with-linked-dep-_build');
+    const p = await initFixture(path.join(__dirname, './fixtures/with-linked-dep-_build'));
     await p.esy('build');
 
     const expecting = expect.stringMatching('dep');

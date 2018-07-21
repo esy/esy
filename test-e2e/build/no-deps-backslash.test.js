@@ -5,7 +5,7 @@ const {initFixture} = require('../test/helpers');
 
 it('Build - no deps backslash', async () => {
   expect.assertions(1);
-  const p = await initFixture('./build/fixtures/no-deps-backslash');
+  const p = await initFixture(path.join(__dirname, './fixtures/no-deps-backslash'));
   await p.esy('build');
 
   const {stdout} = await p.esy('x no-deps-backslash');

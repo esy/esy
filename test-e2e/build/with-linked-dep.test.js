@@ -6,13 +6,13 @@ const {promisify} = require('util');
 const open = promisify(fs.open);
 const close = promisify(fs.close);
 
-const {initFixture, esyCommands} = require('../test/helpers');
+const {initFixture} = require('../test/helpers');
 
-describe('Build - with linked dep', async () => {
+describe('Build - with linked dep', () => {
   let p;
 
   beforeAll(async () => {
-    p = await initFixture('./build/fixtures/with-linked-dep');
+    p = await initFixture(path.join(__dirname, './fixtures/with-linked-dep'));
     await p.esy('build');
   });
 
