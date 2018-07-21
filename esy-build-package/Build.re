@@ -14,8 +14,8 @@ type t = {
   lockPath: Path.t,
   infoPath: Path.t,
   env: Bos.OS.Env.t,
-  build: list(Bos.Cmd.t),
-  install: list(Bos.Cmd.t),
+  build: list(Cmd.t),
+  install: list(Cmd.t),
 };
 
 let make = (~cfg: Config.t, task: Task.t) => {
@@ -33,7 +33,7 @@ let make = (~cfg: Config.t, task: Task.t) => {
   let renderCommands = (~cfg, cmds) => {
     let f = cmd => {
       let%bind cmd = Result.List.map(~f=Config.Value.toString(~cfg), cmd);
-      return(Bos.Cmd.of_list(cmd));
+      return(Cmd.of_list(cmd));
     };
     Result.List.map(~f, cmds);
   };
@@ -81,12 +81,12 @@ let relocateSourcePath = (config: Config.t, b: t) =>
     (
       {
         let%bind buildPath =
-          EsyBash.normalizePathForCygwin(Bos.Cmd.p(b.buildPath));
+          EsyBash.normalizePathForCygwin(Cmd.p(b.buildPath));
         let%bind sourcePath =
           EsyBash.normalizePathForCygwin(Path.to_string(b.sourcePath));
 
         let cmd =
-          Bos.Cmd.(
+          Cmd.(
             empty
             % config.rsyncCmd
             % "--quiet"
@@ -155,7 +155,7 @@ let commitBuildToStore = (config: Config.t, b: t) => {
   open Run;
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
     let cmd =
-      Bos.Cmd.(
+      Cmd.(
         empty
         % config.fastreplacestringCmd
         % p(path)
@@ -462,7 +462,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
           | [] => Ok()
           | [cmd, ...cmds] =>
             Logs.app(m =>
-              m("# esy-build-package: running: %s", Bos.Cmd.to_string(cmd))
+              m("# esy-build-package: running: %s", Cmd.to_string(cmd))
             );
             switch (run(cmd)) {
             | Ok(_) => aux(cmds)

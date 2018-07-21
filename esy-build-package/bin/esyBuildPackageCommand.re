@@ -60,22 +60,7 @@ let shell = (copts: commonOpts) => {
   let%bind cfg = createConfig(copts);
   let%bind task = Task.ofFile(buildPath);
 
-  let runShell = (~run as _, ~runInteractive, _build) => {
-    let%bind rcFilename =
-      putTempFile({|
-        export PS1="[build $cur__name] % ";
-        |});
-    let cmd =
-      Bos.Cmd.of_list([
-        "bash",
-        "--noprofile",
-        "--rcfile",
-        Fpath.to_string(rcFilename),
-      ]);
-    runInteractive(cmd);
-  };
-
-  let () = {
+  let ppBanner = (build: Build.t) => {
     open Fmt;
 
     let ppList = (ppItem, ppf, (title, items)) => {
@@ -96,18 +81,10 @@ let shell = (copts: commonOpts) => {
       fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(
-        Fmt.(list(Config.Value.pp)),
-        ppf,
-        ("Build Commands:", task.build),
-      );
+      ppList(Cmd.pp, ppf, ("Build Commands:", build.build));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(
-        Fmt.(list(Config.Value.pp)),
-        ppf,
-        ("Install Commands:", task.install),
-      );
+      ppList(Cmd.pp, ppf, ("Install Commands:", build.install));
       Fmt.cut(ppf, ());
       Format.close_box();
     };
@@ -116,6 +93,22 @@ let shell = (copts: commonOpts) => {
     ppBanner(Fmt.stdout, ());
     Format.force_newline();
     Format.print_flush();
+  };
+
+  let runShell = (~run as _, ~runInteractive, build) => {
+    ppBanner(build);
+    let%bind rcFilename =
+      putTempFile({|
+        export PS1="[build $cur__name] % ";
+        |});
+    let cmd =
+      Cmd.of_list([
+        "bash",
+        "--noprofile",
+        "--rcfile",
+        Fpath.to_string(rcFilename),
+      ]);
+    runInteractive(cmd);
   };
 
   let%bind () = Build.withBuild(~cfg, task, runShell);
@@ -128,7 +121,7 @@ let exec = (copts, command) => {
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind cfg = createConfig(copts);
   let runCommand = (~run as _, ~runInteractive, _build) => {
-    let cmd = Bos.Cmd.of_list(command);
+    let cmd = Cmd.of_list(command);
     runInteractive(cmd);
   };
   let%bind task = Task.ofFile(buildPath);
@@ -148,7 +141,7 @@ let runToCompletion = (~forceExitOnError=false, run) =>
     if (forceExitOnError) {
       exit(exitCode);
     } else {
-      let msg = Format.asprintf("@\ncommand failed:@\n%a", Bos.Cmd.pp, cmd);
+      let msg = Format.asprintf("@\ncommand failed:@\n%a", Cmd.pp, cmd);
       `Error((false, msg));
     };
   | _ => `Ok()

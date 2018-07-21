@@ -7,7 +7,7 @@ type pattern =
 type config = {allowWrite: list(pattern)};
 
 type sandbox('err) =
-  (~env: Bos.OS.Env.t, Bos.Cmd.t) =>
+  (~env: Bos.OS.Env.t, Cmd.t) =>
   Run.t(
     (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
     'err,
@@ -46,12 +46,8 @@ module Darwin = {
     let prepare = (~env, command) => {
       open Bos.OS.Cmd;
       let sandboxCommand =
-        Bos.Cmd.of_list([
-          "sandbox-exec",
-          "-f",
-          Path.to_string(configFilename),
-        ]);
-      let command = Bos.Cmd.(sandboxCommand %% command);
+        Cmd.of_list(["sandbox-exec", "-f", Path.to_string(configFilename)]);
+      let command = Cmd.(sandboxCommand %% command);
 
       let exec = (~err) => run_io(~env, ~err, command);
       Ok(exec);
@@ -84,11 +80,11 @@ module Windows = {
        */
       let jsonString = convertEnvToJsonString(env);
       let%bind environmentTempFile = putTempFile(jsonString);
-      let commandAsList = Bos.Cmd.to_list(command);
+      let commandAsList = Cmd.to_list(command);
 
       /* Normalize slashes in the command we send to esy-bash */
       let normalizedCommands =
-        Bos.Cmd.of_list(
+        Cmd.of_list(
           List.map(EsyLib.Path.normalizePathSlashes, commandAsList),
         );
       let%bind augmentedEsyCommand =

@@ -15,8 +15,8 @@ type t = pri {
   lockPath: EsyLib.Path.t,
   infoPath: EsyLib.Path.t,
   env: Bos.OS.Env.t,
-  build: list(Bos.Cmd.t),
-  install: list(Bos.Cmd.t),
+  build: list(Cmd.t),
+  install: list(Cmd.t),
 };
 
 /**
@@ -51,8 +51,8 @@ let withBuild:
     ~cfg: Config.t,
     Task.t,
     (
-      ~run: Bos.Cmd.t => Run.t(unit, 'a),
-      ~runInteractive: Bos.Cmd.t => Run.t(unit, 'a),
+      ~run: Cmd.t => Run.t(unit, 'a),
+      ~runInteractive: Cmd.t => Run.t(unit, 'a),
       t
     ) => Run.t(unit, 'b),
   ) => Run.t(unit, 'b);
