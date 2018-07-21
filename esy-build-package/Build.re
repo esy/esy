@@ -16,6 +16,7 @@ type t = {
   env: Bos.OS.Env.t,
   build: list(Cmd.t),
   install: list(Cmd.t),
+  sandbox: Sandbox.sandbox,
 };
 
 let make = (~cfg: Config.t, task: Task.t) => {
@@ -59,6 +60,49 @@ let make = (~cfg: Config.t, task: Task.t) => {
   let infoPath =
     Path.(storePath / EsyLib.Store.buildTree / task.id |> addExt(".info"));
 
+  let%bind sandbox = {
+    let%bind config = {
+      open Sandbox;
+      let regex = (base, segments) => {
+        let pat =
+          String.concat(Path.dir_sep, [Path.to_string(base), ...segments]);
+        Regex(pat);
+      };
+      let%bind tempPath = {
+        let v = Path.v(Bos.OS.Env.opt_var("TMPDIR", ~absent="/tmp"));
+        let%bind v = realpath(v);
+        Ok(Path.to_string(v));
+      };
+      let allowWriteToSourcePath =
+        switch (task.buildType) {
+        | Unsafe => [Subpath(Path.to_string(sourcePath))]
+        | JbuilderLike => [
+            Subpath(Path.to_string(sourcePath / "_build")),
+            regex(sourcePath, [".*", "[^/]*\\.install"]),
+            regex(sourcePath, ["[^/]*\\.install"]),
+            regex(sourcePath, [".*", "[^/]*\\.opam"]),
+            regex(sourcePath, ["[^/]*\\.opam"]),
+            regex(sourcePath, [".*", "jbuild-ignore"]),
+          ]
+        | _ => []
+        };
+      Ok({
+        allowWrite:
+          allowWriteToSourcePath
+          @ [
+            regex(sourcePath, [".*", "\\.merlin"]),
+            regex(sourcePath, ["\\.merlin"]),
+            Subpath(Path.to_string(buildPath)),
+            Subpath(Path.to_string(stagePath)),
+            Subpath("/private/tmp"),
+            Subpath("/tmp"),
+            Subpath(tempPath),
+          ],
+      });
+    };
+    Sandbox.init(config);
+  };
+
   return({
     task,
     env,
@@ -71,6 +115,7 @@ let make = (~cfg: Config.t, task: Task.t) => {
     buildPath,
     lockPath,
     infoPath,
+    sandbox,
   });
 };
 
@@ -309,85 +354,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
       | (Unsafe, Immutable)
       | (Unsafe, Transient) => (b.sourcePath, doNothing, doNothing)
       };
-    let%bind sandboxConfig = {
-      open Sandbox;
-      let regex = (base, segments) => {
-        let pat =
-          String.concat(Path.dir_sep, [Path.to_string(base), ...segments]);
-        Regex(pat);
-      };
-      let%bind tempPath = {
-        let v = Path.v(Bos.OS.Env.opt_var("TMPDIR", ~absent="/tmp"));
-        let%bind v = realpath(v);
-        Ok(Path.to_string(v));
-      };
-      let allowWriteToSourcePath =
-        switch (b.task.buildType) {
-        | Unsafe => [Subpath(Path.to_string(b.sourcePath))]
-        | JbuilderLike => [
-            Subpath(Path.to_string(b.sourcePath / "_build")),
-            regex(b.sourcePath, [".*", "[^/]*\\.install"]),
-            regex(b.sourcePath, ["[^/]*\\.install"]),
-            regex(b.sourcePath, [".*", "[^/]*\\.opam"]),
-            regex(b.sourcePath, ["[^/]*\\.opam"]),
-            regex(b.sourcePath, [".*", "jbuild-ignore"]),
-          ]
-        | _ => []
-        };
-      Ok(
-        allowWriteToSourcePath
-        @ [
-          regex(b.sourcePath, [".*", "\\.merlin"]),
-          regex(b.sourcePath, ["\\.merlin"]),
-          Subpath(Path.to_string(b.buildPath)),
-          Subpath(Path.to_string(b.stagePath)),
-          Subpath("/private/tmp"),
-          Subpath("/tmp"),
-          Subpath(tempPath),
-        ],
-      );
-    };
-    let env =
-      switch (Bos.OS.Env.var("TERM")) {
-      | Some(term) => Astring.String.Map.add("TERM", term, b.env)
-      | None => b.env
-      };
-    let%bind sandbox = Sandbox.init({allowWrite: sandboxConfig});
-    let path =
-      switch (Astring.String.Map.find("PATH", env)) {
-      | Some(path) => String.split_on_char(System.envSep.[0], path)
-      | None => []
-      };
-    let run = cmd => {
-      let%bind ((), (_runInfo, runStatus)) = {
-        let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
-        let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
-        let cmd = EsyLib.Cmd.toBosCmd(cmd);
-        let%bind exec = Sandbox.exec(~env, sandbox, cmd);
-        Bos.OS.Cmd.(
-          in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout
-        );
-      };
-      switch (runStatus) {
-      | `Exited(0) => Ok()
-      | status => Error(`CommandError((cmd, status)))
-      };
-    };
-    let runInteractive = cmd => {
-      let%bind ((), (_runInfo, runStatus)) = {
-        let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
-        let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
-        let cmd = EsyLib.Cmd.toBosCmd(cmd);
-        let%bind exec = Sandbox.exec(~env, sandbox, cmd);
-        Bos.OS.Cmd.(
-          in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout
-        );
-      };
-      switch (runStatus) {
-      | `Exited(0) => Ok()
-      | status => Error(`CommandError((cmd, status)))
-      };
-    };
     /*
      * Prepare build/install.
      */
@@ -437,7 +403,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
         error;
       };
     let%bind () = prepare();
-    let result = withCwd(rootPath, ~f=() => f(~run, ~runInteractive, b));
+    let result = withCwd(rootPath, ~f=() => f(b));
     let%bind () = finalize(result);
     result;
   };
@@ -445,6 +411,55 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   switch (b.task.sourceType) {
   | SourceType.Transient => withLock(b.lockPath, perform)
   | SourceType.Immutable => perform()
+  };
+};
+
+let runCommand = (b, cmd) => {
+  let env =
+    switch (Bos.OS.Env.var("TERM")) {
+    | Some(term) => Astring.String.Map.add("TERM", term, b.env)
+    | None => b.env
+    };
+  let path =
+    switch (Astring.String.Map.find("PATH", env)) {
+    | Some(path) => String.split_on_char(System.envSep.[0], path)
+    | None => []
+    };
+
+  let%bind ((), (_runInfo, runStatus)) = {
+    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+    let cmd = EsyLib.Cmd.toBosCmd(cmd);
+    let%bind exec = Sandbox.exec(~env, b.sandbox, cmd);
+    Bos.OS.Cmd.(in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout);
+  };
+  switch (runStatus) {
+  | `Exited(0) => Ok()
+  | status => Error(`CommandError((cmd, status)))
+  };
+};
+
+let runCommandInteractive = (b, cmd) => {
+  let env =
+    switch (Bos.OS.Env.var("TERM")) {
+    | Some(term) => Astring.String.Map.add("TERM", term, b.env)
+    | None => b.env
+    };
+  let path =
+    switch (Astring.String.Map.find("PATH", env)) {
+    | Some(path) => String.split_on_char(System.envSep.[0], path)
+    | None => []
+    };
+  let%bind ((), (_runInfo, runStatus)) = {
+    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+    let cmd = EsyLib.Cmd.toBosCmd(cmd);
+    let%bind exec = Sandbox.exec(~env, b.sandbox, cmd);
+    Bos.OS.Cmd.(in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout);
+  };
+  switch (runStatus) {
+  | `Exited(0) => Ok()
+  | status => Error(`CommandError((cmd, status)))
   };
 };
 
@@ -456,7 +471,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
     Logs.app(m =>
       m("# esy-build-package: building: %s@%s", b.task.name, b.task.version)
     );
-    let runBuildAndInstall = (~run, ~runInteractive as _, b) => {
+    let runBuildAndInstall = b => {
       let runList = cmds => {
         let rec aux = cmds =>
           switch (cmds) {
@@ -465,7 +480,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             Logs.app(m =>
               m("# esy-build-package: running: %s", Cmd.to_string(cmd))
             );
-            switch (run(cmd)) {
+            switch (runCommand(b, cmd)) {
             | Ok(_) => aux(cmds)
             | Error(err) => Error(err)
             };

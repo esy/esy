@@ -95,7 +95,7 @@ let shell = (copts: commonOpts) => {
     Format.print_flush();
   };
 
-  let runShell = (~run as _, ~runInteractive, build) => {
+  let runShell = build => {
     ppBanner(build);
     let%bind rcFilename =
       putTempFile({|
@@ -108,7 +108,7 @@ let shell = (copts: commonOpts) => {
         "--rcfile",
         Fpath.to_string(rcFilename),
       ]);
-    runInteractive(cmd);
+    Build.runCommandInteractive(build, cmd);
   };
 
   let%bind () = Build.withBuild(~cfg, task, runShell);
@@ -120,9 +120,9 @@ let exec = (copts, command) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind cfg = createConfig(copts);
-  let runCommand = (~run as _, ~runInteractive, _build) => {
+  let runCommand = build => {
     let cmd = Cmd.of_list(command);
-    runInteractive(cmd);
+    Build.runCommandInteractive(build, cmd);
   };
   let%bind task = Task.ofFile(buildPath);
   let%bind () = Build.withBuild(~cfg, task, runCommand);

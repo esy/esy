@@ -17,6 +17,7 @@ type t = pri {
   env: Bos.OS.Env.t,
   build: list(Cmd.t),
   install: list(Cmd.t),
+  sandbox: Sandbox.sandbox,
 };
 
 /**
@@ -50,9 +51,19 @@ let withBuild:
     ~commit: bool=?,
     ~cfg: Config.t,
     Task.t,
-    (
-      ~run: Cmd.t => Run.t(unit, 'a),
-      ~runInteractive: Cmd.t => Run.t(unit, 'a),
-      t
-    ) => Run.t(unit, 'b),
+    t => Run.t(unit, 'b)
   ) => Run.t(unit, 'b);
+
+/**
+
+	Run command in the build environment.
+
+ */
+let runCommand : (t, Cmd.t) => Run.t(unit, _)
+
+/**
+
+	Run command interactively in the build environment.
+
+ */
+let runCommandInteractive : (t, Cmd.t) => Run.t(unit, _)
