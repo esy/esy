@@ -353,6 +353,8 @@ module Opam : sig
   val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
   val substs : t -> OpamTypes.basename list
 
+  val hasMultipleOpamFiles : t -> bool
+
 end = struct
   type t =
     | Installed of {
@@ -364,6 +366,11 @@ end = struct
   and commands =
     | Commands of OpamTypes.command list
     | OverridenCommands of CommandList.t
+
+  let hasMultipleOpamFiles = function
+    | Installed _ -> false
+    | AggregatedRoot ([] | [_]) -> false
+    | AggregatedRoot _ -> true
 
   let opamName = function
     | Installed {opam;_} ->
@@ -397,7 +404,10 @@ end = struct
       | None ->
         Commands (OpamFile.OPAM.build manifest.opam)
       end
-    | AggregatedRoot _ -> Commands []
+    | AggregatedRoot [_name, opam] ->
+      Commands (OpamFile.OPAM.build opam)
+    | AggregatedRoot _ ->
+      Commands []
 
   let installCommands = function
     | Installed manifest ->
@@ -408,7 +418,10 @@ end = struct
       | None ->
         Commands (OpamFile.OPAM.install manifest.opam)
       end
-    | AggregatedRoot _ -> Commands []
+    | AggregatedRoot [_name, opam] ->
+      Commands (OpamFile.OPAM.install opam)
+    | AggregatedRoot _ ->
+      Commands []
 
   let patches = function
     | Installed manifest -> OpamFile.OPAM.patches manifest.opam
@@ -556,9 +569,28 @@ type t =
   | Opam of Opam.t
 
 let ofDir ?(asRoot=false) (path : Path.t) =
+
+  let relative p =
+    match Path.relativize ~root:path p with
+    | Some p -> p
+    | None -> p
+  in
+
+  let ppPaths fmt paths =
+    let paths = Path.Set.map relative paths in
+    let pp = Path.Set.pp ~sep:(Fmt.unit ", ") Path.pp in
+    pp fmt paths
+  in
+
   let open RunAsync.Syntax in
   match%bind Esy.ofDir path with
-  | Some (manifest, paths) -> return (Some (Esy manifest, paths))
+  | Some (manifest, paths) ->
+    let%lwt () =
+      if asRoot
+      then Logs_lwt.app (fun m -> m "found esy manifests: %a" ppPaths paths)
+      else Lwt.return ()
+    in
+    return (Some (Esy manifest, paths))
   | None ->
     let opam =
       if asRoot
@@ -566,6 +598,16 @@ let ofDir ?(asRoot=false) (path : Path.t) =
       else Opam.ofDirAsInstalled path
     in
     begin match%bind opam with
-    | Some (manifest, paths) -> return (Some (Opam manifest, paths))
+    | Some (manifest, paths) ->
+      let%lwt () =
+        if asRoot
+        then (
+          Logs_lwt.app (fun m -> m "found opam manifests: %a" ppPaths paths);%lwt
+          if Opam.hasMultipleOpamFiles manifest
+          then Logs_lwt.warn (fun m -> m "build commands from opam files won't be executed")
+          else Lwt.return ()
+        ) else Lwt.return ()
+      in
+      return (Some (Opam manifest, paths))
     | None -> return None
     end
