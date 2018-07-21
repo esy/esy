@@ -1,26 +1,24 @@
+// @flow
+
 const path = require('path');
 
-const {initFixture, esyCommands} = require('../test/helpers');
+const {initFixture} = require('../test/helpers');
 
-it('Build - creats symlinks', async done => {
+it('Build - creates symlinks', async () => {
   expect.assertions(4);
-  const TEST_PATH = await initFixture('./build/fixtures/creates-symlinks');
-  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
+  const p = await initFixture('./build/fixtures/creates-symlinks');
 
-  esyCommands.build(PROJECT_PATH, TEST_PATH);
-
-  const dep = await esyCommands.command(PROJECT_PATH, 'dep');
-  const bDep = await esyCommands.b(PROJECT_PATH, 'dep');
-  const xDep = await esyCommands.x(PROJECT_PATH, 'dep');
+  await p.esy('build');
 
   const expecting = expect.stringMatching('dep');
 
+  const dep = await p.esy('dep');
   expect(dep.stdout).toEqual(expecting);
+  const bDep = await p.esy('b dep');
   expect(bDep.stdout).toEqual(expecting);
+  const xDep = await p.esy('x dep');
   expect(xDep.stdout).toEqual(expecting);
 
-  let x = await esyCommands.x(PROJECT_PATH, 'creates-symlinks');
+  let x = await p.esy('x creates-symlinks');
   expect(x.stdout).toEqual(expect.stringMatching('creates-symlinks'));
-
-  done();
 });

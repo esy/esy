@@ -1,38 +1,39 @@
+// @flow
+
 const path = require('path');
 const fs = require('fs-extra');
 const childProcess = require('child_process');
 const {promisify} = require('util');
+const promiseExec = promisify(childProcess.exec);
 
 const ESYCOMMAND = require.resolve('../../bin/esy');
 
-const promiseExec = promisify(childProcess.exec);
+async function initFixture(fixture: string) {
+  const rootPath = await fs.mkdtemp('/tmp/esy.XXXX');
+  const projectPath = path.join(rootPath, 'project');
+  const binPath = path.join(rootPath, 'bin');
+  const esyPrefixPath = path.join(rootPath, 'esy');
 
-const esyCommands = {
-  build: (cwd, testPath) =>
-    promiseExec(`${ESYCOMMAND} build`, {
-      cwd,
-      env: {...process.env, ESY__PREFIX: testPath},
-    }),
-  command: (cwd, command) => promiseExec(`${ESYCOMMAND} ${command}`, {cwd}),
-  b: (cwd, command) => promiseExec(`${ESYCOMMAND} b ${command}`, {cwd}),
-  x: (cwd, command) => promiseExec(`${ESYCOMMAND} x ${command}`, {cwd}),
-};
+  await fs.mkdir(binPath);
+  await fs.link(ESYCOMMAND, path.join(binPath, 'esy'));
+  await fs.copy(fixture, projectPath);
 
-function initFixture(fixture) {
-  return fs.mkdtemp('/tmp/esy.XXXX').then(TEST_ROOT => {
-    const TEST_PROJECT = path.join(TEST_ROOT, 'project');
-    const TEST_BIN = path.join(TEST_ROOT, 'bin');
+  function esy(args: string, options: ?{noEsyPrefix?: bool}) {
+    options = options || {};
+    let env = process.env;
+    if (!options.noEsyPrefix) {
+      env = {...process.env, ESY__PREFIX: esyPrefixPath};
+    }
+    return promiseExec(`${ESYCOMMAND} ${args}`, {
+      cwd: projectPath,
+      env,
+    })
+  }
 
-    return fs
-      .mkdir(TEST_BIN)
-      .then(() => fs.link(ESYCOMMAND, path.join(TEST_BIN, 'esy')))
-      .then(() => fs.copy(fixture, TEST_PROJECT))
-      .then(() => TEST_ROOT);
-  });
+  return {rootPath, binPath, projectPath, esy}
 }
 
 module.exports = {
-  esyCommands,
   initFixture,
   promiseExec,
 };

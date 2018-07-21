@@ -1,17 +1,13 @@
+// @flow
+
 const path = require('path');
+const {initFixture} = require('../test/helpers');
 
-const {initFixture, esyCommands} = require('../test/helpers');
-
-it('Build - sandbox stress _build', async done => {
+it('Build - sandbox stress _build', async () => {
   expect.assertions(1);
-  const TEST_PATH = await initFixture('./build/fixtures/sandbox-stress-_build');
-  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
+  const p = await initFixture('./build/fixtures/sandbox-stress-_build');
+  await p.esy('build');
 
-  await esyCommands.build(PROJECT_PATH, TEST_PATH);
-
-  const {stdout} = await esyCommands.x(PROJECT_PATH, 'echo ok');
-
+  const {stdout} = await p.esy('x echo ok');
   expect(stdout).toEqual(expect.stringMatching('ok'));
-
-  done();
 });

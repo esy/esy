@@ -1,47 +1,41 @@
+// @flow
+
 const childProcess = require('child_process');
 const path = require('path');
 
-const {initFixture, esyCommands} = require('../test/helpers');
+const {initFixture} = require('../test/helpers');
 
-describe('Build - has build time deps', async () => {
-  let TEST_PATH;
-  let PROJECT_PATH;
+describe('Build - has build time deps', () => {
 
-  beforeAll(async done => {
-    TEST_PATH = await initFixture('./build/fixtures/has-build-time-deps');
-    PROJECT_PATH = path.resolve(TEST_PATH, 'project');
-    await esyCommands.build(PROJECT_PATH, TEST_PATH);
-    done();
-  });
-
-  it('x dep', async done => {
+  it('x dep', async () => {
     expect.assertions(1);
+    const p = await initFixture('./build/fixtures/has-build-time-deps');
+    await p.esy('build');
 
-    const {stdout} = await esyCommands.x(PROJECT_PATH, 'dep');
+    const {stdout} = await p.esy('dep');
     expect(stdout).toEqual(
       expect.stringMatching(`dep was built with:
 build-time-dep@2.0.0`),
     );
 
-    done();
   });
 
-  it('x has-build-time-deps', async done => {
+  it('x has-build-time-deps', async () => {
     expect.assertions(2);
+    const p = await initFixture('./build/fixtures/has-build-time-deps');
+    await p.esy('build');
 
-    const {stdout} = await esyCommands.x(PROJECT_PATH, 'has-build-time-deps');
+    const {stdout} = await p.esy('x has-build-time-deps');
     expect(stdout).toEqual(expect.stringMatching(`has-build-time-deps was built with:`));
     expect(stdout).toEqual(expect.stringMatching(`build-time-dep@1.0.0`));
-
-    done();
   });
 
-  it('b build-time-dep', async done => {
+  it('b build-time-dep', async () => {
     expect.assertions(1);
+    const p = await initFixture('./build/fixtures/has-build-time-deps');
+    await p.esy('build');
 
-    const {stdout} = await esyCommands.b(PROJECT_PATH, 'build-time-dep');
+    const {stdout} = await p.esy('b build-time-dep');
     expect(stdout).toEqual(expect.stringMatching(`build-time-dep@1.0.0`));
-
-    done();
   });
 });

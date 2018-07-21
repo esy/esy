@@ -1,38 +1,29 @@
+// @flow
+
 const path = require('path');
 const fs = require('fs');
-const {promisify} = require('util');
 
-const {initFixture, esyCommands} = require('../test/helpers');
+const {initFixture} = require('../test/helpers');
 
-describe('Build - with linked dep _build', async () => {
-  let TEST_PATH;
-  let PROJECT_PATH;
+describe('Build - with linked dep _build', () => {
 
-  beforeAll(async done => {
-    TEST_PATH = await initFixture('./build/fixtures/with-linked-dep-in-source');
-    PROJECT_PATH = path.resolve(TEST_PATH, 'project');
-
-    await esyCommands.build(PROJECT_PATH, TEST_PATH);
-
-    done();
-  });
-
-  it('package "dep" should be visible in all envs', async done => {
+  it('package "dep" should be visible in all envs', async () => {
     expect.assertions(4);
 
-    const dep = await esyCommands.command(PROJECT_PATH, 'dep');
-    const b = await esyCommands.b(PROJECT_PATH, 'dep');
-    const x = await esyCommands.x(PROJECT_PATH, 'dep');
+    const p = await initFixture('./build/fixtures/with-linked-dep-in-source');
 
     const expecting = expect.stringMatching('dep');
 
-    expect(x.stdout).toEqual(expecting);
-    expect(b.stdout).toEqual(expecting);
+    const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);
 
-    const {stdout} = await esyCommands.x(PROJECT_PATH, 'with-linked-dep-in-source');
-    expect(stdout).toEqual(expect.stringMatching('with-linked-dep-in-source'));
+    const b = await p.esy('b dep');
+    expect(b.stdout).toEqual(expecting);
 
-    done();
+    const x = await p.esy('x dep');
+    expect(x.stdout).toEqual(expecting);
+
+    const {stdout} = await p.esy('x with-linked-dep-in-source');
+    expect(stdout).toEqual(expect.stringMatching('with-linked-dep-in-source'));
   });
 });

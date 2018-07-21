@@ -1,18 +1,15 @@
+// @flow
+
 const path = require('path');
 
-const {initFixture, esyCommands} = require('../test/helpers');
+const {initFixture} = require('../test/helpers');
 
-it('Build - custom prefix', async done => {
+it('Build - custom prefix', async () => {
   expect.assertions(1);
-  const TEST_PATH = await initFixture('./build/fixtures/custom-prefix');
-  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
+  const p = await initFixture('./build/fixtures/custom-prefix');
 
-  // same as unset ESY__PREFIX
-  await esyCommands.build(PROJECT_PATH, null);
+  await p.esy('build', {noEsyPrefix: true});
 
-  const {stdout} = await esyCommands.x(PROJECT_PATH, 'custom-prefix');
-
+  const {stdout} = await p.esy('x custom-prefix', {noEsyPrefix: true});
   expect(stdout).toEqual(expect.stringMatching('custom-prefix'));
-
-  done();
 });

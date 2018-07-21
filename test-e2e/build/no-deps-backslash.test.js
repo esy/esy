@@ -1,17 +1,13 @@
+// @flow
+
 const path = require('path');
+const {initFixture} = require('../test/helpers');
 
-const {initFixture, esyCommands} = require('../test/helpers');
-
-it('Build - no deps backslash', async done => {
+it('Build - no deps backslash', async () => {
   expect.assertions(1);
-  const TEST_PATH = await initFixture('./build/fixtures/no-deps-backslash');
-  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
+  const p = await initFixture('./build/fixtures/no-deps-backslash');
+  await p.esy('build');
 
-  await esyCommands.build(PROJECT_PATH, TEST_PATH);
-
-  const {stdout} = await esyCommands.x(PROJECT_PATH, 'no-deps-backslash');
-
+  const {stdout} = await p.esy('x no-deps-backslash');
   expect(stdout).toEqual(expect.stringMatching(/\\ no-deps-backslash \\/));
-
-  done();
 });

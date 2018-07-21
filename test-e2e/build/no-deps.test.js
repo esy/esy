@@ -1,18 +1,13 @@
+// @flow
+
 const path = require('path');
+const {initFixture} = require('../test/helpers');
 
-const {initFixture, esyCommands} = require('../test/helpers');
-
-it('Build - no deps', async done => {
+it('Build - no deps', async () => {
   expect.assertions(1);
 
-  const TEST_PATH = await initFixture('./build/fixtures/no-deps');
-  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
-
-  await esyCommands.build(PROJECT_PATH, TEST_PATH);
-
-  const {stdout} = await esyCommands.x(PROJECT_PATH, 'no-deps');
-
+  const p = await initFixture('./build/fixtures/no-deps');
+  await p.esy('build');
+  const {stdout} = await p.esy('x no-deps');
   expect(stdout).toEqual(expect.stringMatching('no-deps'));
-
-  done();
 });
