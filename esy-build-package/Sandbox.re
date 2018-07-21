@@ -6,11 +6,13 @@ type pattern =
 
 type config = {allowWrite: list(pattern)};
 
-type sandbox('err) =
+type err = [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)];
+
+type sandbox =
   (~env: Bos.OS.Env.t, Cmd.t) =>
-  Run.t(
+  result(
     (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
-    'err,
+    err,
   );
 
 module Darwin = {
@@ -117,4 +119,7 @@ let init = (config: config) =>
   | _ => NoSandbox.sandboxExec(config)
   };
 
-let exec = (~env, sandbox, cmd) => sandbox(~env, cmd);
+let exec = (~env, sandbox: sandbox, cmd) => {
+  let result = sandbox(~env, cmd);
+  (result: result(_, err) :> Run.t(_, _));
+};
