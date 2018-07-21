@@ -1,5 +1,7 @@
 // @flow
 
+jest.setTimeout(20000);
+
 const path = require('path');
 const fs = require('fs-extra');
 const childProcess = require('child_process');
