@@ -66,7 +66,6 @@ endif
 	@esy install
 	@make -C esy-install bootstrap
 	@make build-dev
-	@make -C test-e2e-esyi bootstrap
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
 	@make -C site bootstrap
 
@@ -102,9 +101,6 @@ test-unit::
 test-e2e::
 	@$(BIN)/jest test-e2e
 
-test-e2e-esyi::
-	@make -C test-e2e-esyi test
-
 test-opam::
 	$(MAKE) -C __tests__/opam
 
@@ -114,8 +110,6 @@ test::
 	@$(MAKE) test-unit
 	@echo "Running test suite: e2e"
 	@$(MAKE) test-e2e
-	@echo "Running test suite: e2e installer"
-	@$(MAKE) test-e2e-esyi
 
 ci:: test
 

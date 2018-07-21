@@ -5,12 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": [
-      [
-        "jbuilder",
-        "build",
-        "-j",
-        "4"
-      ],
+      ["jbuilder", "build", "-j", "4"],
       [
         "jbuilder",
         "build",
@@ -19,20 +14,15 @@
       ]
     ],
     "install": [
-      [
-        "esy-installer",
-        "./esy-build-package.install"
-      ],
-      [
-        "esy-installer",
-        "./esy.install"
-      ]
+      ["esy-installer", "./esy-build-package.install"],
+      ["esy-installer", "./esy.install"]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
-    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
+    "bootstrap:install-dependencies":
+      "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
@@ -88,6 +78,12 @@
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",
-    "prettier": "^1.13.7"
+    "prettier": "^1.13.7",
+    "klaw": "^2.1.1",
+    "minimatch": "^3.0.4",
+    "semver": "^5.5.0",
+    "super-resolve": "^1.0.0",
+    "tar-fs": "^1.16.0",
+    "tmp": "^0.0.33"
   }
 }

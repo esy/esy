@@ -6,7 +6,17 @@ const fs = require('./fs');
 const tests = require('./tests');
 
 const cwd = process.cwd();
-const esyiCommand = path.join(cwd, '..', '_build', 'install', 'default', 'bin', 'esyi');
+const esyiCommand = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '_build',
+  'install',
+  'default',
+  'bin',
+  'esyi',
+);
 
 const esyiCommands = new Set(['install', 'print-cudf-universe']);
 
