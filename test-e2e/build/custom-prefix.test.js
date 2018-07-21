@@ -2,7 +2,7 @@ const path = require('path');
 
 const {initFixture, esyCommands} = require('../test/helpers');
 
-it('Build - custom prefix (not propperly implemented)', async done => {
+it('Build - custom prefix', async done => {
   expect.assertions(1);
   const TEST_PATH = await initFixture('./build/fixtures/custom-prefix');
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');

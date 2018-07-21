@@ -2,25 +2,33 @@ const path = require('path');
 
 const {initFixture, esyCommands} = require('../test/helpers');
 
-it('Build - no deps _build', async done => {
-  expect.assertions(4);
-  const TEST_PATH = await initFixture('./build/fixtures/with-dep');
-  const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
+describe('Build - with dep', async () => {
+  let TEST_PATH;
+  let PROJECT_PATH;
 
-  await esyCommands.build(PROJECT_PATH, TEST_PATH);
+  beforeAll(async done => {
+    TEST_PATH = await initFixture('./build/fixtures/with-dep');
+    PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-  const dep = await esyCommands.command(PROJECT_PATH, 'dep');
-  const b = await esyCommands.b(PROJECT_PATH, 'dep');
-  const x = await esyCommands.x(PROJECT_PATH, 'dep');
+    await esyCommands.build(PROJECT_PATH, TEST_PATH);
+    done();
+  });
 
-  const expecting = expect.stringMatching('dep');
+  it('package "dep" should be visible in all envs', async done => {
+    expect.assertions(4);
+    const dep = await esyCommands.command(PROJECT_PATH, 'dep');
+    const b = await esyCommands.b(PROJECT_PATH, 'dep');
+    const x = await esyCommands.x(PROJECT_PATH, 'dep');
 
-  expect(x.stdout).toEqual(expecting);
-  expect(b.stdout).toEqual(expecting);
-  expect(dep.stdout).toEqual(expecting);
+    const expecting = expect.stringMatching('dep');
 
-  const {stdout} = await esyCommands.x(PROJECT_PATH, 'with-dep');
-  expect(stdout).toEqual(expect.stringMatching('with-dep'));
+    expect(x.stdout).toEqual(expecting);
+    expect(b.stdout).toEqual(expecting);
+    expect(dep.stdout).toEqual(expecting);
 
-  done();
+    const {stdout} = await esyCommands.x(PROJECT_PATH, 'with-dep');
+    expect(stdout).toEqual(expect.stringMatching('with-dep'));
+
+    done();
+  });
 });

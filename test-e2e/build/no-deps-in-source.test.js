@@ -7,11 +7,7 @@ it('Build - no deps in source', async done => {
   const TEST_PATH = await initFixture('./build/fixtures/no-deps-in-source');
   const PROJECT_PATH = path.resolve(TEST_PATH, 'project');
 
-  try {
-    await esyCommands.build(PROJECT_PATH, TEST_PATH);
-  } catch (e) {
-    console.error(e);
-  }
+  await esyCommands.build(PROJECT_PATH, TEST_PATH);
 
   const {stdout} = await esyCommands.x(PROJECT_PATH, 'no-deps-in-source');
 

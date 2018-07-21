@@ -14,7 +14,7 @@ describe('Build - with dev dep', () => {
     done();
   });
 
-  it('dep', async done => {
+  it('package "dep" should be visible in all envs', async done => {
     expect.assertions(3);
 
     const dep = await esyCommands.command(PROJECT_PATH, 'dep');
@@ -30,8 +30,8 @@ describe('Build - with dev dep', () => {
     done();
   });
 
-  it('dev-dep', async () => {
-    expect.assertions(3);
+  it('package "dev-dep" should be visible only in command env', async () => {
+    expect.assertions(4);
 
     const dep = await esyCommands.command(PROJECT_PATH, 'dev-dep');
     const xDep = await esyCommands.x(PROJECT_PATH, 'dev-dep');
@@ -41,15 +41,9 @@ describe('Build - with dev dep', () => {
     expect(dep.stdout).toEqual(expecting);
     expect(xDep.stdout).toEqual(expecting);
 
-    return expect(esyCommands.b(PROJECT_PATH, 'dev-dep')).rejects.toThrow();
-  });
-
-  it('with-dev-dep', async done => {
-    expect.assertions(1);
-
     const {stdout} = await esyCommands.x(PROJECT_PATH, 'with-dev-dep');
-    expect(stdout).toEqual(expect.stringMatching('dev-dep'));
+    expect(stdout).toEqual(expect.stringMatching('with-dev-dep'));
 
-    done();
+    return expect(esyCommands.b(PROJECT_PATH, 'dev-dep')).rejects.toThrow();
   });
 });
