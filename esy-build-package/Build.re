@@ -32,10 +32,11 @@ let make = (~cfg: Config.t, task: Task.t) => {
 
   let renderCommands = (~cfg, cmds) => {
     let f = cmd => {
-      let%bind cmd = Result.List.map(~f=Config.Value.toString(~cfg), cmd);
+      let%bind cmd =
+        EsyLib.Result.List.map(~f=Config.Value.toString(~cfg), cmd);
       return(Cmd.of_list(cmd));
     };
-    Result.List.map(~f, cmds);
+    EsyLib.Result.List.map(~f, cmds);
   };
   let%bind install = renderCommands(~cfg, task.install);
   let%bind build = renderCommands(~cfg, task.build);
@@ -165,7 +166,7 @@ let commitBuildToStore = (config: Config.t, b: t) => {
     Bos.OS.Cmd.run(cmd);
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
-    let%bind targetPath = symlink_target(path);
+    let%bind targetPath = symlinkTarget(path);
     switch (Path.rem_prefix(origPrefix, targetPath)) {
     | Some(basePath) =>
       let nextTargetPath = Path.append(destPrefix, basePath);
@@ -260,7 +261,7 @@ let findSourceModTime = (b: t) => {
         | _ => Ok(true)
         },
     );
-  Result.join(
+  EsyLib.Result.join(
     Bos.OS.Path.fold(
       ~dotfiles=true,
       ~traverse,

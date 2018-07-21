@@ -13,9 +13,8 @@ let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 let ok = Result.ok;
 let return = v => Ok(v);
 
-let (/) = Fpath.(/);
-
 let v = Fpath.v;
+let (/) = Fpath.(/);
 
 let withCwd = (path, ~f) =>
   Result.join(Bos.OS.Dir.with_current(path, f, ()));
@@ -28,24 +27,12 @@ let mkdir = path =>
   | Error(msg) => Error(msg)
   };
 
-let rmdir = path => Bos.OS.Dir.delete(~recurse=true, path);
-
 let rm = path => Bos.OS.File.delete(path);
-
+let rmdir = path => Bos.OS.Dir.delete(~recurse=true, path);
 let symlink = Bos.OS.Path.symlink;
-
-let symlink_target = Bos.OS.Path.symlink_target;
-
 let symlinkTarget = Bos.OS.Path.symlink_target;
 
 let mv = Bos.OS.Path.move;
-
-let uname = () => {
-  let ic = Unix.open_process_in("uname");
-  let uname = input_line(ic);
-  let () = close_in(ic);
-  String.lowercase_ascii(uname);
-};
 
 module Let_syntax = Result.Syntax.Let_syntax;
 
