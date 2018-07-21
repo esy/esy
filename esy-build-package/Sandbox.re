@@ -17,7 +17,7 @@ type sandbox =
 
 module Darwin = {
   let renderConfig = config => {
-    open Sexp;
+    open EsyLib.Sexp;
     let v = x => Value(L(x));
     let renderAllowWrite =
       List.map(
