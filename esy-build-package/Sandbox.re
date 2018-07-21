@@ -116,3 +116,5 @@ let init = (config: config) =>
   | Darwin => Darwin.sandboxExec(config)
   | _ => NoSandbox.sandboxExec(config)
   };
+
+let exec = (~env, sandbox, cmd) => sandbox(~env, cmd);

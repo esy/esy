@@ -3,11 +3,10 @@
  */
 module Result = EsyLib.Result;
 
-type t('a, 'b) =
-  result(
-    'a,
-    [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b,
-  );
+type err('b) =
+  [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
+
+type t('v, 'e) = result('v, err('e));
 
 let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 
