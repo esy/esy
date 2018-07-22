@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 
 const {initFixture} = require('../test/helpers');
 
-it('Export-Import - from list', async () => {
+it('export import build - from list', async () => {
   const p = await initFixture(path.join(__dirname, './fixtures/symlinks-into-dep'));
   await p.esy('build');
 

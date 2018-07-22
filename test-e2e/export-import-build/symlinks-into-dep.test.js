@@ -7,7 +7,7 @@ const del = require('del');
 
 const {initFixture} = require('../test/helpers');
 
-describe('Export-Import - import symlinks into dep', async () => {
+describe('export import build - import symlinks into dep', async () => {
   let p;
 
   beforeAll(async () => {
