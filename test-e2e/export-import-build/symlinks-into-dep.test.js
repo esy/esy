@@ -79,18 +79,16 @@ describe('export import build - import symlinks into dep', async () => {
     });
 
     // check symlink target for exported build
+    const buildFolder = tarFile.split('.tar.gz')[0];
     const exportedTarget = await fs.readlink(
-      path.join(p.projectPath, '_export', tarFile.split('.tar.gz')[0], '/bin/dep'),
+      path.join(p.projectPath, '_export', buildFolder, '/bin/dep'),
     );
     expect(exportedTarget).toEqual(expect.stringMatching('________'));
 
     // drop & import
-    const delResult = await del(
-      path.join(p.projectPath, '../esy/3/i', tarFile.split('.tar.gz')[0]),
-      {
-        force: true,
-      },
-    );
+    const delResult = await del(path.join(p.projectPath, '../esy/3/i', buildFolder), {
+      force: true,
+    });
     // Should delete 1 folder
     expect(delResult.length).toEqual(1);
 
@@ -98,7 +96,7 @@ describe('export import build - import symlinks into dep', async () => {
 
     // check symlink target for imported build
     const importedTarget = await fs.readlink(
-      path.join(p.projectPath, '../esy/3/i', tarFile.split('.tar.gz')[0], '/bin/dep'),
+      path.join(p.projectPath, '../esy/3/i', buildFolder, '/bin/dep'),
     );
     expect(importedTarget).toEqual(expect.stringMatching(p.esyPrefixPath));
   });
