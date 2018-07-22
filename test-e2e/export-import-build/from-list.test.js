@@ -1,3 +1,5 @@
+// @flow
+
 const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
