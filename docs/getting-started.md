@@ -10,8 +10,8 @@ file, and then perform operations on that project.
 
 There are example projects:
 
-* [OCaml + jbuilder project](https://github.com/esy-ocaml/esy-ocaml-project)
-* [Reason + jbuilder project](https://github.com/esy-ocaml/esy-reason-project)
+* [OCaml + jbuilder project](https://github.com/esy-ocaml/hello-ocaml)
+* [Reason + jbuilder project](https://github.com/esy-ocaml/hello-reason)
 
 The typical workflow looks like this:
 
