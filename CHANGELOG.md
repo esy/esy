@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.0 @ latest
+
+This is the same release as 0.1.33 promoted to `latest`.
+
 ## 0.1.33 @ preview
 
 - Support for opam sandboxes.
