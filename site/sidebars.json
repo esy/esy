@@ -4,7 +4,8 @@
       "what-why",
       "getting-started",
       "configuration",
-      "esy-configuration"
+      "esy-configuration",
+      "opam-workflow"
     ],
     "Reference": [
       "environment",
