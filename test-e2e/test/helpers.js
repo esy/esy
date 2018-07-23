@@ -20,7 +20,7 @@ async function initFixture(fixture: string) {
   await fs.link(ESYCOMMAND, path.join(binPath, 'esy'));
   await fs.copy(fixture, projectPath);
 
-  function esy(args: string, options: ?{noEsyPrefix?: bool}) {
+  function esy(args: string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
     let env = process.env;
     if (!options.noEsyPrefix) {
@@ -29,10 +29,10 @@ async function initFixture(fixture: string) {
     return promiseExec(`${ESYCOMMAND} ${args}`, {
       cwd: projectPath,
       env,
-    })
+    });
   }
 
-  return {rootPath, binPath, projectPath, esy}
+  return {rootPath, binPath, projectPath, esy, esyPrefixPath};
 }
 
 type Fixture = Array<FixtureItem>;
@@ -45,15 +45,15 @@ type FixtureDir = {
 type FixtureFile = {
   type: 'file',
   name: string,
-  data: string
+  data: string,
 };
 
 function dir(name: string, ...items: Array<FixtureItem>): FixtureDir {
-  return {type: 'dir', name, items}
+  return {type: 'dir', name, items};
 }
 
 function file(name: string, data: string): FixtureFile {
-  return {type: 'file', name, data}
+  return {type: 'file', name, data};
 }
 
 function packageJson(json: Object) {
@@ -84,7 +84,7 @@ async function genFixture(...fixture: Fixture) {
 
   await Promise.all(fixture.map(item => layout(projectPath, item)));
 
-  function esy(args: string, options: ?{noEsyPrefix?: bool}) {
+  function esy(args: string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
     let env = process.env;
     if (!options.noEsyPrefix) {
@@ -93,15 +93,17 @@ async function genFixture(...fixture: Fixture) {
     return promiseExec(`${ESYCOMMAND} ${args}`, {
       cwd: projectPath,
       env,
-    })
+    });
   }
 
-  return {rootPath, binPath, projectPath, esy}
+  return {rootPath, binPath, projectPath, esy};
 }
 
 module.exports = {
   initFixture,
   promiseExec,
-  file, dir, packageJson,
+  file,
+  dir,
+  packageJson,
   genFixture,
 };
