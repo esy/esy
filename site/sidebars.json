@@ -1,23 +1,8 @@
 {
   "docs": {
-    "Workflow": [
-      "what-why",
-      "getting-started",
-      "configuration",
-      "esy-configuration",
-      "opam-workflow"
-    ],
-    "Reference": [
-      "environment",
-      "commands",
-      "concepts"
-    ],
-    "Advanced": [
-      "release"
-    ],
-    "Internals": [
-      "how-it-works",
-      "development"
-    ]
+    "Workflow": ["what-why", "getting-started", "configuration", "esy-configuration"],
+    "Reference": ["environment", "commands", "concepts"],
+    "Advanced": ["release", "opam-workflow"],
+    "Internals": ["how-it-works", "development"]
   }
 }
