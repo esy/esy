@@ -19,16 +19,16 @@ type t = {
   sandbox: Sandbox.sandbox,
 };
 
+type build = t;
+
+let isRoot = (build: t) =>
+  Config.Value.equal(build.task.sourcePath, Config.Value.sandbox);
+
 let regex = (base, segments) => {
   let pat =
     String.concat(Path.dir_sep, [Path.to_string(base), ...segments]);
   Sandbox.Regex(pat);
 };
-
-let isRoot = (build: t) =>
-  Config.Value.equal(build.task.sourcePath, Config.Value.sandbox);
-
-type build = t;
 
 module type LIFECYCLE = {
   let getRootPath: build => Path.t;
@@ -48,15 +48,16 @@ module OutOfSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.sourcePath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
   let prepare = _build => Ok();
-  let finalize = (build: build) => {
-    let%bind () =
+  let finalize = (build: build) =>
+    if (isRoot(build)) {
       symlink(
         ~force=true,
         ~target=build.buildPath,
         Path.(build.sourcePath / "_build"),
       );
-    ok;
-  };
+    } else {
+      ok;
+    };
 };
 
 /*
@@ -76,6 +77,8 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
   let prepare = (build: build) => {
+    let%bind () = rmdir(build.buildPath);
+    let%bind () = mkdir(build.buildPath);
     let%bind () = {
       let ignore = [
         "node_modules",
@@ -87,7 +90,6 @@ module RelocateSourceLifecycle: LIFECYCLE = {
       ];
       copyAllTo(~from=build.sourcePath, ~ignore, build.buildPath);
     };
-    let%bind () = rmdir(build.buildPath);
     ok;
   };
 
