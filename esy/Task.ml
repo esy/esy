@@ -92,6 +92,10 @@ type t = {
   sourceType : Manifest.SourceType.t;
 
   dependencies : dependency list;
+
+  renderCommandExpr : string -> string Run.t
+    [@compare fun _ _ -> 0]
+    [@equal fun _ _ -> true];
 }
 [@@deriving (show, eq, ord)]
 
@@ -240,9 +244,6 @@ let buildId
   let hash = Digest.to_hex id in
   let hash = String.sub hash 0 8 in
   (safeName pkg.name ^ "-" ^ safePath pkg.version ^ "-" ^ hash)
-
-let isBuilt ~cfg task =
-  Fs.exists ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))
 
 let getenv name =
   try Some (Sys.getenv name)
@@ -1036,6 +1037,8 @@ let ofPackage
       sourceType;
 
       dependencies;
+
+      renderCommandExpr = renderCommandExpr ~system ~scope:scopeForExportEnv;
     } in
 
     return task
@@ -1260,3 +1263,6 @@ let importBuild (cfg : Config.t) buildPath =
         ChildProcess.run cmd
       in
       importFromDir stagePath
+
+let isBuilt ~cfg task =
+  Fs.exists ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))

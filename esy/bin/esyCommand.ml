@@ -432,24 +432,40 @@ let exec cmd cfg =
 let devExec cmd cfg =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.ofConfig cfg in
-  let cmd =
+  let%bind cmds = RunAsync.ofRun (
+    let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
     let script =
       Manifest.Scripts.find
         tool
         info.SandboxInfo.sandbox.scripts
     in
+    let renderCommand (cmd : Manifest.CommandList.Command.t) =
+      match cmd with
+      | Manifest.CommandList.Command.Parsed args ->
+        let%bind args = Result.List.map ~f:info.task.renderCommandExpr args in
+        return (Cmd.ofListExn args)
+      | Manifest.CommandList.Command.Unparsed line ->
+        let%bind string = info.task.renderCommandExpr line in
+        let%bind args = ShellSplit.split string in
+        return (Cmd.ofListExn args)
+    in
     match script with
-    | Some {command;} ->
-      Cmd.(command |> addArgs args)
-    | None -> cmd
-  in
-  makeExecCommand
-    ~checkIfDependenciesAreBuilt:true
-    ~env:`CommandEnv
-    ~cfg
-    ~info
-    cmd
+    | None -> return [cmd]
+    | Some {command = None;} -> return [Cmd.v "true"]
+    | Some {command = Some [cmd]; _} ->
+      let%bind cmd = renderCommand cmd in
+      return [Cmd.addArgs args cmd]
+    | Some {command = Some cmds; _} ->
+      Result.List.map ~f:renderCommand cmds
+  ) in
+  RunAsync.List.processSeq ~f:(fun cmd ->
+    makeExecCommand
+      ~checkIfDependenciesAreBuilt:true
+      ~env:`CommandEnv
+      ~cfg
+      ~info
+      cmd) cmds
 
 let devShell cfg =
   let open RunAsync.Syntax in
