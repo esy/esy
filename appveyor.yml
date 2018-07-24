@@ -44,7 +44,7 @@ deploy:
     - provider: GitHub
       repository: bryphe/esy
       auth_token:
-          secure: J4V6+1KHu8UiApItmxPWArb5oMf1WnQyAc9H4GtBzEo620zFin0oRLYQ0DxCz1VW
+          secure: XbUBw039GKCWjP5lyKZ+qiplSZITcWoT/HrlZ9Q1U+2WEPigCOqNeNSWEJ7yZN5m
       draft: false
       prerelease: false
       force_update: true
