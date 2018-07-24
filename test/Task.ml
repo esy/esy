@@ -45,6 +45,7 @@ module TestCommandExpr = struct
       }
     ];
     sandboxEnv = [];
+    buildEnv = [];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
@@ -64,6 +65,7 @@ module TestCommandExpr = struct
     };
     sourceType = Manifest.SourceType.Immutable;
     exportedEnv = [];
+    buildEnv = [];
     sandboxEnv = [];
     sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
@@ -81,8 +83,8 @@ module TestCommandExpr = struct
     check pkg (fun task ->
       Task.CommandList.equal
         task.buildCommands
-        [["cp"; "./hello"; "%store%/s/pkg-1.0.0-85fdaa3f/bin"];
-         ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-85fdaa3f/bin"]]
+        [["cp"; "./hello"; "%store%/s/pkg-1.0.0-75f4d362/bin"];
+         ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-75f4d362/bin"]]
     )
 
   let%test "#{...} inside esy.build / esy.install (depends on os)" =
@@ -122,7 +124,7 @@ module TestCommandExpr = struct
     check pkg (fun task ->
       Task.CommandList.equal
         task.installCommands
-        [["cp"; "./man"; "%store%/s/pkg-1.0.0-85fdaa3f/man"]]
+        [["cp"; "./man"; "%store%/s/pkg-1.0.0-75f4d362/man"]]
     )
 
   let%test "#{...} inside esy.exportedEnv" =
@@ -130,9 +132,9 @@ module TestCommandExpr = struct
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
-          Some (value = "%store%/i/dep-1.0.0-ccbb761e/ok")
+          Some (value = "%store%/i/dep-1.0.0-ba8890c3/ok")
         | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
-          Some (value = "%store%/i/dep-1.0.0-ccbb761e/ok-by-name")
+          Some (value = "%store%/i/dep-1.0.0-ba8890c3/ok-by-name")
         | _ ->
           None
       in
