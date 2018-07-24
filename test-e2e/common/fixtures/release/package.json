@@ -4,29 +4,16 @@
   "license": "MIT",
   "dependencies": {
     "release-dep": "link:./dependencies/release-dep",
-    "ocaml": "^4.6.1"
+    "ocaml": "~4.6.1"
   },
   "esy": {
     "build": [
-      [
-        "cp",
-        "#{self.name '.exe'}",
-        "#{self.bin / self.name '.exe'}"
-      ],
-      [
-        "chmod",
-        "+x",
-        "#{self.bin / self.name '.exe'}"
-      ]
+      ["cp", "#{self.name '.exe'}", "#{self.bin / self.name '.exe'}"],
+      ["chmod", "+x", "#{self.bin / self.name '.exe'}"]
     ],
     "release": {
-      "releasedBinaries": [
-        "release.exe",
-        "release-dep.exe"
-      ],
-      "deleteFromBinaryRelease": [
-        "ocaml-*"
-      ]
+      "releasedBinaries": ["release.exe", "release-dep.exe"],
+      "deleteFromBinaryRelease": ["ocaml-*"]
     }
   }
 }
