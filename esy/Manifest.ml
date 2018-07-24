@@ -104,7 +104,7 @@ end
 (**
  * Environment for the entire sandbox as specified in "esy.sandboxEnv".
  *)
-module SandboxEnv = struct
+module Env = struct
 
   type item = {
     name : string;
@@ -208,7 +208,8 @@ module EsyManifest = struct
     install: (CommandList.t [@default None]);
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default []]);
-    sandboxEnv: (SandboxEnv.t [@default []]);
+    buildEnv: (Env.t [@default Env.empty]);
+    sandboxEnv: (Env.t [@default Env.empty]);
     release: (EsyReleaseConfig.t option [@default None]);
   } [@@deriving (show, of_yojson { strict = false })]
 
@@ -217,7 +218,8 @@ module EsyManifest = struct
     install = None;
     buildsInSource = BuildType.OutOfSource;
     exportedEnv = [];
-    sandboxEnv = [];
+    sandboxEnv = Env.empty;
+    buildEnv = Env.empty;
     release = None;
   }
 

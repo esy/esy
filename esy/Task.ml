@@ -165,7 +165,8 @@ let buildId
         Manifest.CommandList.show build.buildCommands;
         Manifest.CommandList.show build.installCommands;
         Manifest.BuildType.show build.buildType;
-        Manifest.SandboxEnv.show rootPkg.sandboxEnv;
+        Manifest.Env.show pkg.buildEnv;
+        Manifest.Env.show rootPkg.sandboxEnv;
       ]
     | Package.OpamBuild build ->
       let commandsToString (commands : OpamTypes.command list) =
@@ -682,6 +683,25 @@ let ofPackage
       return (globalEnv, localEnv)
     in
 
+    let%bind pkgBuildEnv =
+      let f {Manifest.Env. name; value;} =
+        let%bind value =
+          renderCommandExpr
+            ~system
+            ~name
+            ~scope:scopeForCommands
+            value
+        in
+        return {
+          Environment.
+          name;
+          value = Value value;
+          origin = Some pkg;
+        }
+      in
+      Result.List.map ~f pkg.buildEnv
+    in
+
     let buildEnv =
 
       (* All dependencies (transitive included contribute env exported to the
@@ -778,13 +798,12 @@ let ofPackage
         else []
       in
 
-      let defaultPath =
-          match System.Platform.host with
-          | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
-          | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-      in
-
       let finalEnv = Environment.(
+          let defaultPath =
+              match System.Platform.host with
+              | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
+              | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+          in
           let v = [
             {
               name = "PATH";
@@ -811,7 +830,7 @@ let ofPackage
             v
         ) in
 
-      (finalEnv @ (
+      (finalEnv @ pkgBuildEnv @ (
           ocamlfindDestdir
           ::ocamlfindLdconf
           ::ocamlfindCommands
@@ -1069,6 +1088,7 @@ let sandboxEnv (pkg : Package.t) =
       buildType = Manifest.BuildType.OutOfSource;
     };
     sandboxEnv = pkg.sandboxEnv;
+    buildEnv = Manifest.Env.empty;
     sourcePath = pkg.sourcePath;
     resolution = None;
   } in

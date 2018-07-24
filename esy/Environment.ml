@@ -119,7 +119,7 @@ let current =
   |> List.filter ~f:filterFunctions
 
 let ofSandboxEnv =
-  let toEnvVar (Manifest.SandboxEnv. {name; value}) = {
+  let toEnvVar (Manifest.Env. {name; value}) = {
     name;
     value = Value value;
     origin = None;

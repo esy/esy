@@ -167,7 +167,8 @@ let ofDir (cfg : Config.t) =
           version = Manifest.Opam.version manifest;
           dependencies;
           sourceType = Manifest.Opam.sourceType manifest;
-          sandboxEnv = Manifest.SandboxEnv.empty;
+          sandboxEnv = Manifest.Env.empty;
+          buildEnv = Manifest.Env.empty;
           exportedEnv = Manifest.Opam.exportedEnv manifest;
           build = Package.OpamBuild {
             name = Manifest.Opam.opamName manifest;
@@ -200,6 +201,7 @@ let ofDir (cfg : Config.t) =
             dependencies;
             sourceType;
             sandboxEnv = esyManifest.sandboxEnv;
+            buildEnv = esyManifest.buildEnv;
             exportedEnv = esyManifest.exportedEnv;
             build = Package.EsyBuild {
               buildCommands = esyManifest.Manifest.EsyManifest.build;
