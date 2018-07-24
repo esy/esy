@@ -56,3 +56,19 @@ Because our __built artifacts are native__, we must use native Windows paths in 
 ## Long-term plans
 
 As `esy` matures, we can minimize our dependency on `cygwin` for Windows - we can use `esy`'s DSL for specifying build commands to directly target native-windows executables, bypassing the `cygwin` layer. In parallel, we can start to migrate packages to more fully support cross-platform builds.
+
+### Building on Windows
+
+The primary challenge of building on Windows today is that `esy` depends on `esy` itself to build - but we don't have a fully functional `esy` on Windows yet that supports this!
+
+Therefore, for now, we need to 'bootstrap' an `esy` build - that means:
+- Install Windows-specific dependencies (esy-bash, FastReplaceString)
+- Install OPAM + dependencies need for `esy`
+- Run a `bootstrapped` build, where we run `jbuilder` directly on the targets.
+
+To see the latest, up-to-date build steps for Windows - check the [`appveyor.yml`](https://github.com/esy/esy/blob/master/appveyor.yml).
+
+Longer-term, the build for `esy` should be as simple as:
+- `npm install -g esy`
+- `esy install`
+- `esy build`
