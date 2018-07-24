@@ -28,13 +28,7 @@ let mkdir = path =>
 
 let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 
-let rm = path =>
-  switch (Bos.OS.Path.stat(path)) {
-  | Ok({Unix.st_kind: S_DIR, _}) => Bos.OS.Dir.delete(~recurse=true, path)
-  | Ok(_) => Bos.OS.File.delete(path)
-  | Error(err) => Error(err)
-  };
-
+let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
 let lstat = Bos.OS.Path.symlink_stat;
 let symlink = Bos.OS.Path.symlink;
 let readlink = Bos.OS.Path.symlink_target;
