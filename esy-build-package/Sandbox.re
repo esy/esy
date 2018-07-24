@@ -6,9 +6,18 @@ type pattern =
 
 type config = {allowWrite: list(pattern)};
 
+type err = [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)];
+
+type sandbox =
+  (~env: Bos.OS.Env.t, Cmd.t) =>
+  result(
+    (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
+    err,
+  );
+
 module Darwin = {
   let renderConfig = config => {
-    open Sexp;
+    open EsyLib.Sexp;
     let v = x => Value(L(x));
     let renderAllowWrite =
       List.map(
@@ -39,12 +48,8 @@ module Darwin = {
     let prepare = (~env, command) => {
       open Bos.OS.Cmd;
       let sandboxCommand =
-        Bos.Cmd.of_list([
-          "sandbox-exec",
-          "-f",
-          Path.to_string(configFilename),
-        ]);
-      let command = Bos.Cmd.(sandboxCommand %% command);
+        Cmd.of_list(["sandbox-exec", "-f", Path.to_string(configFilename)]);
+      let command = Cmd.(sandboxCommand %% command);
 
       let exec = (~err) => run_io(~env, ~err, command);
       Ok(exec);
@@ -54,8 +59,12 @@ module Darwin = {
 };
 
 let convertEnvToJsonString = env => {
-  let json = BuildTask.Env.to_yojson(env);
-  Yojson.to_string(json);
+  let json = {
+    let f = (k, v, items) => [(k, `String(v)), ...items];
+    let items = Astring.String.Map.fold(f, env, []);
+    `Assoc(items);
+  };
+  Yojson.Safe.to_string(json);
 };
 
 module Windows = {
@@ -73,11 +82,11 @@ module Windows = {
        */
       let jsonString = convertEnvToJsonString(env);
       let%bind environmentTempFile = putTempFile(jsonString);
-      let commandAsList = Bos.Cmd.to_list(command);
+      let commandAsList = Cmd.to_list(command);
 
       /* Normalize slashes in the command we send to esy-bash */
       let normalizedCommands =
-        Bos.Cmd.of_list(
+        Cmd.of_list(
           List.map(EsyLib.Path.normalizePathSlashes, commandAsList),
         );
       let%bind augmentedEsyCommand =
@@ -103,9 +112,14 @@ module NoSandbox = {
   };
 };
 
-let sandboxExec = config =>
+let init = (config: config) =>
   switch (EsyLib.System.Platform.host) {
   | Windows => Windows.sandboxExec(config)
   | Darwin => Darwin.sandboxExec(config)
   | _ => NoSandbox.sandboxExec(config)
   };
+
+let exec = (~env, sandbox: sandbox, cmd) => {
+  let result = sandbox(~env, cmd);
+  (result: result(_, err) :> Run.t(_, _));
+};

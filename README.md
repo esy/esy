@@ -13,7 +13,6 @@ documentation refer to [esy.sh][] documentation site.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [Repository structure](#repository-structure)
 - [Workflow](#workflow)
   - [Testing Locally](#testing-locally)
@@ -82,46 +81,47 @@ CI) to build platform specific releases.
 
 The release workflow is the following:
 
-1. Ensure you arre on `master` branch and run
+1.  Ensure you arre on `master` branch and run
 
-   ```
-   % make bump-patch-verson
-   % git push && git push --tags
-   ```
+    ```
+    % make bump-patch-verson
+    % git push && git push --tags
+    ```
 
-   (this bumps patch version, use `bump-minor-version` or `bump-major-version`
-   correspondingly to bump either minor or major version of esy)
+    (this bumps patch version, use `bump-minor-version` or `bump-major-version`
+    correspondingly to bump either minor or major version of esy)
 
-2. Wait till CI finishes its task and uploads releases on GitHub,
-   check https://github.com/esy/esy/releases for them.
+2.  Wait till CI finishes its task and uploads releases on GitHub,
+    check https://github.com/esy/esy/releases for them.
 
-3. Run
+3.  Run
 
-   ```
-   % make release
-   ```
-   Which downloads platform specific releases (which CI uploaded GitHub) and
-   produces an npm releases with needed metadata inside `_release` directory.
+    ```
+    % make release
+    ```
 
-4. Ensure release inside `_release` directory is ok.
+    Which downloads platform specific releases (which CI uploaded GitHub) and
+    produces an npm releases with needed metadata inside `_release` directory.
 
-   You can `cd _release && npm pack && npm install -g ./esy-*.tgz` to test how
-   release installs and feels.
+4.  Ensure release inside `_release` directory is ok.
 
-5. Run `cd _release && npm publish` to publish release on npm.
+    You can `cd _release && npm pack && npm install -g ./esy-*.tgz` to test how
+    release installs and feels.
 
-   Release tag `next` is used to publish preview releases.
+5.  Run `cd _release && npm publish` to publish release on npm.
 
-[esy-ocaml-project]: https://github.com/esy-ocaml/esy-ocaml-project
-[esy-reason-project]: https://github.com/esy-ocaml/esy-reason-project
+    Release tag `next` is used to publish preview releases.
+
+[hello-ocaml]: https://github.com/esy-ocaml/hello-ocaml
+[hello-reason]: https://github.com/esy-ocaml/hello-reason
 [esy/esy]: https://github.com/esy/esy
 [esy-ocaml/esy-install]: https://github.com/esy-ocaml/esy-install
 [esy-ocaml/esy-opam]: https://github.com/esy-ocaml/esy-opam
-[OPAM]: https://opam.ocaml.org
+[opam]: https://opam.ocaml.org
 [npm]: https://npmjs.org
-[Reason]: https://reasonml.github.io
-[OCaml]: https://ocaml.org
+[reason]: https://reasonml.github.io
+[ocaml]: https://ocaml.org
 [jbuilder]: http://jbuilder.readthedocs.io
 [ocamlbuild]: https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc
-[PJC]: https://github.com/jordwalke/PackageJsonForCompilers
+[pjc]: https://github.com/jordwalke/PackageJsonForCompilers
 [esy.sh]: http://esy.sh

@@ -35,7 +35,26 @@ module Platform = struct
 
 end
 
-let envSep =
-  match Platform.host with
-  | Platform.Windows -> ";"
-  | _ -> ":"
+module Environment = struct
+
+  let sep =
+    match Platform.host with
+    | Platform.Windows -> ";"
+    | _ -> ":"
+
+  let current =
+    let f map item =
+      let idx = String.index item '=' in
+      let name = String.sub item 0 idx in
+      let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+      StringMap.add name value map
+    in
+    let items = Unix.environment () in
+    Array.fold_left f StringMap.empty items
+
+  let path =
+    match StringMap.find_opt "PATH" current with
+    | Some path -> String.split_on_char sep.[0] path
+    | None -> []
+
+end

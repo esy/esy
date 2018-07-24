@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.1.32",
+  "version": "0.2.0",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
@@ -82,6 +82,20 @@
     "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
     "@opam/ocp-indent": "*",
-    "ocaml": "~4.6.0"
+    "ocaml": "~4.6.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-flow": "^6.23.0",
+    "del": "^3.0.0",
+    "flow-bin": "^0.77.0",
+    "fs-extra": "^7.0.0",
+    "jest-cli": "^23.4.1",
+    "prettier": "^1.13.7",
+    "klaw": "^2.1.1",
+    "minimatch": "^3.0.4",
+    "semver": "^5.5.0",
+    "super-resolve": "^1.0.0",
+    "tar": "^4.4.4",
+    "tar-fs": "^1.16.0",
+    "tmp": "^0.0.33"
   }
 }

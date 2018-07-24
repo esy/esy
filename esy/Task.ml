@@ -521,7 +521,7 @@ let ofPackage
       let storePath =
         match sourceType with
         | Manifest.SourceType.Immutable -> ConfigPath.store
-        | Manifest.SourceType.Development -> ConfigPath.localStore
+        | Manifest.SourceType.Transient -> ConfigPath.localStore
       in
       let buildPath =
         ConfigPath.(storePath / Store.buildTree / id)
@@ -545,11 +545,11 @@ let ofPackage
         | Package.EsyBuild {buildType = InSource; _}, _
         | Package.OpamBuild {buildType = InSource; _}, _  -> buildPath
 
-        | Package.EsyBuild {buildType = JBuilderLike; _}, Immutable
-        | Package.OpamBuild {buildType = JBuilderLike; _}, Immutable -> buildPath
+        | Package.EsyBuild {buildType = JbuilderLike; _}, Immutable
+        | Package.OpamBuild {buildType = JbuilderLike; _}, Immutable -> buildPath
 
-        | Package.EsyBuild {buildType = JBuilderLike; _}, Development
-        | Package.OpamBuild {buildType = JBuilderLike; _}, Development -> pkg.sourcePath
+        | Package.EsyBuild {buildType = JbuilderLike; _}, Transient
+        | Package.OpamBuild {buildType = JbuilderLike; _}, Transient -> pkg.sourcePath
 
         | Package.EsyBuild {buildType = OutOfSource; _}, _
         | Package.OpamBuild {buildType = OutOfSource; _}, _ -> pkg.sourcePath
@@ -694,21 +694,21 @@ let ofPackage
             name = "PATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
-              Value (value ^ System.envSep ^ "$PATH")
+              Value (value ^ System.Environment.sep ^ "$PATH")
           }
           and manPath = Environment.{
             origin = Some task.pkg;
             name = "MAN_PATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
-              Value (value ^ System.envSep ^ "$MAN_PATH")
+              Value (value ^ System.Environment.sep ^ "$MAN_PATH")
           }
           and ocamlpath = Environment.{
             origin = Some task.pkg;
             name = "OCAMLPATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "lib" |> toString) in
-              Value (value ^ System.envSep ^ "$OCAMLPATH")
+              Value (value ^ System.Environment.sep ^ "$OCAMLPATH")
           } in
           path::manPath::ocamlpath::task.globalEnv
         in
@@ -1061,7 +1061,7 @@ let sandboxEnv (pkg : Package.t) =
     name = "installation_env";
     version = pkg.version;
     dependencies = (Package.Dependency pkg)::devDependencies;
-    sourceType = Manifest.SourceType.Development;
+    sourceType = Manifest.SourceType.Transient;
     exportedEnv = [];
     build = Package.EsyBuild {
       buildCommands = None;
@@ -1105,33 +1105,27 @@ module DependencyGraph = DependencyGraph.Make(struct
 let toBuildProtocol (task : task) =
   let buildType =
     match task.pkg.build with
-    | Package.EsyBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
-    | Package.EsyBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-    | Package.EsyBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-    | Package.EsyBuild {buildType = Unsafe;_} -> EsyBuildPackage.BuildTask.BuildType.Unsafe
-    | Package.OpamBuild {buildType = InSource;_} -> EsyBuildPackage.BuildTask.BuildType.InSource
-    | Package.OpamBuild {buildType = JBuilderLike;_} -> EsyBuildPackage.BuildTask.BuildType.JbuilderLike
-    | Package.OpamBuild {buildType = OutOfSource;_} -> EsyBuildPackage.BuildTask.BuildType.OutOfSource
-    | Package.OpamBuild {buildType = Unsafe;_} -> EsyBuildPackage.BuildTask.BuildType.Unsafe
+    | Package.EsyBuild {buildType;_}
+    | Package.OpamBuild {buildType;_} -> buildType
   in
-  EsyBuildPackage.BuildTask.ConfigFile.{
+  EsyBuildPackage.Task.{
     id = task.id;
     name = task.pkg.name;
     version = task.pkg.version;
-    sourceType = (match task.sourceType with
-        | Manifest.SourceType.Immutable -> EsyBuildPackage.BuildTask.SourceType.Immutable
-        | Manifest.SourceType.Development -> EsyBuildPackage.BuildTask.SourceType.Transient
-      );
+    sourceType = task.sourceType;
     buildType;
-    build = task.buildCommands;
-    install = task.installCommands;
-    sourcePath = ConfigPath.toString task.paths.sourcePath;
-    env = Environment.Closed.value task.env;
+    build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.ofString) task.buildCommands;
+    install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.ofString) task.installCommands;
+    sourcePath = EsyBuildPackage.Config.Value.ofString (ConfigPath.toString task.paths.sourcePath);
+    env =
+      task.env
+      |> Environment.Closed.value
+      |> Astring.String.Map.map EsyBuildPackage.Config.Value.ofString;
   }
 
 let toBuildProtocolString ?(pretty=false) (task : task) =
   let task = toBuildProtocol task in
-  let json = EsyBuildPackage.BuildTask.ConfigFile.to_yojson task in
+  let json = EsyBuildPackage.Task.to_yojson task in
   if pretty
   then Yojson.Safe.pretty_to_string json
   else Yojson.Safe.to_string json

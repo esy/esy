@@ -1,22 +1,57 @@
 # CHANGELOG
 
-## NEXT
+## 0.2.0 @ latest
 
-* Convert release wrappers from bash to native
+This is the same release as 0.1.33 promoted to `latest`.
+
+## 0.1.33 @ preview
+
+- Support for opam sandboxes.
+
+  Now sandboxes with only opam metadata are supported directly:
+
+  ```
+  % esy install
+  % esy build
+  ```
+
+  All dependencies mentioned in `depends` field of found opam files are
+  installed.
+
+  If multiple `*.opam` is found then builds commands defined in those opam files
+  won't be executed via `esy build`, instead users should execute whatever
+  build commands are used with this repository via `esy b`, for example:
+
+  ```
+  % esy b dune build
+  ```
+
+- Convert release wrappers from bash to native.
+
+  This feature was implemented by @ulrikstrid.
+
+- Experimental native Windows binaries of esy are shipped in this release.
+
+  This feature was implemented by @bryphe.
+
+- e2e test suite for `esy build` commands was rewritten using JS for
+  portability. Previously it wass written in `/bin/bash`.
+
+  This feature was implemented by @ulrikstrid.
 
 ## 0.1.32 @ preview
 
-* More efficient installation layout for npm packages.
+- More efficient installation layout for npm packages.
 
-* Fix installation of circular npm dependencies.
+- Fix installation of circular npm dependencies.
 
 ## 0.1.31 @ preview
 
-* Fix for converting opam `depends`.
+- Fix for converting opam `depends`.
 
 ## 0.1.30 @ preview
 
-* Support resolving packages to multiple sources (main + mirrors).
+- Support resolving packages to multiple sources (main + mirrors).
 
   Currently only `@opam/*` packages take an advantage of that by:
 
@@ -24,42 +59,42 @@
 
   - Using `/opam-urls.txt` index.
 
-* Add `--cache-tarballs-path` to `esy install` and `esy fetch` commands.
+- Add `--cache-tarballs-path` to `esy install` and `esy fetch` commands.
 
   This option can be used to implement offline workflow where packages sources
   are "vendored" along the sandbox code and installation can be performed while
   offline.
 
-* Fix `esy legacy-install` command to use main opam repository.
+- Fix `esy legacy-install` command to use main opam repository.
 
   Previously it was accidentally using mingw overlay of opam repository.
 
 ## 0.1.29 @ preview
 
-* Installation process now checks integrity of packages download from npm and
+- Installation process now checks integrity of packages download from npm and
   opam registries.
 
-* Speed up installation process.
+- Speed up installation process.
 
-* Fix `esy install` command output.
+- Fix `esy install` command output.
 
-* Other improvements to `esy install`.
+- Other improvements to `esy install`.
 
 ## 0.1.28 @ preview
 
-* New implementation of opam support.
+- New implementation of opam support.
 
   esy now uses `opam-format` package from opam to understand `opam` file
   metadata. Both `esy` and `esyi` read directly `opam` files to parse `build`
   commands and `depends` formulas.
 
-* Fix mystical "unable to stat" error.
+- Fix mystical "unable to stat" error.
 
   This was caused by sandbox staleness cache check which wasn't robust against
   removal of manifests from sandbox. This usually happens when you switch
   between branches.
 
-* Windows Support (WIP)
+- Windows Support (WIP)
 
   Bryan Phelps (@bryphe) started working on native Windows support for esy!
 
@@ -73,9 +108,9 @@
 
 ## 0.1.27 @ preview
 
-* esyi: add support for `link:` package sources.
+- esyi: add support for `link:` package sources.
 
-* esy releases are now built on CI automatically for all tagged commits. The
+- esy releases are now built on CI automatically for all tagged commits. The
   release process is still manual via `make release` which downloads those built
   artifacts from CI.
 
@@ -85,22 +120,22 @@ This release was broken and was unpublished, use 0.1.27 instead.
 
 ## 0.1.25 @ preview
 
-* esyi: Fix updating copies of opam-repository and esy-opam-override
+- esyi: Fix updating copies of opam-repository and esy-opam-override
   repositories.
 
 ## 0.1.24 @ preview
 
-* Unpack `*.zip` archives with `unzip`.
+- Unpack `*.zip` archives with `unzip`.
 
-* Remove debug artifacts by produced by `esyi` in sandbox directory.
+- Remove debug artifacts by produced by `esyi` in sandbox directory.
 
 ## 0.1.23 @ preview
 
-* Fix resolving `git:` and `github:` package sources.
+- Fix resolving `git:` and `github:` package sources.
 
 ## 0.1.22 @ preview
 
-* `esyi` now uses naive dependency solver for npm (non-esy) packages.
+- `esyi` now uses naive dependency solver for npm (non-esy) packages.
 
   npm (non-esy) packages are those without esy configuration defined in
   package.json.
@@ -109,26 +144,26 @@ This release was broken and was unpublished, use 0.1.27 instead.
   dependency one-by-one preferring already resolved versions or the most recent
   versions. Never backtracks.
 
-* New lockfile format.
+- New lockfile format.
 
-* Various fixes to semver version/constraint parsing and matching. Things are
+- Various fixes to semver version/constraint parsing and matching. Things are
   more aligned with how node-semver works now.
 
 ## 0.1.21 @ preview
 
-* Change `devDependencies` to be installed as regular dependencies of the root
+- Change `devDependencies` to be installed as regular dependencies of the root
   package. This allows to use `devDependencies` to specify a concrete version of
   an `ocaml` toolchain. The "isolated" mode to `devDependencies` will be
   re-added back later.
 
-* Bump `fastreplacestring` which fixes a bug with `@opam/omake` installation
+- Bump `fastreplacestring` which fixes a bug with `@opam/omake` installation
   (esy/esy#217).
 
-* Fix opam conversion errors to be logged properly on terminal.
+- Fix opam conversion errors to be logged properly on terminal.
 
 ## 0.1.20 @ preview
 
-* Support `devDependencies` with `esyi`.
+- Support `devDependencies` with `esyi`.
 
   Development dependencies specified as `devDependencies` section of
   `package.json` are no supported by `esyi` command.
@@ -139,23 +174,23 @@ This release was broken and was unpublished, use 0.1.27 instead.
 
 ## 0.1.19 @ preview
 
-* Dependency solver now provides possible explanation in case of failures.
+- Dependency solver now provides possible explanation in case of failures.
 
 ## 0.1.18 @ preview
 
-* Parse scripts only for the top level package's manifest.
+- Parse scripts only for the top level package's manifest.
 
   We don't need dependencies' scripts ever and also we won't fail if they are
   incorrectly formatted.
 
 ## 0.1.17 @ preview
 
-* Build Linux release using Ubuntu 14.04 LTS so it's compatible with older
+- Build Linux release using Ubuntu 14.04 LTS so it's compatible with older
   libc than previous.
 
 ## 0.1.16 @ preview
 
-* New experimental installer exposed as `esyi` command!
+- New experimental installer exposed as `esyi` command!
 
   Usage:
 
@@ -188,9 +223,9 @@ This release was broken and was unpublished, use 0.1.27 instead.
 
 ## 0.1.15 @ preview
 
-* Fix dependency on @esy-ocaml/esy-opam which was broken since 0.1.12.
+- Fix dependency on @esy-ocaml/esy-opam which was broken since 0.1.12.
 
-* Bundle fastreplacestring with esy prebuilt. This removes the need for `g++` on
+- Bundle fastreplacestring with esy prebuilt. This removes the need for `g++` on
   users machines.
 
 ## 0.1.14 @ preview
@@ -203,221 +238,220 @@ This release was broken and was unpublished, use 0.1.15 instead.
 
 ## 0.1.12 @ preview
 
-  * Fix building opam packages with `%{pkg1+pkg2:var}` syntax constructs in its
-    opam files. Previously we didn't support such opam idiom but now with have
-    `#{cond ? then : else}` which handles that. Packages such as `@opam/tyxml`
-    are now buildable.
+- Fix building opam packages with `%{pkg1+pkg2:var}` syntax constructs in its
+  opam files. Previously we didn't support such opam idiom but now with have
+  `#{cond ? then : else}` which handles that. Packages such as `@opam/tyxml`
+  are now buildable.
 
-  * Fix commands which operate on a single packages (like `esy build-shell`) to
-    correctly resolve a package by a paclage path specified with a trailing
-    slash. (Thanks @despairblue!)
+- Fix commands which operate on a single packages (like `esy build-shell`) to
+  correctly resolve a package by a paclage path specified with a trailing
+  slash. (Thanks @despairblue!)
 
 ## 0.1.11 @ preview
 
-  * Make npm releases generated with `esy release` command compatible with Node
-    versions down 4.2.6.
+- Make npm releases generated with `esy release` command compatible with Node
+  versions down 4.2.6.
 
-  * `esy` command now climbs up to the closest `package.json` from the current
-    cwd. This makes it possible to invoke `esy` from the subdirectories of your
-    esy projects.
+- `esy` command now climbs up to the closest `package.json` from the current
+  cwd. This makes it possible to invoke `esy` from the subdirectories of your
+  esy projects.
 
-    Note that `esy build` and `esy build ANYCOMMAND` are still being invoked
-    from the source root.
+  Note that `esy build` and `esy build ANYCOMMAND` are still being invoked
+  from the source root.
 
 ## 0.1.10 @ preview
 
-  * New experimental installer esyi exposed as `esy install-next` command.
-    Thanks to @jaredly!
+- New experimental installer esyi exposed as `esy install-next` command.
+  Thanks to @jaredly!
 
-  * Bring back npm releases (`esy release` command).
+- Bring back npm releases (`esy release` command).
 
 ## 0.1.9 @ preview
 
-  * Support for `"esy.sandboxEnv"` environment config.
+- Support for `"esy.sandboxEnv"` environment config.
 
-    This sets environment variables for regular dependency (all dependencies
-    excluding `"devDependencies"` and `"buildTimeDependencies"`).
+  This sets environment variables for regular dependency (all dependencies
+  excluding `"devDependencies"` and `"buildTimeDependencies"`).
 
-    (Implementation by @rauanmayemir)
+  (Implementation by @rauanmayemir)
 
-  * Minor fixes to error reporting
+- Minor fixes to error reporting
 
 ## 0.1.8 @ preview
 
-  * Compile `esy` and `esy-build-package` commands using `ocamlopt`
+- Compile `esy` and `esy-build-package` commands using `ocamlopt`
 
-    This also solves the issues with freezes of esy invocation apparently.
+  This also solves the issues with freezes of esy invocation apparently.
 
-  * Reimplement `esy import-build` and `esy export-build` commands in OCaml.
+- Reimplement `esy import-build` and `esy export-build` commands in OCaml.
 
-    This also allows to remove an entire bash runtime.
+  This also allows to remove an entire bash runtime.
 
-  * Fix an interminent deadlock resulted from an incorrect implementation of a
-    priority queue for lwt promises. The new implementation is based on
-    `Lwt_pool`.
+- Fix an interminent deadlock resulted from an incorrect implementation of a
+  priority queue for lwt promises. The new implementation is based on
+  `Lwt_pool`.
 
-  * Correctly resolve linked packages when running `esy build-shell` (and
-    others) command.
+- Correctly resolve linked packages when running `esy build-shell` (and
+  others) command.
 
-  * Allow to augment `$PATH`, `$MAN_PATH` and `$OCAMLPATH` via
-    `"esy.exportedEnv"`.
+- Allow to augment `$PATH`, `$MAN_PATH` and `$OCAMLPATH` via
+  `"esy.exportedEnv"`.
 
-  * Add support for `"buildTimeDependencies"`.
+- Add support for `"buildTimeDependencies"`.
 
-    Packages declared as `"buildTimeDependencies"` in `package.json` are only
-    added to the environment of their direct dependents. This allows to have
-    multiple package versions of the same package as buildTimeDependencies
-    within a single dependency graph.
+  Packages declared as `"buildTimeDependencies"` in `package.json` are only
+  added to the environment of their direct dependents. This allows to have
+  multiple package versions of the same package as buildTimeDependencies
+  within a single dependency graph.
 
-  * References `#{pkg-name.install}` now point to stage dir during build
-    (consistent with `#{self.install}`).
+- References `#{pkg-name.install}` now point to stage dir during build
+  (consistent with `#{self.install}`).
 
 ## 0.1.7 @ preview
 
-  * `esy ls-libs` and `esy ls-modules` commands are implemented in Reason.
+- `esy ls-libs` and `esy ls-modules` commands are implemented in Reason.
 
-  * `esy <anycmd>`, `esy x <anycmd>` and `esy b <anycmd>` now preserve
-    exit code.
+- `esy <anycmd>`, `esy x <anycmd>` and `esy b <anycmd>` now preserve
+  exit code.
 
-  * Do not store mtime of the sources for the root package.
+- Do not store mtime of the sources for the root package.
 
-    See [#144](https://github.com/esy/esy/issues/144) for rationale.
+  See [#144](https://github.com/esy/esy/issues/144) for rationale.
 
-  * `esy build` now provides better formatting in case of command failures.
+- `esy build` now provides better formatting in case of command failures.
 
 ## 0.1.6 @ preview
 
-  * Fix how `#{self.*}` variables were treated inside `"esy.exportedEnv"` — they
-    were expanded into `%store%/s/...` *stage paths* while the correct way to expand
-    them into `%store%/i/...` *install paths* as dependent packages consume env
-    when origin package is already built and installed.
+- Fix how `#{self.*}` variables were treated inside `"esy.exportedEnv"` — they
+  were expanded into `%store%/s/...` _stage paths_ while the correct way to expand
+  them into `%store%/i/...` _install paths_ as dependent packages consume env
+  when origin package is already built and installed.
 
 ## 0.1.5 @ preview
 
-  * Implement `bin/esy` entry point in OCaml.
+- Implement `bin/esy` entry point in OCaml.
 
-    This makes `esy` command much faster — `esy <cmd>` is around 80ms (was
-    180ms) before on MacBook Pro 2016.
+  This makes `esy` command much faster — `esy <cmd>` is around 80ms (was
+  180ms) before on MacBook Pro 2016.
 
-  * Implement `esy export-dependencies` and `esy import-dependencies`
-    commands in OCaml.
+- Implement `esy export-dependencies` and `esy import-dependencies`
+  commands in OCaml.
 
-  * Include `devDependencies` in `esy x <anycommand>` environment.
+- Include `devDependencies` in `esy x <anycommand>` environment.
 
-    See [#137](https://github.com/esy/esy/issues/137) for rationale.
+  See [#137](https://github.com/esy/esy/issues/137) for rationale.
 
-  * Fix bug with overly aggressive caching of a command environment.
+- Fix bug with overly aggressive caching of a command environment.
 
-    Previously the environment was computed once and cached, this prevented
-    passing environment variables from the outside, for example:
+  Previously the environment was computed once and cached, this prevented
+  passing environment variables from the outside, for example:
 
-    ```
-    % OCAMLRUNPARAM="b" esy ocamlrun ...
-    ```
+  ```
+  % OCAMLRUNPARAM="b" esy ocamlrun ...
+  ```
 
-  * Fix `esy import-opam` command which was broken in 0.1.4.
+- Fix `esy import-opam` command which was broken in 0.1.4.
 
-  * Fix creating `~/.esy/3` symlink to a padded store path when initializing
-    global store.
+- Fix creating `~/.esy/3` symlink to a padded store path when initializing
+  global store.
 
 ## 0.1.4 @ preview
 
-  * Reimplement `esy export-dependencies` and `esy import-dependencies`.
+- Reimplement `esy export-dependencies` and `esy import-dependencies`.
 
-  * Eject `command-env` shell source to `node_modules/.cache/_est`. This is
-    needed for integration with OCaml language server.
+- Eject `command-env` shell source to `node_modules/.cache/_est`. This is
+  needed for integration with OCaml language server.
 
-  * Fix bug with splitting `"esy.install"` and `"esy.build"` commands.
+- Fix bug with splitting `"esy.install"` and `"esy.build"` commands.
 
-  * Fix `{comamnd,sandbox}-env` commands to escape double quotes in var values.
+- Fix `{comamnd,sandbox}-env` commands to escape double quotes in var values.
 
-  * Cleanup `bin/esy` bash wrapper script to remove cruft which resulted in
-    100ms faster invocations.
+- Cleanup `bin/esy` bash wrapper script to remove cruft which resulted in
+  100ms faster invocations.
 
 ## 0.1.3 @ preview
 
-  * Do not run `esy-build-package` just to check if linked deps are changed, do
-    it in the same process — this is faster.
+- Do not run `esy-build-package` just to check if linked deps are changed, do
+  it in the same process — this is faster.
 
-  * Fixes to parsing of `"esy.build"` and `"esy.install"` commands.
+- Fixes to parsing of `"esy.build"` and `"esy.install"` commands.
 
-  * Better error reporting for parsing commands and environment declarations.
+- Better error reporting for parsing commands and environment declarations.
 
-  * Show output for the root package build.
+- Show output for the root package build.
 
-  * Fix `esy build-package` command not to build dependencies twice.
+- Fix `esy build-package` command not to build dependencies twice.
 
 ## 0.1.2 @ preview
 
-  * Make things faster by adding caching to sandbox metadata.
+- Make things faster by adding caching to sandbox metadata.
 
-  * Build devDependencies in parallel with the root package.
+- Build devDependencies in parallel with the root package.
 
-  * Fix a bug with `esy build <anycmd>`, `esy <anycmd>`, `esy build-shell` not
-    checking if deps are built before starting.
+- Fix a bug with `esy build <anycmd>`, `esy <anycmd>`, `esy build-shell` not
+  checking if deps are built before starting.
 
-  * Restrict build concurrency by the number of CPU cores available.
+- Restrict build concurrency by the number of CPU cores available.
 
-  * Fix various bugs: fd leaks, not flushing output channels and so on.
+- Fix various bugs: fd leaks, not flushing output channels and so on.
 
 ## 0.1.1 @ preview
 
-  * Fix a bug with how esy constructed command-env — the external `$PATH` was
-    taking a precedence over sandboxed `$PATH`.
+- Fix a bug with how esy constructed command-env — the external `$PATH` was
+  taking a precedence over sandboxed `$PATH`.
 
 ## 0.1.0 @ preview
 
-  * Release new esy core re-implementation in Reason/OCaml.
+- Release new esy core re-implementation in Reason/OCaml.
 
-    A lot of code was replaced and rewritten. This is why we release it under
-    `preview` npm tag and not even `next`. Though `esy@preview` already can
-    support the workflow of building itself.
+  A lot of code was replaced and rewritten. This is why we release it under
+  `preview` npm tag and not even `next`. Though `esy@preview` already can
+  support the workflow of building itself.
 
 ## 0.0.68 @ latest
 
-  * Pin dependency to `@esy-ocaml/ocamlrun` package.
+- Pin dependency to `@esy-ocaml/ocamlrun` package.
 
 ## 0.0.67
 
-  * Broken release
+- Broken release
 
 ## 0.0.66
 
-* Report progress on console even if no tty is available.
+- Report progress on console even if no tty is available.
 
   This keeps CI updated and prevent it from timing out thinking builds are stale
   while they are not.
 
 ## 0.0.65
 
-* `esy install` now tries to fetch `@opam/*` packages from OPAM archive.
+- `esy install` now tries to fetch `@opam/*` packages from OPAM archive.
 
   This is made so esy is less dependent on tarballs hosted on author's servers.
 
   This only happens if there's no override specified in
   esy-ocaml/esy-opam-override repository.
 
-* Build locks are more granular now and don't require `@esy-ocaml/flock` package
+- Build locks are more granular now and don't require `@esy-ocaml/flock` package
   which was fragile on some systems.
 
 ## 0.0.64
 
-* Fix a bug with error reporting in 0.0.63.
+- Fix a bug with error reporting in 0.0.63.
 
 ## 0.0.63
 
-* New command `esy create` to initialize new esy projects from templates.
+- New command `esy create` to initialize new esy projects from templates.
   Implemented by @rauanmayemir.
 
-* Source modification check for linked packages is now much faster as it is
+- Source modification check for linked packages is now much faster as it is
   implemented in OCaml.
 
-* New command `esy build-plan [dep]` which prints build task on stdout. Build
+- New command `esy build-plan [dep]` which prints build task on stdout. Build
   task is a JSON data structure which holds all info needed to build the package
   (environment, commands, ...).
 
-* New command `esy build-package` which builds build tasks produced with `esy
-  build-plan` command:
+- New command `esy build-package` which builds build tasks produced with `esy build-plan` command:
 
   ```
   % esy build-plan > ./build.json
@@ -438,50 +472,50 @@ This release was broken and was unpublished, use 0.1.15 instead.
 
   for more info.
 
-* Build devDependencies in parallel with the root build.
+- Build devDependencies in parallel with the root build.
 
-* Remove `dev` and `pack` release and keep only `bin` releases.
+- Remove `dev` and `pack` release and keep only `bin` releases.
 
-* Remove `esy build-eject` command.
+- Remove `esy build-eject` command.
 
 ## 0.0.62
 
-* Allow to override `@opam/*` packages `url` and `checksum`.
+- Allow to override `@opam/*` packages `url` and `checksum`.
 
 ## 0.0.61
 
-* Add `esy ls-modules` command which shows a list of available OCaml modules for
+- Add `esy ls-modules` command which shows a list of available OCaml modules for
   each of dependency. Implemented by @rauanmayemir.
 
-* Add `$cur__original_root` to build environment which points to the original source
+- Add `$cur__original_root` to build environment which points to the original source
   location of the current package being built.
 
   Also add `#{self.original_root}` and `#{package_name.original_root}` bindings
   to `#{...}` interpolation expressions.
 
-* Relax sandbox restrictions to allow write `.merlin` files into
+- Relax sandbox restrictions to allow write `.merlin` files into
   `$cur__original_root` location.
 
 ## 0.0.60
 
-* Fix `esy import-build --from <filename>`. See #97 for details.
+- Fix `esy import-build --from <filename>`. See #97 for details.
 
-* Check if `package.json` or `esy.json` is not available in the current
+- Check if `package.json` or `esy.json` is not available in the current
   directory and print nice error message instead of failing with a stacktrace.
 
 ## 0.0.59
 
-* Fix `esy build-shell` command to work with `devDependencies`.
+- Fix `esy build-shell` command to work with `devDependencies`.
 
-* Acquire locks only when invocation is going to perform a build.
+- Acquire locks only when invocation is going to perform a build.
 
-* Fixes to how symlink are handled when relocating installation directory
+- Fixes to how symlink are handled when relocating installation directory
   between between staging and final directory and between stoes (export/import
   and releases).
 
 ## 0.0.58
 
-* Esy prefix now can be configured via `.esyrc` by setting `esy-prefix-path`
+- Esy prefix now can be configured via `.esyrc` by setting `esy-prefix-path`
   property. Example:
 
   ```
@@ -493,9 +527,9 @@ This release was broken and was unpublished, use 0.1.15 instead.
   - Sandbox directory: `$ESY__SANDBOX/.esyrc`.
   - User home directory: `$HOME/.esyrc`.
 
-* Fix passing command line arguments to `esy install` and `esy add` commands.
+- Fix passing command line arguments to `esy install` and `esy add` commands.
 
-* Fix cloning OPAM and OPAM overrides repositories to respect `--offline` and
+- Fix cloning OPAM and OPAM overrides repositories to respect `--offline` and
   `--prefer-offline` flags. Also make them check if the host is offline and fail
   with a descriptive error instead of hanging.
 
@@ -505,28 +539,28 @@ Broken release.
 
 ## 0.0.56
 
-* Another bug fix for `#{...}` inside `esy.build` and `esy.install` commands.
+- Another bug fix for `#{...}` inside `esy.build` and `esy.install` commands.
 
 ## 0.0.55
 
-* Fix bug with scope for `#{...}` inside `esy.build` and `esy.install` commands.
+- Fix bug with scope for `#{...}` inside `esy.build` and `esy.install` commands.
 
   It was using a `<storePath>/i` instead of `<storePath>/s` for bindings
   pointing to install location. See #89 for details.
 
 ## 0.0.54
 
-* Fix sandbox environment to include root package's exported environment.
+- Fix sandbox environment to include root package's exported environment.
 
-* Fix for packages which have dot (`.`) symbol in their package names.
+- Fix for packages which have dot (`.`) symbol in their package names.
 
 ## 0.0.53
 
-* Add `esy ls-libs` command which shows a list of available OCaml libraries for
+- Add `esy ls-libs` command which shows a list of available OCaml libraries for
   each of the dependencies. Pass `--all` to see the entire dep tree along with
   OCaml libs. Implemented by @rauanmayemir.
 
-* Command `esy import-build` now supports import builds using `--from/-f <list>`
+- Command `esy import-build` now supports import builds using `--from/-f <list>`
   option:
 
   ```
@@ -539,17 +573,17 @@ Broken release.
   That was added to circumvent script startup overhead when importing a large
   number of builds.
 
-* Rename `esy build-ls` command to `esy ls-builds` command so that it is
+- Rename `esy build-ls` command to `esy ls-builds` command so that it is
   consistent with `esy ls-libs`.
 
-* Make variables for the current package also available under `self` scope.
+- Make variables for the current package also available under `self` scope.
 
   Instead of using verbose and repetitive `#{package-name.lib}` we can now use
   `#{self.lib}`.
 
 ## 0.0.52
 
-* Remove `$cur__target_dir` for builds which are either:
+- Remove `$cur__target_dir` for builds which are either:
 
   - Immutable (persisted in the global store). We don't need incremental builds
     there and it's more safer to build from scratch.
@@ -559,13 +593,13 @@ Broken release.
 
 ## 0.0.51
 
-* Fix binary releases not to produce single monolithic tarballs.
+- Fix binary releases not to produce single monolithic tarballs.
 
   So we don't hit GitHub releases limits.
 
 ## 0.0.50
 
-* New variable substitution syntax is available for `esy.build`, `esy.install` and
+- New variable substitution syntax is available for `esy.build`, `esy.install` and
   `esy.exportedEnv`.
 
   Example:
@@ -582,57 +616,57 @@ Broken release.
 
   Such variable substitution is performed before the build occurs.
 
-* Automatically export `$CAML_LD_LIBRARY_PATH` variable with the
+- Automatically export `$CAML_LD_LIBRARY_PATH` variable with the
   `${pkg.stublibs : pkg.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}`
   value but only case package doesn't have `$CAML_LD_LIBRARY_PATH` in its
   `esy.exportedEnv` config.
 
-* Environment ejected as shell scripts now has nicer format with comments
+- Environment ejected as shell scripts now has nicer format with comments
   indicating from which package the variables are originating from.
 
 ## 0.0.49
 
-* Fixes to `esy install` command:
+- Fixes to `esy install` command:
 
-  * OPAM package conversion now convert `depopts` as `optDependencies` which are
+  - OPAM package conversion now convert `depopts` as `optDependencies` which are
     not handled by `esy install` (on purpose) but handled by `esy build`. That
     makes `optDependencies` a direct analogue of OPAM's `depopts`.
 
-  * Fix OPAM package conversion to preevaluate package dependency formulas with
+  - Fix OPAM package conversion to preevaluate package dependency formulas with
     `mirage-no-xen == true` and `mirage-no-solo5 == true`. This is a temporary
     measure to make a lot of popular packages build. A proper fix pending.
 
-  * Better error reporting in case version constraint wasn't satisfied because of
+  - Better error reporting in case version constraint wasn't satisfied because of
     OCaml version constraint.
 
-  * Better warning message in case custom resolution doesn't satisfy constraints
+  - Better warning message in case custom resolution doesn't satisfy constraints
     imposed by other packages.
 
-* `esy build` command is now aware of `optDependencies`.
+- `esy build` command is now aware of `optDependencies`.
 
 ## 0.0.48
 
-* Fixes to `esy install` command:
+- Fixes to `esy install` command:
 
-  * Now it correctly handles OPAM version constraints with `v` prefix (example:
+  - Now it correctly handles OPAM version constraints with `v` prefix (example:
     `v0.9.0`).
 
     This will invalidate lockfiles which are happen to have records for packages
     with those versions.
 
-  * Handle include files even for packages which doesn't have `url` OPAM meta
+  - Handle include files even for packages which doesn't have `url` OPAM meta
     (example: `conf-gmp`).
 
 ## 0.0.47
 
-* Fixes to `esy install` command to allow overrides for patches and install
+- Fixes to `esy install` command to allow overrides for patches and install
   commands for OPAM packages.
 
-* Fixes to staleness for linked packages which prevent false positives.
+- Fixes to staleness for linked packages which prevent false positives.
 
 ## 0.0.46
 
-* Fix `esy import-opam` not to print command header so the output can be piped
+- Fix `esy import-opam` not to print command header so the output can be piped
   to a `package.json`:
 
   ```
@@ -641,31 +675,31 @@ Broken release.
 
 ## 0.0.45
 
-* Fix to locking not to acquire a lock when one is already acquired.
+- Fix to locking not to acquire a lock when one is already acquired.
 
 ## 0.0.44
 
-* Fix too coarse locking.
+- Fix too coarse locking.
 
   Now we lock only if we can possibly call into Node.
 
 ## 0.0.43
 
-* Fix undefined variable reference in `$NODE_ENV`.
+- Fix undefined variable reference in `$NODE_ENV`.
 
 ## 0.0.42
 
-* Fixes 0.0.41 broken release by adding postinstall.sh script.
+- Fixes 0.0.41 broken release by adding postinstall.sh script.
 
 ## 0.0.41
 
-* Fixes 0.0.40 broken release by adding missing executables.
+- Fixes 0.0.40 broken release by adding missing executables.
 
 ## 0.0.40
 
-* Add a suite of commands to import and export builds to/from store.
+- Add a suite of commands to import and export builds to/from store.
 
-  * `esy export-dependencies` - exports dependencies of the current sandbox.
+  - `esy export-dependencies` - exports dependencies of the current sandbox.
 
     Example:
 
@@ -676,7 +710,7 @@ Broken release.
     This command produces an `_export` directory with a set of gzipped tarballs
     for each of the current project's dependencies.
 
-  * `esy import-dependencies <dir>` - imports dependencies of the current
+  - `esy import-dependencies <dir>` - imports dependencies of the current
     sandbox into a store.
 
     From a directory produced by the `esy export-dependencies` command:
@@ -691,7 +725,7 @@ Broken release.
     % esy import-dependencies /path/to/esy/store/i
     ```
 
-* Enable incremental builds for linked dependencies which are configured with:
+- Enable incremental builds for linked dependencies which are configured with:
 
   ```
   "esy": {
@@ -702,7 +736,7 @@ Broken release.
 
   (think of jbuilder and ocamlbuild)
 
-* Make `esy x <anycommand>` invocation faster.
+- Make `esy x <anycommand>` invocation faster.
 
   Esy won't perform linked dependencies staleness checks and won't trigger a
   build process anymore. It assumes the project was fully built before.
@@ -714,38 +748,38 @@ Broken release.
   % esy b && esy x <anycommand>
   ```
 
-* Do not use symlinks for `link:` dependencies.
+- Do not use symlinks for `link:` dependencies.
 
   Instead use `_esylink` marker. That prevents linked package's dependencies
   leaking into sandbox.
 
-* Add lock for esy invocations: only single esy command is allowed to run at the
+- Add lock for esy invocations: only single esy command is allowed to run at the
   same time.
 
   Any other invocaton will be aborted with an error immediately upon startup.
 
   This ensures there's no corruption of build artifacts for linked dependencies.
 
-* Fix a bug in dependency resolution which caused a wrong version of dependency
+- Fix a bug in dependency resolution which caused a wrong version of dependency
   to appear with mixed `esy.json` and `package.json` packages.
 
 ## 0.0.39
 
-* Use OPAM version ordering when solving dependencies for `@opam/*` packages.
+- Use OPAM version ordering when solving dependencies for `@opam/*` packages.
 
-* Fixes to unpackacking OPAM packages' tarballs.
+- Fixes to unpackacking OPAM packages' tarballs.
 
-* Make `esy x <anycommand>` command invocaton to perform installation only once.
+- Make `esy x <anycommand>` command invocaton to perform installation only once.
 
   That makes subsequent runs of `esy x <anycommand>` to be substantially faster.
 
-* Add `command-exec` executable to ejected root builds. This is used by
+- Add `command-exec` executable to ejected root builds. This is used by
   ocaml-language-server package to automatically configure itself to use Esy
   sandboxed environment.
 
   See freebroccolo/ocaml-language-server#68 for more info.
 
-* Fix builds with dependency graphs with linked packages.
+- Fix builds with dependency graphs with linked packages.
 
   Previously builds which depend on transient packages were put into a global
   store which is incorrect. Instead those builds are marked as transient too and
@@ -753,26 +787,26 @@ Broken release.
 
 ## 0.0.38
 
-* Fixes a bug with error in case of build failure which shadowed the actual build
+- Fixes a bug with error in case of build failure which shadowed the actual build
   failure (see #49).
 
 ## 0.0.37
 
-* Fixes `0.0.36` release which was broken due to a missing `esx` executable in
+- Fixes `0.0.36` release which was broken due to a missing `esx` executable in
   the distribution.
 
 ## 0.0.36
 
-* Add `esy x <anycommand>` invocation which allows to execute `<anycommand>` as
+- Add `esy x <anycommand>` invocation which allows to execute `<anycommand>` as
   if the project is installed (executables are in `$PATH` and so on).
 
-* New build progress reporter which is consistent with `esy install` command.
+- New build progress reporter which is consistent with `esy install` command.
 
-* `esy build` command now shows output of build commands on stdout.
+- `esy build` command now shows output of build commands on stdout.
 
-* Fix a bug with how build hashes are computed.
+- Fix a bug with how build hashes are computed.
 
-* Add experimental `esx` command.
+- Add experimental `esx` command.
 
   This is analogue to `esx`. It allows to initialize ad-hoc snadboxes with
   needed packages and run commands right away:
@@ -787,32 +821,32 @@ Broken release.
 
 ## 0.0.35
 
-* Add (undocumented yet) `esy build-ls` command.
+- Add (undocumented yet) `esy build-ls` command.
 
   This prints the build tree with build info.
 
-* Fix race condition between build process and build ejection (see #40).
+- Fix race condition between build process and build ejection (see #40).
 
-* Fix build error when building linked packages (see #36).
+- Fix build error when building linked packages (see #36).
 
-* Fix `esy add` to update the correct manifest (see #36).
+- Fix `esy add` to update the correct manifest (see #36).
 
   Previously it was updating `package.json` even if `esy.json` was present.
 
-* Fix reporting errors with log files residing in sandbox-local stores (see
+- Fix reporting errors with log files residing in sandbox-local stores (see
   #38).
 
-* Shell builder now clears build log before performing the build (see #31).
+- Shell builder now clears build log before performing the build (see #31).
 
 ## 0.0.34
 
-* Fix `esy add` to actually build after the install.
+- Fix `esy add` to actually build after the install.
 
-* Run `esy` command wrapper with with `-e` so that we fail on errors.
+- Run `esy` command wrapper with with `-e` so that we fail on errors.
 
 ## 0.0.33
 
-* Make `esy` invocation perform `esy install` and then `esy build`.
+- Make `esy` invocation perform `esy install` and then `esy build`.
 
   This makes the workflow for starting a development on a project:
 
@@ -830,17 +864,17 @@ Broken release.
 
   Pretty simple and consistent with how Yarn behave.
 
-* Make `esy add <pkg>` automatically execute `esy build` after the installation
+- Make `esy add <pkg>` automatically execute `esy build` after the installation
   of the new package.
 
   Previously users were required to call `esy build` manually.
 
-* Update OPAM package conversion to include `test`-filtered packages only
+- Update OPAM package conversion to include `test`-filtered packages only
   `devDependencies` (see #33 for details).
 
 ## 0.0.32
 
-* `esy shell` and `esy <anycommand>` now include dev-time dependencies (declared
+- `esy shell` and `esy <anycommand>` now include dev-time dependencies (declared
   via `devDependencies` in `package.json`) in the environment.
 
   Examples of dev-time dependencies are `@opam/merlin`, `@opam/ocp-indent`
@@ -849,16 +883,16 @@ Broken release.
 
 ## 0.0.31
 
-* Fix an issue with `esy build/shell/<anycommand>` not to react properly on
+- Fix an issue with `esy build/shell/<anycommand>` not to react properly on
   build failure.
 
-* Fix error reporting in ejected builds to report the actual log file contents.
+- Fix error reporting in ejected builds to report the actual log file contents.
 
-* Use pretty paths to stores without paddings (a lot of underscores).
+- Use pretty paths to stores without paddings (a lot of underscores).
 
 ## 0.0.30
 
-* Command `esy install` now uses `.esyrc` instead of `.yarnrc` for
+- Command `esy install` now uses `.esyrc` instead of `.yarnrc` for
   configuration.
 
   If you have `.yarnrc` file in your project which is used only for esy then you
@@ -868,17 +902,17 @@ Broken release.
   mv .yarnrc .esyrc
   ```
 
-* Fixed a bug with `esy install` which executed an unrelated `yarn` executable
+- Fixed a bug with `esy install` which executed an unrelated `yarn` executable
   in some custom environment setups. Now `esy install` executes only own code.
 
-* Fixed a bug with `esy install` which prevented the command run under `root`
+- Fixed a bug with `esy install` which prevented the command run under `root`
   user. This was uncovered when running `esy install` under docker.
 
 ## 0.0.29
 
-* `esy build` command was improved, more specifically:
+- `esy build` command was improved, more specifically:
 
-  * There's new build mode which activates with:
+  - There's new build mode which activates with:
 
     ```
       "esy": {
@@ -896,7 +930,7 @@ Broken release.
     byb relocating sources as it is unsafe to share `$cur__root/_build`
     directory between several sandboxes.
 
-  * Packages now can describe installation commands separately from build
+  - Packages now can describe installation commands separately from build
     commands, by using:
 
     ```
@@ -910,7 +944,7 @@ Broken release.
     `esy build` invocation now only executes build steps (`"esy.build"` key in
     `package.json`) for the root package build.
 
-  * `esy build` command now ejects a shell script for root build command &
+  - `esy build` command now ejects a shell script for root build command &
     environment:
 
     ```
@@ -926,7 +960,7 @@ Broken release.
     (implemented similarly to how ejected command env invalidates) or to changes
     to linked packages.
 
-  * `esy build <anycommand>` is now supported.
+  - `esy build <anycommand>` is now supported.
 
     This works similar to `esy <anycommand>` but invokes `<anycommand>` in build
     environment rather than command environment.
@@ -934,13 +968,13 @@ Broken release.
     Currently there are minor changes between build environment and command
     environment but this is going to change soon.
 
-* `esy <anycommand>` and `esy shell` commands implementations changed, more
+- `esy <anycommand>` and `esy shell` commands implementations changed, more
   specifically:
 
-  * Their environment doesn't include root package's path in `$PATH`,
+  - Their environment doesn't include root package's path in `$PATH`,
     `$MAN_PATH` and `$OCAMLPATH`.
 
-  * The location of ejected environment changed from:
+  - The location of ejected environment changed from:
 
     ```
     node_modules/.cache/_esy/command-env
@@ -952,49 +986,48 @@ Broken release.
     node_modules/.cache/_esy/bin/command-env
     ```
 
-  * Now `esy build --dependencies-only --silent` is called to eject the command
+  - Now `esy build --dependencies-only --silent` is called to eject the command
     env. That means that if command environment is stale (any of `package.json`
     files were modified) then Esy will check if it needs to build dependencies.
 
-* Fix `esy build-shell` command to have exactly the same environment as `esy
-  build` operates in.
+- Fix `esy build-shell` command to have exactly the same environment as `esy build` operates in.
 
-* Allow to initialize a build shell for any package in a sandbox. Specify
+- Allow to initialize a build shell for any package in a sandbox. Specify
   a package by the path to its source:
 
       % esy build-shell ./node_modules/@opam/reason
 
 ## 0.0.28
 
-* Support for installing packages with only `esy.json` available.
+- Support for installing packages with only `esy.json` available.
 
-* Add suport for JSON5-encoded `esy.json` manifests and fix edgecases related to
+- Add suport for JSON5-encoded `esy.json` manifests and fix edgecases related to
   installation of packages with `esy.json`.
 
 ## 0.0.27
 
-* Fix release installation not to ignore "too deep path" error silently.
+- Fix release installation not to ignore "too deep path" error silently.
 
-* Fix a check for a "too deep path" error.
+- Fix a check for a "too deep path" error.
 
-* Esy store version is now set to `3`.
+- Esy store version is now set to `3`.
 
   This is made so the Esy prefix can be 4 chars longer. This makes a difference
   for release installation locations as thise can be 4 chars longer too.
 
-* Change the name of the direction with esy store inside esy releases to be `r`.
+- Change the name of the direction with esy store inside esy releases to be `r`.
 
   The motivation is also to allow longer prefixes for release installation
   locations.
 
 ## 0.0.26
 
-* `esy install` command now supports same arguments as `yarn install`
+- `esy install` command now supports same arguments as `yarn install`
 
-* Added `esy b` and `esy i` shortcuts for `esy build` and `esy install`
+- Added `esy b` and `esy i` shortcuts for `esy build` and `esy install`
   correspondingly.
 
-* Fix `esy add` command invocation.
+- Fix `esy add` command invocation.
 
   Previously it failed to resolve opam packages for patterns without
   constraints:
@@ -1003,16 +1036,16 @@ Broken release.
 
   Now it works correctly.
 
-* Expose installation cache management via `esy install-cache` command.
+- Expose installation cache management via `esy install-cache` command.
 
   This works similar to `yarn cache` and in fact is based on it.
 
-* Fix `esy import-opam` to produce `package.json` with dependencies on OCaml
+- Fix `esy import-opam` to produce `package.json` with dependencies on OCaml
   compiler published on npm registry.
 
 ## 0.0.25
 
-* Support for `esy.json`.
+- Support for `esy.json`.
 
   Now if a project (or any dependency) has `esy.json` file then it will take
   precedence over `package.json`.
@@ -1020,36 +1053,36 @@ Broken release.
   This allow to use the same project both as a regular npm-compatible project
   and an esy-compatible project.
 
-* Change lockfile filename to be `esy.lock`.
+- Change lockfile filename to be `esy.lock`.
 
   This is a soft breaking change. So it is advised to manually rename
   `yarn.lock` to `esy.lock` within Esy projects to keep the lockfile.
 
 ## 0.0.24
 
-* `esy install` was improved to handle opam converted package more inline with
+- `esy install` was improved to handle opam converted package more inline with
   the regular npm packages.
 
   For example offline mirror feature of Yarn is now fully supported for opam
   converted packages as well.
 
-* `command-env` bash scripts was generated with an incorrect default value for
+- `command-env` bash scripts was generated with an incorrect default value for
   a global store path.
 
 ## 0.0.23
 
-* Fixes `0.0.22` failure on Linux due to incorrectly computed store path
+- Fixes `0.0.22` failure on Linux due to incorrectly computed store path
   padding.
 
 ## 0.0.22
 
-* Packages converted from opam now depend on `@esy-ocaml/esy-installer` and
+- Packages converted from opam now depend on `@esy-ocaml/esy-installer` and
   `@esy-ocaml/substs` packages from npm registry rather than on packages on
   github.
 
 ## 0.0.21
 
-* Add `esy config` command.
+- Add `esy config` command.
 
   `esy config ls` prints esy configuration values
 
@@ -1064,11 +1097,11 @@ Broken release.
 
 ## 0.0.20
 
-* Packages produced by `esy release` command now can be installed with Yarn.
+- Packages produced by `esy release` command now can be installed with Yarn.
 
 ## 0.0.19
 
-* `@opam-alpha/*` namespaces for opam-converted packages is renamed to `@opam/*`
+- `@opam-alpha/*` namespaces for opam-converted packages is renamed to `@opam/*`
   namespace.
 
   This is a major breaking change and means that you need to fix your
@@ -1080,7 +1113,7 @@ Broken release.
         }
       }
 
-* Symlinks to install and build trees inside stores for a top level package now
+- Symlinks to install and build trees inside stores for a top level package now
   are called now `_esyinstall` and `_esybuild` correspondingly.
 
   This is not to clash with jbuilder and ocamlbuild which build into `_build` by
@@ -1088,40 +1121,40 @@ Broken release.
 
 ## 0.0.18
 
-* Prioritize root's `bin/` and `lib/` in `$PATH` and `$OCAMLPATH`.
+- Prioritize root's `bin/` and `lib/` in `$PATH` and `$OCAMLPATH`.
 
   Root's binaries and ocamlfind libs should take precedence over deps.
 
 ## 0.0.17
 
-* Expose `$cur__lib` as part of the `$OCAMLPATH` in command env.
+- Expose `$cur__lib` as part of the `$OCAMLPATH` in command env.
 
   That means `esy <anycommand>` will make installed ocamlfind artefacts visible
   for `<anycommand>`.
 
 ## 0.0.16
 
-* Make `esy release` not require dependency on Esy:
+- Make `esy release` not require dependency on Esy:
 
-  * For "dev"-releases we make them install the same version of Esy which was
+  - For "dev"-releases we make them install the same version of Esy which was
     used for producing the release.
 
-  * For "bin"-releases and "pack"-releases we don't need Esy installation at
+  - For "bin"-releases and "pack"-releases we don't need Esy installation at
     all.
 
-* Command line interface improvements:
+- Command line interface improvements:
 
-  * Add `esy version` command, same as `esy -v/--version`.
+  - Add `esy version` command, same as `esy -v/--version`.
 
-  * Add `esy help` command, same as `esy -h/--help`.
+  - Add `esy help` command, same as `esy -h/--help`.
 
-  * Fix `esy version` to print the version of the package but not the version of
+  - Fix `esy version` to print the version of the package but not the version of
     Esy specification.
 
-  * Fix `esy release` invocation (with no arguments) to forward to the JS
+  - Fix `esy release` invocation (with no arguments) to forward to the JS
     implementation.
 
-* Fix `esy release` to handle releases with commands of the same name as the
+- Fix `esy release` to handle releases with commands of the same name as the
   project itself.
 
   Previously such commands were shadowed by the sandbox entry point script. Now
@@ -1130,81 +1163,81 @@ Broken release.
 
 ## 0.0.15
 
-* Make `esy build` exit with process return code `1` in case of failures.
+- Make `esy build` exit with process return code `1` in case of failures.
 
   Not sure how I missed that!
 
-* More resilence when crteating symlinks for top level package from store
+- More resilence when crteating symlinks for top level package from store
   (`_build` and `_install`).
 
   Previously we were seeing failures if for example there's `_build` directory
   created by the build process itself.
 
-* Fix ejected builds to ignore `node_modules`, `_build`, `_install` and
+- Fix ejected builds to ignore `node_modules`, `_build`, `_install` and
   `_release` directories when copying sources over to `$cur__target_dir`
   directory for build.
 
-* Fix `esy build` command to ignore `_build`, `_install` and
+- Fix `esy build` command to ignore `_build`, `_install` and
   `_release` directories when copying sources over to `$cur__target_dir`
   directory for build.
 
 ## 0.0.14
 
-* Fix `esy install` to work on Node 4.x.
+- Fix `esy install` to work on Node 4.x.
 
-* Do not copy `node_modules`, `_build`, `_install`, `_release` directories over
+- Do not copy `node_modules`, `_build`, `_install`, `_release` directories over
   to `$cur__target_dir` for in-source builds. That means mich faster builds for
   top level packages.
 
-* Defer creating `_build` symlink to `$cur__target_dir` for top level packages.
+- Defer creating `_build` symlink to `$cur__target_dir` for top level packages.
 
   That prevented `jbuilder` to work for top level builds.
 
 ## 0.0.13
 
-* Generate readable targets for packages in ejected builds.
+- Generate readable targets for packages in ejected builds.
 
   For example:
 
       make build.sandbox/node_modules/packagename
       make shell.sandbox/node_modules/packagename
 
-* `esy install` command now uses its own cache directory. Previously it used
+- `esy install` command now uses its own cache directory. Previously it used
   Yarn's cache directory.
 
-* `esy import-opam` command now tries to guess the correct version for OCaml
+- `esy import-opam` command now tries to guess the correct version for OCaml
   compiler to add to `"devDependencies"`.
 
-* Fixes to convertation of opam versions into npm's semver versions.
+- Fixes to convertation of opam versions into npm's semver versions.
 
   Handle `v\d.\d.\d` correctly and tags which contain `.`.
 
 ## 0.0.12
 
-* Fix invocation of `esy-install` command.
+- Fix invocation of `esy-install` command.
 
 ## 0.0.11
 
-* Fix bug with `esy install` which didn't invalidate lockfile entries based on
+- Fix bug with `esy install` which didn't invalidate lockfile entries based on
   OCaml compiler version.
 
-* Allow to override `peerDependencies` for `@opam-alpha/*` packages.
+- Allow to override `peerDependencies` for `@opam-alpha/*` packages.
 
 ## 0.0.10
 
-* Rename package to `esy`:
+- Rename package to `esy`:
 
   Use `npm install -g esy` to install esy now.
 
-* Pin `@esy-opam/esy-install` package to an exact version.
+- Pin `@esy-opam/esy-install` package to an exact version.
 
 ## 0.0.9
 
-* Make escaping shell commands more robust.
+- Make escaping shell commands more robust.
 
 ## 0.0.8
 
-* Support for converting opam package from opam repository directly.
+- Support for converting opam package from opam repository directly.
 
   Previously we shipped preconverted metadata for opam packages. Now if you
   request `@opam-alpha/*` package we will convert it directly from opam

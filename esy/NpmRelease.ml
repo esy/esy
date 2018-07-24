@@ -155,7 +155,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     let f s task =
       match task.Task.pkg.sourceType with
       | Manifest.SourceType.Immutable -> s
-      | Manifest.SourceType.Development -> StringSet.add task.id s
+      | Manifest.SourceType.Transient -> StringSet.add task.id s
     in
     List.fold_left
       ~init:StringSet.empty
@@ -205,7 +205,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           name = "release-env";
           version = pkg.version;
           dependencies = [Package.Dependency pkg];
-          sourceType = Manifest.SourceType.Development;
+          sourceType = Manifest.SourceType.Transient;
           sandboxEnv = pkg.sandboxEnv;
           build = Package.EsyBuild {
               buildCommands = None;

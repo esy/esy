@@ -60,6 +60,16 @@ let isExecutable (stats : Unix.stats) =
   let othersExecute = 0b000000001 in
   (userExecute lor groupExecute lor othersExecute) land stats.Unix.st_perm <> 0
 
+(*
+ * When running from some contexts, like the ChildProcess, only the system paths are provided.
+ * However, on Windows, we also need to check the equivalent of the `bin` and `usr/bin` folders,
+ * as shell commands are provided there (these paths get converted to their cygwin equivalents and checked).
+ *)
+let getAdditionalResolvePaths path =
+    match System.Platform.host with
+    | Windows -> path @ ["/bin"; "/usr/bin"]
+    | _ -> path
+
 let getPotentialExtensions =
     match System.Platform.host with
     | Windows -> [""; ".exe"]
@@ -86,8 +96,9 @@ let checkIfCommandIsAvailable fullPath =
 
 let resolveCmd path cmd =
   let open Result.Syntax in
+  let allPaths = getAdditionalResolvePaths path in
   let find p =
-    let p = let open Path in (v p) / cmd in
+    let p = Path.(v p / cmd) in
     let%bind p = EsyBash.normalizePathForWindows p in
     checkIfCommandIsAvailable p
     in
@@ -107,7 +118,7 @@ let resolveCmd path cmd =
   match cmd.[0] with
   | '.'
   | '/' -> Ok cmd
-  | _ -> resolve path
+  | _ -> resolve allPaths
 
 let resolveInvocation path (tool, args) =
   let open Result.Syntax in

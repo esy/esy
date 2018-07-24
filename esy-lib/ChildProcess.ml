@@ -39,7 +39,7 @@ let resolveCmdInEnv ~env prg =
       | Some v  -> v
       | None -> ""
     in
-    String.split_on_char ':' v
+    String.split_on_char System.Environment.sep.[0] v
   in Run.ofBosError (Cmd.resolveCmd path prg)
 
 let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
