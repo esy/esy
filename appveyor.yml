@@ -25,7 +25,6 @@ build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
     - echo %PATH%
-    - set PREV_PATH=%PATH%
     - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
     - npm run bootstrap:build
     - npm run bootstrap:unit-test
@@ -33,7 +32,6 @@ build_script:
 # TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
     - powershell scripts/bootstrap/Test.ps1
     - npm run bootstrap:make-release-package
-    - set PATH=%PREV_PATH%
 
 artifacts:
     - path: _platformrelease/*.tgz
