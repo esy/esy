@@ -87,7 +87,7 @@ let checkIfCommandIsAvailable fullPath =
 let resolveCmd path cmd =
   let open Result.Syntax in
   let find p =
-    let p = let open Path in (v p) / cmd in
+    let p = Path.(v p / cmd) in
     let%bind p = EsyBash.normalizePathForWindows p in
     checkIfCommandIsAvailable p
     in

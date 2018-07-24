@@ -16,5 +16,10 @@ module Platform : sig
   val host : t
 end
 
-(** Environment variable separator which is used for $PATH and etc *)
-val envSep : string
+module Environment : sig
+  (** Environment variable separator which is used for $PATH and etc *)
+  val sep : string
+
+  (** Value of $PATH environment variable. *)
+  val path : string list
+end
