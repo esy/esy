@@ -426,8 +426,30 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
     let%bind () = mkdir(build.buildPath);
     let%bind () = mkdir(build.buildPath / "_esy");
 
+    let rootPath = Lifecycle.getRootPath(build);
+
+    /*
+       Detect if there's dune-project which means this is a dune based sandbox,
+       we need to make dune ignore node_modules as it might recurse into it and
+       error.
+     */
+    let%bind () = {
+      let%bind hasDune = exists(rootPath / "dune-project");
+      let%bind hasNodeModules = exists(rootPath / "node_modules");
+      if (hasDune && hasNodeModules) {
+        let%bind items = ls(rootPath / "node_modules");
+        let items = items |> List.map(Path.toString) |> String.concat(" ");
+        let data = "(ignored_subdirs (" ++ items ++ "))\n";
+        let%bind () = write(~data, rootPath / "node_modules" / "dune");
+        let%bind () = mkdir(rootPath / "node_modules");
+        ok;
+      } else {
+        ok;
+      };
+    };
+
     let%bind () =
-      switch (withCwd(Lifecycle.getRootPath(build), ~f=() => f(build))) {
+      switch (withCwd(rootPath, ~f=() => f(build))) {
       | Ok () =>
         let%bind () =
           if (commit) {
