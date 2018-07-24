@@ -77,7 +77,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
   let prepare = (build: build) => {
-    let%bind () = rmdir(build.buildPath);
+    let%bind () = rm(build.buildPath);
     let%bind () = mkdir(build.buildPath);
     let%bind () = {
       let ignore = [
@@ -88,7 +88,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
         "_esybuild",
         "_esyinstall",
       ];
-      copyAllTo(~from=build.sourcePath, ~ignore, build.buildPath);
+      copyContents(~from=build.sourcePath, ~ignore, build.buildPath);
     };
     ok;
   };
@@ -326,7 +326,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     Bos.OS.Cmd.run(cmd);
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
-    let%bind targetPath = symlinkTarget(path);
+    let%bind targetPath = readlink(path);
     switch (Path.rem_prefix(origPrefix, targetPath)) {
     | Some(basePath) =>
       let nextTargetPath = Path.append(destPrefix, basePath);
@@ -353,12 +353,12 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     | _ => Ok()
     };
   let%bind () =
-    Bos.OS.File.write(
+    write(
+      ~data=Path.to_string(config.storePath),
       Path.(build.stagePath / "_esy" / "storePrefix"),
-      Path.to_string(config.storePath),
     );
   let%bind () = traverse(build.stagePath, relocate);
-  let%bind () = Bos.OS.Path.move(build.stagePath, build.installPath);
+  let%bind () = mv(build.stagePath, build.installPath);
   ok;
 };
 
@@ -369,7 +369,7 @@ let findSourceModTime = (build: build) => {
       if (path == build.sourcePath) {
         Ok(maxTime);
       } else {
-        let%bind {Unix.st_mtime: time, _} = Bos.OS.Path.symlink_stat(path);
+        let%bind {Unix.st_mtime: time, _} = lstat(path);
         Ok(time > maxTime ? time : maxTime);
       }
     | error => error;
@@ -413,8 +413,8 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   let%bind () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    let%bind () = rmdir(build.installPath);
-    let%bind () = rmdir(build.stagePath);
+    let%bind () = rm(build.installPath);
+    let%bind () = rm(build.stagePath);
     let%bind () = mkdir(build.stagePath);
     let%bind () = mkdir(build.stagePath / "bin");
     let%bind () = mkdir(build.stagePath / "lib");

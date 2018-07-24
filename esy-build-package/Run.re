@@ -10,6 +10,7 @@ let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 
 let ok = Result.ok;
 let return = v => Ok(v);
+let error = msg => Error(`Msg(msg));
 
 let v = Fpath.v;
 let (/) = Fpath.(/);
@@ -26,12 +27,20 @@ let mkdir = path =>
   };
 
 let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
-let rm = path => Bos.OS.File.delete(path);
-let rmdir = path => Bos.OS.Dir.delete(~recurse=true, path);
+
+let rm = path =>
+  switch (Bos.OS.Path.stat(path)) {
+  | Ok({Unix.st_kind: S_DIR, _}) => Bos.OS.Dir.delete(~recurse=true, path)
+  | Ok(_) => Bos.OS.File.delete(path)
+  | Error(err) => Error(err)
+  };
+
+let lstat = Bos.OS.Path.symlink_stat;
 let symlink = Bos.OS.Path.symlink;
-let symlinkTarget = Bos.OS.Path.symlink_target;
+let readlink = Bos.OS.Path.symlink_target;
 
 let write = (~data, path) => Bos.OS.File.write(path, data);
+let read = path => Bos.OS.File.read(path);
 
 let mv = Bos.OS.Path.move;
 
@@ -56,7 +65,7 @@ let rec realpath = (p: Fpath.t) => {
     } else {
       let%bind isSymlink = isSymlinkAndExists(p);
       if (isSymlink) {
-        let%bind target = symlinkTarget(p);
+        let%bind target = readlink(p);
         realpath(
           target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
         );
@@ -74,7 +83,7 @@ let rec realpath = (p: Fpath.t) => {
  * Put temporary file into filesystem with the specified contents and return its
  * filename. This temporary file will be cleaned up at exit.
  */
-let putTempFile = (contents: string) => {
+let createTmpFile = (contents: string) => {
   let%bind filename = Bos.OS.File.tmp("%s");
   let%bind () = Bos.OS.File.write(filename, contents);
   Ok(filename);
@@ -91,7 +100,7 @@ let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)) : t(_) => {
   Result.join(Bos.OS.Path.fold(~dotfiles=true, visit, Ok(), [path]));
 };
 
-let copyAllTo = (~from, ~ignore=[], dest) => {
+let copyContents = (~from, ~ignore=[], dest) => {
   let excludePaths =
     List.fold_left(
       (set, p) => Path.Set.add(Path.(from / p), set),
