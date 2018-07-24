@@ -98,7 +98,7 @@ let unlink (path : Path.t) =
 let tryUnlinkLwt (path: string) =
     try%lwt (
         Lwt_unix.unlink path
-   ) with
+    ) with
     | Unix.Unix_error (Unix.EACCES, _, _) ->
       (* On Windows, this can occur when executing the 'esy-build-package' sandbox - see #274 for more details *)
       (* There is certainly an underlying issue, and that should be fixed instead of suppressing the error.*)
