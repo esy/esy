@@ -33,6 +33,9 @@ let traverse : (
     (EsyLib.Path.t, Unix.stats) => t(unit, 'e)
   ) => t(unit, 'e)
 
+let copyAllTo : (~from: Fpath.t, ~ignore: list(string)=?, Fpath.t) => t(unit, _);
+
 module Let_syntax: {
   let bind: (~f: 'v1 => t('v2, 'err), t('v1, 'err)) => t('v2, 'err);
 }
+

@@ -1,7 +1,5 @@
-/**
- * This module implements utilities which are used to "script" build processes.
- */
 module Result = EsyLib.Result;
+module Path = EsyLib.Path;
 
 type err('b) =
   [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
@@ -88,4 +86,51 @@ let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)) : t(_) => {
       }
     | error => error;
   Result.join(Bos.OS.Path.fold(~dotfiles=true, visit, Ok(), [path]));
+};
+
+let copyAllTo = (~from, ~ignore=[], dest) => {
+  let excludePaths =
+    List.fold_left(
+      (set, p) => Path.Set.add(Path.(from / p), set),
+      Path.Set.empty,
+      ignore,
+    );
+
+  let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
+
+  let rebasePath = (prevRoot, nextRoot, path) =>
+    switch (Fpath.relativize(~root=prevRoot, path)) {
+    | Some(p) => Path.(nextRoot /\/ p)
+    | None => path
+    };
+
+  let f = (path, acc) =>
+    switch (acc) {
+    | Ok () =>
+      if (Path.equal(path, from)) {
+        Ok();
+      } else {
+        let%bind stats = Bos.OS.Path.symlink_stat(path);
+        let nextPath = rebasePath(from, dest, path);
+        switch (stats.Unix.st_kind) {
+        | Unix.S_DIR =>
+          let _ = Bos.OS.Dir.create(nextPath);
+          Ok();
+        | Unix.S_REG =>
+          let%bind data = Bos.OS.File.read(path);
+          let%bind () = Bos.OS.File.write(nextPath, data);
+          Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
+        | Unix.S_LNK =>
+          let%bind targetPath = Bos.OS.Path.symlink_target(path);
+          let nextTargetPath = rebasePath(from, dest, targetPath);
+          Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
+        | _ => /* ignore everything else */ Ok()
+        };
+      }
+    | Error(err) => Error(err)
+    };
+
+  EsyLib.Result.join(
+    Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [from]),
+  );
 };

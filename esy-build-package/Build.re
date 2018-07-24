@@ -19,9 +19,143 @@ type t = {
   sandbox: Sandbox.sandbox,
 };
 
+let regex = (base, segments) => {
+  let pat =
+    String.concat(Path.dir_sep, [Path.to_string(base), ...segments]);
+  Sandbox.Regex(pat);
+};
+
+let isRoot = (build: t) =>
+  Config.Value.equal(build.task.sourcePath, Config.Value.sandbox);
+
 type build = t;
 
-let make = (~cfg: Config.t, task: Task.t) => {
+module type LIFECYCLE = {
+  let getRootPath: build => Path.t;
+  let getAllowedToWritePaths: (Task.t, Path.t) => list(Sandbox.pattern);
+  let prepare: build => Run.t(unit, _);
+  let finalize: build => Run.t(unit, _);
+};
+
+module RelocateSourceLifecycle: LIFECYCLE = {
+  let getRootPath = build => build.buildPath;
+  let getAllowedToWritePaths = (_task, _sourcePath) => [];
+
+  let prepare = (build: build) => {
+    let%bind () = {
+      let ignore = [
+        "node_modules",
+        "_build",
+        "_install",
+        "_release",
+        "_esybuild",
+        "_esyinstall",
+      ];
+      copyAllTo(~from=build.sourcePath, ~ignore, build.buildPath);
+    };
+    let%bind () = rmdir(build.buildPath);
+    ok;
+  };
+
+  let finalize = _build => Ok();
+};
+
+module OutOfSourceLifecycle: LIFECYCLE = {
+  let getRootPath = build => build.sourcePath;
+  let getAllowedToWritePaths = (_task, _sourcePath) => [];
+  let prepare = _build => Ok();
+  let finalize = _build => Ok();
+};
+
+/**
+
+  A special lifecycle designed to be compatible with jbuilder's use of _build
+  subdirectory as a build dir.
+
+ */
+module JBuilderLifecycle: LIFECYCLE = {
+  let getRootPath = (build: build) => build.sourcePath;
+  let getAllowedToWritePaths = (_task, sourcePath) =>
+    Sandbox.[
+      Subpath(Path.to_string(sourcePath / "_build")),
+      regex(sourcePath, [".*", "[^/]*\\.install"]),
+      regex(sourcePath, ["[^/]*\\.install"]),
+      regex(sourcePath, [".*", "[^/]*\\.opam"]),
+      regex(sourcePath, ["[^/]*\\.opam"]),
+      regex(sourcePath, [".*", "jbuild-ignore"]),
+    ];
+
+  let prepareImpl = (build: build) => {
+    let savedBuild = build.buildPath / "_build";
+    let currentBuild = build.sourcePath / "_build";
+    let backupBuild = build.sourcePath / "_build.prev";
+
+    let%bind () =
+      if%bind (exists(currentBuild)) {
+        mv(currentBuild, backupBuild);
+      } else {
+        ok;
+      };
+    let%bind () = mkdir(savedBuild);
+    let%bind () = mv(savedBuild, currentBuild);
+    ok;
+  };
+
+  let commitImpl = (build: build) => {
+    let savedBuild = build.buildPath / "_build";
+    let currentBuild = build.sourcePath / "_build";
+    let backupBuild = build.sourcePath / "_build.prev";
+
+    let%bind () =
+      if%bind (exists(currentBuild)) {
+        mv(currentBuild, savedBuild);
+      } else {
+        ok;
+      };
+    let%bind () =
+      if%bind (exists(backupBuild)) {
+        mv(backupBuild, currentBuild);
+      } else {
+        ok;
+      };
+    ok;
+  };
+
+  let prepare = (build: build) =>
+    if (isRoot(build)) {
+      OutOfSourceLifecycle.prepare(build);
+    } else {
+      prepareImpl(build);
+    };
+
+  let finalize = (build: build) =>
+    if (isRoot(build)) {
+      OutOfSourceLifecycle.finalize(build);
+    } else {
+      commitImpl(build);
+    };
+};
+
+module UnsafeLifecycle: LIFECYCLE = {
+  include OutOfSourceLifecycle;
+
+  let getAllowedToWritePaths = (_task, sourcePath) =>
+    Sandbox.[Subpath(Path.to_string(sourcePath))];
+};
+
+let configureBuild = (~cfg: Config.t, task: Task.t) => {
+  let (module Lifecycle): (module LIFECYCLE) =
+    switch (task.buildType, task.sourceType) {
+    | (InSource, Immutable) => (module RelocateSourceLifecycle)
+    | (InSource, Transient) => (module RelocateSourceLifecycle)
+    | (JbuilderLike, Immutable) => (module RelocateSourceLifecycle)
+    | (JbuilderLike, Transient) => (module JBuilderLifecycle)
+    | (OutOfSource, Immutable) => (module OutOfSourceLifecycle)
+    | (OutOfSource, Transient) => (module OutOfSourceLifecycle)
+    | (Unsafe, Immutable) => (module RelocateSourceLifecycle)
+    | (Unsafe, Transient) => (module UnsafeLifecycle)
+    };
+
   let%bind env = {
     let f = (k, v) =>
       fun
@@ -64,66 +198,46 @@ let make = (~cfg: Config.t, task: Task.t) => {
 
   let%bind sandbox = {
     let%bind config = {
-      open Sandbox;
-      let regex = (base, segments) => {
-        let pat =
-          String.concat(Path.dir_sep, [Path.to_string(base), ...segments]);
-        Regex(pat);
-      };
       let%bind tempPath = {
         let v = Path.v(Bos.OS.Env.opt_var("TMPDIR", ~absent="/tmp"));
         let%bind v = realpath(v);
         Ok(Path.to_string(v));
       };
-      let allowWriteToSourcePath =
-        switch (task.buildType) {
-        | Unsafe => [Subpath(Path.to_string(sourcePath))]
-        | JbuilderLike => [
-            Subpath(Path.to_string(sourcePath / "_build")),
-            regex(sourcePath, [".*", "[^/]*\\.install"]),
-            regex(sourcePath, ["[^/]*\\.install"]),
-            regex(sourcePath, [".*", "[^/]*\\.opam"]),
-            regex(sourcePath, ["[^/]*\\.opam"]),
-            regex(sourcePath, [".*", "jbuild-ignore"]),
-          ]
-        | _ => []
-        };
       Ok({
-        allowWrite:
-          allowWriteToSourcePath
-          @ [
-            regex(sourcePath, [".*", "\\.merlin"]),
-            regex(sourcePath, ["\\.merlin"]),
-            regex(sourcePath, [".*\\.install"]),
-            Subpath(Path.to_string(buildPath)),
-            Subpath(Path.to_string(stagePath)),
-            Subpath("/private/tmp"),
-            Subpath("/tmp"),
-            Subpath(tempPath),
-          ],
+        Sandbox.allowWrite: [
+          regex(sourcePath, [".*", "\\.merlin"]),
+          regex(sourcePath, ["\\.merlin"]),
+          regex(sourcePath, [".*\\.install"]),
+          Subpath(Path.to_string(buildPath)),
+          Subpath(Path.to_string(stagePath)),
+          Subpath("/private/tmp"),
+          Subpath("/tmp"),
+          Subpath(tempPath),
+          ...Lifecycle.getAllowedToWritePaths(task, sourcePath),
+        ],
       });
     };
     Sandbox.init(config);
   };
 
-  return({
-    task,
-    env,
-    build,
-    install,
-    sourcePath,
-    storePath,
-    installPath,
-    stagePath,
-    buildPath,
-    lockPath,
-    infoPath,
-    sandbox,
-  });
+  return((
+    {
+      task,
+      env,
+      build,
+      install,
+      sourcePath,
+      storePath,
+      installPath,
+      stagePath,
+      buildPath,
+      lockPath,
+      infoPath,
+      sandbox,
+    },
+    (module Lifecycle): (module LIFECYCLE),
+  ));
 };
-
-let isRoot = (build: t) =>
-  Config.Value.equal(build.task.sourcePath, Config.Value.sandbox);
 
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);
@@ -153,60 +267,6 @@ let withLock = (lockPath: Path.t, f) => {
       raise(e);
     };
   res;
-};
-
-let copyAllTo = (~from, dest) => {
-  let excludePaths =
-    List.fold_left(
-      (set, p) => Path.Set.add(Path.(from / p), set),
-      Path.Set.empty,
-      [
-        "node_modules",
-        "_build",
-        "_install",
-        "_release",
-        "_esybuild",
-        "_esyinstall",
-      ],
-    );
-
-  let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
-
-  let rebasePath = (prevRoot, nextRoot, path) =>
-    switch (Fpath.relativize(~root=prevRoot, path)) {
-    | Some(p) => Path.(nextRoot /\/ p)
-    | None => path
-    };
-
-  let f = (path, acc) =>
-    switch (acc) {
-    | Ok () =>
-      if (Path.equal(path, from)) {
-        Ok();
-      } else {
-        let%bind stats = Bos.OS.Path.symlink_stat(path);
-        let nextPath = rebasePath(from, dest, path);
-        switch (stats.Unix.st_kind) {
-        | Unix.S_DIR =>
-          let _ = Bos.OS.Dir.create(nextPath);
-          Ok();
-        | Unix.S_REG =>
-          let%bind data = Bos.OS.File.read(path);
-          let%bind () = Bos.OS.File.write(nextPath, data);
-          Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
-        | Unix.S_LNK =>
-          let%bind targetPath = Bos.OS.Path.symlink_target(path);
-          let nextTargetPath = rebasePath(from, dest, targetPath);
-          Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
-        | _ => /* ignore everything else */ Ok()
-        };
-      }
-    | Error(err) => Error(err)
-    };
-
-  EsyLib.Result.join(
-    Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [from]),
-  );
 };
 
 let commitBuildToStore = (config: Config.t, build: build) => {
@@ -293,91 +353,10 @@ let findSourceModTime = (build: build) => {
   );
 };
 
-module type LIFECYCLE = {
-  let getRootPath: build => Path.t;
-  let prepare: build => Run.t(unit, _);
-  let finalize: build => Run.t(unit, _);
-};
-
-module RelocateSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.buildPath;
-
-  let prepare = (build: build) => {
-    let%bind () = copyAllTo(~from=build.sourcePath, build.buildPath);
-    let%bind () = rmdir(build.buildPath);
-    ok;
-  };
-  let finalize = _build => Ok();
-};
-
-module OutOfSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.sourcePath;
-  let prepare = _build => Ok();
-  let finalize = _build => Ok();
-};
-
-/**
-
-  A special lifecycle designed to be compatible with jbuilder's use of _build
-  subdirectory as a build dir.
-
- */
-module JBuilderLifecycle: LIFECYCLE = {
-  let getRootPath = (build: build) => build.sourcePath;
-
-  let prepareImpl = (build: build) => {
-    let savedBuild = build.buildPath / "_build";
-    let currentBuild = build.sourcePath / "_build";
-    let backupBuild = build.sourcePath / "_build.prev";
-
-    let%bind () =
-      if%bind (exists(currentBuild)) {
-        mv(currentBuild, backupBuild);
-      } else {
-        ok;
-      };
-    let%bind () = mkdir(savedBuild);
-    let%bind () = mv(savedBuild, currentBuild);
-    ok;
-  };
-
-  let commitImpl = (build: build) => {
-    let savedBuild = build.buildPath / "_build";
-    let currentBuild = build.sourcePath / "_build";
-    let backupBuild = build.sourcePath / "_build.prev";
-
-    let%bind () =
-      if%bind (exists(currentBuild)) {
-        mv(currentBuild, savedBuild);
-      } else {
-        ok;
-      };
-    let%bind () =
-      if%bind (exists(backupBuild)) {
-        mv(backupBuild, currentBuild);
-      } else {
-        ok;
-      };
-    ok;
-  };
-
-  let prepare = (build: build) =>
-    if (isRoot(build)) {
-      OutOfSourceLifecycle.prepare(build);
-    } else {
-      prepareImpl(build);
-    };
-
-  let finalize = (build: build) =>
-    if (isRoot(build)) {
-      OutOfSourceLifecycle.finalize(build);
-    } else {
-      commitImpl(build);
-    };
-};
-
 let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
-  let%bind build = make(~cfg, task);
+  let%bind (build, lifecycle) = configureBuild(~cfg, task);
+
+  let (module Lifecycle): (module LIFECYCLE) = lifecycle;
 
   let initStoreAt = (path: Path.t) => {
     let%bind () = mkdir(Path.(path / "i"));
@@ -390,18 +369,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   let%bind () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    let (module Lifecycle): (module LIFECYCLE) =
-      switch (build.task.buildType, build.task.sourceType) {
-      | (InSource, Immutable) => (module RelocateSourceLifecycle)
-      | (InSource, Transient) => (module RelocateSourceLifecycle)
-      | (JbuilderLike, Immutable) => (module RelocateSourceLifecycle)
-      | (JbuilderLike, Transient) => (module JBuilderLifecycle)
-      | (OutOfSource, Immutable) => (module OutOfSourceLifecycle)
-      | (OutOfSource, Transient) => (module OutOfSourceLifecycle)
-      | (Unsafe, Immutable) => (module RelocateSourceLifecycle)
-      | (Unsafe, Transient) => (module OutOfSourceLifecycle)
-      };
-
     let%bind () = rmdir(build.installPath);
     let%bind () = rmdir(build.stagePath);
     let%bind () = mkdir(build.stagePath);
@@ -492,7 +459,7 @@ let runCommandInteractive = (build, cmd) => {
 };
 
 let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
-  let%bind build = make(~cfg, task);
+  let%bind (build, _) = configureBuild(~cfg, task);
   Logs.debug(m => m("start %s", build.task.id));
   let performBuild = sourceModTime => {
     Logs.debug(m => m("building"));
