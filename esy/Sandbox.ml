@@ -153,7 +153,7 @@ let ofDir (cfg : Config.t) =
               | Package.Dependency pkg
               | Package.BuildTimeDependency pkg
               | Package.OptDependency pkg ->
-                pkg.sourceType = Manifest.SourceType.Development
+                pkg.sourceType = Manifest.SourceType.Transient
               | Package.DevDependency _
               | Package.InvalidDependency _ -> false)
           dependencies
@@ -190,7 +190,7 @@ let ofDir (cfg : Config.t) =
           let sourceType =
             match hasDepWithSourceTypeDevelopment, manifest._resolved with
             | true, _
-            | false, None -> Manifest.SourceType.Development
+            | false, None -> Manifest.SourceType.Transient
             | false, Some _ -> Manifest.SourceType.Immutable
           in
           let pkg = Package.{
@@ -261,3 +261,5 @@ let ofDir (cfg : Config.t) =
 
   | _ ->
     error "root package missing esy config"
+
+let isSandbox = Manifest.dirHasManifest

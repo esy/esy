@@ -98,7 +98,7 @@ let runTask
       if%bind Fs.exists installPath
       then return ()
       else buildTask ~buildOnly cfg task
-    | Manifest.SourceType.Development ->
+    | Manifest.SourceType.Transient ->
       if Task.isRoot ~cfg task then
         buildTask ~buildOnly cfg task
       else (

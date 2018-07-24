@@ -1,6 +1,5 @@
+open EsyBuildPackage;
 module Option = EsyLib.Option;
-module Run = EsyBuildPackage.Run;
-module BuildTask = EsyBuildPackage.BuildTask;
 module File = Bos.OS.File;
 module Dir = Bos.OS.Dir;
 
@@ -41,22 +40,16 @@ let createConfig = (copts: commonOpts) => {
     | None => Error(`Msg("cannot resolve fastreplacestring command"))
     };
   };
-  EsyBuildPackage.Config.create(
-    ~prefixPath,
-    ~sandboxPath,
-    ~fastreplacestringCmd,
-    (),
-  );
+  Config.make(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   open Run;
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
-  let%bind config = createConfig(copts);
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
-  let%bind () =
-    EsyBuildPackage.Builder.build(~buildOnly, ~force, config, task);
+  let%bind cfg = createConfig(copts);
+  let%bind task = Task.ofFile(buildPath);
+  let%bind () = Build.build(~buildOnly, ~force, ~cfg, task);
   Ok();
 };
 
@@ -64,25 +57,10 @@ let shell = (copts: commonOpts) => {
   open Run;
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
-  let%bind config = createConfig(copts);
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
+  let%bind cfg = createConfig(copts);
+  let%bind task = Task.ofFile(buildPath);
 
-  let runShell = (_run, runInteractive, ()) => {
-    let%bind rcFilename =
-      putTempFile({|
-        export PS1="[build $cur__name] % ";
-        |});
-    let cmd =
-      Bos.Cmd.of_list([
-        "bash",
-        "--noprofile",
-        "--rcfile",
-        Fpath.to_string(rcFilename),
-      ]);
-    runInteractive(cmd);
-  };
-
-  let () = {
+  let ppBanner = (build: Build.t) => {
     open Fmt;
 
     let ppList = (ppItem, ppf, (title, items)) => {
@@ -100,13 +78,13 @@ let shell = (copts: commonOpts) => {
 
     let ppBanner = (ppf, ()) => {
       Format.open_vbox(0);
-      fmt("Package: %s@%s", ppf, task.BuildTask.name, task.BuildTask.version);
+      fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(BuildTask.Cmd.pp, ppf, ("Build Commands:", task.build));
+      ppList(Cmd.pp, ppf, ("Build Commands:", build.build));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(BuildTask.Cmd.pp, ppf, ("Install Commands:", task.install));
+      ppList(Cmd.pp, ppf, ("Install Commands:", build.install));
       Fmt.cut(ppf, ());
       Format.close_box();
     };
@@ -117,7 +95,23 @@ let shell = (copts: commonOpts) => {
     Format.print_flush();
   };
 
-  let%bind () = EsyBuildPackage.Builder.withBuildEnv(config, task, runShell);
+  let runShell = build => {
+    ppBanner(build);
+    let%bind rcFilename =
+      putTempFile({|
+        export PS1="[build $cur__name] % ";
+        |});
+    let cmd =
+      Cmd.of_list([
+        "bash",
+        "--noprofile",
+        "--rcfile",
+        Fpath.to_string(rcFilename),
+      ]);
+    Build.runCommandInteractive(build, cmd);
+  };
+
+  let%bind () = Build.withBuild(~cfg, task, runShell);
   ok;
 };
 
@@ -125,14 +119,13 @@ let exec = (copts, command) => {
   open Run;
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
-  let%bind config = createConfig(copts);
-  let runCommand = (_run, runInteractive, ()) => {
-    let cmd = Bos.Cmd.of_list(command);
-    runInteractive(cmd);
+  let%bind cfg = createConfig(copts);
+  let runCommand = build => {
+    let cmd = Cmd.of_list(command);
+    Build.runCommandInteractive(build, cmd);
   };
-  let%bind task = EsyBuildPackage.BuildTask.ofFile(config, buildPath);
-  let%bind () =
-    EsyBuildPackage.Builder.withBuildEnv(config, task, runCommand);
+  let%bind task = Task.ofFile(buildPath);
+  let%bind () = Build.withBuild(~cfg, task, runCommand);
   ok;
 };
 
@@ -148,12 +141,7 @@ let runToCompletion = (~forceExitOnError=false, run) =>
     if (forceExitOnError) {
       exit(exitCode);
     } else {
-      let msg =
-        Printf.sprintf(
-          "command failed:\n%s\nwith exit code: %d",
-          Bos.Cmd.to_string(cmd),
-          exitCode,
-        );
+      let msg = Format.asprintf("@\ncommand failed:@\n%a", Cmd.pp, cmd);
       `Error((false, msg));
     };
   | _ => `Ok()

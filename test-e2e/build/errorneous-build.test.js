@@ -9,7 +9,7 @@ it('Build - errorneous build', async () => {
     await p.esy('build')
   } catch(err) {
     expect(String(err)).toEqual(
-      expect.stringMatching('with exit code: 1'),
+      expect.stringMatching('command failed'),
     );
     return;
   }

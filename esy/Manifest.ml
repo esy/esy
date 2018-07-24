@@ -183,26 +183,16 @@ module ExportedEnv = struct
 end
 
 module BuildType = struct
-  type t =
-    | InSource (* build can do whatever it wants, we preventively copy all sources *)
-    | OutOfSource (* build doesn't pollute the source tree *)
-    | JBuilderLike (* build only writes into _build dir inside the source tree *)
-    | Unsafe (* build can do whatever it wants, we DON'T apply sandboxing *)
-    [@@deriving (show, eq, ord)]
+  include EsyBuildPackage.BuildType
 
   let of_yojson = function
-    | `String "_build" -> Ok JBuilderLike
+    | `String "_build" -> Ok JbuilderLike
     | `Bool true -> Ok InSource
     | `Bool false -> Ok OutOfSource
     | _ -> Error "expected false, true or \"_build\""
 end
 
-module SourceType = struct
-  type t =
-    | Immutable
-    | Development
-    [@@deriving (show, eq, ord)]
-end
+module SourceType = EsyBuildPackage.SourceType
 
 module EsyReleaseConfig = struct
   type t = {
@@ -389,7 +379,7 @@ end = struct
 
   let sourceType = function
     | Installed _ -> SourceType.Immutable
-    | AggregatedRoot _ -> SourceType.Development
+    | AggregatedRoot _ -> SourceType.Transient
 
   let buildType = function
     | Installed _ -> BuildType.InSource
@@ -611,3 +601,12 @@ let ofDir ?(asRoot=false) (path : Path.t) =
       return (Some (Opam manifest, paths))
     | None -> return None
     end
+
+let dirHasManifest (path : Path.t) =
+  let open RunAsync.Syntax in
+  let%bind names = Fs.listDir path in
+  let f = function
+    | "esy.json" | "package.json" | "opam" -> true
+    | name -> Path.(name |> v |> has_ext ".opam")
+  in
+  return (List.exists ~f names)

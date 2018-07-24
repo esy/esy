@@ -2,17 +2,15 @@
  * Super simple sexp generation.
  */;
 
-type t =
+type t = list(item)
+and item =
+  | Value(value)
+  | Comment(string)
+and value =
   | S(string)
   | N(float)
   | I(string)
-  | L(list(t));
-
-type item =
-  | Value(t)
-  | Comment(string);
-
-type doc = list(item);
+  | L(list(value));
 
 let render = doc => {
   let buf = Buffer.create(1024);
@@ -27,15 +25,15 @@ let render = doc => {
     | N(v) => emit(string_of_float(v))
     | I(v) => emit(v)
     | L(v) => {
-        let emitListElement = item => {
+        let f = item => {
           emitAtom(item);
           emit(" ");
         };
         emit("(");
-        List.iter(emitListElement, v);
+        List.iter(~f, v);
         emit(")");
       };
-  let emitItem =
+  let f =
     fun
     | Value(a) => {
         emitAtom(a);
@@ -46,6 +44,6 @@ let render = doc => {
         emit(comment);
         emit("\n");
       };
-  List.iter(emitItem, doc);
+  List.iter(~f, doc);
   Buffer.contents(buf);
 };
