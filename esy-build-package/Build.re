@@ -48,7 +48,15 @@ module OutOfSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.sourcePath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
   let prepare = _build => Ok();
-  let finalize = _build => Ok();
+  let finalize = (build: build) => {
+    let%bind () =
+      symlink(
+        ~force=true,
+        ~target=build.buildPath,
+        Path.(build.sourcePath / "_build"),
+      );
+    ok;
+  };
 };
 
 /*
@@ -168,10 +176,13 @@ module JBuilderLifecycle: LIFECYCLE = {
 
  */
 module UnsafeLifecycle: LIFECYCLE = {
-  include OutOfSourceLifecycle;
+  let getRootPath = (build: build) => build.sourcePath;
 
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[Subpath(Path.to_string(sourcePath))];
+
+  let prepare = _build => Ok();
+  let finalize = _build => Ok();
 };
 
 let configureBuild = (~cfg: Config.t, task: Task.t) => {
