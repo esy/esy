@@ -12,6 +12,8 @@ type t('v, 'e) = result('v, err('e));
 let ok : t(unit, _);
 let return : 'v => t('v, _);
 
+let write : (~data:string, EsyLib.Path.t) => t(unit, _);
+let ls : EsyLib.Path.t => t(list(EsyLib.Path.t), _);
 let rm : EsyLib.Path.t => t(unit, _);
 let rmdir : EsyLib.Path.t => t(unit, _);
 let mv : (~force: bool=?, EsyLib.Path.t, EsyLib.Path.t) => t(unit, _);

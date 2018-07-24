@@ -25,10 +25,13 @@ let mkdir = path =>
   | Error(msg) => Error(msg)
   };
 
+let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 let rm = path => Bos.OS.File.delete(path);
 let rmdir = path => Bos.OS.Dir.delete(~recurse=true, path);
 let symlink = Bos.OS.Path.symlink;
 let symlinkTarget = Bos.OS.Path.symlink_target;
+
+let write = (~data, path) => Bos.OS.File.write(path, data);
 
 let mv = Bos.OS.Path.move;
 
