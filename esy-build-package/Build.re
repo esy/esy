@@ -122,61 +122,6 @@ let make = (~cfg: Config.t, task: Task.t) => {
   });
 };
 
-let relocateSourcePath = (b: build) : Run.t(unit, _) => {
-  let excludePaths =
-    List.fold_left(
-      (set, p) => Path.Set.add(Path.(b.sourcePath / p), set),
-      Path.Set.empty,
-      [
-        "node_modules",
-        "_build",
-        "_install",
-        "_release",
-        "_esybuild",
-        "_esyinstall",
-      ],
-    );
-
-  let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
-
-  let rebasePath = (prevRoot, nextRoot, path) =>
-    switch (Fpath.relativize(~root=prevRoot, path)) {
-    | Some(p) => Path.(nextRoot /\/ p)
-    | None => path
-    };
-
-  let f = (path, acc) =>
-    switch (acc) {
-    | Ok () =>
-      if (Path.equal(path, b.sourcePath)) {
-        Ok();
-      } else {
-        let%bind stats = Bos.OS.Path.symlink_stat(path);
-        let nextPath = rebasePath(b.sourcePath, b.buildPath, path);
-        switch (stats.Unix.st_kind) {
-        | Unix.S_DIR =>
-          let _ = Bos.OS.Dir.create(nextPath);
-          Ok();
-        | Unix.S_REG =>
-          let%bind data = Bos.OS.File.read(path);
-          let%bind () = Bos.OS.File.write(nextPath, data);
-          Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
-        | Unix.S_LNK =>
-          let%bind targetPath = Bos.OS.Path.symlink_target(path);
-          let nextTargetPath =
-            rebasePath(b.sourcePath, b.buildPath, targetPath);
-          Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
-        | _ => /* ignore everything else */ Ok()
-        };
-      }
-    | Error(err) => Error(err)
-    };
-
-  EsyLib.Result.join(
-    Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [b.sourcePath]),
-  );
-};
-
 let isRoot = (b: t) =>
   Config.Value.equal(b.task.sourcePath, Config.Value.sandbox);
 
@@ -259,39 +204,6 @@ let commitBuildToStore = (config: Config.t, b: t) => {
   ok;
 };
 
-let relocateBuildPath = (_config: Config.t, b: t) => {
-  let savedBuild = b.buildPath / "_build";
-  let currentBuild = b.sourcePath / "_build";
-  let backupBuild = b.sourcePath / "_build.prev";
-  let start = _build => {
-    let%bind () =
-      if%bind (exists(currentBuild)) {
-        mv(currentBuild, backupBuild);
-      } else {
-        ok;
-      };
-    let%bind () = mkdir(savedBuild);
-    let%bind () = mv(savedBuild, currentBuild);
-    ok;
-  };
-  let commit = _build => {
-    let%bind () =
-      if%bind (exists(currentBuild)) {
-        mv(currentBuild, savedBuild);
-      } else {
-        ok;
-      };
-    let%bind () =
-      if%bind (exists(backupBuild)) {
-        mv(backupBuild, currentBuild);
-      } else {
-        ok;
-      };
-    ok;
-  };
-  (start, commit);
-};
-
 let findSourceModTime = (b: t) => {
   let visit = (path: Path.t) =>
     fun
@@ -327,6 +239,139 @@ let findSourceModTime = (b: t) => {
   );
 };
 
+module type LIFECYCLE = {
+  let getRootPath: build => Path.t;
+  let prepare: build => Run.t(unit, _);
+  let commit: build => Run.t(unit, _);
+};
+
+module RelocateSourceLifecycle: LIFECYCLE = {
+  let getRootPath = build => build.buildPath;
+
+  let prepare = (b: build) => {
+    let excludePaths =
+      List.fold_left(
+        (set, p) => Path.Set.add(Path.(b.sourcePath / p), set),
+        Path.Set.empty,
+        [
+          "node_modules",
+          "_build",
+          "_install",
+          "_release",
+          "_esybuild",
+          "_esyinstall",
+        ],
+      );
+
+    let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
+
+    let rebasePath = (prevRoot, nextRoot, path) =>
+      switch (Fpath.relativize(~root=prevRoot, path)) {
+      | Some(p) => Path.(nextRoot /\/ p)
+      | None => path
+      };
+
+    let f = (path, acc) =>
+      switch (acc) {
+      | Ok () =>
+        if (Path.equal(path, b.sourcePath)) {
+          Ok();
+        } else {
+          let%bind stats = Bos.OS.Path.symlink_stat(path);
+          let nextPath = rebasePath(b.sourcePath, b.buildPath, path);
+          switch (stats.Unix.st_kind) {
+          | Unix.S_DIR =>
+            let _ = Bos.OS.Dir.create(nextPath);
+            Ok();
+          | Unix.S_REG =>
+            let%bind data = Bos.OS.File.read(path);
+            let%bind () = Bos.OS.File.write(nextPath, data);
+            Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
+          | Unix.S_LNK =>
+            let%bind targetPath = Bos.OS.Path.symlink_target(path);
+            let nextTargetPath =
+              rebasePath(b.sourcePath, b.buildPath, targetPath);
+            Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
+          | _ => /* ignore everything else */ Ok()
+          };
+        }
+      | Error(err) => Error(err)
+      };
+
+    EsyLib.Result.join(
+      Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [b.sourcePath]),
+    );
+  };
+
+  let commit = _build => Ok();
+};
+
+module OutOfSourceLifecycle: LIFECYCLE = {
+  let getRootPath = build => build.sourcePath;
+  let prepare = _build => Ok();
+  let commit = _build => Ok();
+};
+
+/**
+
+  A special lifecycle designed to be compatible with jbuilder's use of _build
+  subdirectory as a build dir.
+
+ */
+module JBuilderLifecycle: LIFECYCLE = {
+  let getRootPath = (build: build) => build.sourcePath;
+
+  let prepareImpl = (build: build) => {
+    let savedBuild = build.buildPath / "_build";
+    let currentBuild = build.sourcePath / "_build";
+    let backupBuild = build.sourcePath / "_build.prev";
+
+    let%bind () =
+      if%bind (exists(currentBuild)) {
+        mv(currentBuild, backupBuild);
+      } else {
+        ok;
+      };
+    let%bind () = mkdir(savedBuild);
+    let%bind () = mv(savedBuild, currentBuild);
+    ok;
+  };
+
+  let commitImpl = (build: build) => {
+    let savedBuild = build.buildPath / "_build";
+    let currentBuild = build.sourcePath / "_build";
+    let backupBuild = build.sourcePath / "_build.prev";
+
+    let%bind () =
+      if%bind (exists(currentBuild)) {
+        mv(currentBuild, savedBuild);
+      } else {
+        ok;
+      };
+    let%bind () =
+      if%bind (exists(backupBuild)) {
+        mv(backupBuild, currentBuild);
+      } else {
+        ok;
+      };
+    ok;
+  };
+
+  let prepare = (build: build) =>
+    if (isRoot(build)) {
+      OutOfSourceLifecycle.prepare(build);
+    } else {
+      prepareImpl(build);
+    };
+
+  let commit = (build: build) =>
+    if (isRoot(build)) {
+      OutOfSourceLifecycle.commit(build);
+    } else {
+      commitImpl(build);
+    };
+};
+
 let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   let%bind b = make(~cfg, task);
 
@@ -341,28 +386,16 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   let%bind () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    let doNothing = (_b: t) : Run.t(unit, _) => Run.ok;
-
-    let (rootPath, prepareRootPath, completeRootPath) =
+    let (module Lifecycle): (module LIFECYCLE) =
       switch (b.task.buildType, b.task.sourceType) {
-      | (InSource, Immutable)
-      | (InSource, Transient) => (b.buildPath, relocateSourcePath, doNothing)
-      | (JbuilderLike, Immutable) => (
-          b.buildPath,
-          relocateSourcePath,
-          doNothing,
-        )
-      | (JbuilderLike, Transient) =>
-        if (isRoot(b)) {
-          (b.sourcePath, doNothing, doNothing);
-        } else {
-          let (start, commit) = relocateBuildPath(cfg, b);
-          (b.sourcePath, start, commit);
-        }
-      | (OutOfSource, Immutable)
-      | (OutOfSource, Transient) => (b.sourcePath, doNothing, doNothing)
-      | (Unsafe, Immutable)
-      | (Unsafe, Transient) => (b.sourcePath, doNothing, doNothing)
+      | (InSource, Immutable) => (module RelocateSourceLifecycle)
+      | (InSource, Transient) => (module RelocateSourceLifecycle)
+      | (JbuilderLike, Immutable) => (module RelocateSourceLifecycle)
+      | (JbuilderLike, Transient) => (module JBuilderLifecycle)
+      | (OutOfSource, Immutable) => (module OutOfSourceLifecycle)
+      | (OutOfSource, Transient) => (module OutOfSourceLifecycle)
+      | (Unsafe, Immutable) => (module RelocateSourceLifecycle)
+      | (Unsafe, Transient) => (module OutOfSourceLifecycle)
       };
     /*
      * Prepare build/install.
@@ -390,7 +423,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
           let%bind () = mkdir(b.buildPath);
           ok;
         };
-      let%bind () = prepareRootPath(b);
+      let%bind () = Lifecycle.prepare(b);
       let%bind () = mkdir(b.buildPath / "_esy");
       ok;
     };
@@ -406,14 +439,14 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
           } else {
             ok;
           };
-        let%bind () = completeRootPath(b);
+        let%bind () = Lifecycle.commit(b);
         ok;
       | error =>
-        let%bind () = completeRootPath(b);
+        let%bind () = Lifecycle.commit(b);
         error;
       };
     let%bind () = prepare();
-    let result = withCwd(rootPath, ~f=() => f(b));
+    let result = withCwd(Lifecycle.getRootPath(b), ~f=() => f(b));
     let%bind () = finalize(result);
     result;
   };
