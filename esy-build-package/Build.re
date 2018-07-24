@@ -422,7 +422,7 @@ let runCommand = (b, cmd) => {
     };
   let path =
     switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.envSep.[0], path)
+    | Some(path) => String.split_on_char(System.Environment.sep.[0], path)
     | None => []
     };
 
@@ -447,7 +447,7 @@ let runCommandInteractive = (b, cmd) => {
     };
   let path =
     switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.envSep.[0], path)
+    | Some(path) => String.split_on_char(System.Environment.sep.[0], path)
     | None => []
     };
   let%bind ((), (_runInfo, runStatus)) = {

@@ -694,21 +694,21 @@ let ofPackage
             name = "PATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
-              Value (value ^ System.envSep ^ "$PATH")
+              Value (value ^ System.Environment.sep ^ "$PATH")
           }
           and manPath = Environment.{
             origin = Some task.pkg;
             name = "MAN_PATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
-              Value (value ^ System.envSep ^ "$MAN_PATH")
+              Value (value ^ System.Environment.sep ^ "$MAN_PATH")
           }
           and ocamlpath = Environment.{
             origin = Some task.pkg;
             name = "OCAMLPATH";
             value =
               let value = ConfigPath.(task.paths.installPath / "lib" |> toString) in
-              Value (value ^ System.envSep ^ "$OCAMLPATH")
+              Value (value ^ System.Environment.sep ^ "$OCAMLPATH")
           } in
           path::manPath::ocamlpath::task.globalEnv
         in
