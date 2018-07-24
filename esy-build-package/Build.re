@@ -19,6 +19,8 @@ type t = {
   sandbox: Sandbox.sandbox,
 };
 
+type build = t;
+
 let make = (~cfg: Config.t, task: Task.t) => {
   let%bind env = {
     let f = (k, v) =>
@@ -119,50 +121,60 @@ let make = (~cfg: Config.t, task: Task.t) => {
   });
 };
 
-let relocateSourcePath = (config: Config.t, b: t) =>
-  Run.
-    /* `rsync` is one utility that DOES NOT respect Windows paths.
-     *  Therefore, we need to normalize the paths to Cygwin-style (on POSIX systems, this is a no-op)
-     */
-    (
-      {
-        let%bind buildPath =
-          EsyBash.normalizePathForCygwin(Cmd.p(b.buildPath));
-        let%bind sourcePath =
-          EsyBash.normalizePathForCygwin(Path.to_string(b.sourcePath));
-
-        let cmd =
-          Cmd.(
-            empty
-            % config.rsyncCmd
-            % "--quiet"
-            % "--archive"
-            % "--exclude"
-            % buildPath
-            % "--exclude"
-            % "node_modules"
-            % "--exclude"
-            % "_build"
-            % "--exclude"
-            % "_release"
-            % "--exclude"
-            % "_esybuild"
-            % "--exclude"
-            % "_esyinstall"
-            /* The trailing "/" is important as it makes rsync to sync the contents of
-             * origPath rather than the origPath itself into destPath, see "man rsync" for
-             * details.
-             */
-            % (sourcePath ++ "/")
-            % buildPath
-          );
-
-        /* `rsync` doesn't work natively on Windows, so on Windows,
-         * we need to run it in the cygwin bash environment.
-         */
-        EsyBash.run(cmd);
-      }
+let relocateSourcePath = (b: build) : Run.t(unit, _) => {
+  let excludePaths =
+    List.fold_left(
+      (set, p) => Path.Set.add(Path.(b.sourcePath / p), set),
+      Path.Set.empty,
+      [
+        "node_modules",
+        "_build",
+        "_install",
+        "_release",
+        "_esybuild",
+        "_esyinstall",
+      ],
     );
+
+  let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
+
+  let rebasePath = (prevRoot, nextRoot, path) =>
+    switch (Fpath.relativize(~root=prevRoot, path)) {
+    | Some(p) => Path.(nextRoot /\/ p)
+    | None => path
+    };
+
+  let f = (path, acc) =>
+    switch (acc) {
+    | Ok () =>
+      if (Path.equal(path, b.sourcePath)) {
+        Ok();
+      } else {
+        let%bind stats = Bos.OS.Path.symlink_stat(path);
+        let nextPath = rebasePath(b.sourcePath, b.buildPath, path);
+        switch (stats.Unix.st_kind) {
+        | Unix.S_DIR =>
+          let _ = Bos.OS.Dir.create(nextPath);
+          Ok();
+        | Unix.S_REG =>
+          let%bind data = Bos.OS.File.read(path);
+          let%bind () = Bos.OS.File.write(nextPath, data);
+          Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
+        | Unix.S_LNK =>
+          let%bind targetPath = Bos.OS.Path.symlink_target(path);
+          let nextTargetPath =
+            rebasePath(b.sourcePath, b.buildPath, targetPath);
+          Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
+        | _ => /* ignore everything else */ Ok()
+        };
+      }
+    | Error(err) => Error(err)
+    };
+
+  EsyLib.Result.join(
+    Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [b.sourcePath]),
+  );
+};
 
 let isRoot = (b: t) =>
   Config.Value.equal(b.task.sourcePath, Config.Value.sandbox);
@@ -198,7 +210,6 @@ let withLock = (lockPath: Path.t, f) => {
 };
 
 let commitBuildToStore = (config: Config.t, b: t) => {
-  open Run;
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
     let cmd =
       Cmd.(
@@ -248,11 +259,10 @@ let commitBuildToStore = (config: Config.t, b: t) => {
 };
 
 let relocateBuildPath = (_config: Config.t, b: t) => {
-  open Run;
   let savedBuild = b.buildPath / "_build";
   let currentBuild = b.sourcePath / "_build";
   let backupBuild = b.sourcePath / "_build.prev";
-  let start = (_config, _spec) => {
+  let start = _build => {
     let%bind () =
       if%bind (exists(currentBuild)) {
         mv(currentBuild, backupBuild);
@@ -263,7 +273,7 @@ let relocateBuildPath = (_config: Config.t, b: t) => {
     let%bind () = mv(savedBuild, currentBuild);
     ok;
   };
-  let commit = (_config, _spec) => {
+  let commit = _build => {
     let%bind () =
       if%bind (exists(currentBuild)) {
         mv(currentBuild, savedBuild);
@@ -282,7 +292,6 @@ let relocateBuildPath = (_config: Config.t, b: t) => {
 };
 
 let findSourceModTime = (b: t) => {
-  open Run;
   let visit = (path: Path.t) =>
     fun
     | Ok(maxTime) =>
@@ -331,7 +340,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
   let%bind () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    let doNothing = (_config: Config.t, _b: t) => Run.ok;
+    let doNothing = (_b: t) : Run.t(unit, _) => Run.ok;
 
     let (rootPath, prepareRootPath, completeRootPath) =
       switch (b.task.buildType, b.task.sourceType) {
@@ -380,7 +389,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
           let%bind () = mkdir(b.buildPath);
           ok;
         };
-      let%bind () = prepareRootPath(cfg, b);
+      let%bind () = prepareRootPath(b);
       let%bind () = mkdir(b.buildPath / "_esy");
       ok;
     };
@@ -396,10 +405,10 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
           } else {
             ok;
           };
-        let%bind () = completeRootPath(cfg, b);
+        let%bind () = completeRootPath(b);
         ok;
       | error =>
-        let%bind () = completeRootPath(cfg, b);
+        let%bind () = completeRootPath(b);
         error;
       };
     let%bind () = prepare();
