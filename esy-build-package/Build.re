@@ -150,14 +150,14 @@ module JBuilderLifecycle: LIFECYCLE = {
 
   let prepare = (build: build) =>
     if (isRoot(build)) {
-      OutOfSourceLifecycle.prepare(build);
+      ok;
     } else {
       prepareImpl(build);
     };
 
   let finalize = (build: build) =>
     if (isRoot(build)) {
-      OutOfSourceLifecycle.finalize(build);
+      ok;
     } else {
       commitImpl(build);
     };
@@ -441,7 +441,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
         let items = items |> List.map(Path.toString) |> String.concat(" ");
         let data = "(ignored_subdirs (" ++ items ++ "))\n";
         let%bind () = write(~data, rootPath / "node_modules" / "dune");
-        let%bind () = mkdir(rootPath / "node_modules");
         ok;
       } else {
         ok;
