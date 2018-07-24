@@ -13,19 +13,23 @@ it('Common - release', async () => {
   await expect(p.esy('install')).resolves.not.toThrow();
   await expect(p.esy('release')).resolves.not.toThrow();
 
+  // npm commands are run in the _release folder
   await expect(p.npm('pack')).resolves.not.toThrow();
   await expect(p.npm('-g install ./release-*.tgz')).resolves.not.toThrow();
 
-  const release = await promiseExec('RELEASE-HELLO-FROM-ME', {
-    env: {...process.env, NAME: 'ME'},
-  });
-  expect(release).toEqual({
-    stdout: path.join(p.npmPrefixPath, 'bin', 'release.exe') + '\n',
+  await expect(
+    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release.exe'), {
+      env: {...process.env, NAME: 'ME'},
+    }),
+  ).resolves.toEqual({
+    stdout: 'RELEASE-HELLO-FROM-ME\n',
     stderr: '',
   });
-  const releaseDep = await promiseExec('RELEASE-DEP-HELLO');
-  expect(releaseDep).toEqual({
-    stdout: path.join(p.npmPrefixPath, 'bin', 'release-dep.exe') + '\n',
+
+  await expect(
+    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release-dep.exe')),
+  ).resolves.toEqual({
+    stdout: 'RELEASE-DEP-HELLO\n',
     stderr: '',
   });
 });
