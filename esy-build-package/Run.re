@@ -101,9 +101,9 @@ let copyAllTo = (~from, ~ignore=[], dest) => {
 
   let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
 
-  let rebasePath = (prevRoot, nextRoot, path) =>
-    switch (Fpath.relativize(~root=prevRoot, path)) {
-    | Some(p) => Path.(nextRoot /\/ p)
+  let rebasePath = path =>
+    switch (Fpath.relativize(~root=from, path)) {
+    | Some(p) => Path.(dest /\/ p)
     | None => path
     };
 
@@ -114,7 +114,7 @@ let copyAllTo = (~from, ~ignore=[], dest) => {
         Ok();
       } else {
         let%bind stats = Bos.OS.Path.symlink_stat(path);
-        let nextPath = rebasePath(from, dest, path);
+        let nextPath = rebasePath(path);
         switch (stats.Unix.st_kind) {
         | Unix.S_DIR =>
           let _ = Bos.OS.Dir.create(nextPath);
@@ -125,7 +125,7 @@ let copyAllTo = (~from, ~ignore=[], dest) => {
           Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
         | Unix.S_LNK =>
           let%bind targetPath = Bos.OS.Path.symlink_target(path);
-          let nextTargetPath = rebasePath(from, dest, targetPath);
+          let nextTargetPath = rebasePath(targetPath);
           Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
         | _ => /* ignore everything else */ Ok()
         };
