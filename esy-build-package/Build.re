@@ -37,6 +37,32 @@ module type LIFECYCLE = {
   let finalize: build => Run.t(unit, _);
 };
 
+/*
+
+   A lifecycle of a build which is performed in its original source tree and
+   adheres to all esy convention (most importantly uses $cur__target_dir for its
+   build dir).
+
+ */
+module OutOfSourceLifecycle: LIFECYCLE = {
+  let getRootPath = build => build.sourcePath;
+  let getAllowedToWritePaths = (_task, _sourcePath) => [];
+  let prepare = _build => Ok();
+  let finalize = _build => Ok();
+};
+
+/*
+
+   A lifecycle which defensively copies all project source tree into build dir
+   before running a build.
+
+   This is designed so that projects which don't implement out of source builds
+   still can be used safely with multiple sandboxes.
+
+   Also we use this lifecycle when building into global store as we want as much
+   safety as possible.
+
+ */
 module RelocateSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.buildPath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
@@ -60,14 +86,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   let finalize = _build => Ok();
 };
 
-module OutOfSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.sourcePath;
-  let getAllowedToWritePaths = (_task, _sourcePath) => [];
-  let prepare = _build => Ok();
-  let finalize = _build => Ok();
-};
-
-/**
+/*
 
   A special lifecycle designed to be compatible with jbuilder's use of _build
   subdirectory as a build dir.
@@ -136,6 +155,18 @@ module JBuilderLifecycle: LIFECYCLE = {
     };
 };
 
+/*
+
+   Same as OutOfSourceLifecycle but allows to write into project's root
+   directory.
+
+   This makes it unsafe by definiton. Projects which use such lifecycle for its
+   builds can't be linked to other sandboxes as they pollute their own source
+   tree.
+
+   Currently only opam packages use this strategy.
+
+ */
 module UnsafeLifecycle: LIFECYCLE = {
   include OutOfSourceLifecycle;
 
