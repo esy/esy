@@ -94,6 +94,7 @@ let make = (~cfg: Config.t, task: Task.t) => {
           @ [
             regex(sourcePath, [".*", "\\.merlin"]),
             regex(sourcePath, ["\\.merlin"]),
+            regex(sourcePath, [".*\\.install"]),
             Subpath(Path.to_string(buildPath)),
             Subpath(Path.to_string(stagePath)),
             Subpath("/private/tmp"),
