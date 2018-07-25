@@ -700,12 +700,7 @@ let ofPackage
         }
       in
 
-      let bindings =
-        {Manifest.Env. name = "DUNE_BUILD_DIR"; value = "#{self.target_dir}";}
-        :: pkg.buildEnv
-      in
-
-      Result.List.map ~f bindings
+      Result.List.map ~f pkg.buildEnv
     in
 
     let buildEnv =
