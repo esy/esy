@@ -320,25 +320,25 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         empty
         % config.fastreplacestringCmd
         % p(path)
-        % p(origPrefix)
-        % p(destPrefix)
+        % origPrefix
+        % destPrefix
       );
     Bos.OS.Cmd.run(cmd);
   };
   let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
+    let origPrefixString = Path.to_string(origPrefix);
+    let destPrefixString = Path.to_string(destPrefix);
     switch (System.Platform.host) {
     | Windows =>
         /* On Windows, the slashes could be either `/` or windows-style `\` */
         /* We'll replace both styles */
-        let%bind () = rewritePrefixInFile(~origPrefix, ~destPrefix, path);
-        let normalizedOrigPrefix = Path.normalizePathSlashes(Path.to_string(origPrefix));
-        let normalizedDestPrefix = Path.normalizePathSlashes(Path.to_string(destPrefix));
-        let normalizedOrigPrefixPath = Fpath.v(normalizedOrigPrefix);
-        let normalizedDestPrefixPath = Fpath.v(normalizedDestPrefix);
+        let%bind () = rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
+        let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
+        let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
         let%bind () = rewritePrefixInFile(~origPrefix=normalizedOrigPrefixPath, ~destPrefix=normalizedDestPrefixPath, path);
         ok;
     | _ =>
-        rewritePrefixInFile(~origPrefix, ~destPrefix, path);
+        rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
     }
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
