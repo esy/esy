@@ -312,7 +312,8 @@ module Installer =
     };
   });
 
-let install = (~prefix, ~root, ()) => Installer.run(~prefix, ~root, None);
+let install = (~prefixPath, ~rootPath, ()) =>
+  Installer.run(~prefixPath, ~rootPath, None);
 
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);
@@ -589,24 +590,14 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
       let runInstall = () =>
         switch (build.install) {
         | [] =>
-          let root = Lifecycle.getRootPath(build);
-          let%bind items = Run.ls(root);
+          let rootPath = Lifecycle.getRootPath(build);
+          let%bind items = Run.ls(rootPath);
           if (List.exists(name => Path.has_ext(".install", name), items)) {
             Logs.app(m =>
               m("# esy-build-package: installing using built-in installer")
             );
-            let job = install(~prefix=build.stagePath, ~root, ());
-            (
-              job:
-                result(
-                  _,
-                  [
-                    | `Msg(string)
-                    | `CommandError(Cmd.t, Bos.OS.Cmd.status)
-                  ],
-                ) :>
-                Run.t(_, _)
-            );
+            let job = install(~prefixPath=build.stagePath, ~rootPath, ());
+            Run.coerceFromClosed(job);
           } else {
             Logs.app(m => m("# esy-build-package: no installation required"));
             ok;

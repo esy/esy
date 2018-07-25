@@ -20,7 +20,7 @@ module type INSTALLER = sig
   type 'v computation
 
   (** Perform installation given the root and a prefix. *)
-  val run : root:Fpath.t -> prefix:Fpath.t -> string option -> unit computation
+  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> string option -> unit computation
 end
 
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation

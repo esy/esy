@@ -16,7 +16,8 @@ type t('v, 'e) = result('v, err('e));
 let return : 'v => t('v, _);
 let error : string => t(_, _);
 let bind : (~f: 'a => result('b, 'c), result('a, 'c)) => result('b, 'c)
-let coerceFrmMsgOnly : result('a, [ `Msg(string) ]) => t('a, _);
+let coerceFromMsgOnly : result('a, [ `Msg(string) ]) => t('a, _);
+let coerceFromClosed : result('a, [ `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status) ]) => t('a, _);
 
 let ok : t(unit, _);
 

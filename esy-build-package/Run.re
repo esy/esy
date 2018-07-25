@@ -6,7 +6,11 @@ type err('b) =
 
 type t('v, 'e) = result('v, err('e));
 
-let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
+let coerceFromMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
+let coerceFromClosed = x => (
+  x: result(_, [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)]) :>
+    t(_, _)
+);
 
 let ok = Result.ok;
 let return = v => Ok(v);

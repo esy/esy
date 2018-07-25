@@ -17,7 +17,7 @@ end
 
 module type INSTALLER = sig
   type 'v computation
-  val run : root:Fpath.t -> prefix:Fpath.t -> string option -> unit computation
+  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> string option -> unit computation
 end
 
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation = struct
@@ -37,8 +37,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
   let installFile
     ?(executable=false)
-    ~root
-    ~prefix
+    ~rootPath
+    ~prefixPath
     ~(dstFilename : Fpath.t option)
     (src : OpamTypes.basename OpamTypes.optional)
     =
@@ -46,12 +46,12 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       let path = src.c |> OpamFilename.Base.to_string |> Fpath.v in
       if Fpath.is_abs path
       then path
-      else Fpath.(root // path)
+      else Fpath.(rootPath // path)
     in
     let dstPath =
       match dstFilename with
-      | None -> Fpath.(prefix / Fpath.basename srcPath)
-      | Some dstFilename -> Fpath.(prefix // dstFilename)
+      | None -> Fpath.(prefixPath / Fpath.basename srcPath)
+      | Some dstFilename -> Fpath.(prefixPath // dstFilename)
     in
     match%bind handle (Fs.stat srcPath) with
     | Ok stats ->
@@ -71,7 +71,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       then return ()
       else error msg
 
-    let installSection ?executable ?dstFilename ~root ~prefix files =
+    let installSection ?executable ?dstFilename ~rootPath ~prefixPath files =
       let rec aux = function
         | [] -> return ()
         | (src, dstFilenameSpec)::rest ->
@@ -83,19 +83,19 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
               Some (dstFilename src)
             | None, None -> None
           in
-          let%bind () = installFile ?executable ~root ~prefix ~dstFilename src in
+          let%bind () = installFile ?executable ~rootPath ~prefixPath ~dstFilename src in
           aux rest
       in
       aux files
 
-  let run ~(root : Fpath.t) ~(prefix : Fpath.t) (filename : string option) =
+  let run ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : string option) =
 
     let%bind (packageName, spec) =
       let%bind filename =
         match filename with
-        | Some name -> return Fpath.(root / name)
+        | Some name -> return Fpath.(rootPath / name)
         | None ->
-          let%bind items = Fs.readdir root in
+          let%bind items = Fs.readdir rootPath in
           let isInstallFile filename = Fpath.has_ext ".install" filename in
           begin match List.filter isInstallFile items with
           | [filename] -> return filename
@@ -121,90 +121,90 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "lib" / packageName)
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "lib" / packageName)
         (F.lib spec)
     in
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "lib")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "lib")
         (F.lib_root spec)
     in
 
     let%bind () =
       installSection
         ~executable:true
-        ~root
-        ~prefix:Fpath.(prefix / "lib" / packageName)
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "lib" / packageName)
         (F.libexec spec)
     in
 
     let%bind () =
       installSection
         ~executable:true
-        ~root
-        ~prefix:Fpath.(prefix / "lib")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "lib")
         (F.libexec_root spec)
     in
 
     let%bind () =
       installSection
         ~executable:true
-        ~root
-        ~prefix:Fpath.(prefix / "bin")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "bin")
         (F.bin spec)
     in
 
     let%bind () =
       installSection
         ~executable:true
-        ~root
-        ~prefix:Fpath.(prefix / "sbin")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "sbin")
         (F.sbin spec)
     in
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "lib" / "toplevel")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "lib" / "toplevel")
         (F.toplevel spec)
     in
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "share" / packageName)
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "share" / packageName)
         (F.share spec)
     in
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "share")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "share")
         (F.share_root spec)
     in
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "etc" / packageName)
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "etc" / packageName)
         (F.etc spec)
     in
 
     let%bind () =
       installSection
-        ~root
-        ~prefix:Fpath.(prefix / "doc" / packageName)
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "doc" / packageName)
         (F.doc spec)
     in
 
     let%bind () =
       installSection
         ~executable:true
-        ~root
-        ~prefix:Fpath.(prefix / "lib" / "stublibs")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "lib" / "stublibs")
         (F.stublibs spec)
     in
 
@@ -215,8 +215,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       in
       installSection
         ~dstFilename
-        ~root
-        ~prefix:Fpath.(prefix / "man")
+        ~rootPath
+        ~prefixPath:Fpath.(prefixPath / "man")
         (F.man spec)
     in
 
