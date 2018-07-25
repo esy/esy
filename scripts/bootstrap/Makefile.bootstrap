@@ -60,14 +60,14 @@ doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
 
 clean:
-	@jbuilder clean
+	@dune clean
 
 build:
-	@jbuilder build -j 4 $(TARGETS)
+	@dune build -j 4 $(TARGETS)
 
 b: build-dev
 build-dev:
-	@jbuilder build -j 4 --dev $(TARGETS)
+	@dune build -j 4 $(TARGETS)
 
 #
 # Test
@@ -76,7 +76,7 @@ build-dev:
 JEST = $(BIN)/jest --runInBand
 
 test-unit::
-	@jbuilder build --dev @runtest
+	@dune build @runtest
 
 test-e2e::
 	@make -C test-e2e test

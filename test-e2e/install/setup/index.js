@@ -42,7 +42,7 @@ const makeTemporaryEnv = tests.generatePkgDriver({
   },
 });
 
-jest.setTimeout(10000);
+jest.setTimeout(30000);
 
 beforeEach(async function commonBeforeEach() {
   await tests.clearPackageRegistry();

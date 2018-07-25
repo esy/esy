@@ -83,8 +83,8 @@ module TestCommandExpr = struct
     check pkg (fun task ->
       Task.CommandList.equal
         task.buildCommands
-        [["cp"; "./hello"; "%store%/s/pkg-1.0.0-75f4d362/bin"];
-         ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-75f4d362/bin"]]
+        [["cp"; "./hello"; "%store%/s/pkg-1.0.0-da68ba0e/bin"];
+         ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-da68ba0e/bin"]]
     )
 
   let%test "#{...} inside esy.build / esy.install (depends on os)" =
@@ -124,7 +124,7 @@ module TestCommandExpr = struct
     check pkg (fun task ->
       Task.CommandList.equal
         task.installCommands
-        [["cp"; "./man"; "%store%/s/pkg-1.0.0-75f4d362/man"]]
+        [["cp"; "./man"; "%store%/s/pkg-1.0.0-da68ba0e/man"]]
     )
 
   let%test "#{...} inside esy.exportedEnv" =
@@ -132,9 +132,9 @@ module TestCommandExpr = struct
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
-          Some (value = "%store%/i/dep-1.0.0-ba8890c3/ok")
+          Some (value = "%store%/i/dep-1.0.0-d52744ce/ok")
         | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
-          Some (value = "%store%/i/dep-1.0.0-ba8890c3/ok-by-name")
+          Some (value = "%store%/i/dep-1.0.0-d52744ce/ok-by-name")
         | _ ->
           None
       in

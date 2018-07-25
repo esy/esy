@@ -1,0 +1,27 @@
+(library
+  (name EsyLib)
+  (public_name esy-lib)
+  (preprocess (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (flags (:standard (-w -39)))
+  (libraries
+            lwt
+            lwt.unix
+            cmdliner
+            yojson
+            bos
+            logs
+            logs.fmt
+            logs.lwt
+            logs.cli
+            re
+            fmt
+            fmt.cli
+            fmt.tty
+            ppx_deriving_yojson.runtime
+            str
+            astring
+            )
+  )
+
+(ocamllex (modules ShellSplit))
+

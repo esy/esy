@@ -19,7 +19,7 @@ async function initFixture(fixture: string) {
 
   await fs.mkdir(binPath);
   await fs.mkdir(npmPrefixPath);
-  await fs.link(ESYCOMMAND, path.join(binPath, 'esy'));
+  await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
   await fs.copy(fixture, projectPath);
 
   function npm(args: string) {
@@ -35,6 +35,7 @@ async function initFixture(fixture: string) {
     if (!options.noEsyPrefix) {
       env = {...process.env, ESY__PREFIX: esyPrefixPath};
     }
+    env = {...env, PATH: `${binPath}${path.delimiter}${env.PATH || ''}`};
     return promiseExec(`${ESYCOMMAND} ${args}`, {
       cwd: projectPath,
       env,

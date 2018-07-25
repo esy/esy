@@ -1,0 +1,22 @@
+(executable
+  (name esyBuildPackageCommand)
+  (public_name esy-build-package)
+  (package esy-build-package)
+  (flags (:standard (-w -39)))
+  (preprocess (pps ppx_let))
+  (libraries
+            esy-build-package
+            cmdliner
+            yojson
+            bos
+            logs
+            logs.fmt
+            logs.cli
+            re
+            fmt
+            fmt.cli
+            fmt.tty
+            ppx_deriving_yojson.runtime
+            rresult
+            )
+  )

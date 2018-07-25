@@ -429,7 +429,7 @@
   peerDependencies:
     ocaml " >= 4.1.0"
 
-"@opam/jbuilder@ >= 1.0.0-beta10", "@opam/jbuilder@ >= 1.0.0-beta12", "@opam/jbuilder@ >= 1.0.0-beta14", "@opam/jbuilder@ >= 1.0.0-beta17", "@opam/jbuilder@ >= 1.0.0-beta18", "@opam/jbuilder@ >= 1.0.0-beta181", "@opam/jbuilder@ >= 1.0.0-beta7", "@opam/jbuilder@ >= 1.0.0-beta9", "@opam/jbuilder@^1.0.0-beta20":
+"@opam/jbuilder@ >= 1.0.0-beta10", "@opam/jbuilder@ >= 1.0.0-beta12", "@opam/jbuilder@ >= 1.0.0-beta14", "@opam/jbuilder@ >= 1.0.0-beta17", "@opam/jbuilder@ >= 1.0.0-beta18", "@opam/jbuilder@ >= 1.0.0-beta181", "@opam/jbuilder@ >= 1.0.0-beta7", "@opam/jbuilder@ >= 1.0.0-beta9":
   version "1.0.0-beta20"
   uid "1648206284a54407f6eee01ed950fff7"
   resolved "@opam/jbuilder@1.0.0-beta20-1648206284a54407f6eee01ed950fff7.tgz"
@@ -4442,7 +4442,7 @@ right-align@^0.1.1:
   dependencies:
     align-text "^0.1.1"
 
-rimraf@^2.5.4, rimraf@^2.6.1:
+rimraf@^2.2.8, rimraf@^2.5.4, rimraf@^2.6.1:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.2.tgz#2ed8150d24a16ea8651e6d6ef0f47c4158ce7a36"
   dependencies:

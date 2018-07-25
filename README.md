@@ -121,7 +121,7 @@ The release workflow is the following:
 [npm]: https://npmjs.org
 [reason]: https://reasonml.github.io
 [ocaml]: https://ocaml.org
-[jbuilder]: http://jbuilder.readthedocs.io
+[dune]: http://dune.readthedocs.io
 [ocamlbuild]: https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc
 [pjc]: https://github.com/jordwalke/PackageJsonForCompilers
 [esy.sh]: http://esy.sh

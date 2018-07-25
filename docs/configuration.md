@@ -11,11 +11,11 @@ esy knows how to build your package and its dependencies by looking at the
 Because esy needs more information about the project, it extends `package.json`
 with the following fields:
 
-* [`esy.build`](#esybuild)
-* [`esy.install`](#esyinstall)
-* [`esy.buildsInSource`](#esybuildsinsource)
-* [`esy.exportedEnv`](#esy.exportedenv)
-* [`scripts`](#scripts)
+- [`esy.build`](#esybuild)
+- [`esy.install`](#esyinstall)
+- [`esy.buildsInSource`](#esybuildsinsource)
+- [`esy.exportedEnv`](#esy.exportedenv)
+- [`scripts`](#scripts)
 
 ## Specify Build & Install Commands
 
@@ -27,14 +27,14 @@ specify how to build and install built artifacts.
 Describe how your project's default targets should be built by specifying
 a list of commands with `esy.build` config key.
 
-For example, for a [jbuilder](https://jbuilder.readthedocs.io/) based project you'd want to call `jbuilder build`
+For example, for a [dune](https://dune.readthedocs.io/) based project you'd want to call `dune build`
 command.
 
 ```
 {
   "esy": {
     "build": [
-      "jbuilder build",
+      "dune build",
     ]
   }
 }
@@ -62,7 +62,7 @@ list of commands with `esy.install` config key.
 }
 ```
 
-For `jbuilder` based projects (and other projects which maintain `.install` file
+For `dune` based projects (and other projects which maintain `.install` file
 in opam format) that could be just a single `esy-installer` invokation. The
 command is a thin wrapper over `opam-installer` which configures it with esy
 defaults.
@@ -98,20 +98,20 @@ There are three modes which are controlled by `esy.buildsInSource` config key:
 Each mode changes how esy executes [build commands](#esybuild). This is how
 those modes work:
 
-* `"_build"`
+- `"_build"`
 
   Build commands can place artifacts inside the `_build` directory of the
   project's root (`$cur__root/_build` in terms of esy [build
   environment](environment.md#build-environment)).
 
-  This is what [jbuilder](https://jbuilder.readthedocs.io/) or [ocamlbuild](https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc) (in its default configuration)
+  This is what [dune](https://dune.readthedocs.io/) or [ocamlbuild](https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc) (in its default configuration)
   users should be using as this matches those build systems' conventions.
 
-* `false` (default if key is omitted)
+- `false` (default if key is omitted)
 
   Build commands should use `$cur__target_dir` as the build directory.
 
-* `true`
+- `true`
 
   Projects are allowed to place build artifacts anywhere in their source tree, but not outside of their source tree. Otherwise, esy will defensively copy project's root into `$cur__target_dir` and run build commands from there.
 
@@ -127,8 +127,8 @@ Similar to npm and yarn, esy supports custom project specific commands via
 
 ```
 "scripts": {
-  "build-dev": "esy build jbuilder build --dev",
-  "test": "jbuilder runtest",
+  "build-dev": "esy build dune build --dev",
+  "test": "dune runtest",
 }
 ```
 
@@ -138,17 +138,16 @@ The command `esy build-dev` is configured to be a shortcut for the following
 invocation:
 
 ```bash
-esy build jbuilder build --dev
+esy build dune build
 ```
 
 While the command `esy test` is defined to be a shortcut for:
 
 ```bash
-esy jbuilder runtest
+esy dune runtest
 ```
 
 Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
-
 
 ## Exported Environment
 
@@ -184,7 +183,7 @@ syntax](#variable-substitution-syntax) to define the value of the
 
 ## Example: dune (jbuilder)
 
-This is how it looks for a [dune](https://jbuilder.readthedocs.io/) (formely
+This is how it looks for a [dune](https://dune.readthedocs.io/) (formely
 jbuilder) based project:
 
 ```json
@@ -194,7 +193,7 @@ jbuilder) based project:
 
   "esy": {
     "build": [
-      "jbuilder build"
+      "dune build"
     ],
     "install": [
       "esy-installer"
@@ -203,9 +202,8 @@ jbuilder) based project:
   },
 
   "dependencies": {
-    "@opam/jbuilder": "*",
+    "@opam/dune": "*",
     "@esy-ocaml/esy-installer"
   }
 }
 ```
-
