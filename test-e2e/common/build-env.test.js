@@ -16,13 +16,13 @@ describe('Common - build-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'build-env'), buildEnv);
 
     await expect(
-      promiseExec('source ./build-env && dep', {
+      promiseExec('. ./build-env && dep', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
 
     await expect(
-      promiseExec('source ./build-env && dev-dep', {
+      promiseExec('. ./build-env && dev-dep', {
         cwd: p.projectPath,
       }),
     ).rejects.toThrow();

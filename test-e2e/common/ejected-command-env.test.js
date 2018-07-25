@@ -12,13 +12,13 @@ describe('Common - ejected command env', () => {
     await p.esy('build');
 
     await expect(
-      promiseExec('source ./node_modules/.cache/_esy/build/bin/command-env && dep', {
+      promiseExec('. ./node_modules/.cache/_esy/build/bin/command-env && dep', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
 
     await expect(
-      promiseExec('source ./node_modules/.cache/_esy/build/bin/command-env && dev-dep', {
+      promiseExec('. ./node_modules/.cache/_esy/build/bin/command-env && dev-dep', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: 'dev-dep\n', stderr: ''});

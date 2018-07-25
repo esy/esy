@@ -16,13 +16,13 @@ describe('Common - command-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'command-env'), commandEnv);
 
     await expect(
-      promiseExec('source ./command-env && dep', {
+      promiseExec('. ./command-env && dep', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
 
     await expect(
-      promiseExec('source ./command-env && dev-dep', {
+      promiseExec('. ./command-env && dev-dep', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: 'dev-dep\n', stderr: ''});
