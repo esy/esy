@@ -5,7 +5,6 @@ const path = require('path');
 const {initFixture} = require('../test/helpers');
 
 it('Common - scripts', async () => {
-  expect.assertions(8);
   const p = await initFixture(path.join(__dirname, 'fixtures/scripts-workflow'));
   await p.esy('build');
 

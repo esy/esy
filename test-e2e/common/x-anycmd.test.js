@@ -49,10 +49,10 @@ describe('Common - x anycmd', async () => {
   it('Make sure exit code is preserved', async () => {
     expect.assertions(2);
 
-    await expect(p.esy("esy x bash -c 'exit 1'")).rejects.toEqual(
+    await expect(p.esy("x bash -c 'exit 1'")).rejects.toEqual(
       expect.objectContaining({code: 1}),
     );
-    await expect(p.esy("esy x bash -c 'exit 7'")).rejects.toEqual(
+    await expect(p.esy("x bash -c 'exit 7'")).rejects.toEqual(
       expect.objectContaining({code: 7}),
     );
   });
