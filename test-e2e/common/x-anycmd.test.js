@@ -67,6 +67,6 @@ describe('Common - x anycmd', async () => {
       promiseExec(`${ESYCOMMAND} x ls -1`, {
         cwd: path.join(p.projectPath, 'subdir'),
       }),
-    ).resolves.toEqual({stdout: 'X\n', stderr: ''});
+    ).resolves.toEqual(expect.objectContaining({stdout: 'X\n'}));
   });
 });

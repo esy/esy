@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 const {initFixture, promiseExec} = require('../test/helpers');
 const ESYCOMMAND = require.resolve('../../bin/esy');
 
-describe('Common - anycmd', async () => {
+describe('Common - anycmd', () => {
   let p;
   let prevEnv = {...process.env};
 
@@ -67,6 +67,6 @@ describe('Common - anycmd', async () => {
       promiseExec(`${ESYCOMMAND} ls -1`, {
         cwd: path.join(p.projectPath, 'subdir'),
       }),
-    ).resolves.toEqual({stdout: 'X\n', stderr: ''});
+    ).resolves.toEqual(expect.objectContaining({stdout: 'X\n'}));
   });
 });
