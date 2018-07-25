@@ -1,0 +1,6 @@
+(library
+  (name EsyInstaller)
+  (public_name esy-installer)
+  (preprocess (pps ppx_let))
+  (libraries opam-format fpath)
+  )
