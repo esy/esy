@@ -283,6 +283,44 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
   ));
 };
 
+module Installer =
+  EsyInstaller.Installer.Make({
+    type computation('v) =
+      Run.t(
+        'v,
+        [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)],
+      );
+
+    let return = Run.return;
+    let error = Run.error;
+    let handle = v =>
+      switch (v) {
+      | Ok(v) => return(Ok(v))
+      | Error(`Msg(err)) => return(Error(err))
+      | Error(`CommandError(cmd, _)) =>
+        let msg = "Error running command: " ++ Bos.Cmd.to_string(cmd);
+        return(Error(msg));
+      };
+    let bind = Run.bind;
+
+    module Fs = {
+      let read = Run.read;
+      let write = Run.write;
+      let stat = Run.lstat;
+      let readdir = Run.ls;
+      let mkdir = Run.mkdir;
+      let link = Run.link(~force=false);
+    };
+  });
+
+let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
+  Logs.app(m =>
+    m("# esy-build-package: installing using built-in installer")
+  );
+  let res = Installer.run(~prefixPath, ~rootPath, installFilename);
+  Run.coerceFromClosed(res);
+};
+
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);
   let fd =
@@ -524,8 +562,9 @@ let runCommandInteractive = (build, cmd) => {
 };
 
 let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
-  let%bind (build, _) = configureBuild(~cfg, task);
+  let%bind (build, lifecycle) = configureBuild(~cfg, task);
   Logs.debug(m => m("start %s", build.task.id));
+  let (module Lifecycle): (module LIFECYCLE) = lifecycle;
   let performBuild = sourceModTime => {
     Logs.debug(m => m("building"));
     Logs.app(m =>
@@ -535,8 +574,70 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
         build.task.version,
       )
     );
-    let runBuildAndInstall = build => {
-      let runList = cmds => {
+
+    let runBuildAndInstall = (build: build) => {
+      let runEsyInstaller = installFilenames => {
+        let rootPath = Lifecycle.getRootPath(build);
+        let findInstallFilenames = () => {
+          let%bind items = Run.ls(rootPath);
+          return(
+            items
+            |> List.filter(name => Path.has_ext(".install", name))
+            |> List.map(name => Path.basename(name)),
+          );
+        };
+        switch (installFilenames) {
+        /* the case where esy-installer is called implicitly, ignore the case
+         * we have no *.install files */
+        | None =>
+          switch%bind (findInstallFilenames()) {
+          | [] => ok
+          | [installFilename] =>
+            install(
+              ~prefixPath=build.stagePath,
+              ~rootPath,
+              ~installFilename,
+              (),
+            )
+          | _ => error("multiple *.install files found")
+          }
+        /* the case where esy-installer is called explicitly with 0 args, fail
+         * on all but a single *.install file found. */
+        | Some([]) =>
+          switch%bind (findInstallFilenames()) {
+          | [] => error("no *.install files found")
+          | [installFilename] =>
+            install(
+              ~prefixPath=build.stagePath,
+              ~rootPath,
+              ~installFilename,
+              (),
+            )
+          | _ => error("multiple *.install files found")
+          }
+        | Some(installFilenames) =>
+          let f = ((), installFilename) =>
+            install(
+              ~prefixPath=build.stagePath,
+              ~rootPath,
+              ~installFilename,
+              (),
+            );
+          EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);
+        };
+      };
+
+      let runCommand = cmd => {
+        ();
+        switch (Cmd.to_list(cmd)) {
+        | [] => error("empty command")
+        | ["esy-installer", ...installFilenames] =>
+          runEsyInstaller(Some(installFilenames))
+        | _ => runCommand(build, cmd)
+        };
+      };
+
+      let runCommands = cmds => {
         let rec aux = cmds =>
           switch (cmds) {
           | [] => Ok()
@@ -544,17 +645,24 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             Logs.app(m =>
               m("# esy-build-package: running: %s", Cmd.to_string(cmd))
             );
-            switch (runCommand(build, cmd)) {
-            | Ok(_) => aux(cmds)
-            | Error(err) => Error(err)
-            };
+            let%bind () = runCommand(cmd);
+            aux(cmds);
           };
         aux(cmds);
       };
-      let%bind () = runList(build.build);
+
+      let runBuild = () => runCommands(build.build);
+
+      let runInstall = () =>
+        switch (build.install) {
+        | [] => runEsyInstaller(None)
+        | commands => runCommands(commands)
+        };
+
+      let%bind () = runBuild();
       let%bind () =
         if (! buildOnly) {
-          runList(build.install);
+          runInstall();
         } else {
           ok;
         };

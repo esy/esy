@@ -6,7 +6,11 @@ type err('b) =
 
 type t('v, 'e) = result('v, err('e));
 
-let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
+let coerceFromMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
+let coerceFromClosed = x => (
+  x: result(_, [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)]) :>
+    t(_, _)
+);
 
 let ok = Result.ok;
 let return = v => Ok(v);
@@ -29,15 +33,19 @@ let mkdir = path =>
 let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 
 let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
+let stat = Bos.OS.Path.stat;
 let lstat = Bos.OS.Path.symlink_stat;
+let link = Bos.OS.Path.link;
 let symlink = Bos.OS.Path.symlink;
 let readlink = Bos.OS.Path.symlink_target;
 
-let write = (~data, path) => Bos.OS.File.write(path, data);
+let write = (~perm=?, ~data, path) =>
+  Bos.OS.File.write(~mode=?perm, path, data);
 let read = path => Bos.OS.File.read(path);
 
 let mv = Bos.OS.Path.move;
 
+let bind = Result.Syntax.Let_syntax.bind;
 module Let_syntax = Result.Syntax.Let_syntax;
 
 let rec realpath = (p: Fpath.t) => {

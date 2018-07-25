@@ -473,7 +473,6 @@ end = struct
       in
       let dependencies =
         "ocaml"
-        ::"@esy-ocaml/esy-installer"
         ::"@esy-ocaml/substs"
         ::dependencies
       in

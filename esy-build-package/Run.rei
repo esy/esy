@@ -15,7 +15,9 @@ type t('v, 'e) = result('v, err('e));
 
 let return : 'v => t('v, _);
 let error : string => t(_, _);
-let coerceFrmMsgOnly : result('a, [ `Msg(string) ]) => t('a, _);
+let bind : (~f: 'a => result('b, 'c), result('a, 'c)) => result('b, 'c)
+let coerceFromMsgOnly : result('a, [ `Msg(string) ]) => t('a, _);
+let coerceFromClosed : result('a, [ `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status) ]) => t('a, _);
 
 let ok : t(unit, _);
 
@@ -44,6 +46,9 @@ let mv : (~force: bool=?, EsyLib.Path.t, EsyLib.Path.t) => t(unit, _);
 /** Resolve path using realpath. */
 let realpath : EsyLib.Path.t => t(EsyLib.Path.t, _);
 
+/** Get path stats. */
+let stat : EsyLib.Path.t => t(Unix.stats, _);
+
 /** Get path stats (including info on symlinks). */
 let lstat : EsyLib.Path.t => t(Unix.stats, _);
 
@@ -63,7 +68,7 @@ let traverse : (
 let read : (EsyLib.Path.t) => t(string, _);
 
 /** Write data into file */
-let write : (~data:string, EsyLib.Path.t) => t(unit, _);
+let write : (~perm: int=?, ~data: string, EsyLib.Path.t) => t(unit, _);
 
 /** Create temporary file with data. */
 let createTmpFile : string => t(EsyLib.Path.t, _);
@@ -81,7 +86,10 @@ let mkdir : EsyLib.Path.t => t(unit, _);
 let copyContents : (~from: Fpath.t, ~ignore: list(string)=?, Fpath.t) => t(unit, _);
 
 
-/* Filesystem operations: symlinks. */
+/* Filesystem operations: links. */
+
+/** Create a  hard link. */
+let link : (~force: bool=?, ~target: EsyLib.Path.t, EsyLib.Path.t) => t(unit, _);
 
 /** Create a symlink. */
 let symlink : (~force: bool=?, ~target: EsyLib.Path.t, EsyLib.Path.t) => t(unit, _);

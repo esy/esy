@@ -1,4 +1,4 @@
-open EsyInstaller;
+open EsyInstall;
 module String = Astring.String;
 
 module Api = {

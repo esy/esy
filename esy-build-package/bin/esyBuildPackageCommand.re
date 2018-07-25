@@ -35,7 +35,7 @@ let createConfig = (copts: commonOpts) => {
         "../../../../bin/fastreplacestring",
         basedir,
       );
-    switch%bind (Run.coerceFrmMsgOnly(resolution)) {
+    switch%bind (Run.coerceFromMsgOnly(resolution)) {
     | Some(path) => Ok(Fpath.to_string(path))
     | None => Error(`Msg("cannot resolve fastreplacestring command"))
     };

@@ -1,5 +1,5 @@
 (library
-  (name EsyInstaller)
+  (name EsyInstall)
   (public_name esyi)
   (preprocess (pps
                   lwt_ppx ppx_let
