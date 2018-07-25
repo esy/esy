@@ -29,7 +29,8 @@ type t = {
   dependencies : dependencies;
   sourcePath : Config.ConfigPath.t;
   sourceType : Manifest.SourceType.t;
-  sandboxEnv : Manifest.SandboxEnv.t;
+  sandboxEnv : Manifest.Env.t;
+  buildEnv : Manifest.Env.t;
   exportedEnv : Manifest.ExportedEnv.t;
   resolution : string option;
   build : build;

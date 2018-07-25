@@ -44,7 +44,7 @@ module Darwin = {
   let sandboxExec = config => {
     open Run;
     let configData = renderConfig(config);
-    let%bind configFilename = putTempFile(configData);
+    let%bind configFilename = createTmpFile(configData);
     let prepare = (~env, command) => {
       open Bos.OS.Cmd;
       let sandboxCommand =
@@ -81,7 +81,7 @@ module Windows = {
        * because we need the current PATH/env to pick up node and run the shell
        */
       let jsonString = convertEnvToJsonString(env);
-      let%bind environmentTempFile = putTempFile(jsonString);
+      let%bind environmentTempFile = createTmpFile(jsonString);
       let commandAsList = Cmd.to_list(command);
 
       /* Normalize slashes in the command we send to esy-bash */

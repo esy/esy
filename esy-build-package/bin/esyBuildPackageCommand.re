@@ -98,9 +98,11 @@ let shell = (copts: commonOpts) => {
   let runShell = build => {
     ppBanner(build);
     let%bind rcFilename =
-      putTempFile({|
+      createTmpFile(
+        {|
         export PS1="[build $cur__name] % ";
-        |});
+        |},
+      );
     let cmd =
       Cmd.of_list([
         "bash",

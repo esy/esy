@@ -207,6 +207,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           dependencies = [Package.Dependency pkg];
           sourceType = Manifest.SourceType.Transient;
           sandboxEnv = pkg.sandboxEnv;
+          buildEnv = Manifest.Env.empty;
           build = Package.EsyBuild {
               buildCommands = None;
               installCommands = None;

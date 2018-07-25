@@ -1,7 +1,5 @@
-/**
- * This module implements utilities which are used to "script" build processes.
- */
 module Result = EsyLib.Result;
+module Path = EsyLib.Path;
 
 type err('b) =
   [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
@@ -12,6 +10,7 @@ let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 
 let ok = Result.ok;
 let return = v => Ok(v);
+let error = msg => Error(`Msg(msg));
 
 let v = Fpath.v;
 let (/) = Fpath.(/);
@@ -27,10 +26,15 @@ let mkdir = path =>
   | Error(msg) => Error(msg)
   };
 
-let rm = path => Bos.OS.File.delete(path);
-let rmdir = path => Bos.OS.Dir.delete(~recurse=true, path);
+let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
+
+let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
+let lstat = Bos.OS.Path.symlink_stat;
 let symlink = Bos.OS.Path.symlink;
-let symlinkTarget = Bos.OS.Path.symlink_target;
+let readlink = Bos.OS.Path.symlink_target;
+
+let write = (~data, path) => Bos.OS.File.write(path, data);
+let read = path => Bos.OS.File.read(path);
 
 let mv = Bos.OS.Path.move;
 
@@ -55,7 +59,7 @@ let rec realpath = (p: Fpath.t) => {
     } else {
       let%bind isSymlink = isSymlinkAndExists(p);
       if (isSymlink) {
-        let%bind target = symlinkTarget(p);
+        let%bind target = readlink(p);
         realpath(
           target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
         );
@@ -73,7 +77,7 @@ let rec realpath = (p: Fpath.t) => {
  * Put temporary file into filesystem with the specified contents and return its
  * filename. This temporary file will be cleaned up at exit.
  */
-let putTempFile = (contents: string) => {
+let createTmpFile = (contents: string) => {
   let%bind filename = Bos.OS.File.tmp("%s");
   let%bind () = Bos.OS.File.write(filename, contents);
   Ok(filename);
@@ -88,4 +92,51 @@ let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)) : t(_) => {
       }
     | error => error;
   Result.join(Bos.OS.Path.fold(~dotfiles=true, visit, Ok(), [path]));
+};
+
+let copyContents = (~from, ~ignore=[], dest) => {
+  let excludePaths =
+    List.fold_left(
+      (set, p) => Path.Set.add(Path.(from / p), set),
+      Path.Set.empty,
+      ignore,
+    );
+
+  let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
+
+  let rebasePath = path =>
+    switch (Fpath.relativize(~root=from, path)) {
+    | Some(p) => Path.(dest /\/ p)
+    | None => path
+    };
+
+  let f = (path, acc) =>
+    switch (acc) {
+    | Ok () =>
+      if (Path.equal(path, from)) {
+        Ok();
+      } else {
+        let%bind stats = Bos.OS.Path.symlink_stat(path);
+        let nextPath = rebasePath(path);
+        switch (stats.Unix.st_kind) {
+        | Unix.S_DIR =>
+          let _ = Bos.OS.Dir.create(nextPath);
+          Ok();
+        | Unix.S_REG =>
+          let%bind data = Bos.OS.File.read(path);
+          let%bind () = Bos.OS.File.write(nextPath, data);
+          Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
+        | Unix.S_LNK =>
+          let%bind targetPath = Bos.OS.Path.symlink_target(path);
+          let nextTargetPath = rebasePath(targetPath);
+          Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
+        | _ => /* ignore everything else */ Ok()
+        };
+      }
+    | Error(err) => Error(err)
+    };
+
+  EsyLib.Result.join(
+    Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [from]),
+  );
 };

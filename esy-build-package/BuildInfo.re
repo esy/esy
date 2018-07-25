@@ -11,16 +11,13 @@ type t = {
 };
 
 let toFile = (path: EsyLib.Path.t, info: t) => {
-  let write = (oc, ()) => {
-    Yojson.Safe.pretty_to_channel(oc, to_yojson(info));
-    Run.ok;
-  };
-  Result.join(Bos.OS.File.with_oc(path, write, ()));
+  let data = Yojson.Safe.pretty_to_string(to_yojson(info));
+  write(~data, path);
 };
 
 let ofFile = (path: EsyLib.Path.t) =>
   if%bind (exists(path)) {
-    let%bind data = Bos.OS.File.read(path);
+    let%bind data = read(path);
     let json = Yojson.Safe.from_string(data);
     switch (of_yojson(json)) {
     | Ok(v) => Ok(Some(v))
