@@ -95,16 +95,6 @@ let unlink (path : Path.t) =
   let%lwt () = Lwt_unix.unlink path in
   RunAsync.return ()
 
-let tryUnlinkLwt (path: string) =
-    try%lwt (
-        Lwt_unix.unlink path
-    ) with
-    | Unix.Unix_error (Unix.EACCES, _, _) ->
-      (* On Windows, this can occur when executing the 'esy-build-package' sandbox - see #274 for more details *)
-      (* There is certainly an underlying issue, and that should be fixed instead of suppressing the error.*)
-      match System.Platform.host with
-      | _ -> Lwt.return ()
-
 let readlink (path : Path.t) =
   let path = Path.to_string path in
   let%lwt link = Lwt_unix.readlink path in
@@ -342,7 +332,10 @@ let withTempFile ~data f =
 
   Lwt.finalize
     (fun () -> f (Path.v path))
-    (fun () -> tryUnlinkLwt path)
+    (fun () ->
+      (* never fail on removing a temp file. *)
+      try%lwt Lwt_unix.unlink path
+      with Unix.Unix_error _ -> Lwt.return ())
 
 let realpath path =
   let open RunAsync.Syntax in
