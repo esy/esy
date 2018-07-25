@@ -1,0 +1,21 @@
+(library
+  (name EsyBuildPackage)
+  (public_name esy-build-package)
+  (flags (:standard (-w -39)))
+  (preprocess (pps ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (libraries
+            EsyLib
+            cmdliner
+            yojson
+            bos
+            logs
+            logs.fmt
+            logs.cli
+            re
+            fmt
+            fmt.cli
+            fmt.tty
+            ppx_deriving_yojson.runtime
+            rresult
+            )
+  )

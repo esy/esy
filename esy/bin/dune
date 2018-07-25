@@ -1,0 +1,23 @@
+(executable
+  (name esyCommand)
+  (public_name esy)
+  (package esy)
+  (preprocess (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (flags (:standard (-w -39) "-open" "EsyLib"))
+  (libraries
+            lwt
+            lwt.unix
+            cmdliner
+            logs
+            logs.fmt
+            logs.lwt
+            logs.cli
+            fmt
+            fmt.cli
+            fmt.tty
+            str
+            astring
+            ppx_deriving_yojson.runtime
+            esy
+            )
+  )

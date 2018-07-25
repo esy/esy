@@ -73,17 +73,17 @@ doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
 
 clean:
-	@esy jbuilder clean
+	@esy dune clean
 
 build:
-	@esy b jbuilder build -j 4 $(TARGETS)
+	@esy b dune build -j 4 $(TARGETS)
 
 doc:
-	@esy b jbuilder build @doc
+	@esy b dune build @doc
 
 b: build-dev
 build-dev:
-	@esy b jbuilder build -j 4 --dev $(TARGETS)
+	@esy b dune build -j 4 $(TARGETS)
 
 refmt::
 	@find $(PROJECTS) -name '*.re' \
@@ -96,7 +96,7 @@ refmt::
 JEST = $(BIN)/jest --runInBand
 
 test-unit::
-	@esy b jbuilder build --dev @runtest
+	@esy b dune build @runtest
 
 test-e2e::
 	@$(BIN)/jest test-e2e
