@@ -11,6 +11,7 @@ module type IO = sig
     val readdir : Fpath.t -> Fpath.t list computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
+    val link : target:Fpath.t -> Fpath.t -> unit computation
     val stat : Fpath.t -> Unix.stats computation
   end
 end
@@ -32,8 +33,13 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
   module F = OpamFile.Dot_install
 
-  let setExecutable perm = perm lor  0o111
+  let setExecutable perm = perm lor 0o111
   let unsetExecutable perm = perm land (lnot 0o111)
+
+  let allowLinkFiles =
+    match Sys.os_type with
+    | "Unix" -> true
+    | _ -> false
 
   let installFile
     ?(executable=false)
@@ -55,15 +61,19 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
     in
     match%bind handle (Fs.stat srcPath) with
     | Ok stats ->
-      let%bind data = Fs.read srcPath in
+      let perm =
+        if executable
+        then setExecutable stats.Unix.st_perm
+        else unsetExecutable stats.Unix.st_perm
+      in
       let%bind () = Fs.mkdir (Fpath.parent dstPath) in
       let%bind () =
-        let perm =
-          if executable
-          then setExecutable stats.Unix.st_perm
-          else unsetExecutable stats.Unix.st_perm
-        in
-        Fs.write ~data ~perm dstPath
+        if perm = stats.Unix.st_perm && allowLinkFiles
+        then
+          Fs.link ~target:srcPath dstPath
+        else
+          let%bind data = Fs.read srcPath in
+          Fs.write ~data ~perm dstPath
       in
       return ()
     | Error msg ->
@@ -113,11 +123,11 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
     in
 
     (* See
-      *
-      *   https://opam.ocaml.org/doc/2.0/Manual.html#lt-pkgname-gt-install
-      *
-      * for explanations on each section.
-      *)
+     *
+     *   https://opam.ocaml.org/doc/2.0/Manual.html#lt-pkgname-gt-install
+     *
+     * for explanations on each section.
+     *)
 
     let%bind () =
       installSection
@@ -221,4 +231,5 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
     in
 
     return ()
+
 end

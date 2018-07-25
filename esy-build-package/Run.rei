@@ -86,7 +86,10 @@ let mkdir : EsyLib.Path.t => t(unit, _);
 let copyContents : (~from: Fpath.t, ~ignore: list(string)=?, Fpath.t) => t(unit, _);
 
 
-/* Filesystem operations: symlinks. */
+/* Filesystem operations: links. */
+
+/** Create a  hard link. */
+let link : (~force: bool=?, ~target: EsyLib.Path.t, EsyLib.Path.t) => t(unit, _);
 
 /** Create a symlink. */
 let symlink : (~force: bool=?, ~target: EsyLib.Path.t, EsyLib.Path.t) => t(unit, _);

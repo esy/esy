@@ -35,6 +35,7 @@ let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
 let stat = Bos.OS.Path.stat;
 let lstat = Bos.OS.Path.symlink_stat;
+let link = Bos.OS.Path.link;
 let symlink = Bos.OS.Path.symlink;
 let readlink = Bos.OS.Path.symlink_target;
 
