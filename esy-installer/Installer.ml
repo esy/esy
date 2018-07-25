@@ -39,7 +39,9 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
   let allowLinkFiles =
     match Sys.os_type with
     | "Unix" -> true
-    | _ -> false
+    | "Win32" -> true
+    | "Cygwin" -> true
+    | _ -> false (* maybe not supported, not sure *)
 
   let installFile
     ?(executable=false)
