@@ -29,15 +29,18 @@ let mkdir = path =>
 let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 
 let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
+let stat = Bos.OS.Path.stat;
 let lstat = Bos.OS.Path.symlink_stat;
 let symlink = Bos.OS.Path.symlink;
 let readlink = Bos.OS.Path.symlink_target;
 
-let write = (~data, path) => Bos.OS.File.write(path, data);
+let write = (~perm=?, ~data, path) =>
+  Bos.OS.File.write(~mode=?perm, path, data);
 let read = path => Bos.OS.File.read(path);
 
 let mv = Bos.OS.Path.move;
 
+let bind = Result.Syntax.Let_syntax.bind;
 module Let_syntax = Result.Syntax.Let_syntax;
 
 let rec realpath = (p: Fpath.t) => {

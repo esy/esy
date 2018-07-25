@@ -283,6 +283,37 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
   ));
 };
 
+module Installer =
+  EsyInstaller.Installer.Make({
+    type computation('v) =
+      Run.t(
+        'v,
+        [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)],
+      );
+
+    let return = Run.return;
+    let error = Run.error;
+    let handle = v =>
+      switch (v) {
+      | Ok(v) => return(Ok(v))
+      | Error(`Msg(err)) => return(Error(err))
+      | Error(`CommandError(cmd, _)) =>
+        let msg = "Error running command: " ++ Bos.Cmd.to_string(cmd);
+        return(Error(msg));
+      };
+    let bind = Run.bind;
+
+    module Fs = {
+      let read = Run.read;
+      let write = Run.write;
+      let stat = Run.lstat;
+      let readdir = Run.ls;
+      let mkdir = Run.mkdir;
+    };
+  });
+
+let install = (~prefix, ~root, ()) => Installer.run(~prefix, ~root, None);
+
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);
   let fd =
@@ -524,8 +555,9 @@ let runCommandInteractive = (build, cmd) => {
 };
 
 let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
-  let%bind (build, _) = configureBuild(~cfg, task);
+  let%bind (build, lifecycle) = configureBuild(~cfg, task);
   Logs.debug(m => m("start %s", build.task.id));
+  let (module Lifecycle): (module LIFECYCLE) = lifecycle;
   let performBuild = sourceModTime => {
     Logs.debug(m => m("building"));
     Logs.app(m =>
@@ -536,7 +568,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
       )
     );
     let runBuildAndInstall = build => {
-      let runList = cmds => {
+      let runCommands = cmds => {
         let rec aux = cmds =>
           switch (cmds) {
           | [] => Ok()
@@ -551,10 +583,41 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
           };
         aux(cmds);
       };
-      let%bind () = runList(build.build);
+
+      let runBuild = () => runCommands(build.build);
+
+      let runInstall = () =>
+        switch (build.install) {
+        | [] =>
+          let root = Lifecycle.getRootPath(build);
+          let%bind items = Run.ls(root);
+          if (List.exists(name => Path.has_ext(".install", name), items)) {
+            Logs.app(m =>
+              m("# esy-build-package: installing using built-in installer")
+            );
+            let job = install(~prefix=build.stagePath, ~root, ());
+            (
+              job:
+                result(
+                  _,
+                  [
+                    | `Msg(string)
+                    | `CommandError(Cmd.t, Bos.OS.Cmd.status)
+                  ],
+                ) :>
+                Run.t(_, _)
+            );
+          } else {
+            Logs.app(m => m("# esy-build-package: no installation required"));
+            ok;
+          };
+        | commands => runCommands(commands)
+        };
+
+      let%bind () = runBuild();
       let%bind () =
         if (! buildOnly) {
-          runList(build.install);
+          runInstall();
         } else {
           ok;
         };
