@@ -166,7 +166,7 @@ let traverse ?skipTraverse ~f path =
   let f _ path stat = f path stat in
   fold ?skipTraverse ~f ~init:() path
 
-let chownLwt path uid gid =
+let chownOrIgnoreLwt path uid gid =
     match System.Platform.host with
     | Windows -> Lwt.return () (* chown is not available in Windows *)
     | _ ->
@@ -177,7 +177,7 @@ let copyStatLwt ~stat path =
   let path = Path.to_string path in
   let%lwt () = Lwt_unix.utimes path stat.Unix.st_atime stat.Unix.st_mtime in
   let%lwt () = Lwt_unix.chmod path stat.Unix.st_perm in
-  let%lwt () = chownLwt path stat.Unix.st_uid stat.Unix.st_gid in
+  let%lwt () = chownOrIgnoreLwt path stat.Unix.st_uid stat.Unix.st_gid in
   Lwt.return ()
 
 let copyFileLwt ~src ~dst =
