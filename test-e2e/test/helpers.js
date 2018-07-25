@@ -15,10 +15,19 @@ async function initFixture(fixture: string) {
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const esyPrefixPath = path.join(rootPath, 'esy');
+  const npmPrefixPath = path.join(rootPath, 'npm');
 
   await fs.mkdir(binPath);
+  await fs.mkdir(npmPrefixPath);
   await fs.link(ESYCOMMAND, path.join(binPath, 'esy'));
   await fs.copy(fixture, projectPath);
+
+  function npm(args: string) {
+    return promiseExec(`npm --prefix ${npmPrefixPath} ${args}`, {
+      // this is only used in the release test for now
+      cwd: path.join(projectPath, '_release'),
+    });
+  }
 
   function esy(args: string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
@@ -32,7 +41,7 @@ async function initFixture(fixture: string) {
     });
   }
 
-  return {rootPath, binPath, projectPath, esy, esyPrefixPath};
+  return {rootPath, binPath, projectPath, esy, esyPrefixPath, npm, npmPrefixPath};
 }
 
 type Fixture = Array<FixtureItem>;
