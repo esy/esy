@@ -313,8 +313,13 @@ module Installer =
     };
   });
 
-let install = (~prefixPath, ~rootPath, ()) =>
-  Installer.run(~prefixPath, ~rootPath, None);
+let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
+  Logs.app(m =>
+    m("# esy-build-package: installing using built-in installer")
+  );
+  let res = Installer.run(~prefixPath, ~rootPath, installFilename);
+  Run.coerceFromClosed(res);
+};
 
 let withLock = (lockPath: Path.t, f) => {
   let lockPath = Path.to_string(lockPath);
@@ -569,7 +574,69 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
         build.task.version,
       )
     );
-    let runBuildAndInstall = build => {
+
+    let runBuildAndInstall = (build: build) => {
+      let runEsyInstaller = installFilenames => {
+        let rootPath = Lifecycle.getRootPath(build);
+        let findInstallFilenames = () => {
+          let%bind items = Run.ls(rootPath);
+          return(
+            items
+            |> List.filter(name => Path.has_ext(".install", name))
+            |> List.map(name => Path.basename(name)),
+          );
+        };
+        switch (installFilenames) {
+        /* the case where esy-installer is called implicitly, ignore the case
+         * we have no *.install files */
+        | None =>
+          switch%bind (findInstallFilenames()) {
+          | [] => ok
+          | [installFilename] =>
+            install(
+              ~prefixPath=build.stagePath,
+              ~rootPath,
+              ~installFilename,
+              (),
+            )
+          | _ => error("multiple *.install files found")
+          }
+        /* the case where esy-installer is called explicitly with 0 args, fail
+         * on all but a single *.install file found. */
+        | Some([]) =>
+          switch%bind (findInstallFilenames()) {
+          | [] => error("no *.install files found")
+          | [installFilename] =>
+            install(
+              ~prefixPath=build.stagePath,
+              ~rootPath,
+              ~installFilename,
+              (),
+            )
+          | _ => error("multiple *.install files found")
+          }
+        | Some(installFilenames) =>
+          let f = ((), installFilename) =>
+            install(
+              ~prefixPath=build.stagePath,
+              ~rootPath,
+              ~installFilename,
+              (),
+            );
+          EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);
+        };
+      };
+
+      let runCommand = cmd => {
+        ();
+        switch (Cmd.to_list(cmd)) {
+        | [] => error("empty command")
+        | ["esy-installer", ...installFilenames] =>
+          runEsyInstaller(Some(installFilenames))
+        | _ => runCommand(build, cmd)
+        };
+      };
+
       let runCommands = cmds => {
         let rec aux = cmds =>
           switch (cmds) {
@@ -578,10 +645,8 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             Logs.app(m =>
               m("# esy-build-package: running: %s", Cmd.to_string(cmd))
             );
-            switch (runCommand(build, cmd)) {
-            | Ok(_) => aux(cmds)
-            | Error(err) => Error(err)
-            };
+            let%bind () = runCommand(cmd);
+            aux(cmds);
           };
         aux(cmds);
       };
@@ -590,19 +655,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
 
       let runInstall = () =>
         switch (build.install) {
-        | [] =>
-          let rootPath = Lifecycle.getRootPath(build);
-          let%bind items = Run.ls(rootPath);
-          if (List.exists(name => Path.has_ext(".install", name), items)) {
-            Logs.app(m =>
-              m("# esy-build-package: installing using built-in installer")
-            );
-            let job = install(~prefixPath=build.stagePath, ~rootPath, ());
-            Run.coerceFromClosed(job);
-          } else {
-            Logs.app(m => m("# esy-build-package: no installation required"));
-            ok;
-          };
+        | [] => runEsyInstaller(None)
         | commands => runCommands(commands)
         };
 
