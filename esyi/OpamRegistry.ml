@@ -349,11 +349,6 @@ module Manifest = struct
           @ [
               [{
                 Package.Dep.
-                name = "@esy-ocaml/esy-installer";
-                req = Npm SemverVersion.Constraint.ANY;
-              }];
-              [{
-                Package.Dep.
                 name = "@esy-ocaml/substs";
                 req = Npm SemverVersion.Constraint.ANY;
               }];
