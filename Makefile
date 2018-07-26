@@ -101,14 +101,22 @@ test-unit::
 test-e2e::
 	@$(BIN)/jest test-e2e
 
-test-e2e-with-slow::
-	@SLOWTEST=true $(BIN)/jest test-e2e
+test-slow-e2e::
+	@echo "Running test suite: e2e (slow tests)"
+	@node ./test-e2e/build-top-100-opam.slowtest.js
+	@node ./test-e2e/install-npm.slowtest.js
 
 test::
 	@echo "Running test suite: unit tests"
 	@$(MAKE) test-unit
 	@echo "Running test suite: e2e"
 	@$(MAKE) test-e2e
+
+ci::
+	@$(MAKE) test
+	@if [ ! -z $${TRAVIS_TAG+x} ] || [ $$(echo "$$TRAVIS_COMMIT_MESSAGE" | grep "@slowtest") ]; then \
+		$(MAKE) test-slow-e2e; \
+	fi
 
 #
 # Release

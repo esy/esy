@@ -4,7 +4,6 @@ const child_process = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const rmSync = require('rimraf').sync;
-const {genFixture} = require('./test/helpers.js');
 
 const cases = [
   {name: "ocamlfind", toolchains: ["~4.6.0"]},
@@ -111,72 +110,60 @@ const cases = [
   {name: "dose3", toolchains: ["~4.6.0"]},
 ];
 
-const cwd = __dirname;
-
-rmSync(path.join(cwd, '_build'));
-fs.mkdirSync(path.join(cwd, '_build'));
+const esyPrefixPath = fs.mkdtempSync('/tmp/esy-prefix');
 
 let reposUpdated = false;
 
-describe('Building top 100 opam packages', function() {
+for (let c of cases) {
 
-  let p;
+  for (let toolchain of c.toolchains) {
 
-  beforeAll(async () => {
-    p = await genFixture();
-  });
+    console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
 
-  for (let c of cases) {
+    const sandboxPath = fs.mkdtempSync('/tmp/esy-project');
+    console.log(`*** sandboxPath: ${sandboxPath}`)
 
-    for (let toolchain of c.toolchains) {
+    const esy = path.join(__dirname, '..', 'bin', 'esy');
 
-      it(`building ${c.name} with ocaml@${toolchain}`, function() {
+    const packageJson = {
+      name: `test-${c.name}`,
+      version: '0.0.0',
+      esy: {build: ['true']},
+      dependencies: {
+        ['@opam/' + c.name]: "*"
+      },
+      devDependencies: {
+        ocaml: toolchain
+      }
+    };
 
-        const sandboxPath = path.join(p.projectPath, c.name, toolchain);
-        fs.mkdirSync(path.join(p.projectPath, c.name));
-        fs.mkdirSync(path.join(p.projectPath, c.name, toolchain));
+    fs.writeFileSync(
+      path.join(sandboxPath, 'package.json'),
+      JSON.stringify(packageJson, null, 2)
+    );
 
-        const esy = path.join(p.binPath, 'esy');
-
-        const packageJson = {
-          name: `test-${c.name}`,
-          version: '0.0.0',
-          esy: {build: ['true']},
-          dependencies: {
-            ['@opam/' + c.name]: "*"
-          },
-          devDependencies: {
-            ocaml: toolchain
-          }
-        };
-
-        fs.writeFileSync(
-          path.join(sandboxPath, 'package.json'),
-          JSON.stringify(packageJson, null, 2)
-        );
-
-        let installCommand = `${esy} install`;
-        if (reposUpdated) {
-          installCommand = `${esy} install --skip-repository-update`;
-        } else {
-          reposUpdated = true;
-        }
-
-        child_process.execSync(installCommand, {
-          cwd: sandboxPath,
-          env: {...process.env, ESY__PREFIX: p.esyPrefixPath},
-          stdio: 'inherit',
-        });
-
-        child_process.execSync(`${esy} build`, {
-          cwd: sandboxPath,
-          env: {...process.env, ESY__PREFIX: p.esyPrefixPath},
-          stdio: 'inherit',
-        });
-
-        rmSync(sandboxPath);
-      });
-
+    let installCommand = `${esy} install`;
+    if (reposUpdated) {
+      installCommand = `${esy} install --skip-repository-update`;
+    } else {
+      reposUpdated = true;
     }
+
+    child_process.execSync(installCommand, {
+      cwd: sandboxPath,
+      env: {...process.env, ESY__PREFIX: esyPrefixPath},
+      stdio: 'inherit',
+    });
+
+    child_process.execSync(`${esy} build`, {
+      cwd: sandboxPath,
+      env: {...process.env, ESY__PREFIX: esyPrefixPath},
+      stdio: 'inherit',
+    });
+
+    rmSync(sandboxPath);
   }
-});
+
+}
+
+rmSync(esyPrefixPath);
