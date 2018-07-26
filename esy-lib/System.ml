@@ -6,6 +6,7 @@ module Platform = struct
     | Windows (* mingw msvc *)
     | Unix (* all other unix-y systems *)
     | Unknown
+    [@@deriving eq, ord]
 
   let show = function
     | Darwin -> "darwin"

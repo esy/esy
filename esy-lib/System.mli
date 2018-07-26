@@ -11,6 +11,8 @@ module Platform : sig
 
   val show : t -> string
   val pp : Format.formatter -> t -> unit
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
 
   (** Platform we are currently running on *)
   val host : t
