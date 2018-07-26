@@ -75,7 +75,7 @@ function packageJson(json: Object) {
 }
 
 async function genFixture(...fixture: Fixture) {
-  const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), '/tmp/esy.XXXX'));
+  const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), 'esy.XXXX'));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const esyPrefixPath = path.join(rootPath, 'esy');
