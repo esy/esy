@@ -78,7 +78,7 @@ async function genFixture(...fixture: Fixture) {
 
   await fs.mkdir(binPath);
   await fs.mkdir(projectPath);
-  await fs.link(ESYCOMMAND, path.join(binPath, 'esy'));
+  await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
   async function layout(p: string, fixture: FixtureItem) {
     if (fixture.type === 'file') {
@@ -106,7 +106,7 @@ async function genFixture(...fixture: Fixture) {
     });
   }
 
-  return {rootPath, binPath, projectPath, esy};
+  return {rootPath, binPath, projectPath, esy, esyPrefixPath};
 }
 
 module.exports = {
