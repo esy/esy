@@ -335,7 +335,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         let%bind () = rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
         let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
         let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
-        let%bind () = rewritePrefixInFile(~origPrefix=normalizedOrigPrefixPath, ~destPrefix=normalizedDestPrefixPath, path);
+        let%bind () = rewritePrefixInFile(~origPrefix=normalizedOrigPrefix, ~destPrefix=normalizedDestPrefix, path);
         ok;
     | _ =>
         rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
