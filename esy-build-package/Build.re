@@ -309,7 +309,6 @@ module Installer =
       let stat = Run.lstat;
       let readdir = Run.ls;
       let mkdir = Run.mkdir;
-      let link = Run.link(~force=false);
     };
   });
 

@@ -11,7 +11,6 @@ module type IO = sig
     val readdir : Fpath.t -> Fpath.t list computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
-    val link : target:Fpath.t -> Fpath.t -> unit computation
     val stat : Fpath.t -> Unix.stats computation
   end
 end
@@ -35,13 +34,6 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
   let setExecutable perm = perm lor 0o111
   let unsetExecutable perm = perm land (lnot 0o111)
-
-  let allowLinkFiles =
-    match Sys.os_type with
-    | "Unix" -> true
-    | "Win32" -> true
-    | "Cygwin" -> true
-    | _ -> false (* maybe not supported, not sure *)
 
   let installFile
     ?(executable=false)
@@ -70,12 +62,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       in
       let%bind () = Fs.mkdir (Fpath.parent dstPath) in
       let%bind () =
-        if perm = stats.Unix.st_perm && allowLinkFiles
-        then
-          Fs.link ~target:srcPath dstPath
-        else
-          let%bind data = Fs.read srcPath in
-          Fs.write ~data ~perm dstPath
+        let%bind data = Fs.read srcPath in
+        Fs.write ~data ~perm dstPath
       in
       return ()
     | Error msg ->
