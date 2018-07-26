@@ -48,6 +48,8 @@ module CommandList = struct
     string list list
     [@@deriving (show, eq, ord)]
 
+  let make v = v
+
   let render ~platform ~env ~scope (commands : Manifest.CommandList.t) =
     let open Run.Syntax in
     let env = Environment.Closed.value env in

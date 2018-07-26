@@ -6,7 +6,10 @@
 module CommandList : sig
   type t
 
+  val make : string list list -> t
+
   val show : t -> string
+  val equal : t -> t -> bool
 end
 
 module Scope : sig

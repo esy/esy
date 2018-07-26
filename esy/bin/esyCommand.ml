@@ -386,16 +386,23 @@ let makeExecCommand
   in
 
   let%bind env = RunAsync.ofRun (
-      let open Run.Syntax in
-      let env = match env with
-        | `CommandEnv -> commandEnv
-        | `SandboxEnv -> sandboxEnv
-      in
-      let env = Environment.current @ env in
-      let%bind env = Environment.Value.ofBindings env in
-      let%bind env = Environment.Value.bindToConfig cfg env in
-      Ok (`CustomEnv env)
-    ) in
+    let open Run.Syntax in
+    let env = match env with
+      | `CommandEnv -> commandEnv
+      | `SandboxEnv -> sandboxEnv
+    in
+    let env = Environment.current @ env in
+    let%bind env = Environment.Value.ofBindings env in
+    let%bind env = Environment.Value.bindToConfig cfg env in
+    Ok (`CustomEnv env)
+  ) in
+
+  let cmd =
+    let tool, args = Cmd.getToolAndArgs cmd in
+    match tool with
+    | "esy" -> Cmd.(v (p EsyRuntime.currentExecutable) |> addArgs args)
+    | _ -> cmd
+  in
 
   let%bind status = ChildProcess.runToStatus
     ~env
@@ -432,7 +439,7 @@ let exec cmd cfg =
 let devExec cmd cfg =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.ofConfig cfg in
-  let%bind cmds = RunAsync.ofRun (
+  let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
     let script =
@@ -451,18 +458,17 @@ let devExec cmd cfg =
         return (Cmd.ofListExn args)
     in
     match script with
-    | None -> return [cmd]
+    | None -> return cmd
     | Some {command; _} ->
       let%bind command = renderCommand command in
-      return [Cmd.addArgs args command]
+      return (Cmd.addArgs args command)
   ) in
-  RunAsync.List.processSeq ~f:(fun cmd ->
-    makeExecCommand
-      ~checkIfDependenciesAreBuilt:true
-      ~env:`CommandEnv
-      ~cfg
-      ~info
-      cmd) cmds
+  makeExecCommand
+    ~checkIfDependenciesAreBuilt:true
+    ~env:`CommandEnv
+    ~cfg
+    ~info
+    cmd
 
 let devShell cfg =
   let open RunAsync.Syntax in
