@@ -9,12 +9,15 @@ const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 
-const ESYCOMMAND = require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe');
+const ESYCOMMAND = process.platform === "win32" ?
+    // On Windows, grab the 'bootstrapped' build until we have a common build path
+    require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
+    : require.resolve('.../../bin/esy');
 
 async function initFixture(fixture: string) {
   const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), 'esy.XXXX'));
   const projectPath = path.join(rootPath, 'project');
-  const binPath = path.join(rootPath, '_release');
+  const binPath = path.join(rootPath, 'bin');
   const esyPrefixPath = path.join(rootPath, 'esy');
   const npmPrefixPath = path.join(rootPath, 'npm');
 
