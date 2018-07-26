@@ -9,6 +9,10 @@ module CommandList : sig
   val show : t -> string
 end
 
+module Scope : sig
+  type t
+end
+
 type t = {
   id : string;
   pkg : Package.t;
@@ -25,18 +29,19 @@ type t = {
 
   dependencies : dependency list;
 
-  renderCommandExpr : string -> string Run.t;
+  platform : System.Platform.t;
+  scope : Scope.t;
 }
 [@@deriving (show, eq, ord)]
 
 and paths = {
-  rootPath : Config.ConfigPath.t;
-  sourcePath : Config.ConfigPath.t;
-  buildPath : Config.ConfigPath.t;
-  buildInfoPath : Config.ConfigPath.t;
-  stagePath : Config.ConfigPath.t;
-  installPath : Config.ConfigPath.t;
-  logPath : Config.ConfigPath.t;
+  rootPath : Config.Path.t;
+  sourcePath : Config.Path.t;
+  buildPath : Config.Path.t;
+  buildInfoPath : Config.Path.t;
+  stagePath : Config.Path.t;
+  installPath : Config.Path.t;
+  logPath : Config.Path.t;
 }
 [@@deriving show]
 
@@ -45,6 +50,9 @@ and dependency =
   | DevDependency of t
   | BuildTimeDependency of t
 [@@deriving (show, eq, ord)]
+
+(** Render expression in task scope. *)
+val renderExpression : cfg:Config.t -> task:t -> string -> string Run.t
 
 val isRoot : cfg:Config.t -> t -> bool
 val isBuilt : cfg:Config.t -> t -> bool RunAsync.t
@@ -57,7 +65,7 @@ val ofPackage :
   ?includeRootDevDependenciesInEnv:bool ->
   ?overrideShell:bool ->
   ?forceImmutable:bool ->
-  ?system:System.Platform.t ->
+  ?platform:System.Platform.t ->
   ?initTerm:string option ->
   ?initPath:string ->
   ?initManPath:string ->

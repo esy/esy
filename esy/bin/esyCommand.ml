@@ -414,7 +414,7 @@ let exec cmd cfg =
   let%bind info = SandboxInfo.ofConfig cfg in
   let%bind () =
     let installPath =
-      Config.ConfigPath.toPath
+      Config.Path.toPath
         cfg
         info.SandboxInfo.task.paths.installPath
     in
@@ -443,10 +443,10 @@ let devExec cmd cfg =
     let renderCommand (cmd : Manifest.CommandList.Command.t) =
       match cmd with
       | Manifest.CommandList.Command.Parsed args ->
-        let%bind args = Result.List.map ~f:info.task.renderCommandExpr args in
+        let%bind args = Result.List.map ~f:(Task.renderExpression ~cfg ~task:info.task) args in
         return (Cmd.ofListExn args)
       | Manifest.CommandList.Command.Unparsed line ->
-        let%bind string = info.task.renderCommandExpr line in
+        let%bind string = Task.renderExpression ~cfg ~task:info.task line in
         let%bind args = ShellSplit.split string in
         return (Cmd.ofListExn args)
     in
@@ -885,7 +885,7 @@ let () =
         let exportBuild (task : Task.t) =
           let aux () =
             let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" task.pkg.name task.pkg.version) in
-            let buildPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+            let buildPath = Config.Path.toPath cfg task.paths.installPath in
             if%bind Fs.exists buildPath
             then
               let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
@@ -972,7 +972,7 @@ let () =
 
         let importBuild (task : Task.t) =
           let aux () =
-            let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+            let installPath = Config.Path.toPath cfg task.paths.installPath in
             if%bind Fs.exists installPath
             then return ()
             else (
