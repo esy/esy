@@ -11,7 +11,6 @@ module type IO = sig
     val readdir : Fpath.t -> Fpath.t list computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
-    val link : target:Fpath.t -> Fpath.t -> unit computation
     val stat : Fpath.t -> Unix.stats computation
   end
 end
