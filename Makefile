@@ -101,17 +101,14 @@ test-unit::
 test-e2e::
 	@$(BIN)/jest test-e2e
 
-test-opam::
-	$(MAKE) -C __tests__/opam
-
+test-e2e-with-slow::
+	@SLOWTEST=true $(BIN)/jest test-e2e
 
 test::
 	@echo "Running test suite: unit tests"
 	@$(MAKE) test-unit
 	@echo "Running test suite: e2e"
 	@$(MAKE) test-e2e
-
-ci:: test
 
 #
 # Release

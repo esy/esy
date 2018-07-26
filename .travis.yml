@@ -9,7 +9,7 @@ install:
 - travis_retry npm install -g esy@0.1.9
 - travis_wait travis_retry make bootstrap
 script:
-- make ci
+- make test
 - make ESY_RELEASE_TAG="$TRAVIS_TAG" build platform-release
 cache:
   timeout: 360
