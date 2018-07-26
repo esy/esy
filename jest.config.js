@@ -1,9 +1,11 @@
+const projects = [
+  {
+    displayName: 'e2e:fast',
+    moduleFileExtensions: ['js'],
+    testMatch: ['<rootDir>/test-e2e/**/*.test.js'],
+  }
+];
+
 module.exports = {
-  projects: [
-    {
-      displayName: 'e2e:js',
-      moduleFileExtensions: ['js'],
-      testMatch: ['<rootDir>/test-e2e/**/*.test.js'],
-    }
-  ],
+  projects: projects,
 };
