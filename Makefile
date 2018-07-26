@@ -114,9 +114,9 @@ test::
 
 ci::
 	@$(MAKE) test
-	@if [ ! -z $${TRAVIS_TAG+x} ] || [ $$(echo "$$TRAVIS_COMMIT_MESSAGE" | grep "@slowtest") ]; then \
-		$(MAKE) test-slow-e2e; \
-	fi
+	# @if [ ! -z $${TRAVIS_TAG+x} ] || [ $$(echo "$$TRAVIS_COMMIT_MESSAGE" | grep "@slowtest") ]; then \
+	# 	$(MAKE) test-slow-e2e; \
+	# fi
 
 #
 # Release
