@@ -17,7 +17,7 @@ describe(`Basic tests`, () => {
         dependencies: {[`no-deps`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run('install');
+        await run(`install`);
 
         await expect(source(`require('no-deps')`)).resolves.toMatchObject({
           name: `no-deps`,
@@ -37,7 +37,7 @@ describe(`Basic tests`, () => {
         dependencies: {[`one-fixed-dep`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run('install');
+        await run(`install`);
 
         await expect(source(`require('one-fixed-dep')`)).resolves.toMatchObject({
           name: `one-fixed-dep`,
@@ -63,7 +63,7 @@ describe(`Basic tests`, () => {
         dependencies: {[`one-range-dep`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run('install');
+        await run(`install`);
 
         await expect(source(`require('one-range-dep')`)).resolves.toMatchObject({
           name: `one-range-dep`,
@@ -110,7 +110,7 @@ describe(`Basic tests`, () => {
           version: '2.0.0',
         });
 
-        await run('install');
+        await run(`install`);
 
         await expect(source(`require('apkg-dep/package.json')`)).resolves.toMatchObject({
           name: 'apkg-dep',
