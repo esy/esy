@@ -11,35 +11,18 @@ const esyiCommand = path.join(
   '..',
   '..',
   '..',
-  '_release',
   '_build',
+  'install',
   'default',
-  'esy',
   'bin',
-  'esyCommand.exe'
+  'esyi',
 );
 
-const InstallCommand = process.platform === "win32" ? "legacy-install" : "install";
-
-const legacyCommands = new Set(['legacy-install'])
 const esyiCommands = new Set(['install', 'print-cudf-universe']);
 
 const makeTemporaryEnv = tests.generatePkgDriver({
   runDriver: (path, line, {registryUrl}) => {
-    if (line.length === 1 && legacyCommands.has(line[0])) {
-      const extraArgs = [
-        `legacy-install`,
-        `--cache-path`,
-        `${path}/.cache`,
-        `--npm-registry`,
-        registryUrl,
-        `--opam-repository`,
-        `${cwd}/opam-repository`,
-        `--opam-override-repository`,
-        `${cwd}/esy-opam-override`,
-      ];
-      return exec.execFile(esyiCommand, [...extraArgs], {cwd: path});
-    } else if (line.length === 1 && esyiCommands.has(line[0])) {
+    if (line.length === 1 && esyiCommands.has(line[0])) {
       const extraArgs = [
         `--cache-path`,
         `${path}/.cache`,
@@ -79,5 +62,4 @@ module.exports = {
   exists: fs.exists,
   readdir: fs.readdir,
   execFile: exec.execFile,
-  InstallCommand,
 };
