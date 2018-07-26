@@ -26,7 +26,8 @@
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
-    "bootstrap:unit-test": "esy-bash dune runtest test"
+    "bootstrap:unit-test": "esy-bash dune runtest test",
+    "test-e2e": "jest --runInBand test-e2e"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
