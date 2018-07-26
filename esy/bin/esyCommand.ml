@@ -452,12 +452,9 @@ let devExec cmd cfg =
     in
     match script with
     | None -> return [cmd]
-    | Some {command = None;} -> return [Cmd.v "true"]
-    | Some {command = Some [cmd]; _} ->
-      let%bind cmd = renderCommand cmd in
-      return [Cmd.addArgs args cmd]
-    | Some {command = Some cmds; _} ->
-      Result.List.map ~f:renderCommand cmds
+    | Some {command; _} ->
+      let%bind command = renderCommand command in
+      return [Cmd.addArgs args command]
   ) in
   RunAsync.List.processSeq ~f:(fun cmd ->
     makeExecCommand

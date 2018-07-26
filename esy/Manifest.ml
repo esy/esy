@@ -51,7 +51,7 @@ end
 module Scripts = struct
 
   type script = {
-    command : CommandList.t
+    command : CommandList.Command.t;
   }
   [@@deriving (show, eq, ord)]
 
@@ -69,7 +69,13 @@ module Scripts = struct
   let of_yojson =
     let script (json: Json.t) =
       match CommandList.of_yojson json with
-      | Ok command -> Ok {command;}
+      | Ok command ->
+        begin match command with
+        | None
+        | Some [] -> Error "empty command"
+        | Some [command] -> Ok {command;}
+        | Some _ -> Error "multiple script commands are not supported"
+        end
       | Error err -> Error err
     in
     Json.Parse.stringMap script
