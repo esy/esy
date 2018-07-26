@@ -1,0 +1,87 @@
+(**
+ * Task represent a set of command and an environment to produce a package
+ * build.
+ *)
+
+module CommandList : sig
+  type t
+
+  val make : string list list -> t
+
+  val show : t -> string
+  val equal : t -> t -> bool
+end
+
+module Scope : sig
+  type t
+end
+
+type t = {
+  id : string;
+  pkg : Package.t;
+
+  buildCommands : CommandList.t;
+  installCommands : CommandList.t;
+
+  env : Environment.Closed.t;
+  globalEnv : Environment.binding list;
+  localEnv : Environment.binding list;
+  paths : paths;
+
+  sourceType : Manifest.SourceType.t;
+
+  dependencies : dependency list;
+
+  platform : System.Platform.t;
+  scope : Scope.t;
+}
+[@@deriving (show, eq, ord)]
+
+and paths = {
+  rootPath : Config.Path.t;
+  sourcePath : Config.Path.t;
+  buildPath : Config.Path.t;
+  buildInfoPath : Config.Path.t;
+  stagePath : Config.Path.t;
+  installPath : Config.Path.t;
+  logPath : Config.Path.t;
+}
+[@@deriving show]
+
+and dependency =
+  | Dependency of t
+  | DevDependency of t
+  | BuildTimeDependency of t
+[@@deriving (show, eq, ord)]
+
+(** Render expression in task scope. *)
+val renderExpression : cfg:Config.t -> task:t -> string -> string Run.t
+
+val isRoot : cfg:Config.t -> t -> bool
+val isBuilt : cfg:Config.t -> t -> bool RunAsync.t
+
+val buildEnv : Package.t -> Environment.binding list Run.t
+val commandEnv : Package.t -> Environment.binding list Run.t
+val sandboxEnv : Package.t -> Environment.binding list Run.t
+
+val ofPackage :
+  ?includeRootDevDependenciesInEnv:bool ->
+  ?overrideShell:bool ->
+  ?forceImmutable:bool ->
+  ?platform:System.Platform.t ->
+  ?initTerm:string option ->
+  ?initPath:string ->
+  ?initManPath:string ->
+  ?initCamlLdLibraryPath:string ->
+  ?finalPath:string -> ?finalManPath:string -> Package.t -> t Run.t
+
+val exportBuild : cfg:Config.t -> outputPrefixPath:Path.t -> Path.t -> unit RunAsync.t
+val importBuild : Config.t -> Path.t -> unit RunAsync.t
+
+val toBuildProtocolString : ?pretty:bool -> t -> string
+
+val rewritePrefix : cfg:Config.t -> origPrefix:Path.t -> destPrefix:Path.t -> Path.t -> unit RunAsync.t
+
+module DependencyGraph : DependencyGraph.DependencyGraph
+  with type node := t
+  and type dependency := dependency

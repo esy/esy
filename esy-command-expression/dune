@@ -1,0 +1,11 @@
+(library
+  (name EsyCommandExpression)
+  (public_name esy-command-expression)
+  (preprocess (pps ppx_inline_test lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (flags (:standard (-w -39) "-open" "EsyLib"))
+  (libraries EsyLib)
+)
+
+(ocamllex (modules Lexer))
+
+(menhir (modules Parser))

@@ -1,5 +1,3 @@
-module ConfigPath = Config.ConfigPath
-
 type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
@@ -179,7 +177,7 @@ let ofDir (cfg : Config.t) =
             substs = Manifest.Opam.substs manifest;
             buildType = Manifest.Opam.buildType manifest;
           };
-          sourcePath = ConfigPath.ofPath cfg sourcePath;
+          sourcePath = Config.Path.ofPath cfg sourcePath;
           resolution = Some ("opam:" ^ Manifest.Opam.version manifest)
         } in
         return (`EsyPkg pkg)
@@ -208,7 +206,7 @@ let ofDir (cfg : Config.t) =
               installCommands = esyManifest.install;
               buildType = esyManifest.buildsInSource;
             };
-            sourcePath = ConfigPath.ofPath cfg sourcePath;
+            sourcePath = Config.Path.ofPath cfg sourcePath;
             resolution = manifest._resolved;
           } in
           return (`EsyPkg pkg)

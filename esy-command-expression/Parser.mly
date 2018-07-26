@@ -26,12 +26,12 @@
 
 %{
 
-  module E = CommandExprTypes.Expr
+  module E = Types.Expr
 
 %}
 
 %start start
-%type <CommandExprTypes.Expr.t> start
+%type <Types.Expr.t> start
 
 %%
 

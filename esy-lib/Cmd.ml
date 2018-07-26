@@ -133,3 +133,7 @@ let ofBosCmd cmd =
   match Bos.Cmd.to_list cmd with
   | [] -> Error (`Msg "empty command")
   | tool::args -> Ok (tool, List.rev args)
+
+let ofListExn = function
+  | [] -> raise (Invalid_argument "empty command")
+  | tool::args -> v tool |> addArgs args

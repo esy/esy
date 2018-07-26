@@ -1,7 +1,27 @@
-include CommandExprTypes
+module V = Types.Value
+module E = Types.Expr
 
-module V = Value
-module E = Expr
+module Value = Types.Value
+
+type scope = Types.scope
+
+let bool v = V.Bool v
+let string v = V.String v
+
+let formatParseError ?src ~cnum msg =
+  match src with
+  | None -> msg
+  | Some src ->
+    let ctx =
+      let cnum = min (String.length src) (cnum + 5) in
+      (String.sub src 0 cnum) ^ "..."
+    in
+    let line =
+      String.init
+        (String.length ctx)
+        (fun i -> if i = cnum then '^' else ' ')
+    in
+    Printf.sprintf "%s:\n>\n> %s\n> %s" msg ctx line
 
 let parse src =
   let tokensStore = ref None in
@@ -9,26 +29,26 @@ let parse src =
     let tokens =
       match !tokensStore with
       | Some tokens -> tokens
-      | None -> CommandExprLexer.read [] lexbuf
+      | None -> Lexer.read [] lexbuf
     in
     match tokens with
     | tok::rest ->
       tokensStore := Some rest;
       tok
-    | [] -> CommandExprParser.EOF
+    | [] -> Parser.EOF
   in
   let lexbuf = Lexing.from_string src in
-  let open Run.Syntax in
+  let open Result.Syntax in
   try
-    return (CommandExprParser.start getToken lexbuf)
+    return (Parser.start getToken lexbuf)
   with
   | Failure v ->
-    Run.error v
-  | CommandExprParser.Error ->
+    error v
+  | Parser.Error ->
     error "Syntax error"
-  | CommandExprLexer.Error (pos, msg) ->
+  | Lexer.Error (pos, msg) ->
     let cnum = pos.Lexing.pos_cnum - 1 in
-    let msg = ParseUtil.formatParseError ~src ~cnum msg in
+    let msg = formatParseError ~src ~cnum msg in
     error msg
 
 let formatName = function
@@ -36,7 +56,7 @@ let formatName = function
   | None, name -> name
 
 let eval ~pathSep ~colon ~scope string =
-  let open Run.Syntax in
+  let open Result.Syntax in
   let%bind expr = parse string in
 
   let lookupValue name =
@@ -128,13 +148,13 @@ let eval ~pathSep ~colon ~scope string =
         let%bind v = evalToString expr in
         return (s ^ v)
       in
-      let%bind v = Run.List.foldLeft ~f ~init:"" exprs in
+      let%bind v = Result.List.foldLeft ~f ~init:"" exprs in
       return (V.String v)
   in
   eval expr
 
 let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
-  let open Run.Syntax in
+  let open Result.Syntax in
   match%bind eval ~pathSep ~colon ~scope string with
   | V.String v -> return v
   | V.Bool true -> return "true"
@@ -153,7 +173,7 @@ let%test_module "CommandExpr" = (module struct
       ) else
         true
     | Error err ->
-      let msg = Printf.sprintf "parse error: %s" (EsyLib.Run.formatError err) in
+      let msg = Printf.sprintf "parse error: %s" err in
       print_endline msg;
       false
 
@@ -465,32 +485,32 @@ let%test_module "CommandExpr" = (module struct
       ) else
         true
     | Error err ->
-      let msg = Printf.sprintf "error: %s" (EsyLib.Run.formatError err) in
+      let msg = Printf.sprintf "error: %s" err in
       print_endline msg;
       false
 
   let expectRenderError scope s expectedError =
     match render ~scope s with
     | Ok _ -> false
-    | Error error ->
-      let error = error |> EsyLib.Run.formatError |> String.trim in
-      if (String.trim expectedError) <> error then (
+    | Error err ->
+      let err = String.trim err in
+      if (String.trim expectedError) <> err then (
         Printf.printf "Expected: %s\n" expectedError;
-        Printf.printf "     Got: %s\n" error;
+        Printf.printf "     Got: %s\n" err;
         false
       ) else true
 
   let scope = function
-  | None, "name" -> Some (Value.String "pkg")
-  | None, "isTrue" -> Some (Value.Bool true)
-  | None, "isFalse" -> Some (Value.Bool false)
-  | None, "opam:os" -> Some (Value.String "MSDOS")
-  | None, "os" -> Some (Value.String "OS/2")
-  | Some "self", "lib" -> Some (Value.String "store/lib")
-  | Some "@opam/pkg", "lib" -> Some (Value.String "store/opam-pkg/lib")
-  | Some "@opam/pkg1", "installed" -> Some (Value.Bool true)
-  | Some "@opam/pkg2", "installed" -> Some (Value.Bool true)
-  | Some "@opam/pkg-not", "installed" -> Some (Value.Bool false)
+  | None, "name" -> Some (V.String "pkg")
+  | None, "isTrue" -> Some (V.Bool true)
+  | None, "isFalse" -> Some (V.Bool false)
+  | None, "opam:os" -> Some (V.String "MSDOS")
+  | None, "os" -> Some (V.String "OS/2")
+  | Some "self", "lib" -> Some (V.String "store/lib")
+  | Some "@opam/pkg", "lib" -> Some (V.String "store/opam-pkg/lib")
+  | Some "@opam/pkg1", "installed" -> Some (V.Bool true)
+  | Some "@opam/pkg2", "installed" -> Some (V.Bool true)
+  | Some "@opam/pkg-not", "installed" -> Some (V.Bool false)
   | _ -> None
 
   let%test "render" =

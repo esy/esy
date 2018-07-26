@@ -39,7 +39,21 @@
  *
  *)
 
-include module type of CommandExprTypes
+module Value : sig
+  type t =
+    | String of string
+    | Bool of bool
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val show : t -> string
+  val pp : Format.formatter -> t -> unit
+end
+
+
+val bool : bool -> Value.t
+val string : string -> Value.t
+
+type scope = string option * string -> Value.t option
 
 (** Render command expression into a string given the [scope]. *)
 val render :
@@ -47,8 +61,4 @@ val render :
   -> ?colon:string
   -> scope:scope
   -> string
-  -> string Run.t
-
-val parse :
-  string
-  -> Expr.t Run.t
+  -> (string, string) result

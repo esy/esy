@@ -40,7 +40,7 @@ let runTask
   let%bind () = waitForDependencies dependencies in
 
   let isRoot = task.id == rootTask.id in
-  let installPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+  let installPath = Config.Path.toPath cfg task.paths.installPath in
 
   let buildOnly = match buildOnly with
   | `ForRoot -> isRoot
@@ -52,10 +52,10 @@ let runTask
     let f () =
       let infoPath =
         task.paths.buildInfoPath
-        |> Config.ConfigPath.toPath cfg
+        |> Config.Path.toPath cfg
       and sourcePath =
         task.paths.sourcePath
-        |> Config.ConfigPath.toPath cfg
+        |> Config.Path.toPath cfg
       in
       match%lwt Fs.readFile infoPath with
       | Ok data ->

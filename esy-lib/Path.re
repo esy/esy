@@ -1,5 +1,6 @@
 include Fpath;
 
+let show = to_string;
 let addExt = add_ext;
 let addSeg = add_seg;
 let toString = to_string;
@@ -11,9 +12,7 @@ let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
 let backSlashRegex = Str.regexp("\\\\");
 
-let normalizePathSlashes = p => {
-    Str.global_replace(backSlashRegex, "/", p);
-};
+let normalizePathSlashes = p => Str.global_replace(backSlashRegex, "/", p);
 
 /**
  * Convert a path to a string and replace a prefix to ~ if it's happened to be a

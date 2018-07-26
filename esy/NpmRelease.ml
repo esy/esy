@@ -128,7 +128,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         | None -> error "ocaml isn't available in the sandbox"
       in
       let ocamlopt =
-        let installPath = Config.ConfigPath.toPath cfg ocaml.Task.paths.installPath in
+        let installPath = Config.Path.toPath cfg ocaml.Task.paths.installPath in
         Path.(installPath / "bin" / "ocamlopt")
       in
       return ocamlopt
@@ -185,7 +185,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
         return ()
       else
-        let buildPath = Config.ConfigPath.toPath cfg task.paths.installPath in
+        let buildPath = Config.Path.toPath cfg task.paths.installPath in
         let outputPrefixPath = Path.(outputPath / "_export") in
         LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
     in

@@ -1,6 +1,6 @@
 {
 
-open CommandExprParser
+open Parser
 
 exception Error of Lexing.position * string
 

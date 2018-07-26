@@ -68,52 +68,75 @@ let create
   in
   value |> Run.ofBosError |> RunAsync.ofRun
 
-module type ABSTRACT_PATH = sig
-  (**
-   * Path.
-   *)
+module type ABSTRACT_STRING = sig
   type t
-
-  (** Path context, some opaque data which path relies on to be resolved into
-   * real path.
-   *)
   type ctx
 
-  (**
-   * Build a new path by appending a segment.
-   *)
-  val (/) : t -> string -> t
+  val show : t -> string
+  val pp : t Fmt.t
 
-  (**
-   * Encode a real path into an abstract path given the context.
-   *)
-  val ofPath : ctx -> Path.t -> t
-
-  (**
-   * Resolve an abstract path into a real path given the context.
-   *)
-  val toPath : ctx -> t -> Path.t
-
-  val toString : t -> string
-
-  val pp : Format.formatter -> t -> unit
-  val to_yojson : t -> Yojson.Safe.json
   val equal : t -> t -> bool
   val compare : t -> t -> int
+
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
 end
 
-(**
- * Path relative to config's sandboxPath, storePath or localStorePath.
- *
- * Such paths are relocatable across different sandboxes and even machines.
- *
- * We don't enforce it yet fully (ofPath can't fail) but it's nice not to forget
- * to decode them into real paths before use.
- *
- * TODO: consider making ofPath to return a result
- *)
-module ConfigPath : sig
+module type ABSTRACT_PATH = sig
+  include ABSTRACT_STRING
+
+  val (/) : t -> string -> t
+  val ofPath : ctx -> Path.t -> t
+  val toPath : ctx -> t -> Path.t
+end
+
+module Value : sig
+  include ABSTRACT_STRING with type ctx = t
+
+  val v : string -> t
+
+  val toString : ctx -> t -> string
+  val ofString : ctx -> string -> t
+
+end = struct
+
+  type t = string
+  type ctx = config
+
+  let v v = v
+
+  let sandboxRe = Str.regexp "%sandbox%"
+  let storeRe = Str.regexp "%store%"
+  let localStoreRe = Str.regexp "%localStore%"
+
+  let toString config v =
+    v
+    |> Str.global_replace sandboxRe (Path.toString config.sandboxPath)
+    |> Str.global_replace storeRe (Path.toString config.storePath)
+    |> Str.global_replace localStoreRe (Path.toString config.localStorePath)
+
+  let ofString config v =
+    let sandboxRe = Str.regexp (Path.toString config.sandboxPath) in
+    let storeRe = Str.regexp (Path.toString config.storePath) in
+    let localStoreRe = Str.regexp (Path.toString config.localStorePath) in
+    v
+    |> Str.global_replace sandboxRe "%sandbox%"
+    |> Str.global_replace storeRe "%store%"
+    |> Str.global_replace localStoreRe "%localStore%"
+
+  let show v = v
+  let pp = Fmt.string
+  let to_yojson v = `String v
+  let of_yojson = Json.Parse.string
+  let equal = String.equal
+  let compare = String.compare
+end
+
+module Path : sig
   include ABSTRACT_PATH with type ctx = t
+
+  val v : string -> t
+  val toValue : t -> Value.t
 
   val sandbox : t
   val store : t
@@ -122,6 +145,8 @@ end = struct
 
   type t = Path.t
   type ctx = config
+
+  let v v = Path.v v
 
   let sandbox = Path.v "%sandbox%"
   let store = Path.v "%store%"
@@ -166,14 +191,14 @@ end = struct
       end
     end
 
-  let toString p =
-      let ret = Path.to_string p in
-      let normalized = EsyLib.Path.normalizePathSlashes ret in
-      normalized
+  let toValue v =
+    v |> Path.toString |> EsyLib.Path.normalizePathSlashes |> Value.v
+
+  let show = Path.show
 
   let pp = Path.pp
   let to_yojson = Path.to_yojson
+  let of_yojson = Path.of_yojson
   let equal = Path.equal
   let compare = Path.compare
-
 end
