@@ -13,11 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/esy/esy.git"
   },
-  "keywords": [
-    "esy",
-    "ocaml",
-    "sandbox"
-  ],
+  "keywords": ["esy", "ocaml", "sandbox"],
   "jest": {
     "timers": "fake",
     "testEnvironment": "node",
@@ -35,9 +31,7 @@
       "<rootDir>/esyInstallCache-3.x.x",
       "<rootDir>/lib"
     ],
-    "transformIgnorePatterns": [
-      "<rootDir>/node_modules/(?!@esy-ocaml/yarn)"
-    ]
+    "transformIgnorePatterns": ["<rootDir>/node_modules/(?!@esy-ocaml/yarn)"]
   },
   "license": "MIT",
   "bugs": {
@@ -67,7 +61,7 @@
   },
   "dependencies": {
     "@esy-ocaml/esy-install": "link:./esy-install",
-    "@esy-ocaml/esy-opam": "0.0.15",
+    "@esy-ocaml/esy-opam": "0.1.0",
     "babel-polyfill": "^6.23.0",
     "cli-argparse": "^1.1.2",
     "debug": "^3.1.0",
