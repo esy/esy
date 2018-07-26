@@ -27,7 +27,7 @@ describe('Testing integrity of downloaded packages', function() {
         );
 
         try {
-          await run(setup.InstallCommand);
+          await run(`install`);
         } catch (err) {
           expect(/sha1 checksum mismatch/.exec(err)).toBeTruthy();
         }
