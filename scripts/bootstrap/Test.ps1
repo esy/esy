@@ -32,3 +32,5 @@ C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe legacy-install
  exitIfFailed
 
  npm run test-e2e
+
+ exitIfFailed
