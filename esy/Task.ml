@@ -1012,13 +1012,13 @@ let ofPackage
             _
           } as build) ->
           let%bind installCommands = renderOpamCommands build installCommands in
-          return (installCommands @ [["sh"; "-c"; "(esy-installer || true)"]])
+          return installCommands
         | Package.OpamBuild ({
             installCommands = Manifest.Opam.OverridenCommands installCommands;
             _
           }) ->
           let%bind installCommands = renderEsyCommands installCommands in
-          return (installCommands @ [["sh"; "-c"; "(esy-installer || true)"]])
+          return installCommands
         end
     in
 
