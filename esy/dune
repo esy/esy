@@ -1,5 +1,3 @@
-(copy_files CommandExpr/*.{ml,mli,mll,mly})
-
 (library
   (name Esy)
   (public_name esy)
@@ -7,6 +5,7 @@
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
             EsyLib
+            EsyCommandExpression
             lwt
             lwt.unix
             cmdliner
@@ -29,9 +28,5 @@
 )
 
 (ocamllex
-  (modules ShellParamExpansionParser CommandExprLexer LockfileLexer)
-  )
-
-(menhir
-  (modules CommandExprParser)
+  (modules ShellParamExpansionParser LockfileLexer)
   )

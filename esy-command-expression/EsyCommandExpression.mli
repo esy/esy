@@ -39,7 +39,12 @@
  *
  *)
 
-include module type of CommandExprTypes
+type value
+
+val bool : bool -> value
+val string : string -> value
+
+type scope = string option * string -> value option
 
 (** Render command expression into a string given the [scope]. *)
 val render :
@@ -47,8 +52,4 @@ val render :
   -> ?colon:string
   -> scope:scope
   -> string
-  -> string Run.t
-
-val parse :
-  string
-  -> Expr.t Run.t
+  -> (string, string) result

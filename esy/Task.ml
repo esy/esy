@@ -39,10 +39,10 @@ let renderCommandExpr ?name ~system ~scope expr =
   in
   let scope name =
     match name with
-    | None, "os" -> Some (CommandExpr.Value.String (System.Platform.show system))
+    | None, "os" -> Some (EsyCommandExpression.string (System.Platform.show system))
     | _ -> scope name
   in
-  CommandExpr.render ~pathSep ~colon ~scope expr
+  Run.ofStringError (EsyCommandExpression.render ~pathSep ~colon ~scope expr)
 
 module CommandList = struct
   type t =
@@ -274,10 +274,10 @@ let addTaskBindings
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
-  let pathToValue p = CommandExpr.Value.String (ConfigPath.toString p) in
-  let addS k v s = add k (CommandExpr.Value.String v) s in
-  let addB k v s = add k (CommandExpr.Value.Bool v) s in
-  let addP k v s = add k (CommandExpr.Value.String (ConfigPath.toString v)) s in
+  let pathToValue p = EsyCommandExpression.string (ConfigPath.toString p) in
+  let addS k v s = add k (EsyCommandExpression.string v) s in
+  let addB k v s = add k (EsyCommandExpression.bool v) s in
+  let addP k v s = add k (EsyCommandExpression.string (ConfigPath.toString v)) s in
   scope
   |> addS "name" pkg.name
   |> addS "version" pkg.version
@@ -295,8 +295,8 @@ let addTaskBindings
   |> addP "share" ConfigPath.(installPath / "share")
   |> addP "etc" ConfigPath.(installPath / "etc")
   |> addB "installed" true
-  |> StringMap.add "opam:name" (CommandExpr.Value.String (opamPackageName pkg.name))
-  |> StringMap.add "opam:version" (CommandExpr.Value.String pkg.version)
+  |> StringMap.add "opam:name" (EsyCommandExpression.string (opamPackageName pkg.name))
+  |> StringMap.add "opam:version" (EsyCommandExpression.string pkg.version)
   |> StringMap.add "opam:prefix" (pathToValue installPath)
   |> StringMap.add "opam:bin" (pathToValue ConfigPath.(installPath / "bin"))
   |> StringMap.add "opam:etc" (pathToValue ConfigPath.(installPath / "etc"))
@@ -590,11 +590,11 @@ let ofPackage
       let bindings =
         StringMap.(
           empty
-          |> add "opam:make" (CommandExpr.Value.String "make")
-          |> add "opam:ocaml-native" (CommandExpr.Value.Bool true)
-          |> add "opam:ocaml-native-dynlink" (CommandExpr.Value.Bool true)
-          |> add "opam:jobs" (CommandExpr.Value.String "4")
-          |> add "opam:pinned" (CommandExpr.Value.Bool false)
+          |> add "opam:make" (EsyCommandExpression.string "make")
+          |> add "opam:ocaml-native" (EsyCommandExpression.bool true)
+          |> add "opam:ocaml-native-dynlink" (EsyCommandExpression.bool true)
+          |> add "opam:jobs" (EsyCommandExpression.string "4")
+          |> add "opam:pinned" (EsyCommandExpression.bool false)
         )
       in
       let bindings =
@@ -638,7 +638,7 @@ let ofPackage
         | Some v -> Some v
         | None ->
           begin match name with
-          | "installed" -> Some (CommandExpr.Value.Bool false)
+          | "installed" -> Some (EsyCommandExpression.bool false)
           | _ -> None
           end
       in
