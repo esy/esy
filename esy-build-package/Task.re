@@ -13,7 +13,7 @@ module Env = {
       let f = (res, (key, value)) =>
         switch (res, value) {
         | (Ok(res), `String(value)) =>
-          Ok(Astring.String.Map.add(key, Config.Value.ofString(value), res))
+          Ok(Astring.String.Map.add(key, Config.Value.v(value), res))
         | _ => Error("expected a string value")
         };
       List.fold_left(f, Ok(Astring.String.Map.empty), items);

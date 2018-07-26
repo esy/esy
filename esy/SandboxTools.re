@@ -1,5 +1,3 @@
-module ConfigPath = Config.ConfigPath;
-
 let find = (~name, task: Task.t) => {
   let f = (task: Task.t) => task.pkg.name == name;
   Task.DependencyGraph.find(~f, task);
@@ -14,7 +12,7 @@ let getOcamlfind = (~cfg: Config.t, task: Task.t) =>
       )
     | Some(ocamlfindTask) =>
       let ocamlfindBin =
-        ConfigPath.(
+        Config.Path.(
           ocamlfindTask.paths.installPath / "bin" / "ocamlfind" |> toPath(cfg)
         );
       let%bind built = Fs.exists(ocamlfindBin);
@@ -36,7 +34,7 @@ let getOcamlobjinfo = (~cfg: Config.t, task: Task.t) =>
       error("We couldn't find ocaml, you need to add it to your dependencies")
     | Some(ocamlTask) =>
       let ocamlobjinfoBin =
-        ConfigPath.(
+        Config.Path.(
           ocamlTask.paths.installPath / "bin" / "ocamlobjinfo" |> toPath(cfg)
         );
       let%bind built = Fs.exists(ocamlobjinfoBin);
@@ -67,7 +65,7 @@ let getPackageLibraries =
   let ocamlpath =
     switch (task) {
     | Some((task: Task.t)) =>
-      ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))
+      Config.Path.(task.paths.installPath / "lib" |> toPath(cfg))
       |> Path.to_string
     | None => ""
     };
@@ -98,7 +96,7 @@ type meta = {
 let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: Task.t, lib) => {
   open RunAsync.Syntax;
   let ocamlpath =
-    ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))
+    Config.Path.(task.paths.installPath / "lib" |> toPath(cfg))
     |> Path.to_string;
   let env =
     `CustomEnv(Astring.String.Map.(empty |> add("OCAMLPATH", ocamlpath)));

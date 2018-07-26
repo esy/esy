@@ -6,7 +6,6 @@
  * on better package boundaries.
 *)
 
-module ConfigPath = Config.ConfigPath
 module Store = EsyLib.Store
 
 let toOCamlVersion version =
@@ -19,9 +18,9 @@ let toOCamlVersion version =
     major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
   | _ -> version
 
-let renderCommandExpr ?name ~system ~scope expr =
+let renderCommandExpr ?name ~platform ~scope expr =
   let pathSep =
-    match system with
+    match platform with
     | System.Platform.Unknown
     | System.Platform.Darwin
     | System.Platform.Linux
@@ -30,7 +29,7 @@ let renderCommandExpr ?name ~system ~scope expr =
     | System.Platform.Cygwin -> "/"
   in
   let colon =
-    match name, system with
+    match name, platform with
     (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)
     | Some "OCAMLPATH", (System.Platform.Linux | Darwin | Unix | Unknown) -> ":"
     | Some "OCAMLPATH", (Cygwin | Windows) -> ";"
@@ -39,17 +38,19 @@ let renderCommandExpr ?name ~system ~scope expr =
   in
   let scope name =
     match name with
-    | None, "os" -> Some (CommandExpr.Value.String (System.Platform.show system))
+    | None, "os" -> Some (EsyCommandExpression.string (System.Platform.show platform))
     | _ -> scope name
   in
-  CommandExpr.render ~pathSep ~colon ~scope expr
+  Run.ofStringError (EsyCommandExpression.render ~pathSep ~colon ~scope expr)
 
 module CommandList = struct
   type t =
     string list list
     [@@deriving (show, eq, ord)]
 
-  let render ~system ~env ~scope (commands : Manifest.CommandList.t) =
+  let make v = v
+
+  let render ~platform ~env ~scope (commands : Manifest.CommandList.t) =
     let open Run.Syntax in
     let env = Environment.Closed.value env in
     let envScope name =
@@ -60,7 +61,7 @@ module CommandList = struct
     | Some commands ->
       let renderCommand =
         let render v =
-          let%bind v = renderCommandExpr ~system ~scope v in
+          let%bind v = renderCommandExpr ~platform ~scope v in
           ShellParamExpansion.render ~scope:envScope v
         in
         function
@@ -75,6 +76,14 @@ module CommandList = struct
       | Ok commands -> Ok commands
       | Error err -> Error err
 
+end
+
+module Scope = struct
+  type t =
+    EsyCommandExpression.Value.t StringMap.t
+    [@@deriving eq, ord]
+
+  let pp fmt _v = Fmt.unit "<scope>" fmt ()
 end
 
 type t = {
@@ -92,17 +101,20 @@ type t = {
   sourceType : Manifest.SourceType.t;
 
   dependencies : dependency list;
+
+  platform : System.Platform.t;
+  scope : Scope.t;
 }
 [@@deriving (show, eq, ord)]
 
 and paths = {
-  rootPath : ConfigPath.t;
-  sourcePath : ConfigPath.t;
-  buildPath : ConfigPath.t;
-  buildInfoPath : ConfigPath.t;
-  stagePath : ConfigPath.t;
-  installPath : ConfigPath.t;
-  logPath : ConfigPath.t;
+  rootPath : Config.Path.t;
+  sourcePath : Config.Path.t;
+  buildPath : Config.Path.t;
+  buildInfoPath : Config.Path.t;
+  stagePath : Config.Path.t;
+  installPath : Config.Path.t;
+  logPath : Config.Path.t;
 }
 [@@deriving show]
 
@@ -114,6 +126,28 @@ and dependency =
 
 type task = t
 type task_dependency = dependency
+
+let lookupInScope ?cfg bindings (namespace, name) =
+  let key =
+    match namespace, name with
+    | Some namespace, name -> namespace ^ "." ^ name
+    | None, name -> name
+  in
+  match cfg, StringMap.find key bindings with
+  | Some cfg, Some (EsyCommandExpression.Value.String v) ->
+    let v = Config.Value.v v in
+    let v = Config.Value.toString cfg v in
+    Some (EsyCommandExpression.string v)
+  | Some _, Some v -> Some v
+  | None, Some v -> Some v
+  | _, None ->
+    begin match name with
+    | "installed" -> Some (EsyCommandExpression.bool false)
+    | _ -> None
+    end
+
+let renderExpression ~cfg ~task expr =
+  renderCommandExpr ~platform:task.platform ~scope:(lookupInScope ~cfg task.scope) expr
 
 module DependencySet = Set.Make(struct
   type t = dependency
@@ -241,9 +275,6 @@ let buildId
   let hash = String.sub hash 0 8 in
   (safeName pkg.name ^ "-" ^ safePath pkg.version ^ "-" ^ hash)
 
-let isBuilt ~cfg task =
-  Fs.exists ConfigPath.(task.paths.installPath / "lib" |> toPath(cfg))
-
 let getenv name =
   try Some (Sys.getenv name)
   with Not_found -> None
@@ -273,10 +304,9 @@ let addTaskBindings
   let add key value scope =
     StringMap.add (namespace ^ "." ^ key) value scope
   in
-  let pathToValue p = CommandExpr.Value.String (ConfigPath.toString p) in
-  let addS k v s = add k (CommandExpr.Value.String v) s in
-  let addB k v s = add k (CommandExpr.Value.Bool v) s in
-  let addP k v s = add k (CommandExpr.Value.String (ConfigPath.toString v)) s in
+  let addS k v s = add k (EsyCommandExpression.string v) s in
+  let addB k v s = add k (EsyCommandExpression.bool v) s in
+  let addP k v s = add k (EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v))) s in
   scope
   |> addS "name" pkg.name
   |> addS "version" pkg.version
@@ -284,30 +314,31 @@ let addTaskBindings
   |> addP "original_root" pkg.sourcePath
   |> addP "target_dir" paths.buildPath
   |> addP "install" installPath
-  |> addP "bin" ConfigPath.(installPath / "bin")
-  |> addP "sbin" ConfigPath.(installPath / "sbin")
-  |> addP "lib" ConfigPath.(installPath / "lib")
-  |> addP "man" ConfigPath.(installPath / "man")
-  |> addP "doc" ConfigPath.(installPath / "doc")
-  |> addP "stublibs" ConfigPath.(installPath / "stublibs")
-  |> addP "toplevel" ConfigPath.(installPath / "toplevel")
-  |> addP "share" ConfigPath.(installPath / "share")
-  |> addP "etc" ConfigPath.(installPath / "etc")
+  |> addP "bin" Config.Path.(installPath / "bin")
+  |> addP "sbin" Config.Path.(installPath / "sbin")
+  |> addP "lib" Config.Path.(installPath / "lib")
+  |> addP "man" Config.Path.(installPath / "man")
+  |> addP "doc" Config.Path.(installPath / "doc")
+  |> addP "stublibs" Config.Path.(installPath / "stublibs")
+  |> addP "toplevel" Config.Path.(installPath / "toplevel")
+  |> addP "share" Config.Path.(installPath / "share")
+  |> addP "etc" Config.Path.(installPath / "etc")
   |> addB "installed" true
-  |> StringMap.add "opam:name" (CommandExpr.Value.String (opamPackageName pkg.name))
-  |> StringMap.add "opam:version" (CommandExpr.Value.String pkg.version)
-  |> StringMap.add "opam:prefix" (pathToValue installPath)
-  |> StringMap.add "opam:bin" (pathToValue ConfigPath.(installPath / "bin"))
-  |> StringMap.add "opam:etc" (pathToValue ConfigPath.(installPath / "etc"))
-  |> StringMap.add "opam:doc" (pathToValue ConfigPath.(installPath / "doc"))
-  |> StringMap.add "opam:man" (pathToValue ConfigPath.(installPath / "man"))
-  |> StringMap.add "opam:lib" (pathToValue ConfigPath.(installPath / "lib"))
-  |> StringMap.add "opam:share" (pathToValue ConfigPath.(installPath / "share"))
+  |> addS "opam:name" (opamPackageName pkg.name)
+  |> addS "opam:version" pkg.version
+  |> addP "opam:prefix" installPath
+  |> addP "opam:bin" Config.Path.(installPath / "bin")
+  |> addP "opam:etc" Config.Path.(installPath / "etc")
+  |> addP "opam:doc" Config.Path.(installPath / "doc")
+  |> addP "opam:man" Config.Path.(installPath / "man")
+  |> addP "opam:lib" Config.Path.(installPath / "lib")
+  |> addP "opam:share" Config.Path.(installPath / "share")
 
 let addTaskEnvBindings
   (pkg : Package.t)
   (paths : paths)
   (bindings : Environment.binding list) =
+  let p v = Environment.Value (Config.Value.show (Config.Path.toValue v)) in
   let open Environment in {
     name = "cur__name";
     value = Value pkg.name;
@@ -318,55 +349,55 @@ let addTaskEnvBindings
     origin = Some pkg;
   }::{
     name = "cur__root";
-    value = Value (ConfigPath.toString paths.rootPath);
+    value = p paths.rootPath;
     origin = Some pkg;
   }::{
     name = "cur__original_root";
-    value = Value (ConfigPath.toString pkg.sourcePath);
+    value = p pkg.sourcePath;
     origin = Some pkg;
   }::{
     name = "cur__target_dir";
-    value = Value (ConfigPath.toString paths.buildPath);
+    value = p paths.buildPath;
     origin = Some pkg;
   }::{
     name = "cur__install";
-    value = Value (ConfigPath.toString paths.stagePath);
+    value = p paths.stagePath;
     origin = Some pkg;
   }::{
     name = "cur__bin";
-    value = Value ConfigPath.(paths.stagePath / "bin" |> toString);
+    value = p Config.Path.(paths.stagePath / "bin");
     origin = Some pkg;
   }::{
     name = "cur__sbin";
-    value = Value ConfigPath.(paths.stagePath / "sbin" |> toString);
+    value = p Config.Path.(paths.stagePath / "sbin");
     origin = Some pkg;
   }::{
     name = "cur__lib";
-    value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
+    value = p Config.Path.(paths.stagePath / "lib");
     origin = Some pkg;
   }::{
     name = "cur__man";
-    value = Value ConfigPath.(paths.stagePath / "man" |> toString);
+    value = p Config.Path.(paths.stagePath / "man");
     origin = Some pkg;
   }::{
     name = "cur__doc";
-    value = Value ConfigPath.(paths.stagePath / "doc" |> toString);
+    value = p Config.Path.(paths.stagePath / "doc");
     origin = Some pkg;
   }::{
     name = "cur__stublibs";
-    value = Value ConfigPath.(paths.stagePath / "stublibs" |> toString);
+    value = p Config.Path.(paths.stagePath / "stublibs");
     origin = Some pkg;
   }::{
     name = "cur__toplevel";
-    value = Value ConfigPath.(paths.stagePath / "toplevel" |> toString);
+    value = p Config.Path.(paths.stagePath / "toplevel");
     origin = Some pkg;
   }::{
     name = "cur__share";
-    value = Value ConfigPath.(paths.stagePath / "share" |> toString);
+    value = p Config.Path.(paths.stagePath / "share");
     origin = Some pkg;
   }::{
     name = "cur__etc";
-    value = Value ConfigPath.(paths.stagePath / "etc" |> toString);
+    value = p Config.Path.(paths.stagePath / "etc");
     origin = Some pkg;
   }::bindings
 
@@ -374,7 +405,7 @@ let ofPackage
     ?(includeRootDevDependenciesInEnv=false)
     ?(overrideShell=true)
     ?(forceImmutable=false)
-    ?(system=System.Platform.host)
+    ?(platform=System.Platform.host)
     ?initTerm
     ?initPath
     ?initManPath
@@ -521,25 +552,25 @@ let ofPackage
     let paths =
       let storePath =
         match sourceType with
-        | Manifest.SourceType.Immutable -> ConfigPath.store
-        | Manifest.SourceType.Transient -> ConfigPath.localStore
+        | Manifest.SourceType.Immutable -> Config.Path.store
+        | Manifest.SourceType.Transient -> Config.Path.localStore
       in
       let buildPath =
-        ConfigPath.(storePath / Store.buildTree / id)
+        Config.Path.(storePath / Store.buildTree / id)
       in
       let buildInfoPath =
         let name = id ^ ".info" in
-        ConfigPath.(storePath / Store.buildTree / name)
+        Config.Path.(storePath / Store.buildTree / name)
       in
       let stagePath =
-        ConfigPath.(storePath / Store.stageTree / id)
+        Config.Path.(storePath / Store.stageTree / id)
       in
       let installPath =
-        ConfigPath.(storePath / Store.installTree / id)
+        Config.Path.(storePath / Store.installTree / id)
       in
       let logPath =
         let basename = id ^ ".log" in
-        ConfigPath.(storePath / Store.buildTree / basename)
+        Config.Path.(storePath / Store.buildTree / basename)
       in
       let rootPath =
         match pkg.build, sourceType with
@@ -589,11 +620,11 @@ let ofPackage
       let bindings =
         StringMap.(
           empty
-          |> add "opam:make" (CommandExpr.Value.String "make")
-          |> add "opam:ocaml-native" (CommandExpr.Value.Bool true)
-          |> add "opam:ocaml-native-dynlink" (CommandExpr.Value.Bool true)
-          |> add "opam:jobs" (CommandExpr.Value.String "4")
-          |> add "opam:pinned" (CommandExpr.Value.Bool false)
+          |> add "opam:make" (EsyCommandExpression.string "make")
+          |> add "opam:ocaml-native" (EsyCommandExpression.bool true)
+          |> add "opam:ocaml-native-dynlink" (EsyCommandExpression.bool true)
+          |> add "opam:jobs" (EsyCommandExpression.string "4")
+          |> add "opam:pinned" (EsyCommandExpression.bool false)
         )
       in
       let bindings =
@@ -627,30 +658,21 @@ let ofPackage
             pkg
             paths
       in
-      let lookup bindings (namespace, name) =
-        let key =
-          match namespace, name with
-          | Some namespace, name -> namespace ^ "." ^ name
-          | None, name -> name
-        in
-        match StringMap.find key bindings with
-        | Some v -> Some v
-        | None ->
-          begin match name with
-          | "installed" -> Some (CommandExpr.Value.Bool false)
-          | _ -> None
-          end
-      in
-      lookup bindingsForExportedEnv, lookup bindingsForCommands
+      bindingsForExportedEnv, bindingsForCommands
     in
-
 
     let%bind globalEnv, localEnv =
       let f acc Manifest.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
         let context = Printf.sprintf "processing exportedEnv $%s" name in
         Run.withContext context (
-          let%bind value = renderCommandExpr ~system ~name ~scope:scopeForExportEnv value in
+          let%bind value =
+            renderCommandExpr
+              ~platform
+              ~name
+              ~scope:(lookupInScope scopeForExportEnv)
+              value
+          in
           match envScope with
           | Manifest.ExportedEnv.Global ->
             let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath in
@@ -667,9 +689,9 @@ let ofPackage
       in
       let%bind globalEnv = if injectCamlLdLibraryPath then
         let%bind value = renderCommandExpr
-          ~system
+          ~platform
           ~name:"CAML_LD_LIBRARY_PATH"
-          ~scope:scopeForExportEnv
+          ~scope:(lookupInScope scopeForExportEnv)
           "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
         in
         Ok (Environment.{
@@ -687,9 +709,9 @@ let ofPackage
       let f {Manifest.Env. name; value;} =
         let%bind value =
           renderCommandExpr
-            ~system
+            ~platform
             ~name
-            ~scope:scopeForCommands
+            ~scope:(lookupInScope scopeForCommands)
             value
         in
         return {
@@ -704,31 +726,33 @@ let ofPackage
     in
 
     let buildEnv =
+      let p v = Config.(Value.show (Path.toValue v)) in
 
       (* All dependencies (transitive included contribute env exported to the
        * global scope (hence global)
       *)
       let globalEnvOfAllDeps =
+
         let getGlobalEnvForTask task =
           let path = Environment.{
             origin = Some task.pkg;
             name = "PATH";
             value =
-              let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
+              let value = p Config.Path.(task.paths.installPath / "bin") in
               Value (value ^ System.Environment.sep ^ "$PATH")
           }
           and manPath = Environment.{
             origin = Some task.pkg;
             name = "MAN_PATH";
             value =
-              let value = ConfigPath.(task.paths.installPath / "bin" |> toString) in
+              let value = p Config.Path.(task.paths.installPath / "bin") in
               Value (value ^ System.Environment.sep ^ "$MAN_PATH")
           }
           and ocamlpath = Environment.{
             origin = Some task.pkg;
             name = "OCAMLPATH";
             value =
-              let value = ConfigPath.(task.paths.installPath / "lib" |> toString) in
+              let value = p Config.Path.(task.paths.installPath / "lib") in
               Value (value ^ System.Environment.sep ^ "$OCAMLPATH")
           } in
           path::manPath::ocamlpath::task.globalEnv
@@ -755,7 +779,7 @@ let ofPackage
       let ocamlfindDestdir = Environment.{
           origin = None;
           name = "OCAMLFIND_DESTDIR";
-          value = Value ConfigPath.(paths.stagePath / "lib" |> toString);
+          value = Value (p Config.Path.(paths.stagePath / "lib"));
         } in
 
       let ocamlfindLdconf = Environment.{
@@ -846,7 +870,11 @@ let ofPackage
     in
 
     let renderEsyCommands commands =
-      CommandList.render ~system ~env ~scope:scopeForCommands commands
+      CommandList.render
+        ~platform
+        ~env
+        ~scope:(lookupInScope scopeForCommands)
+        commands
     in
 
     let opamEnvByDependency =
@@ -854,18 +882,18 @@ let ofPackage
         match task.pkg.build with
         | Package.OpamBuild {name; version;_} ->
           let open OpamVariable in
-          let path v = string (ConfigPath.toString v) in
+          let path v = string (Config.Value.show (Config.Path.toValue v)) in
           let vars = StringMap.(
             empty
             |> add "name" (string name)
             |> add "version" (string version)
-            |> add "bin" (path ConfigPath.(task.paths.installPath / "bin"))
-            |> add "sbin" (path ConfigPath.(task.paths.installPath / "sbin"))
-            |> add "etc" (path ConfigPath.(task.paths.installPath / "etc"))
-            |> add "doc" (path ConfigPath.(task.paths.installPath / "doc"))
-            |> add "man" (path ConfigPath.(task.paths.installPath / "man"))
-            |> add "share" (path ConfigPath.(task.paths.installPath / "share"))
-            |> add "lib" (path ConfigPath.(task.paths.installPath / "lib"))
+            |> add "bin" (path Config.Path.(task.paths.installPath / "bin"))
+            |> add "sbin" (path Config.Path.(task.paths.installPath / "sbin"))
+            |> add "etc" (path Config.Path.(task.paths.installPath / "etc"))
+            |> add "doc" (path Config.Path.(task.paths.installPath / "doc"))
+            |> add "man" (path Config.Path.(task.paths.installPath / "man"))
+            |> add "share" (path Config.Path.(task.paths.installPath / "share"))
+            |> add "lib" (path Config.Path.(task.paths.installPath / "lib"))
             |> add "build" (path task.paths.buildPath)
           ) in
           StringMap.add name vars map
@@ -881,10 +909,10 @@ let ofPackage
       let open OpamVariable in
       let var = Full.variable name in
       let scope = Full.scope name in
-      let path v = string (ConfigPath.toString v) in
+      let path v = string (Config.Value.show (Config.Path.toValue v)) in
       let v =
         match scope, to_string var with
-        | Full.Global, "os" -> Some (string (System.Platform.show system))
+        | Full.Global, "os" -> Some (string (System.Platform.show platform))
         | Full.Global, "ocaml-version" ->
           let open Option.Syntax in
           let%bind ocamlVersion = ocamlVersion in
@@ -896,13 +924,13 @@ let ofPackage
         | Full.Global, "version" -> Some (string build.version)
         | Full.Global, "jobs" -> Some (string "4")
         | Full.Global, "prefix" -> Some (path paths.stagePath)
-        | Full.Global, "bin" -> Some (path ConfigPath.(paths.stagePath / "bin"))
-        | Full.Global, "sbin" -> Some (path ConfigPath.(paths.stagePath / "sbin"))
-        | Full.Global, "etc" -> Some (path ConfigPath.(paths.stagePath / "etc"))
-        | Full.Global, "doc" -> Some (path ConfigPath.(paths.stagePath / "doc"))
-        | Full.Global, "man" -> Some (path ConfigPath.(paths.stagePath / "man"))
-        | Full.Global, "share" -> Some (path ConfigPath.(paths.stagePath / "share"))
-        | Full.Global, "lib" -> Some (path ConfigPath.(paths.stagePath / "lib"))
+        | Full.Global, "bin" -> Some (path Config.Path.(paths.stagePath / "bin"))
+        | Full.Global, "sbin" -> Some (path Config.Path.(paths.stagePath / "sbin"))
+        | Full.Global, "etc" -> Some (path Config.Path.(paths.stagePath / "etc"))
+        | Full.Global, "doc" -> Some (path Config.Path.(paths.stagePath / "doc"))
+        | Full.Global, "man" -> Some (path Config.Path.(paths.stagePath / "man"))
+        | Full.Global, "share" -> Some (path Config.Path.(paths.stagePath / "share"))
+        | Full.Global, "lib" -> Some (path Config.Path.(paths.stagePath / "lib"))
         | Full.Global, "build" -> Some (path paths.buildPath)
         | Full.Global, "pinned" -> Some (bool false)
         | Full.Global, _ -> None
@@ -1036,6 +1064,9 @@ let ofPackage
       sourceType;
 
       dependencies;
+
+      platform = platform;
+      scope = scopeForExportEnv;
     } in
 
     return task
@@ -1135,13 +1166,14 @@ let toBuildProtocol (task : task) =
     version = task.pkg.version;
     sourceType = task.sourceType;
     buildType;
-    build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.ofString) task.buildCommands;
-    install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.ofString) task.installCommands;
-    sourcePath = EsyBuildPackage.Config.Value.ofString (ConfigPath.toString task.paths.sourcePath);
+    build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.buildCommands;
+    install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.installCommands;
+    sourcePath =
+      EsyBuildPackage.Config.Value.v (Config.Value.show (Config.Path.toValue task.paths.sourcePath));
     env =
       task.env
       |> Environment.Closed.value
-      |> Astring.String.Map.map EsyBuildPackage.Config.Value.ofString;
+      |> Astring.String.Map.map EsyBuildPackage.Config.Value.v;
   }
 
 let toBuildProtocolString ?(pretty=false) (task : task) =
@@ -1153,7 +1185,7 @@ let toBuildProtocolString ?(pretty=false) (task : task) =
 
 (** Check if task is a root task with the current config. *)
 let isRoot ~cfg task =
-  let sourcePath = ConfigPath.toPath cfg task.paths.sourcePath in
+  let sourcePath = Config.Path.toPath cfg task.paths.sourcePath in
   Path.equal cfg.Config.sandboxPath sourcePath
 
 let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
@@ -1260,3 +1292,6 @@ let importBuild (cfg : Config.t) buildPath =
         ChildProcess.run cmd
       in
       importFromDir stagePath
+
+let isBuilt ~cfg task =
+  Fs.exists Config.Path.(task.paths.installPath / "lib" |> toPath(cfg))

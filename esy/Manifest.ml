@@ -23,6 +23,8 @@ module CommandList = struct
     Command.t list option
     [@@deriving (show, eq, ord)]
 
+  let empty = None
+
   let of_yojson (json : Json.t) =
     let open Result.Syntax in
     let commands =
@@ -49,7 +51,7 @@ end
 module Scripts = struct
 
   type script = {
-    command : Cmd.t;
+    command : CommandList.Command.t;
   }
   [@@deriving (show, eq, ord)]
 
@@ -65,12 +67,15 @@ module Scripts = struct
     vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
 
   let of_yojson =
-    let errorMsg =
-      "A command in \"scripts\" expects a string or an array of strings"
-    in
     let script (json: Json.t) =
-      match Json.Parse.cmd ~errorMsg json with
-      | Ok command -> Ok {command;}
+      match CommandList.of_yojson json with
+      | Ok command ->
+        begin match command with
+        | None
+        | Some [] -> Error "empty command"
+        | Some [command] -> Ok {command;}
+        | Some _ -> Error "multiple script commands are not supported"
+        end
       | Error err -> Error err
     in
     Json.Parse.stringMap script
@@ -204,8 +209,8 @@ end
 module EsyManifest = struct
 
   type t = {
-    build: (CommandList.t [@default None]);
-    install: (CommandList.t [@default None]);
+    build: (CommandList.t [@default CommandList.empty]);
+    install: (CommandList.t [@default CommandList.empty]);
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default []]);
     buildEnv: (Env.t [@default Env.empty]);

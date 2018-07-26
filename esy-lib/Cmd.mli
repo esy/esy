@@ -58,3 +58,5 @@ val resolveCmd : string list -> string -> (string, [> `Msg of string ]) result
  *)
 val toBosCmd : t -> Bos.Cmd.t
 val ofBosCmd : Bos.Cmd.t -> (t, [> `Msg of string ]) result
+
+val ofListExn : string list -> t

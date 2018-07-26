@@ -27,7 +27,7 @@ type t = {
   name : string;
   version : string;
   dependencies : dependencies;
-  sourcePath : Config.ConfigPath.t;
+  sourcePath : Config.Path.t;
   sourceType : Manifest.SourceType.t;
   sandboxEnv : Manifest.Env.t;
   buildEnv : Manifest.Env.t;
