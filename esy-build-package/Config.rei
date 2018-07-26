@@ -28,7 +28,7 @@ module Value: {
   let pp : Fmt.t(t);
   let equal : t => t => bool;
 
-  let ofString: string => t;
+  let v: string => t;
   let toString : (~cfg: config, t) => Run.t(string, _);
 
   let of_yojson: EsyLib.Json.decoder(t);

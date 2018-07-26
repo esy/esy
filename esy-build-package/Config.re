@@ -64,7 +64,7 @@ module Value = {
   let pp = Fmt.string;
   let equal = String.equal;
 
-  let ofString = v => v;
+  let v = v => v;
 
   let toString = (~cfg, v) => {
     let lookupVar =
