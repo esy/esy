@@ -3,8 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const {initFixture, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation.")
 
 describe('Common - symlink workflow', async () => {
   let p;

@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {initFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 describe('Common - command-env', () => {
   it('generates valid environmenmt with deps and devdeps in $PATH', async () => {

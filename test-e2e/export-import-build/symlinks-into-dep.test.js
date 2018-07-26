@@ -5,9 +5,12 @@ const fs = require('fs-extra');
 const tar = require('tar');
 const del = require('del');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
 
 describe('export import build - import symlinks into dep', async () => {
+
+  skipSuiteOnWindows("#210");
+
   let p;
 
   beforeAll(async () => {

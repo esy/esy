@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
 
 describe('Build - with linked dep _build', () => {
   let p;

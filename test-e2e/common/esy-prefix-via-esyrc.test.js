@@ -4,7 +4,9 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 it('Common - esy prefix via esyrc', async () => {
   expect.assertions(2);

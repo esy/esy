@@ -6,7 +6,9 @@ const {promisify} = require('util');
 const open = promisify(fs.open);
 const close = promisify(fs.close);
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
 
 describe('Build - with linked dep', () => {
   let p;

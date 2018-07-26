@@ -3,8 +3,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const {initFixture, promiseExec, ESYCOMMAND} = require('../test/helpers');
 
 describe('Common - anycmd', () => {
   let p;

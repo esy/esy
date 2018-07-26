@@ -72,7 +72,7 @@ function packageJson(json: Object) {
 }
 
 async function genFixture(...fixture: Fixture) {
-  const rootPath = await fs.mkdtemp('/tmp/esy.XXXX');
+  const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), '/tmp/esy.XXXX'));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const esyPrefixPath = path.join(rootPath, 'esy');
@@ -110,13 +110,14 @@ async function genFixture(...fixture: Fixture) {
   return {rootPath, binPath, projectPath, esy};
 }
 
-
 function skipSuiteOnWindows(msg) {
-    if (process.platform === 'win32') {
-        fit('does not work on Windows', () => {
-            console.warn('[SKIP] Does not work on Windows: ' + msg)
-        })
-    }
+   if (process.platform === 'win32') {
+      fdescribe("", () => {
+         fit('does not work on Windows', () => {
+            console.warn('[SKIP] Does not work on Windows: ' + msg);
+         });
+      });
+   }
 }
 
 module.exports = {
@@ -127,4 +128,5 @@ module.exports = {
   packageJson,
   genFixture,
   skipSuiteOnWindows,
+  ESYCOMMAND,
 };

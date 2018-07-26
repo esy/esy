@@ -1,7 +1,9 @@
 // @flow
 
 const path = require('path');
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
 
 describe('Build - with dep', () => {
   it('package "dep" should be visible in all envs', async () => {

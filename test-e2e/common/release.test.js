@@ -2,7 +2,9 @@
 
 const path = require('path');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {initFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 it('Common - release', async () => {
   jest.setTimeout(300000);

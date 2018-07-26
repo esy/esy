@@ -3,9 +3,11 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
 
 describe('Build - has build time deps', () => {
+
+  skipSuiteOnWindows("#272");
 
   let p;
 

@@ -1,6 +1,8 @@
 // @flow
 
-const {file, dir, packageJson, genFixture, promiseExec} = require('../test/helpers.js');
+const {file, dir, packageJson, genFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers.js');
+
+skipSuiteOnWindows("#272");
 
 describe('build opam sandbox', () => {
 

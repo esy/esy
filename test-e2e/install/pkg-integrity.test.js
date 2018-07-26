@@ -1,6 +1,9 @@
 /* @flow */
 
+const {skipSuiteOnWindows} = require("./../test/helpers")
 const tests = require('./setup');
+
+skipSuiteOnWindows("Needs investigation.");
 
 describe('Testing integrity of downloaded packages', function() {
   test(
@@ -24,7 +27,7 @@ describe('Testing integrity of downloaded packages', function() {
         );
 
         try {
-          await run(`install`);
+          await run(setup.InstallCommand);
         } catch (err) {
           expect(/sha1 checksum mismatch/.exec(err)).toBeTruthy();
         }

@@ -3,6 +3,10 @@
 const {join} = require('path');
 const setup = require('./setup');
 
+const {skipTestSuiteOnWindows} = require("./../test/helpers");
+
+skipTestSuiteOnWindows("Needs investigation");
+
 describe(`Basic tests for npm packages`, () => {
   test(
     `it should correctly install a single dependency that contains no sub-dependencies`,
@@ -13,7 +17,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`no-deps`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('no-deps')`)).resolves.toMatchObject({
           name: `no-deps`,
@@ -32,7 +36,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`one-fixed-dep`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('one-fixed-dep')`)).resolves.toMatchObject({
           name: `one-fixed-dep`,
@@ -57,7 +61,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`one-range-dep`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('one-range-dep')`)).resolves.toMatchObject({
           name: `one-range-dep`,
@@ -100,7 +104,7 @@ describe(`Basic tests for npm packages`, () => {
           output: 'HELLO',
         });
 
-        await run(`install`);
+        await run('install');
 
         {
           const binPath = join(path, 'node_modules', '.bin', 'dep');
@@ -152,7 +156,7 @@ describe(`Basic tests for npm packages`, () => {
           output: 'HELLO2',
         });
 
-        await run(`install`);
+        await run('install');
 
         {
           const binPath = join(path, 'node_modules', '.bin', 'dep');
@@ -187,7 +191,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`dep-loop-entry`]: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(
           source(
@@ -208,7 +212,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`no-deps`]: setup.getPackageArchivePath(`no-deps`, `1.0.0`)},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('no-deps')`)).resolves.toMatchObject({
           name: `no-deps`,
@@ -229,7 +233,7 @@ describe(`Basic tests for npm packages`, () => {
         },
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('one-fixed-dep')`)).resolves.toMatchObject({
           name: `one-fixed-dep`,
@@ -254,7 +258,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`no-deps`]: setup.getPackageHttpArchivePath(`no-deps`, `1.0.0`)},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('no-deps')`)).resolves.toMatchObject({
           name: `no-deps`,
@@ -275,7 +279,7 @@ describe(`Basic tests for npm packages`, () => {
         },
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('one-fixed-dep')`)).resolves.toMatchObject({
           name: `one-fixed-dep`,
@@ -300,7 +304,7 @@ describe(`Basic tests for npm packages`, () => {
         dependencies: {[`no-deps`]: setup.getPackageDirectoryPath(`no-deps`, `1.0.0`)},
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('no-deps')`)).resolves.toMatchObject({
           name: `no-deps`,
@@ -321,7 +325,7 @@ describe(`Basic tests for npm packages`, () => {
         },
       },
       async ({path, run, source}) => {
-        await run(`install`);
+        await run('install');
 
         await expect(source(`require('one-fixed-dep')`)).resolves.toMatchObject({
           name: `one-fixed-dep`,

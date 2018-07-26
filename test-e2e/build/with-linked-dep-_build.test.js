@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
 
 describe('Build - with linked dep _build',  () => {
 
@@ -23,7 +25,6 @@ describe('Build - with linked dep _build',  () => {
 
     const x = await p.esy('x dep');
     expect(x.stdout).toEqual(expecting);
-
 
     const {stdout} = await p.esy('x with-linked-dep-_build');
     expect(stdout).toEqual(expect.stringMatching('with-linked-dep-_build'));

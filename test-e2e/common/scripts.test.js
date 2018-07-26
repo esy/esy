@@ -2,7 +2,9 @@
 
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
 
 it('Common - scripts', async () => {
   const p = await initFixture(path.join(__dirname, 'fixtures/scripts-workflow'));

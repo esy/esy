@@ -2,9 +2,9 @@
 
 const path = require('path');
 
-const {initFixture, skipTestOnWindows} = require('../test/helpers');
+const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
 
-skipTestOnWindows("#272 - needs to be converted to use OCaml scripts for validation");
+skipSuiteOnWindows("#272");
 
 it('Build - creates symlinks', async () => {
   expect.assertions(4);

@@ -2,6 +2,9 @@
 
 const {join} = require('path');
 const setup = require('./setup');
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows("Needs investigation");
 
 describe(`installing linked packages`, () => {
   test(
@@ -28,7 +31,7 @@ describe(`installing linked packages`, () => {
           },
         });
 
-        await run(`install`);
+        await run('install');
 
         const layout = await setup.crawlLayout(path);
         expect(layout).toMatchObject({

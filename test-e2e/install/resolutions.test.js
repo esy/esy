@@ -2,6 +2,10 @@
 
 const setup = require('./setup');
 
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows("Needs investigation");
+
 describe(`Installing with resolutions`, () => {
   test(
     `it should prefer resolution over dependencies for the root`,
@@ -25,7 +29,7 @@ describe(`Installing with resolutions`, () => {
           esy: {},
         });
 
-        await run(`install`);
+        await run('install');
 
         const layout = await setup.crawlLayout(path);
         expect(layout).toMatchObject({
@@ -69,7 +73,7 @@ describe(`Installing with resolutions`, () => {
           version: '2.0.0',
         });
 
-        await run(`install`);
+        await run('install');
 
         const layout = await setup.crawlLayout(path);
         expect(layout).toMatchObject({
