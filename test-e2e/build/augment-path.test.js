@@ -2,7 +2,9 @@
 
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {initFixture, skipTestOnWindows } = require('../test/helpers');
+
+skipTestOnWindows("#272 - needs to be converted to use OCaml scripts for validation");
 
 describe('Build - augment path', () => {
   it('package "dep" should be visible in all envs', async () => {

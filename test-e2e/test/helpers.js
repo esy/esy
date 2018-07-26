@@ -4,16 +4,17 @@ jest.setTimeout(20000);
 
 const path = require('path');
 const fs = require('fs-extra');
+const os = require('os');
 const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const ESYCOMMAND = require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe');
 
 async function initFixture(fixture: string) {
-  const rootPath = await fs.mkdtemp('/tmp/esy.XXXX');
+  const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), 'esy.XXXX'));
   const projectPath = path.join(rootPath, 'project');
-  const binPath = path.join(rootPath, 'bin');
+  const binPath = path.join(rootPath, '_release');
   const esyPrefixPath = path.join(rootPath, 'esy');
   const npmPrefixPath = path.join(rootPath, 'npm');
 
@@ -109,6 +110,15 @@ async function genFixture(...fixture: Fixture) {
   return {rootPath, binPath, projectPath, esy};
 }
 
+
+function skipSuiteOnWindows(msg) {
+    if (process.platform === 'win32') {
+        fit('does not work on Windows', () => {
+            console.warn('[SKIP] Does not work on Windows: ' + msg)
+        })
+    }
+}
+
 module.exports = {
   initFixture,
   promiseExec,
@@ -116,4 +126,5 @@ module.exports = {
   dir,
   packageJson,
   genFixture,
+  skipSuiteOnWindows,
 };
