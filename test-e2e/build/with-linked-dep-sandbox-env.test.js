@@ -10,7 +10,7 @@ skipSuiteOnWindows("#272");
 describe('Build - with linked dep _build', () => {
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await initFixture(path.join(__dirname, './fixtures/with-linked-dep-sandbox-env'));
     await p.esy('build');
   });

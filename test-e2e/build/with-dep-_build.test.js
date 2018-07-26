@@ -9,7 +9,7 @@ describe('Build - with dep _build', () => {
 
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await initFixture(path.join(__dirname, './fixtures/with-dep-_build'));
     await p.esy('build');
   });

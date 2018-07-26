@@ -7,13 +7,13 @@ const del = require('del');
 
 const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
 
-describe('export import build - import symlinks into dep', async () => {
+skipSuiteOnWindows("#210");
 
-  skipSuiteOnWindows("#210");
+describe('export import build - import symlinks into dep', async () => {
 
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await initFixture(path.join(__dirname, './fixtures/symlinks-into-dep'));
     await p.esy('build');
   });

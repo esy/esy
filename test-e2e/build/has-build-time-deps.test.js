@@ -5,13 +5,13 @@ const path = require('path');
 
 const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
 
-describe('Build - has build time deps', () => {
+skipSuiteOnWindows("#272");
 
-  skipSuiteOnWindows("#272");
+describe('Build - has build time deps', () => {
 
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await initFixture(path.join(__dirname, './fixtures/has-build-time-deps'));
     await p.esy('build');
   });

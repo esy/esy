@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {initFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 describe('Common - ejected command env', () => {
   it('Check that `esy build` ejects a command-env which contains deps and devDeps in $PATH', async () => {

@@ -1,6 +1,9 @@
 /* @flow */
 
 const tests = require('./setup');
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows("Needs investigation");
 
 describe('Installing devDependencies', function() {
   test(

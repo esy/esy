@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec, ESYCOMMAND} = require('../test/helpers');
+const {initFixture, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
 
 describe('Common - x anycmd', async () => {
   let p;
@@ -29,7 +31,6 @@ describe('Common - x anycmd', async () => {
 
   it('Make sure we can pass environment from the outside dynamically', async () => {
     expect.assertions(2);
-
     process.env.X = '1';
     await expect(p.esy('x bash -c "echo $X"')).resolves.toEqual({
       stdout: '1\n',

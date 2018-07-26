@@ -110,11 +110,11 @@ async function genFixture(...fixture: Fixture) {
   return {rootPath, binPath, projectPath, esy};
 }
 
-function skipSuiteOnWindows(msg) {
+function skipSuiteOnWindows(blockingIssues) {
    if (process.platform === 'win32') {
       fdescribe("", () => {
          fit('does not work on Windows', () => {
-            console.warn('[SKIP] Does not work on Windows: ' + msg);
+            console.warn('[SKIP] Does not work on Windows: ' + blockingIssues);
          });
       });
    }

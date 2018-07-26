@@ -3,6 +3,10 @@
 const path = require('path');
 const {initFixture} = require('../test/helpers');
 
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows("#272");
+
 it('Build - no deps backslash', async () => {
   expect.assertions(1);
   const p = await initFixture(path.join(__dirname, './fixtures/no-deps-backslash'));

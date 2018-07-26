@@ -4,9 +4,9 @@ const path = require('path');
 
 const {initFixture, skipSuiteOnWindows } = require('../test/helpers');
 
-describe('Build - augment path', () => {
+skipSuiteOnWindows("#272");
 
-  skipSuiteOnWindows("#272");
+describe('Build - augment path', () => {
 
   it('package "dep" should be visible in all envs', async () => {
     expect.assertions(3);

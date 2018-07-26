@@ -3,13 +3,15 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec, ESYCOMMAND} = require('../test/helpers');
+const {initFixture, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 describe('Common - anycmd', () => {
   let p;
   let prevEnv = {...process.env};
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
     await p.esy('build');
   });

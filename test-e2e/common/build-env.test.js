@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {initFixture, promiseExec, skipTestSuiteOnWindows} = require('../test/helpers');
+
+skipTestSuiteOnWindows("#301");
 
 describe('Common - build-env', () => {
   it('generates an environment with deps in $PATH', async () => {

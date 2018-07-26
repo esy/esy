@@ -56,7 +56,7 @@ describe(`Dragon tests`, () => {
         //
         // This test simply makes sure that this edge case doesn't crash the install.
 
-        await run(setup.InstallCommand);
+        await run('install');
       },
     ),
   );
