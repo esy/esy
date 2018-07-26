@@ -15,7 +15,7 @@ module Expr = struct
     | Colon
     | PathSep
     | OpamVar of opamVar
-    [@@deriving (show, eq)]
+    [@@deriving (show, eq, ord)]
 
   and opamVar = string list * string
 
@@ -31,7 +31,7 @@ module Value = struct
   type t =
     | String of string
     | Bool of bool
-    [@@deriving (show, eq)]
+    [@@deriving (show, eq, ord)]
 end
 
 type scope = Expr.name -> Value.t option

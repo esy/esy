@@ -1,7 +1,8 @@
 module V = Types.Value
 module E = Types.Expr
 
-type value = Types.Value.t
+module Value = Types.Value
+
 type scope = Types.scope
 
 let bool v = V.Bool v

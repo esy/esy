@@ -39,12 +39,21 @@
  *
  *)
 
-type value
+module Value : sig
+  type t =
+    | String of string
+    | Bool of bool
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val show : t -> string
+  val pp : Format.formatter -> t -> unit
+end
 
-val bool : bool -> value
-val string : string -> value
 
-type scope = string option * string -> value option
+val bool : bool -> Value.t
+val string : string -> Value.t
+
+type scope = string option * string -> Value.t option
 
 (** Render command expression into a string given the [scope]. *)
 val render :
