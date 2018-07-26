@@ -46,7 +46,7 @@ module TestCommandExpr = struct
     ];
     sandboxEnv = [];
     buildEnv = [];
-    sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
+    sourcePath = Config.Path.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
 
@@ -67,12 +67,12 @@ module TestCommandExpr = struct
     exportedEnv = [];
     buildEnv = [];
     sandboxEnv = [];
-    sourcePath = Config.ConfigPath.ofPath cfg (Path.v "/path");
+    sourcePath = Config.Path.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
 
-  let check ?system pkg f =
-    match Task.ofPackage ?system pkg with
+  let check ?platform pkg f =
+    match Task.ofPackage ?platform pkg with
     | Ok task ->
       f task
     | Error err ->
@@ -81,10 +81,13 @@ module TestCommandExpr = struct
 
   let%test "#{...} inside esy.build" =
     check pkg (fun task ->
-      Task.CommandList.equal
+      Task.CommandList.(equal
         task.buildCommands
-        [["cp"; "./hello"; "%store%/s/pkg-1.0.0-da68ba0e/bin"];
-         ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-da68ba0e/bin"]]
+        (make [
+          ["cp"; "./hello"; "%store%/s/pkg-1.0.0-da68ba0e/bin"];
+          ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-da68ba0e/bin"];
+          ])
+      )
     )
 
   let%test "#{...} inside esy.build / esy.install (depends on os)" =
@@ -100,31 +103,36 @@ module TestCommandExpr = struct
         buildType = Manifest.BuildType.InSource;
       }
     } in
-    check ~system:System.Platform.Linux pkg (fun task ->
-      Task.CommandList.equal
+    check ~platform:System.Platform.Linux pkg (fun task ->
+      Task.CommandList.(equal
         task.buildCommands
-        [["apt-get"; "install"; "pkg"]]
+        (make [["apt-get"; "install"; "pkg"]])
+      )
       &&
-      Task.CommandList.equal
+      Task.CommandList.(equal
         task.installCommands
-        [["make"; "install-linux"]]
+        (make [["make"; "install-linux"]])
+      )
     )
     &&
-    check ~system:System.Platform.Darwin pkg (fun task ->
-      Task.CommandList.equal
+    check ~platform:System.Platform.Darwin pkg (fun task ->
+      Task.CommandList.(equal
         task.buildCommands
-        [["true"]]
+        (make [["true"]])
+      )
       &&
-      Task.CommandList.equal
+      Task.CommandList.(equal
         task.installCommands
-        [["make"; "install"]]
+        (make [["make"; "install"]])
+      )
     )
 
   let%test "#{self...} inside esy.install" =
     check pkg (fun task ->
-      Task.CommandList.equal
+      Task.CommandList.(equal
         task.installCommands
-        [["cp"; "./man"; "%store%/s/pkg-1.0.0-da68ba0e/man"]]
+        (make [["cp"; "./man"; "%store%/s/pkg-1.0.0-da68ba0e/man"]])
+      )
     )
 
   let%test "#{...} inside esy.exportedEnv" =
@@ -187,13 +195,13 @@ let checkEnvExists ~name ~value task =
       pkg with
       dependencies = [Dependency dep];
     } in
-    check ~system:System.Platform.Linux pkg (fun task ->
+    check ~platform:System.Platform.Linux pkg (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib" task
     )
     &&
-    check ~system:System.Platform.Windows pkg (fun task ->
+    check ~platform:System.Platform.Windows pkg (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one;two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin;/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib/ocaml" task

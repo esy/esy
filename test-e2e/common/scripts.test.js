@@ -2,10 +2,38 @@
 
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {packageJson, file, genFixture} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "simple-project",
+    "version": "1.0.0",
+    "scripts": {
+      "cmd1": "bash -c 'echo 'cmd1_result''",
+      "cmd2": "esy bash -c 'echo 'cmd2_result''",
+      "cmd3": [["bash", "-c", "echo 'cmd_array_result'"]],
+      "cmd4": "script",
+      "exec_cmd1": "esy x script",
+      "exec_cmd2": [["esy", "x", "script"]],
+      "build_cmd": "esy b bash -c 'echo 'build_cmd_result''"
+    },
+    "esy": {
+      "build": [
+        ["cp", "script.sh", "#{self.target_dir / 'script'}"],
+        "chmod +x $cur__target_dir/script"
+      ],
+      "install": ["cp $cur__target_dir/script $cur__bin/script"]
+    },
+  }),
+  file('script.sh', `
+#!/bin/bash
+
+echo 'script_exec_result'
+  `.trim())
+];
 
 it('Common - scripts', async () => {
-  const p = await initFixture(path.join(__dirname, 'fixtures/scripts-workflow'));
+  const p = await genFixture(...fixture);
   await p.esy('build');
 
   await expect(p.esy('cmd1')).resolves.toEqual(
