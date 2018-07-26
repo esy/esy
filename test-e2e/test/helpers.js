@@ -1,7 +1,5 @@
 // @flow
 
-jest.setTimeout(20000);
-
 const path = require('path');
 const fs = require('fs-extra');
 const childProcess = require('child_process');
@@ -11,10 +9,10 @@ const promiseExec = promisify(childProcess.exec);
 const ESYCOMMAND = require.resolve('../../bin/esy');
 
 async function initFixture(fixture: string) {
-  const rootPath = await fs.mkdtemp('/tmp/esy.XXXX');
+  const rootPath = await fs.mkdtemp('/tmp/esy-test/XXXX');
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
-  const esyPrefixPath = path.join(rootPath, 'esy');
+  const esyPrefixPath = path.join('/tmp/esy-test', 'esy');
   const npmPrefixPath = path.join(rootPath, 'npm');
 
   await fs.mkdir(binPath);
@@ -71,10 +69,10 @@ function packageJson(json: Object) {
 }
 
 async function genFixture(...fixture: Fixture) {
-  const rootPath = await fs.mkdtemp('/tmp/esy.XXXX');
+  const rootPath = await fs.mkdtemp('/tmp/esy-test/XXXX');
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
-  const esyPrefixPath = path.join(rootPath, 'esy');
+  const esyPrefixPath = path.join('/tmp/esy-test', 'esy');
 
   await fs.mkdir(binPath);
   await fs.mkdir(projectPath);
