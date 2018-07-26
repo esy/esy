@@ -174,7 +174,6 @@ describe('Building top 100 opam packages', function() {
           stdio: 'inherit',
         });
 
-        console.log(`*** OK ***`);
         rmSync(sandboxPath);
       });
 
