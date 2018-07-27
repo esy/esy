@@ -15,6 +15,7 @@ with the following fields:
 - [`esy.install`](#esyinstall)
 - [`esy.buildsInSource`](#esybuildsinsource)
 - [`esy.exportedEnv`](#esy.exportedenv)
+- [`esy.buildEnv`](#esy.buildenv)
 - [`scripts`](#scripts)
 
 ## Specify Build & Install Commands
@@ -166,8 +167,10 @@ key:
   "esy": {
     ...,
     "exportedEnv": {
-      "CAML_LD_LIBRARY_PATH": "#{mylib.lib : $CAML_LD_LIBRARY_PATH}",
-      "scope": "global"
+      "CAML_LD_LIBRARY_PATH": {
+        "val": "#{mylib.lib : $CAML_LD_LIBRARY_PATH}",
+        "scope": "global"
+      }
     }
   }
 }
@@ -177,9 +180,37 @@ In the example above, the configuration _exports_ (in this specific case it
 _re-exports_ it) an environment variable called `$CAML_LD_LIBRARY_PATH` by
 appending `$mylib__lib` to its previous value.
 
-Also note the usage of [esy variable substitution
+Note the usage of [esy variable substitution
 syntax](#variable-substitution-syntax) to define the value of the
 `$CAML_LD_LIBRARY_PATH` variable.
+
+## Build Environment
+
+Packages can configure their own build environment.
+
+Note that build environment doesn't propagate to dependencies, only current
+package's build process can access it.
+
+### `esy.buildEnv`
+
+To add a new environment variable to the build environment of the current
+package there's `esy.buildEnv` config key:
+
+```
+{
+  "name": "mylib",
+  "esy": {
+    ...,
+    "buildEnv": {
+      "DUNE_BUILD_DIR": "#{self.target_dir}"
+    }
+  }
+}
+```
+
+Note the usage of [esy variable substitution
+syntax](#variable-substitution-syntax) to define the value of the
+`$DUNE_BUILD_DIR` variable.
 
 ## Example: dune (jbuilder)
 
