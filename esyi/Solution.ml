@@ -176,7 +176,7 @@ let addRoot ~(record : Record.t) ~dependencies sol =
   let id = Id.ofRecord record in
   {sol with root = Some id;}
 
-let dependenciesHash (sandbox : Sandbox.t) =
+let computeSandboxChecksum (sandbox : Sandbox.t) =
   let hashDependencies ~dependencies digest =
     Digest.string (digest ^ "__" ^ Package.Dependencies.show dependencies)
   in
@@ -193,20 +193,26 @@ let dependenciesHash (sandbox : Sandbox.t) =
     |> hashResolutions
       ~resolutions:sandbox.resolutions
     |> hashDependencies
-      ~dependencies:sandbox.root.dependencies
+      ~dependencies:sandbox.dependencies
   in
   Digest.to_hex digest
 
 module LockfileV1 = struct
 
   type t = {
+    (* This is hash of all dependencies/resolutios, used as a checksum. *)
     hash : string;
+    (* Id of the root package. *)
     root : Id.t;
+    (* Map from ids to nodes. *)
     node : node Id.Map.t
   }
 
+  (* Each package is represented as node. *)
   and node = {
+    (* Actual package record. *)
     record : Record.t;
+    (* List of dependency ids. *)
     dependencies : Id.t list;
   } [@@deriving yojson]
 
@@ -295,7 +301,7 @@ module LockfileV1 = struct
       in
       match lockfile with
       | Ok lockfile ->
-        if lockfile.hash = dependenciesHash sandbox
+        if lockfile.hash = computeSandboxChecksum sandbox
         then
           let solution = solutionOfLockfile ~sandbox lockfile.root lockfile.node in
           return (Some solution)
@@ -317,7 +323,7 @@ module LockfileV1 = struct
 
   let toFile ~sandbox ~(solution : solution) (path : Path.t) =
     let root, node = lockfileOfSolution ~sandbox solution in
-    let hash = dependenciesHash sandbox in
+    let hash = computeSandboxChecksum sandbox in
     let lockfile = {hash; node; root} in
     let json = to_yojson lockfile in
     Fs.writeJsonFile ~json path
