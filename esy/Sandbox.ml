@@ -75,18 +75,23 @@ let ofDir (cfg : Config.t) =
       ~ignoreCircularDep
       ~make
       (dependencies : string list list)
-      prevDependencies =
+      (prevDependencies : Package.dependency StringMap.t) =
 
       let rec tryResolve names =
         match names with
         | [] -> Lwt.return_ok ("ignore", `Ignored)
-        | name::[] ->
-          resolve ~ignoreCircularDep name
         | name::names ->
-          begin match%lwt resolve ~ignoreCircularDep name with
-          | Ok (_, `Unresolved) -> tryResolve names
-          | res -> Lwt.return res
-          end
+          if StringMap.mem name prevDependencies
+          then Lwt.return_ok ("ignore", `Ignored)
+          else
+            begin match%lwt resolve ~ignoreCircularDep name with
+            | Ok (name, `Unresolved) ->
+              begin match names with
+              | [] -> Lwt.return_ok (name, `Unresolved)
+              | names -> tryResolve names
+              end
+            | res -> Lwt.return res
+            end
       in
 
       let%lwt dependencies =
@@ -96,18 +101,27 @@ let ofDir (cfg : Config.t) =
 
       let f dependencies =
         function
-        | Ok (_, `EsyPkg pkg) -> (make pkg)::dependencies
-        | Ok (_, `NonEsyPkg transitiveDependencies) -> transitiveDependencies @ dependencies
+        | Ok (name, `EsyPkg pkg) ->
+          let dep = make pkg in
+          StringMap.add name dep dependencies
+        | Ok (_, `NonEsyPkg transitiveDependencies) ->
+          let f k v dependencies =
+            if StringMap.mem k dependencies
+            then dependencies
+            else StringMap.add k v dependencies
+          in
+          StringMap.fold f transitiveDependencies dependencies
         | Ok (_, `Ignored) -> dependencies
         | Ok (pkgName, `Unresolved) ->
           if skipUnresolved
           then dependencies
           else
             let dep = Package.InvalidDependency {pkgName; reason="unable to resolve package";} in
-            dep::dependencies
+            StringMap.add pkgName dep dependencies
         | Error (pkgName, reason) ->
           let dep = Package.InvalidDependency {pkgName;reason;} in
-          dep::dependencies in
+          StringMap.add pkgName dep dependencies
+      in
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
     in
 
@@ -116,7 +130,7 @@ let ofDir (cfg : Config.t) =
       match manifest with
       | Manifest.Esy manifest ->
         let ignoreCircularDep = Option.isNone manifest.Manifest.Esy.esy in
-        Lwt.return []
+        Lwt.return StringMap.empty
         >>= addDependencies
             ~ignoreCircularDep
             ~make:(fun pkg -> Package.Dependency pkg)
@@ -141,7 +155,7 @@ let ofDir (cfg : Config.t) =
             else
               Lwt.return dependencies)
       | Manifest.Opam manifest ->
-        Lwt.return []
+        Lwt.return StringMap.empty
         >>= addDependencies
             ~ignoreCircularDep:false
             ~make:(fun pkg -> Package.Dependency pkg)
@@ -158,8 +172,9 @@ let ofDir (cfg : Config.t) =
       let%lwt dependencies = loadDependencies manifest in
 
       let hasDepWithSourceTypeDevelopment =
-        List.exists
-          ~f:(function
+        StringMap.exists
+          (fun _k dep ->
+            match dep with
               | Package.Dependency pkg
               | Package.BuildTimeDependency pkg
               | Package.OptDependency pkg ->
@@ -175,7 +190,7 @@ let ofDir (cfg : Config.t) =
           id = Path.to_string path;
           name = Manifest.Opam.name manifest;
           version = Manifest.Opam.version manifest;
-          dependencies;
+          dependencies = StringMap.values dependencies;
           sourceType = Manifest.Opam.sourceType manifest;
           sandboxEnv = Manifest.Env.empty;
           buildEnv = Manifest.Env.empty;
@@ -208,7 +223,7 @@ let ofDir (cfg : Config.t) =
             id = Path.to_string path;
             name = manifest.name;
             version = manifest.version;
-            dependencies;
+            dependencies = StringMap.values dependencies;
             sourceType;
             sandboxEnv = esyManifest.sandboxEnv;
             buildEnv = esyManifest.buildEnv;
