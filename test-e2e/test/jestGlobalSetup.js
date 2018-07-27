@@ -8,7 +8,7 @@ const promiseExec = promisify(childProcess.exec);
 const ESYCOMMAND = require.resolve('../../bin/esy');
 
 module.exports = async function jestGlobalSetup(_globalConfig) {
-  global.__TEST_PATH__ = '/tmp/esy-test';
+  global.__TEST_PATH__ = path.join(os.homedir(), '.esytest');
 
   try {
     await fs.mkdir(global.__TEST_PATH__);

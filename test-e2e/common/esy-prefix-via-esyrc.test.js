@@ -1,5 +1,6 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
@@ -10,11 +11,11 @@ it('Common - esy prefix via esyrc', async () => {
   expect.assertions(2);
   const p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
 
-  await del('/tmp/custom-esy-prefix', {force: true});
+  await del(path.join(os.homedir(), '.esytest', 'custom-esy-prefix'), {force: true});
 
   await fs.writeFile(
     path.join(p.projectPath, '.esyrc'),
-    'esy-prefix-path: "/tmp/custom-esy-prefix"',
+    `esy-prefix-path: ${path.join(os.homedir(), '.esytest', 'custom-esy-prefix')}`,
   );
 
   const prevEnv = process.env;
@@ -28,7 +29,9 @@ it('Common - esy prefix via esyrc', async () => {
   });
 
   await expect(p.esy('which dep', {noEsyPrefix: true})).resolves.toEqual({
-    stdout: expect.stringMatching('/tmp/custom-esy-prefix'),
+    stdout: expect.stringMatching(
+      path.join(os.homedir(), '.esytest', 'custom-esy-prefix'),
+    ),
     stderr: '',
   });
 
