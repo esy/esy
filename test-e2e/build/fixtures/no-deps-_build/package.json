@@ -9,12 +9,17 @@
       [
         "bash",
         "-c",
-        "echo \"#!/bin/bash\necho $cur__name\" > ./_build/$cur__name"
+        "echo 'print_endline \"#{self.name}\"' > ./_build/test.ml"
       ],
-      "chmod +x ./_build/$cur__name"
+      [
+        "ocamlopt",
+        "-o",
+        "./_build/#{self.name}.exe",
+        "./_build/test.ml"
+      ]
     ],
     "install": [
-      "cp ./_build/$cur__name $cur__bin/$cur__name"
+      "cp ./_build/#{self.name}.exe $cur__bin/$cur__name"
     ]
   }
 }

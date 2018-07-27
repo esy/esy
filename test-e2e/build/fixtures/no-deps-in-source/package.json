@@ -8,12 +8,17 @@
       [
         "bash",
         "-c",
-        "echo \"#!/bin/bash\necho $cur__name\" > ./$cur__name"
+        "echo 'print_endline \"#{self.name}\"' > test.ml"
       ],
-      "chmod +x ./$cur__name"
+      [
+        "ocamlopt",
+        "-o",
+        "#{self.name}.exe",
+        "test.ml"
+      ]
     ],
     "install": [
-      "cp ./$cur__name $cur__bin/$cur__name"
+      "cp ./$cur__name.exe $cur__bin/$cur__name"
     ]
   }
 }

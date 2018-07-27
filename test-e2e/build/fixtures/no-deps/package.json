@@ -7,12 +7,20 @@
       [
         "bash",
         "-c",
-        "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
+        "echo 'print_endline \"#{self.name}\"' > #{self.target_dir /}test.ml"
       ],
-      "chmod +x $cur__target_dir/$cur__name"
+      [
+        "ocamlopt",
+        "-o",
+        "#{self.target_dir / self.name}.exe",
+        "#{self.target_dir /}test.ml"
+      ]
     ],
     "install": [
-      "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+      "cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name"
     ]
+  },
+  "dependencies": {
+    "ocaml": "~4.6.1"
   }
 }
