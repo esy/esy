@@ -774,7 +774,9 @@ module File = struct
   [@@@ocaml.warning "-32"]
   type t = {
     name : Path.t;
-    content : string
+    content : string;
+    (* file, permissions add 0o644 default for backward compat. *)
+    perm : (int [@default 0o644]);
   } [@@deriving (yojson, show, eq)]
 end
 

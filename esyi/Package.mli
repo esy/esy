@@ -167,7 +167,8 @@ end
 module File : sig
   type t = {
     name : Path.t;
-    content : string
+    content : string;
+    perm : int;
   }
 
   val equal : t -> t -> bool
