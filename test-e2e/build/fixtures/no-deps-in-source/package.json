@@ -6,11 +6,6 @@
     "buildsInSource": true,
     "build": [
       [
-        "bash",
-        "-c",
-        "echo 'print_endline \"#{self.name}\"' > test.ml"
-      ],
-      [
         "ocamlopt",
         "-o",
         "#{self.name}.exe",

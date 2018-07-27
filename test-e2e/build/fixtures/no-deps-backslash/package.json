@@ -5,9 +5,9 @@
   "esy": {
     "build": [
       [
-        "bash",
-        "-c",
-        "echo 'print_endline \"\\\\\\\\ #{self.name} \\\\\\\\\"' > #{self.target_dir /}test.ml"
+        "cp",
+        "#{self.original_root /}test.ml",
+        "#{self.target_dir /}test.ml"
       ],
       [
         "ocamlopt",

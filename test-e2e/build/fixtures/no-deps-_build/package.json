@@ -7,14 +7,14 @@
     "build": [
       "mkdir -p _build",
       [
-        "bash",
-        "-c",
-        "echo 'print_endline \"#{self.name}\"' > ./_build/test.ml"
+        "cp",
+        "#{self.original_root /}test.ml",
+        "./_build/test.ml"
       ],
       [
         "ocamlopt",
         "-o",
-        "./_build/#{self.name}.exe",
+        "./_build#{/ self.name}.exe",
         "./_build/test.ml"
       ]
     ],

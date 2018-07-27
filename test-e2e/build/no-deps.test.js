@@ -9,6 +9,7 @@ it('Build - no deps', async () => {
   const p = await initFixture(path.join(__dirname, './fixtures/no-deps'));
   await p.esy('install');
   await p.esy('build');
+
   const {stdout} = await p.esy('x no-deps');
   expect(stdout).toEqual('no-deps\n');
 });
