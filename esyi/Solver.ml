@@ -547,9 +547,14 @@ let solveDependenciesNaively
       match dependencies with
       | Dependencies.NpmFormula reqs -> reqs
       | Dependencies.OpamFormula _ ->
-        (* TODO: cause opam formulas should be solved by the proper dependency
-        * solver we skip solving them, but we need some sanity check here *)
-        Dependencies.toApproximateRequests dependencies
+        (* only use already installed dependencies here
+         * TODO: refactor solution * construction so we don't need to do that *)
+        let reqs = Dependencies.toApproximateRequests dependencies in
+        let reqs =
+          let f req = Hashtbl.mem installed req.Req.name in
+          List.filter ~f reqs
+        in
+        reqs
     in
 
     let%bind pkgs =

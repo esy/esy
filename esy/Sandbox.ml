@@ -52,34 +52,46 @@ let ofDir (cfg : Config.t) =
   let packageCache = Memoize.make ~size:200 () in
 
   let rec loadPackage (path : Path.t) (stack : Path.t list) =
+
+    let resolve ~ignoreCircularDep (pkgName : string) =
+      match%lwt resolvePackageCached pkgName path with
+      | Ok (Some depPackagePath) ->
+        if List.mem depPackagePath ~set:stack
+        then
+          (if ignoreCircularDep
+          then Lwt.return_ok (pkgName, `Ignored)
+          else
+            Lwt.return_error (pkgName, "circular dependency"))
+        else begin match%lwt loadPackageCached depPackagePath (path :: stack) with
+          | Ok (pkg, _) -> Lwt.return_ok (pkgName, pkg)
+          | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
+        end
+      | Ok None -> Lwt.return_ok (pkgName, `Unresolved)
+      | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
+    in
+
     let addDependencies
       ?(skipUnresolved= false)
       ~ignoreCircularDep
       ~make
-      (dependencies : StringSet.t)
+      (dependencies : string list list)
       prevDependencies =
 
-      let resolve (pkgName : string) =
-        match%lwt resolvePackageCached pkgName path with
-        | Ok (Some depPackagePath) ->
-          if List.mem depPackagePath ~set:stack
-          then
-            (if ignoreCircularDep
-            then Lwt.return_ok (pkgName, `Ignored)
-            else
-              Lwt.return_error (pkgName, "circular dependency"))
-          else begin match%lwt loadPackageCached depPackagePath (path :: stack) with
-            | Ok (pkg, _) -> Lwt.return_ok (pkgName, pkg)
-            | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
+      let rec tryResolve names =
+        match names with
+        | [] -> Lwt.return_ok ("ignore", `Ignored)
+        | name::[] ->
+          resolve ~ignoreCircularDep name
+        | name::names ->
+          begin match%lwt resolve ~ignoreCircularDep name with
+          | Ok (_, `Unresolved) -> tryResolve names
+          | res -> Lwt.return res
           end
-        | Ok None -> Lwt.return_ok (pkgName, `Unresolved)
-        | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
       in
 
       let%lwt dependencies =
         dependencies
-        |> StringSet.elements
-        |> Lwt_list.map_s (fun pkgName -> resolve pkgName)
+        |> Lwt_list.map_s tryResolve
       in
 
       let f dependencies =

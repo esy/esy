@@ -266,19 +266,32 @@ module Esy = struct
   let version manifest = manifest.version
 
   let dependencies manifest =
-    StringSet.of_list (
-      (Dependencies.keys manifest.dependencies)
-      @ (Dependencies.keys manifest.peerDependencies)
-    )
+    let dependencies =
+      manifest.dependencies
+      |> Dependencies.keys
+      |> List.map ~f:(fun name -> [name])
+    in
+    let peerDependencies =
+      manifest.dependencies
+      |> Dependencies.keys
+      |> List.map ~f:(fun name -> [name])
+    in
+    dependencies @ peerDependencies
 
   let devDependencies manifest =
-    StringSet.of_list (Dependencies.keys manifest.devDependencies)
+    manifest.devDependencies
+    |> Dependencies.keys
+    |> List.map ~f:(fun name -> [name])
 
   let optDependencies manifest =
-    StringSet.of_list (Dependencies.keys manifest.optDependencies)
+    manifest.optDependencies
+    |> Dependencies.keys
+    |> List.map ~f:(fun name -> [name])
 
   let buildTimeDependencies manifest =
-    StringSet.of_list (Dependencies.keys manifest.buildTimeDependencies)
+    manifest.buildTimeDependencies
+    |> Dependencies.keys
+    |> List.map ~f:(fun name -> [name])
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
@@ -341,8 +354,8 @@ module Opam : sig
   val installCommands : t -> commands
   val exportedEnv : t -> ExportedEnv.t
 
-  val dependencies : t -> StringSet.t
-  val optDependencies : t -> StringSet.t
+  val dependencies : t -> string list list
+  val optDependencies : t -> string list list
 
   val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
   val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
@@ -450,12 +463,13 @@ end = struct
         ~build ~post ~test ~doc ~dev
         formula
     in
-    let atoms = OpamFormula.atoms formula in
-    let f (name, _) =
+    let cnf = OpamFormula.to_cnf formula in
+    let f atom =
+      let name, _ = atom in
       let name = OpamPackage.Name.to_string name in
       "@opam/" ^ name
     in
-    List.map ~f atoms
+    List.map ~f:(List.map ~f) cnf
 
   let dependencies =
     let dependsOfOpam opam =
@@ -476,21 +490,22 @@ end = struct
           ~build:true ~test:false ~post:true ~doc:false ~dev:false
           f
       in
-      let dependencies =
-        "ocaml"
-        ::"@esy-ocaml/substs"
-        ::dependencies
-      in
+      let dependencies = ["ocaml"]::["@esy-ocaml/substs"]::dependencies in
 
-      StringSet.of_list dependencies
+      dependencies
     in
     function
     | Installed {opam; override} ->
       let dependencies = dependsOfOpam opam in
       begin
       match override with
-      | Some {OpamOverride. dependencies = overrideDependencies; _} ->
-        StringSet.union dependencies (overrideDependencies |> StringMap.keys |> StringSet.of_list)
+      | Some {OpamOverride. dependencies = extraDependencies; _} ->
+        let extraDependencies =
+          extraDependencies
+          |> StringMap.keys
+          |> List.map ~f:(fun name -> [name])
+        in
+        List.append dependencies extraDependencies
       | None -> dependencies
       end
     | AggregatedRoot opams ->
@@ -500,10 +515,17 @@ end = struct
       in
       let f dependencies (_name, opam) =
         let update = dependsOfOpam opam in
-        let update = StringSet.diff update namesPresent in
-        StringSet.union dependencies update
+        let update =
+          let f name = not (StringSet.mem name namesPresent) in
+          List.map ~f:(List.filter ~f) update
+        in
+        let update =
+          let f = function | [] -> true | _ -> false in
+          List.filter ~f update
+        in
+        dependencies @ update
       in
-      List.fold_left ~f ~init:StringSet.empty opams
+      List.fold_left ~f ~init:[] opams
 
   let optDependencies = function
     | Installed {opam;_} ->
@@ -512,8 +534,8 @@ end = struct
           ~build:true ~test:false ~post:true ~doc:false ~dev:false
           (OpamFile.OPAM.depopts opam)
       in
-      StringSet.of_list dependencies
-    | AggregatedRoot _ -> StringSet.empty
+      dependencies
+    | AggregatedRoot _ -> []
 
   let ofDirAsInstalled (path : Path.t) =
     let open RunAsync.Syntax in
