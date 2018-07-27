@@ -161,6 +161,7 @@ for (let c of cases) {
       stdio: 'inherit',
     });
 
+    rmSync(path.join(esyPrefixPath, '3', 'b'));
     rmSync(sandboxPath);
   }
 
