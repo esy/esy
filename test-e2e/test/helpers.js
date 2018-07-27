@@ -14,8 +14,12 @@ const ESYCOMMAND = process.platform === "win32" ?
     require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
     : require.resolve('../../bin/esy');
 
+function getTempDir() {
+    return process.platform === "win32" ? os.tmpdir() : "/tmp";
+}
+
 async function initFixture(fixture: string) {
-  const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), 'esy.XXXX'));
+  const rootPath = await fs.mkdtemp(path.join(getTempDir(), 'esy.XXXX'));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const esyPrefixPath = path.join(rootPath, 'esy');
@@ -75,7 +79,7 @@ function packageJson(json: Object) {
 }
 
 async function genFixture(...fixture: Fixture) {
-  const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), 'esy.XXXX'));
+  const rootPath = await fs.mkdtemp(path.join(getTempDir(), 'esy.XXXX'));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const esyPrefixPath = path.join(rootPath, 'esy');
@@ -130,6 +134,7 @@ module.exports = {
   dir,
   packageJson,
   genFixture,
+  getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
 };
