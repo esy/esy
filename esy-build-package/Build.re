@@ -309,7 +309,6 @@ module Installer =
       let stat = Run.lstat;
       let readdir = Run.ls;
       let mkdir = Run.mkdir;
-      let link = Run.link(~force=false);
     };
   });
 
@@ -358,10 +357,26 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         empty
         % config.fastreplacestringCmd
         % p(path)
-        % p(origPrefix)
-        % p(destPrefix)
+        % origPrefix
+        % destPrefix
       );
     Bos.OS.Cmd.run(cmd);
+  };
+  let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
+    let origPrefixString = Path.to_string(origPrefix);
+    let destPrefixString = Path.to_string(destPrefix);
+    switch (System.Platform.host) {
+    | Windows =>
+        /* On Windows, the slashes could be either `/` or windows-style `\` */
+        /* We'll replace both styles */
+        let%bind () = rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
+        let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
+        let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
+        let%bind () = rewritePrefixInFile(~origPrefix=normalizedOrigPrefix, ~destPrefix=normalizedDestPrefix, path);
+        ok;
+    | _ =>
+        rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
+    }
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
     let%bind targetPath = readlink(path);
@@ -377,7 +392,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
   let relocate = (path: Path.t, stats: Unix.stats) =>
     switch (stats.st_kind) {
     | Unix.S_REG =>
-      rewritePrefixInFile(
+      rewritePrefixesInFile(
         ~origPrefix=build.stagePath,
         ~destPrefix=build.installPath,
         path,

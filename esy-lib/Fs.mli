@@ -4,7 +4,7 @@
 
 val readFile : Path.t -> string RunAsync.t
 
-val writeFile : data:string -> Path.t -> unit RunAsync.t
+val writeFile : ?perm:int -> data:string -> Path.t -> unit RunAsync.t
 
 val readJsonFile : Path.t -> Yojson.Safe.json RunAsync.t
 

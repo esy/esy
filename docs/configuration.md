@@ -15,6 +15,7 @@ with the following fields:
 - [`esy.install`](#esyinstall)
 - [`esy.buildsInSource`](#esybuildsinsource)
 - [`esy.exportedEnv`](#esy.exportedenv)
+- [`esy.buildEnv`](#esy.buildenv)
 - [`scripts`](#scripts)
 
 ## Specify Build & Install Commands
@@ -46,26 +47,34 @@ when user calls `esy build` command.
 [esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare build commands.
 
-### `esy.install`
+### `esy.install` (optional)
 
-Describe how you project's built artifacts should be installed by specifying a
-list of commands with `esy.install` config key.
+By default `esy` will look for a single `*.install` file in the project root and
+will transfer all files mentioned there into `#{self.install}` directory.
+
+This follows the convention of opam and plays well with `dune` (which produces
+`*.install` files by default).
+
+But some projects can have special requirements:
+
+- Some have multiple `*.install` files and want to install artifacts only from
+  some of them.
+
+- Some might require custom commands to be executed (for example `make install`).
+
+There's `esy.install` config key which allows to specify a set of commands which
+should move built artifacts to `#{self.install}` location.
 
 ```
 {
   "esy": {
     "build": [...],
     "install": [
-      "esy-installer"
+      "dune install --prefix=#{self.install}"
     ]
   }
 }
 ```
-
-For `dune` based projects (and other projects which maintain `.install` file
-in opam format) that could be just a single `esy-installer` invokation. The
-command is a thin wrapper over `opam-installer` which configures it with esy
-defaults.
 
 [esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare install commands.
@@ -166,8 +175,10 @@ key:
   "esy": {
     ...,
     "exportedEnv": {
-      "CAML_LD_LIBRARY_PATH": "#{mylib.lib : $CAML_LD_LIBRARY_PATH}",
-      "scope": "global"
+      "CAML_LD_LIBRARY_PATH": {
+        "val": "#{mylib.lib : $CAML_LD_LIBRARY_PATH}",
+        "scope": "global"
+      }
     }
   }
 }
@@ -177,9 +188,37 @@ In the example above, the configuration _exports_ (in this specific case it
 _re-exports_ it) an environment variable called `$CAML_LD_LIBRARY_PATH` by
 appending `$mylib__lib` to its previous value.
 
-Also note the usage of [esy variable substitution
+Note the usage of [esy variable substitution
 syntax](#variable-substitution-syntax) to define the value of the
 `$CAML_LD_LIBRARY_PATH` variable.
+
+## Build Environment
+
+Packages can configure their own build environment.
+
+Note that build environment doesn't propagate to dependencies, only current
+package's build process can access it.
+
+### `esy.buildEnv`
+
+To add a new environment variable to the build environment of the current
+package there's `esy.buildEnv` config key:
+
+```
+{
+  "name": "mylib",
+  "esy": {
+    ...,
+    "buildEnv": {
+      "DUNE_BUILD_DIR": "#{self.target_dir}"
+    }
+  }
+}
+```
+
+Note the usage of [esy variable substitution
+syntax](#variable-substitution-syntax) to define the value of the
+`$DUNE_BUILD_DIR` variable.
 
 ## Example: dune (jbuilder)
 
@@ -192,18 +231,13 @@ jbuilder) based project:
   "version": "1.0.0",
 
   "esy": {
-    "build": [
-      "dune build"
-    ],
-    "install": [
-      "esy-installer"
-    ],
-    "buildsInSource": "_build"
+    "build": ["dune build"],
+    "buildEnv": {"DUNE_BUILD_DIR": "#{self.target_dir}"}
   },
 
   "dependencies": {
     "@opam/dune": "*",
-    "@esy-ocaml/esy-installer"
+    "ocaml": "*"
   }
 }
 ```

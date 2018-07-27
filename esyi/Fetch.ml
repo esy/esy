@@ -97,32 +97,51 @@ module Layout = struct
     match Solution.root sol with
     | None -> []
     | Some root ->
-      let directDependencies = Solution.dependencies root sol in
+      let isDirectDependencyOfRoot =
+        let directDependencies = Solution.dependencies root sol in
+        fun record -> Record.Set.mem record directDependencies
+      in
 
-      let rec findInsertionPoint record = function
+      (* Go through breadcrumb till the insertion point and mark each modules as
+       * occupied for the record. This will prevent inserting other versions of
+       * the same record at such places. *)
+      let markAsOccupied insertion breadcrumb record =
+        let _, insertionPath = insertion in
+        let rec aux = function
+          | (modules, path)::rest ->
+            Hashtbl.replace modules record.Record.name record;
+            if Path.equal insertionPath path
+            then ()
+            else aux rest
+          | [] -> ()
+        in
+        aux breadcrumb
+      in
+
+      let rec findInsertion record breacrumb =
+        match breacrumb with
         | [] -> `None
-        | ((modules, _) as item)::deeper ->
+        | ((modules, _) as here)::upTheTree ->
           begin match Hashtbl.find_opt modules record.Record.name with
-          | Some (`Here er) when Record.equal er record -> `Done
-          | Some (`WasHere er) when Record.equal er record -> `Done
+          | Some r ->
+            if Record.equal r record
+            then `Done (here, here::upTheTree)
+            else `None
           | None ->
-            begin match findInsertionPoint record deeper with
+            begin match findInsertion record upTheTree with
             | `Ok nextItem -> `Ok nextItem
-            | `Done -> `Done
-            | `None -> `Ok (item, item::deeper)
+            | `Done there -> `Done there
+            | `None -> `Ok (here, here::upTheTree)
             end
-          | Some (`Here _) -> `None
-          | Some (`WasHere _) -> `None
           end
       in
 
+      (* layout record at breadcrumb, return layout and a new breadcrumb which
+       * is then used to layout record's dependencies *)
       let layoutRecord ~this ~breadcrumb ~layout record =
 
-        let thisModules, _ = this in
-
-        let insert (modules, path) =
-          Hashtbl.replace modules record.Record.name (`Here record);
-          Hashtbl.replace thisModules record.Record.name (`WasHere record);
+        let insert ((_modules, path) as here) =
+          markAsOccupied here (this::breadcrumb) record;
           let path = Path.(path // v record.Record.name) in
           let sourcePath =
             let main, _ = record.Record.source in
@@ -138,15 +157,19 @@ module Layout = struct
             path;
             sourcePath;
             record;
-            isDirectDependencyOfRoot = Record.Set.mem record directDependencies;
+            isDirectDependencyOfRoot = isDirectDependencyOfRoot record;
           } in
           installation::layout
         in
 
-        match findInsertionPoint record breadcrumb with
-        | `Done -> None
-        | `Ok (here, breadcrumb) -> Some (insert here, breadcrumb)
-        | `None -> Some (insert this, this::breadcrumb)
+        match findInsertion record breadcrumb with
+        | `Done (there, _) ->
+          markAsOccupied there (this::breadcrumb) record;
+          None
+        | `Ok (here, breadcrumb) ->
+          Some (insert here, breadcrumb)
+        | `None ->
+          Some (insert this, this::breadcrumb)
       in
 
       let rec layoutDependencies ~seen ~breadcrumb ~layout record =
@@ -163,6 +186,8 @@ module Layout = struct
 
         let dependencies = Solution.dependencies record sol in
 
+        (* layout direct dependencies first, they can be relocated so this is
+         * why get dependenciesWithBreadcrumbs as a result *)
         let layout, dependenciesWithBreadcrumbs =
           let f r (layout, dependenciesWithBreadcrumbs) =
             match layoutRecord ~this ~breadcrumb ~layout r with
@@ -172,6 +197,7 @@ module Layout = struct
           Record.Set.fold f dependencies (layout, [])
         in
 
+        (* now layout dependencies of dependencies *)
         let layout =
           let seen = Record.Set.add record seen in
           let f layout (r, breadcrumb) =

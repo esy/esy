@@ -103,14 +103,17 @@ let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)) : t(_) => {
 };
 
 let copyContents = (~from, ~ignore=[], dest) => {
-  let excludePaths =
-    List.fold_left(
-      (set, p) => Path.Set.add(Path.(from / p), set),
-      Path.Set.empty,
-      ignore,
-    );
+  let traverse = {
+    let ignoreSet =
+      List.fold_left(
+        (set, p) => Path.Set.add(Path.(from / p), set),
+        Path.Set.empty,
+        ignore,
+      );
+    `Sat(path => Ok(! Path.Set.mem(path, ignoreSet)));
+  };
 
-  let traverse = `Sat(p => Ok(! Path.Set.mem(p, excludePaths)));
+  let excludePathsWithinSymlink = ref(Path.Set.empty);
 
   let rebasePath = path =>
     switch (Fpath.relativize(~root=from, path)) {
@@ -122,6 +125,11 @@ let copyContents = (~from, ~ignore=[], dest) => {
     switch (acc) {
     | Ok () =>
       if (Path.equal(path, from)) {
+        Ok();
+      } else if (Path.Set.mem(
+                   Path.rem_empty_seg(Path.parent(path)),
+                   excludePathsWithinSymlink^,
+                 )) {
         Ok();
       } else {
         let%bind stats = Bos.OS.Path.symlink_stat(path);
@@ -135,6 +143,11 @@ let copyContents = (~from, ~ignore=[], dest) => {
           let%bind () = Bos.OS.File.write(nextPath, data);
           Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
         | Unix.S_LNK =>
+          excludePathsWithinSymlink :=
+            Path.Set.add(
+              Path.rem_empty_seg(path),
+              excludePathsWithinSymlink^,
+            );
           let%bind targetPath = Bos.OS.Path.symlink_target(path);
           let nextTargetPath = rebasePath(targetPath);
           Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);

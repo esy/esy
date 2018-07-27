@@ -547,14 +547,24 @@ let solveDependenciesNaively
       match dependencies with
       | Dependencies.NpmFormula reqs -> reqs
       | Dependencies.OpamFormula _ ->
-        (* TODO: cause opam formulas should be solved by the proper dependency
-        * solver we skip solving them, but we need some sanity check here *)
-        Dependencies.toApproximateRequests dependencies
+        (* only use already installed dependencies here
+         * TODO: refactor solution * construction so we don't need to do that *)
+        let reqs = Dependencies.toApproximateRequests dependencies in
+        let reqs =
+          let f req = Hashtbl.mem installed req.Req.name in
+          List.filter ~f reqs
+        in
+        reqs
     in
 
     let%bind pkgs =
       let f req =
-        let%bind pkg = resolve req in
+        let%bind pkg =
+          let context = Format.asprintf "resolving request %a" Req.pp req in
+          RunAsync.withContext
+            context
+            (resolve req)
+        in
         addToInstalled pkg;
         return pkg
       in
@@ -572,7 +582,12 @@ let solveDependenciesNaively
         loop seen rest
       | false ->
         let seen = Package.Set.add pkg seen in
-        let%bind dependencies = solveDependencies pkg.dependencies in
+        let%bind dependencies =
+          let context = Format.asprintf "solving dependencies of %a" Package.pp pkg in
+          RunAsync.withContext
+            context
+            (solveDependencies pkg.dependencies)
+        in
         addDependencies pkg dependencies;
         loop seen (rest @ dependencies)
       end
