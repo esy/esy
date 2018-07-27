@@ -45,6 +45,12 @@ const cases = [
       require('babel-core');
     `
   },
+  {
+    name: "react-scripts",
+    test: `
+      require('react-scripts/bin/react-scripts.js');
+    `
+  },
 ];
 
 let p;

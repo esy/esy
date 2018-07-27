@@ -108,6 +108,8 @@ const cases = [
   {name: "async", toolchains: ["~4.6.0"]},
   {name: "cudf", toolchains: ["~4.6.0"]},
   {name: "dose3", toolchains: ["~4.6.0"]},
+  {name: "ssl", toolchains: ["~4.6.0"]},
+  {name: "tls", toolchains: ["~4.6.0"]},
 ];
 
 const esyPrefixPath = fs.mkdtempSync('/tmp/esy-prefix');
@@ -161,6 +163,7 @@ for (let c of cases) {
       stdio: 'inherit',
     });
 
+    rmSync(path.join(esyPrefixPath, '3', 'b'));
     rmSync(sandboxPath);
   }
 

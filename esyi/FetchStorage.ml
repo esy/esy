@@ -132,7 +132,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
     in
 
     let%bind () =
-      let f {Package.File. name; content} =
+      let f {Package.File. name; content; perm} =
         let name = Path.append path name in
         let dirname = Path.parent name in
         let%bind () = Fs.createDir dirname in
@@ -142,7 +142,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
           then content
           else content ^ "\n"
         in
-        let%bind () = Fs.writeFile ~data:contents name in
+        let%bind () = Fs.writeFile ~perm ~data:contents name in
         return()
       in
       List.map ~f record.files |> RunAsync.List.waitAll

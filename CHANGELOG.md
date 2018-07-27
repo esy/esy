@@ -1,5 +1,51 @@
 # CHANGELOG
 
+## 0.2.1 @ next
+
+- Windows binaries are included.
+
+  Thanks to @bryphe.
+
+- Improvements to `out-of-source` mode which makes it usable with `dune`:
+
+  - `*.install` files now can be created in a project root by `dune`
+
+  - symlink from `$cur__target_dir` to `$cur__root/_build` is created.
+
+- Handling of `*.install` files was added to `esy`, now opam packages do not
+  depend on `@esy-ocaml/esy-installer` package anymore.
+
+  Built-in `esy-installer` command is now being used instead.
+
+- Added support for `#{..}` syntax to user defined scripts.
+
+- Added `esy.buildEnv` configuration which allows to specify build environment
+  for the current package.
+
+- Requirement on `rsync` is dropped.
+
+- Improvements to `esy install` command:
+
+  - `esy install` command now correctly handles disjunction in opam `depends`
+    formulas. Previously it attempted to solve every term of the disjunction.
+
+  - `esy install` commands was made more robust to invalid dependency formulas
+    found on npm. Now `react-scripts` (CRA) could be installed with `esy install`
+    and is fully functional.
+
+  - `esy install` received fixes to dedupe logic, now `npm ls` mentions no missing
+    packages on installations with `webpack` and `react-scipts`.
+
+  - `esy install` now correctly copies permissions on files added to source
+    tarball by opam repository.
+
+  - `esy install` command now correctly invalidates lockfile on changes in
+    `devDependencies.
+
+- Further improvements to test suite.
+
+  Thanks to @ulrikstrid.
+
 ## 0.2.0 @ latest
 
 This is the same release as 0.1.33 promoted to `latest`.

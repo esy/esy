@@ -370,6 +370,7 @@ module Req = struct
       str "https:";
       str "http:";
       str "git:";
+      str "npm:";
       str "link:";
       str "git+";
     ] in
@@ -383,23 +384,43 @@ module Req = struct
       Some (proto, body)
     | None -> None
 
-  let tryParseSourceSpec v =
+  let tryParseProto v =
     let open Result.Syntax in
     match parseProto v with
-    | Some ("link:", v) -> return (Some (SourceSpec.LocalPathLink (Path.v v)))
-    | Some ("file:", v) -> return (Some (SourceSpec.LocalPath (Path.v v)))
+    | Some ("link:", v) ->
+      let spec = SourceSpec.LocalPathLink (Path.v v) in
+      return (Some (VersionSpec.Source spec))
+    | Some ("file:", v) ->
+      let spec = SourceSpec.LocalPath (Path.v v) in
+      return (Some (VersionSpec.Source spec))
     | Some ("https:", _)
     | Some ("http:", _) ->
       let%bind url, checksum = parseChecksum v in
-      return (Some (SourceSpec.Archive {url; checksum}))
+      let spec = SourceSpec.Archive {url; checksum} in
+      return (Some (VersionSpec.Source spec))
     | Some ("git+", v) ->
       let remote, ref = parseRef v in
-      return (Some (SourceSpec.Git {remote;ref;}))
+      let spec = SourceSpec.Git {remote;ref;} in
+      return (Some (VersionSpec.Source spec))
     | Some ("git:", _) ->
       let remote, ref = parseRef v in
-      return (Some (SourceSpec.Git {remote;ref;}))
+      let spec = SourceSpec.Git {remote;ref;} in
+      return (Some (VersionSpec.Source spec))
+    | Some ("npm:", v) ->
+      begin match String.cut ~rev:true ~sep:"@" v with
+      | None ->
+        let%bind v = SemverVersion.Formula.parse v in
+        return (Some (VersionSpec.Npm v))
+      | Some (_, v) ->
+        let%bind v = SemverVersion.Formula.parse v in
+        return (Some (VersionSpec.Npm v))
+      end
     | Some _
-    | None -> return (tryParseGitHubSpec v)
+    | None ->
+      begin match tryParseGitHubSpec v with
+      | Some spec -> return (Some (VersionSpec.Source spec))
+      | None -> return None
+      end
 
   let make ~name ~spec =
     let open Result.Syntax in
@@ -411,20 +432,20 @@ module Req = struct
       let%bind spec =
         match String.cut ~sep:"/" name with
         | Some ("@opam", _opamName) -> begin
-          match%bind tryParseSourceSpec spec with
-          | Some spec -> Ok (VersionSpec.Source spec)
+          match%bind tryParseProto spec with
+          | Some v -> Ok v
           | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parse spec))
           end
         | Some _
         | None -> begin
-          match%bind tryParseSourceSpec spec with
-          | Some spec -> Ok (VersionSpec.Source spec)
+          match%bind tryParseProto spec with
+          | Some v -> Ok v
           | None ->
             begin match SemverVersion.Formula.parse spec with
               | Ok v -> Ok (VersionSpec.Npm v)
-              | Error err ->
-                let msg = Printf.sprintf "error parsing semver formula: %s" err in
-                Error msg
+              | Error _ ->
+                Logs.warn (fun m -> m "error parsing version: %s" spec);
+                Ok (VersionSpec.Npm [[SemverVersion.Constraint.ANY]])
             end
           end
       in
@@ -485,6 +506,18 @@ module Req = struct
           remote = "https://github.com/eslint/eslint.git";
           ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
         });
+
+      (* npm *)
+      make ~name:"pkg" ~spec:"4.1.0",
+      VersionSpec.Npm (SemverVersion.Formula.parseExn "4.1.0");
+      make ~name:"pkg" ~spec:"~4.1.0",
+      VersionSpec.Npm (SemverVersion.Formula.parseExn "~4.1.0");
+      make ~name:"pkg" ~spec:"^4.1.0",
+      VersionSpec.Npm (SemverVersion.Formula.parseExn "^4.1.0");
+      make ~name:"pkg" ~spec:"npm:>4.1.0",
+      VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
+      make ~name:"pkg" ~spec:"npm:name@>4.1.0",
+      VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
     ]
 
     let expectParsesTo req e =
@@ -741,7 +774,9 @@ module File = struct
   [@@@ocaml.warning "-32"]
   type t = {
     name : Path.t;
-    content : string
+    content : string;
+    (* file, permissions add 0o644 default for backward compat. *)
+    perm : (int [@default 0o644]);
   } [@@deriving (yojson, show, eq)]
 end
 
@@ -764,16 +799,24 @@ module OpamOverride = struct
 
   module Command = struct
     [@@@ocaml.warning "-32"]
-    type t = string list [@@deriving (eq, show)]
+    type t =
+      | Args of string list
+      | Line of string
+      [@@deriving (eq, show)]
 
     let of_yojson (json : Json.t) =
+      let open Result.Syntax in
       match json with
-      | `List _ -> Json.Parse.(list string) json
-      | `String cmd -> Ok [cmd]
-      | _ -> Error "expected either a list or a string"
+      | `List _ ->
+        let%bind args = Json.Parse.(list string) json in
+        return (Args args)
+      | `String line -> return (Line line)
+      | _ -> error "expected either a list or a string"
 
     let to_yojson (cmd : t) =
-      `List (List.map ~f:(fun cmd -> `String cmd) cmd)
+      match cmd with
+      | Args args -> `List (List.map ~f:(fun arg -> `String arg) args)
+      | Line line -> `String line
   end
 
   type t = {

@@ -167,7 +167,8 @@ end
 module File : sig
   type t = {
     name : Path.t;
-    content : string
+    content : string;
+    perm : int;
   }
 
   val equal : t -> t -> bool
@@ -190,9 +191,15 @@ module OpamOverride : sig
     val empty : t
   end
 
+  module Command : sig
+    type t =
+      | Args of string list
+      | Line of string
+  end
+
   type t = {
-    build : string list list option;
-    install : string list list option;
+    build : Command.t list option;
+    install : Command.t list option;
     dependencies : NpmDependencies.t;
     peerDependencies : NpmDependencies.t;
     exportedEnv : ExportedEnv.t;

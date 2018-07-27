@@ -512,6 +512,21 @@ let ofPackage
 
   and taskOfPackage ~(includeSandboxEnv: bool) (pkg : Package.t) =
 
+    let pkg =
+      match pkg.build with
+      | Package.EsyBuild {buildType = Manifest.BuildType.OutOfSource; _}
+      | Package.OpamBuild {buildType = Manifest.BuildType.OutOfSource; _} ->
+        {
+          pkg with
+          buildEnv = {
+            Manifest.Env.
+            name = "DUNE_BUILD_DIR";
+            value = "#{self.target_dir}";
+          }::pkg.buildEnv
+        }
+      | _ -> pkg
+    in
+
     let ocamlVersion =
       let f pkg = pkg.Package.name = "ocaml" in
       match Package.DependencyGraph.find ~f pkg with

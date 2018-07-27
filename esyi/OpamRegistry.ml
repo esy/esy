@@ -173,8 +173,9 @@ let readOpamFiles (path : Path.t) () =
     let collect files filePath _fileStats =
       match Path.relativize ~root:filesPath filePath with
       | Some name ->
-        let%bind content = Fs.readFile filePath in
-        return ({Package.File. name; content}::files)
+        let%bind content = Fs.readFile filePath
+        and stats = Fs.stat filePath in
+        return ({Package.File. name; content; perm = stats.Unix.st_perm}::files)
       | None -> return files
     in
     Fs.fold ~init:[] ~f:collect filesPath
