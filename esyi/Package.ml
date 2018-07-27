@@ -799,16 +799,24 @@ module OpamOverride = struct
 
   module Command = struct
     [@@@ocaml.warning "-32"]
-    type t = string list [@@deriving (eq, show)]
+    type t =
+      | Args of string list
+      | Line of string
+      [@@deriving (eq, show)]
 
     let of_yojson (json : Json.t) =
+      let open Result.Syntax in
       match json with
-      | `List _ -> Json.Parse.(list string) json
-      | `String cmd -> Ok [cmd]
-      | _ -> Error "expected either a list or a string"
+      | `List _ ->
+        let%bind args = Json.Parse.(list string) json in
+        return (Args args)
+      | `String line -> return (Line line)
+      | _ -> error "expected either a list or a string"
 
     let to_yojson (cmd : t) =
-      `List (List.map ~f:(fun cmd -> `String cmd) cmd)
+      match cmd with
+      | Args args -> `List (List.map ~f:(fun arg -> `String arg) args)
+      | Line line -> `String line
   end
 
   type t = {
