@@ -21,7 +21,7 @@ module.exports = async function jestGlobalSetup(_globalConfig) {
       name: 'root-project',
       version: '1.0.0',
       dependencies: {
-        ocaml: '~4.6.1',
+        ocaml: 'esy-ocaml/ocaml#6aacc05',
       },
       esy: {
         build: [],

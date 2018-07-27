@@ -21,6 +21,6 @@
     ]
   },
   "dependencies": {
-    "ocaml": "~4.6.1"
+    "ocaml": "esy-ocaml/ocaml#6aacc05"
   }
 }

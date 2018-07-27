@@ -21,5 +21,8 @@
     "install": [
       "cp ./_build/#{self.name}.exe $cur__bin/$cur__name"
     ]
+  },
+  "dependencies": {
+    "ocaml": "esy-ocaml/ocaml#6aacc05"
   }
 }
