@@ -37,6 +37,12 @@ async function initFixture(fixture: string) {
       env = {...process.env, ESY__PREFIX: esyPrefixPath};
     }
     env = {...env, PATH: `${binPath}${path.delimiter}${env.PATH || ''}`};
+
+    // workaround until https://github.com/esy/esy/issues/302 is fixed
+    if (args === 'install' && os.platform() === 'win32') {
+      args = 'legacy-install';
+    }
+
     return promiseExec(`${ESYCOMMAND} ${args}`, {
       cwd: projectPath,
       env,
