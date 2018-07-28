@@ -36,8 +36,14 @@ exitIfFailed
 
 $shouldRunTest = 0
 if ($env:APPVEYOR_REPO_COMMIT_MESSAGE) {
-    $shouldRunTest = $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("@slowtest")
-    Write-Host "@slowtest set; running slow tests."
+    $isCommitTagSet = $env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("@slowtest")
+
+    if ($isCommitTagSet) {
+        Write-Host "@slowtest set; running slow tests."
+        $shouldRunTest = 1
+    } else {
+        Write-Host "@slowtest not set"
+    }
 } elseif ($env:APPVEYOR_REPO_TAG) {
     Write-Host "Tag was pushed; running slow tests."
     $shouldRunTest = 1
