@@ -53,7 +53,6 @@
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/re": "^1.7.1",
     "@opam/yojson": "*",
-    "esy-bash": "^0.1.13",
     "esy-solve-cudf": "^0.1.0",
     "fastreplacestring": "github:esy-ocaml/FastReplaceString#9450b6"
   },
