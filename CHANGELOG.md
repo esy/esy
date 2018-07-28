@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.2.1 @ next
+## 0.2.1 @ latest
 
 - Windows binaries are included.
 
