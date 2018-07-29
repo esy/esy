@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.2 @ latest
+
+- Fix for sandboxes which use `esy legacy-install` command.
+
 ## 0.2.1 @ latest
 
 - Windows binaries are included.
