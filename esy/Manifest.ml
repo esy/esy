@@ -471,7 +471,7 @@ end = struct
     in
     List.map ~f:(List.map ~f) cnf
 
-  let dependencies =
+  let dependencies manifest =
     let dependsOfOpam opam =
       let f = OpamFile.OPAM.depends opam in
 
@@ -494,7 +494,7 @@ end = struct
 
       dependencies
     in
-    function
+    match manifest with
     | Installed {opam; override} ->
       let dependencies = dependsOfOpam opam in
       begin
@@ -527,12 +527,25 @@ end = struct
       in
       List.fold_left ~f ~init:[] opams
 
-  let optDependencies = function
+  let optDependencies manifest =
+    match manifest with
     | Installed {opam;_} ->
       let dependencies =
-        listPackageNamesOfFormula
-          ~build:true ~test:false ~post:true ~doc:false ~dev:false
-          (OpamFile.OPAM.depopts opam)
+        let f = OpamFile.OPAM.depopts opam in
+        let dependencies =
+          listPackageNamesOfFormula
+            ~build:true ~test:false ~post:true ~doc:false ~dev:false
+            f
+        in
+        match dependencies with
+        | [] -> []
+        | [single] -> List.map ~f:(fun name -> [name]) single
+        | _multi ->
+          (** apparently depopts has a different structure than depends in opam,
+           * it's always a single list of packages in cnf
+           * TODO: cleanup this mess
+           *)
+          assert false
       in
       dependencies
     | AggregatedRoot _ -> []
