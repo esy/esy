@@ -13,5 +13,5 @@ it('Build - custom prefix', async () => {
   await p.esy('build', {noEsyPrefix: true});
 
   const {stdout} = await p.esy('x custom-prefix', {noEsyPrefix: true});
-  expect(stdout).toEqual(expect.stringMatching('custom-prefix'));
+  expect(stdout).toEqual('custom-prefix\n');
 });

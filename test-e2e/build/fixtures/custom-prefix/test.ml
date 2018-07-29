@@ -1,1 +1,1 @@
-print_endline (Array.get Sys.argv 0)
+print_endline "custom-prefix"
