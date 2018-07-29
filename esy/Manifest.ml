@@ -272,7 +272,7 @@ module Esy = struct
       |> List.map ~f:(fun name -> [name])
     in
     let peerDependencies =
-      manifest.dependencies
+      manifest.peerDependencies
       |> Dependencies.keys
       |> List.map ~f:(fun name -> [name])
     in
