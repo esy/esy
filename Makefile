@@ -181,8 +181,8 @@ console.log(
 			postinstall: "node ./postinstall.js"
 		},
 		bin: {
-			esy: "bin/esy",
-			esyi: "bin/esyi"
+			esy: "_build/default/esy/bin/esyCommand.exe",
+			esyi: "_build/default/esyi/bin/esyi.exe"
 		},
 		files: [
 			"bin/",
