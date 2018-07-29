@@ -26,21 +26,21 @@ describe('Common - symlink workflow', async () => {
     await appEsy('build');
 
     const dep = await appEsy('dep');
-    expect(dep.stdout).toEqual(expect.stringMatching('HELLO'));
+    expect(dep.stdout).toEqual('HELLO\n');
     const anotherDep = await appEsy('another-dep');
-    expect(anotherDep.stdout).toEqual(expect.stringMatching('HELLO'));
+    expect(anotherDep.stdout).toEqual('HELLO\n');
   });
 
   it('works with modified dep sources', async () => {
     expect.assertions(1);
 
     await fs.writeFile(
-      path.join(p.projectPath, 'dep', 'dep'),
-      '#!/bin/bash\necho HELLO_MODIFIED\n',
+      path.join(p.projectPath, 'dep', 'dep.ml'),
+      'print_endline "HELLO_MODIFIED"',
     );
 
     await appEsy('build');
     const dep = await appEsy('dep');
-    expect(dep.stdout).toEqual(expect.stringMatching('HELLO_MODIFIED'));
+    expect(dep.stdout).toEqual('HELLO_MODIFIED\n');
   });
 });

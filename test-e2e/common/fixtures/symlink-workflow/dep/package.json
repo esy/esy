@@ -4,12 +4,23 @@
   "license": "MIT",
   "esy": {
     "build": [
-      "cp $cur__root/dep $cur__target_dir/$cur__name",
-      "chmod +x $cur__target_dir/$cur__name"
+      [
+        "cp",
+        "#{self.original_root /}dep.ml",
+        "#{self.target_dir /}dep.ml"
+      ],
+      [
+        "ocamlopt",
+        "-o",
+        "#{self.target_dir / self.name}.exe",
+        "#{self.target_dir /}dep.ml"
+      ]
     ],
     "install": [
-      "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+      "cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "ocaml": "esy-ocaml/ocaml#6aacc05"
+  }
 }
