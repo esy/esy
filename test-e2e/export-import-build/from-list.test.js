@@ -4,7 +4,9 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {genFixture, file, dir, packageJson, ocamlPackage} = require('../test/helpers');
+const {genFixture, file, dir, packageJson, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
   packageJson({

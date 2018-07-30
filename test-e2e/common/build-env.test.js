@@ -9,6 +9,7 @@ const fixture = require('./fixture.js');
 describe('Common - build-env', () => {
   it('generates an environment with deps in $PATH', async () => {
     const p = await genFixture(...fixture.simpleProject);
+
     await p.esy('build');
 
     const buildEnv = (await p.esy('build-env')).stdout;
