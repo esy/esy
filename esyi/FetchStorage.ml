@@ -171,8 +171,11 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   in
 
   let doFetchIfNeeded source =
-    let key = cacheId source record in
+    let unsafeKey = cacheId source record in
+    let key = EsyLib.Path.safePath unsafeKey in
     let tarballPath = Path.(cfg.cacheTarballsPath // v key |> addExt "tgz") in
+
+    print_endline("doFetchIfNeeded: " ^ (Path.to_string tarballPath));
 
     let dist = {
       Dist.
