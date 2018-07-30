@@ -47,3 +47,32 @@ let of_yojson = (json: Yojson.Safe.json) =>
   };
 
 let to_yojson = (path: t) => `String(to_string(path));
+
+let safeName = {
+  let replaceAt = Str.regexp("@");
+  let replaceUnderscore = Str.regexp("_+");
+  let replaceSlash = Str.regexp("\\/");
+  let replaceDot = Str.regexp("\\.");
+  let replaceDash = Str.regexp("\\-");
+  let replaceColon = Str.regexp(":");
+  let make = (name: string) =>
+    name
+    |> String.lowercase_ascii
+    |> Str.global_replace(replaceAt, "")
+    |> Str.global_replace(replaceUnderscore, "__")
+    |> Str.global_replace(replaceSlash, "__slash__")
+    |> Str.global_replace(replaceDot, "__dot__")
+    |> Str.global_replace(replaceColon, "__colon__")
+    |> Str.global_replace(replaceDash, "_");
+  make;
+};
+
+let safePath = {
+  let replaceSlash = Str.regexp("\\/");
+  let replaceColon = Str.regexp(":");
+  let make = name =>
+    name
+    |> Str.global_replace(replaceSlash, "__slash__")
+    |> Str.global_replace(replaceColon, "__colon__");
+  make;
+};
