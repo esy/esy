@@ -101,9 +101,7 @@ module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
   }
 };
 
-module.exports = {
-    ocamlPackagePath,
-    ESYCOMMAND,
-    isWindows,
-    ocamloptName,
-}
+module.exports.ocamlPackagePath = ocamlPackagePath;
+module.exports.ESYCOMMAND = ESYCOMMAND;
+module.exports.isWindows = isWindows;
+module.exports.ocamloptName = ocamloptName;
