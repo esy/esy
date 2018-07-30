@@ -92,7 +92,7 @@ async function buildOcamlPackage() {
     _resolved: 'ocaml@1.0.0'
   }));
 
-  await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, 'ocamlopt'));
+  await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName()));
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
