@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.4 @ latest
+
+- Fix for discovering dependencies for opam sandboxes.
+
 ## 0.2.3 @ latest
 
 - Fix for handling opam's `depopts` metadata field.
