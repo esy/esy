@@ -31,7 +31,7 @@ describe(`installing linked packages`, () => {
           },
         });
 
-        await run('install');
+        await run(`install`);
 
         const layout = await setup.crawlLayout(path);
         expect(layout).toMatchObject({
