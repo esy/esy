@@ -151,12 +151,9 @@ module.exports = {
   dir,
   packageJson,
   genFixture,
-<<<<<<< HEAD
   getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
-=======
   ocamlPackage,
   ocamlPackagePath,
->>>>>>> master
 };
