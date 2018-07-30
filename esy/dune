@@ -1,6 +1,5 @@
 (library
   (name Esy)
-  (public_name esy)
   (preprocess (pps ppx_inline_test lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
@@ -22,7 +21,7 @@
             ppx_deriving_yojson.runtime
             str
             astring
-            esy-build-package
+            EsyBuildPackage
             opam-format
             )
 )

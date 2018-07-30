@@ -18,6 +18,6 @@
             str
             astring
             ppx_deriving_yojson.runtime
-            esy
+            Esy
             )
   )

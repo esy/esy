@@ -5,7 +5,7 @@
   (flags (:standard (-w -39)))
   (preprocess (pps ppx_let))
   (libraries
-            esy-build-package
+            EsyBuildPackage
             cmdliner
             yojson
             bos

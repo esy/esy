@@ -1,6 +1,5 @@
 (library
   (name EsyBuildPackage)
-  (public_name esy-build-package)
   (flags (:standard (-w -39)))
   (preprocess (pps ppx_let ppx_deriving_yojson ppx_deriving.std))
   (libraries
