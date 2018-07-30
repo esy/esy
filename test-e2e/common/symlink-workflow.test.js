@@ -3,9 +3,7 @@
 const path = require('path');
 const outdent = require('outdent');
 const fs = require('fs-extra');
-
-const {genFixture, file, dir, packageJson, ocamlPackagePath, promiseExec} = require('../test/helpers');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const {genFixture, file, dir, packageJson, ocamlPackagePath, promiseExec, ESYCOMMAND} = require('../test/helpers');
 
 const fixture = [
   dir('app',

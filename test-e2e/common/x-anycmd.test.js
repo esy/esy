@@ -31,6 +31,7 @@ describe('Common - x anycmd', () => {
 
   it('Make sure we can pass environment from the outside dynamically', async () => {
     expect.assertions(2);
+
     process.env.X = '1';
     await expect(p.esy('x bash -c "echo $X"')).resolves.toEqual({
       stdout: '1\n',
