@@ -10,7 +10,7 @@ function exitIfFailed() {
     }
 }
 
-npm install babel-present-env
+npm install babel-preset-env
 npm install babel-preset-flow
 npm install del
 npm install flow-bin
