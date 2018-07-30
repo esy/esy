@@ -1,21 +1,72 @@
 // @flow
 
 const path = require('path');
-const {initFixture} = require('../test/helpers');
+
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "with-dev-dep",
+    "version": "1.0.0",
+    "esy": {
+      "build": "true"
+    },
+    "dependencies": {
+      "dep": "*"
+    },
+    "devDependencies": {
+      "devDep": "*"
+    }
+  }),
+  dir('node_modules',
+    dir('dep',
+      packageJson({
+        "name": "dep",
+        "version": "1.0.0",
+        "esy": {
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
+        },
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
+    ),
+    dir('devDep',
+      packageJson({
+        "name": "devDep",
+        "version": "1.0.0",
+        "license": "MIT",
+        "esy": {
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
+        },
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('devDep.ml', 'let () = print_endline "__devDep__"'),
+    ),
+    ocamlPackage(),
+  )
+];
 
 describe('Build - with dev dep', () => {
 
   let p;
 
   beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/with-dev-dep'));
+    p = await genFixture(...fixture);
     await p.esy('build');
   });
 
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(3);
-
-    const expecting = expect.stringMatching('dep');
+    const expecting = expect.stringMatching('__dep__');
 
     const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);
@@ -28,19 +79,14 @@ describe('Build - with dev dep', () => {
   });
 
   it('package "dev-dep" should be visible only in command env', async () => {
-    expect.assertions(4);
+    const expecting = expect.stringMatching('__devDep__');
 
-    const expecting = expect.stringMatching('dev-dep');
-
-    const dep = await p.esy('dev-dep');
+    const dep = await p.esy('devDep');
     expect(dep.stdout).toEqual(expecting);
 
-    const xDep = await p.esy('x dev-dep');
+    const xDep = await p.esy('x devDep');
     expect(xDep.stdout).toEqual(expecting);
 
-    const {stdout} = await p.esy('x with-dev-dep');
-    expect(stdout).toEqual(expect.stringMatching('with-dev-dep'));
-
-    return expect(p.esy('b dev-dep')).rejects.toThrow();
+    return expect(p.esy('b devDep')).rejects.toThrow();
   });
 });

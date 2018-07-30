@@ -1,10 +1,23 @@
 // @flow
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {genFixture, packageJson, dir} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "errorneous-build",
+    "version": "1.0.0",
+    "license": "MIT",
+    "esy": {
+      "build": [
+        "false"
+      ]
+    }
+  })
+];
 
 it('Build - errorneous build', async () => {
-  const p = await initFixture(path.join(__dirname, './fixtures/errorneous-build'));
+  const p = await genFixture(...fixture);
   try {
     await p.esy('build')
   } catch(err) {

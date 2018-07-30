@@ -3,40 +3,108 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const outdent = require('outdent');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "hasBuildTimeDeps",
+    "version": "1.0.0",
+    "esy": {
+      "buildsInSource": true,
+      "build": [
+        "buildTimeDep #{self.name}.ml",
+        "ocamlopt -o #{self.bin / self.name} unix.cmxa #{self.name}.ml",
+      ]
+    },
+    "dependencies": {
+      "dep": "*",
+      "ocaml": "*"
+    },
+    "buildTimeDependencies": {
+      "buildTimeDep": "*"
+    }
+  }),
+  dir('node_modules',
+    dir('buildTimeDep',
+      packageJson({
+        "name": "buildTimeDep",
+        "version": "1.0.0",
+        "esy": {
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.bin / self.name} #{self.name}.ml"
+        },
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('buildTimeDep.ml', outdent`
+        let () =
+          let oc = open_out Sys.argv.(1) in
+          let src = "let () = print_endline \\"Built with buildTimeDep@1.0.0\\"" in
+          output_string oc src;
+          close_out oc
+      `)
+    ),
+    dir('dep',
+      packageJson({
+        "name": "dep",
+        "version": "1.0.0",
+        "esy": {
+          "build": [
+            "buildTimeDep #{self.name}.ml",
+            "ocamlopt -o #{self.bin / self.name} unix.cmxa #{self.name}.ml",
+          ]
+        },
+        "buildTimeDependencies": {
+          "buildTimeDep": "*"
+        },
+        "_resolved": "..."
+      }),
+      dir('node_modules',
+        dir('buildTimeDep',
+          packageJson({
+            "name": "buildTimeDep",
+            "version": "2.0.0",
+            "esy": {
+              "buildsInSource": true,
+              "build": "ocamlopt -o #{self.bin / self.name} #{self.name}.ml"
+            },
+            "dependencies": {
+              "ocaml": "*"
+            },
+            "_resolved": "..."
+          }),
+          file('buildTimeDep.ml', outdent`
+            let () =
+              let oc = open_out Sys.argv.(1) in
+              let src = "let () = print_endline \\"Built with buildTimeDep@2.0.0\\"" in
+              output_string oc src;
+              close_out oc
+          `)
+        ),
+      ),
+    ),
+    ocamlPackage(),
+  ),
+];
 
 describe('Build - has build time deps', () => {
 
-  let p;
-
-  beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/has-build-time-deps'));
+  it('builds', async () => {
+    const p = await genFixture(...fixture);
     await p.esy('build');
-  });
 
-  it('x dep', async () => {
-    expect.assertions(1);
+    {
+      const {stdout} = await p.esy('x hasBuildTimeDeps');
+      expect(stdout).toEqual(expect.stringMatching(`Built with buildTimeDep@1.0.0`));
+    }
 
-    const {stdout} = await p.esy('dep');
-    expect(stdout).toEqual(
-      expect.stringMatching(`dep was built with:
-build-time-dep@2.0.0`),
-    );
+    {
+      const {stdout} = await p.esy('dep');
+      expect(stdout).toEqual(expect.stringMatching(`Built with buildTimeDep@2.0.0`));
+    }
 
-  });
-
-  it('x has-build-time-deps', async () => {
-    expect.assertions(2);
-
-    const {stdout} = await p.esy('x has-build-time-deps');
-    expect(stdout).toEqual(expect.stringMatching(`has-build-time-deps was built with:`));
-    expect(stdout).toEqual(expect.stringMatching(`build-time-dep@1.0.0`));
-  });
-
-  it('b build-time-dep', async () => {
-    expect.assertions(1);
-
-    const {stdout} = await p.esy('b build-time-dep');
-    expect(stdout).toEqual(expect.stringMatching(`build-time-dep@1.0.0`));
   });
 });
