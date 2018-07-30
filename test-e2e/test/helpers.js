@@ -81,13 +81,9 @@ function ocamlPackage() {
 }
 
 async function genFixture(...fixture: Fixture) {
-<<<<<<< HEAD
-  const rootPath = await fs.mkdtemp(path.join(getTempDir(), 'esy.XXXX'));
-=======
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
   const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
->>>>>>> master
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const npmPrefixPath = path.join(rootPath, 'npm');
