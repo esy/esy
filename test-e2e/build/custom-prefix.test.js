@@ -1,9 +1,12 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 
 const outdent = require('outdent');
-const {genFixture, ocamlPackage, dir, packageJson, file} = require('../test/helpers');
+const {genFixture, ocamlPackage, dir, packageJson, file, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
@@ -14,7 +17,7 @@ const fixture = [
         "cp #{self.root /}test.ml #{self.target_dir /}test.ml",
         "ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir /}test.ml"
       ],
-      "install": "cp #{self.target_dir / self.name}.exe #{self.bin / self.name}"
+      "install": `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`
     },
     "dependencies": {
       "ocaml": "*"
@@ -35,5 +38,5 @@ it('Build - custom prefix', async () => {
   await p.esy('build', {noEsyPrefix: true});
 
   const {stdout} = await p.esy('x custom-prefix', {noEsyPrefix: true});
-  expect(stdout).toEqual('custom-prefix\n');
+  expect(stdout).toEqual('custom-prefix' + os.EOL);
 });
