@@ -3,12 +3,12 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec} = require('../test/helpers');
+const fixture = require('./fixture.js');
 
 describe('Common - build-env', () => {
   it('generates an environment with deps in $PATH', async () => {
-    expect.assertions(2);
-    const p = await initFixture(path.join(__dirname, 'fixtures/simple-project'));
+    const p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
 
     const buildEnv = (await p.esy('build-env')).stdout;

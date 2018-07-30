@@ -1,3 +1,5 @@
+// @flow
+
 const fs = require('fs-extra');
 const os = require('os');
 const path = require('path');
@@ -7,53 +9,84 @@ const promiseExec = promisify(childProcess.exec);
 
 const ESYCOMMAND = require.resolve('../../bin/esy');
 
-module.exports = async function jestGlobalSetup(_globalConfig) {
-  global.__TEST_PATH__ = path.join(os.homedir(), '.esytest');
+const testPath = path.join(os.homedir(), '.esytest');
+const sandboxPath = path.join(testPath, 'sandbox');
+const esyPrefixPath = path.join(testPath, 'esy');
+const ocamlPackagePath = path.join(testPath, 'ocaml');
 
+async function mkdirOrIgnore(path) {
   try {
-    await fs.mkdir(global.__TEST_PATH__);
+    await fs.mkdir(path);
   } catch (e) {
     // doesn't matter if it exists
   }
+}
 
-  const p = await genFixture(
-    JSON.stringify({
-      name: 'root-project',
-      version: '1.0.0',
-      dependencies: {
-        ocaml: 'esy-ocaml/ocaml#6aacc05',
-      },
-      esy: {
-        build: [],
-        install: [],
-      },
-    }),
-  );
+function esy(args, options) {
+  options = options || {};
 
-  await p.esy('install');
-  await p.esy('build');
-};
+  return promiseExec(`${ESYCOMMAND} ${args}`, {
+    cwd: sandboxPath,
+    env: {...process.env, ESY__PREFIX: esyPrefixPath},
+  });
+}
 
-async function genFixture(...fixture) {
-  const rootPath = await fs.mkdtemp(path.join(global.__TEST_PATH__, 'XXXX'));
-  const projectPath = path.join(rootPath, 'project');
-  const binPath = path.join(rootPath, 'bin');
-  const esyPrefixPath = path.join(global.__TEST_PATH__, 'esy');
+async function buildOcamlPackage() {
+  await mkdirOrIgnore(testPath);
 
-  await fs.mkdir(binPath);
-  await fs.mkdir(projectPath);
-  await fs.link(ESYCOMMAND, path.join(binPath, 'esy'));
+  await mkdirOrIgnore(sandboxPath);
+  await fs.writeFile(path.join(sandboxPath, 'package.json'), JSON.stringify({
+    name: 'root-project',
+    version: '1.0.0',
+    dependencies: {
+      ocaml: 'esy-ocaml/ocaml#6aacc05',
+    },
+    esy: {
+      build: [],
+      install: [],
+    },
+  }));
 
-  await fs.writeFile(path.join(projectPath, 'package.json'), fixture);
+  await esy('install');
+  await esy('build');
 
-  function esy(args, options) {
-    options = options || {};
+  const buildEnv = JSON.parse((await esy('build-env --json')).stdout);
+  const PATH = (buildEnv.PATH || '').split(path.delimiter);
 
-    return promiseExec(`${ESYCOMMAND} ${args}`, {
-      cwd: projectPath,
-      env: {...process.env, ESY__PREFIX: esyPrefixPath},
-    });
+  let ocamloptPath = null;
+  for (const p of PATH) {
+    if (fs.exists(path.join(p, 'ocamlopt'))) {
+      ocamloptPath = path.join(p, 'ocamlopt');
+      break;
+    }
   }
 
-  return {rootPath, binPath, projectPath, esy};
+  if (ocamloptPath == null) {
+    throw new Error('unable to initialize ocaml package for tests');
+  }
+
+  await mkdirOrIgnore(ocamlPackagePath);
+  await fs.writeFile(path.join(ocamlPackagePath, 'package.json'), JSON.stringify({
+    name: 'ocaml',
+    version: '1.0.0',
+    esy: {
+      build: [
+        "true"
+      ],
+      install: [
+        "cp ocamlopt #{self.bin / 'ocamlopt'}",
+        "chmod +x #{self.bin / 'ocamlopt'}"
+      ]
+    },
+  }));
+
+  await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, 'ocamlopt'));
 }
+
+module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
+  if (!await fs.exists(ocamlPackagePath)) {
+    await buildOcamlPackage();
+  }
+};
+
+module.exports.ocamlPackagePath = ocamlPackagePath;

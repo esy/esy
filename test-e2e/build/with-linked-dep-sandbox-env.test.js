@@ -3,13 +3,119 @@
 const path = require('path');
 const fs = require('fs');
 
-const {initFixture} = require('../test/helpers');
+const outdent = require('outdent');
+const {genFixture, packageJson, symlink, file, dir} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "with-linked-dep-sandbox-env",
+    "version": "1.0.0",
+    "esy": {
+      "build": [
+        [
+          "bash",
+          "-c",
+          "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
+        ],
+        "chmod +x $cur__target_dir/$cur__name"
+      ],
+      "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"],
+      "sandboxEnv": {
+        "SANDBOX_ENV_VAR": "global-sandbox-env-var"
+      }
+    },
+    "dependencies": {
+      "dep": "*"
+    },
+    "buildTimeDependencies": {
+      "dep2": "*"
+    },
+    "devDependencies": {
+      "dep3": "*"
+    }
+  }),
+  dir('node_modules',
+    dir('dep',
+      symlink('package.json', path.join('..', '..', 'dep')),
+      file('_esylink', './dep')
+    ),
+    dir('dep2',
+      symlink('package.json', path.join('..', '..', 'dep2')),
+      file('_esylink', './dep2')
+    ),
+    dir('dep3',
+      symlink('package.json', path.join('..', '..', 'dep3')),
+      file('_esylink', './dep3')
+    ),
+  ),
+  dir('dep',
+    packageJson({
+      "name": "dep",
+      "version": "1.0.0",
+      "esy": {
+        "build": [
+          ["sh", "./script.sh", "#{self.target_dir / self.name}"],
+          "chmod +x $cur__target_dir/$cur__name"
+        ],
+        "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"]
+      },
+      "dependencies": {}
+    }),
+    file('script.sh', outdent`
+      #!/bin/bash
+
+      echo '#!/bin/bash' >> $1
+      echo "echo '$SANDBOX_ENV_VAR-in-dep'" >> $1
+    `)
+  ),
+  dir('dep2',
+    packageJson({
+      "name": "dep2",
+      "version": "1.0.0",
+      "esy": {
+        "build": [
+          ["sh", "./script.sh", "#{self.target_dir / self.name}"],
+          "chmod +x $cur__target_dir/$cur__name"
+        ],
+        "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"]
+      },
+      "dependencies": {}
+    }),
+    file('script.sh', outdent`
+      #!/bin/bash
+
+      echo '#!/bin/bash' >> $1
+      echo "echo '$SANDBOX_ENV_VAR-in-dep2'" >> $1
+    `),
+  ),
+  dir('dep3',
+    packageJson({
+      "name": "dep3",
+      "version": "1.0.0",
+      "license": "MIT",
+      "esy": {
+        "build": [
+          ["sh", "./script.sh", "#{self.target_dir / self.name}"],
+          "chmod +x $cur__target_dir/$cur__name"
+        ],
+        "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"]
+      },
+      "dependencies": {}
+    }),
+    file('script.sh', outdent`
+      #!/bin/bash
+
+      echo '#!/bin/bash' >> $1
+      echo "echo '$SANDBOX_ENV_VAR-in-dep3'" >> $1
+    `)
+  ),
+];
 
 describe('Build - with linked dep _build', () => {
   let p;
 
   beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/with-linked-dep-sandbox-env'));
+    p = await genFixture(...fixture);
     await p.esy('build');
   });
 

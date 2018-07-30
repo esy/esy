@@ -5,17 +5,20 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {initFixture} = require('../test/helpers');
+const {genFixture} = require('../test/helpers');
+const fixture = require('./fixture.js');
 
 it('Common - esy prefix via esyrc', async () => {
-  expect.assertions(2);
-  const p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
 
-  await del(path.join(os.homedir(), '.esytest', 'custom-esy-prefix'), {force: true});
+  const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
+  const tmpPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
+  const customEsyPrefix = path.join(tmpPath, 'prefix');
+
+  const p = await genFixture(...fixture.simpleProject);
 
   await fs.writeFile(
     path.join(p.projectPath, '.esyrc'),
-    `esy-prefix-path: ${path.join(os.homedir(), '.esytest', 'custom-esy-prefix')}`,
+    `esy-prefix-path: ${customEsyPrefix}`,
   );
 
   const prevEnv = process.env;
@@ -29,9 +32,7 @@ it('Common - esy prefix via esyrc', async () => {
   });
 
   await expect(p.esy('which dep', {noEsyPrefix: true})).resolves.toEqual({
-    stdout: expect.stringMatching(
-      path.join(os.homedir(), '.esytest', 'custom-esy-prefix'),
-    ),
+    stdout: expect.stringMatching(customEsyPrefix),
     stderr: '',
   });
 

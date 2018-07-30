@@ -3,14 +3,106 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {genFixture, packageJson, dir} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "has-build-time-deps",
+    "version": "1.0.0",
+    "license": "MIT",
+    "esy": {
+      "build": [
+        [
+          "bash",
+          "-c",
+          "echo \"#!/bin/bash\necho #{self.name} was built with:\necho $(build-time-dep)\" > #{self.target_dir / self.name}"
+        ],
+        "chmod +x $cur__target_dir/$cur__name"
+      ],
+      "install": [
+        "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+      ]
+    },
+    "dependencies": {
+      "dep": "*"
+    },
+    "buildTimeDependencies": {
+      "build-time-dep": "*"
+    }
+  }),
+  dir('node_modules',
+    dir('build-time-dep',
+      packageJson({
+        "name": "build-time-dep",
+        "version": "1.0.0",
+        "esy": {
+          "build": [
+            [
+              "bash",
+              "-c",
+              "echo '#!/bin/bash\necho #{self.name}@#{self.version}' > #{self.target_dir / self.name}"
+            ],
+            "chmod +x $cur__target_dir/$cur__name"
+          ],
+          "install": [
+            "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+          ]
+        }
+      })
+    ),
+    dir('dep',
+      packageJson({
+        "name": "dep",
+        "version": "1.0.0",
+        "esy": {
+          "build": [
+            [
+              "bash",
+              "-c",
+              "echo \"#!/bin/bash\necho #{self.name} was built with:\necho $(build-time-dep)\" > #{self.target_dir / self.name}"
+            ],
+            "chmod +x $cur__target_dir/$cur__name"
+          ],
+          "install": [
+            "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+          ]
+        },
+        "buildTimeDependencies": {
+          "build-time-dep": "*"
+        }
+      }),
+      dir('node_modules',
+        dir('build-time-dep',
+          packageJson({
+            "name": "build-time-dep",
+            "version": "2.0.0",
+            "license": "MIT",
+            "esy": {
+              "build": [
+                [
+                  "bash",
+                  "-c",
+                  "echo '#!/bin/bash\necho #{self.name}@#{self.version}' > #{self.target_dir / self.name}"
+                ],
+                "chmod +x $cur__target_dir/$cur__name"
+              ],
+              "install": [
+                "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
+              ]
+            }
+          }),
+        ),
+      ),
+    ),
+  ),
+];
 
 describe('Build - has build time deps', () => {
 
   let p;
 
   beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/has-build-time-deps'));
+    p = await genFixture(...fixture);
     await p.esy('build');
   });
 

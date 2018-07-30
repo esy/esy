@@ -3,12 +3,12 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec} = require('../test/helpers');
+const fixture = require('./fixture.js');
 
 describe('Common - ejected command env', () => {
   it('Check that `esy build` ejects a command-env which contains deps and devDeps in $PATH', async () => {
-    expect.assertions(2);
-    const p = await initFixture(path.join(__dirname, 'fixtures/simple-project'));
+    const p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
 
     await expect(

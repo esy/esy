@@ -2,10 +2,11 @@
 
 const path = require('path');
 
-const {initFixture} = require('../test/helpers');
+const {genFixture} = require('../test/helpers');
+const fixture = require('./fixture.js');
 
 it('Common - build anycmd', async () => {
-  const p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
+  const p = await genFixture(...fixture.simpleProject);
 
   await p.esy('build');
 

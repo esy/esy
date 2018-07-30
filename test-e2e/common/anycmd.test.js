@@ -3,7 +3,8 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec} = require('../test/helpers');
+const fixture = require('./fixture.js');
 const ESYCOMMAND = require.resolve('../../bin/esy');
 
 describe('Common - anycmd', () => {
@@ -11,7 +12,7 @@ describe('Common - anycmd', () => {
   let prevEnv = {...process.env};
 
   beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
+    p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
   });
 
