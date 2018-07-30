@@ -1,5 +1,6 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 const outdent = require('outdent');
 const {genFixture, ocamlPackage, dir, file, packageJson, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
@@ -44,5 +45,5 @@ it('Build - no deps', async () => {
   await p.esy('build');
 
   const {stdout} = await p.esy('x no-deps');
-  expect(stdout.trim()).toEqual('no-deps');
+  expect(stdout).toEqual('no-deps' + os.EOL);
 });

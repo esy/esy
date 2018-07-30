@@ -6,7 +6,7 @@ const path = require('path');
 const outdent = require('outdent');
 const {genFixture, packageJson, dir, file, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({

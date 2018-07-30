@@ -4,7 +4,7 @@ const setup = require('./setup');
 
 const {skipSuiteOnWindows} = require("./../test/helpers");
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows();
 
 describe(`Installing with resolutions`, () => {
   test(

@@ -5,7 +5,7 @@ const setup = require('./setup');
 
 const {skipSuiteOnWindows} = require("./../test/helpers");
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows();
 
 describe(`Basic tests for npm packages`, () => {
   test(

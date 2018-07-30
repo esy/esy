@@ -3,7 +3,7 @@
 const tests = require('./setup');
 const {skipSuiteOnWindows} = require("./../test/helpers");
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows();
 
 describe('Installing devDependencies', function() {
   test(

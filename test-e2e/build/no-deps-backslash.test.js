@@ -2,7 +2,7 @@
 
 const path = require('path');
 const outdent = require('outdent');
-const {genFixture, ocamlPackage, dir, file, packageJson} = require('../test/helpers');
+const {genFixture, ocamlPackage, dir, file, packageJson, exeExtension} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -24,7 +24,7 @@ const fixture = [
         ]
       ],
       "install": [
-        "cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name"
+        `cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name${exeExtension}`
       ]
     },
     "dependencies": {
@@ -36,10 +36,6 @@ const fixture = [
   `),
   dir('node_modules', ocamlPackage())
 ];
-
-const {skipSuiteOnWindows} = require("./../test/helpers");
-
-skipSuiteOnWindows("#272");
 
 it('Build - no deps backslash', async () => {
   const p = await genFixture(...fixture);

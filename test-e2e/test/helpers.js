@@ -145,7 +145,7 @@ function skipSuiteOnWindows(blockingIssues) {
    if (process.platform === 'win32') {
       fdescribe("", () => {
          fit('does not work on Windows', () => {
-            console.warn('[SKIP] Needs to be unblocked: ' + blockingIssues);
+            console.warn('[SKIP] Needs to be unblocked: ' + (blockingIssues || 'Needs investigation'));
          });
       });
    }
