@@ -3,7 +3,6 @@
 jest.setTimeout(20000);
 
 const path = require('path');
-const os = require('os');
 const fs = require('fs-extra');
 const os = require('os');
 const childProcess = require('child_process');
@@ -11,13 +10,15 @@ const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 const {ocamlPackagePath} = require('./jestGlobalSetup.js');
 
-const ESYCOMMAND = process.platform === "win32" ?
+const isWindows = process.platform === "win32"
+
+const ESYCOMMAND = isWindows ?
     // On Windows, grab the 'bootstrapped' build until we have a common build path
     require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
     : require.resolve('../../bin/esy');
 
 function getTempDir() {
-    return process.platform === "win32" ? os.tmpdir() : "/tmp";
+    return isWindows ? os.tmpdir() : "/tmp";
 }
 
 type Fixture = Array<FixtureItem>;
@@ -68,9 +69,10 @@ function ocamlPackage() {
       name: 'package.json',
       path: path.join(ocamlPackagePath, 'package.json'),
     };
+    const ocamloptBinName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
     let ocamlopt: FixtureFileCopy = {
       type: 'file-copy',
-      name: 'ocamlopt',
+      name: ocamloptBinName,
       path: path.join(ocamlPackagePath, 'ocamlopt'),
     };
     ocamlPackageCached = dir('ocaml', ocamlopt, packageJson);
@@ -82,7 +84,7 @@ function ocamlPackage() {
 
 async function genFixture(...fixture: Fixture) {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
-  const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
+  const tmp = isWindows ? os.tmpdir() : '/tmp';
   const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
