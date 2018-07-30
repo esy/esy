@@ -3,9 +3,8 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {genFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec, ESYCOMMAND} = require('../test/helpers');
 const fixture = require('./fixture.js');
-const ESYCOMMAND = require.resolve('../../bin/esy');
 
 describe('Common - anycmd', () => {
   let p;

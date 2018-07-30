@@ -2,7 +2,7 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage, exeExtension} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -10,8 +10,8 @@ const fixture = [
     "version": "1.0.0",
     "esy": {
       "buildsInSource": true,
-      "build": "ocamlopt -o #{self.lib / self.name} #{self.root / self.name}.ml",
-      "install": "ln -s #{self.lib / self.name} #{self.bin / self.name}"
+      "build": "ocamlopt -o #{self.lib / self.name}.exe #{self.root / self.name}.ml",
+      "install": `ln -s #{self.lib / self.name}.exe #{self.bin / self.name}${exeExtension}`
     },
     "dependencies": {
       "dep": "*",
@@ -27,8 +27,8 @@ const fixture = [
         "license": "MIT",
         "esy": {
           "buildsInSource": true,
-          "build": "ocamlopt -o #{self.lib / self.name} #{self.root / self.name}.ml",
-          "install": "ln -s #{self.lib / self.name} #{self.bin / self.name}"
+          "build": "ocamlopt -o #{self.lib / self.name}.exe #{self.root / self.name}.ml",
+          "install": `ln -s #{self.lib / self.name}.exe #{self.bin / self.name}${exeExtension}`
         },
         "dependencies": {
           "ocaml": "*"

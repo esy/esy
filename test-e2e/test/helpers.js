@@ -20,6 +20,8 @@ function getTempDir() {
     return isWindows ? os.tmpdir() : '/tmp';
 }
 
+const exeExtension = isWindows ? ".exe" : "";
+
 type Fixture = Array<FixtureItem>;
 type FixtureItem = FixtureDir | FixtureFile | FixtureFileCopy | FixtureSymlink;
 type FixtureDir = {
@@ -162,6 +164,7 @@ module.exports = {
   getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
+  exeExtension,
   ocamloptName,
   ocamlPackage,
   ocamlPackagePath,

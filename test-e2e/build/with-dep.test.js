@@ -1,7 +1,9 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows()
 
 const fixture = [
   packageJson({

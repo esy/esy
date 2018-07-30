@@ -107,7 +107,7 @@ describe('Common - symlink workflow', () => {
   let p;
   let appEsy;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await genFixture(...fixture);
 
     appEsy = args =>
