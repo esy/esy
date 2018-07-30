@@ -1,16 +1,29 @@
 // @flow
 
 const path = require('path');
-const {initFixture} = require('../test/helpers');
+const {genFixture, packageJson} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "not-enough-deps",
+    "version": "1.0.0",
+    "license": "MIT",
+    "esy": {
+      "build": "true"
+    },
+    "dependencies": {
+      "dep": "*"
+    }
+  })
+];
 
 describe('Build - not enough deps', () => {
   it("should fail as there's not enough deps and output relevant info", async () => {
-    expect.assertions(2);
-    const p = await initFixture(path.join(__dirname, './fixtures/not-enough-deps'));
+    const p = await genFixture(...fixture);
 
     await p.esy('build').catch(e => {
       expect(e.stderr).toEqual(
-        expect.stringMatching('processing package: with-dep@1.0.0'),
+        expect.stringMatching('processing package: not-enough-deps@1.0.0'),
       );
       expect(e.stderr).toEqual(
         expect.stringMatching('invalid dependency dep: unable to resolve package'),

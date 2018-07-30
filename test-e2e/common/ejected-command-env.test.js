@@ -3,26 +3,24 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
-
-skipSuiteOnWindows("Needs investigation");
+const {genFixture, promiseExec} = require('../test/helpers');
+const fixture = require('./fixture.js');
 
 describe('Common - ejected command env', () => {
   it('Check that `esy build` ejects a command-env which contains deps and devDeps in $PATH', async () => {
-    expect.assertions(2);
-    const p = await initFixture(path.join(__dirname, 'fixtures/simple-project'));
+    const p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
 
     await expect(
       promiseExec('. ./node_modules/.cache/_esy/build/bin/command-env && dep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./node_modules/.cache/_esy/build/bin/command-env && dev-dep', {
+      promiseExec('. ./node_modules/.cache/_esy/build/bin/command-env && devDep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dev-dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
   });
 });

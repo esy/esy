@@ -1,8 +1,6 @@
 // @flow
 
-const {file, dir, packageJson, genFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers.js');
-
-skipSuiteOnWindows("#272");
+const {file, dir, packageJson, genFixture, promiseExec, ocamlPackage} = require('../test/helpers.js');
 
 describe('build opam sandbox', () => {
 
@@ -12,30 +10,16 @@ describe('build opam sandbox', () => {
       file('opam', `
         opam-version: "1.2"
         build: [
-          ["bash" "-c" "echo '#!/bin/bash\necho hello-from-opam' > %{bin}%/hello"]
-          ["chmod" "+x" "%{bin}%/hello"]
-        ]
-        install: [
-          ["true"]
+          ["ocamlopt" "-o" "%{bin}%/hello" "hello.ml"]
         ]
       `),
+      file('hello.ml', 'let () = print_endline "__hello__"'),
       dir('node_modules',
-        dir('ocaml',
-          packageJson({
-            name: 'ocaml',
-            version: '4.6.1'
-          })
-        ),
+        ocamlPackage(),
         dir('@esy-ocaml',
           dir('substs',
             packageJson({
               name: '@esy-ocaml/substs',
-              version: '0.0.0'
-            })
-          ),
-          dir('esy-installer',
-            packageJson({
-              name: '@esy-ocaml/esy-installer',
               version: '0.0.0'
             })
           )
@@ -44,7 +28,7 @@ describe('build opam sandbox', () => {
     );
 
     await p.esy('build');
-    expect((await p.esy('x hello')).stdout).toEqual(expect.stringContaining('hello-from-opam'));
+    expect((await p.esy('x hello')).stdout).toEqual(expect.stringContaining('__hello__'));
   });
 
   it('builds an opam sandbox with multiple opam files', async () => {
@@ -69,12 +53,7 @@ describe('build opam sandbox', () => {
         ]
       `),
       dir('node_modules',
-        dir('ocaml',
-          packageJson({
-            name: 'ocaml',
-            version: '4.6.1'
-          })
-        ),
+        ocamlPackage(),
         dir('@esy-ocaml',
           dir('substs',
             packageJson({
@@ -82,12 +61,6 @@ describe('build opam sandbox', () => {
               version: '0.0.0'
             })
           ),
-          dir('esy-installer',
-            packageJson({
-              name: '@esy-ocaml/esy-installer',
-              version: '0.0.0'
-            })
-          )
         )
       )
     );

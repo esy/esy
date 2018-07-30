@@ -2,18 +2,47 @@
 
 const path = require('path');
 
-const {initFixture, skipSuiteOnWindows} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
-skipSuiteOnWindows("#272");
+const fixture = [
+  packageJson({
+    "name": "with-dep-in-source",
+    "version": "1.0.0",
+    "esy": {
+      "build": "true"
+    },
+    "dependencies": {
+      "dep": "*"
+    }
+  }),
+  dir('node_modules',
+    dir('dep',
+      packageJson({
+        "name": "dep",
+        "version": "1.0.0",
+        "esy": {
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
+        },
+        "dependencies": {
+          "ocaml": "*",
+        },
+        "_resolved": "..."
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
+    ),
+    ocamlPackage(),
+  )
+]
 
 describe('Build - with dep in source', () => {
 
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(4);
-    const p = await initFixture(path.join(__dirname, './fixtures/with-dep-in-source'));
+    const p = await genFixture(...fixture);
     await p.esy('build');
 
-    const expecting = expect.stringMatching('dep');
+    const expecting = expect.stringMatching('__dep__');
 
     const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);
@@ -23,8 +52,5 @@ describe('Build - with dep in source', () => {
 
     const x = await p.esy('x dep');
     expect(x.stdout).toEqual(expecting);
-
-    const {stdout} = await p.esy('x with-dep-in-source');
-    expect(stdout).toEqual(expect.stringMatching('with-dep-in-source'));
   });
 });
