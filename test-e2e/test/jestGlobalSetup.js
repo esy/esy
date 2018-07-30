@@ -15,6 +15,10 @@ const INSTALL_COMMAND = process.platform === 'win32'
     ? 'legacy-install'
     : 'install'
 
+function ocamloptName() {
+    return process.platform === 'win32' ? 'ocamlopt.exe' : 'ocamlopt';
+}
+
 const testPath = path.join(os.homedir(), '.esytest');
 const sandboxPath = path.join(testPath, 'sandbox');
 const esyPrefixPath = path.join(testPath, 'esy');
@@ -61,8 +65,8 @@ async function buildOcamlPackage() {
 
   let ocamloptPath = null;
   for (const p of PATH) {
-    if (fs.exists(path.join(p, 'ocamlopt'))) {
-      ocamloptPath = path.join(p, 'ocamlopt');
+    if (fs.exists(path.join(p, ocamloptName()))) {
+      ocamloptPath = path.join(p, ocamloptName());
       break;
     }
   }
@@ -72,6 +76,7 @@ async function buildOcamlPackage() {
   }
 
   await mkdirOrIgnore(ocamlPackagePath);
+
   await fs.writeFile(path.join(ocamlPackagePath, 'package.json'), JSON.stringify({
     name: 'ocaml',
     version: '1.0.0',
@@ -80,8 +85,8 @@ async function buildOcamlPackage() {
         "true"
       ],
       install: [
-        "cp ocamlopt #{self.bin / 'ocamlopt'}",
-        "chmod +x #{self.bin / 'ocamlopt'}"
+        `cp ${ocamloptName()} #{self.bin / '${ocamloptName()}'}`,
+        `chmod +x #{self.bin / '${ocamloptName()}'}`
       ]
     },
     _resolved: 'ocaml@1.0.0'

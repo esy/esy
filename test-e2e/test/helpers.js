@@ -12,13 +12,12 @@ const {ocamlPackagePath} = require('./jestGlobalSetup.js');
 
 const isWindows = process.platform === "win32"
 
-const ESYCOMMAND = isWindows ?
-    // On Windows, grab the 'bootstrapped' build until we have a common build path
-    require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
+const ESYCOMMAND = isWindows 
+    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
     : require.resolve('../../bin/esy');
 
 function getTempDir() {
-    return isWindows ? os.tmpdir() : "/tmp";
+    return isWindows ? os.tmpdir() : '/tmp';
 }
 
 type Fixture = Array<FixtureItem>;
@@ -62,6 +61,10 @@ function packageJson(json: Object) {
 
 let ocamlPackageCached = null;
 
+function ocamloptName() {
+    return isWindows ? 'ocamlopt.exe' : 'ocamlopt';
+}
+
 function ocamlPackage() {
   if (ocamlPackageCached == null) {
     let packageJson: FixtureFileCopy = {
@@ -69,13 +72,12 @@ function ocamlPackage() {
       name: 'package.json',
       path: path.join(ocamlPackagePath, 'package.json'),
     };
-    const ocamloptBinName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
     let ocamlopt: FixtureFileCopy = {
       type: 'file-copy',
-      name: ocamloptBinName,
-      path: path.join(ocamlPackagePath, 'ocamlopt'),
+      name: ocamloptName(),
+      path: path.join(ocamlPackagePath, ocamloptName()),
     };
-    ocamlPackageCached = dir('ocaml', ocamlopt, packageJson);
+    ocamlPackageCached = dir('ocaml', ocamloptName(), packageJson);
     return ocamlPackageCached;
   } else {
     return ocamlPackageCached;
@@ -156,6 +158,7 @@ module.exports = {
   getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
+  ocamloptName,
   ocamlPackage,
   ocamlPackagePath,
 };
