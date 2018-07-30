@@ -4,7 +4,9 @@ const childProcess = require('child_process');
 const path = require('path');
 
 const outdent = require('outdent');
-const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 const fixture = [
   packageJson({
