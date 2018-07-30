@@ -4,7 +4,7 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {genFixture, file, dir, packageJson} = require('../test/helpers');
+const {genFixture, file, dir, packageJson, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -34,7 +34,7 @@ const fixture = [
         "dependencies": {
           "subdep": "*"
         },
-        "_resolved": "http://sometarball.gz"
+        "_resolved": "..."
       }),
       dir('node_modules',
         dir('subdep',
@@ -43,21 +43,18 @@ const fixture = [
             "version": "1.0.0",
             "license": "MIT",
             "esy": {
-              "build": [
-                [
-                  "bash",
-                  "-c",
-                  "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
-                ],
-                "chmod +x $cur__target_dir/$cur__name"
-              ],
-              "install": [
-                "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-              ]
+              "buildsInSource": true,
+              "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+              "install": "cp #{self.root / self.name} #{self.bin / self.name}",
             },
-            "_resolved": "http://subdep-sometarball.gz"
-          })
-        )
+            "dependencies": {
+              "ocaml": "*"
+            },
+            "_resolved": "..."
+          }),
+          file('subdep.ml', 'let () = print_endline "__subdep__"'),
+        ),
+        ocamlPackage(),
       )
     )
   )

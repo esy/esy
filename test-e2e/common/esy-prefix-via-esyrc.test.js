@@ -27,7 +27,7 @@ it('Common - esy prefix via esyrc', async () => {
   await p.esy('build', {noEsyPrefix: true});
 
   await expect(p.esy('dep', {noEsyPrefix: true})).resolves.toEqual({
-    stdout: 'dep\n',
+    stdout: '__dep__\n',
     stderr: '',
   });
 

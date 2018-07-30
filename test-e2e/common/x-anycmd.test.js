@@ -20,11 +20,11 @@ describe('Common - x anycmd', () => {
     expect.assertions(2);
 
     await expect(p.esy('x dep')).resolves.toEqual({
-      stdout: 'dep\n',
+      stdout: '__dep__\n',
       stderr: '',
     });
-    await expect(p.esy('x dev-dep')).resolves.toEqual({
-      stdout: expect.stringMatching('dev-dep\n'),
+    await expect(p.esy('x devDep')).resolves.toEqual({
+      stdout: '__devDep__\n',
       stderr: '',
     });
   });

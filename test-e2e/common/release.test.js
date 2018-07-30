@@ -11,55 +11,42 @@ const fixture = [
     "version": "0.1.0",
     "license": "MIT",
     "dependencies": {
-      "release-dep": "link:./dependencies/release-dep",
+      "releaseDep": "*",
       "ocaml": "*"
     },
     "esy": {
-      "build": [
-        ["cp", "#{self.name '.exe'}", "#{self.bin / self.name '.exe'}"],
-        ["chmod", "+x", "#{self.bin / self.name '.exe'}"]
-      ],
+      "buildsInSource": true,
+      "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+      "install": "cp #{self.root / self.name} #{self.bin / self.name}",
       "release": {
-        "releasedBinaries": ["release.exe", "release-dep.exe"],
+        "releasedBinaries": ["release", "releaseDep"],
         "deleteFromBinaryRelease": ["ocaml-*"]
       }
     }
   }),
-  file('release.exe', outdent`
-    #!/bin/bash
-
-    echo "RELEASE-HELLO-FROM-$NAME"
+  file('release.ml', outdent`
+    let () =
+      let name = Sys.getenv "NAME" in
+      print_endline ("RELEASE-HELLO-FROM-" ^ name)
   `),
   dir('node_modules',
-    dir('release-dep',
+    dir('releaseDep',
       packageJson({
-        "name": "release-dep",
+        "name": "releaseDep",
         "version": "0.1.0",
         "esy": {
-          "build": [
-            [
-              "cp",
-              "#{self.name '.exe'}",
-              "#{self.bin / self.name '.exe'}"
-            ],
-            [
-              "chmod",
-              "+x",
-              "#{self.bin / self.name '.exe'}"
-            ]
-          ],
-          "release": {
-            "releasedBinaries": [
-              "release-dep.exe"
-            ]
-          }
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}",
+        },
+        "dependencies": {
+          "ocaml": "*"
         }
       }),
-      file('release-dep.exe', outdent`
-        #!/bin/bash
-
-        echo RELEASE-DEP-HELLO
-      `)
+      file('releaseDep.ml', outdent`
+        let () =
+          print_endline "RELEASE-DEP-HELLO"
+      `),
     ),
     ocamlPackage()
   )
@@ -77,7 +64,7 @@ it('Common - release', async () => {
   await expect(p.npm('-g install ./release-*.tgz')).resolves.not.toThrow();
 
   await expect(
-    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release.exe'), {
+    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release'), {
       env: {...process.env, NAME: 'ME'},
     }),
   ).resolves.toEqual({
@@ -86,7 +73,7 @@ it('Common - release', async () => {
   });
 
   await expect(
-    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release-dep.exe')),
+    promiseExec(path.join(p.npmPrefixPath, 'bin', 'releaseDep')),
   ).resolves.toEqual({
     stdout: 'RELEASE-DEP-HELLO\n',
     stderr: '',

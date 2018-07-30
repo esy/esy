@@ -19,10 +19,10 @@ describe('Common - build-env', () => {
       promiseExec('. ./build-env && dep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./build-env && dev-dep', {
+      promiseExec('. ./build-env && devDep', {
         cwd: p.projectPath,
       }),
     ).rejects.toThrow();

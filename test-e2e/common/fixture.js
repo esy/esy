@@ -1,6 +1,6 @@
 // @flow
 
-const {packageJson, dir} = require('../test/helpers');
+const {packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
 const simpleProject = [
   packageJson({
@@ -10,7 +10,7 @@ const simpleProject = [
       "dep": "*"
     },
     "devDependencies": {
-      "dev-dep": "*"
+      "devDep": "*"
     },
     "esy": {},
   }),
@@ -20,43 +20,34 @@ const simpleProject = [
         "name": "dep",
         "version": "1.0.0",
         "esy": {
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo '#!/bin/bash\necho #{self.name}' > #{self.install / 'bin' / self.name}"
-            ],
-            [
-              "chmod",
-              "+x",
-              "#{self.install / 'bin' / self.name}"
-            ]
-          ]
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}",
         },
-        "_resolved": "dep"
-      })
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
-    dir('dev-dep',
+    dir('devDep',
       packageJson({
-        "name": "dev-dep",
+        "name": "devDep",
         "version": "1.0.0",
         "esy": {
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo '#!/bin/bash\necho #{self.name}' > #{self.install / 'bin' / self.name}"
-            ],
-            [
-              "chmod",
-              "+x",
-              "#{self.install / 'bin' / self.name}"
-            ]
-          ]
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}",
         },
-        "_resolved": "dev-dep"
-      })
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('devDep.ml', 'let () = print_endline "__devDep__"'),
     ),
+    ocamlPackage(),
   )
 ];
 

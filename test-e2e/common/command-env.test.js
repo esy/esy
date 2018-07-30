@@ -19,12 +19,12 @@ describe('Common - command-env', () => {
       promiseExec('. ./command-env && dep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./command-env && dev-dep', {
+      promiseExec('. ./command-env && devDep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dev-dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
   });
 });

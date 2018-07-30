@@ -11,12 +11,12 @@ it('Common - build anycmd', async () => {
   await p.esy('build');
 
   await expect(p.esy('build dep')).resolves.toEqual({
-    stdout: 'dep\n',
+    stdout: '__dep__\n',
     stderr: '',
   });
 
   await expect(p.esy('b dep')).resolves.toEqual({
-    stdout: 'dep\n',
+    stdout: '__dep__\n',
     stderr: '',
   });
 
