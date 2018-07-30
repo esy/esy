@@ -3,24 +3,14 @@
 const path = require('path');
 const fs = require('fs');
 
-const {genFixture, packageJson, file, dir, symlink} = require('../test/helpers');
+const {genFixture, packageJson, file, dir, symlink, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
     "name": "with-linked-dep-_build",
     "version": "1.0.0",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": [
-        "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-      ]
+      "build": "true",
     },
     "dependencies": {
       "dep": "*"
@@ -33,34 +23,30 @@ const fixture = [
       "esy": {
         "buildsInSource": "_build",
         "build": [
-          "mkdir -p _build",
-          [
-            "bash",
-            "-c",
-            "echo '#!/bin/bash\necho $cur__name' > _build/$cur__name"
-          ],
-          "chmod +x _build/$cur__name"
+          "mkdir -p #{self.root / '_build'}",
+          "cp #{self.root / self.name}.ml #{self.root / '_build' / self.name}.ml",
+          "ocamlopt -o #{self.root / '_build' / self.name} #{self.root / '_build' / self.name}.ml",
         ],
-        "install": [
-          "cp _build/$cur__name $cur__bin/$cur__name"
-        ]
+        "install": "cp #{self.root / '_build' / self.name} #{self.bin / self.name}"
       },
-      "dependencies": {}
-    })
+      "dependencies": {
+        "ocaml": "*"
+      }
+    }),
+    file('dep.ml', 'let () = print_endline "__dep__"'),
   ),
   dir('node_modules',
     dir('dep',
       file('_esylink', './dep'),
       symlink('package.json', '../../dep/package.json')
     ),
+    ocamlPackage(),
   ),
 ];
 
 describe('Build - with linked dep _build',  () => {
 
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(4);
-
     const p = await genFixture(...fixture);
     await p.esy('build');
 
@@ -74,9 +60,5 @@ describe('Build - with linked dep _build',  () => {
 
     const x = await p.esy('x dep');
     expect(x.stdout).toEqual(expecting);
-
-
-    const {stdout} = await p.esy('x with-linked-dep-_build');
-    expect(stdout).toEqual(expect.stringMatching('with-linked-dep-_build'));
   });
 });

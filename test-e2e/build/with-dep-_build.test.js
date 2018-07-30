@@ -8,17 +8,7 @@ const fixture = [
     "name": "with-dep-_build",
     "version": "1.0.0",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": [
-        "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-      ]
+      "build": "true"
     },
     "dependencies": {
       "dep": "*"

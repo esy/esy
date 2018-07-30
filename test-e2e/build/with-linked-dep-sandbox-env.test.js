@@ -4,22 +4,14 @@ const path = require('path');
 const fs = require('fs');
 
 const outdent = require('outdent');
-const {genFixture, packageJson, symlink, file, dir} = require('../test/helpers');
+const {genFixture, ocamlPackage, packageJson, symlink, file, dir} = require('../test/helpers');
 
 const fixture = [
   packageJson({
     "name": "with-linked-dep-sandbox-env",
     "version": "1.0.0",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"],
+      "build": "true",
       "sandboxEnv": {
         "SANDBOX_ENV_VAR": "global-sandbox-env-var"
       }
@@ -47,6 +39,7 @@ const fixture = [
       symlink('package.json', path.join('..', '..', 'dep3')),
       file('_esylink', './dep3')
     ),
+    ocamlPackage(),
   ),
   dir('dep',
     packageJson({
@@ -54,18 +47,19 @@ const fixture = [
       "version": "1.0.0",
       "esy": {
         "build": [
-          ["sh", "./script.sh", "#{self.target_dir / self.name}"],
-          "chmod +x $cur__target_dir/$cur__name"
+          "cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml",
+          "ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml",
         ],
-        "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"]
+        "install": "cp #{self.target_dir / self.name} #{self.bin / self.name}"
       },
-      "dependencies": {}
+      "dependencies": {
+        "ocaml": "*",
+      }
     }),
-    file('script.sh', outdent`
-      #!/bin/bash
-
-      echo '#!/bin/bash' >> $1
-      echo "echo '$SANDBOX_ENV_VAR-in-dep'" >> $1
+    file('dep.ml', outdent`
+      let () =
+        let v = Sys.getenv "SANDBOX_ENV_VAR" in
+        print_endline (v ^ "-in-dep");
     `)
   ),
   dir('dep2',
@@ -74,19 +68,20 @@ const fixture = [
       "version": "1.0.0",
       "esy": {
         "build": [
-          ["sh", "./script.sh", "#{self.target_dir / self.name}"],
-          "chmod +x $cur__target_dir/$cur__name"
+          "cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml",
+          "ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml",
         ],
-        "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"]
+        "install": "cp #{self.target_dir / self.name} #{self.bin / self.name}"
       },
-      "dependencies": {}
+      "dependencies": {
+        "ocaml": "*",
+      }
     }),
-    file('script.sh', outdent`
-      #!/bin/bash
-
-      echo '#!/bin/bash' >> $1
-      echo "echo '$SANDBOX_ENV_VAR-in-dep2'" >> $1
-    `),
+    file('dep2.ml', outdent`
+      let () =
+        let v = Sys.getenv "SANDBOX_ENV_VAR" in
+        print_endline (v ^ "-in-dep2");
+    `)
   ),
   dir('dep3',
     packageJson({
@@ -95,18 +90,19 @@ const fixture = [
       "license": "MIT",
       "esy": {
         "build": [
-          ["sh", "./script.sh", "#{self.target_dir / self.name}"],
-          "chmod +x $cur__target_dir/$cur__name"
+          "cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml",
+          "ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml",
         ],
-        "install": ["cp $cur__target_dir/$cur__name $cur__bin/$cur__name"]
+        "install": "cp #{self.target_dir / self.name} #{self.bin / self.name}"
       },
-      "dependencies": {}
+      "dependencies": {
+        "ocaml": "*",
+      }
     }),
-    file('script.sh', outdent`
-      #!/bin/bash
-
-      echo '#!/bin/bash' >> $1
-      echo "echo '$SANDBOX_ENV_VAR-in-dep3'" >> $1
+    file('dep3.ml', outdent`
+      let () =
+        let v = Sys.getenv "SANDBOX_ENV_VAR" in
+        print_endline (v ^ "-in-dep3");
     `)
   ),
 ];
@@ -120,8 +116,6 @@ describe('Build - with linked dep _build', () => {
   });
 
   it("sandbox env should be visible in runtime dep's all envs", async () => {
-    expect.assertions(3);
-
     const expecting = expect.stringMatching('global-sandbox-env-var-in-dep');
 
     const dep = await p.esy('dep');
@@ -135,8 +129,6 @@ describe('Build - with linked dep _build', () => {
   });
 
   it("sandbox env should not be available in build time dep's envs", async () => {
-    expect.assertions(2);
-
     const expecting = expect.stringMatching('-in-dep2');
 
     const dep = await p.esy('dep2');
@@ -147,13 +139,9 @@ describe('Build - with linked dep _build', () => {
   });
 
   it("sandbox env should not be available in dev dep's envs", async () => {
-    expect.assertions(2);
 
     const dep = await p.esy('dep3');
     expect(dep.stdout).toEqual(expect.stringMatching('-in-dep3'));
-
-    const {stdout} = await p.esy('x with-linked-dep-sandbox-env');
-    expect(stdout).toEqual(expect.stringMatching('with-linked-dep-sandbox-env'));
 
   });
 });

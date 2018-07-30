@@ -2,30 +2,20 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
     "name": "with-dev-dep",
     "version": "1.0.0",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": [
-        "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-      ]
+      "build": "true"
     },
     "dependencies": {
       "dep": "*"
     },
     "devDependencies": {
-      "dev-dep": "*"
+      "devDep": "*"
     }
   }),
   dir('node_modules',
@@ -33,44 +23,36 @@ const fixture = [
       packageJson({
         "name": "dep",
         "version": "1.0.0",
-        "license": "MIT",
         "esy": {
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
-            ],
-            "chmod +x $cur__target_dir/$cur__name"
-          ],
-          "install": [
-            "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-          ]
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
         },
-        "_resolved": "http://sometarball.gz"
-      })
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
-    dir('dev-dep',
+    dir('devDep',
       packageJson({
-        "name": "dev-dep",
+        "name": "devDep",
         "version": "1.0.0",
         "license": "MIT",
         "esy": {
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
-            ],
-            "chmod +x $cur__target_dir/$cur__name"
-          ],
-          "install": [
-            "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-          ]
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
         },
-        "_resolved": "http://sometarball.gz"
-      })
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('devDep.ml', 'let () = print_endline "__devDep__"'),
     ),
+    ocamlPackage(),
   )
 ];
 
@@ -84,9 +66,7 @@ describe('Build - with dev dep', () => {
   });
 
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(3);
-
-    const expecting = expect.stringMatching('dep');
+    const expecting = expect.stringMatching('__dep__');
 
     const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);
@@ -99,19 +79,14 @@ describe('Build - with dev dep', () => {
   });
 
   it('package "dev-dep" should be visible only in command env', async () => {
-    expect.assertions(4);
+    const expecting = expect.stringMatching('__devDep__');
 
-    const expecting = expect.stringMatching('dev-dep');
-
-    const dep = await p.esy('dev-dep');
+    const dep = await p.esy('devDep');
     expect(dep.stdout).toEqual(expecting);
 
-    const xDep = await p.esy('x dev-dep');
+    const xDep = await p.esy('x devDep');
     expect(xDep.stdout).toEqual(expecting);
 
-    const {stdout} = await p.esy('x with-dev-dep');
-    expect(stdout).toEqual(expect.stringMatching('with-dev-dep'));
-
-    return expect(p.esy('b dev-dep')).rejects.toThrow();
+    return expect(p.esy('b devDep')).rejects.toThrow();
   });
 });
