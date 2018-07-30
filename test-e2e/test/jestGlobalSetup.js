@@ -7,7 +7,13 @@ const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const ESYCOMMAND = process.platform === 'win32' 
+    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
+    : require.resolve('../../bin/esy');
+
+const INSTALL_COMMAND = process.platform === 'win32' 
+    ? 'legacy-install'
+    : 'install'
 
 const testPath = path.join(os.homedir(), '.esytest');
 const sandboxPath = path.join(testPath, 'sandbox');
@@ -47,7 +53,7 @@ async function buildOcamlPackage() {
     },
   }));
 
-  await esy('install');
+  await esy(INSTALL_COMMAND);
   await esy('build');
 
   const buildEnv = JSON.parse((await esy('build-env --json')).stdout);
