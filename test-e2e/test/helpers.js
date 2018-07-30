@@ -48,7 +48,7 @@ function symlink(name: string, path: string): FixtureSymlink {
 }
 
 function packageJson(json: Object) {
-  return file('package.json', JSON.stringify(json));
+  return file('package.json', JSON.stringify(json, null, 2));
 }
 
 let ocamlPackageCached = null;

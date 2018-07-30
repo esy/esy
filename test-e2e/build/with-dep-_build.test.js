@@ -1,7 +1,7 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson, dir} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -32,37 +32,30 @@ const fixture = [
         "esy": {
           "buildsInSource": "_build",
           "build": [
-            "mkdir _build",
-            [
-              "bash",
-              "-c",
-              "echo \"#!/bin/bash\necho $cur__name\" > ./_build/$cur__name"
-            ],
-            "chmod +x ./_build/$cur__name"
+            "mkdir #{self.root / '_build'}",
+            "cp #{self.root / self.name}.ml #{self.root / '_build' / self.name}.ml",
+            "ocamlopt -o #{self.root / '_build' / self.name} #{self.root / '_build' / self.name}.ml",
           ],
-          "install": [
-            "cp ./_build/$cur__name $cur__bin/$cur__name"
-          ]
+          "install": "cp #{self.root / '_build' / self.name} #{self.bin / self.name}"
         },
-        "_resolved": "http://sometarball.gz"
-      })
-    )
+        "dependencies": {
+          "ocaml": "*"
+        },
+        "_resolved": "..."
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
+    ),
+    ocamlPackage(),
   )
 ]
 
 describe('Build - with dep _build', () => {
 
-  let p;
-
-  beforeAll(async () => {
-    p = await genFixture(...fixture);
-    await p.esy('build');
-  });
-
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(3);
+    const p = await genFixture(...fixture);
+    await p.esy('build');
 
-    const expecting = expect.stringMatching('dep');
+    const expecting = expect.stringMatching('__dep__');
 
     const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);
@@ -70,12 +63,5 @@ describe('Build - with dep _build', () => {
     expect(b.stdout).toEqual(expecting);
     const x = await p.esy('x dep');
     expect(x.stdout).toEqual(expecting);
-  });
-
-  it('with-dep-_build', async () => {
-    expect.assertions(1);
-
-    const {stdout} = await p.esy('x with-dep-_build');
-    expect(stdout).toEqual(expect.stringMatching('with-dep-_build'));
   });
 });

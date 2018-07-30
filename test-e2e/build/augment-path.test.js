@@ -2,24 +2,14 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
     "name": "augment-path",
     "version": "1.0.0",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo '#!/bin/bash\necho #{self.name}' > #{self.target_dir / self.name}"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": [
-        "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-      ]
+      "build": "true"
     },
     "dependencies": {
       "dep": "*"
@@ -32,17 +22,8 @@ const fixture = [
         "version": "1.0.0",
         "license": "MIT",
         "esy": {
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
-            ],
-            "chmod +x $cur__target_dir/$cur__name"
-          ],
-          "install": [
-            "cp $cur__target_dir/$cur__name $cur__install/lib"
-          ],
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.lib/}dep #{self.root/}dep.ml",
           "exportedEnv": {
             "PATH": {
               "val": "#{self.lib : $PATH}",
@@ -50,9 +31,14 @@ const fixture = [
             }
           }
         },
+        "dependencies": {
+          "ocaml": "*"
+        },
         "_resolved": "http://sometarball.gz"
-      })
-    )
+      }),
+      file('dep.ml', 'let () = print_endline "__DEP__"'),
+    ),
+    ocamlPackage(),
   )
 ];
 
@@ -63,7 +49,7 @@ describe('Build - augment path', () => {
     const p = await genFixture(...fixture);
     await p.esy('build');
 
-    const expecting = expect.stringMatching('dep');
+    const expecting = expect.stringMatching('__DEP__');
 
     const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);

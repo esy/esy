@@ -2,30 +2,23 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
     "name": "creates-symlinks",
     "version": "1.0.0",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": [
-        "cp $cur__target_dir/$cur__name $cur__lib/$cur__name",
-        "ln -s $cur__lib/$cur__name $cur__bin/$cur__name"
-      ]
+      "buildsInSource": true,
+      "build": "ocamlopt -o #{self.lib / self.name} #{self.root / self.name}.ml",
+      "install": "ln -s #{self.lib / self.name} #{self.bin / self.name}"
     },
     "dependencies": {
-      "dep": "*"
+      "dep": "*",
+      "ocaml": "*"
     }
   }),
+  file('creates-symlinks.ml', 'let () = print_endline "__creates-symlinks__"'),
   dir('node_modules',
     dir('dep',
       packageJson({
@@ -33,22 +26,18 @@ const fixture = [
         "version": "1.0.0",
         "license": "MIT",
         "esy": {
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
-            ],
-            "chmod +x $cur__target_dir/$cur__name"
-          ],
-          "install": [
-            "cp $cur__target_dir/$cur__name $cur__lib/$cur__name",
-            "ln -s $cur__lib/$cur__name $cur__bin/$cur__name"
-          ]
+          "buildsInSource": true,
+          "build": "ocamlopt -o #{self.lib / self.name} #{self.root / self.name}.ml",
+          "install": "ln -s #{self.lib / self.name} #{self.bin / self.name}"
+        },
+        "dependencies": {
+          "ocaml": "*"
         },
         "_resolved": "http://sometarball.gz"
-      })
-    )
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
+    ),
+    ocamlPackage(),
   )
 ];
 
@@ -58,7 +47,7 @@ it('Build - creates symlinks', async () => {
 
   await p.esy('build');
 
-  const expecting = expect.stringMatching('dep');
+  const expecting = expect.stringMatching('__dep__');
 
   const dep = await p.esy('dep');
   expect(dep.stdout).toEqual(expecting);
@@ -68,5 +57,5 @@ it('Build - creates symlinks', async () => {
   expect(xDep.stdout).toEqual(expecting);
 
   let x = await p.esy('x creates-symlinks');
-  expect(x.stdout).toEqual(expect.stringMatching('creates-symlinks'));
+  expect(x.stdout).toEqual(expect.stringMatching('__creates-symlinks__'));
 });

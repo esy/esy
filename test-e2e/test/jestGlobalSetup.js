@@ -78,6 +78,7 @@ async function buildOcamlPackage() {
         "chmod +x #{self.bin / 'ocamlopt'}"
       ]
     },
+    _resolved: 'ocaml@1.0.0'
   }));
 
   await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, 'ocamlopt'));

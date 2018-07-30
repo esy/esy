@@ -2,25 +2,14 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
 
 const fixture = [
   packageJson({
     "name": "with-dep-in-source",
     "version": "1.0.0",
-    "license": "MIT",
     "esy": {
-      "build": [
-        [
-          "bash",
-          "-c",
-          "echo \"#!/bin/bash\necho $cur__name\" > $cur__target_dir/$cur__name"
-        ],
-        "chmod +x $cur__target_dir/$cur__name"
-      ],
-      "install": [
-        "cp $cur__target_dir/$cur__name $cur__bin/$cur__name"
-      ]
+      "build": "true"
     },
     "dependencies": {
       "dep": "*"
@@ -31,35 +20,29 @@ const fixture = [
       packageJson({
         "name": "dep",
         "version": "1.0.0",
-        "license": "MIT",
         "esy": {
           "buildsInSource": true,
-          "build": [
-            [
-              "bash",
-              "-c",
-              "echo \"#!/bin/bash\necho $cur__name\" > ./$cur__name"
-            ],
-            "chmod +x ./$cur__name"
-          ],
-          "install": [
-            "cp ./$cur__name $cur__bin/$cur__name"
-          ]
+          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
+          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
         },
-        "_resolved": "http://sometarball.gz"
-      })
-    )
+        "dependencies": {
+          "ocaml": "*",
+        },
+        "_resolved": "..."
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
+    ),
+    ocamlPackage(),
   )
 ]
 
 describe('Build - with dep in source', () => {
 
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(4);
     const p = await genFixture(...fixture);
     await p.esy('build');
 
-    const expecting = expect.stringMatching('dep');
+    const expecting = expect.stringMatching('__dep__');
 
     const dep = await p.esy('dep');
     expect(dep.stdout).toEqual(expecting);
@@ -69,8 +52,5 @@ describe('Build - with dep in source', () => {
 
     const x = await p.esy('x dep');
     expect(x.stdout).toEqual(expecting);
-
-    const {stdout} = await p.esy('x with-dep-in-source');
-    expect(stdout).toEqual(expect.stringMatching('with-dep-in-source'));
   });
 });
