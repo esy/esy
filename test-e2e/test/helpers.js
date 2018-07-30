@@ -104,10 +104,8 @@ async function genFixture(...fixture: Fixture) {
     if (fixture.type === 'file') {
       await fs.writeFile(path.join(p, fixture.name), fixture.data);
     } else if (fixture.type === 'file-copy') {
-    console.log(` -- file-copy: ${fixture.path} -> ${path.join(p, fixture.name)}`);
       await fs.copyFile(fixture.path, path.join(p, fixture.name));
     } else if (fixture.type === 'symlink') {
-        console.log(` -- Creating symlink: ${fixture.path} -> ${path.join(p, fixture.name)}`);
       await fs.symlink(fixture.path, path.join(p, fixture.name));
     } else if (fixture.type === 'dir') {
       const nextp = path.join(p, fixture.name);
@@ -126,8 +124,7 @@ async function genFixture(...fixture: Fixture) {
     if (!options.noEsyPrefix) {
       env = {...process.env, ESY__PREFIX: esyPrefixPath};
     }
-      console.log(" -- Using prefix path: " + esyPrefixPath);
-      console.log(" -- Running command from working directory: " + projectPath)
+
     return promiseExec(`${ESYCOMMAND} ${args}`, {
       cwd: projectPath,
       env,
