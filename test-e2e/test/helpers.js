@@ -8,13 +8,7 @@ const os = require('os');
 const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
-const {ocamlPackagePath} = require('./jestGlobalSetup.js');
-
-const isWindows = process.platform === "win32"
-
-const ESYCOMMAND = isWindows 
-    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
-    : require.resolve('../../bin/esy');
+const {ocamlPackagePath, ESYCOMMAND, isWindows, ocamloptName} = require('./jestGlobalSetup.js');
 
 function getTempDir() {
     return isWindows ? os.tmpdir() : '/tmp';
@@ -63,10 +57,6 @@ function packageJson(json: Object) {
 
 let ocamlPackageCached = null;
 
-function ocamloptName() {
-    return isWindows ? 'ocamlopt.exe' : 'ocamlopt';
-}
-
 function ocamlPackage() {
   if (ocamlPackageCached == null) {
     let packageJson: FixtureFileCopy = {
@@ -76,8 +66,8 @@ function ocamlPackage() {
     };
     let ocamlopt: FixtureFileCopy = {
       type: 'file-copy',
-      name: ocamloptName(),
-      path: path.join(ocamlPackagePath, ocamloptName()),
+      name: ocamloptName,
+      path: path.join(ocamlPackagePath, ocamloptName),
     };
     ocamlPackageCached = dir('ocaml', ocamlopt, packageJson);
     return ocamlPackageCached;
