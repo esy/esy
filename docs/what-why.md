@@ -10,7 +10,7 @@ Reason/OCaml projects within the familiar npm-like workflow:
 
 * Declare dependencies in `package.json`.
 
-* Install and build with `esy install` and `esy build` commands.
+* Install and build with `esy` command.
 
 * Share your work with other developers by publishing on npm registry and/or
   GitHub.

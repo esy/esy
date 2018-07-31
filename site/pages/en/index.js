@@ -37,8 +37,7 @@ npm install -g esy
 # Clone example, install dependencies, then build
 git clone git@github.com:esy-ocaml/hello-reason.git
 cd hello-reason
-esy install
-esy build
+esy
 ${pre}`;
 
 class HomeSplash extends React.Component {
