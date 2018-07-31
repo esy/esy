@@ -1,22 +1,20 @@
 /* @flow */
 
-const setup = require('./setup');
+const helpers = require('../test/helpers.js');
 
-const {skipSuiteOnWindows} = require('./../test/helpers');
-
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe(`Tests for installations from custom sources`, () => {
   describe('Installation from github', () => {
     beforeEach(async () => {
-      await setup.definePackage({
+      await helpers.definePackage({
         name: 'lodash',
         version: '4.24.0',
       });
     });
 
     async function assertLayoutCorrect(path) {
-      await expect(setup.crawlLayout(path)).resolves.toMatchObject({
+      await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
         dependencies: {
           'example-yarn-package': {
             name: 'example-yarn-package',
@@ -32,7 +30,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'it should install without ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -47,7 +45,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'it should install with branch as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -62,7 +60,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'it should install with 6 char commit sha as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -77,7 +75,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'it should install with 9 char commit sha as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -94,7 +92,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'it should install with 40 char commit sha as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -112,14 +110,14 @@ describe(`Tests for installations from custom sources`, () => {
 
   describe('Installation from git', () => {
     beforeEach(async () => {
-      await setup.definePackage({
+      await helpers.definePackage({
         name: 'lodash',
         version: '4.24.0',
       });
     });
 
     async function assertLayoutCorrect(path) {
-      await expect(setup.crawlLayout(path)).resolves.toMatchObject({
+      await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
         dependencies: {
           'example-yarn-package': {
             name: 'example-yarn-package',
@@ -135,7 +133,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'install from git+https:// with no ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -152,7 +150,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'install from git+https:// with branch as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -169,7 +167,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'install from git+https:// with commit sha as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -186,7 +184,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'install from git:// with no ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -203,7 +201,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'install from git:// with branch as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',
@@ -220,7 +218,7 @@ describe(`Tests for installations from custom sources`, () => {
 
     test(
       'install from git:// with commit as ref',
-      setup.makeTemporaryEnv(
+      helpers.makeTemporaryEnv(
         {
           name: 'root',
           version: '1.0.0',

@@ -1,15 +1,13 @@
 /* @flow */
 
-const setup = require('./setup');
+const helpers = require('../test/helpers.js');
 
-const {skipSuiteOnWindows} = require('./../test/helpers');
-
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe(`Installing with resolutions`, () => {
   test(
     `it should prefer resolution over dependencies for the root`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -18,12 +16,12 @@ describe(`Installing with resolutions`, () => {
         resolutions: {dep: `2.0.0`},
       },
       async ({path, run, source}) => {
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'dep',
           version: '1.0.0',
           esy: {},
         });
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'dep',
           version: '2.0.0',
           esy: {},
@@ -31,7 +29,7 @@ describe(`Installing with resolutions`, () => {
 
         await run(`install`);
 
-        const layout = await setup.crawlLayout(path);
+        const layout = await helpers.crawlLayout(path);
         expect(layout).toMatchObject({
           name: 'root',
           dependencies: {
@@ -47,7 +45,7 @@ describe(`Installing with resolutions`, () => {
 
   test(
     `it should prefer resolution over dependencies for the dependency`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -56,18 +54,18 @@ describe(`Installing with resolutions`, () => {
         resolutions: {depDep: `2.0.0`},
       },
       async ({path, run, source}) => {
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'dep',
           version: '1.0.0',
           esy: {},
           dependencies: {depDep: `1.0.0`},
         });
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'depDep',
           esy: {},
           version: '1.0.0',
         });
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'depDep',
           esy: {},
           version: '2.0.0',
@@ -75,7 +73,7 @@ describe(`Installing with resolutions`, () => {
 
         await run(`install`);
 
-        const layout = await setup.crawlLayout(path);
+        const layout = await helpers.crawlLayout(path);
         expect(layout).toMatchObject({
           name: 'root',
           dependencies: {

@@ -1,14 +1,13 @@
 /* @flow */
 
-const {skipSuiteOnWindows} = require('./../test/helpers');
-const tests = require('./setup');
+const helpers = require('../test/helpers.js');
 
-skipSuiteOnWindows('Needs investigation.');
+helpers.skipSuiteOnWindows('Needs investigation.');
 
 describe('Testing integrity of downloaded packages', function() {
   test(
     `it should fail on corrupted tarballs`,
-    tests.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -16,7 +15,7 @@ describe('Testing integrity of downloaded packages', function() {
         dependencies: {dep: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await tests.definePackage(
+        await helpers.definePackage(
           {
             name: 'dep',
             version: '1.0.0',

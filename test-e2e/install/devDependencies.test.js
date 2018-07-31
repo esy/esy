@@ -1,14 +1,13 @@
 /* @flow */
 
-const tests = require('./setup');
-const {skipSuiteOnWindows} = require('./../test/helpers');
+const helpers = require('../test/helpers.js');
 
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe('Installing devDependencies', function() {
   test(
     `it should install devDependencies`,
-    tests.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -16,7 +15,7 @@ describe('Installing devDependencies', function() {
         devDependencies: {devDep: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'devDep',
           version: '1.0.0',
           esy: {},
@@ -25,7 +24,7 @@ describe('Installing devDependencies', function() {
 
         await run(`install`);
 
-        await expect(tests.crawlLayout(path)).resolves.toMatchObject({
+        await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
           dependencies: {
             devDep: {
               name: 'devDep',
@@ -38,7 +37,7 @@ describe('Installing devDependencies', function() {
 
   test(
     `it should install devDependencies along with its deps`,
-    tests.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -46,7 +45,7 @@ describe('Installing devDependencies', function() {
         devDependencies: {devDep: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'devDep',
           version: '1.0.0',
           esy: {},
@@ -54,7 +53,7 @@ describe('Installing devDependencies', function() {
             ok: '1.0.0',
           },
         });
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'ok',
           version: '1.0.0',
           esy: {},
@@ -63,7 +62,7 @@ describe('Installing devDependencies', function() {
 
         await run(`install`);
 
-        await expect(tests.crawlLayout(path)).resolves.toMatchObject({
+        await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
           dependencies: {
             ok: {
               name: 'ok',
@@ -81,7 +80,7 @@ describe('Installing devDependencies', function() {
 
   test(
     `it should prefer an already installed version when solving devDeps deps`,
-    tests.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -90,7 +89,7 @@ describe('Installing devDependencies', function() {
         devDependencies: {devDep: `1.0.0`},
       },
       async ({path, run, source}) => {
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'devDep',
           version: '1.0.0',
           esy: {},
@@ -98,13 +97,13 @@ describe('Installing devDependencies', function() {
             ok: '*',
           },
         });
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'ok',
           version: '1.0.0',
           esy: {},
           dependencies: {},
         });
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'ok',
           version: '2.0.0',
           esy: {},
@@ -113,7 +112,7 @@ describe('Installing devDependencies', function() {
 
         await run(`install`);
 
-        const layout = await tests.crawlLayout(path);
+        const layout = await helpers.crawlLayout(path);
         await expect(layout).toMatchObject({
           dependencies: {
             ok: {
@@ -133,7 +132,7 @@ describe('Installing devDependencies', function() {
 
   test(
     `it should handle two devDeps sharing a dep`,
-    tests.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -141,7 +140,7 @@ describe('Installing devDependencies', function() {
         devDependencies: {devDep: `1.0.0`, devDep2: '1.0.0'},
       },
       async ({path, run, source}) => {
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'devDep',
           version: '1.0.0',
           esy: {},
@@ -149,7 +148,7 @@ describe('Installing devDependencies', function() {
             ok: '*',
           },
         });
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'devDep2',
           version: '1.0.0',
           esy: {},
@@ -157,7 +156,7 @@ describe('Installing devDependencies', function() {
             ok: '*',
           },
         });
-        await tests.definePackage({
+        await helpers.definePackage({
           name: 'ok',
           version: '1.0.0',
           esy: {},
@@ -166,7 +165,7 @@ describe('Installing devDependencies', function() {
 
         await run(`install`);
 
-        const layout = await tests.crawlLayout(path);
+        const layout = await helpers.crawlLayout(path);
         await expect(layout).toMatchObject({
           dependencies: {
             ok: {

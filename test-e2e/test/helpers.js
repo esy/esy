@@ -2,15 +2,21 @@
 
 jest.setTimeout(20000);
 
+import type {Fixture} from './FixtureUtils.js';
 const path = require('path');
 const fs = require('fs-extra');
+const fsUtils = require('./fs.js');
+const exec = require('./exec.js');
 const os = require('os');
 const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
+const FixtureUtils = require('./FixtureUtils.js');
+const NpmRegistryMock = require('./NpmRegistryMock.js');
 const {
   ocamlPackagePath,
   ESYCOMMAND,
+  ESYICOMMAND,
   isWindows,
   ocamloptName,
 } = require('./jestGlobalSetup.js');
@@ -21,60 +27,21 @@ function getTempDir() {
 
 const exeExtension = isWindows ? '.exe' : '';
 
-type Fixture = Array<FixtureItem>;
-type FixtureItem = FixtureDir | FixtureFile | FixtureFileCopy | FixtureSymlink;
-type FixtureDir = {
-  type: 'dir',
-  name: string,
-  items: Array<FixtureItem>,
-};
-type FixtureFile = {
-  type: 'file',
-  name: string,
-  data: string,
-};
-type FixtureFileCopy = {
-  type: 'file-copy',
-  name: string,
-  path: string,
-};
-type FixtureSymlink = {
-  type: 'symlink',
-  name: string,
-  path: string,
-};
-
-function dir(name: string, ...items: Array<FixtureItem>): FixtureDir {
-  return {type: 'dir', name, items};
-}
-
-function file(name: string, data: string): FixtureFile {
-  return {type: 'file', name, data};
-}
-
-function symlink(name: string, path: string): FixtureSymlink {
-  return {type: 'symlink', name, path};
-}
-
-function packageJson(json: Object) {
-  return file('package.json', JSON.stringify(json, null, 2));
-}
-
 let ocamlPackageCached = null;
 
 function ocamlPackage() {
   if (ocamlPackageCached == null) {
-    let packageJson: FixtureFileCopy = {
+    let packageJson = {
       type: 'file-copy',
       name: 'package.json',
       path: path.join(ocamlPackagePath, 'package.json'),
     };
-    let ocamlopt: FixtureFileCopy = {
+    let ocamlopt = {
       type: 'file-copy',
       name: ocamloptName,
       path: path.join(ocamlPackagePath, ocamloptName),
     };
-    ocamlPackageCached = dir('ocaml', ocamlopt, packageJson);
+    ocamlPackageCached = FixtureUtils.dir('ocaml', ocamlopt, packageJson);
     return ocamlPackageCached;
   } else {
     return ocamlPackageCached;
@@ -95,23 +62,7 @@ async function genFixture(...fixture: Fixture) {
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
-  async function layout(p: string, fixture: FixtureItem) {
-    if (fixture.type === 'file') {
-      await fs.writeFile(path.join(p, fixture.name), fixture.data);
-    } else if (fixture.type === 'file-copy') {
-      await fs.copyFile(fixture.path, path.join(p, fixture.name));
-    } else if (fixture.type === 'symlink') {
-      await fs.symlink(fixture.path, path.join(p, fixture.name));
-    } else if (fixture.type === 'dir') {
-      const nextp = path.join(p, fixture.name);
-      await fs.mkdir(nextp);
-      await Promise.all(fixture.items.map(item => layout(nextp, item)));
-    } else {
-      throw new Error('unknown fixture ' + JSON.stringify(fixture));
-    }
-  }
-
-  await Promise.all(fixture.map(item => layout(projectPath, item)));
+  await Promise.all(fixture.map(item => FixtureUtils.initialize(projectPath, item)));
 
   function esy(args: string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
@@ -148,12 +99,42 @@ function skipSuiteOnWindows(blockingIssues?: string) {
   }
 }
 
+const esyiCommands = new Set(['install', 'print-cudf-universe']);
+
+const makeTemporaryEnv = NpmRegistryMock.generatePkgDriver({
+  runDriver: (path, line, {registryUrl}) => {
+    if (line.length === 1 && esyiCommands.has(line[0])) {
+      const extraArgs = [
+        `--cache-path`,
+        `${path}/.cache`,
+        `--npm-registry`,
+        registryUrl,
+        `--opam-repository`,
+        `:${__dirname}/opam-repository`,
+        `--opam-override-repository`,
+        `:${__dirname}/esy-opam-override`,
+      ];
+      return exec.execFile(ESYICOMMAND, [...extraArgs], {cwd: path});
+    } else {
+      const prg = line[0];
+      const args = line.slice(1);
+      return exec.execFile(prg, [...args], {cwd: path});
+    }
+  },
+});
+
+beforeEach(async function commonBeforeEach() {
+  await NpmRegistryMock.clearPackageRegistry();
+  await NpmRegistryMock.startPackageServer();
+  await NpmRegistryMock.getPackageRegistry();
+});
+
 module.exports = {
   promiseExec,
-  file,
-  symlink,
-  dir,
-  packageJson,
+  file: FixtureUtils.file,
+  symlink: FixtureUtils.symlink,
+  dir: FixtureUtils.dir,
+  packageJson: FixtureUtils.packageJson,
   genFixture,
   getTempDir,
   skipSuiteOnWindows,
@@ -162,4 +143,15 @@ module.exports = {
   ocamloptName,
   ocamlPackage,
   ocamlPackagePath,
+  getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
+  getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
+  getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
+  definePackage: NpmRegistryMock.definePackage,
+  defineLocalPackage: NpmRegistryMock.defineLocalPackage,
+  makeTemporaryEnv: makeTemporaryEnv,
+  crawlLayout: NpmRegistryMock.crawlLayout,
+  makeFakeBinary: fsUtils.makeFakeBinary,
+  exists: fs.exists,
+  readdir: fs.readdir,
+  execFile: exec.execFile,
 };
