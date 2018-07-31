@@ -126,7 +126,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
     | `CustomEnv env -> Some env
   in
 
-  let%bind cmdLwt = RunAsync.ofRun (
+  let%bind _ = RunAsync.ofRun (
       let open Run.Syntax in
       let prg, args = Cmd.getToolAndArgs cmd in
       let%bind prg =
@@ -157,7 +157,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
   in
 
   try%lwt
-    Lwt_process.with_process_in ?env ?stdin ?stderr cmdLwt f
+    EsyBashLwt.with_process_in ?env ?stdin ?stderr cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in

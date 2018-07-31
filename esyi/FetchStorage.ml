@@ -67,7 +67,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
         print_endline ("downloading archive: " ^ (Path.to_string tarballPath));
         match%lwt Curl.download ~output:tarballPath url with
         | Ok () ->
-                print_endline("ZZcheckcheck");
+                print_endline("ZZcheckcheck: " ^ (Path.to_string tarballPath));
           let%bind () = Checksum.checkFile ~path:tarballPath checksum in
           print_endline("checksum check succeeded");
           let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in

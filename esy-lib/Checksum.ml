@@ -67,6 +67,7 @@ let checkFile ~path (checksum : t) =
       | Sha512, _ -> sha512sum
     in
     let%bind out = ChildProcess.runOut Cmd.(cmd % p path) in
+    print_endline ("runout result: " ^ out);
     match Astring.String.cut ~sep:" " out with
     | Some (v, _) -> return v
     | None -> return (String.trim out)
