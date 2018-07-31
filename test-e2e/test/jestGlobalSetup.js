@@ -85,7 +85,7 @@ async function buildOcamlPackage() {
         "true"
       ],
       install: [
-        `cp ${ocamloptName()} #{self.bin / '${ocamloptName}'}`,
+        `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
         `chmod +x #{self.bin / '${ocamloptName}'}`
       ]
     },
