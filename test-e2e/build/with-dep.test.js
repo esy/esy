@@ -1,42 +1,51 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson, dir, file, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  genFixture,
+  packageJson,
+  dir,
+  file,
+  ocamlPackage,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 
-skipSuiteOnWindows()
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
-    "name": "withDep",
-    "version": "1.0.0",
-    "esy": {
-      "build": "true"
+    name: 'withDep',
+    version: '1.0.0',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
-    }
+    dependencies: {
+      dep: '*',
+    },
   }),
-  dir('node_modules',
-    dir('dep',
+  dir(
+    'node_modules',
+    dir(
+      'dep',
       packageJson({
-        "name": "dep",
-        "version": "1.0.0",
-        "esy": {
-          "build": [
-            "cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml",
-            "ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml",
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          build: [
+            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
+            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
           ],
-          "install": "cp #{self.target_dir / self.name} #{self.bin / self.name}"
+          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
         },
-        "dependencies": {
-          "ocaml": "*"
+        dependencies: {
+          ocaml: '*',
         },
-        "_resolved": "..."
+        _resolved: '...',
       }),
       file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
     ocamlPackage(),
-  )
+  ),
 ];
 
 describe('Build - with dep', () => {

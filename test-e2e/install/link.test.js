@@ -2,7 +2,7 @@
 
 const {join} = require('path');
 const setup = require('./setup');
-const {skipSuiteOnWindows} = require("./../test/helpers");
+const {skipSuiteOnWindows} = require('./../test/helpers');
 
 skipSuiteOnWindows();
 

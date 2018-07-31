@@ -2,9 +2,9 @@
 
 const setup = require('./setup');
 
-const {skipSuiteOnWindows} = require("./../test/helpers");
+const {skipSuiteOnWindows} = require('./../test/helpers');
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows('Needs investigation');
 
 describe(`Basic tests`, () => {
   test(

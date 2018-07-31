@@ -7,15 +7,14 @@ const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 
-const isWindows = process.platform === "win32"
+const isWindows = process.platform === 'win32';
 
-const ESYCOMMAND = process.platform === 'win32' 
-    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
+const ESYCOMMAND =
+  process.platform === 'win32'
+    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe')
     : require.resolve('../../bin/esy');
 
-const INSTALL_COMMAND = process.platform === 'win32' 
-    ? 'legacy-install'
-    : 'install'
+const INSTALL_COMMAND = process.platform === 'win32' ? 'legacy-install' : 'install';
 
 const ocamloptName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
 
@@ -45,17 +44,20 @@ async function buildOcamlPackage() {
   await mkdirOrIgnore(testPath);
 
   await mkdirOrIgnore(sandboxPath);
-  await fs.writeFile(path.join(sandboxPath, 'package.json'), JSON.stringify({
-    name: 'root-project',
-    version: '1.0.0',
-    dependencies: {
-      ocaml: 'esy-ocaml/ocaml#6aacc05',
-    },
-    esy: {
-      build: [],
-      install: [],
-    },
-  }));
+  await fs.writeFile(
+    path.join(sandboxPath, 'package.json'),
+    JSON.stringify({
+      name: 'root-project',
+      version: '1.0.0',
+      dependencies: {
+        ocaml: 'esy-ocaml/ocaml#6aacc05',
+      },
+      esy: {
+        build: [],
+        install: [],
+      },
+    }),
+  );
 
   await esy(INSTALL_COMMAND);
   await esy('build');
@@ -77,26 +79,27 @@ async function buildOcamlPackage() {
 
   await mkdirOrIgnore(ocamlPackagePath);
 
-  await fs.writeFile(path.join(ocamlPackagePath, 'package.json'), JSON.stringify({
-    name: 'ocaml',
-    version: '1.0.0',
-    esy: {
-      build: [
-        "true"
-      ],
-      install: [
-        `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
-        `chmod +x #{self.bin / '${ocamloptName}'}`
-      ]
-    },
-    _resolved: 'ocaml@1.0.0'
-  }));
+  await fs.writeFile(
+    path.join(ocamlPackagePath, 'package.json'),
+    JSON.stringify({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {
+        build: ['true'],
+        install: [
+          `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
+          `chmod +x #{self.bin / '${ocamloptName}'}`,
+        ],
+      },
+      _resolved: 'ocaml@1.0.0',
+    }),
+  );
 
   await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName));
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
-  if (!await fs.exists(ocamlPackagePath)) {
+  if (!(await fs.exists(ocamlPackagePath))) {
     await buildOcamlPackage();
   }
 };

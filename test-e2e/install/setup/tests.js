@@ -28,10 +28,7 @@ export type PackageRunDriver = (
 
 export type PackageDriver = any;
 
-exports.definePackage = async function(
-  packageJson: {name: string, version: string},
-  options: {shasum?: string} = {},
-) {
+exports.definePackage = async function(packageJson: {name: string, version: string}, options: {shasum?: string} = {}) {
   const packageRegistry = await exports.getPackageRegistry();
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
@@ -53,10 +50,7 @@ exports.definePackage = async function(
   return packagePath;
 };
 
-exports.defineLocalPackage = async function(
-  packagePath: string,
-  packageJson: {name: string, version: string},
-) {
+exports.defineLocalPackage = async function(packagePath: string, packageJson: {name: string, version: string}) {
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
   invariant(version != null, 'Missing "version" in package.json');
@@ -102,18 +96,13 @@ exports.clearPackageRegistry = function() {
   delete exports.getPackageRegistry.promise;
 };
 
-exports.getPackageEntry = async function getPackageEntry(
-  name: string,
-): Promise<?PackageEntry> {
+exports.getPackageEntry = async function getPackageEntry(name: string): Promise<?PackageEntry> {
   const packageRegistry = await exports.getPackageRegistry();
 
   return packageRegistry.get(name);
 };
 
-exports.getPackageArchiveStream = async function getPackageArchiveStream(
-  name: string,
-  version: string,
-): Promise<Gzip> {
+exports.getPackageArchiveStream = async function getPackageArchiveStream(name: string, version: string): Promise<Gzip> {
   const packageEntry = await exports.getPackageEntry(name);
 
   if (!packageEntry) {
@@ -131,10 +120,7 @@ exports.getPackageArchiveStream = async function getPackageArchiveStream(
   });
 };
 
-exports.getPackageArchivePath = async function getPackageArchivePath(
-  name: string,
-  version: string,
-): Promise<string> {
+exports.getPackageArchivePath = async function getPackageArchivePath(name: string, version: string): Promise<string> {
   const packageEntry = await exports.getPackageEntry(name);
 
   if (!packageEntry) {
@@ -218,17 +204,12 @@ exports.getPackageDirectoryPath = async function getPackageDirectoryPath(
   return packageVersionEntry.path;
 };
 
-exports.startPackageServer = function startPackageServer(
-  options: {persistent?: boolean} = {},
-): Promise<string> {
+exports.startPackageServer = function startPackageServer(options: {persistent?: boolean} = {}): Promise<string> {
   if (startPackageServer.url) {
     return startPackageServer.url;
   }
 
-  async function processPackageInfo(
-    params: ?Array<string>,
-    res: ServerResponse,
-  ): Promise<boolean> {
+  async function processPackageInfo(params: ?Array<string>, res: ServerResponse): Promise<boolean> {
     if (!params) {
       return false;
     }
@@ -256,9 +237,7 @@ exports.startPackageServer = function startPackageServer(
             return {
               [version]: Object.assign({}, packageVersionEntry.packageJson, {
                 dist: {
-                  shasum:
-                    packageVersionEntry.shasum ||
-                    (await exports.getPackageArchiveHash(name, version)),
+                  shasum: packageVersionEntry.shasum || (await exports.getPackageArchiveHash(name, version)),
                   tarball: await exports.getPackageHttpArchivePath(name, version),
                 },
               }),
@@ -275,10 +254,7 @@ exports.startPackageServer = function startPackageServer(
     return true;
   }
 
-  async function processPackageTarball(
-    params: ?Array<string>,
-    res: ServerResponse,
-  ): Promise<boolean> {
+  async function processPackageTarball(params: ?Array<string>, res: ServerResponse): Promise<boolean> {
     if (!params) {
       return false;
     }
@@ -311,11 +287,7 @@ exports.startPackageServer = function startPackageServer(
     return true;
   }
 
-  function processError(
-    res: ServerResponse,
-    statusCode: number,
-    errorMessage: string,
-  ): boolean {
+  function processError(res: ServerResponse, statusCode: number, errorMessage: string): boolean {
     console.error(errorMessage);
 
     res.writeHead(statusCode);
@@ -329,20 +301,12 @@ exports.startPackageServer = function startPackageServer(
       (req, res) =>
         void (async () => {
           try {
-            if (
-              await processPackageInfo(
-                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/),
-                res,
-              )
-            ) {
+            if (await processPackageInfo(req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/), res)) {
               return;
             }
 
             if (
-              await processPackageTarball(
-                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/),
-                res,
-              )
+              await processPackageTarball(req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/), res)
             ) {
               return;
             }
@@ -365,11 +329,7 @@ exports.startPackageServer = function startPackageServer(
   });
 };
 
-exports.generatePkgDriver = function generatePkgDriver({
-  runDriver,
-}: {|
-  runDriver: PackageRunDriver,
-|}): PackageDriver {
+exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver: PackageRunDriver|}): PackageDriver {
   function withConfig(definition): PackageDriver {
     const makeTemporaryEnv = (packageJson, subDefinition, fn) => {
       if (typeof subDefinition === 'function') {
@@ -400,9 +360,7 @@ exports.generatePkgDriver = function generatePkgDriver({
         };
 
         const source = async script => {
-          return JSON.parse(
-            (await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString(),
-          );
+          return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
         };
 
         await fn({
@@ -443,7 +401,7 @@ exports.crawlLayout = async function crawlLayout(directory: string): Promise<?La
     packageJsonPath = path.join(directory, 'package.json');
   }
 
-  if (!await fsUtils.exists(packageJsonPath)) {
+  if (!(await fsUtils.exists(packageJsonPath))) {
     return null;
   }
   const packageJson = await fsUtils.readJson(packageJsonPath);

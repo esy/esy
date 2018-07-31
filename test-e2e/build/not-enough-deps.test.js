@@ -5,16 +5,16 @@ const {genFixture, packageJson} = require('../test/helpers');
 
 const fixture = [
   packageJson({
-    "name": "not-enough-deps",
-    "version": "1.0.0",
-    "license": "MIT",
-    "esy": {
-      "build": "true"
+    name: 'not-enough-deps',
+    version: '1.0.0',
+    license: 'MIT',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
-    }
-  })
+    dependencies: {
+      dep: '*',
+    },
+  }),
 ];
 
 describe('Build - not enough deps', () => {
