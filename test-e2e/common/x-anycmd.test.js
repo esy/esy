@@ -3,15 +3,16 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec} = require('../test/helpers');
 const ESYCOMMAND = require.resolve('../../bin/esy');
+const fixture = require('./fixture.js');
 
-describe('Common - x anycmd', async () => {
+describe('Common - x anycmd', () => {
   let p;
   let prevEnv = {...process.env};
 
   beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
+    p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
   });
 
@@ -19,11 +20,11 @@ describe('Common - x anycmd', async () => {
     expect.assertions(2);
 
     await expect(p.esy('x dep')).resolves.toEqual({
-      stdout: 'dep\n',
+      stdout: '__dep__\n',
       stderr: '',
     });
-    await expect(p.esy('x dev-dep')).resolves.toEqual({
-      stdout: expect.stringMatching('dev-dep\n'),
+    await expect(p.esy('x devDep')).resolves.toEqual({
+      stdout: '__devDep__\n',
       stderr: '',
     });
   });

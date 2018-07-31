@@ -3,14 +3,51 @@
 const path = require('path');
 const fs = require('fs');
 
-const {initFixture} = require('../test/helpers');
+const {genFixture, packageJson, file, dir, symlink, ocamlPackage} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "with-linked-dep-_build",
+    "version": "1.0.0",
+    "esy": {
+      "build": "true",
+    },
+    "dependencies": {
+      "dep": "*"
+    }
+  }),
+  dir('dep',
+    packageJson({
+      "name": "dep",
+      "version": "1.0.0",
+      "esy": {
+        "buildsInSource": "_build",
+        "build": [
+          "mkdir -p #{self.root / '_build'}",
+          "cp #{self.root / self.name}.ml #{self.root / '_build' / self.name}.ml",
+          "ocamlopt -o #{self.root / '_build' / self.name} #{self.root / '_build' / self.name}.ml",
+        ],
+        "install": "cp #{self.root / '_build' / self.name} #{self.bin / self.name}"
+      },
+      "dependencies": {
+        "ocaml": "*"
+      }
+    }),
+    file('dep.ml', 'let () = print_endline "__dep__"'),
+  ),
+  dir('node_modules',
+    dir('dep',
+      file('_esylink', './dep'),
+      symlink('package.json', '../../dep/package.json')
+    ),
+    ocamlPackage(),
+  ),
+];
 
 describe('Build - with linked dep _build',  () => {
 
   it('package "dep" should be visible in all envs', async () => {
-    expect.assertions(4);
-
-    const p = await initFixture(path.join(__dirname, './fixtures/with-linked-dep-_build'));
+    const p = await genFixture(...fixture);
     await p.esy('build');
 
     const expecting = expect.stringMatching('dep');
@@ -23,9 +60,5 @@ describe('Build - with linked dep _build',  () => {
 
     const x = await p.esy('x dep');
     expect(x.stdout).toEqual(expecting);
-
-
-    const {stdout} = await p.esy('x with-linked-dep-_build');
-    expect(stdout).toEqual(expect.stringMatching('with-linked-dep-_build'));
   });
 });

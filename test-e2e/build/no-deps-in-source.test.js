@@ -1,12 +1,42 @@
 // @flow
 
 const path = require('path');
-const {initFixture} = require('../test/helpers');
+const outdent = require('outdent');
+const {genFixture, ocamlPackage, dir, file, packageJson} = require('../test/helpers');
+
+const fixture = [
+  packageJson({
+    "name": "no-deps-in-source",
+    "version": "1.0.0",
+    "license": "MIT",
+    "esy": {
+      "buildsInSource": true,
+      "build": [
+        [
+          "ocamlopt",
+          "-o",
+          "#{self.name}.exe",
+          "test.ml"
+        ]
+      ],
+      "install": [
+        "cp ./$cur__name.exe $cur__bin/$cur__name"
+      ]
+    },
+    "dependencies": {
+      "ocaml": "esy-ocaml/ocaml#6aacc05"
+    }
+  }),
+  file('test.ml', outdent`
+    let () = print_endline "no-deps-in-source"
+  `),
+  dir('node_modules', ocamlPackage())
+];
 
 it('Build - no deps in source', async () => {
-  expect.assertions(1);
-  const p = await initFixture(path.join(__dirname, './fixtures/no-deps-in-source'));
+  const p = await genFixture(...fixture);
   await p.esy('build');
+
   const {stdout} = await p.esy('x no-deps-in-source');
-  expect(stdout).toEqual(expect.stringMatching('no-deps-in-source'));
+  expect(stdout).toEqual('no-deps-in-source\n');
 });
