@@ -1,14 +1,12 @@
 // @flow
 
-const outdent = require('outdent');
-
 const {
   genFixture,
   packageJson,
   dir,
   file,
-  symlink,
   ocamlPackage,
+  ocamlPackagePath,
 } = require('../test/helpers');
 
 const fixture = [
@@ -36,12 +34,13 @@ const fixture = [
         install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
       },
       _resolved: '...',
+      dependencies: {
+        ocaml: `link:${ocamlPackagePath}`,
+      },
     }),
     file('dep.ml', 'let () = print_endline "__dep__"'),
   ),
 ];
-
-jest.setTimeout(500000);
 
 it('Build - default command', async () => {
   expect.assertions(2);
