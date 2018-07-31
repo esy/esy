@@ -2,6 +2,10 @@
 
 const setup = require('./setup');
 
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows();
+
 describe(`Installing with resolutions`, () => {
   test(
     `it should prefer resolution over dependencies for the root`,

@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs');
 
-const {genFixture, packageJson, file, dir, symlink, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, file, dir, symlink, ocamlPackage, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
@@ -25,9 +27,9 @@ const fixture = [
         "build": [
           "mkdir -p #{self.root / '_build'}",
           "cp #{self.root / self.name}.ml #{self.root / '_build' / self.name}.ml",
-          "ocamlopt -o #{self.root / '_build' / self.name} #{self.root / '_build' / self.name}.ml",
+          "ocamlopt -o #{self.root / '_build' / self.name}.exe #{self.root / '_build' / self.name}.ml",
         ],
-        "install": "cp #{self.root / '_build' / self.name} #{self.bin / self.name}"
+        "install": `cp #{self.root / '_build' / self.name}.exe #{self.bin / self.name}${exeExtension}`
       },
       "dependencies": {
         "ocaml": "*"

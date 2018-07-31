@@ -6,7 +6,9 @@ const {promisify} = require('util');
 const open = promisify(fs.open);
 const close = promisify(fs.close);
 
-const {genFixture, packageJson, dir, file, symlink, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, symlink, ocamlPackage, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
@@ -28,9 +30,9 @@ const fixture = [
       "esy": {
         "build": [
           "cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml",
-          "ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml",
+          "ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml",
         ],
-        "install": "cp #{self.target_dir / self.name} #{self.bin / self.name}"
+        "install": `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`
       },
       "dependencies": {
         "ocaml": "*"

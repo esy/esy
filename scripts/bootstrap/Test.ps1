@@ -20,14 +20,11 @@ ls
 mkdir C:/esy-home
 $env:HOME="C:/esy-home"
 
-# "Integration Test" for now
-# This requires retries on all platforms at the moment:
-C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe legacy-install
-C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe legacy-install
-C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe legacy-install
 
-exitIfFailed
+# Install esy's dependencies so that we can run the jest tests
 
-# TODO: Bring this back when we have a project that can build successfully!
-# C:/projects/esy/_release/_build/default/esy/bin/esyCommand.exe build
-# exitIfFailed
+cd C:/projects/esy
+
+ npm run test-e2e
+
+ exitIfFailed

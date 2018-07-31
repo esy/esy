@@ -2,7 +2,9 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, dir, file, ocamlPackage, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
@@ -22,8 +24,8 @@ const fixture = [
         "version": "1.0.0",
         "esy": {
           "buildsInSource": true,
-          "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
-          "install": "cp #{self.root / self.name} #{self.bin / self.name}"
+          "build": "ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml",
+          "install": `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`
         },
         "dependencies": {
           "ocaml": "*",

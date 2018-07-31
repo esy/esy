@@ -3,6 +3,10 @@
 const path = require('path');
 const outdent = require('outdent');
 
+const {skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows("#272");
+
 const {packageJson, file, genFixture} = require('../test/helpers');
 
 const fixture = [

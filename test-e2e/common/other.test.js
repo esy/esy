@@ -1,7 +1,6 @@
 // @flow
 
-const {promiseExec} = require('../test/helpers');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const {promiseExec, ESYCOMMAND} = require('../test/helpers');
 
 it('Common - other', async () => {
   expect.assertions(4);

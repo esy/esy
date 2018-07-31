@@ -5,7 +5,9 @@ const fs = require('fs-extra');
 const tar = require('tar');
 const del = require('del');
 
-const {genFixture, file, dir, packageJson, ocamlPackage} = require('../test/helpers');
+const {genFixture, file, dir, packageJson, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
   packageJson({
@@ -62,7 +64,7 @@ const fixture = [
 describe('export import build - import symlinks into dep', () => {
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await genFixture(...fixture);
     await p.esy('build');
   });

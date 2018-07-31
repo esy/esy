@@ -3,6 +3,10 @@
 const {join} = require('path');
 const setup = require('./setup');
 
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows();
+
 describe(`Basic tests for npm packages`, () => {
   test(
     `it should correctly install a single dependency that contains no sub-dependencies`,

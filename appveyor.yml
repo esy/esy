@@ -18,6 +18,7 @@ install:
     - appveyor-retry yarn run bootstrap:esy-install
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
+    - powershell scripts/bootstrap/install-npm-dependencies.ps1
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
