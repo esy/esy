@@ -4,7 +4,9 @@ const path = require('path');
 const fs = require('fs');
 
 const outdent = require('outdent');
-const {genFixture, ocamlPackage, packageJson, symlink, file, dir} = require('../test/helpers');
+const {genFixture, ocamlPackage, packageJson, symlink, file, dir, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows()
 
 const fixture = [
   packageJson({
@@ -110,7 +112,7 @@ const fixture = [
 describe('Build - with linked dep _build', () => {
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await genFixture(...fixture);
     await p.esy('build');
   });

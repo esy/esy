@@ -3,14 +3,18 @@
 jest.setTimeout(20000);
 
 const path = require('path');
-const os = require('os');
 const fs = require('fs-extra');
+const os = require('os');
 const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
-const {ocamlPackagePath} = require('./jestGlobalSetup.js');
+const {ocamlPackagePath, ESYCOMMAND, isWindows, ocamloptName} = require('./jestGlobalSetup.js');
 
-const ESYCOMMAND = require.resolve('../../bin/esy');
+function getTempDir() {
+    return isWindows ? os.tmpdir() : '/tmp';
+}
+
+const exeExtension = isWindows ? ".exe" : "";
 
 type Fixture = Array<FixtureItem>;
 type FixtureItem = FixtureDir | FixtureFile | FixtureFileCopy | FixtureSymlink;
@@ -62,8 +66,8 @@ function ocamlPackage() {
     };
     let ocamlopt: FixtureFileCopy = {
       type: 'file-copy',
-      name: 'ocamlopt',
-      path: path.join(ocamlPackagePath, 'ocamlopt'),
+      name: ocamloptName,
+      path: path.join(ocamlPackagePath, ocamloptName),
     };
     ocamlPackageCached = dir('ocaml', ocamlopt, packageJson);
     return ocamlPackageCached;
@@ -74,7 +78,7 @@ function ocamlPackage() {
 
 async function genFixture(...fixture: Fixture) {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
-  const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
+  const tmp = isWindows ? os.tmpdir() : '/tmp';
   const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
@@ -110,6 +114,7 @@ async function genFixture(...fixture: Fixture) {
     if (!options.noEsyPrefix) {
       env = {...process.env, ESY__PREFIX: esyPrefixPath};
     }
+
     return promiseExec(`${ESYCOMMAND} ${args}`, {
       cwd: projectPath,
       env,
@@ -126,6 +131,16 @@ async function genFixture(...fixture: Fixture) {
   return {rootPath, binPath, projectPath, esy, npm, esyPrefixPath, npmPrefixPath};
 }
 
+function skipSuiteOnWindows(blockingIssues) {
+   if (process.platform === 'win32') {
+      fdescribe("", () => {
+         fit('does not work on Windows', () => {
+            console.warn('[SKIP] Needs to be unblocked: ' + (blockingIssues || 'Needs investigation'));
+         });
+      });
+   }
+}
+
 module.exports = {
   promiseExec,
   file,
@@ -133,6 +148,11 @@ module.exports = {
   dir,
   packageJson,
   genFixture,
+  getTempDir,
+  skipSuiteOnWindows,
+  ESYCOMMAND,
+  exeExtension,
+  ocamloptName,
   ocamlPackage,
   ocamlPackagePath,
 };

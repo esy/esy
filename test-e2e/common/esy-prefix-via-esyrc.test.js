@@ -5,8 +5,10 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {genFixture} = require('../test/helpers');
+const {genFixture, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
+
+skipSuiteOnWindows();
 
 it('Common - esy prefix via esyrc', async () => {
 

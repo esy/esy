@@ -1,6 +1,8 @@
 // @flow
 
-const {file, dir, packageJson, genFixture, promiseExec, ocamlPackage} = require('../test/helpers.js');
+const {file, dir, packageJson, genFixture, promiseExec, ocamlPackage,  skipSuiteOnWindows} = require('../test/helpers.js');
+
+skipSuiteOnWindows();
 
 describe('build opam sandbox', () => {
 

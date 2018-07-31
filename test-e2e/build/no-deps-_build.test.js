@@ -1,8 +1,9 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 const outdent = require('outdent');
-const {genFixture, ocamlPackage, dir, file, packageJson} = require('../test/helpers');
+const {genFixture, ocamlPackage, dir, file, packageJson, exeExtension} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -26,7 +27,7 @@ const fixture = [
         ]
       ],
       "install": [
-        "cp ./_build/#{self.name}.exe $cur__bin/$cur__name"
+        `cp ./_build/#{self.name}.exe $cur__bin/$cur__name${exeExtension}`
       ]
     },
     "dependencies": {
@@ -45,5 +46,5 @@ it('Build - no deps _build', async () => {
   await p.esy('build');
 
   const {stdout} = await p.esy('x no-deps-_build');
-  expect(stdout).toEqual('no-deps-_build\n');
+  expect(stdout).toEqual('no-deps-_build' + os.EOL);
 });

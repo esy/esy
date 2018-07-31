@@ -2,6 +2,10 @@
 
 const setup = require('./setup');
 
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows("Needs investigation");
+
 describe(`Basic tests`, () => {
   test(
     `it should correctly install a single dependency that contains no sub-dependencies`,

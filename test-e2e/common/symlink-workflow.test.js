@@ -3,8 +3,9 @@
 const path = require('path');
 const outdent = require('outdent');
 const fs = require('fs-extra');
-const {genFixture, file, dir, packageJson, ocamlPackagePath, promiseExec} = require('../test/helpers');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const {genFixture, file, dir, packageJson, ocamlPackagePath, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
   dir('app',
@@ -106,7 +107,7 @@ describe('Common - symlink workflow', () => {
   let p;
   let appEsy;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await genFixture(...fixture);
 
     appEsy = args =>

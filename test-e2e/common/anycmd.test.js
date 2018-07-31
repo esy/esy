@@ -2,27 +2,29 @@
 
 const path = require('path');
 const fs = require('fs-extra');
+const os = require('os');
 
-const {genFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+
+skipSuiteOnWindows();
 
 describe('Common - anycmd', () => {
   let p;
   let prevEnv = {...process.env};
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
   });
 
   it('normal case works', async () => {
     await expect(p.esy('dep')).resolves.toEqual({
-      stdout: '__dep__\n',
+      stdout: '__dep__' + os.EOL,
       stderr: '',
     });
     await expect(p.esy('devDep')).resolves.toEqual({
-      stdout: '__devDep__\n',
+      stdout: '__devDep__' + os.EOL,
       stderr: '',
     });
   });

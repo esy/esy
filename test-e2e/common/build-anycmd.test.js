@@ -1,9 +1,12 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 
-const {genFixture} = require('../test/helpers');
+const {genFixture, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
+
+skipSuiteOnWindows();
 
 it('Common - build anycmd', async () => {
   const p = await genFixture(...fixture.simpleProject);
@@ -11,12 +14,12 @@ it('Common - build anycmd', async () => {
   await p.esy('build');
 
   await expect(p.esy('build dep')).resolves.toEqual({
-    stdout: '__dep__\n',
+    stdout: '__dep__' + os.EOL,
     stderr: '',
   });
 
   await expect(p.esy('b dep')).resolves.toEqual({
-    stdout: '__dep__\n',
+    stdout: '__dep__' + os.EOL,
     stderr: '',
   });
 

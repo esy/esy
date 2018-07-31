@@ -1,8 +1,11 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 const outdent = require('outdent');
-const {genFixture, ocamlPackage, dir, file, packageJson} = require('../test/helpers');
+const {genFixture, ocamlPackage, dir, file, packageJson, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
@@ -24,7 +27,7 @@ const fixture = [
         ]
       ],
       "install": [
-        "cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name"
+        `cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name${exeExtension}`
       ]
     },
     "dependencies": {
@@ -42,5 +45,5 @@ it('Build - no deps', async () => {
   await p.esy('build');
 
   const {stdout} = await p.esy('x no-deps');
-  expect(stdout).toEqual('no-deps\n');
+  expect(stdout).toEqual('no-deps' + os.EOL);
 });

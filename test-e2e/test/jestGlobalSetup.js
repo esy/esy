@@ -7,7 +7,17 @@ const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const isWindows = process.platform === "win32"
+
+const ESYCOMMAND = process.platform === 'win32' 
+    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe') 
+    : require.resolve('../../bin/esy');
+
+const INSTALL_COMMAND = process.platform === 'win32' 
+    ? 'legacy-install'
+    : 'install'
+
+const ocamloptName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
 
 const testPath = path.join(os.homedir(), '.esytest');
 const sandboxPath = path.join(testPath, 'sandbox');
@@ -47,7 +57,7 @@ async function buildOcamlPackage() {
     },
   }));
 
-  await esy('install');
+  await esy(INSTALL_COMMAND);
   await esy('build');
 
   const buildEnv = JSON.parse((await esy('build-env --json')).stdout);
@@ -55,8 +65,8 @@ async function buildOcamlPackage() {
 
   let ocamloptPath = null;
   for (const p of PATH) {
-    if (fs.exists(path.join(p, 'ocamlopt'))) {
-      ocamloptPath = path.join(p, 'ocamlopt');
+    if (fs.exists(path.join(p, ocamloptName))) {
+      ocamloptPath = path.join(p, ocamloptName);
       break;
     }
   }
@@ -66,6 +76,7 @@ async function buildOcamlPackage() {
   }
 
   await mkdirOrIgnore(ocamlPackagePath);
+
   await fs.writeFile(path.join(ocamlPackagePath, 'package.json'), JSON.stringify({
     name: 'ocaml',
     version: '1.0.0',
@@ -74,14 +85,14 @@ async function buildOcamlPackage() {
         "true"
       ],
       install: [
-        "cp ocamlopt #{self.bin / 'ocamlopt'}",
-        "chmod +x #{self.bin / 'ocamlopt'}"
+        `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
+        `chmod +x #{self.bin / '${ocamloptName}'}`
       ]
     },
     _resolved: 'ocaml@1.0.0'
   }));
 
-  await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, 'ocamlopt'));
+  await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName));
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
@@ -91,3 +102,6 @@ module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
 };
 
 module.exports.ocamlPackagePath = ocamlPackagePath;
+module.exports.ESYCOMMAND = ESYCOMMAND;
+module.exports.isWindows = isWindows;
+module.exports.ocamloptName = ocamloptName;

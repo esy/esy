@@ -3,7 +3,9 @@
 const path = require('path');
 const fs = require('fs');
 
-const {genFixture, packageJson, file, dir, symlink, ocamlPackage} = require('../test/helpers');
+const {genFixture, packageJson, file, dir, symlink, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
