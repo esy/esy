@@ -154,7 +154,7 @@ $(RELEASE_ROOT)/bin/esy-install.js:
 
 $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
-	@echo "#!/bin/sh\necho 'error: esy is not installed correctly...'; exit 1" > $(@)
+	@echo "Placeholder: to be replaced by postinstall step" > $(@)
 	@chmod +x $(@)
 
 $(RELEASE_ROOT)/%: $(PWD)/%
@@ -196,7 +196,8 @@ console.log(
 			"postinstall.js",
 			"platform-linux/",
 			"platform-darwin/",
-			"platform-windows-x64/"
+			"platform-windows-x64/",
+			"_build/default/**/*.exe"
 		]
 	}, null, 2));
 endef
