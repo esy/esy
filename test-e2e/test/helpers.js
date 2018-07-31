@@ -136,7 +136,7 @@ async function genFixture(...fixture: Fixture) {
   return {rootPath, binPath, projectPath, esy, npm, esyPrefixPath, npmPrefixPath};
 }
 
-function skipSuiteOnWindows(blockingIssues) {
+function skipSuiteOnWindows(blockingIssues?: string) {
   if (process.platform === 'win32') {
     fdescribe('', () => {
       fit('does not work on Windows', () => {
