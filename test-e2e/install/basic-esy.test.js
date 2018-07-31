@@ -1,15 +1,13 @@
 /* @flow */
 
-const setup = require('./setup');
+const helpers = require('../test/helpers.js');
 
-const {skipSuiteOnWindows} = require('./../test/helpers');
-
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 describe(`Basic tests`, () => {
   test(
     `it should correctly install a single dependency that contains no sub-dependencies`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -29,7 +27,7 @@ describe(`Basic tests`, () => {
 
   test(
     `it should correctly install a dependency that itself contains a fixed dependency`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -55,7 +53,7 @@ describe(`Basic tests`, () => {
 
   test(
     `it should correctly install a dependency that itself contains a range dependency`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -81,7 +79,7 @@ describe(`Basic tests`, () => {
 
   test(
     `it should prefer esy._dependenciesForNewEsyInstaller`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -89,7 +87,7 @@ describe(`Basic tests`, () => {
         esy: {},
       },
       async ({path, run, source}) => {
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'apkg',
           version: '1.0.0',
           esy: {
@@ -99,12 +97,12 @@ describe(`Basic tests`, () => {
           },
           dependencies: {'apkg-dep': `1.0.0`},
         });
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'apkg-dep',
           esy: {},
           version: '1.0.0',
         });
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'apkg-dep',
           esy: {},
           version: '2.0.0',

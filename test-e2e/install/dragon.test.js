@@ -1,9 +1,8 @@
 /* @flow */
 
-const setup = require('./setup');
-const {skipSuiteOnWindows} = require('./../test/helpers');
+const helpers = require('../test/helpers.js');
 
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 // Here be dragons. The biggest and baddest tests, that just can't be described
 // in a single line of summary. Because of this, they each must be clearly
@@ -16,7 +15,7 @@ skipSuiteOnWindows();
 describe(`Dragon tests`, () => {
   test(
     `it should pass the dragon test 1`,
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',

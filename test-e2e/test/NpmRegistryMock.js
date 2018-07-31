@@ -1,4 +1,8 @@
-/* @flow */
+/**
+ * Utilities for mocking npm registry.
+ *
+ * @flow
+ */
 
 import type {ServerResponse} from 'http';
 import type {Gzip} from 'zlib';
@@ -28,8 +32,11 @@ export type PackageRunDriver = (
 
 export type PackageDriver = any;
 
-exports.definePackage = async function(packageJson: {name: string, version: string}, options: {shasum?: string} = {}) {
-  const packageRegistry = await exports.getPackageRegistry();
+async function definePackage(
+  packageJson: {name: string, version: string},
+  options: {shasum?: string} = {},
+) {
+  const packageRegistry = await getPackageRegistry();
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
   invariant(version != null, 'Missing "version" in package.json');
@@ -48,20 +55,23 @@ exports.definePackage = async function(packageJson: {name: string, version: stri
     shasum: options.shasum,
   });
   return packagePath;
-};
+}
 
-exports.defineLocalPackage = async function(packagePath: string, packageJson: {name: string, version: string}) {
+async function defineLocalPackage(
+  packagePath: string,
+  packageJson: {name: string, version: string},
+) {
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
   invariant(version != null, 'Missing "version" in package.json');
 
   await fsUtils.mkdir(packagePath);
   await fsUtils.writeJson(path.join(packagePath, 'package.json'), packageJson);
-};
+}
 
-exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegistry> {
-  if (getPackageRegistry.promise) {
-    return getPackageRegistry.promise;
+function getPackageRegistry(): Promise<PackageRegistry> {
+  if ((getPackageRegistry: any).promise) {
+    return (getPackageRegistry: any).promise;
   }
 
   return (getPackageRegistry.promise = (async () => {
@@ -90,20 +100,20 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
 
     return packageRegistry;
   })());
-};
+}
 
-exports.clearPackageRegistry = function() {
-  delete exports.getPackageRegistry.promise;
-};
+function clearPackageRegistry() {
+  delete getPackageRegistry.promise;
+}
 
-exports.getPackageEntry = async function getPackageEntry(name: string): Promise<?PackageEntry> {
-  const packageRegistry = await exports.getPackageRegistry();
+async function getPackageEntry(name: string): Promise<?PackageEntry> {
+  const packageRegistry = await getPackageRegistry();
 
   return packageRegistry.get(name);
-};
+}
 
-exports.getPackageArchiveStream = async function getPackageArchiveStream(name: string, version: string): Promise<Gzip> {
-  const packageEntry = await exports.getPackageEntry(name);
+async function getPackageArchiveStream(name: string, version: string): Promise<Gzip> {
+  const packageEntry = await getPackageEntry(name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -118,10 +128,10 @@ exports.getPackageArchiveStream = async function getPackageArchiveStream(name: s
   return fsUtils.packToStream(packageVersionEntry.path, {
     virtualPath: '/package',
   });
-};
+}
 
-exports.getPackageArchivePath = async function getPackageArchivePath(name: string, version: string): Promise<string> {
-  const packageEntry = await exports.getPackageEntry(name);
+async function getPackageArchivePath(name: string, version: string): Promise<string> {
+  const packageEntry = await getPackageEntry(name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -140,13 +150,13 @@ exports.getPackageArchivePath = async function getPackageArchivePath(name: strin
   });
 
   return archivePath;
-};
+}
 
-exports.getPackageArchiveHash = async function getPackageArchiveHash(
+async function getPackageArchiveHash(
   name: string,
   version: string,
 ): Promise<string | Buffer> {
-  const stream = await exports.getPackageArchiveStream(name, version);
+  const stream = await getPackageArchiveStream(name, version);
 
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('sha1');
@@ -161,13 +171,10 @@ exports.getPackageArchiveHash = async function getPackageArchiveHash(
       resolve(finalHash);
     });
   });
-};
+}
 
-exports.getPackageHttpArchivePath = async function getPackageHttpArchivePath(
-  name: string,
-  version: string,
-): Promise<string> {
-  const packageEntry = await exports.getPackageEntry(name);
+async function getPackageHttpArchivePath(name: string, version: string): Promise<string> {
+  const packageEntry = await getPackageEntry(name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -179,17 +186,14 @@ exports.getPackageHttpArchivePath = async function getPackageHttpArchivePath(
     throw new Error(`Unknown version "${version}" for package "${name}"`);
   }
 
-  const serverUrl = await exports.startPackageServer();
+  const serverUrl = await startPackageServer();
   const archiveUrl = `${serverUrl}/${name}/-/${name}-${version}.tgz`;
 
   return archiveUrl;
-};
+}
 
-exports.getPackageDirectoryPath = async function getPackageDirectoryPath(
-  name: string,
-  version: string,
-): Promise<string> {
-  const packageEntry = await exports.getPackageEntry(name);
+async function getPackageDirectoryPath(name: string, version: string): Promise<string> {
+  const packageEntry = await getPackageEntry(name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -202,14 +206,17 @@ exports.getPackageDirectoryPath = async function getPackageDirectoryPath(
   }
 
   return packageVersionEntry.path;
-};
+}
 
-exports.startPackageServer = function startPackageServer(options: {persistent?: boolean} = {}): Promise<string> {
-  if (startPackageServer.url) {
-    return startPackageServer.url;
+function startPackageServer(options: {persistent?: boolean} = {}): Promise<string> {
+  if ((startPackageServer: any).url) {
+    return (startPackageServer: any).url;
   }
 
-  async function processPackageInfo(params: ?Array<string>, res: ServerResponse): Promise<boolean> {
+  async function processPackageInfo(
+    params: ?Array<string>,
+    res: ServerResponse,
+  ): Promise<boolean> {
     if (!params) {
       return false;
     }
@@ -217,7 +224,7 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
     const [, scope, localName] = params;
     const name = scope ? `${scope}/${localName}` : localName;
 
-    const packageEntry = await exports.getPackageEntry(name);
+    const packageEntry = await getPackageEntry(name);
 
     if (!packageEntry) {
       return processError(res, 404, `Package not found: ${name}`);
@@ -237,8 +244,10 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
             return {
               [version]: Object.assign({}, packageVersionEntry.packageJson, {
                 dist: {
-                  shasum: packageVersionEntry.shasum || (await exports.getPackageArchiveHash(name, version)),
-                  tarball: await exports.getPackageHttpArchivePath(name, version),
+                  shasum:
+                    packageVersionEntry.shasum ||
+                    (await getPackageArchiveHash(name, version)),
+                  tarball: await getPackageHttpArchivePath(name, version),
                 },
               }),
             };
@@ -254,7 +263,10 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
     return true;
   }
 
-  async function processPackageTarball(params: ?Array<string>, res: ServerResponse): Promise<boolean> {
+  async function processPackageTarball(
+    params: ?Array<string>,
+    res: ServerResponse,
+  ): Promise<boolean> {
     if (!params) {
       return false;
     }
@@ -262,7 +274,7 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
     const [, scope, localName, version] = params;
     const name = scope ? `${scope}/${localName}` : localName;
 
-    const packageEntry = await exports.getPackageEntry(name);
+    const packageEntry = await getPackageEntry(name);
 
     if (!packageEntry) {
       return processError(res, 404, `Package not found: ${name}`);
@@ -287,7 +299,11 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
     return true;
   }
 
-  function processError(res: ServerResponse, statusCode: number, errorMessage: string): boolean {
+  function processError(
+    res: ServerResponse,
+    statusCode: number,
+    errorMessage: string,
+  ): boolean {
     console.error(errorMessage);
 
     res.writeHead(statusCode);
@@ -301,12 +317,20 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
       (req, res) =>
         void (async () => {
           try {
-            if (await processPackageInfo(req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/), res)) {
+            if (
+              await processPackageInfo(
+                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/),
+                res,
+              )
+            ) {
               return;
             }
 
             if (
-              await processPackageTarball(req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/), res)
+              await processPackageTarball(
+                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/),
+                res,
+              )
             ) {
               return;
             }
@@ -327,9 +351,9 @@ exports.startPackageServer = function startPackageServer(options: {persistent?: 
       resolve((startPackageServer.url = `http://localhost:${port}`));
     });
   });
-};
+}
 
-exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver: PackageRunDriver|}): PackageDriver {
+function generatePkgDriver({runDriver}: {|runDriver: PackageRunDriver|}): PackageDriver {
   function withConfig(definition): PackageDriver {
     const makeTemporaryEnv = (packageJson, subDefinition, fn) => {
       if (typeof subDefinition === 'function') {
@@ -347,7 +371,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
       return async function(): Promise<void> {
         const path = await fsUtils.createTemporaryFolder();
 
-        const registryUrl = await exports.startPackageServer();
+        const registryUrl = await startPackageServer();
 
         // Writes a new package.json file into our temporary directory
         await fsUtils.writeJson(`${path}/package.json`, await deepResolve(packageJson));
@@ -360,7 +384,9 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         };
 
         const source = async script => {
-          return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
+          return JSON.parse(
+            (await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString(),
+          );
         };
 
         await fn({
@@ -379,7 +405,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
   }
 
   return withConfig({});
-};
+}
 
 type Layout = {
   name: string,
@@ -388,7 +414,7 @@ type Layout = {
   dependencies: {[name: string]: Layout},
 };
 
-exports.crawlLayout = async function crawlLayout(directory: string): Promise<?Layout> {
+async function crawlLayout(directory: string): Promise<?Layout> {
   const esyLinkPath = path.join(directory, '_esylink');
   const nodeModulesPath = path.join(directory, 'node_modules');
 
@@ -426,4 +452,17 @@ exports.crawlLayout = async function crawlLayout(directory: string): Promise<?La
     path: directory,
     dependencies,
   };
+}
+
+module.exports = {
+  getPackageDirectoryPath,
+  getPackageHttpArchivePath,
+  getPackageArchivePath,
+  definePackage,
+  defineLocalPackage,
+  generatePkgDriver,
+  crawlLayout,
+  clearPackageRegistry,
+  startPackageServer,
+  getPackageRegistry,
 };

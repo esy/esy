@@ -1,15 +1,14 @@
 /* @flow */
 
 const {join} = require('path');
-const setup = require('./setup');
-const {skipSuiteOnWindows} = require('./../test/helpers');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe(`installing linked packages`, () => {
   test(
     'it should install linked packages',
-    setup.makeTemporaryEnv(
+    helpers.makeTemporaryEnv(
       {
         name: 'root',
         version: '1.0.0',
@@ -17,12 +16,12 @@ describe(`installing linked packages`, () => {
         dependencies: {dep: `link:./dep`},
       },
       async ({path, run, source}) => {
-        await setup.definePackage({
+        await helpers.definePackage({
           name: 'depdep',
           version: '1.0.0',
           esy: {},
         });
-        await setup.defineLocalPackage(join(path, 'dep'), {
+        await helpers.defineLocalPackage(join(path, 'dep'), {
           name: 'dep',
           version: '1.0.0',
           esy: {},
@@ -33,7 +32,7 @@ describe(`installing linked packages`, () => {
 
         await run(`install`);
 
-        const layout = await setup.crawlLayout(path);
+        const layout = await helpers.crawlLayout(path);
         expect(layout).toMatchObject({
           name: 'root',
           dependencies: {
