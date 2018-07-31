@@ -5,36 +5,39 @@ const outdent = require('outdent');
 
 const {skipSuiteOnWindows} = require('../test/helpers');
 
-skipSuiteOnWindows("#272");
+skipSuiteOnWindows('#272');
 
 const {packageJson, file, genFixture} = require('../test/helpers');
 
 const fixture = [
   packageJson({
-    "name": "simple-project",
-    "version": "1.0.0",
-    "scripts": {
-      "cmd1": "bash -c 'echo 'cmd1_result''",
-      "cmd2": "esy bash -c 'echo 'cmd2_result''",
-      "cmd3": [["bash", "-c", "echo 'cmd_array_result'"]],
-      "cmd4": "#{self.target_dir / 'script'}",
-      "exec_cmd1": "esy x script",
-      "exec_cmd2": [["esy", "x", "script"]],
-      "build_cmd": "esy b bash -c 'echo 'build_cmd_result''"
+    name: 'simple-project',
+    version: '1.0.0',
+    scripts: {
+      cmd1: "bash -c 'echo 'cmd1_result''",
+      cmd2: "esy bash -c 'echo 'cmd2_result''",
+      cmd3: [['bash', '-c', "echo 'cmd_array_result'"]],
+      cmd4: "#{self.target_dir / 'script'}",
+      exec_cmd1: 'esy x script',
+      exec_cmd2: [['esy', 'x', 'script']],
+      build_cmd: "esy b bash -c 'echo 'build_cmd_result''",
     },
-    "esy": {
-      "build": [
-        ["cp", "script.sh", "#{self.target_dir / 'script'}"],
-        "chmod +x $cur__target_dir/script"
+    esy: {
+      build: [
+        ['cp', 'script.sh', "#{self.target_dir / 'script'}"],
+        'chmod +x $cur__target_dir/script',
       ],
-      "install": ["cp $cur__target_dir/script $cur__bin/script"]
+      install: ['cp $cur__target_dir/script $cur__bin/script'],
     },
   }),
-  file('script.sh', outdent`
+  file(
+    'script.sh',
+    outdent`
     #!/bin/bash
 
     echo 'script_exec_result'
-  `)
+  `,
+  ),
 ];
 
 it('Common - scripts', async () => {

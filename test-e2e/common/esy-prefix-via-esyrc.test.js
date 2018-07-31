@@ -11,7 +11,6 @@ const fixture = require('./fixture.js');
 skipSuiteOnWindows();
 
 it('Common - esy prefix via esyrc', async () => {
-
   const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
   const tmpPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
   const customEsyPrefix = path.join(tmpPath, 'prefix');

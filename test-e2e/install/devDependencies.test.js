@@ -1,7 +1,7 @@
 /* @flow */
 
 const tests = require('./setup');
-const {skipSuiteOnWindows} = require("./../test/helpers");
+const {skipSuiteOnWindows} = require('./../test/helpers');
 
 skipSuiteOnWindows();
 

@@ -2,46 +2,55 @@
 
 const path = require('path');
 
-const {genFixture, packageJson, dir, file, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  genFixture,
+  packageJson,
+  dir,
+  file,
+  ocamlPackage,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 
 skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
-    "name": "augment-path",
-    "version": "1.0.0",
-    "esy": {
-      "build": "true"
+    name: 'augment-path',
+    version: '1.0.0',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
-    }
+    dependencies: {
+      dep: '*',
+    },
   }),
-  dir('node_modules',
-    dir('dep',
+  dir(
+    'node_modules',
+    dir(
+      'dep',
       packageJson({
-        "name": "dep",
-        "version": "1.0.0",
-        "license": "MIT",
-        "esy": {
-          "buildsInSource": true,
-          "build": "ocamlopt -o #{self.lib/}dep #{self.root/}dep.ml",
-          "exportedEnv": {
-            "PATH": {
-              "val": "#{self.lib : $PATH}",
-              "scope": "global"
-            }
-          }
+        name: 'dep',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          buildsInSource: true,
+          build: 'ocamlopt -o #{self.lib/}dep #{self.root/}dep.ml',
+          exportedEnv: {
+            PATH: {
+              val: '#{self.lib : $PATH}',
+              scope: 'global',
+            },
+          },
         },
-        "dependencies": {
-          "ocaml": "*"
+        dependencies: {
+          ocaml: '*',
         },
-        "_resolved": "http://sometarball.gz"
+        _resolved: 'http://sometarball.gz',
       }),
       file('dep.ml', 'let () = print_endline "__DEP__"'),
     ),
     ocamlPackage(),
-  )
+  ),
 ];
 
 describe('Build - augment path', () => {

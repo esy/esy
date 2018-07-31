@@ -8,13 +8,18 @@ const os = require('os');
 const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
-const {ocamlPackagePath, ESYCOMMAND, isWindows, ocamloptName} = require('./jestGlobalSetup.js');
+const {
+  ocamlPackagePath,
+  ESYCOMMAND,
+  isWindows,
+  ocamloptName,
+} = require('./jestGlobalSetup.js');
 
 function getTempDir() {
-    return isWindows ? os.tmpdir() : '/tmp';
+  return isWindows ? os.tmpdir() : '/tmp';
 }
 
-const exeExtension = isWindows ? ".exe" : "";
+const exeExtension = isWindows ? '.exe' : '';
 
 type Fixture = Array<FixtureItem>;
 type FixtureItem = FixtureDir | FixtureFile | FixtureFileCopy | FixtureSymlink;
@@ -132,13 +137,15 @@ async function genFixture(...fixture: Fixture) {
 }
 
 function skipSuiteOnWindows(blockingIssues) {
-   if (process.platform === 'win32') {
-      fdescribe("", () => {
-         fit('does not work on Windows', () => {
-            console.warn('[SKIP] Needs to be unblocked: ' + (blockingIssues || 'Needs investigation'));
-         });
+  if (process.platform === 'win32') {
+    fdescribe('', () => {
+      fit('does not work on Windows', () => {
+        console.warn(
+          '[SKIP] Needs to be unblocked: ' + (blockingIssues || 'Needs investigation'),
+        );
       });
-   }
+    });
+  }
 }
 
 module.exports = {

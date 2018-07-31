@@ -2,35 +2,36 @@
 
 const path = require('path');
 const outdent = require('outdent');
-const {genFixture, ocamlPackage, dir, file, packageJson, exeExtension} = require('../test/helpers');
+const {
+  genFixture,
+  ocamlPackage,
+  dir,
+  file,
+  packageJson,
+  exeExtension,
+} = require('../test/helpers');
 
 const fixture = [
   packageJson({
-    "name": "no-deps-in-source",
-    "version": "1.0.0",
-    "license": "MIT",
-    "esy": {
-      "buildsInSource": true,
-      "build": [
-        [
-          "ocamlopt",
-          "-o",
-          "#{self.name}.exe",
-          "test.ml"
-        ]
-      ],
-      "install": [
-        `cp ./$cur__name.exe $cur__bin/$cur__name${exeExtension}`
-      ]
+    name: 'no-deps-in-source',
+    version: '1.0.0',
+    license: 'MIT',
+    esy: {
+      buildsInSource: true,
+      build: [['ocamlopt', '-o', '#{self.name}.exe', 'test.ml']],
+      install: [`cp ./$cur__name.exe $cur__bin/$cur__name${exeExtension}`],
     },
-    "dependencies": {
-      "ocaml": "esy-ocaml/ocaml#6aacc05"
-    }
+    dependencies: {
+      ocaml: 'esy-ocaml/ocaml#6aacc05',
+    },
   }),
-  file('test.ml', outdent`
+  file(
+    'test.ml',
+    outdent`
     let () = print_endline "no-deps-in-source"
-  `),
-  dir('node_modules', ocamlPackage())
+  `,
+  ),
+  dir('node_modules', ocamlPackage()),
 ];
 
 it('Build - no deps in source', async () => {

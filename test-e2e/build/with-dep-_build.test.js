@@ -1,48 +1,57 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson, dir, file, ocamlPackage, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  genFixture,
+  packageJson,
+  dir,
+  file,
+  ocamlPackage,
+  exeExtension,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 
 skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
-    "name": "with-dep-_build",
-    "version": "1.0.0",
-    "esy": {
-      "build": "true"
+    name: 'with-dep-_build',
+    version: '1.0.0',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
-    }
+    dependencies: {
+      dep: '*',
+    },
   }),
-  dir('node_modules',
-    dir('dep',
+  dir(
+    'node_modules',
+    dir(
+      'dep',
       packageJson({
-        "name": "dep",
-        "version": "1.0.0",
-        "esy": {
-          "buildsInSource": "_build",
-          "build": [
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          buildsInSource: '_build',
+          build: [
             "mkdir #{self.root / '_build'}",
             "cp #{self.root / self.name}.ml #{self.root / '_build' / self.name}.ml",
             "ocamlopt -o #{self.root / '_build' / self.name}.exe #{self.root / '_build' / self.name}.ml",
           ],
-          "install": `cp #{self.root / '_build' / self.name}.exe #{self.bin / self.name}${exeExtension}`
+          install: `cp #{self.root / '_build' / self.name}.exe #{self.bin / self.name}${exeExtension}`,
         },
-        "dependencies": {
-          "ocaml": "*"
+        dependencies: {
+          ocaml: '*',
         },
-        "_resolved": "..."
+        _resolved: '...',
       }),
       file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
     ocamlPackage(),
-  )
-]
+  ),
+];
 
 describe('Build - with dep _build', () => {
-
   it('package "dep" should be visible in all envs', async () => {
     const p = await genFixture(...fixture);
     await p.esy('build');

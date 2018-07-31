@@ -3,7 +3,7 @@
 const {join} = require('path');
 const setup = require('./setup');
 
-const {skipSuiteOnWindows} = require("./../test/helpers");
+const {skipSuiteOnWindows} = require('./../test/helpers');
 
 skipSuiteOnWindows();
 
@@ -115,9 +115,7 @@ describe(`Basic tests for npm packages`, () => {
         }
 
         // only root deps has their bin installed
-        expect(
-          await setup.exists(join(path, 'node_modules', '.bin', 'depDep')),
-        ).toBeFalsy();
+        expect(await setup.exists(join(path, 'node_modules', '.bin', 'depDep'))).toBeFalsy();
       },
     ),
   );
@@ -175,9 +173,7 @@ describe(`Basic tests for npm packages`, () => {
         }
 
         // only root deps has their bin installed
-        expect(
-          await setup.exists(join(path, 'node_modules', '.bin', 'depDep')),
-        ).toBeFalsy();
+        expect(await setup.exists(join(path, 'node_modules', '.bin', 'depDep'))).toBeFalsy();
       },
     ),
   );

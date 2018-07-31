@@ -1,9 +1,9 @@
 /* @flow */
 
-const {skipSuiteOnWindows} = require("./../test/helpers")
+const {skipSuiteOnWindows} = require('./../test/helpers');
 const tests = require('./setup');
 
-skipSuiteOnWindows("Needs investigation.");
+skipSuiteOnWindows('Needs investigation.');
 
 describe('Testing integrity of downloaded packages', function() {
   test(

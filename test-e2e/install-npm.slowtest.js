@@ -7,49 +7,49 @@ const rmSync = require('rimraf').sync;
 
 const cases = [
   {
-    name: "react",
+    name: 'react',
     test: `
       require('react');
-    `
+    `,
   },
   {
-    name: "bs-platform"
+    name: 'bs-platform',
   },
   {
-    name: "browserify",
+    name: 'browserify',
     test: `
       require('browserify');
-    `
+    `,
   },
   {
-    name: "webpack",
+    name: 'webpack',
     test: `
       require('webpack');
-    `
+    `,
   },
   {
-    name: "jest-cli",
+    name: 'jest-cli',
     test: `
       require('jest-cli');
-    `
+    `,
   },
   {
-    name: "flow-bin",
+    name: 'flow-bin',
     test: `
       require('flow-bin');
-    `
+    `,
   },
   {
-    name: "babel-cli",
+    name: 'babel-cli',
     test: `
       require('babel-core');
-    `
+    `,
   },
   {
-    name: "react-scripts",
+    name: 'react-scripts',
     test: `
       require('react-scripts/bin/react-scripts.js');
-    `
+    `,
   },
 ];
 
@@ -59,10 +59,9 @@ let reposUpdated = false;
 const esyPrefixPath = fs.mkdtempSync('/tmp/esy-prefix');
 
 for (let c of cases) {
-
   console.log(`*** installing ${c.name}`);
   const sandboxPath = fs.mkdtempSync('/tmp/esy-project');
-  console.log(`*** sandboxPath: ${sandboxPath}`)
+  console.log(`*** sandboxPath: ${sandboxPath}`);
 
   const esy = path.join(__dirname, '..', 'bin', 'esy');
 
@@ -71,13 +70,13 @@ for (let c of cases) {
     version: '0.0.0',
     esy: {build: ['true']},
     dependencies: {
-      [c.name]: "*"
-    }
+      [c.name]: '*',
+    },
   };
 
   fs.writeFileSync(
     path.join(sandboxPath, 'package.json'),
-    JSON.stringify(packageJson, null, 2)
+    JSON.stringify(packageJson, null, 2),
   );
 
   child_process.execSync(`${esy} install`, {
@@ -94,10 +93,7 @@ for (let c of cases) {
 
   if (c.test != null) {
     const test = c.test;
-    fs.writeFileSync(
-      path.join(sandboxPath, 'test.js'),
-      test
-    );
+    fs.writeFileSync(path.join(sandboxPath, 'test.js'), test);
     child_process.execSync(`node ./test.js`, {
       cwd: sandboxPath,
       stdio: 'inherit',

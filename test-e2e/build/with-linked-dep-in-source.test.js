@@ -3,47 +3,57 @@
 const path = require('path');
 const fs = require('fs');
 
-const {genFixture, packageJson, file, dir, symlink, ocamlPackage, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  genFixture,
+  packageJson,
+  file,
+  dir,
+  symlink,
+  ocamlPackage,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 
 skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
-    "name": "with-linked-dep-in-source",
-    "version": "1.0.0",
-    "esy": {
-      "build": "true"
+    name: 'with-linked-dep-in-source',
+    version: '1.0.0',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
-    }
+    dependencies: {
+      dep: '*',
+    },
   }),
-  dir('dep',
+  dir(
+    'dep',
     packageJson({
-      "name": "dep",
-      "version": "1.0.0",
-      "esy": {
-        "buildsInSource": true,
-        "build": "ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml",
-        "install": "cp #{self.root / self.name} #{self.bin / self.name}",
+      name: 'dep',
+      version: '1.0.0',
+      esy: {
+        buildsInSource: true,
+        build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
+        install: 'cp #{self.root / self.name} #{self.bin / self.name}',
       },
-      "dependencies": {
-        "ocaml": "*"
-      }
+      dependencies: {
+        ocaml: '*',
+      },
     }),
     file('dep.ml', 'let () = print_endline "__dep__"'),
   ),
-  dir('node_modules',
-    dir('dep',
+  dir(
+    'node_modules',
+    dir(
+      'dep',
       file('_esylink', './dep'),
-      symlink('package.json', '../../dep/package.json')
+      symlink('package.json', '../../dep/package.json'),
     ),
     ocamlPackage(),
   ),
 ];
 
 describe('Build - with linked dep _build', () => {
-
   it('package "dep" should be visible in all envs', async () => {
     const p = await genFixture(...fixture);
 

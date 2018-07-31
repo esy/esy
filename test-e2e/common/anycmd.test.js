@@ -4,7 +4,12 @@ const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
 
-const {genFixture, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  genFixture,
+  promiseExec,
+  ESYCOMMAND,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 const fixture = require('./fixture.js');
 
 skipSuiteOnWindows();
