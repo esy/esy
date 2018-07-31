@@ -43,9 +43,19 @@ let run cmd =
   | _ ->
     RunAsync.error "error running subprocess"
 
+let normalizePath p =
+    let open RunAsync.Syntax in
+    let normalizedPath = EsyBash.normalizePathForCygwin p in
+    match normalizedPath with
+    | Ok v -> return v
+    | _ -> error "Error normalizing path"
+
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
-  let unpack out = run Cmd.(v "tar" % "xf" % p filename % "-C" % p out) in
+  let%bind normalizedPath = normalizePath (Cmd.p filename) in
+  let unpack out = 
+      let%bind normalizedOutputPath = normalizePath (Cmd.p out) in
+      run Cmd.(v "tar" % "xf" % normalizedPath % "-C" % normalizedOutputPath) in
   match stripComponents with
   | Some stripComponents ->
     Fs.withTempDir begin fun out ->
