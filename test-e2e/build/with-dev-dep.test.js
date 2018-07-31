@@ -61,7 +61,7 @@ describe('Build - with dev dep', () => {
 
   let p;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     p = await genFixture(...fixture);
     await p.esy('build');
   });
