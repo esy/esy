@@ -14,27 +14,25 @@ var fs = require('fs');
 var os = require('os');
 var platform = process.platform;
 
+const binariesToCopy = [
+    path.join('_build', 'default', 'esyi', 'bin', 'esyi.exe'),
+    path.join('_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
+    path.join('_build', 'default', 'esy-build-package', 'bin', 'esyBuildPackageCommand.exe'),
+    path.join('bin', 'fastreplacestring'),
+]
+
 const copyPlatformBinaries = (platformPath) => {
-    fs.renameSync(
-        path.join(__dirname, 'platform-' + platformPath, '_build'),
-        path.join(__dirname, '_build')
-    );
-    fs.renameSync(
-        path.join(__dirname, 'platform-' + platformPath, 'bin', 'fastreplacestring'),
-        path.join(__dirname, 'bin', 'fastreplacestring')
-    );
+    const platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
-    fs.unlinkSync(path.join(__dirname, 'bin', 'esy'));
-    fs.symlinkSync(
-        path.join(__dirname, '_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
-        path.join(__dirname, 'bin', 'esy')
-    );
-
-    fs.unlinkSync(path.join(__dirname, 'bin', 'esyi'));
-    fs.symlinkSync(
-        path.join(__dirname, '_build', 'default', 'esyi', 'bin', 'esyi.exe'),
-        path.join(__dirname, 'bin', 'esyi')
-    );
+    binariesToCopy.forEach(binaryPath => {
+        const sourcePath = path.join(platformBuildPath, binaryPath);
+        const destPath = path.join(__dirname, binaryPath);
+        console.log(`- Copying file ${sourcePath} to {destPath}.`);
+        if (fs.existsSync(destPath)) {
+            fs.unlinkSync(destPath);
+        }
+        fs.copyFileSync(sourcePath, destPath);
+    });
 }
 
 switch (platform) {

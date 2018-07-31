@@ -133,9 +133,10 @@ RELEASE_FILES = \
 	platform-linux \
 	platform-darwin \
 	platform-windows-x64 \
-	bin/esy \
-	bin/esyi \
 	bin/esyInstallRelease.js \
+	_build/default/esy/bin/esyCommand.exe \
+	_build/default/esyi/bin/esyi.exe \
+	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	postinstall.js \
 	LICENSE \
 	README.md \
@@ -151,7 +152,7 @@ release:
 $(RELEASE_ROOT)/bin/esy-install.js:
 	@$(MAKE) -C esy-install BUILD=../$(@) build
 
-$(RELEASE_ROOT)/bin/esy $(RELEASE_ROOT)/bin/esyi:
+$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@echo "#!/bin/sh\necho 'error: esy is not installed correctly...'; exit 1" > $(@)
 	@chmod +x $(@)
