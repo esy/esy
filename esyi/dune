@@ -1,6 +1,5 @@
 (library
   (name EsyInstall)
-  (public_name esyi)
   (preprocess (pps
                   lwt_ppx ppx_let
                   ppx_deriving.std
@@ -10,7 +9,7 @@
   (inline_tests)
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
-            esy-lib
+            EsyLib
             str
             cudf
             ppx_deriving_yojson.runtime

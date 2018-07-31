@@ -15,6 +15,7 @@ cache:
   timeout: 360
   directories:
   - "$HOME/.esy/"
+  - "$HOME/.esytest/"
 
 deploy:
   provider: releases

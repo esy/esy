@@ -2,6 +2,10 @@
 
 const setup = require('./setup');
 
+const {skipSuiteOnWindows} = require("./../test/helpers");
+
+skipSuiteOnWindows();
+
 describe(`Tests for installations from custom sources`, () => {
   describe('Installation from github', () => {
     beforeEach(async () => {

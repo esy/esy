@@ -3,12 +3,14 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {initFixture, promiseExec} = require('../test/helpers');
+const {genFixture, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
+const fixture = require('./fixture.js');
+
+skipSuiteOnWindows("#301");
 
 describe('Common - command-env', () => {
   it('generates valid environmenmt with deps and devdeps in $PATH', async () => {
-    expect.assertions(2);
-    const p = await initFixture(path.join(__dirname, 'fixtures/simple-project'));
+    const p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
 
     const commandEnv = (await p.esy('command-env')).stdout;
@@ -19,12 +21,12 @@ describe('Common - command-env', () => {
       promiseExec('. ./command-env && dep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./command-env && dev-dep', {
+      promiseExec('. ./command-env && devDep', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: 'dev-dep\n', stderr: ''});
+    ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
   });
 });

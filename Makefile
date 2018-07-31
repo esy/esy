@@ -1,6 +1,8 @@
 .DELETE_ON_ERROR:
 
 ESY_EXT := $(shell command -v esy 2> /dev/null)
+ESY_VERSION := $(shell esy version)
+ESY_VERSION_MINOR :=$(word 2, $(subst ., ,$(ESY_VERSION)))
 
 BIN = $(PWD)/node_modules/.bin
 PROJECTS = esy esy-build-package esyi
@@ -63,7 +65,11 @@ bootstrap:
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
+ifeq ($(ESY_VERSION_MINOR),2)
+	@esy legacy-install
+else
 	@esy install
+endif
 	@make -C esy-install bootstrap
 	@make build-dev
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring

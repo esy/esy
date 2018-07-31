@@ -520,7 +520,7 @@ end = struct
           List.map ~f:(List.filter ~f) update
         in
         let update =
-          let f = function | [] -> true | _ -> false in
+          let f = function | [] -> false | _ -> true in
           List.filter ~f update
         in
         dependencies @ update

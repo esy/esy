@@ -2,35 +2,34 @@
 
 const path = require('path');
 const fs = require('fs-extra');
+const os = require('os');
 
-const {initFixture, promiseExec} = require('../test/helpers');
-const ESYCOMMAND = require.resolve('../../bin/esy');
+const {genFixture, promiseExec, ESYCOMMAND, skipSuiteOnWindows} = require('../test/helpers');
+const fixture = require('./fixture.js');
+
+skipSuiteOnWindows();
 
 describe('Common - anycmd', () => {
   let p;
   let prevEnv = {...process.env};
 
-  beforeAll(async () => {
-    p = await initFixture(path.join(__dirname, './fixtures/simple-project'));
+  beforeEach(async () => {
+    p = await genFixture(...fixture.simpleProject);
     await p.esy('build');
   });
 
   it('normal case works', async () => {
-    expect.assertions(2);
-
     await expect(p.esy('dep')).resolves.toEqual({
-      stdout: 'dep\n',
+      stdout: '__dep__' + os.EOL,
       stderr: '',
     });
-    await expect(p.esy('dev-dep')).resolves.toEqual({
-      stdout: expect.stringMatching('dev-dep\n'),
+    await expect(p.esy('devDep')).resolves.toEqual({
+      stdout: '__devDep__' + os.EOL,
       stderr: '',
     });
   });
 
   it('Make sure we can pass environment from the outside dynamically', async () => {
-    expect.assertions(2);
-
     process.env.X = '1';
     await expect(p.esy('bash -c "echo $X"')).resolves.toEqual({
       stdout: '1\n',
@@ -47,8 +46,6 @@ describe('Common - anycmd', () => {
   });
 
   it('Make sure exit code is preserved', async () => {
-    expect.assertions(2);
-
     await expect(p.esy("bash -c 'exit 1'")).rejects.toEqual(
       expect.objectContaining({code: 1}),
     );
@@ -58,8 +55,6 @@ describe('Common - anycmd', () => {
   });
 
   it('Make sure we can run commands out of subdirectories', async () => {
-    expect.assertions(1);
-
     await fs.mkdir(path.join(p.projectPath, 'subdir'));
     await fs.writeFile(path.join(p.projectPath, 'subdir', 'X'), '');
 
