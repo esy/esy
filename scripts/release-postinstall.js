@@ -7,7 +7,6 @@
  * bits in the right place.
  */
 
-
 var path = require('path');
 var cp = require('child_process');
 var fs = require('fs');
@@ -27,7 +26,6 @@ const copyPlatformBinaries = (platformPath) => {
     binariesToCopy.forEach(binaryPath => {
         const sourcePath = path.join(platformBuildPath, binaryPath);
         const destPath = path.join(__dirname, binaryPath);
-        console.log(`- Copying file ${sourcePath} to {destPath}.`);
         if (fs.existsSync(destPath)) {
             fs.unlinkSync(destPath);
         }
