@@ -3,11 +3,14 @@
 const {
   genFixture,
   packageJson,
+  skipSuiteOnWindows,
   dir,
   file,
   ocamlPackage,
   ocamlPackagePath,
 } = require('../test/helpers');
+
+skipSuiteOnWindows('Needs esyi to work');
 
 const fixture = [
   packageJson({
