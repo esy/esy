@@ -576,9 +576,8 @@ let runLifecycleScript ~installation ~name script =
         (Filename.quote (Path.toString installation.path))
         script
     in
-    (* TODO(windows): use cmd here *)
-    let cmd = "/bin/bash", [|"/bin/bash"; "-c"; script|] in
-    Lwt_process.with_process_full cmd f
+    let cmd = (Cmd.(v "/bin/bash" |> addArgs ["/bin/bash"; "-c"; script])) in
+    EsyBashLwt.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in

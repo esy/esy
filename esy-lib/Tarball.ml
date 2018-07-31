@@ -35,8 +35,7 @@ let run cmd =
       RunAsync.error "error running command"
   in
   try%lwt
-    let cmd = Cmd.getToolAndLine cmd in
-    Lwt_process.with_process_full cmd f
+    EsyBashLwt.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in

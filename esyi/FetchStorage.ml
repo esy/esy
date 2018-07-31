@@ -98,7 +98,10 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   in
 
   let commit path source =
-    let key = cacheId source record in
+    let unsafeKey = cacheId source record in
+    let key = EsyLib.Path.safePath unsafeKey in
+
+    print_endline("Trying to commit: " ^ (Path.to_string path));
 
     let removeEsyJsonIfExists () =
       let esyJson = Path.(path / "esy.json") in
