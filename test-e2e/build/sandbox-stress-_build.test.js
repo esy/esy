@@ -1,7 +1,9 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson} = require('../test/helpers');
+const {genFixture, packageJson, skipSuiteOnWindows} = require('../test/helpers');
+
+skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
