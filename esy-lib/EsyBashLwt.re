@@ -1,7 +1,9 @@
 let toRunAsyncCommand = (cmd) => {
     let resolvedCommand = EsyBash.toEsyBashCommand(Cmd.toBosCmd(cmd));
     switch (resolvedCommand) {
-    | Ok(v) => RunAsync.return(Cmd.ofBosCmd(v))
+    | Ok(v) => 
+        print_endline("toRunAsyncCommand: " ++ Bos.Cmd.to_string(v));
+        RunAsync.return(Cmd.ofBosCmd(v))
     | Error(`Msg(line)) => RunAsync.error(line)
     | _ => RunAsync.error("unknown error")
     };

@@ -64,10 +64,14 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
+        print_endline ("downloading archive: " ^ (Path.to_string tarballPath));
         match%lwt Curl.download ~output:tarballPath url with
         | Ok () ->
+                print_endline("ZZcheckcheck");
           let%bind () = Checksum.checkFile ~path:tarballPath checksum in
+          print_endline("checksum check succeeded");
           let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
+          print_endline ("unpacking");
           return `Done
         | Error err -> return (`TryNext err)
       in
@@ -201,6 +205,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
             match%bind doFetch sourcePath source with
             | `Done ->
               let%bind () = commit sourcePath source in
+              print_endline("commit succesfull!");
               return `Done
             | `TryNext err -> return (`TryNext err)
           )

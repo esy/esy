@@ -321,7 +321,7 @@ let withTempDir ?tempDir f =
   let%lwt () = Lwt_unix.mkdir (Path.toString path) 0o700 in
   Lwt.finalize
     (fun () -> f path)
-    (fun () -> rmPathLwt path)
+    (fun () -> Lwt.return ())
 
 let withTempFile ~data f =
   let path = Filename.temp_file "esy" "tmp" in
