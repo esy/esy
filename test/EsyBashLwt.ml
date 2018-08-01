@@ -12,6 +12,11 @@ let testLwt f =
     in
     Lwt_main.run p
 
+(* - move test runner to bin *)
+(* - use `cygdrive` path for output file *)
+(* - clean up non-cross-platform stuff *)
+(* - add failing test for curl *)
+
 let%test "execute a simple bash command (cross-platform)" =
     let t () = 
         let f p =

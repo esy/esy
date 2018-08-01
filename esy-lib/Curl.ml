@@ -14,18 +14,14 @@ type url = string
 
 let parseStdout stdout =
   let open Run.Syntax in
-  match String.cut ~rev:true ~sep:"\n" stdout with
-  | Some (stdout, meta) ->
-    let%bind meta = Json.parseStringWith Meta.of_yojson meta in
+  let%bind meta = Json.parseStringWith Meta.of_yojson stdout in
     return (stdout, meta)
-  | None ->
-    error "unable to parse metadata from a curl response"
 
 let runCurl cmd =
   let cmd = Cmd.(
     cmd
     % "--write-out"
-    % {|\n{"code": %{http_code}}|}
+    % {|{"code": %{http_code}}|}
   ) in
   let f p =
     let%lwt stdout =
@@ -60,8 +56,7 @@ let runCurl cmd =
     end
   in
   try%lwt
-    let cmd = Cmd.getToolAndLine cmd in
-    Lwt_process.with_process_full cmd f
+    EsyBashLwt.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
