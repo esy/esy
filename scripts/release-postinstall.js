@@ -14,43 +14,49 @@ var os = require('os');
 var platform = process.platform;
 
 const binariesToCopy = [
-    path.join('_build', 'default', 'esyi', 'bin', 'esyi.exe'),
-    path.join('_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
-    path.join('_build', 'default', 'esy-build-package', 'bin', 'esyBuildPackageCommand.exe'),
-    path.join('bin', 'fastreplacestring'),
-]
+  path.join('_build', 'default', 'esyi', 'bin', 'esyi.exe'),
+  path.join('_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
+  path.join(
+    '_build',
+    'default',
+    'esy-build-package',
+    'bin',
+    'esyBuildPackageCommand.exe',
+  ),
+  path.join('bin', 'fastreplacestring'),
+];
 
-const copyPlatformBinaries = (platformPath) => {
-    const platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
+const copyPlatformBinaries = platformPath => {
+  const platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
-    binariesToCopy.forEach(binaryPath => {
-        const sourcePath = path.join(platformBuildPath, binaryPath);
-        const destPath = path.join(__dirname, binaryPath);
-        if (fs.existsSync(destPath)) {
-            fs.unlinkSync(destPath);
-        }
-        fs.copyFileSync(sourcePath, destPath);
-    });
-}
+  binariesToCopy.forEach(binaryPath => {
+    const sourcePath = path.join(platformBuildPath, binaryPath);
+    const destPath = path.join(__dirname, binaryPath);
+    if (fs.existsSync(destPath)) {
+      fs.unlinkSync(destPath);
+    }
+    fs.copyFileSync(sourcePath, destPath);
+  });
+};
 
 switch (platform) {
-    case 'win32':
-        if (os.arch() !== "x64") {
-            console.warn("error: x86 is currently not supported on Windows");
-            process.exit(1);
-        }
+  case 'win32':
+    if (os.arch() !== 'x64') {
+      console.warn('error: x86 is currently not supported on Windows');
+      process.exit(1);
+    }
 
-        copyPlatformBinaries("windows-x64");
+    copyPlatformBinaries('windows-x64');
 
-        console.log("Installing cygwin sandbox...");
-        cp.execSync("npm install esy-bash");
-        console.log("Cygwin installed successfully.");
-        break;
-    case 'linux':
-    case 'darwin':
-        copyPlatformBinaries(platform);
-        break;
-    default:
-        console.warn("error: no release built for the " + platform + " platform");
-        process.exit(1);
+    console.log('Installing cygwin sandbox...');
+    cp.execSync('npm install esy-bash');
+    console.log('Cygwin installed successfully.');
+    break;
+  case 'linux':
+  case 'darwin':
+    copyPlatformBinaries(platform);
+    break;
+  default:
+    console.warn('error: no release built for the ' + platform + ' platform');
+    process.exit(1);
 }
