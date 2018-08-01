@@ -14,6 +14,7 @@ const promiseExec = promisify(childProcess.exec);
 const FixtureUtils = require('./FixtureUtils.js');
 const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
+const OpamRegistryMock = require('./OpamRegistryMock.js');
 const {
   ocamlPackagePath,
   ESYCOMMAND,
@@ -49,8 +50,9 @@ export type TestSandbox = {
   esyPrefixPath: string,
   npmPrefixPath: string,
 
+  run: (args: string) => Promise<{stderr: string, stdout: string}>,
   esy: (
-    args: string,
+    args?: string,
     options: ?{noEsyPrefix?: boolean},
   ) => Promise<{stderr: string, stdout: string}>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
@@ -62,10 +64,19 @@ export type TestSandbox = {
     options?: {shasum?: string},
   ) => Promise<string>,
 
+  defineNpmPackageOfFixture: (fixture: Fixture) => Promise<void>,
+
   defineNpmLocalPackage: (
     packagePath: string,
     packageJson: {name: string, version: string},
   ) => Promise<void>,
+
+  defineOpamPackage: (spec: {
+    name: string,
+    version: string,
+    opam: string,
+    url: ?string,
+  }) => Promise<void>,
 };
 
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
@@ -82,8 +93,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
-  await Promise.all(fixture.map(item => FixtureUtils.initialize(projectPath, item)));
+  await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
+  const opamRegistry = await OpamRegistryMock.initialize();
 
   async function runJavaScriptInNodeAndReturnJson(script) {
     const command = `node -p "JSON.stringify(${script.replace(/"/g, '\\"')})"`;
@@ -91,13 +103,15 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     return JSON.parse(p.stdout);
   }
 
-  function esy(args: ?string, options: ?{noEsyPrefix?: boolean}) {
+  function esy(args?: string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
     let env = process.env;
     if (!options.noEsyPrefix) {
       env = {
         ...process.env,
         ESY__PREFIX: esyPrefixPath,
+        ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
+        ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
         NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
       };
     }
@@ -116,19 +130,27 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     });
   }
 
+  function run(line: string) {
+    return promiseExec(line, {cwd: path.join(projectPath)});
+  }
+
   return {
     rootPath,
     binPath,
     projectPath,
     esyPrefixPath,
     npmPrefixPath,
+    run,
     esy,
     npm,
     runJavaScriptInNodeAndReturnJson,
     defineNpmPackage: (pkg, options) =>
       NpmRegistryMock.definePackage(npmRegistry, pkg, options),
+    defineNpmPackageOfFixture: (fixture: Fixture) =>
+      NpmRegistryMock.definePackageOfFixture(npmRegistry, fixture),
     defineNpmLocalPackage: (path, pkg) =>
       NpmRegistryMock.defineLocalPackage(npmRegistry, path, pkg),
+    defineOpamPackage: opam => OpamRegistryMock.defineOpamPackage(opamRegistry, opam),
   };
 }
 

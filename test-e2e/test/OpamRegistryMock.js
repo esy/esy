@@ -8,14 +8,16 @@ const path = require('path');
 const fs = require('fs-extra');
 const {createTemporaryFolder} = require('./fs.js');
 
-export opaque type OpamRegistry = {
+export type OpamRegistry = {
   registryPath: string,
   overridePath: string,
 };
 
 async function initialize(): Promise<OpamRegistry> {
   const registryPath = await createTemporaryFolder();
+  await fs.mkdirp(path.join(registryPath, 'packages'));
   const overridePath = await createTemporaryFolder();
+  await fs.mkdirp(path.join(overridePath, 'packages'));
   return {registryPath, overridePath};
 }
 
@@ -28,7 +30,7 @@ async function defineOpamPackage(
     url: ?string,
   },
 ) {
-  const packagePath = path.join(registry.registryPath, spec.name);
+  const packagePath = path.join(registry.registryPath, 'packages', spec.name);
   await fs.mkdirp(packagePath);
 
   const packageVersionPath = path.join(packagePath, `${spec.name}.${spec.version}`);
@@ -39,3 +41,8 @@ async function defineOpamPackage(
     await fs.writeFile(path.join(packageVersionPath, 'url'), spec.opam);
   }
 }
+
+module.exports = {
+  initialize,
+  defineOpamPackage,
+};

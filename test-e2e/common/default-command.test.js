@@ -1,7 +1,7 @@
 // @flow
 
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   skipSuiteOnWindows,
   dir,
@@ -45,7 +45,7 @@ const fixture = [
 ];
 
 it('Build - default command', async () => {
-  let p = await genFixture(...fixture);
+  let p = await createTestSandbox(...fixture);
   await p.esy();
 
   const dep = await p.esy('dep');

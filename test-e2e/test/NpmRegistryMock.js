@@ -6,6 +6,7 @@
 
 import type {ServerResponse} from 'http';
 import type {Gzip} from 'zlib';
+import type {Fixture} from './FixtureUtils.js';
 
 const path = require('path');
 const crypto = require('crypto');
@@ -13,6 +14,7 @@ const deepResolve = require('super-resolve');
 const http = require('http');
 const invariant = require('invariant');
 const semver = require('semver');
+const FixtureUtils = require('./FixtureUtils.js');
 
 const fsUtils = require('./fs');
 
@@ -59,6 +61,35 @@ async function definePackage(
     shasum: options.shasum,
   });
   return packagePath;
+}
+
+async function definePackageOfFixture(
+  packageRegistry: PackageRegistry,
+  fixture: Fixture,
+) {
+  const packagePath = await fsUtils.createTemporaryFolder();
+  await FixtureUtils.initialize(packagePath, fixture);
+
+  const packageJson = await fsUtils.readJson(path.join(packagePath, 'package.json'));
+
+  const {name, version} = packageJson;
+  invariant(name != null, 'Missing "name" in package.json');
+  invariant(version != null, 'Missing "version" in package.json');
+
+  let packageEntry = packageRegistry.packages.get(name);
+
+  if (!packageEntry) {
+    packageRegistry.packages.set(name, (packageEntry = new Map()));
+  }
+
+  const packageDesc = {
+    path: packagePath,
+    packageJson,
+    shasum: '',
+  };
+  packageEntry.set(version, packageDesc);
+
+  packageDesc.shasum = await getPackageArchiveHash(packageRegistry, name, version);
 }
 
 async function defineLocalPackage(
@@ -133,7 +164,7 @@ async function getPackageArchiveHash(
   packageRegistry: PackageRegistry,
   name: string,
   version: string,
-): Promise<string | Buffer> {
+): Promise<string> {
   const stream = await getPackageArchiveStream(packageRegistry, name, version);
 
   return new Promise((resolve, reject) => {
@@ -146,7 +177,7 @@ async function getPackageArchiveHash(
     stream.on('end', () => {
       const finalHash = hash.read();
       invariant(finalHash, 'The hash should have been computated');
-      resolve(finalHash);
+      resolve(String(finalHash));
     });
   });
 }
@@ -327,9 +358,10 @@ async function initialize(
       (req, res) =>
         void (async () => {
           try {
+            const url = req.url.replace(/%2f/g, '/');
             if (
               await processPackageInfo(
-                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/),
+                url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/),
                 res,
               )
             ) {
@@ -338,14 +370,14 @@ async function initialize(
 
             if (
               await processPackageTarball(
-                req.url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/\2-(.*)\.tgz$/),
+                url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/-\/.*-(.*)\.tgz$/),
                 res,
               )
             ) {
               return;
             }
 
-            processError(res, 404, `Invalid route: ${req.url}`);
+            processError(res, 404, `Invalid route: ${url}`);
           } catch (error) {
             processError(res, 500, error.stack);
           }
@@ -372,6 +404,7 @@ module.exports = {
   getPackageHttpArchivePath,
   getPackageArchivePath,
   definePackage,
+  definePackageOfFixture,
   defineLocalPackage,
   initialize,
 };

@@ -46,7 +46,7 @@ function packageJson(json: Object) {
   return file('package.json', JSON.stringify(json, null, 2));
 }
 
-async function initialize(p: string, fixture: FixtureItem) {
+async function layout(p: string, fixture: FixtureItem) {
   if (fixture.type === 'file') {
     await fs.writeFile(path.join(p, fixture.name), fixture.data);
   } else if (fixture.type === 'file-copy') {
@@ -56,10 +56,14 @@ async function initialize(p: string, fixture: FixtureItem) {
   } else if (fixture.type === 'dir') {
     const nextp = path.join(p, fixture.name);
     await fs.mkdir(nextp);
-    await Promise.all(fixture.items.map(item => initialize(nextp, item)));
+    await Promise.all(fixture.items.map(item => layout(nextp, item)));
   } else {
     throw new Error('unknown fixture ' + JSON.stringify(fixture));
   }
+}
+
+function initialize(p: string, fixture: Fixture) {
+  return Promise.all(fixture.map(item => layout(p, item)));
 }
 
 module.exports = {
