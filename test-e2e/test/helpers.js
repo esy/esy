@@ -77,6 +77,15 @@ export type TestSandbox = {
     opam: string,
     url: ?string,
   }) => Promise<void>,
+  defineOpamPackageOfFixture: (
+    spec: {
+      name: string,
+      version: string,
+      opam: string,
+      url: ?string,
+    },
+    fixture: Fixture,
+  ) => Promise<void>,
 };
 
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
@@ -150,7 +159,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       NpmRegistryMock.definePackageOfFixture(npmRegistry, fixture),
     defineNpmLocalPackage: (path, pkg) =>
       NpmRegistryMock.defineLocalPackage(npmRegistry, path, pkg),
-    defineOpamPackage: opam => OpamRegistryMock.defineOpamPackage(opamRegistry, opam),
+    defineOpamPackage: spec => OpamRegistryMock.defineOpamPackage(opamRegistry, spec),
+    defineOpamPackageOfFixture: (spec, fixture: Fixture) =>
+      OpamRegistryMock.defineOpamPackageOfFixture(opamRegistry, spec, fixture),
   };
 }
 

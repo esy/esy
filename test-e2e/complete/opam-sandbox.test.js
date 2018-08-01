@@ -45,7 +45,7 @@ describe('installing dependencies for opam sandbox', () => {
     ];
 
     const p = await createTestSandbox(...fixture);
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
 
     // build should execute build commands from pkg.opam file
     await p.esy('build');
@@ -69,17 +69,30 @@ describe('installing dependencies for opam sandbox', () => {
 
     const p = await createTestSandbox(...fixture);
 
-    await p.defineOpamPackage({
-      name: 'dep1',
-      version: '1',
-      opam: outdent`
-        opam-version: "1.2"
-        build: [
-          ["true"]
-        ]
-      `,
-      url: null,
-    });
+    await p.defineOpamPackageOfFixture(
+      {
+        name: 'dep1',
+        version: '1',
+        opam: outdent`
+          opam-version: "1.2"
+          build: [
+            ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+          ]
+          install: [
+            ["cp" "dep.exe" "%{bin}%/dep.exe"]
+          ]
+        `,
+        url: null,
+      },
+      [
+        helpers.file(
+          'dep.ml',
+          outdent`
+            let () = print_endline "__dep__"
+          `,
+        ),
+      ],
+    );
 
     await p.defineOpamPackage({
       name: 'dep2',
@@ -93,8 +106,10 @@ describe('installing dependencies for opam sandbox', () => {
       url: null,
     });
 
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
     await p.esy('build');
+    const {stdout} = await p.esy('dep.exe');
+    expect(stdout.trim()).toEqual('__dep__');
   });
 
   it('single <pkg>.opam file', async () => {
@@ -121,7 +136,7 @@ describe('installing dependencies for opam sandbox', () => {
 
     const p = await createTestSandbox(...fixture);
 
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
 
     // build should execute build commands from pkg.opam file
     await p.esy('build');
@@ -162,7 +177,7 @@ describe('installing dependencies for opam sandbox', () => {
     ];
 
     const p = await createTestSandbox(...fixture);
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
 
     // build shouldn't execute build commands from *.opam files
     await p.esy('build');
