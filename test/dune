@@ -3,7 +3,7 @@
   (library_flags (-linkall))
   (libraries Esy EsyLib ppx_inline_test.runtime-lib)
   (modules (:standard \ Test_runner))
-  (preprocess (pps ppx_inline_test ppxlib.runner))
+  (preprocess (pps lwt_ppx ppx_let ppx_inline_test ppxlib.runner))
   )
 
 (executable
