@@ -1,6 +1,6 @@
 // @flow
 
-jest.setTimeout(20000);
+jest.setTimeout(120000);
 
 import type {Fixture} from './FixtureUtils.js';
 const path = require('path');

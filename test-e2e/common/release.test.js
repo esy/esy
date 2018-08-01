@@ -71,8 +71,6 @@ const fixture = [
 ];
 
 it('Common - release', async () => {
-  jest.setTimeout(300000);
-
   const p = await createTestSandbox(...fixture);
 
   await expect(p.esy('release')).resolves.not.toThrow();
