@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.2.5 @ latest
+
+- `esy` invocation now does `esy install` and then `esy build` (@ulrikstrid).
+
+- Make Windows executables be installed correctly (@bryphe).
+
+- Refactored e2e test suite (@ulrikstrid, @andreypopp).
+
 ## 0.2.4 @ latest
 
 - Fix for discovering dependencies for opam sandboxes.
