@@ -1,6 +1,8 @@
 /**
  * release-postinstall.js
  *
+ * XXX: We want to keep this script installable at least with node 4.x.
+ *
  * This script is bundled with the `npm` package and executed on release.
  * Since we have a 'fat' NPM package (with all platform binaries bundled),
  * this postinstall script extracts them and puts the current platform's
@@ -26,6 +28,15 @@ const binariesToCopy = [
   path.join('bin', 'fastreplacestring'),
 ];
 
+// implementing it b/c we don't want to depend on fs.copyFileSync which appears
+// only in node@8.x
+function copyFileSync(sourcePath, destPath) {
+  const data = fs.readFileSync(sourcePath);
+  const stat = fs.statSync(sourcePath);
+  fs.writeFileSync(destPath, data);
+  fs.chmodSync(destPath, stat.mode);
+}
+
 const copyPlatformBinaries = platformPath => {
   const platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
@@ -35,7 +46,7 @@ const copyPlatformBinaries = platformPath => {
     if (fs.existsSync(destPath)) {
       fs.unlinkSync(destPath);
     }
-    fs.copyFileSync(sourcePath, destPath);
+    copyFileSync(sourcePath, destPath);
   });
 };
 
