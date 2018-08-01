@@ -21,12 +21,15 @@ let%test "stat test" =
     testLwt f
 
 let%test "curl simple file" =
-    let f () = 
-        let tempPath = Path.v "C:/test1091i50" in
-        let%lwt _ = Fs.createDir tempPath in
-        let%lwt result = Fs.exists (tempPath) in
-        match result with
-        | Ok true -> Lwt.return true
-        | _ -> Lwt.return false
+    let test () = 
+        let f tempPath =
+            print_endline (Path.to_string tempPath);
+            let%lwt _ = Fs.createDir tempPath in
+            let%lwt result = Fs.exists (tempPath) in
+            match result with
+            | Ok true -> Lwt.return true
+            | _ -> Lwt.return false
+        in
+        Fs.withTempDir f
     in
-    testLwt f
+    testLwt test
