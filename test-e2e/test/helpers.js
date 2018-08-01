@@ -28,25 +28,18 @@ function getTempDir() {
 
 const exeExtension = isWindows ? '.exe' : '';
 
-let ocamlPackageCached = null;
-
 function ocamlPackage() {
-  if (ocamlPackageCached == null) {
-    let packageJson = {
-      type: 'file-copy',
-      name: 'package.json',
-      path: path.join(ocamlPackagePath, 'package.json'),
-    };
-    let ocamlopt = {
-      type: 'file-copy',
-      name: ocamloptName,
-      path: path.join(ocamlPackagePath, ocamloptName),
-    };
-    ocamlPackageCached = FixtureUtils.dir('ocaml', ocamlopt, packageJson);
-    return ocamlPackageCached;
-  } else {
-    return ocamlPackageCached;
-  }
+  let packageJson = {
+    type: 'file-copy',
+    name: 'package.json',
+    path: path.join(ocamlPackagePath, 'package.json'),
+  };
+  let ocamlopt = {
+    type: 'file-copy',
+    name: ocamloptName,
+    path: path.join(ocamlPackagePath, ocamloptName),
+  };
+  return FixtureUtils.dir('ocaml', ocamlopt, packageJson);
 }
 
 export type TestSandbox = {
@@ -75,8 +68,6 @@ export type TestSandbox = {
   ) => Promise<void>,
 };
 
-import {type PackageRegistry} from './NpmRegistryMock.js';
-
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
@@ -92,7 +83,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
   await Promise.all(fixture.map(item => FixtureUtils.initialize(projectPath, item)));
-  const npmRegistry: PackageRegistry = await NpmRegistryMock.initialize();
+  const npmRegistry = await NpmRegistryMock.initialize();
 
   async function runJavaScriptInNodeAndReturnJson(script) {
     const command = `node -p "JSON.stringify(${script.replace(/"/g, '\\"')})"`;
