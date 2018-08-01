@@ -23,7 +23,6 @@ const fixture = [
       dep: 'link:./dep',
     },
   }),
-  dir('node_modules', ocamlPackage()),
   dir(
     'dep',
     packageJson({
@@ -46,11 +45,10 @@ const fixture = [
 ];
 
 it('Build - default command', async () => {
-  expect.assertions(2);
   let p = await genFixture(...fixture);
-  await expect(p.esy()).resolves.not.toThrow();
+  await p.esy();
 
   const dep = await p.esy('dep');
 
-  expect(dep.stdout).toEqual('__dep__\n');
+  expect(dep.stdout.trim()).toEqual('__dep__');
 });
