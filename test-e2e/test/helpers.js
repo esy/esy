@@ -64,14 +64,15 @@ async function genFixture(...fixture: Fixture) {
 
   await Promise.all(fixture.map(item => FixtureUtils.initialize(projectPath, item)));
 
-  function esy(args: string, options: ?{noEsyPrefix?: boolean}) {
+  function esy(args: ?string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
     let env = process.env;
     if (!options.noEsyPrefix) {
       env = {...process.env, ESY__PREFIX: esyPrefixPath};
     }
 
-    return promiseExec(`${ESYCOMMAND} ${args}`, {
+    const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
+    return promiseExec(execCommand, {
       cwd: projectPath,
       env,
     });

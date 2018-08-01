@@ -31,8 +31,7 @@ even when each of these projects have very different versions of dependencies
 
 [hello-reason](https://github.com/esy-ocaml/hello-reason) is an example project
 that uses `esy` to manage dependencies and works well with either of those
-editor plugins mentioned. Simply clone that project, `esy install`, then `esy
-build`, and then open a `.re` file in any of the supported editors/plugins
+editor plugins mentioned. Simply clone that project, `esy`, and then open a `.re` file in any of the supported editors/plugins
 mentioned.
 
 ### Helping Out With Editor Integration
