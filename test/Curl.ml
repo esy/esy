@@ -12,7 +12,6 @@ let testLwt f =
     Lwt_main.run p
 
 let%test "curl download simple file" =
-    (*https://stackoverflow.com/questions/21023048/copying-local-files-with-curl*)
     let test () = 
         let f tempPath =
             let fileToCurl = Path.(tempPath / "input.txt") in
@@ -22,6 +21,7 @@ let%test "curl download simple file" =
 
             (* use curl to copy the file *)
             let output = Path.(tempPath / "output.txt") in
+            (*https://stackoverflow.com/questions/21023048/copying-local-files-with-curl*)
             let url = "file:///" ^ Path.to_string(fileToCurl) in
             let%lwt _ = EsyLib.Curl.download ~output url in
 
