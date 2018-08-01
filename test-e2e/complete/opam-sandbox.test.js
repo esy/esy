@@ -5,7 +5,7 @@ const helpers = require('../test/helpers.js');
 
 helpers.skipSuiteOnWindows();
 
-describe('installing dependencies for opam sandbox', () => {
+describe('complete flow for opam sandboxes', () => {
   async function createTestSandbox(...fixture) {
     const p = await helpers.createTestSandbox(...fixture);
 
