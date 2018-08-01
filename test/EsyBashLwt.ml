@@ -5,18 +5,6 @@ module Path = EsyLib.Path
 module EsyBashLwt = EsyLib.EsyBashLwt
 module RunAsync = EsyLib.RunAsync
 
-let testLwt f = 
-    let p: bool Lwt.t =
-        let%lwt ret = f () in
-        Lwt.return ret
-    in
-    Lwt_main.run p
-
-(* - move test runner to bin *)
-(* - use `cygdrive` path for output file *)
-(* - clean up non-cross-platform stuff *)
-(* - add failing test for curl *)
-
 let%test "execute a simple bash command (cross-platform)" =
     let t () = 
         let f p =
@@ -38,4 +26,4 @@ let%test "execute a simple bash command (cross-platform)" =
         | Ok true -> Lwt.return  true
         | _ -> Lwt.return false
     in
-    testLwt t
+    TestLwt.runLwtTest t

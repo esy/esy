@@ -6,13 +6,6 @@ module Path = EsyLib.Path
 module RunAsync = EsyLib.RunAsync
 module Result = EsyLib.Result
 
-let testLwt f = 
-    let p: bool Lwt.t =
-        let%lwt ret = f () in
-        Lwt.return ret
-    in
-    Lwt_main.run p
-
 let%test "curl download simple file" =
     let test () = 
         let f tempPath =
@@ -21,9 +14,12 @@ let%test "curl download simple file" =
             let%lwt _ = Fs.createDir tempPath in
             let%lwt _ = Fs.writeFile ~data fileToCurl in
 
-            (* use curl to copy the file *)
+            (* use curl to copy the file, as opposed to hitting an external server *)
             let output = Path.(tempPath / "output.txt") in
-            (*https://stackoverflow.com/questions/21023048/copying-local-files-with-curl*)
+
+            (* We need to normalize the path on Windows - file:///E:/.../ won't work! *)
+            (* The normalize gives us a path of the form file:///cygdrive/e/.../ which does. *)
+            (* This won't impact HTTP requests though - just our test using the local file system *)
             let url = EsyBash.normalizePathForCygwin (Path.to_string(fileToCurl)) in
             match url with
             | Error _ -> Lwt.return false
@@ -38,4 +34,4 @@ let%test "curl download simple file" =
         in
         Fs.withTempDir f
     in
-    testLwt test
+    TestLwt.runLwtTest test
