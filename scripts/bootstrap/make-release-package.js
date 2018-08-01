@@ -30,13 +30,15 @@ const pack = async () => {
     // cygwin as port of a postinstall step (since `esy-bash` is called out as a dependency,
     // this should happen automatically).
     console.log("Deleting cygwin from release folder...")
-    await bashExec(`rm -rf ${packFolder}/node_modules/esy-bash`)
-
-    console.log("Creating folder...")
-    await bashExec(`mkdir ${destFolder}`)
 
     const cygwinDestFolder = await toCygwinPath(destFolder)
     const cygwinPackFolder = await toCygwinPath(packFolder)
+
+    console.log(`- Deleting: ${cygwinPackFolder}/node_modules/esy-bash`)
+    await bashExec(`rm -rf ${cygwinPackFolder}/node_modules/esy-bash`)
+
+    console.log(`Creating folder: ${cygwinDestFolder}`)
+    await bashExec(`mkdir ${cygwinDestFolder}`)
 
     console.log(`Creating archive from ${cygwinPackFolder} in ${cygwinDestFolder}.`)
     await bashExec(`tar -czvf ${cygwinDestFolder}/esy-v${version}-windows-${arch}.tgz -C ${cygwinPackFolder} .`)
