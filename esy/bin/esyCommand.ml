@@ -673,12 +673,13 @@ let () =
     let cmd cfg cmd () =
       match cmd with
       | Some command -> runCommandWithConfig ~header:`No ~info ~cfg (devExec command)
-      | None -> 
-      let f cfg = runEsyInstallCommand cfg None [] in
-      match (runCommandWithConfig ~info ~cfg f) with
-      | `Ok () ->
+      | None ->
+        let f cfg = runEsyInstallCommand cfg None [] in
+        begin match (runCommandWithConfig ~info ~cfg f) with
+        | `Ok () ->
           runCommandWithConfig ~header:`Standard ~info ~cfg (build None)
-      | a -> a
+        | other -> other
+        end
     in
     let cmdTerm =
       Cli.cmdOptionTerm
