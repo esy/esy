@@ -32,16 +32,3 @@ let with_process_full = (cmd, f) => {
     | _ => RunAsync.error("error running command: " ++ Cmd.toString(cmd))
     };
 };
-
-let with_process_in = (~env=?, ~stdin=?, ~stderr=?, cmd: Cmd.t, f) => {
-    open RunAsync.Syntax;
-    let%bind res = toRunAsyncCommand(cmd);
-    switch (res) {
-    | Ok(v) =>
-        print_endline ("with_process_in: " ++ Cmd.toString(cmd));
-        let tl = getToolAndLine(v);
-          Lwt_process.with_process_in(~env?, ~stdin?, ~stderr?, tl, f);
-    | _ => RunAsync.error("error running")
-    };
-};
-
