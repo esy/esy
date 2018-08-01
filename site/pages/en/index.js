@@ -1,23 +1,22 @@
-const React = require("react");
+const React = require('react');
 
-const CompLibrary = require("../../core/CompLibrary.js");
+const CompLibrary = require('../../core/CompLibrary.js');
 const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
 const Container = CompLibrary.Container;
 const GridBlock = CompLibrary.GridBlock;
 
-const translate = require("../../server/translate.js").translate;
+const translate = require('../../server/translate.js').translate;
 
-const siteConfig = require(process.cwd() + "/siteConfig.js");
+const siteConfig = require(process.cwd() + '/siteConfig.js');
 
 class Button extends React.Component {
   render() {
     return (
       <div className="pluginWrapper">
         <a
-          className={`button ${this.props.className || ""}`}
+          className={`button ${this.props.className || ''}`}
           href={this.props.href}
-          target={this.props.target}
-        >
+          target={this.props.target}>
           {this.props.children}
         </a>
       </div>
@@ -26,18 +25,18 @@ class Button extends React.Component {
 }
 
 Button.defaultProps = {
-  target: "_self"
+  target: '_self',
 };
-const pre = "```";
-const code = "`";
+const pre = '```';
+const code = '`';
 
 const quickStart = `${pre}bash
-npm install -g esy
+% npm install -g esy
 
 # Clone example, install dependencies, then build
-git clone git@github.com:esy-ocaml/hello-reason.git
-cd hello-reason
-esy
+% git clone git@github.com:esy-ocaml/hello-reason.git
+% cd hello-reason
+% esy
 ${pre}`;
 
 class HomeSplash extends React.Component {
@@ -50,21 +49,16 @@ class HomeSplash extends React.Component {
               className="getStarted"
               href={
                 siteConfig.baseUrl +
-                "docs/" +
+                'docs/' +
                 this.props.language +
-                "/getting-started.html"
-              }
-            >
+                '/getting-started.html'
+              }>
               <translate>Get Started</translate>
             </Button>
             <Button
               href={
-                siteConfig.baseUrl +
-                "docs/" +
-                this.props.language +
-                "/how-it-works.html"
-              }
-            >
+                siteConfig.baseUrl + 'docs/' + this.props.language + '/how-it-works.html'
+              }>
               How it works
             </Button>
           </div>
@@ -77,14 +71,17 @@ class HomeSplash extends React.Component {
         <div className="homeWrapperWrapper">
           <div className="wrapper homeWrapper">
             <div className="homeWrapperInner">
-              <img width={150} height={150} src={siteConfig.baseUrl + "img/block-red.svg"} />
+              <img
+                width={150}
+                height={150}
+                src={siteConfig.baseUrl + 'img/block-red.svg'}
+              />
               <div>
                 <div className="projectTitle">{siteConfig.title}</div>
                 <div className="homeTagLine">{siteConfig.tagline}</div>
                 {promoSection}
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -94,46 +91,45 @@ class HomeSplash extends React.Component {
 
 class Index extends React.Component {
   render() {
-    let language = this.props.language || "en";
+    let language = this.props.language || 'en';
 
     return (
       <div>
         <HomeSplash language={language} />
         <div className="mainContainer">
-          <Container className="homeThreePoints" padding={["bottom"]}>
+          <Container className="homeThreePoints" padding={['bottom']}>
             <GridBlock
               align="center"
               contents={[
                 {
-                  title: "`package.json` Driven",
-                  content:
-                    "**Familiar** `npm` inspired dependency management."
+                  title: '`package.json` Driven',
+                  content: '**Familiar** `npm` inspired dependency management.',
                 },
                 {
-                  title: "Project Isolation",
+                  title: 'Project Isolation',
                   content:
-                    "Develop **multiple projects** simultaneously without conflict."
+                    'Develop **multiple projects** simultaneously without conflict.',
                 },
                 {
-                  title: "Fast, Teleporting Builds",
+                  title: 'Fast, Teleporting Builds',
                   content:
-                    "All local projects automatically share **build caches** with each-other and caches support **teleportation** across network."
+                    'All local projects automatically share **build caches** with each-other and caches support **teleportation** across network.',
                 },
                 {
-                  title: "Deterministic and Offline",
+                  title: 'Deterministic and Offline',
                   content:
-                    "Generate **lock** files and dependency source **snapshots** for ultra-reliable, corporate-friendly builds. Network optional."
-                }
+                    'Generate **lock** files and dependency source **snapshots** for ultra-reliable, corporate-friendly builds. Network optional.',
+                },
               ]}
               layout="fourColumn"
             />
           </Container>
-          <Container background="light" className="paddingBottom quickStartAndExamples homeCodeSnippet">
+          <Container
+            background="light"
+            className="paddingBottom quickStartAndExamples homeCodeSnippet">
             <div>
               <h2>Quick Start</h2>
-              <MarkdownBlock>
-                {quickStart}
-              </MarkdownBlock>
+              <MarkdownBlock>{quickStart}</MarkdownBlock>
             </div>
           </Container>
         </div>
