@@ -12,7 +12,6 @@ let%test "execute a simple bash command (cross-platform)" =
               Lwt.finalize
                 (fun () -> Lwt_io.read p#stdout)
                 (fun () -> Lwt_io.close p#stdout)
-
             in
             RunAsync.return (String.trim stdout = "hello-world")
         in

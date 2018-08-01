@@ -21,6 +21,7 @@ let%test "curl download simple file" =
             (* The normalize gives us a path of the form file:///cygdrive/e/.../ which does. *)
             (* This won't impact HTTP requests though - just our test using the local file system *)
             let url = EsyBash.normalizePathForCygwin (Path.to_string(fileToCurl)) in
+
             match url with
             | Error _ -> Lwt.return false
             | Ok v ->
@@ -29,8 +30,8 @@ let%test "curl download simple file" =
                 (* validate we were able to download it *) 
                 let%lwt result = Fs.exists (output) in
                 match result with
-                    | Ok true -> Lwt.return true
-                    | _ -> Lwt.return false
+                | Ok true -> Lwt.return true
+                | _ -> Lwt.return false
         in
         Fs.withTempDir f
     in
