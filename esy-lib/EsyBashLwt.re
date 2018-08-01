@@ -7,15 +7,6 @@ let toRunAsyncCommand = (cmd) => {
     };
 };
 
-let getToolAndLine = (cmd) => {
-    let (tool, line) = Cmd.getToolAndLine(cmd);
-
-    switch (System.Platform.host) {
-    | System.Platform.Windows => ("", line)
-    | _ => (tool, line)
-    };
-};
-
 /**
  * Helper utility to run a command with 'esy-bash', via Lwt.
  * This is meant to replace Lwt's with_process_full in the case
@@ -25,7 +16,7 @@ let with_process_full = (cmd, f) => {
     let%bind res = toRunAsyncCommand(cmd);
     switch (res) {
     | Ok(v) =>
-        let tl = getToolAndLine(v);
+        let tl = Cmd.getToolAndLine(v);
         Lwt_process.with_process_full(tl, f);
     | _ => RunAsync.error("error running command: " ++ Cmd.toString(cmd))
     };

@@ -15,7 +15,7 @@ type url = string
 let parseStdout stdout =
   let open Run.Syntax in
   match String.cut ~rev:true ~sep:"\n" stdout with
-  | Some (stdout, meta) ->	
+  | Some (stdout, meta) ->
     let%bind meta = Json.parseStringWith Meta.of_yojson meta in
     return (stdout, meta)
   | None ->
