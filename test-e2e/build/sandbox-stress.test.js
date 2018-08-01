@@ -1,7 +1,7 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson, skipSuiteOnWindows} = require('../test/helpers');
+const {createTestSandbox, packageJson, skipSuiteOnWindows} = require('../test/helpers');
 
 skipSuiteOnWindows();
 
@@ -24,7 +24,7 @@ const fixture = [
 
 it('Build - sandbox stress', async () => {
   expect.assertions(1);
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
   await p.esy('build');
   const {stdout} = await p.esy('x echo ok');
   expect(stdout).toEqual(expect.stringMatching('ok'));

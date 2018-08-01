@@ -4,7 +4,7 @@ const path = require('path');
 
 const outdent = require('outdent');
 const {
-  genFixture,
+  createTestSandbox,
   file,
   dir,
   packageJson,
@@ -73,7 +73,7 @@ const fixture = [
 it('Common - release', async () => {
   jest.setTimeout(300000);
 
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
 
   await expect(p.esy('release')).resolves.not.toThrow();
 

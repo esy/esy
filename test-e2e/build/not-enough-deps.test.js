@@ -1,7 +1,7 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson} = require('../test/helpers');
+const {createTestSandbox, packageJson} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -19,7 +19,7 @@ const fixture = [
 
 describe('Build - not enough deps', () => {
   it("should fail as there's not enough deps and output relevant info", async () => {
-    const p = await genFixture(...fixture);
+    const p = await createTestSandbox(...fixture);
 
     await p.esy('build').catch(e => {
       expect(e.stderr).toEqual(

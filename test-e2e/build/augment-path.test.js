@@ -3,7 +3,7 @@
 const path = require('path');
 
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   dir,
   file,
@@ -57,7 +57,7 @@ describe('Build - augment path', () => {
   it('package "dep" should be visible in all envs', async () => {
     expect.assertions(3);
 
-    const p = await genFixture(...fixture);
+    const p = await createTestSandbox(...fixture);
     await p.esy('build');
 
     const expecting = expect.stringMatching('__DEP__');

@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const outdent = require('outdent');
 const {
-  genFixture,
+  createTestSandbox,
   ocamlPackage,
   packageJson,
   symlink,
@@ -137,7 +137,7 @@ describe('Build - with linked dep _build', () => {
   let p;
 
   beforeEach(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
     await p.esy('build');
   });
 

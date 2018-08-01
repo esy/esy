@@ -4,7 +4,7 @@ const {
   file,
   dir,
   packageJson,
-  genFixture,
+  createTestSandbox,
   promiseExec,
   ocamlPackage,
   skipSuiteOnWindows,
@@ -14,7 +14,7 @@ skipSuiteOnWindows();
 
 describe('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
-    const p = await genFixture(
+    const p = await createTestSandbox(
       file(
         'opam',
         `
@@ -46,7 +46,7 @@ describe('build opam sandbox', () => {
   });
 
   it('builds an opam sandbox with multiple opam files', async () => {
-    const p = await genFixture(
+    const p = await createTestSandbox(
       file(
         'one.opam',
         `

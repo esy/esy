@@ -176,6 +176,5 @@ module.exports = {
   exists: fs.exists,
   readdir: fs.readdir,
   execFile: exec.execFile,
-  genFixture: createTestSandbox,
   createTestSandbox,
 };

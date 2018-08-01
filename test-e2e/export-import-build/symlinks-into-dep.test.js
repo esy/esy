@@ -6,7 +6,7 @@ const tar = require('tar');
 const del = require('del');
 
 const {
-  genFixture,
+  createTestSandbox,
   file,
   dir,
   packageJson,
@@ -74,7 +74,7 @@ describe('export import build - import symlinks into dep', () => {
   let p;
 
   beforeEach(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
     await p.esy('build');
   });
 

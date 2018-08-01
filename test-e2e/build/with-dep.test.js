@@ -2,7 +2,7 @@
 
 const path = require('path');
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   dir,
   file,
@@ -50,7 +50,7 @@ const fixture = [
 
 describe('Build - with dep', () => {
   it('package "dep" should be visible in all envs', async () => {
-    const p = await genFixture(...fixture);
+    const p = await createTestSandbox(...fixture);
     await p.esy('build');
 
     const expecting = expect.stringMatching('__dep__');
