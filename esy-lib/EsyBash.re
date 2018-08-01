@@ -16,7 +16,7 @@ let getEsyBashRootPath = () => {
   let basedir = Fpath.parent(program);
   let resolution =
     NodeResolution.resolve(
-      "../../../node_modules/esy-bash/package.json",
+      "../../../../node_modules/esy-bash/package.json",
       basedir,
     );
 
