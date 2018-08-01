@@ -8,6 +8,10 @@ install`](#esy-install) and [`esy build`](#esy-build).
 
 ## Main commands
 
+### `esy`
+
+The default command combines `esy install` and `esy build` and runs them in consecutively.
+
 ### `esy install`
 
 Install dependencies declared in `package.json`:

@@ -5,18 +5,17 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {genFixture, skipSuiteOnWindows} = require('../test/helpers');
+const {createTestSandbox, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
 
 skipSuiteOnWindows();
 
 it('Common - esy prefix via esyrc', async () => {
-
   const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
   const tmpPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
   const customEsyPrefix = path.join(tmpPath, 'prefix');
 
-  const p = await genFixture(...fixture.simpleProject);
+  const p = await createTestSandbox(...fixture.simpleProject);
 
   await fs.writeFile(
     path.join(p.projectPath, '.esyrc'),

@@ -1,95 +1,89 @@
 /* @flow */
 
-const setup = require('./setup');
+const helpers = require('../test/helpers.js');
 
-const {skipSuiteOnWindows} = require("./../test/helpers");
-
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe(`Installing with resolutions`, () => {
-  test(
-    `it should prefer resolution over dependencies for the root`,
-    setup.makeTemporaryEnv(
-      {
+  test(`it should prefer resolution over dependencies for the root`, async () => {
+    const fixture = [
+      helpers.packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {dep: `1.0.0`},
         resolutions: {dep: `2.0.0`},
-      },
-      async ({path, run, source}) => {
-        await setup.definePackage({
-          name: 'dep',
-          version: '1.0.0',
-          esy: {},
-        });
-        await setup.definePackage({
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      esy: {},
+    });
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '2.0.0',
+      esy: {},
+    });
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
           name: 'dep',
           version: '2.0.0',
-          esy: {},
-        });
-
-        await run(`install`);
-
-        const layout = await setup.crawlLayout(path);
-        expect(layout).toMatchObject({
-          name: 'root',
-          dependencies: {
-            dep: {
-              name: 'dep',
-              version: '2.0.0',
-            },
-          },
-        });
+        },
       },
-    ),
-  );
+    });
+  });
 
-  test(
-    `it should prefer resolution over dependencies for the dependency`,
-    setup.makeTemporaryEnv(
-      {
+  test(`it should prefer resolution over dependencies for the dependency`, async () => {
+    const fixture = [
+      helpers.packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {dep: `1.0.0`},
         resolutions: {depDep: `2.0.0`},
-      },
-      async ({path, run, source}) => {
-        await setup.definePackage({
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {depDep: `1.0.0`},
+    });
+    await p.defineNpmPackage({
+      name: 'depDep',
+      esy: {},
+      version: '1.0.0',
+    });
+    await p.defineNpmPackage({
+      name: 'depDep',
+      esy: {},
+      version: '2.0.0',
+    });
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
           name: 'dep',
           version: '1.0.0',
-          esy: {},
-          dependencies: {depDep: `1.0.0`},
-        });
-        await setup.definePackage({
+        },
+        depDep: {
           name: 'depDep',
-          esy: {},
-          version: '1.0.0',
-        });
-        await setup.definePackage({
-          name: 'depDep',
-          esy: {},
           version: '2.0.0',
-        });
-
-        await run(`install`);
-
-        const layout = await setup.crawlLayout(path);
-        expect(layout).toMatchObject({
-          name: 'root',
-          dependencies: {
-            dep: {
-              name: 'dep',
-              version: '1.0.0',
-            },
-            depDep: {
-              name: 'depDep',
-              version: '2.0.0',
-            },
-          },
-        });
+        },
       },
-    ),
-  );
+    });
+  });
 });

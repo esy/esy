@@ -57,10 +57,7 @@ async function main() {
     dependencies: {dep: `1.0.0`},
     resolutions: {depDep: `2.0.0`},
   };
-  await fs.writeFile(
-    path.join(cwd, 'package.json'),
-    JSON.stringify(packageJson, null, 2) + '\n',
-  );
+  await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify(packageJson, null, 2) + '\n');
 
   try {
     await spawnShell({env, cwd, stdio: 'inherit'});

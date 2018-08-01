@@ -6,44 +6,56 @@ const {promisify} = require('util');
 const open = promisify(fs.open);
 const close = promisify(fs.close);
 
-const {genFixture, packageJson, dir, file, symlink, ocamlPackage, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  createTestSandbox,
+  packageJson,
+  dir,
+  file,
+  symlink,
+  ocamlPackage,
+  exeExtension,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 
 skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
-    "name": "with-linked-dep",
-    "version": "1.0.0",
-    "license": "MIT",
-    "esy": {
-      "build": "true"
+    name: 'with-linked-dep',
+    version: '1.0.0',
+    license: 'MIT',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
-    }
+    dependencies: {
+      dep: '*',
+    },
   }),
-  dir('dep',
+  dir(
+    'dep',
     packageJson({
-      "name": "dep",
-      "version": "1.0.0",
-      "license": "MIT",
-      "esy": {
-        "build": [
-          "cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml",
-          "ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml",
+      name: 'dep',
+      version: '1.0.0',
+      license: 'MIT',
+      esy: {
+        build: [
+          'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
+          'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
         ],
-        "install": `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`
+        install: `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`,
       },
-      "dependencies": {
-        "ocaml": "*"
-      }
+      dependencies: {
+        ocaml: '*',
+      },
     }),
     file('dep.ml', 'let () = print_endline "__dep__"'),
   ),
-  dir('node_modules',
-    dir('dep',
+  dir(
+    'node_modules',
+    dir(
+      'dep',
       file('_esylink', './dep'),
-      symlink('package.json', '../../dep/package.json')
+      symlink('package.json', '../../dep/package.json'),
     ),
     ocamlPackage(),
   ),
@@ -53,7 +65,7 @@ describe('Build - with linked dep', () => {
   let p;
 
   beforeAll(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
     await p.esy('build');
   });
 

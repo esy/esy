@@ -1,37 +1,34 @@
 /* @flow */
 
-const {skipSuiteOnWindows} = require("./../test/helpers")
-const tests = require('./setup');
+const helpers = require('../test/helpers.js');
 
-skipSuiteOnWindows("Needs investigation.");
+helpers.skipSuiteOnWindows('Needs investigation.');
 
 describe('Testing integrity of downloaded packages', function() {
-  test(
-    `it should fail on corrupted tarballs`,
-    tests.makeTemporaryEnv(
-      {
+  test(`it should fail on corrupted tarballs`, async () => {
+    const fixture = [
+      helpers.packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {dep: `1.0.0`},
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage(
+      {
+        name: 'dep',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {},
       },
-      async ({path, run, source}) => {
-        await tests.definePackage(
-          {
-            name: 'dep',
-            version: '1.0.0',
-            esy: {},
-            dependencies: {},
-          },
-          {shasum: 'dummy-invalid-shasum'},
-        );
+      {shasum: 'dummy-invalid-shasum'},
+    );
 
-        try {
-          await run(`install`);
-        } catch (err) {
-          expect(/sha1 checksum mismatch/.exec(err)).toBeTruthy();
-        }
-      },
-    ),
-  );
+    try {
+      await p.esy(`install`);
+    } catch (err) {
+      expect(/sha1 checksum mismatch/.exec(err)).toBeTruthy();
+    }
+  });
 });

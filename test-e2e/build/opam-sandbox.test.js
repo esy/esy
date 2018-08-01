@@ -1,32 +1,44 @@
 // @flow
 
-const {file, dir, packageJson, genFixture, promiseExec, ocamlPackage,  skipSuiteOnWindows} = require('../test/helpers.js');
+const {
+  file,
+  dir,
+  packageJson,
+  createTestSandbox,
+  promiseExec,
+  ocamlPackage,
+  skipSuiteOnWindows,
+} = require('../test/helpers.js');
 
 skipSuiteOnWindows();
 
 describe('build opam sandbox', () => {
-
   it('builds an opam sandbox with a single opam file', async () => {
-
-    const p = await genFixture(
-      file('opam', `
+    const p = await createTestSandbox(
+      file(
+        'opam',
+        `
         opam-version: "1.2"
         build: [
           ["ocamlopt" "-o" "%{bin}%/hello" "hello.ml"]
         ]
-      `),
+      `,
+      ),
       file('hello.ml', 'let () = print_endline "__hello__"'),
-      dir('node_modules',
+      dir(
+        'node_modules',
         ocamlPackage(),
-        dir('@esy-ocaml',
-          dir('substs',
+        dir(
+          '@esy-ocaml',
+          dir(
+            'substs',
             packageJson({
               name: '@esy-ocaml/substs',
-              version: '0.0.0'
-            })
-          )
-        )
-      )
+              version: '0.0.0',
+            }),
+          ),
+        ),
+      ),
     );
 
     await p.esy('build');
@@ -34,9 +46,10 @@ describe('build opam sandbox', () => {
   });
 
   it('builds an opam sandbox with multiple opam files', async () => {
-
-    const p = await genFixture(
-      file('one.opam', `
+    const p = await createTestSandbox(
+      file(
+        'one.opam',
+        `
         opam-version: "1.2"
         build: [
           ["false"]
@@ -44,8 +57,11 @@ describe('build opam sandbox', () => {
         install: [
           ["true"]
         ]
-      `),
-      file('two.opam', `
+      `,
+      ),
+      file(
+        'two.opam',
+        `
         opam-version: "1.2"
         build: [
           ["false"]
@@ -53,22 +69,27 @@ describe('build opam sandbox', () => {
         install: [
           ["true"]
         ]
-      `),
-      dir('node_modules',
+      `,
+      ),
+      dir(
+        'node_modules',
         ocamlPackage(),
-        dir('@esy-ocaml',
-          dir('substs',
+        dir(
+          '@esy-ocaml',
+          dir(
+            'substs',
             packageJson({
               name: '@esy-ocaml/substs',
-              version: '0.0.0'
-            })
+              version: '0.0.0',
+            }),
           ),
-        )
-      )
+        ),
+      ),
     );
 
     const {stderr} = await p.esy('build');
-    expect(stderr).toEqual(expect.stringContaining("warn build commands from opam files won't be executed"));
+    expect(stderr).toEqual(
+      expect.stringContaining("warn build commands from opam files won't be executed"),
+    );
   });
-
 });

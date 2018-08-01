@@ -1,53 +1,51 @@
 /* @flow */
 
-const {join} = require('path');
-const setup = require('./setup');
-const {skipSuiteOnWindows} = require("./../test/helpers");
+const path = require('path');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe(`installing linked packages`, () => {
-  test(
-    'it should install linked packages',
-    setup.makeTemporaryEnv(
-      {
+  test('it should install linked packages', async () => {
+    const fixture = [
+      helpers.packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {dep: `link:./dep`},
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '1.0.0',
+      esy: {},
+    });
+    await p.defineNpmLocalPackage(path.join(p.projectPath, 'dep'), {
+      name: 'dep',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {
+        depdep: '*',
       },
-      async ({path, run, source}) => {
-        await setup.definePackage({
+    });
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        depdep: {
           name: 'depdep',
           version: '1.0.0',
-          esy: {},
-        });
-        await setup.defineLocalPackage(join(path, 'dep'), {
+        },
+        dep: {
           name: 'dep',
           version: '1.0.0',
-          esy: {},
-          dependencies: {
-            depdep: '*',
-          },
-        });
-
-        await run(`install`);
-
-        const layout = await setup.crawlLayout(path);
-        expect(layout).toMatchObject({
-          name: 'root',
-          dependencies: {
-            depdep: {
-              name: 'depdep',
-              version: '1.0.0',
-            },
-            dep: {
-              name: 'dep',
-              version: '1.0.0',
-            },
-          },
-        });
+        },
       },
-    ),
-  );
+    });
+  });
 });

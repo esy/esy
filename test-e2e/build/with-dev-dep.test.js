@@ -1,68 +1,78 @@
 // @flow
 
 const path = require('path');
-const {genFixture, packageJson, dir, file, ocamlPackage, exeExtension, skipSuiteOnWindows} = require('../test/helpers');
+const {
+  createTestSandbox,
+  packageJson,
+  dir,
+  file,
+  ocamlPackage,
+  exeExtension,
+  skipSuiteOnWindows,
+} = require('../test/helpers');
 
 skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
-    "name": "with-dev-dep",
-    "version": "1.0.0",
-    "esy": {
-      "build": "true"
+    name: 'with-dev-dep',
+    version: '1.0.0',
+    esy: {
+      build: 'true',
     },
-    "dependencies": {
-      "dep": "*"
+    dependencies: {
+      dep: '*',
     },
-    "devDependencies": {
-      "devDep": "*"
-    }
+    devDependencies: {
+      devDep: '*',
+    },
   }),
-  dir('node_modules',
-    dir('dep',
+  dir(
+    'node_modules',
+    dir(
+      'dep',
       packageJson({
-        "name": "dep",
-        "version": "1.0.0",
-        "esy": {
-          "buildsInSource": true,
-          "build": "ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml",
-          "install": `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          buildsInSource: true,
+          build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
+          install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
         },
-        "dependencies": {
-          "ocaml": "*"
+        dependencies: {
+          ocaml: '*',
         },
-        "_resolved": "..."
+        _resolved: '...',
       }),
       file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
-    dir('devDep',
+    dir(
+      'devDep',
       packageJson({
-        "name": "devDep",
-        "version": "1.0.0",
-        "license": "MIT",
-        "esy": {
-          "buildsInSource": true,
-          "build": "ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml",
-          "install": `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`
+        name: 'devDep',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          buildsInSource: true,
+          build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
+          install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
         },
-        "dependencies": {
-          "ocaml": "*"
+        dependencies: {
+          ocaml: '*',
         },
-        "_resolved": "..."
+        _resolved: '...',
       }),
       file('devDep.ml', 'let () = print_endline "__devDep__"'),
     ),
     ocamlPackage(),
-  )
+  ),
 ];
 
 describe('Build - with dev dep', () => {
-
   let p;
 
   beforeEach(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
     await p.esy('build');
   });
 

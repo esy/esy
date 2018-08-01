@@ -8,8 +8,49 @@ const path = require('path');
 const tarFs = require('tar-fs');
 const tmp = require('tmp');
 const zlib = require('zlib');
+const {Minimatch} = require('minimatch');
 
-const miscUtils = require('./misc');
+function stringPatternMatch(
+  string: string,
+  patterns: Array<string>,
+  {matchBase = false, dot = true}: {|matchBase?: boolean, dot?: boolean|} = {},
+): boolean {
+  const compiledPatterns = (Array.isArray(patterns) ? patterns : [patterns]).map(
+    pattern => new Minimatch(pattern, {matchBase, dot}),
+  );
+
+  // If there's only negated patterns, we assume that everything should match by default
+  let status = compiledPatterns.every(compiledPattern => compiledPattern.negated);
+
+  for (const compiledPattern of compiledPatterns) {
+    if (compiledPattern.negated) {
+      if (!status) {
+        continue;
+      }
+
+      status = compiledPattern.match(string) === false;
+    } else {
+      if (status) {
+        continue;
+      }
+
+      status = compiledPattern.match(string) === true;
+    }
+  }
+
+  return status;
+}
+
+function filePatternMatch(
+  filePath: string,
+  patterns: Array<string>,
+  {matchBase = true, dot = true}: {|matchBase?: boolean, dot?: boolean|} = {},
+): boolean {
+  return stringPatternMatch(path.resolve('/', filePath), patterns, {
+    matchBase,
+    dot,
+  });
+}
 
 exports.mkdir = fs.mkdirp;
 exports.stat = fs.stat;
@@ -36,7 +77,7 @@ exports.walk = function walk(
 
         const relativePath = path.relative(source, itemPath);
 
-        if (miscUtils.filePatternMatch(relativePath, filter)) {
+        if (filePatternMatch(relativePath, filter)) {
           return true;
         }
 
@@ -47,7 +88,7 @@ exports.walk = function walk(
     walker.on('data', ({path: itemPath}) => {
       const relativePath = path.relative(source, itemPath);
 
-      if (!filter || miscUtils.filePatternMatch(relativePath, filter)) {
+      if (!filter || filePatternMatch(relativePath, filter)) {
         paths.push(relative ? relativePath : itemPath);
       }
 

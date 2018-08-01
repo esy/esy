@@ -36,17 +36,10 @@ The typical workflow looks like this:
     cd esy-ocaml-project
     ```
 
-1.  Install project's dependencies source code:
+1.  Install project's dependencies source code and perform an initial build of the project's dependencies and of the project itself:
 
     ```bash
-    esy install
-    ```
-
-1.  Perform an initial build of the project's dependencies and of the project
-    itself:
-
-    ```bash
-    esy build
+    esy
     ```
 
 1.  Test the compiled executables inside the project's environment:

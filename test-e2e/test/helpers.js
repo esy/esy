@@ -1,82 +1,94 @@
 // @flow
 
-jest.setTimeout(20000);
+jest.setTimeout(120000);
 
+import type {Fixture} from './FixtureUtils.js';
 const path = require('path');
 const fs = require('fs-extra');
+const fsUtils = require('./fs.js');
+const exec = require('./exec.js');
 const os = require('os');
 const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
-const {ocamlPackagePath, ESYCOMMAND, isWindows, ocamloptName} = require('./jestGlobalSetup.js');
+const FixtureUtils = require('./FixtureUtils.js');
+const PackageGraph = require('./PackageGraph.js');
+const NpmRegistryMock = require('./NpmRegistryMock.js');
+const OpamRegistryMock = require('./OpamRegistryMock.js');
+const {
+  ocamlPackagePath,
+  ESYCOMMAND,
+  ESYICOMMAND,
+  isWindows,
+  ocamloptName,
+} = require('./jestGlobalSetup.js');
 
 function getTempDir() {
-    return isWindows ? os.tmpdir() : '/tmp';
+  return isWindows ? os.tmpdir() : '/tmp';
 }
 
-const exeExtension = isWindows ? ".exe" : "";
-
-type Fixture = Array<FixtureItem>;
-type FixtureItem = FixtureDir | FixtureFile | FixtureFileCopy | FixtureSymlink;
-type FixtureDir = {
-  type: 'dir',
-  name: string,
-  items: Array<FixtureItem>,
-};
-type FixtureFile = {
-  type: 'file',
-  name: string,
-  data: string,
-};
-type FixtureFileCopy = {
-  type: 'file-copy',
-  name: string,
-  path: string,
-};
-type FixtureSymlink = {
-  type: 'symlink',
-  name: string,
-  path: string,
-};
-
-function dir(name: string, ...items: Array<FixtureItem>): FixtureDir {
-  return {type: 'dir', name, items};
-}
-
-function file(name: string, data: string): FixtureFile {
-  return {type: 'file', name, data};
-}
-
-function symlink(name: string, path: string): FixtureSymlink {
-  return {type: 'symlink', name, path};
-}
-
-function packageJson(json: Object) {
-  return file('package.json', JSON.stringify(json, null, 2));
-}
-
-let ocamlPackageCached = null;
+const exeExtension = isWindows ? '.exe' : '';
 
 function ocamlPackage() {
-  if (ocamlPackageCached == null) {
-    let packageJson: FixtureFileCopy = {
-      type: 'file-copy',
-      name: 'package.json',
-      path: path.join(ocamlPackagePath, 'package.json'),
-    };
-    let ocamlopt: FixtureFileCopy = {
-      type: 'file-copy',
-      name: ocamloptName,
-      path: path.join(ocamlPackagePath, ocamloptName),
-    };
-    ocamlPackageCached = dir('ocaml', ocamlopt, packageJson);
-    return ocamlPackageCached;
-  } else {
-    return ocamlPackageCached;
-  }
+  let packageJson = {
+    type: 'file-copy',
+    name: 'package.json',
+    path: path.join(ocamlPackagePath, 'package.json'),
+  };
+  let ocamlopt = {
+    type: 'file-copy',
+    name: ocamloptName,
+    path: path.join(ocamlPackagePath, ocamloptName),
+  };
+  return FixtureUtils.dir('ocaml', ocamlopt, packageJson);
 }
 
-async function genFixture(...fixture: Fixture) {
+export type TestSandbox = {
+  rootPath: string,
+  binPath: string,
+  projectPath: string,
+  esyPrefixPath: string,
+  npmPrefixPath: string,
+
+  run: (args: string) => Promise<{stderr: string, stdout: string}>,
+  esy: (
+    args?: string,
+    options: ?{noEsyPrefix?: boolean},
+  ) => Promise<{stderr: string, stdout: string}>,
+  npm: (args: string) => Promise<{stderr: string, stdout: string}>,
+
+  runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
+
+  defineNpmPackage: (
+    packageJson: {name: string, version: string},
+    options?: {shasum?: string},
+  ) => Promise<string>,
+
+  defineNpmPackageOfFixture: (fixture: Fixture) => Promise<void>,
+
+  defineNpmLocalPackage: (
+    packagePath: string,
+    packageJson: {name: string, version: string},
+  ) => Promise<void>,
+
+  defineOpamPackage: (spec: {
+    name: string,
+    version: string,
+    opam: string,
+    url: ?string,
+  }) => Promise<void>,
+  defineOpamPackageOfFixture: (
+    spec: {
+      name: string,
+      version: string,
+      opam: string,
+      url: ?string,
+    },
+    fixture: Fixture,
+  ) => Promise<void>,
+};
+
+async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
   const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
@@ -90,32 +102,32 @@ async function genFixture(...fixture: Fixture) {
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
-  async function layout(p: string, fixture: FixtureItem) {
-    if (fixture.type === 'file') {
-      await fs.writeFile(path.join(p, fixture.name), fixture.data);
-    } else if (fixture.type === 'file-copy') {
-      await fs.copyFile(fixture.path, path.join(p, fixture.name));
-    } else if (fixture.type === 'symlink') {
-      await fs.symlink(fixture.path, path.join(p, fixture.name));
-    } else if (fixture.type === 'dir') {
-      const nextp = path.join(p, fixture.name);
-      await fs.mkdir(nextp);
-      await Promise.all(fixture.items.map(item => layout(nextp, item)));
-    } else {
-      throw new Error('unknown fixture ' + JSON.stringify(fixture));
-    }
+  await FixtureUtils.initialize(projectPath, fixture);
+  const npmRegistry = await NpmRegistryMock.initialize();
+  const opamRegistry = await OpamRegistryMock.initialize();
+
+  async function runJavaScriptInNodeAndReturnJson(script) {
+    const command = `node -p "JSON.stringify(${script.replace(/"/g, '\\"')})"`;
+    const p = await promiseExec(command, {cwd: projectPath});
+    return JSON.parse(p.stdout);
   }
 
-  await Promise.all(fixture.map(item => layout(projectPath, item)));
-
-  function esy(args: string, options: ?{noEsyPrefix?: boolean}) {
+  function esy(args?: string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
     let env = process.env;
     if (!options.noEsyPrefix) {
-      env = {...process.env, ESY__PREFIX: esyPrefixPath};
+      env = {
+        ...process.env,
+        ESY__PREFIX: esyPrefixPath,
+        ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
+        ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
+        ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
+        NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+      };
     }
 
-    return promiseExec(`${ESYCOMMAND} ${args}`, {
+    const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
+    return promiseExec(execCommand, {
       cwd: projectPath,
       env,
     });
@@ -128,26 +140,52 @@ async function genFixture(...fixture: Fixture) {
     });
   }
 
-  return {rootPath, binPath, projectPath, esy, npm, esyPrefixPath, npmPrefixPath};
+  function run(line: string) {
+    return promiseExec(line, {cwd: path.join(projectPath)});
+  }
+
+  return {
+    rootPath,
+    binPath,
+    projectPath,
+    esyPrefixPath,
+    npmPrefixPath,
+    run,
+    esy,
+    npm,
+    runJavaScriptInNodeAndReturnJson,
+    defineNpmPackage: (pkg, options) =>
+      NpmRegistryMock.definePackage(npmRegistry, pkg, options),
+    defineNpmPackageOfFixture: (fixture: Fixture) =>
+      NpmRegistryMock.definePackageOfFixture(npmRegistry, fixture),
+    defineNpmLocalPackage: (path, pkg) =>
+      NpmRegistryMock.defineLocalPackage(npmRegistry, path, pkg),
+    defineOpamPackage: spec => OpamRegistryMock.defineOpamPackage(opamRegistry, spec),
+    defineOpamPackageOfFixture: (spec, fixture: Fixture) =>
+      OpamRegistryMock.defineOpamPackageOfFixture(opamRegistry, spec, fixture),
+  };
 }
 
-function skipSuiteOnWindows(blockingIssues) {
-   if (process.platform === 'win32') {
-      fdescribe("", () => {
-         fit('does not work on Windows', () => {
-            console.warn('[SKIP] Needs to be unblocked: ' + (blockingIssues || 'Needs investigation'));
-         });
+function skipSuiteOnWindows(blockingIssues?: string) {
+  if (process.platform === 'win32') {
+    fdescribe('', () => {
+      fit('does not work on Windows', () => {
+        console.warn(
+          '[SKIP] Needs to be unblocked: ' + (blockingIssues || 'Needs investigation'),
+        );
       });
-   }
+    });
+  }
 }
+
+const esyiCommands = new Set(['install', 'print-cudf-universe']);
 
 module.exports = {
   promiseExec,
-  file,
-  symlink,
-  dir,
-  packageJson,
-  genFixture,
+  file: FixtureUtils.file,
+  symlink: FixtureUtils.symlink,
+  dir: FixtureUtils.dir,
+  packageJson: FixtureUtils.packageJson,
   getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
@@ -155,4 +193,13 @@ module.exports = {
   ocamloptName,
   ocamlPackage,
   ocamlPackagePath,
+  getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
+  getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
+  getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
+  crawlLayout: PackageGraph.crawl,
+  makeFakeBinary: fsUtils.makeFakeBinary,
+  exists: fs.exists,
+  readdir: fs.readdir,
+  execFile: exec.execFile,
+  createTestSandbox,
 };

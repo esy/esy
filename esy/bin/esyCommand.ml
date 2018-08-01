@@ -670,11 +670,22 @@ let () =
   let defaultCommand =
     let doc = "package.json workflow for native development with Reason/OCaml" in
     let info = Term.info "esy" ~version:EsyRuntime.version ~doc ~sdocs ~exits in
-    let cmd cfg command () =
-      runCommandWithConfig ~header:`No ~info ~cfg (devExec command)
+    let cmd cfg cmd () =
+      match cmd with
+      | Some command -> runCommandWithConfig ~header:`No ~info ~cfg (devExec command)
+      | None ->
+        let installRes =
+          let f cfg = runEsyInstallCommand cfg None [] in
+            runCommandWithConfig ~info ~cfg f
+        in
+        begin match installRes with
+        | `Ok () ->
+          runCommandWithConfig ~header:`No ~info ~cfg (build None)
+        | other -> other
+        end
     in
     let cmdTerm =
-      Cli.cmdTerm
+      Cli.cmdOptionTerm
         ~doc:"Command to execute within the sandbox environment."
         ~docv:"COMMAND"
     in
