@@ -674,10 +674,13 @@ let () =
       match cmd with
       | Some command -> runCommandWithConfig ~header:`No ~info ~cfg (devExec command)
       | None ->
-        let f cfg = runEsyInstallCommand cfg None [] in
-        begin match (runCommandWithConfig ~info ~cfg f) with
+        let installRes =
+          let f cfg = runEsyInstallCommand cfg None [] in
+            runCommandWithConfig ~info ~cfg f
+        in
+        begin match installRes with
         | `Ok () ->
-          runCommandWithConfig ~header:`Standard ~info ~cfg (build None)
+          runCommandWithConfig ~header:`No ~info ~cfg (build None)
         | other -> other
         end
     in
