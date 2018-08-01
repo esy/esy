@@ -4,7 +4,7 @@ const os = require('os');
 const path = require('path');
 const outdent = require('outdent');
 const {
-  genFixture,
+  createTestSandbox,
   ocamlPackage,
   dir,
   file,
@@ -40,7 +40,7 @@ const fixture = [
 ];
 
 it('Build - no deps _build', async () => {
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
 
   await p.esy('build');
 

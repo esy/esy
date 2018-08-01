@@ -2,7 +2,7 @@
 
 const path = require('path');
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   dir,
   file,
@@ -72,7 +72,7 @@ describe('Build - with dev dep', () => {
   let p;
 
   beforeEach(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
     await p.esy('build');
   });
 

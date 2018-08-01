@@ -5,7 +5,7 @@ const path = require('path');
 
 const outdent = require('outdent');
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   dir,
   file,
@@ -112,7 +112,7 @@ const fixture = [
 
 describe('Build - has build time deps', () => {
   it('builds', async () => {
-    const p = await genFixture(...fixture);
+    const p = await createTestSandbox(...fixture);
     await p.esy('build');
 
     {

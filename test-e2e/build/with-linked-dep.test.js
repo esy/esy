@@ -7,7 +7,7 @@ const open = promisify(fs.open);
 const close = promisify(fs.close);
 
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   dir,
   file,
@@ -65,7 +65,7 @@ describe('Build - with linked dep', () => {
   let p;
 
   beforeAll(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
     await p.esy('build');
   });
 

@@ -5,7 +5,7 @@ const path = require('path');
 
 const outdent = require('outdent');
 const {
-  genFixture,
+  createTestSandbox,
   ocamlPackage,
   dir,
   packageJson,
@@ -42,7 +42,7 @@ const fixture = [
 ];
 
 it('Build - custom prefix', async () => {
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
 
   await p.esy('build', {noEsyPrefix: true});
 

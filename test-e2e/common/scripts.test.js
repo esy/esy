@@ -7,7 +7,7 @@ const {skipSuiteOnWindows} = require('../test/helpers');
 
 skipSuiteOnWindows('#272');
 
-const {packageJson, file, genFixture} = require('../test/helpers');
+const {packageJson, file, createTestSandbox} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -41,7 +41,7 @@ const fixture = [
 ];
 
 it('Common - scripts', async () => {
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
   await p.esy('build');
 
   await expect(p.esy('cmd1')).resolves.toEqual(

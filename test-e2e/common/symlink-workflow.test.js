@@ -4,7 +4,7 @@ const path = require('path');
 const outdent = require('outdent');
 const fs = require('fs-extra');
 const {
-  genFixture,
+  createTestSandbox,
   file,
   dir,
   packageJson,
@@ -115,7 +115,7 @@ describe('Common - symlink workflow', () => {
   let appEsy;
 
   beforeEach(async () => {
-    p = await genFixture(...fixture);
+    p = await createTestSandbox(...fixture);
 
     appEsy = args =>
       promiseExec(`${ESYCOMMAND} ${args}`, {

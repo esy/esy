@@ -3,7 +3,7 @@
 const path = require('path');
 const outdent = require('outdent');
 const {
-  genFixture,
+  createTestSandbox,
   ocamlPackage,
   dir,
   file,
@@ -35,7 +35,7 @@ const fixture = [
 ];
 
 it('Build - no deps in source', async () => {
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
   await p.esy('build');
 
   const {stdout} = await p.esy('x no-deps-in-source');

@@ -3,7 +3,7 @@
 const path = require('path');
 
 const {
-  genFixture,
+  createTestSandbox,
   packageJson,
   dir,
   file,
@@ -55,7 +55,7 @@ const fixture = [
 
 it('Build - creates symlinks', async () => {
   expect.assertions(4);
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
 
   await p.esy('build');
 

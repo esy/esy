@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 const os = require('os');
 
 const {
-  genFixture,
+  createTestSandbox,
   promiseExec,
   ESYCOMMAND,
   skipSuiteOnWindows,
@@ -19,7 +19,7 @@ describe('Common - anycmd', () => {
   let prevEnv = {...process.env};
 
   beforeEach(async () => {
-    p = await genFixture(...fixture.simpleProject);
+    p = await createTestSandbox(...fixture.simpleProject);
     await p.esy('build');
   });
 

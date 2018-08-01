@@ -3,13 +3,13 @@
 const os = require('os');
 const path = require('path');
 
-const {genFixture, skipSuiteOnWindows} = require('../test/helpers');
+const {createTestSandbox, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
 
 skipSuiteOnWindows();
 
 it('Common - build anycmd', async () => {
-  const p = await genFixture(...fixture.simpleProject);
+  const p = await createTestSandbox(...fixture.simpleProject);
 
   await p.esy('build');
 

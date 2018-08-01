@@ -1,7 +1,7 @@
 // @flow
 const path = require('path');
 
-const {genFixture, packageJson, dir} = require('../test/helpers');
+const {createTestSandbox, packageJson, dir} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -15,7 +15,7 @@ const fixture = [
 ];
 
 it('Build - errorneous build', async () => {
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
   try {
     await p.esy('build');
   } catch (err) {

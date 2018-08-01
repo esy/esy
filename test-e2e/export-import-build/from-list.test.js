@@ -5,7 +5,7 @@ const del = require('del');
 const fs = require('fs-extra');
 
 const {
-  genFixture,
+  createTestSandbox,
   file,
   dir,
   packageJson,
@@ -70,7 +70,7 @@ const fixture = [
 ];
 
 it('export import build - from list', async () => {
-  const p = await genFixture(...fixture);
+  const p = await createTestSandbox(...fixture);
   await p.esy('build');
 
   await p.esy('export-dependencies');
