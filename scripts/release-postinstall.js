@@ -60,7 +60,7 @@ switch (platform) {
     copyPlatformBinaries('windows-x64');
 
     console.log('Installing cygwin sandbox...');
-    cp.execSync('npm install esy-bash');
+    cp.execSync('npm install esy-bash@0.1.19');
     console.log('Cygwin installed successfully.');
     break;
   case 'linux':
