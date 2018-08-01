@@ -15,10 +15,8 @@ let%test "curl download simple file" =
     (*https://stackoverflow.com/questions/21023048/copying-local-files-with-curl*)
     let test () = 
         let f tempPath =
-            print_endline (Path.to_string tempPath);
             let fileToCurl = Path.(tempPath / "input.txt") in
             let data = "test" in
-            print_endline ("Writing file: " ^ Path.to_string fileToCurl );
             let%lwt _ = Fs.createDir tempPath in
             let%lwt _ = Fs.writeFile ~data fileToCurl in
 
