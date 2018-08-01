@@ -89,7 +89,9 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
           in
           Curl.download ~output:tarballPath url
         in
+          print_endline ("package:gh:unpacking..");
         let%bind () =  Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
+          print_endline ("package:gh:unpacked!");
         return `Done
       in
       Fs.withTempDir f
@@ -216,8 +218,11 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
           let%bind () =
             let%bind () = Fs.createDir (Path.parent tarballPath) in
             let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
+            print_endline ("Tarball.create");
             let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
+            print_endline ("Tarball.create success");
             let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+            print_endline ("Tarball.create rename success");
             return ()
           in
           return (`Done dist)

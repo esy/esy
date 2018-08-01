@@ -220,6 +220,7 @@ let copyFileLwt ~src ~dst =
 let rec copyPathLwt ~src ~dst =
   let origPathS = Path.to_string src in
   let destPathS = Path.to_string dst in
+  print_endline ("Copying path from: " ^origPathS^ " to: " ^destPathS);
   let%lwt stat = Lwt_unix.lstat origPathS in
   match stat.st_kind with
   | S_REG ->
@@ -289,6 +290,7 @@ let copyFile ~src ~dst =
 
 let copyPath ~src ~dst =
   let open RunAsync.Syntax in
+  print_endline("Fs.copyPath - creating dir: " ^ (Path.to_string (Path.parent dst)));
   let%bind () = createDir (Path.parent dst) in
   try%lwt (
     let%lwt () = copyPathLwt ~src ~dst in

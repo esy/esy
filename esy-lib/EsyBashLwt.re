@@ -28,7 +28,9 @@ let with_process_full = (cmd, f) => {
     switch (res) {
     | Ok(v) =>
         let tl = getToolAndLine(v);
-        Lwt_process.with_process_full(tl, f);
+        let result = Lwt_process.with_process_full(tl, f);
+        print_endline ("Command succeeded");
+        result;
     | _ => RunAsync.error("error running command: " ++ Cmd.toString(cmd))
     };
 };
@@ -40,8 +42,23 @@ let with_process_in = (~env=?, ~stdin=?, ~stderr=?, cmd: Cmd.t, f) => {
     | Ok(v) =>
         print_endline ("with_process_in: " ++ Cmd.toString(cmd));
         let tl = getToolAndLine(v);
-          Lwt_process.with_process_in(~env?, ~stdin?, ~stderr?, tl, f);
+         Lwt_process.with_process_in(~env?, ~stdin?, ~stderr?, tl, f);
     | _ => RunAsync.error("error running")
     };
 };
 
+let run = (cmd) => {
+   open RunAsync.Syntax; 
+
+   let f = (process) => {
+       switch%lwt (process#status) {
+        | Unix.WEXITED(0) => return ()
+        | _ =>
+            let cmd = Cmd.toString(cmd);
+            let msg = Printf.sprintf("error running command: %s", cmd);
+            error(msg);
+        };
+   };
+
+   with_process_full(cmd, f);
+}

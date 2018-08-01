@@ -55,11 +55,14 @@ let unpackWithTar ?stripComponents ~dst filename =
   let%bind normalizedPath = normalizePath (Cmd.p filename) in
   let unpack out = 
       let%bind normalizedOutputPath = normalizePath (Cmd.p out) in
+      print_endline("running.....");
       run Cmd.(v "tar" % "xf" % normalizedPath % "-C" % normalizedOutputPath) in
   match stripComponents with
   | Some stripComponents ->
+          print_endline("stripping components");
     Fs.withTempDir begin fun out ->
       let%bind () = unpack out in
+        print_endline("unpacked in stripComponents");
       let%bind out = stripComponentFrom ~stripComponents out in
       copyAll ~src:out ~dst ()
     end
@@ -83,5 +86,9 @@ let unpack ?stripComponents ~dst filename =
   | _ -> unpackWithTar ?stripComponents ~dst filename
 
 let create ~filename src =
-  let cmd = Cmd.(v "tar" % "czf" % p filename % "-C" % p src % ".") in
-  ChildProcess.run cmd
+  let open RunAsync.Syntax in
+  print_endline("Tarball::create");
+  let%bind normalizedPath = normalizePath (Cmd.p filename) in
+  let%bind normalizedOutputPath = normalizePath (Cmd.p src) in
+  let cmd = Cmd.(v "tar" % "czf" % normalizedPath % "-C" % normalizedOutputPath % ".") in
+  EsyBashLwt.run cmd
