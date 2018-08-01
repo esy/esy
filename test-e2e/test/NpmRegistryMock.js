@@ -16,13 +16,19 @@ const semver = require('semver');
 
 const fsUtils = require('./fs');
 
+export type PackageRegistry = {
+  packages: PackageCollection,
+  serverUrl: string,
+};
+
+type PackageCollection = Map<string, PackageEntry>;
+
 export type PackageDesc = {|
   path: string,
   packageJson: Object,
   shasum?: string,
 |};
 export type PackageEntry = Map<string, PackageDesc>;
-export type PackageRegistry = Map<string, PackageEntry>;
 
 export type PackageRunDriver = (
   string,
@@ -30,21 +36,19 @@ export type PackageRunDriver = (
   {registryUrl: string},
 ) => Promise<{|stdout: Buffer, stderr: Buffer|}>;
 
-export type PackageDriver = any;
-
 async function definePackage(
+  packageRegistry: PackageRegistry,
   packageJson: {name: string, version: string},
   options: {shasum?: string} = {},
 ) {
-  const packageRegistry = await getPackageRegistry();
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
   invariant(version != null, 'Missing "version" in package.json');
 
-  let packageEntry = packageRegistry.get(name);
+  let packageEntry = packageRegistry.packages.get(name);
 
   if (!packageEntry) {
-    packageRegistry.set(name, (packageEntry = new Map()));
+    packageRegistry.packages.set(name, (packageEntry = new Map()));
   }
 
   const packagePath = await fsUtils.createTemporaryFolder();
@@ -58,6 +62,7 @@ async function definePackage(
 }
 
 async function defineLocalPackage(
+  packageRegistry: PackageRegistry,
   packagePath: string,
   packageJson: {name: string, version: string},
 ) {
@@ -69,51 +74,19 @@ async function defineLocalPackage(
   await fsUtils.writeJson(path.join(packagePath, 'package.json'), packageJson);
 }
 
-function getPackageRegistry(): Promise<PackageRegistry> {
-  if ((getPackageRegistry: any).promise) {
-    return (getPackageRegistry: any).promise;
-  }
-
-  return (getPackageRegistry.promise = (async () => {
-    const packageRegistry = new Map();
-    for (const packageFile of await fsUtils.walk(path.join(__dirname, '../fixtures'), {
-      filter: ['package.json'],
-    })) {
-      const packageJson = await fsUtils.readJson(packageFile);
-      const {name, version} = packageJson;
-
-      if (name.startsWith('git-')) {
-        continue;
-      }
-
-      let packageEntry = packageRegistry.get(name);
-
-      if (!packageEntry) {
-        packageRegistry.set(name, (packageEntry = new Map()));
-      }
-
-      packageEntry.set(version, {
-        path: require('path').dirname(packageFile),
-        packageJson,
-      });
-    }
-
-    return packageRegistry;
-  })());
+async function getPackageEntry(
+  packages: PackageCollection,
+  name: string,
+): Promise<?PackageEntry> {
+  return packages.get(name);
 }
 
-function clearPackageRegistry() {
-  delete getPackageRegistry.promise;
-}
-
-async function getPackageEntry(name: string): Promise<?PackageEntry> {
-  const packageRegistry = await getPackageRegistry();
-
-  return packageRegistry.get(name);
-}
-
-async function getPackageArchiveStream(name: string, version: string): Promise<Gzip> {
-  const packageEntry = await getPackageEntry(name);
+async function getPackageArchiveStream(
+  packageRegistry: PackageRegistry,
+  name: string,
+  version: string,
+): Promise<Gzip> {
+  const packageEntry = await getPackageEntry(packageRegistry.packages, name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -130,8 +103,12 @@ async function getPackageArchiveStream(name: string, version: string): Promise<G
   });
 }
 
-async function getPackageArchivePath(name: string, version: string): Promise<string> {
-  const packageEntry = await getPackageEntry(name);
+async function getPackageArchivePath(
+  packageRegistry: PackageRegistry,
+  name: string,
+  version: string,
+): Promise<string> {
+  const packageEntry = await getPackageEntry(packageRegistry.packages, name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -153,10 +130,11 @@ async function getPackageArchivePath(name: string, version: string): Promise<str
 }
 
 async function getPackageArchiveHash(
+  packageRegistry: PackageRegistry,
   name: string,
   version: string,
 ): Promise<string | Buffer> {
-  const stream = await getPackageArchiveStream(name, version);
+  const stream = await getPackageArchiveStream(packageRegistry, name, version);
 
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('sha1');
@@ -173,8 +151,12 @@ async function getPackageArchiveHash(
   });
 }
 
-async function getPackageHttpArchivePath(name: string, version: string): Promise<string> {
-  const packageEntry = await getPackageEntry(name);
+async function getPackageHttpArchivePath(
+  packageRegistry: PackageRegistry,
+  name: string,
+  version: string,
+): Promise<string> {
+  const packageEntry = await getPackageEntry(packageRegistry.packages, name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -186,14 +168,17 @@ async function getPackageHttpArchivePath(name: string, version: string): Promise
     throw new Error(`Unknown version "${version}" for package "${name}"`);
   }
 
-  const serverUrl = await startPackageServer();
-  const archiveUrl = `${serverUrl}/${name}/-/${name}-${version}.tgz`;
+  const archiveUrl = `${packageRegistry.serverUrl}/${name}/-/${name}-${version}.tgz`;
 
   return archiveUrl;
 }
 
-async function getPackageDirectoryPath(name: string, version: string): Promise<string> {
-  const packageEntry = await getPackageEntry(name);
+async function getPackageDirectoryPath(
+  packageRegistry: PackageRegistry,
+  name: string,
+  version: string,
+): Promise<string> {
+  const packageEntry = await getPackageEntry(packageRegistry.packages, name);
 
   if (!packageEntry) {
     throw new Error(`Unknown package "${name}"`);
@@ -208,9 +193,30 @@ async function getPackageDirectoryPath(name: string, version: string): Promise<s
   return packageVersionEntry.path;
 }
 
-function startPackageServer(options: {persistent?: boolean} = {}): Promise<string> {
-  if ((startPackageServer: any).url) {
-    return (startPackageServer: any).url;
+async function initialize(
+  options?: {persistent?: boolean} = {},
+): Promise<PackageRegistry> {
+  const packages = new Map();
+  for (const packageFile of await fsUtils.walk(path.join(__dirname, '../fixtures'), {
+    filter: ['package.json'],
+  })) {
+    const packageJson = await fsUtils.readJson(packageFile);
+    const {name, version} = packageJson;
+
+    if (name.startsWith('git-')) {
+      continue;
+    }
+
+    let packageEntry = packages.get(name);
+
+    if (!packageEntry) {
+      packages.set(name, (packageEntry = new Map()));
+    }
+
+    packageEntry.set(version, {
+      path: require('path').dirname(packageFile),
+      packageJson,
+    });
   }
 
   async function processPackageInfo(
@@ -224,7 +230,7 @@ function startPackageServer(options: {persistent?: boolean} = {}): Promise<strin
     const [, scope, localName] = params;
     const name = scope ? `${scope}/${localName}` : localName;
 
-    const packageEntry = await getPackageEntry(name);
+    const packageEntry = await getPackageEntry(packages, name);
 
     if (!packageEntry) {
       return processError(res, 404, `Package not found: ${name}`);
@@ -246,8 +252,12 @@ function startPackageServer(options: {persistent?: boolean} = {}): Promise<strin
                 dist: {
                   shasum:
                     packageVersionEntry.shasum ||
-                    (await getPackageArchiveHash(name, version)),
-                  tarball: await getPackageHttpArchivePath(name, version),
+                    (await getPackageArchiveHash(packageRegistry, name, version)),
+                  tarball: await getPackageHttpArchivePath(
+                    packageRegistry,
+                    name,
+                    version,
+                  ),
                 },
               }),
             };
@@ -274,7 +284,7 @@ function startPackageServer(options: {persistent?: boolean} = {}): Promise<strin
     const [, scope, localName, version] = params;
     const name = scope ? `${scope}/${localName}` : localName;
 
-    const packageEntry = await getPackageEntry(name);
+    const packageEntry = await getPackageEntry(packages, name);
 
     if (!packageEntry) {
       return processError(res, 404, `Package not found: ${name}`);
@@ -312,7 +322,7 @@ function startPackageServer(options: {persistent?: boolean} = {}): Promise<strin
     return true;
   }
 
-  return new Promise((resolve, reject) => {
+  const serverUrl = await new Promise((resolve, reject) => {
     const server = http.createServer(
       (req, res) =>
         void (async () => {
@@ -348,110 +358,13 @@ function startPackageServer(options: {persistent?: boolean} = {}): Promise<strin
     }
     server.listen(() => {
       const {port} = server.address();
-      resolve((startPackageServer.url = `http://localhost:${port}`));
+      resolve(`http://localhost:${port}`);
     });
   });
-}
 
-function generatePkgDriver({runDriver}: {|runDriver: PackageRunDriver|}): PackageDriver {
-  function withConfig(definition): PackageDriver {
-    const makeTemporaryEnv = (packageJson, subDefinition, fn) => {
-      if (typeof subDefinition === 'function') {
-        fn = subDefinition;
-        subDefinition = {};
-      }
+  const packageRegistry = {serverUrl, packages};
 
-      if (typeof fn !== 'function') {
-        throw new Error(
-          // eslint-disable-next-line
-          `Invalid test function (got ${typeof fn}) - you probably put the closing parenthesis of the "makeTemporaryEnv" utility at the wrong place`,
-        );
-      }
-
-      return async function(): Promise<void> {
-        const path = await fsUtils.createTemporaryFolder();
-
-        const registryUrl = await startPackageServer();
-
-        // Writes a new package.json file into our temporary directory
-        await fsUtils.writeJson(`${path}/package.json`, await deepResolve(packageJson));
-
-        const run = (...args) => {
-          return runDriver(path, args, {
-            registryUrl,
-            ...subDefinition,
-          });
-        };
-
-        const source = async script => {
-          return JSON.parse(
-            (await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString(),
-          );
-        };
-
-        await fn({
-          path,
-          run,
-          source,
-        });
-      };
-    };
-
-    makeTemporaryEnv.withConfig = subDefinition => {
-      return withConfig({...definition, ...subDefinition});
-    };
-
-    return makeTemporaryEnv;
-  }
-
-  return withConfig({});
-}
-
-type Layout = {
-  name: string,
-  version: string,
-  path: string,
-  dependencies: {[name: string]: Layout},
-};
-
-async function crawlLayout(directory: string): Promise<?Layout> {
-  const esyLinkPath = path.join(directory, '_esylink');
-  const nodeModulesPath = path.join(directory, 'node_modules');
-
-  let packageJsonPath;
-  if (await fsUtils.exists(esyLinkPath)) {
-    let sourcePath = await fsUtils.readFile(esyLinkPath, 'utf8');
-    sourcePath = sourcePath.trim();
-    packageJsonPath = path.join(sourcePath, 'package.json');
-  } else {
-    packageJsonPath = path.join(directory, 'package.json');
-  }
-
-  if (!(await fsUtils.exists(packageJsonPath))) {
-    return null;
-  }
-  const packageJson = await fsUtils.readJson(packageJsonPath);
-  const dependencies = {};
-
-  if (await fsUtils.exists(nodeModulesPath)) {
-    const items = await fsUtils.readdir(nodeModulesPath);
-    await Promise.all(
-      items.map(async name => {
-        const depDirectory = path.join(directory, 'node_modules', name);
-        const dep = await crawlLayout(depDirectory);
-        if (dep != null) {
-          dependencies[dep.name] = dep;
-        }
-      }),
-    );
-  }
-
-  return {
-    name: packageJson.name,
-    version: packageJson.version,
-    path: directory,
-    dependencies,
-  };
+  return packageRegistry;
 }
 
 module.exports = {
@@ -460,9 +373,5 @@ module.exports = {
   getPackageArchivePath,
   definePackage,
   defineLocalPackage,
-  generatePkgDriver,
-  crawlLayout,
-  clearPackageRegistry,
-  startPackageServer,
-  getPackageRegistry,
+  initialize,
 };

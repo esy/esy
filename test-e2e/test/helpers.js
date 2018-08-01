@@ -12,6 +12,7 @@ const childProcess = require('child_process');
 const {promisify} = require('util');
 const promiseExec = promisify(childProcess.exec);
 const FixtureUtils = require('./FixtureUtils.js');
+const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const {
   ocamlPackagePath,
@@ -48,7 +49,35 @@ function ocamlPackage() {
   }
 }
 
-async function genFixture(...fixture: Fixture) {
+export type TestSandbox = {
+  rootPath: string,
+  binPath: string,
+  projectPath: string,
+  esyPrefixPath: string,
+  npmPrefixPath: string,
+
+  esy: (
+    args: string,
+    options: ?{noEsyPrefix?: boolean},
+  ) => Promise<{stderr: string, stdout: string}>,
+  npm: (args: string) => Promise<{stderr: string, stdout: string}>,
+
+  runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
+
+  defineNpmPackage: (
+    packageJson: {name: string, version: string},
+    options?: {shasum?: string},
+  ) => Promise<string>,
+
+  defineNpmLocalPackage: (
+    packagePath: string,
+    packageJson: {name: string, version: string},
+  ) => Promise<void>,
+};
+
+import {type PackageRegistry} from './NpmRegistryMock.js';
+
+async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
   const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
@@ -63,12 +92,23 @@ async function genFixture(...fixture: Fixture) {
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
   await Promise.all(fixture.map(item => FixtureUtils.initialize(projectPath, item)));
+  const npmRegistry: PackageRegistry = await NpmRegistryMock.initialize();
+
+  async function runJavaScriptInNodeAndReturnJson(script) {
+    const command = `node -p "JSON.stringify(${script.replace(/"/g, '\\"')})"`;
+    const p = await promiseExec(command, {cwd: projectPath});
+    return JSON.parse(p.stdout);
+  }
 
   function esy(args: ?string, options: ?{noEsyPrefix?: boolean}) {
     options = options || {};
     let env = process.env;
     if (!options.noEsyPrefix) {
-      env = {...process.env, ESY__PREFIX: esyPrefixPath};
+      env = {
+        ...process.env,
+        ESY__PREFIX: esyPrefixPath,
+        NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+      };
     }
 
     const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
@@ -85,7 +125,20 @@ async function genFixture(...fixture: Fixture) {
     });
   }
 
-  return {rootPath, binPath, projectPath, esy, npm, esyPrefixPath, npmPrefixPath};
+  return {
+    rootPath,
+    binPath,
+    projectPath,
+    esyPrefixPath,
+    npmPrefixPath,
+    esy,
+    npm,
+    runJavaScriptInNodeAndReturnJson,
+    defineNpmPackage: (pkg, options) =>
+      NpmRegistryMock.definePackage(npmRegistry, pkg, options),
+    defineNpmLocalPackage: (path, pkg) =>
+      NpmRegistryMock.defineLocalPackage(npmRegistry, path, pkg),
+  };
 }
 
 function skipSuiteOnWindows(blockingIssues?: string) {
@@ -102,41 +155,12 @@ function skipSuiteOnWindows(blockingIssues?: string) {
 
 const esyiCommands = new Set(['install', 'print-cudf-universe']);
 
-const makeTemporaryEnv = NpmRegistryMock.generatePkgDriver({
-  runDriver: (path, line, {registryUrl}) => {
-    if (line.length === 1 && esyiCommands.has(line[0])) {
-      const extraArgs = [
-        `--cache-path`,
-        `${path}/.cache`,
-        `--npm-registry`,
-        registryUrl,
-        `--opam-repository`,
-        `:${__dirname}/opam-repository`,
-        `--opam-override-repository`,
-        `:${__dirname}/esy-opam-override`,
-      ];
-      return exec.execFile(ESYICOMMAND, [...extraArgs], {cwd: path});
-    } else {
-      const prg = line[0];
-      const args = line.slice(1);
-      return exec.execFile(prg, [...args], {cwd: path});
-    }
-  },
-});
-
-beforeEach(async function commonBeforeEach() {
-  await NpmRegistryMock.clearPackageRegistry();
-  await NpmRegistryMock.startPackageServer();
-  await NpmRegistryMock.getPackageRegistry();
-});
-
 module.exports = {
   promiseExec,
   file: FixtureUtils.file,
   symlink: FixtureUtils.symlink,
   dir: FixtureUtils.dir,
   packageJson: FixtureUtils.packageJson,
-  genFixture,
   getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
@@ -147,12 +171,11 @@ module.exports = {
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
-  definePackage: NpmRegistryMock.definePackage,
-  defineLocalPackage: NpmRegistryMock.defineLocalPackage,
-  makeTemporaryEnv: makeTemporaryEnv,
-  crawlLayout: NpmRegistryMock.crawlLayout,
+  crawlLayout: PackageGraph.crawl,
   makeFakeBinary: fsUtils.makeFakeBinary,
   exists: fs.exists,
   readdir: fs.readdir,
   execFile: exec.execFile,
+  genFixture: createTestSandbox,
+  createTestSandbox,
 };
