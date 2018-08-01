@@ -14,14 +14,18 @@ type url = string
 
 let parseStdout stdout =
   let open Run.Syntax in
-  let%bind meta = Json.parseStringWith Meta.of_yojson stdout in
+  match String.cut ~rev:true ~sep:"\n" stdout with
+  | Some (stdout, meta) ->	
+    let%bind meta = Json.parseStringWith Meta.of_yojson meta in
     return (stdout, meta)
+  | None ->
+    error "unable to parse metadata from a curl response"
 
 let runCurl cmd =
   let cmd = Cmd.(
     cmd
     % "--write-out"
-    % {|{"code": %{http_code}}|}
+    % {|\n{"code": %{http_code}}|}
   ) in
   let f p =
     let%lwt stdout =

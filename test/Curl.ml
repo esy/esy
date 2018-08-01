@@ -36,3 +36,23 @@ let%test "curl download simple file" =
         Fs.withTempDir f
     in
     TestLwt.runLwtTest test
+
+let%test "curl fails to download" =
+    let test () = 
+        let f tempPath =
+            (* use curl to copy the file, as opposed to hitting an external server *)
+            let output = Path.(tempPath / "output.txt") in
+
+            (* We need to normalize the path on Windows - file:///E:/.../ won't work! *)
+            (* The normalize gives us a path of the form file:///cygdrive/e/.../ which does. *)
+            (* This won't impact HTTP requests though - just our test using the local file system *)
+            let url = "file:///some/nonexistent/file" in
+            let%lwt result = EsyLib.Curl.download ~output ("file://" ^ url) in
+
+            match result with
+            | Error _ -> Lwt.return true
+            | _ -> Lwt.return false
+        in
+        Fs.withTempDir f
+    in
+    TestLwt.runLwtTest test
