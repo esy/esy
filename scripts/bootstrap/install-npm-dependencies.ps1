@@ -10,9 +10,6 @@ function exitIfFailed() {
     }
 }
 
-npm install esy-bash@0.1.19
-npm install esy-ocaml/FastReplaceString.git#9450b6
-
 npm install babel-preset-env
 npm install babel-preset-flow
 npm install del
@@ -29,5 +26,11 @@ npm install tar-fs
 npm install tmp
 npm install outdent
 npm install rimraf
+
+# If updating the version for this,
+# make sure to also update it in `scripts/release-postinstall.js`, too!
+npm install esy-bash@0.1.21
+
+npm install esy-ocaml/FastReplaceString.git#9450b6
 
 exitIfFailed
