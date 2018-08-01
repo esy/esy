@@ -119,6 +119,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       env = {
         ...process.env,
         ESY__PREFIX: esyPrefixPath,
+        ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
         ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
         ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
         NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
