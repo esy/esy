@@ -49,8 +49,14 @@ let realpath : EsyLib.Path.t => t(EsyLib.Path.t, _);
 /** Get path stats. */
 let stat : EsyLib.Path.t => t(Unix.stats, _);
 
+/** Get path stats or return unix error. */
+let statOrError : Fpath.t => result(Unix.stats, (Unix.error, string, string));
+
 /** Get path stats (including info on symlinks). */
 let lstat : EsyLib.Path.t => t(Unix.stats, _);
+
+/** Get path stats or return unix error. */
+let lstatOrError : Fpath.t => result(Unix.stats, (Unix.error, string, string));
 
 /** Perform operation with a different working directory. */
 let withCwd : (EsyLib.Path.t, ~f: unit => t('a, 'e)) => t('a, 'e);
