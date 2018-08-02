@@ -205,4 +205,5 @@ module.exports = {
   readdir: fs.readdir,
   execFile: exec.execFile,
   createTestSandbox,
+  isWindows,
 };

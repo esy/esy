@@ -2,7 +2,7 @@
 
 const outdent = require('outdent');
 const helpers = require('./test/helpers.js');
-const {packageJson, dir, file, createTestSandbox} = helpers;
+const {isWindows, packageJson, dir, file, createTestSandbox} = helpers;
 
 const path = require('path');
 const fsUtils = require('./test/fs');
@@ -21,6 +21,10 @@ type File = {
 };
 
 type Node = Dir | File;
+
+// seems like in Windows we always get 0o666
+const perm755 = !isWindows ? 0o755 : 0o666;
+const perm644 = !isWindows ? 0o644 : 0o666;
 
 async function crawl(p: string): Promise<?Node> {
   if (!(await fsUtils.exists(p))) {
@@ -172,7 +176,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello.1',
               data: 'hello.1',
-              perm: 0o644,
+              perm: perm644,
             },
           ],
         },
@@ -184,7 +188,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello.2',
               data: 'hello.2',
-              perm: 0o644,
+              perm: perm644,
             },
           ],
         },
@@ -199,7 +203,7 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-share-root',
           data: 'hello-share-root',
-          perm: 0o644,
+          perm: perm644,
         },
         {
           type: 'dir',
@@ -209,7 +213,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello-share',
               data: 'hello-share',
-              perm: 0o644,
+              perm: perm644,
             },
           ],
         },
@@ -224,13 +228,13 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-lib-root',
           data: 'hello-lib-root',
-          perm: 0o644,
+          perm: perm644,
         },
         {
           type: 'file',
           basename: 'hello-libexec-root',
           data: 'hello-libexec-root',
-          perm: 0o755,
+          perm: perm755,
         },
         {
           type: 'dir',
@@ -240,13 +244,13 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello-lib',
               data: 'hello-lib',
-              perm: 0o644,
+              perm: perm644,
             },
             {
               type: 'file',
               basename: 'hello-libexec',
               data: 'hello-libexec',
-              perm: 0o755,
+              perm: perm755,
             },
           ],
         },
@@ -258,7 +262,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello-stub',
               data: 'hello-stub',
-              perm: 0o755,
+              perm: perm755,
             },
           ],
         },
@@ -270,7 +274,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello-toplevel',
               data: 'hello-toplevel',
-              perm: 0o644,
+              perm: perm644,
             },
           ],
         },
@@ -289,7 +293,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello-etc',
               data: 'hello-etc',
-              perm: 0o644,
+              perm: perm644,
             },
           ],
         },
@@ -308,7 +312,7 @@ describe('esy-installer', () => {
               type: 'file',
               basename: 'hello-doc',
               data: 'hello-doc',
-              perm: 0o644,
+              perm: perm644,
             },
           ],
         },
@@ -323,13 +327,13 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-bin',
           data: 'hello-bin',
-          perm: 0o755,
+          perm: perm755,
         },
         {
           type: 'file',
           basename: 'simple',
           data: 'simple',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     };
@@ -342,7 +346,7 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-sbin',
           data: 'hello-sbin',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     };
@@ -401,7 +405,7 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-bin',
           data: 'hello-bin',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     });
@@ -437,7 +441,7 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-bin',
           data: 'hello-bin',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     });
@@ -481,13 +485,13 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-bin',
           data: 'hello-bin',
-          perm: 0o755,
+          perm: perm755,
         },
         {
           type: 'file',
           basename: 'hello-bin2',
           data: 'hello-bin2',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     });
@@ -522,7 +526,7 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'hello-bin.exe',
           data: 'hello-bin.exe',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     });
@@ -560,19 +564,19 @@ describe('esy-installer', () => {
           type: 'file',
           basename: 'exists',
           data: 'exists',
-          perm: 0o755,
+          perm: perm755,
         },
         {
           type: 'file',
           basename: 'hello-bin',
           data: 'hello-bin',
-          perm: 0o755,
+          perm: perm755,
         },
         {
           type: 'file',
           basename: 'ok',
           data: 'exists',
-          perm: 0o755,
+          perm: perm755,
         },
       ],
     });
