@@ -5,12 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": [
-      [
-        "dune",
-        "build",
-        "-j",
-        "4"
-      ],
+      ["dune", "build", "-j", "4"],
       [
         "dune",
         "build",
@@ -19,20 +14,15 @@
       ]
     ],
     "install": [
-      [
-        "esy-installer",
-        "./esy-build-package.install"
-      ],
-      [
-        "esy-installer",
-        "./esy.install"
-      ]
+      ["esy-installer", "./esy-build-package.install"],
+      ["esy-installer", "./esy.install"]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
-    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
+    "bootstrap:install-dependencies":
+      "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
@@ -63,7 +53,7 @@
     "@opam/ppx_let": "^100000000.9.0",
     "@opam/re": "^1.7.1",
     "@opam/yojson": "*",
-    "esy-solve-cudf": "^0.1.0",
+    "esy-solve-cudf": "^0.1.5",
     "fastreplacestring": "github:esy-ocaml/FastReplaceString#9450b6"
   },
   "resolutions": {
