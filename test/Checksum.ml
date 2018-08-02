@@ -1,7 +1,7 @@
 module Fs = EsyLib.Fs
 module Path = EsyLib.Path
 
-let%test "checksum validates a simple file" =
+let%test "checksum validates a simple file: md5" =
     let test () = 
         let f tempPath =
             let path = Path.(tempPath / "checksum-test.txt") in
