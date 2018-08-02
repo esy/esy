@@ -389,7 +389,7 @@ function main() {
   }
 
   function initStore() {
-    fsMkdir(storePath).then(function() {
+    return fsMkdir(storePath).then(function() {
       return Promise.all([
         fsMkdir(path.join(storePath, STORE_BUILD_TREE)),
         fsMkdir(path.join(storePath, STORE_INSTALL_TREE)),
