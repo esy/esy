@@ -135,9 +135,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
           resolveCmdInEnv ~env prg
         | _ -> Ok prg
       in
-      match System.Platform.host with
-      | Windows -> return ("", Array.of_list (prg::args))
-      | _ -> return (prg, Array.of_list (prg::args))
+      return (prg, Array.of_list (prg::args))
     ) in
 
   let env = Option.map env ~f:(fun env -> env
