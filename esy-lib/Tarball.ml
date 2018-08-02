@@ -74,5 +74,15 @@ let unpack ?stripComponents ~dst filename =
   | _ -> unpackWithTar ?stripComponents ~dst filename
 
 let create ~filename src =
-  let cmd = Cmd.(v "tar" % "czf" % p filename % "-C" % p src % ".") in
-  ChildProcess.run cmd
+  let nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
+  let ns = EsyBash.normalizePathForCygwin (Path.to_string src) in
+
+  match (nf, ns) with 
+  | Ok vnf, Ok vns -> 
+      let cmd = Cmd.(v "tar" % "czf" % vnf % "-C" % vns % ".") in
+      let res = EsyBash.run (Cmd.toBosCmd cmd) in
+      begin match res with
+      | _ -> RunAsync.return ()
+      end
+  | _ -> RunAsync.error ("Unable to tar") 
+
