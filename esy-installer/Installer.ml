@@ -70,7 +70,10 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
           let srcPath = Fpath.add_ext ".exe" srcPath in
           let dstPath = Fpath.add_ext ".exe" dstPath in
           copy ~tryAddExeIfNotExist:false srcPath dstPath
-        else error (Format.asprintf "source path %a does not exist" Fpath.pp srcPath)
+        else
+          if src.optional
+          then return ()
+          else error (Format.asprintf "source path %a does not exist" Fpath.pp srcPath)
 
       | Ok (`Stats stats) ->
         let perm =

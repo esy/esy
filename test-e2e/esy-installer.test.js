@@ -527,4 +527,54 @@ describe('esy-installer', () => {
       ],
     });
   });
+
+  it('skips non-existent file marked with leading ?', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+        },
+      }),
+      file(
+        'root.install',
+        outdent`
+          bin: [
+            "bin/hello-bin"
+            "?bin/exists" {"ok"}
+            "?bin/exists"
+            "?bin/does-not-exist"
+          ]
+        `,
+      ),
+      dir('bin', file('exists', 'exists'), file('hello-bin', 'hello-bin')),
+    ];
+    const p = await createTestSandbox(...fixture);
+    await p.esy('x ls');
+    expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
+      type: 'dir',
+      basename: 'bin',
+      nodes: [
+        {
+          type: 'file',
+          basename: 'exists',
+          data: 'exists',
+          perm: 0o755,
+        },
+        {
+          type: 'file',
+          basename: 'hello-bin',
+          data: 'hello-bin',
+          perm: 0o755,
+        },
+        {
+          type: 'file',
+          basename: 'ok',
+          data: 'exists',
+          perm: 0o755,
+        },
+      ],
+    });
+  });
 });
