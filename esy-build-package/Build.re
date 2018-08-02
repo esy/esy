@@ -314,7 +314,7 @@ module Installer =
 
 let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
   Logs.app(m =>
-    m("# esy-build-package: installing using built-in installer2")
+    m("# esy-build-package: installing using built-in installer")
   );
   let res = Installer.run(~prefixPath, ~rootPath, installFilename);
   Run.coerceFromClosed(res);
@@ -389,7 +389,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     | None => ok
     };
   };
-  let relocate = (path: Path.t, stats: Unix.stats) => {
+  let relocate = (path: Path.t, stats: Unix.stats) =>
     switch (stats.st_kind) {
     | Unix.S_REG =>
       rewritePrefixesInFile(
@@ -405,7 +405,6 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       )
     | _ => Ok()
     };
-};
   let%bind () =
     write(
       ~data=Path.to_string(config.storePath),
