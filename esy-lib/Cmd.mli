@@ -32,6 +32,8 @@ val addArgs : string list -> t -> t
 
 val getToolAndArgs : t -> string * string list
 
+val ofToolAndLine: string * string array -> t
+
 (**
  * Get a tuple of a tool and a list of argv suitable to be passed into
  * Lwt_process or Unix family of functions.

@@ -135,7 +135,9 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
           resolveCmdInEnv ~env prg
         | _ -> Ok prg
       in
-      return (prg, Array.of_list (prg::args))
+      match System.Platform.host with
+      | Windows -> return ("", Array.of_list (prg::args))
+      | _ -> return (prg, Array.of_list (prg::args))
     ) in
 
   let env = Option.map env ~f:(fun env -> env
@@ -157,7 +159,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
   in
 
   try%lwt
-    Lwt_process.with_process_in ?env ?stdin ?stderr cmdLwt f
+    EsyBashLwt.with_process_in ?env ?stdin ?stderr cmdLwt f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in

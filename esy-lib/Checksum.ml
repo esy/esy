@@ -66,12 +66,15 @@ let checkFile ~path (checksum : t) =
       | Sha256, _ -> sha256sum
       | Sha512, _ -> sha512sum
     in
-    let%bind out = ChildProcess.runOut Cmd.(cmd % p path) in
-    match Astring.String.cut ~sep:" " out with
-    | Some (v, _) -> return v
-    | None -> return (String.trim out)
+    let normalizedPath = EsyBash.normalizePathForCygwin (Path.to_string path) in
+    match normalizedPath with
+    | Error _ -> RunAsync.error "Unable to normalize path"
+    | Ok path -> 
+        let%bind out = ChildProcess.runOut Cmd.(cmd % path) in
+        match Astring.String.cut ~sep:" " out with
+        | Some (v, _) -> return v
+        | None -> return (String.trim out)
   in
-
   let _, cvalue = checksum in
   if cvalue = value
   then return ()
