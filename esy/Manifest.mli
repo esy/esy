@@ -188,19 +188,45 @@ module Opam : sig
   val dependencies : t -> string list list
   val optDependencies : t -> string list list
 
-  val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
-  val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
-
   val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
   val substs : t -> OpamTypes.basename list
-
-  val hasMultipleOpamFiles : t -> bool
-
 end
 
 type t =
   | Esy of Esy.t
   | Opam of Opam.t
 
+type commands =
+  | OpamCommands of OpamTypes.command list
+  | EsyCommands of CommandList.t
+
+val name : t -> string
+val version : t -> string
+
+val dependencies : t -> string list list
+val devDependencies : t -> string list list
+val optDependencies : t -> string list list
+val buildTimeDependencies : t -> string list list
+
+val sourceType : t -> SourceType.t
+val buildType : t -> BuildType.t option
+val buildCommands : t -> commands
+val installCommands : t -> commands
+
+val exportedEnv : t -> ExportedEnv.t
+val sandboxEnv : t -> Env.t
+val buildEnv : t -> Env.t
+
+val uniqueDistributionId : t -> string option
+
+(**
+ * Load manifest given a directory.
+ *
+ * Return `None` is no manifets was found.
+ *
+ * If manifest was found then returns also a set of paths which were used to
+ * load manifest. Client code can check those paths to invalidate caches.
+ *)
 val ofDir : ?asRoot:bool -> Fpath.t -> (t * Fpath.set) option RunAsync.t
+
 val dirHasManifest : Fpath.t -> bool RunAsync.t

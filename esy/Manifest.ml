@@ -603,6 +603,116 @@ type t =
   | Esy of Esy.t
   | Opam of Opam.t
 
+type commands =
+  | OpamCommands of OpamTypes.command list
+  | EsyCommands of CommandList.t
+
+let name (m : t) =
+  match m with
+  | Opam m -> Opam.name m
+  | Esy m -> m.Esy.name
+
+let version (m : t) =
+  match m with
+  | Opam m -> Opam.version m
+  | Esy m -> m.Esy.version
+
+let sourceType (m : t) =
+  match m with
+  | Opam m -> Opam.sourceType m
+  | Esy m ->
+    begin match m.Esy._resolved with
+    | None -> SourceType.Transient
+    | Some _ -> SourceType.Immutable
+    end
+
+let buildType (m : t) =
+  match m with
+  | Opam m -> Some (Opam.buildType m)
+  | Esy m ->
+    begin match m.Esy.esy with
+    | None -> None
+    | Some m -> Some m.EsyManifest.buildsInSource
+    end
+
+let dependencies (m : t) =
+  match m with
+  | Opam m -> Opam.dependencies m
+  | Esy m -> Esy.dependencies m
+
+let devDependencies (m : t) =
+  match m with
+  | Opam _m -> []
+  | Esy m -> Esy.devDependencies m
+
+let buildTimeDependencies (m : t) =
+  match m with
+  | Opam _m -> []
+  | Esy m -> Esy.buildTimeDependencies m
+
+let optDependencies (m : t) =
+  match m with
+  | Opam m -> Opam.optDependencies m
+  | Esy m -> Esy.optDependencies m
+
+let exportedEnv (m : t) =
+  match m with
+  | Opam m -> Opam.exportedEnv m
+  | Esy m ->
+    begin match m.Esy.esy with
+    | None -> ExportedEnv.empty
+    | Some esy -> esy.EsyManifest.exportedEnv
+    end
+
+let buildEnv (m : t) =
+  match m with
+  | Opam _ -> Env.empty
+  | Esy m ->
+    begin match m.Esy.esy with
+    | None -> ExportedEnv.empty
+    | Some esy -> esy.EsyManifest.buildEnv
+    end
+
+let sandboxEnv (m : t) =
+  match m with
+  | Opam _ -> Env.empty
+  | Esy m ->
+    begin match m.Esy.esy with
+    | None -> ExportedEnv.empty
+    | Some esy -> esy.EsyManifest.sandboxEnv
+    end
+
+let buildCommands (m : t) =
+  match m with
+  | Opam m ->
+    begin match Opam.buildCommands m with
+    | Opam.Commands commands -> OpamCommands commands
+    | Opam.OverridenCommands commands -> EsyCommands commands
+    end
+  | Esy m ->
+    begin match m.Esy.esy with
+    | None -> EsyCommands CommandList.empty
+    | Some esy -> EsyCommands (esy.EsyManifest.build)
+    end
+
+let installCommands (m : t) =
+  match m with
+  | Opam m ->
+    begin match Opam.installCommands m with
+    | Opam.Commands commands -> OpamCommands commands
+    | Opam.OverridenCommands commands -> EsyCommands commands
+    end
+  | Esy m ->
+    begin match m.Esy.esy with
+    | None -> EsyCommands CommandList.empty
+    | Some esy -> EsyCommands (esy.EsyManifest.install)
+    end
+
+let uniqueDistributionId (m : t) =
+  match m with
+  | Opam m -> Some ("opam:" ^ Opam.version m)
+  | Esy m -> m.Esy._resolved
+
 let ofDir ?(asRoot=false) (path : Path.t) =
 
   let relative p =
