@@ -14,7 +14,6 @@ module Expr = struct
     | Rel of relop * t * t
     | Colon
     | PathSep
-    | OpamVar of opamVar
     [@@deriving (show, eq, ord)]
 
   and opamVar = string list * string
