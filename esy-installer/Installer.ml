@@ -17,7 +17,7 @@ end
 
 module type INSTALLER = sig
   type 'v computation
-  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> string option -> unit computation
+  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> Fpath.t option -> unit computation
 end
 
 (* This checks if we should try adding .exe extension *)
@@ -110,12 +110,12 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       in
       aux files
 
-  let run ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : string option) =
+  let run ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : Fpath.t option) =
 
     let%bind (packageName, spec) =
       let%bind filename =
         match filename with
-        | Some name -> return Fpath.(rootPath / name)
+        | Some name -> return Fpath.(rootPath // name)
         | None ->
           let%bind items = Fs.readdir rootPath in
           let isInstallFile filename = Fpath.has_ext ".install" filename in

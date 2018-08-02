@@ -638,7 +638,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             install(
               ~prefixPath=build.stagePath,
               ~rootPath,
-              ~installFilename,
+              ~installFilename=Path.v(installFilename),
               (),
             )
           | _ => error("multiple *.install files found")
@@ -652,7 +652,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             install(
               ~prefixPath=build.stagePath,
               ~rootPath,
-              ~installFilename,
+              ~installFilename=Path.v(installFilename),
               (),
             )
           | _ => error("multiple *.install files found")
@@ -662,7 +662,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             install(
               ~prefixPath=build.stagePath,
               ~rootPath,
-              ~installFilename,
+              ~installFilename=Path.v(installFilename),
               (),
             );
           EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);
