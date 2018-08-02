@@ -11,7 +11,7 @@ module type IO = sig
     val readdir : Fpath.t -> Fpath.t list computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
-    val stat : Fpath.t -> Unix.stats computation
+    val stat : Fpath.t -> [ | `Stats of Unix.stats | `DoesNotExist ] computation
   end
 end
 
@@ -19,6 +19,14 @@ module type INSTALLER = sig
   type 'v computation
   val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> string option -> unit computation
 end
+
+(* This checks if we should try adding .exe extension *)
+let shouldTryAddExeIfNotExist =
+  match Sys.os_type with
+    | "Win32" -> true
+    | "Unix" -> false
+    | "Cygwin" -> false
+    | _ -> true (* won't make it worse, I guess *)
 
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation = struct
 
@@ -53,24 +61,37 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       | None -> Fpath.(prefixPath / Fpath.basename srcPath)
       | Some dstFilename -> Fpath.(prefixPath // dstFilename)
     in
-    match%bind handle (Fs.stat srcPath) with
-    | Ok stats ->
-      let perm =
-        if executable
-        then setExecutable stats.Unix.st_perm
-        else unsetExecutable stats.Unix.st_perm
-      in
-      let%bind () = Fs.mkdir (Fpath.parent dstPath) in
-      let%bind () =
-        let%bind data = Fs.read srcPath in
-        Fs.write ~data ~perm dstPath
-      in
-      return ()
 
-    | Error msg ->
-      if src.optional
-      then return ()
-      else error msg
+    let rec copy ~tryAddExeIfNotExist srcPath dstPath =
+      match%bind handle (Fs.stat srcPath) with
+      | Ok `DoesNotExist ->
+        if tryAddExeIfNotExist && not (Fpath.has_ext ".exe" srcPath)
+        then
+          let srcPath = Fpath.add_ext ".exe" srcPath in
+          let dstPath = Fpath.add_ext ".exe" dstPath in
+          copy ~tryAddExeIfNotExist:false srcPath dstPath
+        else error (Format.asprintf "source path %a does not exist" Fpath.pp srcPath)
+
+      | Ok (`Stats stats) ->
+        let perm =
+          if executable
+          then setExecutable stats.Unix.st_perm
+          else unsetExecutable stats.Unix.st_perm
+        in
+        let%bind () = Fs.mkdir (Fpath.parent dstPath) in
+        let%bind () =
+          let%bind data = Fs.read srcPath in
+          Fs.write ~data ~perm dstPath
+        in
+        return ()
+
+      | Error msg ->
+        if src.optional
+        then return ()
+        else error msg
+    in
+
+    copy ~tryAddExeIfNotExist:shouldTryAddExeIfNotExist srcPath dstPath
 
     let installSection ?executable ?makeDstFilename ~rootPath ~prefixPath files =
       let rec aux = function
