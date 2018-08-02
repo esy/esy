@@ -22,11 +22,13 @@ end
 
 (* This checks if we should try adding .exe extension *)
 let shouldTryAddExeIfNotExist =
-  match Sys.os_type with
-    | "Win32" -> true
-    | "Unix" -> false
-    | "Cygwin" -> false
-    | _ -> true (* won't make it worse, I guess *)
+  match Sys.getenv_opt "ESY_INSTALLER__FORCE_EXE", Sys.os_type with
+    | (None | Some "false"), "Win32" -> true
+    | (None | Some "false"), "Unix" -> false
+    | (None | Some "false"), "Cygwin" -> false
+    | _, _ -> true (* won't make it worse, I guess *)
+
+let () =  print_endline (string_of_bool shouldTryAddExeIfNotExist)
 
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation = struct
 
