@@ -1,3 +1,7 @@
+(**
+ * This module represents esy/opam manifest.
+ *)
+
 module CommandList :sig
   module Command : sig
     type t =
@@ -160,17 +164,6 @@ module Esy : sig
   val ofFile : Fpath.t -> t RunAsync.t
   val findOfDir : Fpath.t -> Fpath.t option RunAsync.t
   val ofDir : Fpath.t -> (t * Fpath.set) option RunAsync.t
-end
-
-module OpamOverride : sig
-  type t = {
-    build : CommandList.t option;
-    install : CommandList.t option;
-    exportedEnv : ExportedEnv.t;
-    dependencies : Esy.Dependencies.t;
-  }
-  val of_yojson : t Json.decoder
-  val ofFile : Fpath.t -> t RunAsync.t
 end
 
 module Opam : sig
