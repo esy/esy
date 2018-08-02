@@ -3,6 +3,7 @@ platform:
 
 cache:
     - C:\Users\appveyor\.opam -> **\dune
+    - C:\Users\appveyor\.esytest
 
 install:
     - where git
