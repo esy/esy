@@ -1,4 +1,4 @@
-let toRunAsyncCommand = (cmd: Cmd.t) => {
+let toRunAsyncCommand = (cmd) => {
     let resolvedCommand = EsyBash.toEsyBashCommand(Cmd.toBosCmd(cmd));
     switch (resolvedCommand) {
     | Ok(v) => RunAsync.return(Cmd.ofBosCmd(v))
