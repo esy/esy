@@ -306,7 +306,20 @@ module Installer =
     module Fs = {
       let read = Run.read;
       let write = Run.write;
-      let stat = Run.lstat;
+      let stat = path =>
+        switch (Run.lstatOrError(path)) {
+        | Ok(stats) => Run.return(`Stats(stats))
+        | Error((Unix.ENOENT, _call, _msg)) => Run.return(`DoesNotExist)
+        | Error((errno, _call, _msg)) =>
+          let msg =
+            Format.asprintf(
+              "stat %a: %s",
+              Path.pp,
+              path,
+              Unix.error_message(errno),
+            );
+          Run.error(msg);
+        };
       let readdir = Run.ls;
       let mkdir = Run.mkdir;
     };
@@ -367,16 +380,30 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     let destPrefixString = Path.to_string(destPrefix);
     switch (System.Platform.host) {
     | Windows =>
-        /* On Windows, the slashes could be either `/` or windows-style `\` */
-        /* We'll replace both styles */
-        let%bind () = rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
-        let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
-        let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
-        let%bind () = rewritePrefixInFile(~origPrefix=normalizedOrigPrefix, ~destPrefix=normalizedDestPrefix, path);
-        ok;
+      /* On Windows, the slashes could be either `/` or windows-style `\` */
+      /* We'll replace both styles */
+      let%bind () =
+        rewritePrefixInFile(
+          ~origPrefix=origPrefixString,
+          ~destPrefix=destPrefixString,
+          path,
+        );
+      let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
+      let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
+      let%bind () =
+        rewritePrefixInFile(
+          ~origPrefix=normalizedOrigPrefix,
+          ~destPrefix=normalizedDestPrefix,
+          path,
+        );
+      ok;
     | _ =>
-        rewritePrefixInFile(~origPrefix=origPrefixString, ~destPrefix=destPrefixString, path);
-    }
+      rewritePrefixInFile(
+        ~origPrefix=origPrefixString,
+        ~destPrefix=destPrefixString,
+        path,
+      )
+    };
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
     let%bind targetPath = readlink(path);
@@ -611,7 +638,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             install(
               ~prefixPath=build.stagePath,
               ~rootPath,
-              ~installFilename,
+              ~installFilename=Path.v(installFilename),
               (),
             )
           | _ => error("multiple *.install files found")
@@ -625,7 +652,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             install(
               ~prefixPath=build.stagePath,
               ~rootPath,
-              ~installFilename,
+              ~installFilename=Path.v(installFilename),
               (),
             )
           | _ => error("multiple *.install files found")
@@ -635,7 +662,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
             install(
               ~prefixPath=build.stagePath,
               ~rootPath,
-              ~installFilename,
+              ~installFilename=Path.v(installFilename),
               (),
             );
           EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);

@@ -35,31 +35,44 @@ let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 
 let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
 let stat = Bos.OS.Path.stat;
+
+let rec statOrError = p =>
+  try (Ok(Unix.stat(Fpath.to_string(p)))) {
+  | Unix.Unix_error(Unix.EINTR, _, _) => statOrError(p)
+  | Unix.Unix_error(errno, call, msg) => Error((errno, call, msg))
+  };
+
 let lstat = Bos.OS.Path.symlink_stat;
+
+let rec lstatOrError = p =>
+  try (Ok(Unix.lstat(Fpath.to_string(p)))) {
+  | Unix.Unix_error(Unix.EINTR, _, _) => statOrError(p)
+  | Unix.Unix_error(errno, call, msg) => Error((errno, call, msg))
+  };
+
 let link = Bos.OS.Path.link;
 let symlink = (~force=?, ~target, dest) => {
-    let result = Bos.OS.Path.symlink(~force=?force, ~target, dest);
-    /**
+  let result = Bos.OS.Path.symlink(~force?, ~target, dest);
+  /**
      * Windows sometimes reports a failure result even on success.
      * May be related to: https://github.com/dbuenzli/bos/issues/41
      */
+  (
     switch (System.Platform.host) {
     | Windows =>
-        let errorRegex = Str.regexp(".*?The operation completed successfully.*?");
-        switch (result) {
-            | Ok(_) => result
-            | Error(`Msg(msg)) => 
-                let r = Str.string_match(errorRegex, msg, 0);
-                /* If the error message is "The operation completed successfully", we'll ignore. */
-                if (r) {
-                    ok;
-                } else {
-                    result;
-                }
-            | _ => result
-        };
+      let errorRegex =
+        Str.regexp(".*?The operation completed successfully.*?");
+      switch (result) {
+      | Ok(_) => result
+      | Error(`Msg(msg)) =>
+        let r = Str.string_match(errorRegex, msg, 0);
+        /* If the error message is "The operation completed successfully", we'll ignore. */
+        if (r) {ok} else {result};
+      | _ => result
+      };
     | _ => result
-    };
+    }
+  );
 };
 let readlink = Bos.OS.Path.symlink_target;
 

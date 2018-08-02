@@ -11,14 +11,22 @@ module type IO = sig
     val readdir : Fpath.t -> Fpath.t list computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
-    val stat : Fpath.t -> Unix.stats computation
+    val stat : Fpath.t -> [ | `Stats of Unix.stats | `DoesNotExist ] computation
   end
 end
 
 module type INSTALLER = sig
   type 'v computation
-  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> string option -> unit computation
+  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> Fpath.t option -> unit computation
 end
+
+(* This checks if we should try adding .exe extension *)
+let shouldTryAddExeIfNotExist =
+  match Sys.getenv_opt "ESY_INSTALLER__FORCE_EXE", Sys.os_type with
+    | (None | Some "false"), "Win32" -> true
+    | (None | Some "false"), "Unix" -> false
+    | (None | Some "false"), "Cygwin" -> false
+    | _, _ -> true (* won't make it worse, I guess *)
 
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation = struct
 
@@ -53,34 +61,51 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       | None -> Fpath.(prefixPath / Fpath.basename srcPath)
       | Some dstFilename -> Fpath.(prefixPath // dstFilename)
     in
-    match%bind handle (Fs.stat srcPath) with
-    | Ok stats ->
-      let perm =
-        if executable
-        then setExecutable stats.Unix.st_perm
-        else unsetExecutable stats.Unix.st_perm
-      in
-      let%bind () = Fs.mkdir (Fpath.parent dstPath) in
-      let%bind () =
-        let%bind data = Fs.read srcPath in
-        Fs.write ~data ~perm dstPath
-      in
-      return ()
-    | Error msg ->
-      if src.optional
-      then return ()
-      else error msg
 
-    let installSection ?executable ?dstFilename ~rootPath ~prefixPath files =
+    let rec copy ~tryAddExeIfNotExist srcPath dstPath =
+      match%bind handle (Fs.stat srcPath) with
+      | Ok `DoesNotExist ->
+        if tryAddExeIfNotExist && not (Fpath.has_ext ".exe" srcPath)
+        then
+          let srcPath = Fpath.add_ext ".exe" srcPath in
+          let dstPath = Fpath.add_ext ".exe" dstPath in
+          copy ~tryAddExeIfNotExist:false srcPath dstPath
+        else
+          if src.optional
+          then return ()
+          else error (Format.asprintf "source path %a does not exist" Fpath.pp srcPath)
+
+      | Ok (`Stats stats) ->
+        let perm =
+          if executable
+          then setExecutable stats.Unix.st_perm
+          else unsetExecutable stats.Unix.st_perm
+        in
+        let%bind () = Fs.mkdir (Fpath.parent dstPath) in
+        let%bind () =
+          let%bind data = Fs.read srcPath in
+          Fs.write ~data ~perm dstPath
+        in
+        return ()
+
+      | Error msg ->
+        if src.optional
+        then return ()
+        else error msg
+    in
+
+    copy ~tryAddExeIfNotExist:shouldTryAddExeIfNotExist srcPath dstPath
+
+    let installSection ?executable ?makeDstFilename ~rootPath ~prefixPath files =
       let rec aux = function
         | [] -> return ()
         | (src, dstFilenameSpec)::rest ->
           let dstFilename =
-            match dstFilenameSpec, dstFilename with
+            match dstFilenameSpec, makeDstFilename with
             | Some name, _ -> Some (Fpath.v (OpamFilename.Base.to_string name))
-            | None, Some dstFilename ->
+            | None, Some makeDstFilename ->
               let src = Fpath.v (OpamFilename.Base.to_string src.OpamTypes.c) in
-              Some (dstFilename src)
+              Some (makeDstFilename src)
             | None, None -> None
           in
           let%bind () = installFile ?executable ~rootPath ~prefixPath ~dstFilename src in
@@ -88,12 +113,12 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
       in
       aux files
 
-  let run ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : string option) =
+  let run ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : Fpath.t option) =
 
     let%bind (packageName, spec) =
       let%bind filename =
         match filename with
-        | Some name -> return Fpath.(rootPath / name)
+        | Some name -> return Fpath.(rootPath // name)
         | None ->
           let%bind items = Fs.readdir rootPath in
           let isInstallFile filename = Fpath.has_ext ".install" filename in
@@ -209,12 +234,12 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
     in
 
     let%bind () =
-      let dstFilename src =
+      let makeDstFilename src =
         let num = Fpath.get_ext src in
         Fpath.(v ("man" ^ num) / basename src)
       in
       installSection
-        ~dstFilename
+        ~makeDstFilename
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "man")
         (F.man spec)

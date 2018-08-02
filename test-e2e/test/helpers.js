@@ -53,7 +53,7 @@ export type TestSandbox = {
   run: (args: string) => Promise<{stderr: string, stdout: string}>,
   esy: (
     args?: string,
-    options: ?{noEsyPrefix?: boolean},
+    options: ?{noEsyPrefix?: boolean, env?: Object},
   ) => Promise<{stderr: string, stdout: string}>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
@@ -112,12 +112,15 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     return JSON.parse(p.stdout);
   }
 
-  function esy(args?: string, options: ?{noEsyPrefix?: boolean}) {
+  function esy(args, options) {
     options = options || {};
     let env = process.env;
+    if (options.env != null) {
+      env = {...env, ...options.env};
+    }
     if (!options.noEsyPrefix) {
       env = {
-        ...process.env,
+        ...env,
         ESY__PREFIX: esyPrefixPath,
         ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
         ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
@@ -202,4 +205,5 @@ module.exports = {
   readdir: fs.readdir,
   execFile: exec.execFile,
   createTestSandbox,
+  isWindows,
 };
