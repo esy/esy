@@ -79,9 +79,13 @@ let create ~filename src =
 
   match (nf, ns) with 
   | Ok vnf, Ok vns -> 
+      print_endline ("Tarball::create - file: " ^ vnf ^ " src: " ^ vns);
       let cmd = Cmd.(v "tar" % "czf" % vnf % "-C" % vns % ".") in
       let res = EsyBash.run (Cmd.toBosCmd cmd) in
       begin match res with
+      | Ok _ ->
+         print_endline ("return: ");
+         RunAsync.return ()
       | _ -> RunAsync.return ()
       end
   | _ -> RunAsync.error ("Unable to tar") 

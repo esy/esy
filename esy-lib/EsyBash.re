@@ -61,6 +61,7 @@ let normalizePathForCygwin = path =>
           Fpath.to_string(rootPath) ++ " \"" ++ path ++ " \"",
         );
       let result = String.trim(input_line(ic));
+         print_endline("normalizePath: " ++ result);
       let () = close_in(ic);
       Ok(result);
     | _ => Ok(path)
