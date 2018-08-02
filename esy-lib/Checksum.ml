@@ -66,6 +66,7 @@ let checkFile ~path (checksum : t) =
       | Sha256, _ -> sha256sum
       | Sha512, _ -> sha512sum
     in
+    (* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths *)
     let normalizedPath = EsyBash.normalizePathForCygwin (Path.to_string path) in
     match normalizedPath with
     | Error _ -> RunAsync.error "Unable to normalize path"
