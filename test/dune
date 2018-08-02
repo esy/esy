@@ -2,16 +2,7 @@
   (name Test)
   (library_flags (-linkall))
   (libraries Esy EsyLib ppx_inline_test.runtime-lib)
-  (modules (:standard \ Test_runner))
-  (preprocess (pps ppx_inline_test ppxlib.runner))
+  (modules (:standard))
+  (preprocess (pps lwt_ppx ppx_let ppx_inline_test ppxlib.runner))
   )
 
-(executable
-  (name test_runner)
-  (modules test_runner)
-  (libraries Test ppx_inline_test.runner.lib))
-
-(alias
-  (name    runtest)
-  (deps    test_runner.exe)
-  (action  (run %{deps} inline-test-runner Test)))

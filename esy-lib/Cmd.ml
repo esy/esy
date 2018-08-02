@@ -33,7 +33,11 @@ let getToolAndArgs (tool, args) =
 
 let getToolAndLine (tool, args) =
   let args = List.rev args in
-  tool, Array.of_list (tool::args)
+  (* On Windows, we need the tool to be the empty string to use path resolution *)
+  (* More info here: http://ocsigen.org/lwt/3.2.1/api/Lwt_process *)
+  match System.Platform.host with
+  | Windows -> "", Array.of_list (tool::args)
+  | _ -> tool, Array.of_list (tool::args)
 
 let getTool (tool, _args) = tool
 
