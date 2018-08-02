@@ -8,10 +8,7 @@ const {
   file,
   ocamlPackage,
   exeExtension,
-  skipSuiteOnWindows,
 } = require('../test/helpers');
-
-skipSuiteOnWindows();
 
 const fixture = [
   packageJson({

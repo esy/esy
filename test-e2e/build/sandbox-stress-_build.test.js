@@ -1,9 +1,7 @@
 // @flow
 
 const path = require('path');
-const {createTestSandbox, packageJson, skipSuiteOnWindows} = require('../test/helpers');
-
-skipSuiteOnWindows();
+const {createTestSandbox, packageJson} = require('../test/helpers');
 
 const fixture = [
   packageJson({

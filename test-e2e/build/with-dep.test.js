@@ -7,10 +7,7 @@ const {
   dir,
   file,
   ocamlPackage,
-  skipSuiteOnWindows,
 } = require('../test/helpers');
-
-skipSuiteOnWindows();
 
 const fixture = [
   packageJson({

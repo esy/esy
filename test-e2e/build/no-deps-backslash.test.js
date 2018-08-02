@@ -1,5 +1,6 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 const outdent = require('outdent');
 const {
@@ -9,10 +10,7 @@ const {
   file,
   packageJson,
   exeExtension,
-  skipSuiteOnWindows,
 } = require('../test/helpers');
-
-skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
@@ -50,5 +48,5 @@ it('Build - no deps backslash', async () => {
   await p.esy('build');
 
   const {stdout} = await p.esy('x no-deps-backslash');
-  expect(stdout).toEqual('\\ no-deps-backslash \\\n');
+  expect(stdout).toEqual('\\ no-deps-backslash \\' + os.EOL);
 });

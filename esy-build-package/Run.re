@@ -1,5 +1,6 @@
 module Result = EsyLib.Result;
 module Path = EsyLib.Path;
+module System = EsyLib.System;
 
 type err('b) =
   [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
@@ -36,7 +37,30 @@ let rm = path => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
 let stat = Bos.OS.Path.stat;
 let lstat = Bos.OS.Path.symlink_stat;
 let link = Bos.OS.Path.link;
-let symlink = Bos.OS.Path.symlink;
+let symlink = (~force=?, ~target, dest) => {
+    let result = Bos.OS.Path.symlink(~force=?force, ~target, dest);
+    /**
+     * Windows sometimes reports a failure result even on success.
+     * May be related to: https://github.com/dbuenzli/bos/issues/41
+     */
+    switch (System.Platform.host) {
+    | Windows =>
+        let errorRegex = Str.regexp(".*?The operation completed successfully.*?");
+        switch (result) {
+            | Ok(_) => result
+            | Error(`Msg(msg)) => 
+                let r = Str.string_match(errorRegex, msg, 0);
+                /* If the error message is "The operation completed successfully", we'll ignore. */
+                if (r) {
+                    ok;
+                } else {
+                    result;
+                }
+            | _ => result
+        };
+    | _ => result
+    };
+};
 let readlink = Bos.OS.Path.symlink_target;
 
 let write = (~perm=?, ~data, path) =>
