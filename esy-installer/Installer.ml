@@ -28,8 +28,6 @@ let shouldTryAddExeIfNotExist =
     | (None | Some "false"), "Cygwin" -> false
     | _, _ -> true (* won't make it worse, I guess *)
 
-let () =  print_endline (string_of_bool shouldTryAddExeIfNotExist)
-
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation = struct
 
   open Io
