@@ -159,7 +159,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
   in
 
   try%lwt
-    EsyBashLwt.with_process_in ?env ?stdin ?stderr cmdLwt f
+    Lwt_process.with_process_in ?env ?stdin ?stderr cmdLwt f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
