@@ -66,21 +66,22 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
         Fs.write ~data ~perm dstPath
       in
       return ()
+
     | Error msg ->
       if src.optional
       then return ()
       else error msg
 
-    let installSection ?executable ?dstFilename ~rootPath ~prefixPath files =
+    let installSection ?executable ?makeDstFilename ~rootPath ~prefixPath files =
       let rec aux = function
         | [] -> return ()
         | (src, dstFilenameSpec)::rest ->
           let dstFilename =
-            match dstFilenameSpec, dstFilename with
+            match dstFilenameSpec, makeDstFilename with
             | Some name, _ -> Some (Fpath.v (OpamFilename.Base.to_string name))
-            | None, Some dstFilename ->
+            | None, Some makeDstFilename ->
               let src = Fpath.v (OpamFilename.Base.to_string src.OpamTypes.c) in
-              Some (dstFilename src)
+              Some (makeDstFilename src)
             | None, None -> None
           in
           let%bind () = installFile ?executable ~rootPath ~prefixPath ~dstFilename src in
@@ -209,12 +210,12 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
     in
 
     let%bind () =
-      let dstFilename src =
+      let makeDstFilename src =
         let num = Fpath.get_ext src in
         Fpath.(v ("man" ^ num) / basename src)
       in
       installSection
-        ~dstFilename
+        ~makeDstFilename
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "man")
         (F.man spec)
