@@ -12,13 +12,11 @@ install:
 # once we have an `esy` build published for Windows that supports a minimal set of primitives
 # to support our current build system.
     - git submodule update --init --recursive
-    - npm install esy-bash
-    - npm install esy-ocaml/FastReplaceString.git#9450b6
+    - powershell scripts/bootstrap/install-npm-dependencies.ps1
     - node scripts/bootstrap/copy-fastreplacestring.js
     - appveyor-retry yarn run bootstrap:esy-install
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
-    - powershell scripts/bootstrap/install-npm-dependencies.ps1
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
