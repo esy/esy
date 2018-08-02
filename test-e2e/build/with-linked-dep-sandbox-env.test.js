@@ -11,7 +11,10 @@ const {
   symlink,
   file,
   dir,
+  skipSuiteOnWindows,
 } = require('../test/helpers');
+
+skipSuiteOnWindows("Needs investigation");
 
 const fixture = [
   packageJson({
