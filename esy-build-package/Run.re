@@ -81,12 +81,11 @@ let rec realpath = (p: Fpath.t) => {
       Ok(p |> Fpath.append(cwd) |> Fpath.normalize);
     };
   let _realpath = (p: Fpath.t) => {
-    let isSymlinkAndExists = p => {
+    let isSymlinkAndExists = p =>
       switch (Bos.OS.Path.symlink_stat(p)) {
       | Ok({Unix.st_kind: Unix.S_LNK, _}) => Ok(true)
       | _ => Ok(false)
       };
-    };
     if (Fpath.is_root(p)) {
       Ok(p);
     } else {
