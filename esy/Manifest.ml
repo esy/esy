@@ -220,17 +220,7 @@ module EsyManifest = struct
     buildEnv: (Env.t [@default Env.empty]);
     sandboxEnv: (Env.t [@default Env.empty]);
     release: (EsyReleaseConfig.t option [@default None]);
-  } [@@deriving (show, of_yojson { strict = false })]
-
-  let empty = {
-    build = None;
-    install = None;
-    buildsInSource = BuildType.OutOfSource;
-    exportedEnv = [];
-    sandboxEnv = Env.empty;
-    buildEnv = Env.empty;
-    release = None;
-  }
+  } [@@deriving (of_yojson { strict = false })]
 
 end
 
@@ -241,11 +231,6 @@ module Esy = struct
 
     let empty = StringMap.empty
     let keys = StringMap.keys
-
-    let pp =
-      let open Fmt in
-      let ppBinding = hbox (pair (quote string) (quote string)) in
-      vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
 
     let of_yojson =
       Json.Parse.(stringMap string)
@@ -264,10 +249,7 @@ module Esy = struct
     buildTimeDependencies : (Dependencies.t [@default Dependencies.empty]);
     esy: EsyManifest.t option [@default None];
     _resolved: (string option [@default None]);
-  } [@@deriving (show, of_yojson {strict = false})]
-
-  let name manifest = manifest.name
-  let version manifest = manifest.version
+  } [@@deriving (of_yojson {strict = false})]
 
   let dependencies manifest =
     let dependencies =
@@ -346,8 +328,6 @@ module Opam : sig
     | Commands of OpamTypes.command list
     | OverridenCommands of CommandList.t
 
-  val opamName : t -> string
-
   val name : t -> string
   val version : t -> string
 
@@ -364,8 +344,8 @@ module Opam : sig
   val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
   val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
 
-  val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
-  val substs : t -> OpamTypes.basename list
+  val patches : t -> (Path.t * OpamTypes.filter option) list
+  val substs : t -> Path.t list
 
   val hasMultipleOpamFiles : t -> bool
 
@@ -438,11 +418,20 @@ end = struct
       Commands []
 
   let patches = function
-    | Installed manifest -> OpamFile.OPAM.patches manifest.opam
+    | Installed manifest ->
+      let patches = OpamFile.OPAM.patches manifest.opam in
+      let f (name, filter) =
+        let name = Path.v (OpamFilename.Base.to_string name) in
+        (name, filter)
+      in
+      List.map ~f patches
     | AggregatedRoot _ -> []
 
   let substs = function
-    | Installed manifest -> OpamFile.OPAM.substs manifest.opam
+    | Installed manifest ->
+      let names = OpamFile.OPAM.substs manifest.opam in
+      let f name = Path.v (OpamFilename.Base.to_string name) in
+      List.map ~f names
     | AggregatedRoot _ -> []
 
   let exportedEnv = function
@@ -607,6 +596,10 @@ type commands =
   | OpamCommands of OpamTypes.command list
   | EsyCommands of CommandList.t
 
+type kind =
+  | OpamKind
+  | EsyKind
+
 let name (m : t) =
   match m with
   | Opam m -> Opam.name m
@@ -708,10 +701,44 @@ let installCommands (m : t) =
     | Some esy -> EsyCommands (esy.EsyManifest.install)
     end
 
+let patches (m : t) =
+  match m with
+  | Opam m -> Opam.patches m
+  | Esy _ -> []
+
+let substs (m : t) =
+  match m with
+  | Opam m -> Opam.substs m
+  | Esy _ -> []
+
 let uniqueDistributionId (m : t) =
   match m with
   | Opam m -> Some ("opam:" ^ Opam.version m)
   | Esy m -> m.Esy._resolved
+
+let kind (m : t) =
+  match m with
+  | Opam _ -> OpamKind
+  | Esy _ -> EsyKind
+
+let releaseConfig (m : t) =
+  match m with
+  | Opam _ -> None
+  | Esy m ->
+    let open Option.Syntax in
+    let%bind m = m.Esy.esy in
+    let%bind c = m.EsyManifest.release in
+    return c
+
+let description (m : t) =
+  match m with
+  | Opam _ -> None
+  | Esy m -> m.Esy.description
+
+let license (m : t) =
+  match m with
+  | Opam _ -> None
+  | Esy m -> m.Esy.license
 
 let ofDir ?(asRoot=false) (path : Path.t) =
 
@@ -765,3 +792,5 @@ let dirHasManifest (path : Path.t) =
     | name -> Path.(name |> v |> has_ext ".opam")
   in
   return (List.exists ~f names)
+
+let findEsyManifestOfDir = Esy.findOfDir

@@ -23,8 +23,8 @@ module TestCommandExpr = struct
     version = "1.0.0";
     dependencies = [];
     build = Package.EsyBuild {
-      buildCommands = None;
-      installCommands = None;
+      buildCommands = Manifest.EsyCommands None;
+      installCommands = Manifest.EsyCommands None;
       buildType = Manifest.BuildType.InSource;
     };
     sourceType = Manifest.SourceType.Immutable;
@@ -56,11 +56,13 @@ module TestCommandExpr = struct
     version = "1.0.0";
     dependencies = [Dependency dep];
     build = Package.EsyBuild {
-      buildCommands = Some [
+      buildCommands = Manifest.EsyCommands (Some [
         Manifest.CommandList.Command.Unparsed "cp ./hello #{self.bin}";
         Manifest.CommandList.Command.Unparsed "cp ./hello2 #{pkg.bin}";
-      ];
-      installCommands = Some [Manifest.CommandList.Command.Parsed ["cp"; "./man"; "#{self.man}"]];
+      ]);
+      installCommands = Manifest.EsyCommands (Some [
+        Manifest.CommandList.Command.Parsed ["cp"; "./man"; "#{self.man}"]
+      ]);
       buildType = Manifest.BuildType.InSource;
     };
     sourceType = Manifest.SourceType.Immutable;
@@ -94,12 +96,12 @@ module TestCommandExpr = struct
     let pkg = Package.{
       pkg with
       build = Package.EsyBuild {
-        buildCommands = Some [
+        buildCommands = Manifest.EsyCommands (Some [
           Manifest.CommandList.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
-        ];
-        installCommands = Some [
+        ]);
+        installCommands = Manifest.EsyCommands (Some [
           Manifest.CommandList.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
-        ];
+        ]);
         buildType = Manifest.BuildType.InSource;
       }
     } in

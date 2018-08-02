@@ -3,7 +3,8 @@ type t = binding list [@@deriving (show, eq, ord)]
 and binding = {
   name : string;
   value : bindingValue;
-  origin : Package.t option;
+  origin : Package.t option
+    [@printer fun fmt origin -> Fmt.(option string) fmt (Option.map ~f:(fun o -> o.Package.id) origin)];
 } [@@deriving (show, eq, ord)]
 
 (* TODO: Expand this variant to include

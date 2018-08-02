@@ -62,29 +62,20 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
-  let%bind manifestOpt = Manifest.ofDir cfg.Config.sandboxPath in
-  let%bind manifest = match manifestOpt with
-    | Some (Manifest.Esy manifest, _path) -> return manifest
-    | Some (Manifest.Opam _, _path) ->
-      error "packages with opam manifests do not support release"
-    | None -> error "no manifest found"
-  in
-  let%bind releaseCfg =
-    RunAsync.ofOption ~err:"no release config found" (
-      let open Option.Syntax in
-      let%bind esyManifest = manifest.Manifest.Esy.esy in
-      let%bind releaseCfg = esyManifest.Manifest.EsyManifest.release in
-      return releaseCfg
-    )
-  in
-  return {
-    name = manifest.Manifest.Esy.name;
-    version = manifest.version;
-    license = manifest.license;
-    description = manifest.description;
-    releasedBinaries = releaseCfg.Manifest.EsyReleaseConfig.releasedBinaries;
-    deleteFromBinaryRelease = releaseCfg.Manifest.EsyReleaseConfig.deleteFromBinaryRelease;
-  }
+  match%bind Manifest.ofDir cfg.Config.sandboxPath with
+  | None -> error "no manifest found"
+  | Some (manifest, _) ->
+    let%bind releaseCfg =
+      RunAsync.ofOption ~err:"no release config found" (Manifest.releaseConfig manifest)
+    in
+    return {
+      name = Manifest.name manifest;
+      version = Manifest.version manifest;
+      license = Manifest.license manifest;
+      description = Manifest.description manifest;
+      releasedBinaries = releaseCfg.Manifest.EsyReleaseConfig.releasedBinaries;
+      deleteFromBinaryRelease = releaseCfg.Manifest.EsyReleaseConfig.deleteFromBinaryRelease;
+    }
 
 let dependenciesForRelease (task : Task.t) =
   let f deps dep = match dep with
@@ -208,11 +199,12 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           sourceType = Manifest.SourceType.Transient;
           sandboxEnv = pkg.sandboxEnv;
           buildEnv = Manifest.Env.empty;
-          build = Package.EsyBuild {
-              buildCommands = None;
-              installCommands = None;
-              buildType = Manifest.BuildType.OutOfSource;
-            };
+          buildCommands = Manifest.EsyCommands None;
+          installCommands = Manifest.EsyCommands None;
+          buildType = Manifest.BuildType.OutOfSource;
+          patches = [];
+          substs = [];
+          kind = Manifest.EsyKind;
           exportedEnv = [];
           sourcePath = pkg.sourcePath;
           resolution = None;

@@ -178,42 +178,29 @@ let ofDir (cfg : Config.t) =
         | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
       in
 
-      let build =
-        match manifest with
-        | Manifest.Opam opamManifest ->
-          Some (Package.OpamBuild {
-            name = Manifest.Opam.opamName opamManifest;
-            version = Manifest.Opam.version opamManifest;
-            buildCommands = Manifest.Opam.buildCommands opamManifest;
-            installCommands = Manifest.Opam.installCommands opamManifest;
-            patches = Manifest.Opam.patches opamManifest;
-            substs = Manifest.Opam.substs opamManifest;
-            buildType = Manifest.Opam.buildType opamManifest;
-          })
-      | Manifest.Esy esyManifest ->
-        begin match esyManifest.Manifest.Esy.esy with
-        | Some esyEsyManifest ->
-          Some (Package.EsyBuild {
-            buildCommands = esyEsyManifest.Manifest.EsyManifest.build;
-            installCommands = esyEsyManifest.install;
-            buildType = esyEsyManifest.buildsInSource;
-          })
-        | None -> None
-        end
-      in
-
-      match build with
-      | Some build ->
+      match Manifest.buildType manifest with
+      | Some buildType ->
         return (`EsyPkg (Package.{
           id = Path.to_string path;
           name = Manifest.name manifest;
           version = Manifest.version manifest;
           dependencies = StringMap.values dependencies;
+
           sourceType;
+          buildType;
+
           sandboxEnv = Manifest.sandboxEnv manifest;
           buildEnv = Manifest.buildEnv manifest;
           exportedEnv = Manifest.exportedEnv manifest;
-          build;
+
+          buildCommands = Manifest.buildCommands manifest;
+          installCommands = Manifest.installCommands manifest;
+
+          patches = Manifest.patches manifest;
+          substs = Manifest.substs manifest;
+
+          kind = Manifest.kind manifest;
+
           sourcePath = Config.Path.ofPath cfg sourcePath;
           resolution = Manifest.uniqueDistributionId manifest;
         }))
@@ -260,7 +247,7 @@ let ofDir (cfg : Config.t) =
     in
 
     let%bind scripts =
-      match%bind Manifest.Esy.findOfDir cfg.sandboxPath with
+      match%bind Manifest.findEsyManifestOfDir cfg.sandboxPath with
       | Some filename -> Manifest.Scripts.ofFile filename
       | None -> return Manifest.Scripts.empty
     in

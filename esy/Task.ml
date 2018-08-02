@@ -8,6 +8,11 @@
 
 module Store = EsyLib.Store
 
+let toOpamName name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", name) -> name
+  | _ -> name
+
 let toOCamlVersion version =
   match String.split_on_char '.' version with
   | major::minor::patch::[] ->
@@ -88,7 +93,7 @@ end
 
 type t = {
   id : string;
-  pkg : Package.t;
+  pkg : Package.t [@printer fun fmt pkg -> Fmt.string fmt pkg.Package.id];
 
   buildCommands : CommandList.t;
   installCommands : CommandList.t;
@@ -164,18 +169,12 @@ let buildId
   (rootPkg : Package.t)
   (pkg : Package.t)
   (dependencies : dependency list) =
-  let digest acc update = Digest.string (acc ^ "--" ^ update) in
-  let id =
-    match pkg.build with
-    | Package.EsyBuild build ->
-      List.fold_left ~f:digest ~init:"" [
-        Manifest.CommandList.show build.buildCommands;
-        Manifest.CommandList.show build.installCommands;
-        Manifest.BuildType.show build.buildType;
-        Manifest.Env.show pkg.buildEnv;
-        Manifest.Env.show rootPkg.sandboxEnv;
-      ]
-    | Package.OpamBuild build ->
+
+  let hashCommands (commands : Manifest.commands) =
+    match commands with
+    | Manifest.EsyCommands commands ->
+      Manifest.CommandList.show commands
+    | Manifest.OpamCommands commands ->
       let commandsToString (commands : OpamTypes.command list) =
         let argsToString (args : OpamTypes.arg list) =
           let f ((arg, filter) : OpamTypes.arg) =
@@ -204,30 +203,31 @@ let buildId
         |> List.map ~f
         |> String.concat ";"
       in
-      let patchesToString patches =
-        let f = function
-          | basename, None -> OpamFilename.Base.to_string basename
-          | basename, Some filter ->
-            let basename = OpamFilename.Base.to_string basename in
-            basename ^ " {" ^ (OpamFilter.to_string filter) ^ "}"
-        in
-        patches
-        |> List.map ~f
-        |> String.concat "__SEP__"
-      in
-      List.fold_left ~f:digest ~init:"" [
-        (match build.buildCommands with
-        | Manifest.Opam.Commands build ->
-          commandsToString build
-        | Manifest.Opam.OverridenCommands build ->
-          Manifest.CommandList.show build);
-        (match build.installCommands with
-        | Manifest.Opam.Commands install ->
-          commandsToString install
-        | Manifest.Opam.OverridenCommands install ->
-          Manifest.CommandList.show install);
-        patchesToString build.patches;
-      ]
+      commandsToString commands
+  in
+
+  let patchesToString patches =
+    let f = function
+      | path, None -> Path.toString path
+      | path, Some filter ->
+        let path = Path.toString path in
+        path ^ " {" ^ (OpamFilter.to_string filter) ^ "}"
+    in
+    patches
+    |> List.map ~f
+    |> String.concat "__SEP__"
+  in
+
+  let digest acc update = Digest.string (acc ^ "--" ^ update) in
+  let id =
+    List.fold_left ~f:digest ~init:"" [
+      hashCommands pkg.buildCommands;
+      hashCommands pkg.installCommands;
+      patchesToString pkg.patches;
+      Manifest.BuildType.show pkg.buildType;
+      Manifest.Env.show pkg.buildEnv;
+      Manifest.Env.show rootPkg.sandboxEnv;
+    ]
   in
   let id =
     List.fold_left ~f:digest ~init:id [
@@ -486,9 +486,8 @@ let ofPackage
   and taskOfPackage ~(includeSandboxEnv: bool) (pkg : Package.t) =
 
     let pkg =
-      match pkg.build with
-      | Package.EsyBuild {buildType = Manifest.BuildType.OutOfSource; _}
-      | Package.OpamBuild {buildType = Manifest.BuildType.OutOfSource; _} ->
+      match pkg.buildType with
+      | Manifest.BuildType.OutOfSource ->
         {
           pkg with
           buildEnv = {
@@ -561,24 +560,13 @@ let ofPackage
         Config.Path.(storePath / Store.buildTree / basename)
       in
       let rootPath =
-        match pkg.build, sourceType with
-        | Package.EsyBuild {buildType = InSource; _}, _
-        | Package.OpamBuild {buildType = InSource; _}, _  -> buildPath
-
-        | Package.EsyBuild {buildType = JbuilderLike; _}, Immutable
-        | Package.OpamBuild {buildType = JbuilderLike; _}, Immutable -> buildPath
-
-        | Package.EsyBuild {buildType = JbuilderLike; _}, Transient
-        | Package.OpamBuild {buildType = JbuilderLike; _}, Transient -> pkg.sourcePath
-
-        | Package.EsyBuild {buildType = OutOfSource; _}, _
-        | Package.OpamBuild {buildType = OutOfSource; _}, _ -> pkg.sourcePath
-
-        | Package.EsyBuild {buildType = Unsafe; _}, Immutable
-        | Package.OpamBuild {buildType = Unsafe; _}, Immutable  -> buildPath
-
-        | Package.EsyBuild {buildType = Unsafe; _}, _
-        | Package.OpamBuild {buildType = Unsafe; _}, _  -> pkg.sourcePath
+        match pkg.buildType, sourceType with
+        | InSource, _  -> buildPath
+        | JbuilderLike, Immutable -> buildPath
+        | JbuilderLike, Transient -> pkg.sourcePath
+        | OutOfSource, _ -> pkg.sourcePath
+        | Unsafe, Immutable  -> buildPath
+        | Unsafe, _  -> pkg.sourcePath
       in {
         rootPath;
         buildPath;
@@ -867,14 +855,15 @@ let ofPackage
 
     let opamEnvByDependency =
       let f map (task : t) =
-        match task.pkg.build with
-        | Package.OpamBuild {name; version;_} ->
+        match task.pkg.kind with
+        | Manifest.OpamKind ->
           let open OpamVariable in
+          let name = toOpamName task.pkg.name in
           let path v = string (Config.Value.show (Config.Path.toValue v)) in
           let vars = StringMap.(
             empty
             |> add "name" (string name)
-            |> add "version" (string version)
+            |> add "version" (string task.pkg.version)
             |> add "bin" (path Config.Path.(task.paths.installPath / "bin"))
             |> add "sbin" (path Config.Path.(task.paths.installPath / "sbin"))
             |> add "etc" (path Config.Path.(task.paths.installPath / "etc"))
@@ -885,7 +874,7 @@ let ofPackage
             |> add "build" (path task.paths.buildPath)
           ) in
           StringMap.add name vars map
-        | Package.EsyBuild _ -> map
+        | Manifest.EsyKind -> map
       in
       List.fold_left
         ~init:StringMap.empty
@@ -893,7 +882,7 @@ let ofPackage
         dependenciesTasks
     in
 
-    let opamEnv (build : Package.OpamBuild.t) (name : OpamVariable.Full.t) =
+    let opamEnv (name : OpamVariable.Full.t) =
       let open OpamVariable in
       let var = Full.variable name in
       let scope = Full.scope name in
@@ -908,8 +897,8 @@ let ofPackage
         | Full.Global, "ocaml-native" -> Some (bool true)
         | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
         | Full.Global, "make" -> Some (string "make")
-        | Full.Global, "name" -> Some (string build.name)
-        | Full.Global, "version" -> Some (string build.version)
+        | Full.Global, "name" -> Some (string (toOpamName pkg.name))
+        | Full.Global, "version" -> Some (string pkg.version)
         | Full.Global, "jobs" -> Some (string "4")
         | Full.Global, "prefix" -> Some (path paths.stagePath)
         | Full.Global, "bin" -> Some (path Config.Path.(paths.stagePath / "bin"))
@@ -944,40 +933,39 @@ let ofPackage
       v
     in
 
-    let renderOpamCommands (build : Package.OpamBuild.t) commands =
-      try return (OpamFilter.commands (opamEnv build) commands)
+    let renderOpamCommands commands =
+      try return (OpamFilter.commands opamEnv commands)
       with Failure msg -> error msg
     in
 
     let opamSubstsToCommands substs =
       let commands =
-        let f basename =
-          let basename = OpamFilename.Base.to_string basename in
-          ["substs"; basename ^ ".in"]
+        let f path =
+          let path = Path.addExt ".in" path in
+          ["substs"; Path.toString path]
         in
         List.map ~f substs
       in
       return commands
     in
 
-    let opamPatchesToCommands build patches =
+    let opamPatchesToCommands patches =
       Run.withContext "processing patch field" (
         let open Run.Syntax in
 
         let evalFilter = function
-          | basename, None -> return (basename, true)
-          | basename, Some filter ->
+          | path, None -> return (path, true)
+          | path, Some filter ->
             let%bind filter =
-              try return (OpamFilter.eval_to_bool (opamEnv build) filter)
+              try return (OpamFilter.eval_to_bool opamEnv filter)
               with Failure msg -> error msg
-            in return (basename, filter)
+            in return (path, filter)
         in
 
         let%bind filtered = Result.List.map ~f:evalFilter patches in
 
-        let toCommand (basename, _) =
-          let basename = OpamFilename.Base.to_string basename in
-          ["patch"; "--strip"; "1"; "--input"; basename]
+        let toCommand (path, _) =
+          ["patch"; "--strip"; "1"; "--input"; Path.toString path]
         in
 
         return (
@@ -991,50 +979,28 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        begin
-        match pkg.build with
-        | Package.EsyBuild {buildCommands; _} -> renderEsyCommands buildCommands
-        | Package.OpamBuild ({
-            buildCommands = Manifest.Opam.Commands buildCommands;
-            patches;
-            substs;
-            _
-          } as build) ->
-          let%bind applySubstsCommands = opamSubstsToCommands substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands build patches in
-          let%bind buildCommands = renderOpamCommands build buildCommands in
-          return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
-        | Package.OpamBuild ({
-            buildCommands = Manifest.Opam.OverridenCommands buildCommands;
-            patches;
-            substs;
-            _
-          } as build) ->
-          let%bind applySubstsCommands = opamSubstsToCommands substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands build patches in
-          let%bind buildCommands = renderEsyCommands buildCommands in
-          return (applySubstsCommands @ applyPatchesCommands @ buildCommands)
+        begin match pkg.buildCommands with
+        | Manifest.EsyCommands commands ->
+          let%bind commands = renderEsyCommands commands in
+          let%bind applySubstsCommands = opamSubstsToCommands pkg.substs in
+          let%bind applyPatchesCommands = opamPatchesToCommands pkg.patches in
+          return (applySubstsCommands @ applyPatchesCommands @ commands)
+        | Manifest.OpamCommands commands ->
+          let%bind commands = renderOpamCommands commands in
+          let%bind applySubstsCommands = opamSubstsToCommands pkg.substs in
+          let%bind applyPatchesCommands = opamPatchesToCommands pkg.patches in
+          return (applySubstsCommands @ applyPatchesCommands @ commands)
         end
     in
+
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        begin
-        match pkg.build with
-        | Package.EsyBuild {installCommands; _} ->
-          renderEsyCommands installCommands
-        | Package.OpamBuild ({
-            installCommands = Manifest.Opam.Commands installCommands;
-            _
-          } as build) ->
-          let%bind installCommands = renderOpamCommands build installCommands in
-          return installCommands
-        | Package.OpamBuild ({
-            installCommands = Manifest.Opam.OverridenCommands installCommands;
-            _
-          }) ->
-          let%bind installCommands = renderEsyCommands installCommands in
-          return installCommands
+        begin match pkg.installCommands with
+        | Manifest.EsyCommands commands ->
+          renderEsyCommands commands
+        | Manifest.OpamCommands commands ->
+          renderOpamCommands commands
         end
     in
 
@@ -1101,12 +1067,13 @@ let sandboxEnv (pkg : Package.t) =
     version = pkg.version;
     dependencies = (Package.Dependency pkg)::devDependencies;
     sourceType = Manifest.SourceType.Transient;
+    buildType = Manifest.BuildType.OutOfSource;
     exportedEnv = [];
-    build = Package.EsyBuild {
-      buildCommands = None;
-      installCommands = None;
-      buildType = Manifest.BuildType.OutOfSource;
-    };
+    buildCommands = Manifest.EsyCommands None;
+    installCommands = Manifest.EsyCommands None;
+    patches = [];
+    substs = [];
+    kind = Manifest.EsyKind;
     sandboxEnv = pkg.sandboxEnv;
     buildEnv = Manifest.Env.empty;
     sourcePath = pkg.sourcePath;
@@ -1143,17 +1110,12 @@ module DependencyGraph = DependencyGraph.Make(struct
   end)
 
 let toBuildProtocol (task : task) =
-  let buildType =
-    match task.pkg.build with
-    | Package.EsyBuild {buildType;_}
-    | Package.OpamBuild {buildType;_} -> buildType
-  in
   EsyBuildPackage.Task.{
     id = task.id;
     name = task.pkg.name;
     version = task.pkg.version;
     sourceType = task.sourceType;
-    buildType;
+    buildType = task.pkg.buildType;
     build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.buildCommands;
     install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.installCommands;
     sourcePath =

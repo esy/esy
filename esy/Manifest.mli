@@ -108,93 +108,11 @@ module EsyReleaseConfig : sig
   val of_yojson : t Json.decoder
 end
 
-module EsyManifest : sig
-  type t = {
-    build : CommandList.t;
-    install : CommandList.t;
-    buildsInSource : BuildType.t;
-    exportedEnv : ExportedEnv.t;
-    buildEnv : Env.t;
-    sandboxEnv : Env.t;
-    release : EsyReleaseConfig.t option;
-  }
+type t
 
-  val pp : t Fmt.t
-  val show : t -> string
-
-  val of_yojson : t Json.decoder
-
-  val empty : t
-end
-
-module Esy : sig
-
-  module Dependencies : sig
-    type t = string StringMap.t
-    val empty : t
-    val pp : t Fmt.t
-    val of_yojson : t Json.decoder
-  end
-
-  type t = {
-    name : string;
-    version : string;
-    description : string option;
-    license : Json.t option;
-    dependencies : Dependencies.t;
-    peerDependencies : Dependencies.t;
-    devDependencies : Dependencies.t;
-    optDependencies : Dependencies.t;
-    buildTimeDependencies : Dependencies.t;
-    esy : EsyManifest.t option;
-    _resolved : string option;
-  }
-
-  val pp : t Fmt.t
-  val show : t -> string
-  val of_yojson : t Json.decoder
-
-  val name : t -> string
-  val version : t -> string
-  val dependencies : t -> string list list
-  val devDependencies : t -> string list list
-  val optDependencies : t -> string list list
-  val buildTimeDependencies : t -> string list list
-
-  val ofFile : Fpath.t -> t RunAsync.t
-  val findOfDir : Fpath.t -> Fpath.t option RunAsync.t
-  val ofDir : Fpath.t -> (t * Fpath.set) option RunAsync.t
-end
-
-module Opam : sig
-  type t
-
-  type commands =
-    | Commands of OpamTypes.command list
-    | OverridenCommands of CommandList.t
-
-  val opamName : t -> string
-
-  val name : t -> string
-  val version : t -> string
-
-  val sourceType : t -> SourceType.t
-  val buildType : t -> BuildType.t
-
-  val buildCommands : t -> commands
-  val installCommands : t -> commands
-  val exportedEnv : t -> ExportedEnv.t
-
-  val dependencies : t -> string list list
-  val optDependencies : t -> string list list
-
-  val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
-  val substs : t -> OpamTypes.basename list
-end
-
-type t =
-  | Esy of Esy.t
-  | Opam of Opam.t
+type kind =
+  | OpamKind
+  | EsyKind
 
 type commands =
   | OpamCommands of OpamTypes.command list
@@ -202,6 +120,8 @@ type commands =
 
 val name : t -> string
 val version : t -> string
+val license : t -> Json.t option
+val description : t -> string option
 
 val dependencies : t -> string list list
 val devDependencies : t -> string list list
@@ -212,10 +132,16 @@ val sourceType : t -> SourceType.t
 val buildType : t -> BuildType.t option
 val buildCommands : t -> commands
 val installCommands : t -> commands
+val patches : t -> (Path.t * OpamTypes.filter option) list
+val substs : t -> Path.t list
 
 val exportedEnv : t -> ExportedEnv.t
 val sandboxEnv : t -> Env.t
 val buildEnv : t -> Env.t
+
+val kind : t -> kind
+
+val releaseConfig : t -> EsyReleaseConfig.t option
 
 val uniqueDistributionId : t -> string option
 
@@ -230,3 +156,5 @@ val uniqueDistributionId : t -> string option
 val ofDir : ?asRoot:bool -> Fpath.t -> (t * Fpath.set) option RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t
+
+val findEsyManifestOfDir : Fpath.t -> Fpath.t option RunAsync.t

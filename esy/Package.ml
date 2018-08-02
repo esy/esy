@@ -1,44 +1,23 @@
-module EsyBuild = struct
-  type t = {
-    buildCommands : Manifest.CommandList.t;
-    installCommands : Manifest.CommandList.t;
-    buildType : Manifest.BuildType.t;
-  } [@@deriving (show, ord, eq)]
-end
-
-module OpamBuild = struct
-  type t = {
-    name : string;
-    version : string;
-    buildCommands : Manifest.Opam.commands;
-    installCommands : Manifest.Opam.commands;
-    patches : (OpamFilename.Base.t * OpamTypes.filter option) list;
-    substs : OpamFilename.Base.t list;
-    buildType : Manifest.BuildType.t;
-  }
-
-  let pp fmt _v = Fmt.pf fmt "<opam>"
-  let compare _a _b = 0
-  let equal _a _b = false
-end
-
 type t = {
   id : string;
   name : string;
   version : string;
   dependencies : dependencies;
+  
+  buildCommands : ((Manifest.commands [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
+  installCommands : ((Manifest.commands [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
+  patches : (((Path.t * OpamTypes.filter option) list [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
+  substs : Path.t list;
+
   sourcePath : Config.Path.t;
   sourceType : Manifest.SourceType.t;
+  buildType : Manifest.BuildType.t;
   sandboxEnv : Manifest.Env.t;
   buildEnv : Manifest.Env.t;
   exportedEnv : Manifest.ExportedEnv.t;
+  kind : ((Manifest.kind [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
   resolution : string option;
-  build : build;
-} [@@deriving (show, ord, eq)]
-
-and build =
-  | EsyBuild of EsyBuild.t
-  | OpamBuild of OpamBuild.t
+} [@@deriving (eq, ord)]
 
 and dependencies =
   dependency list
