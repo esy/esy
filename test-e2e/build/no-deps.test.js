@@ -10,10 +10,7 @@ const {
   file,
   packageJson,
   exeExtension,
-  skipSuiteOnWindows,
 } = require('../test/helpers');
-
-skipSuiteOnWindows();
 
 const fixture = [
   packageJson({

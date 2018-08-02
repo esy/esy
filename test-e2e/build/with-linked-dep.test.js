@@ -14,10 +14,7 @@ const {
   symlink,
   ocamlPackage,
   exeExtension,
-  skipSuiteOnWindows,
 } = require('../test/helpers');
-
-skipSuiteOnWindows();
 
 const fixture = [
   packageJson({
