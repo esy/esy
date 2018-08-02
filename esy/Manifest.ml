@@ -50,6 +50,7 @@ end
 
 module Scripts = struct
 
+  [@@@ocaml.warning "-32"]
   type script = {
     command : CommandList.Command.t;
   }
@@ -111,6 +112,7 @@ end
  *)
 module Env = struct
 
+  [@@@ocaml.warning "-32"]
   type item = {
     name : string;
     value : string;
@@ -141,6 +143,7 @@ end
  *)
 module ExportedEnv = struct
 
+  [@@@ocaml.warning "-32"]
   type scope =
     | Local
     | Global
@@ -160,6 +163,7 @@ module ExportedEnv = struct
     [@@deriving of_yojson]
   end
 
+  [@@@ocaml.warning "-32"]
   type item = {
     name : string;
     value : string;
