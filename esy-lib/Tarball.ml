@@ -22,17 +22,17 @@ let copyAll ~src ~dst () =
 
 let run cmd =
   let f p =
-      let%lwt stdout = Lwt_io.read p#stdout	
-      and stderr = Lwt_io.read p#stderr in	
-      match%lwt p#status with	
-      | Unix.WEXITED 0 ->	
-        RunAsync.return ()	
-      | _ ->	
-        Logs_lwt.err (fun m -> m	
-          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"	
-          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout	
-        );%lwt	
-        RunAsync.error "error running command"	
+    let%lwt stdout = Lwt_io.read p#stdout	
+    and stderr = Lwt_io.read p#stderr in	
+    match%lwt p#status with	
+    | Unix.WEXITED 0 ->	
+      RunAsync.return ()	
+    | _ ->	
+      Logs_lwt.err (fun m -> m	
+        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"	
+        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout	
+      );%lwt	
+      RunAsync.error "error running command"	
   in	
   try%lwt	
     EsyBashLwt.with_process_full cmd f	
@@ -66,9 +66,7 @@ let unpackWithTar ?stripComponents ~dst filename =
 
 let unpackWithUnzip ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
-  let unpack out =
-    run Cmd.(v "unzip" % "-q" % "-d" % p out % p filename)
-  in
+  let unpack out = run Cmd.(v "unzip" % "-q" % "-d" % p out % p filename) in
   match stripComponents with
   | Some stripComponents ->
     Fs.withTempDir begin fun out ->
