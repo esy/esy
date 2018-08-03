@@ -22,26 +22,26 @@ let copyAll ~src ~dst () =
 
 let run cmd =
   let f p =
-    let%lwt stdout = Lwt_io.read p#stdout	
-    and stderr = Lwt_io.read p#stderr in	
-    match%lwt p#status with	
-    | Unix.WEXITED 0 ->	
-      RunAsync.return ()	
-    | _ ->	
-      Logs_lwt.err (fun m -> m	
-        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"	
-        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout	
-      );%lwt	
-      RunAsync.error "error running command"	
-  in	
-  try%lwt	
+    let%lwt stdout = Lwt_io.read p#stdout
+    and stderr = Lwt_io.read p#stderr in
+    match%lwt p#status with
+    | Unix.WEXITED 0 ->
+      RunAsync.return ()
+    | _ ->
+      Logs_lwt.err (fun m -> m
+        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
+      );%lwt
+      RunAsync.error "error running command"
+  in
+  try%lwt
     EsyBashLwt.with_process_full cmd f	
-  with	
-  | Unix.Unix_error (err, _, _) ->	
-    let msg = Unix.error_message err in	
-    RunAsync.error msg	
-  | _ ->	
-    RunAsync.error "error running subprocess"	
+  with
+  | Unix.Unix_error (err, _, _) ->
+    let msg = Unix.error_message err in
+    RunAsync.error msg
+  | _ ->
+    RunAsync.error "error running subprocess"
 
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
@@ -92,4 +92,3 @@ let create ~filename src =
     let%bind res = EsyBash.run (Cmd.toBosCmd cmd) in
     return res
   )
-
