@@ -91,7 +91,7 @@ export type TestSandbox = {
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
-  const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
+  const rootPath = await fs.realpath(await fs.mkdtemp(path.join(tmp, 'XXXX')));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const npmPrefixPath = path.join(rootPath, 'npm');
