@@ -1,3 +1,7 @@
+(**
+ * This represents sandbox.
+ *)
+
 type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
