@@ -501,7 +501,7 @@ let ofPackage
 
     let ocamlVersion =
       let f pkg = pkg.Package.name = "ocaml" in
-      match Package.DependencyGraph.find ~f pkg with
+      match Package.Graph.find ~f pkg with
       | Some pkg -> Some (toOCamlVersion pkg.version)
       | None -> None
     in

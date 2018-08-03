@@ -3,7 +3,7 @@ type t = {
   name : string;
   version : string;
   dependencies : dependencies;
-  
+
   buildCommands : ((Manifest.commands [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
   installCommands : ((Manifest.commands [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
   patches : (((Path.t * OpamTypes.filter option) list [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
@@ -42,7 +42,7 @@ let packageOf (dep : dependency) = match dep with
 | BuildTimeDependency pkg -> Some pkg
 | InvalidDependency _ -> None
 
-module DependencyGraph = DependencyGraph.Make(struct
+module Graph = DependencyGraph.Make(struct
 
   type t = pkg
 
