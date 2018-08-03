@@ -101,10 +101,10 @@ let ofDir (cfg : Config.t) =
 
       let f dependencies =
         function
-        | Ok (name, `EsyPkg pkg) ->
+        | Ok (name, `PackageWithBuild (pkg, _)) ->
           let dep = make pkg in
           StringMap.add name dep dependencies
-        | Ok (_, `NonEsyPkg transitiveDependencies) ->
+        | Ok (_, `Package transitiveDependencies) ->
           let f k v dependencies =
             if StringMap.mem k dependencies
             then dependencies
@@ -185,7 +185,8 @@ let ofDir (cfg : Config.t) =
           | false, Manifest.SourceType.Transient -> Manifest.SourceType.Transient
           | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
         in
-        return (`EsyPkg (Package.{
+        let pkg = {
+          Package.
           id = Path.to_string path;
           name = Manifest.name manifest;
           version = Manifest.version manifest;
@@ -193,9 +194,10 @@ let ofDir (cfg : Config.t) =
           build = {build with sourceType};
           sourcePath = Config.Path.ofPath cfg sourcePath;
           resolution = Manifest.uniqueDistributionId manifest;
-        }))
+        } in
+        return (`PackageWithBuild (pkg, manifest))
       | None ->
-        return (`NonEsyPkg dependencies)
+        return (`Package dependencies)
     in
 
     let pathToEsyLink = Path.(path / "_esylink") in
@@ -223,8 +225,7 @@ let ofDir (cfg : Config.t) =
   in
 
   match%bind loadPackageCached cfg.sandboxPath [] with
-  | `EsyPkg root, _ ->
-
+  | `PackageWithBuild (root, manifest), _ ->
     let%bind manifestInfo =
       let statPath path =
         let%bind stat = Fs.stat path in
@@ -235,14 +236,10 @@ let ofDir (cfg : Config.t) =
       |> List.map ~f:statPath
       |> RunAsync.List.joinAll
     in
-
     let%bind scripts =
-      match%bind Manifest.findEsyManifestOfDir cfg.sandboxPath with
-      | Some filename -> Manifest.Scripts.ofFile filename
-      | None -> return Manifest.Scripts.empty
+      RunAsync.ofRun (Manifest.scripts manifest)
     in
-
-    return {root;scripts;manifestInfo}
+    return {root; scripts; manifestInfo}
 
   | _ ->
     error "root package missing esy config"

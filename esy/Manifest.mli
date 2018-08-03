@@ -19,7 +19,6 @@ module Scripts : sig
   and script = { command : CommandList.Command.t; }
   val empty : t
   val find : string -> t -> script option
-  val ofFile : Fpath.t -> t RunAsync.t
 end
 
 module Env : sig
@@ -89,55 +88,67 @@ module Dependencies : sig
   }
 end
 
-(**
- * Manifest.
- *
- * This can be either esy manifest (package.json/esy.json) or opam manifest but
- * this type abstracts them out.
- *)
-type t
+module type MANIFEST = sig
+  (**
+   * Manifest.
+   *
+   * This can be either esy manifest (package.json/esy.json) or opam manifest but
+   * this type abstracts them out.
+   *)
+  type t
 
-(** Name. *)
-val name : t -> string
+  (** Name. *)
+  val name : t -> string
 
-(** Version. *)
-val version : t -> string
+  (** Version. *)
+  val version : t -> string
 
-(** License. *)
-val license : t -> Json.t option
+  (** License. *)
+  val license : t -> Json.t option
 
-(** Description. *)
-val description : t -> string option
+  (** Description. *)
+  val description : t -> string option
 
-(**
- * Extract dependency info.
- *)
-val dependencies : t -> Dependencies.t
+  (**
+   * Extract dependency info.
+   *)
+  val dependencies : t -> Dependencies.t
 
-(**
- * Extract build config from manifest
- *
- * Not all packages have build config defined so we return `None` in this case.
- *)
-val build : t -> Build.t option
+  (**
+   * Extract build config from manifest
+   *
+   * Not all packages have build config defined so we return `None` in this case.
+   *)
+  val build : t -> Build.t option
 
-(**
- * Extract release config from manifest
- *
- * Not all packages have release config defined so we return `None` in this
- * case.
- *)
-val release : t -> Release.t option
+  (**
+   * Extract release config from manifest
+   *
+   * Not all packages have release config defined so we return `None` in this
+   * case.
+   *)
+  val release : t -> Release.t option
 
-(**
- * Unique id of the release.
- *
- * This could be a released version, git sha commit or some checksum of package
- * contents if any.
- *
- * This info is used to construct a build key for the corresponding package.
- *)
-val uniqueDistributionId : t -> string option
+  (**
+   * Extract release config from manifest
+   *
+   * Not all packages have release config defined so we return `None` in this
+   * case.
+   *)
+  val scripts : t -> Scripts.t Run.t
+
+  (**
+   * Unique id of the release.
+   *
+   * This could be a released version, git sha commit or some checksum of package
+   * contents if any.
+   *
+   * This info is used to construct a build key for the corresponding package.
+   *)
+  val uniqueDistributionId : t -> string option
+end
+
+include MANIFEST
 
 (**
  * Load manifest given a directory.
@@ -150,5 +161,3 @@ val uniqueDistributionId : t -> string option
 val ofDir : ?asRoot:bool -> Fpath.t -> (t * Fpath.set) option RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t
-
-val findEsyManifestOfDir : Fpath.t -> Fpath.t option RunAsync.t

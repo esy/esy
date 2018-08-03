@@ -182,18 +182,13 @@ module Scripts = struct
   type script = {
     command : CommandList.Command.t;
   }
-  [@@deriving (show, eq, ord)]
+  [@@deriving (eq, ord)]
 
   type t =
     script StringMap.t
     [@@deriving (eq, ord)]
 
   let empty = StringMap.empty
-
-  let pp =
-    let open Fmt in
-    let ppBinding = hbox (pair (quote string) (quote pp_script)) in
-    vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
 
   let of_yojson =
     let script (json: Json.t) =
@@ -210,32 +205,15 @@ module Scripts = struct
     Json.Parse.stringMap script
 
   let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
-
-  type scripts = t
-  let scripts_of_yojson = of_yojson
-
-  module ParseManifest = struct
-    type t = {
-      scripts: (scripts [@default empty]);
-    } [@@deriving (of_yojson { strict = false })]
-
-    let parse json =
-      match of_yojson json with
-      | Ok pkg -> Ok pkg.scripts
-      | Error err -> Error err
-  end
-
-  let ofFile (path : Path.t) =
-    let open RunAsync.Syntax in
-    let%bind json = Fs.readJsonFile path in
-    RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind data = Json.parseJsonWith ParseManifest.of_yojson json in
-      return data.ParseManifest.scripts
-    )
 end
 
 module type MANIFEST = sig
+  (**
+   * Manifest.
+   *
+   * This can be either esy manifest (package.json/esy.json) or opam manifest but
+   * this type abstracts them out.
+   *)
   type t
 
   (** Name. *)
@@ -251,33 +229,41 @@ module type MANIFEST = sig
   val description : t -> string option
 
   (**
-  * Extract dependency info.
-  *)
+   * Extract dependency info.
+   *)
   val dependencies : t -> Dependencies.t
 
   (**
-  * Extract build config from manifest
-  *
-  * Not all packages have build config defined so we return `None` in this case.
-  *)
+   * Extract build config from manifest
+   *
+   * Not all packages have build config defined so we return `None` in this case.
+   *)
   val build : t -> Build.t option
 
   (**
-  * Extract release config from manifest
-  *
-  * Not all packages have release config defined so we return `None` in this
-  * case.
-  *)
+   * Extract release config from manifest
+   *
+   * Not all packages have release config defined so we return `None` in this
+   * case.
+   *)
   val release : t -> Release.t option
 
   (**
-  * Unique id of the release.
-  *
-  * This could be a released version, git sha commit or some checksum of package
-  * contents if any.
-  *
-  * This info is used to construct a build key for the corresponding package.
-  *)
+   * Extract release config from manifest
+   *
+   * Not all packages have release config defined so we return `None` in this
+   * case.
+   *)
+  val scripts : t -> Scripts.t Run.t
+
+  (**
+   * Unique id of the release.
+   *
+   * This could be a released version, git sha commit or some checksum of package
+   * contents if any.
+   *
+   * This info is used to construct a build key for the corresponding package.
+   *)
   val uniqueDistributionId : t -> string option
 end
 
@@ -296,7 +282,6 @@ module Esy : sig
   include MANIFEST
 
   val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
-  val findOfDir : Path.t -> Path.t option RunAsync.t
 end = struct
 
   module EsyManifest = struct
@@ -313,9 +298,7 @@ end = struct
 
   end
 
-  type t = manifest * Json.t
-
-  and manifest = {
+  type manifest = {
     name : string;
     version : string;
     description : (string option [@default None]);
@@ -328,6 +311,8 @@ end = struct
     esy: EsyManifest.t option [@default None];
     _resolved: (string option [@default None]);
   } [@@deriving (of_yojson {strict = false})]
+
+  type t = manifest * Json.t
 
   let name (manifest, _) = manifest.name
   let version (manifest, _) = manifest.version
@@ -385,6 +370,17 @@ end = struct
     let%bind c = m.EsyManifest.release in
     return c
 
+  let scripts (_, json) =
+    let open Run.Syntax in
+    match json with
+    | `Assoc items ->
+      let f (name, _) = name = "scripts" in
+      begin match List.find_opt ~f items with
+      | Some (_, json) -> Run.ofStringError (Scripts.of_yojson json)
+      | None -> return Scripts.empty
+      end
+    | _ -> return Scripts.empty
+
   let build (m, _) =
     let open Option.Syntax in
     let%bind esy = m.esy in
@@ -407,7 +403,8 @@ end = struct
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind json = Fs.readJsonFile path in
-    RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+    let%bind manifest = RunAsync.ofRun (Json.parseJsonWith manifest_of_yojson json) in
+    return (manifest, json)
 
   let findOfDir (path : Path.t) =
     let open RunAsync.Syntax in
@@ -699,6 +696,7 @@ end = struct
   let uniqueDistributionId m = Some ("opam:" ^ version m)
   let description _ = None
   let license _ = None
+
   let build m =
     Some {
       Build.
@@ -713,13 +711,14 @@ end = struct
       substs = substs m;
     }
 
+  let scripts _ = Run.return Scripts.empty
+
 end
 
 module EsyOrOpamManifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
-  val findEsyManifestOfDir : Path.t -> Path.t option RunAsync.t
   val ofDir : ?asRoot:bool -> Path.t -> (t * Path.Set.t) option RunAsync.t
 end = struct
   type t =
@@ -761,10 +760,15 @@ end = struct
     | Opam m -> Opam.build m
     | Esy m -> Esy.build m
 
-  let release (m : t) =
+  let release m =
     match m with
     | Opam m -> Opam.release m
     | Esy m -> Esy.release m
+
+  let scripts m =
+    match m with
+    | Opam m -> Opam.scripts m
+    | Esy m -> Esy.scripts m
 
   let ofDir ?(asRoot=false) (path : Path.t) =
 
@@ -818,8 +822,6 @@ end = struct
       | name -> Path.(name |> v |> has_ext ".opam")
     in
     return (List.exists ~f names)
-
-  let findEsyManifestOfDir = Esy.findOfDir
 end
 
 include EsyOrOpamManifest
