@@ -37,7 +37,6 @@ let make =
       ~cacheTarballsPath=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
-      ~platform=System.Platform.host,
       ~solveTimeout=60.0,
       ~esySolveCmd,
       ~createProgressReporter,
