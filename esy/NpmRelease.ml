@@ -73,8 +73,8 @@ let configure ~(cfg : Config.t) =
       version = Manifest.version manifest;
       license = Manifest.license manifest;
       description = Manifest.description manifest;
-      releasedBinaries = releaseCfg.Manifest.EsyReleaseConfig.releasedBinaries;
-      deleteFromBinaryRelease = releaseCfg.Manifest.EsyReleaseConfig.deleteFromBinaryRelease;
+      releasedBinaries = releaseCfg.Manifest.ReleaseConfig.releasedBinaries;
+      deleteFromBinaryRelease = releaseCfg.Manifest.ReleaseConfig.deleteFromBinaryRelease;
     }
 
 let dependenciesForRelease (task : Task.t) =

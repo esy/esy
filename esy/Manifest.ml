@@ -203,7 +203,7 @@ end
 
 module SourceType = EsyBuildPackage.SourceType
 
-module EsyReleaseConfig = struct
+module ReleaseConfig = struct
   type t = {
     releasedBinaries: string list;
     deleteFromBinaryRelease: (string list [@default []]);
@@ -219,7 +219,7 @@ module EsyManifest = struct
     exportedEnv: (ExportedEnv.t [@default []]);
     buildEnv: (Env.t [@default Env.empty]);
     sandboxEnv: (Env.t [@default Env.empty]);
-    release: (EsyReleaseConfig.t option [@default None]);
+    release: (ReleaseConfig.t option [@default None]);
   } [@@deriving (of_yojson { strict = false })]
 
 end

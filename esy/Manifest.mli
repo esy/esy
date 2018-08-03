@@ -96,7 +96,7 @@ module SourceType : sig
   include module type of EsyBuildPackage.SourceType
 end
 
-module EsyReleaseConfig : sig
+module ReleaseConfig : sig
   type t = {
     releasedBinaries : string list;
     deleteFromBinaryRelease : string list;
@@ -141,7 +141,7 @@ val buildEnv : t -> Env.t
 
 val kind : t -> kind
 
-val releaseConfig : t -> EsyReleaseConfig.t option
+val releaseConfig : t -> ReleaseConfig.t option
 
 val uniqueDistributionId : t -> string option
 
