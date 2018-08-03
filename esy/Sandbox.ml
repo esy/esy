@@ -125,30 +125,29 @@ let ofDir (cfg : Config.t) =
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
     in
 
-    let loadDependencies (manifest : Manifest.t) =
+    let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let (>>=) = Lwt.(>>=) in
-      let ignoreCircularDep = Option.isNone (Manifest.buildType manifest) in
       Lwt.return StringMap.empty
       >>= addDependencies
           ~ignoreCircularDep
           ~make:(fun pkg -> Package.Dependency pkg)
-          (Manifest.dependencies manifest)
+          deps.dependencies
       >>= addDependencies
           ~ignoreCircularDep
           ~make:(fun pkg -> Package.BuildTimeDependency pkg)
-          (Manifest.buildTimeDependencies manifest)
+          deps.buildTimeDependencies
       >>= addDependencies
           ~ignoreCircularDep
           ~skipUnresolved:true
           ~make:(fun pkg -> Package.OptDependency pkg)
-          (Manifest.optDependencies manifest)
+          deps.optDependencies
       >>= (fun dependencies ->
           if Path.equal cfg.sandboxPath path
           then
             addDependencies
               ~ignoreCircularDep ~skipUnresolved:true
               ~make:(fun pkg -> Package.DevDependency pkg)
-              (Manifest.devDependencies manifest)
+              deps.devDependencies
               dependencies
           else
             Lwt.return dependencies)
@@ -156,7 +155,13 @@ let ofDir (cfg : Config.t) =
 
     let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
       manifestInfo := (Path.Set.union pathSet (!manifestInfo));
-      let%lwt dependencies = loadDependencies manifest in
+
+      let build = Manifest.build manifest in
+
+      let%lwt dependencies =
+        let ignoreCircularDep = Option.isNone build in
+        loadDependencies ~ignoreCircularDep (Manifest.dependencies manifest)
+      in
 
       let hasDepWithSourceTypeDevelopment =
         StringMap.exists
@@ -165,42 +170,27 @@ let ofDir (cfg : Config.t) =
               | Package.Dependency pkg
               | Package.BuildTimeDependency pkg
               | Package.OptDependency pkg ->
-                pkg.sourceType = Manifest.SourceType.Transient
+                pkg.build.sourceType = Manifest.SourceType.Transient
               | Package.DevDependency _
               | Package.InvalidDependency _ -> false)
           dependencies
       in
 
-      let sourceType =
-        match hasDepWithSourceTypeDevelopment, Manifest.sourceType manifest with
-        | true, _
-        | false, Manifest.SourceType.Transient -> Manifest.SourceType.Transient
-        | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
-      in
 
-      match Manifest.buildType manifest with
-      | Some buildType ->
+      match build with
+      | Some build ->
+        let sourceType =
+          match hasDepWithSourceTypeDevelopment, build.Manifest.Build.sourceType with
+          | true, _
+          | false, Manifest.SourceType.Transient -> Manifest.SourceType.Transient
+          | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
+        in
         return (`EsyPkg (Package.{
           id = Path.to_string path;
           name = Manifest.name manifest;
           version = Manifest.version manifest;
           dependencies = StringMap.values dependencies;
-
-          sourceType;
-          buildType;
-
-          sandboxEnv = Manifest.sandboxEnv manifest;
-          buildEnv = Manifest.buildEnv manifest;
-          exportedEnv = Manifest.exportedEnv manifest;
-
-          buildCommands = Manifest.buildCommands manifest;
-          installCommands = Manifest.installCommands manifest;
-
-          patches = Manifest.patches manifest;
-          substs = Manifest.substs manifest;
-
-          kind = Manifest.kind manifest;
-
+          build = {build with sourceType};
           sourcePath = Config.Path.ofPath cfg sourcePath;
           resolution = Manifest.uniqueDistributionId manifest;
         }))

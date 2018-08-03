@@ -96,7 +96,7 @@ module SourceType : sig
   include module type of EsyBuildPackage.SourceType
 end
 
-module ReleaseConfig : sig
+module Release : sig
   type t = {
     releasedBinaries : string list;
     deleteFromBinaryRelease : string list;
@@ -108,40 +108,48 @@ module ReleaseConfig : sig
   val of_yojson : t Json.decoder
 end
 
+module Build : sig
+  type commands =
+    | OpamCommands of OpamTypes.command list
+    | EsyCommands of CommandList.t
+
+  type t = {
+    sourceType : SourceType.t;
+    buildType : BuildType.t;
+    buildCommands : commands;
+    installCommands : commands;
+    patches : (Path.t * OpamTypes.filter option) list;
+    substs : Path.t list;
+    exportedEnv : ExportedEnv.t;
+    sandboxEnv : Env.t;
+    buildEnv : Env.t;
+  }
+end
+
+module Dependencies : sig
+  type t = {
+    dependencies : string list list;
+    devDependencies : string list list;
+    buildTimeDependencies : string list list;
+    optDependencies : string list list;
+  }
+end
+
 type t
 
-type kind =
-  | OpamKind
-  | EsyKind
-
-type commands =
-  | OpamCommands of OpamTypes.command list
-  | EsyCommands of CommandList.t
-
 val name : t -> string
+
 val version : t -> string
+
 val license : t -> Json.t option
+
 val description : t -> string option
 
-val dependencies : t -> string list list
-val devDependencies : t -> string list list
-val optDependencies : t -> string list list
-val buildTimeDependencies : t -> string list list
+val dependencies : t -> Dependencies.t
 
-val sourceType : t -> SourceType.t
-val buildType : t -> BuildType.t option
-val buildCommands : t -> commands
-val installCommands : t -> commands
-val patches : t -> (Path.t * OpamTypes.filter option) list
-val substs : t -> Path.t list
+val build : t -> Build.t option
 
-val exportedEnv : t -> ExportedEnv.t
-val sandboxEnv : t -> Env.t
-val buildEnv : t -> Env.t
-
-val kind : t -> kind
-
-val releaseConfig : t -> ReleaseConfig.t option
+val release : t -> Release.t option
 
 val uniqueDistributionId : t -> string option
 

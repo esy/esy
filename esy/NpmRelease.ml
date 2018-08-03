@@ -66,15 +66,15 @@ let configure ~(cfg : Config.t) =
   | None -> error "no manifest found"
   | Some (manifest, _) ->
     let%bind releaseCfg =
-      RunAsync.ofOption ~err:"no release config found" (Manifest.releaseConfig manifest)
+      RunAsync.ofOption ~err:"no release config found" (Manifest.release manifest)
     in
     return {
       name = Manifest.name manifest;
       version = Manifest.version manifest;
       license = Manifest.license manifest;
       description = Manifest.description manifest;
-      releasedBinaries = releaseCfg.Manifest.ReleaseConfig.releasedBinaries;
-      deleteFromBinaryRelease = releaseCfg.Manifest.ReleaseConfig.deleteFromBinaryRelease;
+      releasedBinaries = releaseCfg.Manifest.Release.releasedBinaries;
+      deleteFromBinaryRelease = releaseCfg.Manifest.Release.deleteFromBinaryRelease;
     }
 
 let dependenciesForRelease (task : Task.t) =
@@ -144,7 +144,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     *)
   let devModeIds =
     let f s task =
-      match task.Task.pkg.sourceType with
+      match task.Task.pkg.build.sourceType with
       | Manifest.SourceType.Immutable -> s
       | Manifest.SourceType.Transient -> StringSet.add task.id s
     in
@@ -196,16 +196,18 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           name = "release-env";
           version = pkg.version;
           dependencies = [Package.Dependency pkg];
-          sourceType = Manifest.SourceType.Transient;
-          sandboxEnv = pkg.sandboxEnv;
-          buildEnv = Manifest.Env.empty;
-          buildCommands = Manifest.EsyCommands None;
-          installCommands = Manifest.EsyCommands None;
-          buildType = Manifest.BuildType.OutOfSource;
-          patches = [];
-          substs = [];
-          kind = Manifest.EsyKind;
-          exportedEnv = [];
+          build = {
+            Manifest.Build.
+            sourceType = Manifest.SourceType.Transient;
+            sandboxEnv = pkg.build.sandboxEnv;
+            buildEnv = Manifest.Env.empty;
+            buildCommands = Manifest.Build.EsyCommands None;
+            installCommands = Manifest.Build.EsyCommands None;
+            buildType = Manifest.BuildType.OutOfSource;
+            patches = [];
+            substs = [];
+            exportedEnv = [];
+          };
           sourcePath = pkg.sourcePath;
           resolution = None;
         } in

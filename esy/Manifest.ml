@@ -203,7 +203,7 @@ end
 
 module SourceType = EsyBuildPackage.SourceType
 
-module ReleaseConfig = struct
+module Release = struct
   type t = {
     releasedBinaries: string list;
     deleteFromBinaryRelease: (string list [@default []]);
@@ -219,7 +219,7 @@ module EsyManifest = struct
     exportedEnv: (ExportedEnv.t [@default []]);
     buildEnv: (Env.t [@default Env.empty]);
     sandboxEnv: (Env.t [@default Env.empty]);
-    release: (ReleaseConfig.t option [@default None]);
+    release: (Release.t option [@default None]);
   } [@@deriving (of_yojson { strict = false })]
 
 end
@@ -592,13 +592,34 @@ type t =
   | Esy of Esy.t
   | Opam of Opam.t
 
-type commands =
-  | OpamCommands of OpamTypes.command list
-  | EsyCommands of CommandList.t
+module Build = struct
 
-type kind =
-  | OpamKind
-  | EsyKind
+  type commands =
+    | OpamCommands of OpamTypes.command list
+    | EsyCommands of CommandList.t
+
+  type t = {
+    sourceType : SourceType.t;
+    buildType : BuildType.t;
+    buildCommands : commands;
+    installCommands : commands;
+    patches : (Path.t * OpamTypes.filter option) list;
+    substs : Path.t list;
+    exportedEnv : ExportedEnv.t;
+    sandboxEnv : Env.t;
+    buildEnv : Env.t;
+  }
+
+end
+
+module Dependencies = struct
+  type t = {
+    dependencies : string list list;
+    devDependencies : string list list;
+    buildTimeDependencies : string list list;
+    optDependencies : string list list;
+  }
+end
 
 let name (m : t) =
   match m with
@@ -610,126 +631,6 @@ let version (m : t) =
   | Opam m -> Opam.version m
   | Esy m -> m.Esy.version
 
-let sourceType (m : t) =
-  match m with
-  | Opam m -> Opam.sourceType m
-  | Esy m ->
-    begin match m.Esy._resolved with
-    | None -> SourceType.Transient
-    | Some _ -> SourceType.Immutable
-    end
-
-let buildType (m : t) =
-  match m with
-  | Opam m -> Some (Opam.buildType m)
-  | Esy m ->
-    begin match m.Esy.esy with
-    | None -> None
-    | Some m -> Some m.EsyManifest.buildsInSource
-    end
-
-let dependencies (m : t) =
-  match m with
-  | Opam m -> Opam.dependencies m
-  | Esy m -> Esy.dependencies m
-
-let devDependencies (m : t) =
-  match m with
-  | Opam _m -> []
-  | Esy m -> Esy.devDependencies m
-
-let buildTimeDependencies (m : t) =
-  match m with
-  | Opam _m -> []
-  | Esy m -> Esy.buildTimeDependencies m
-
-let optDependencies (m : t) =
-  match m with
-  | Opam m -> Opam.optDependencies m
-  | Esy m -> Esy.optDependencies m
-
-let exportedEnv (m : t) =
-  match m with
-  | Opam m -> Opam.exportedEnv m
-  | Esy m ->
-    begin match m.Esy.esy with
-    | None -> ExportedEnv.empty
-    | Some esy -> esy.EsyManifest.exportedEnv
-    end
-
-let buildEnv (m : t) =
-  match m with
-  | Opam _ -> Env.empty
-  | Esy m ->
-    begin match m.Esy.esy with
-    | None -> ExportedEnv.empty
-    | Some esy -> esy.EsyManifest.buildEnv
-    end
-
-let sandboxEnv (m : t) =
-  match m with
-  | Opam _ -> Env.empty
-  | Esy m ->
-    begin match m.Esy.esy with
-    | None -> ExportedEnv.empty
-    | Some esy -> esy.EsyManifest.sandboxEnv
-    end
-
-let buildCommands (m : t) =
-  match m with
-  | Opam m ->
-    begin match Opam.buildCommands m with
-    | Opam.Commands commands -> OpamCommands commands
-    | Opam.OverridenCommands commands -> EsyCommands commands
-    end
-  | Esy m ->
-    begin match m.Esy.esy with
-    | None -> EsyCommands CommandList.empty
-    | Some esy -> EsyCommands (esy.EsyManifest.build)
-    end
-
-let installCommands (m : t) =
-  match m with
-  | Opam m ->
-    begin match Opam.installCommands m with
-    | Opam.Commands commands -> OpamCommands commands
-    | Opam.OverridenCommands commands -> EsyCommands commands
-    end
-  | Esy m ->
-    begin match m.Esy.esy with
-    | None -> EsyCommands CommandList.empty
-    | Some esy -> EsyCommands (esy.EsyManifest.install)
-    end
-
-let patches (m : t) =
-  match m with
-  | Opam m -> Opam.patches m
-  | Esy _ -> []
-
-let substs (m : t) =
-  match m with
-  | Opam m -> Opam.substs m
-  | Esy _ -> []
-
-let uniqueDistributionId (m : t) =
-  match m with
-  | Opam m -> Some ("opam:" ^ Opam.version m)
-  | Esy m -> m.Esy._resolved
-
-let kind (m : t) =
-  match m with
-  | Opam _ -> OpamKind
-  | Esy _ -> EsyKind
-
-let releaseConfig (m : t) =
-  match m with
-  | Opam _ -> None
-  | Esy m ->
-    let open Option.Syntax in
-    let%bind m = m.Esy.esy in
-    let%bind c = m.EsyManifest.release in
-    return c
-
 let description (m : t) =
   match m with
   | Opam _ -> None
@@ -739,6 +640,76 @@ let license (m : t) =
   match m with
   | Opam _ -> None
   | Esy m -> m.Esy.license
+
+let uniqueDistributionId (m : t) =
+  match m with
+  | Opam m -> Some ("opam:" ^ Opam.version m)
+  | Esy m -> m.Esy._resolved
+
+let dependencies (m : t) =
+  match m with
+  | Opam m -> {
+      Dependencies.
+      dependencies = Opam.dependencies m;
+      devDependencies = [];
+      buildTimeDependencies = [];
+      optDependencies = Opam.optDependencies m;
+    }
+  | Esy m -> {
+      Dependencies.
+      dependencies = Esy.dependencies m;
+      devDependencies = Esy.devDependencies m;
+      buildTimeDependencies = Esy.buildTimeDependencies m;
+      optDependencies = Esy.optDependencies m;
+    }
+
+let build (m : t) =
+  match m with
+  | Opam m ->
+    Some {
+      Build.
+      sourceType = Opam.sourceType m;
+      buildType = Opam.buildType m;
+      exportedEnv = Opam.exportedEnv m;
+      buildEnv = Env.empty;
+      sandboxEnv = Env.empty;
+      buildCommands = (
+        match Opam.buildCommands m with
+        | Opam.Commands commands -> OpamCommands commands
+        | Opam.OverridenCommands commands -> EsyCommands commands);
+      installCommands = (
+        match Opam.installCommands m with
+        | Opam.Commands commands -> OpamCommands commands
+        | Opam.OverridenCommands commands -> EsyCommands commands);
+      patches = Opam.patches m;
+      substs = Opam.substs m;
+    }
+  | Esy ({esy = Some esy;_} as m) ->
+    Some {
+      Build.
+      sourceType = (
+        match m.Esy._resolved with
+        | None -> SourceType.Transient
+        | Some _ -> SourceType.Immutable);
+      buildType = esy.buildsInSource;
+      exportedEnv = esy.exportedEnv;
+      buildEnv = esy.buildEnv;
+      sandboxEnv = esy.sandboxEnv;
+      buildCommands = EsyCommands (esy.EsyManifest.build);
+      installCommands = EsyCommands (esy.EsyManifest.install);
+      patches = [];
+      substs = [];
+    }
+  | Esy {esy = None;_} -> None
+
+let release (m : t) =
+  match m with
+  | Opam _ -> None
+  | Esy m ->
+    let open Option.Syntax in
+    let%bind m = m.Esy.esy in
+    let%bind c = m.EsyManifest.release in
+    return c
 
 let ofDir ?(asRoot=false) (path : Path.t) =
 

@@ -3,19 +3,8 @@ type t = {
   name : string;
   version : string;
   dependencies : dependencies;
-
-  buildCommands : ((Manifest.commands [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
-  installCommands : ((Manifest.commands [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
-  patches : (((Path.t * OpamTypes.filter option) list [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
-  substs : Path.t list;
-
+  build : ((Manifest.Build.t [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
   sourcePath : Config.Path.t;
-  sourceType : Manifest.SourceType.t;
-  buildType : Manifest.BuildType.t;
-  sandboxEnv : Manifest.Env.t;
-  buildEnv : Manifest.Env.t;
-  exportedEnv : Manifest.ExportedEnv.t;
-  kind : ((Manifest.kind [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
   resolution : string option;
 } [@@deriving (eq, ord)]
 

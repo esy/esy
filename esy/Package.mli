@@ -3,19 +3,8 @@ type t = {
   name : string;
   version : string;
   dependencies : dependencies;
-
-  buildCommands : Manifest.commands;
-  installCommands : Manifest.commands;
-  patches : (Path.t * OpamTypes.filter option) list;
-  substs : Path.t list;
-
+  build : Manifest.Build.t;
   sourcePath : Config.Path.t;
-  sourceType : Manifest.SourceType.t;
-  buildType : Manifest.BuildType.t;
-  sandboxEnv : Manifest.Env.t;
-  buildEnv : Manifest.Env.t;
-  exportedEnv : Manifest.ExportedEnv.t;
-  kind : Manifest.kind;
   resolution : string option;
 }
 

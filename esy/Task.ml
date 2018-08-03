@@ -13,6 +13,11 @@ let toOpamName name =
   | Some ("", name) -> name
   | _ -> name
 
+let isOpamName name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", _name) -> true
+  | _ -> false
+
 let toOCamlVersion version =
   match String.split_on_char '.' version with
   | major::minor::patch::[] ->
@@ -170,11 +175,11 @@ let buildId
   (pkg : Package.t)
   (dependencies : dependency list) =
 
-  let hashCommands (commands : Manifest.commands) =
+  let hashCommands (commands : Manifest.Build.commands) =
     match commands with
-    | Manifest.EsyCommands commands ->
+    | Manifest.Build.EsyCommands commands ->
       Manifest.CommandList.show commands
-    | Manifest.OpamCommands commands ->
+    | Manifest.Build.OpamCommands commands ->
       let commandsToString (commands : OpamTypes.command list) =
         let argsToString (args : OpamTypes.arg list) =
           let f ((arg, filter) : OpamTypes.arg) =
@@ -221,12 +226,12 @@ let buildId
   let digest acc update = Digest.string (acc ^ "--" ^ update) in
   let id =
     List.fold_left ~f:digest ~init:"" [
-      hashCommands pkg.buildCommands;
-      hashCommands pkg.installCommands;
-      patchesToString pkg.patches;
-      Manifest.BuildType.show pkg.buildType;
-      Manifest.Env.show pkg.buildEnv;
-      Manifest.Env.show rootPkg.sandboxEnv;
+      hashCommands pkg.build.buildCommands;
+      hashCommands pkg.build.installCommands;
+      patchesToString pkg.build.patches;
+      Manifest.BuildType.show pkg.build.buildType;
+      Manifest.Env.show pkg.build.buildEnv;
+      Manifest.Env.show rootPkg.build.sandboxEnv;
     ]
   in
   let id =
@@ -486,15 +491,18 @@ let ofPackage
   and taskOfPackage ~(includeSandboxEnv: bool) (pkg : Package.t) =
 
     let pkg =
-      match pkg.buildType with
+      match pkg.build.buildType with
       | Manifest.BuildType.OutOfSource ->
         {
           pkg with
-          buildEnv = {
-            Manifest.Env.
-            name = "DUNE_BUILD_DIR";
-            value = "#{self.target_dir}";
-          }::pkg.buildEnv
+          build = {
+            pkg.build with
+            buildEnv = {
+              Manifest.Env.
+              name = "DUNE_BUILD_DIR";
+              value = "#{self.target_dir}";
+            }::pkg.build.buildEnv
+          };
         }
       | _ -> pkg
     in
@@ -531,7 +539,7 @@ let ofPackage
     let id = buildId rootPkg pkg dependencies in
 
     let sourceType =
-      match forceImmutable, pkg.sourceType with
+      match forceImmutable, pkg.build.sourceType with
       | true, _ -> Manifest.SourceType.Immutable
       | false, sourceType -> sourceType
     in
@@ -560,7 +568,7 @@ let ofPackage
         Config.Path.(storePath / Store.buildTree / basename)
       in
       let rootPath =
-        match pkg.buildType, sourceType with
+        match pkg.build.buildType, sourceType with
         | InSource, _  -> buildPath
         | JbuilderLike, Immutable -> buildPath
         | JbuilderLike, Transient -> pkg.sourcePath
@@ -661,7 +669,7 @@ let ofPackage
       in
 
       let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
-        Run.List.foldLeft ~f ~init:(true, [], []) pkg.exportedEnv
+        Run.List.foldLeft ~f ~init:(true, [], []) pkg.build.exportedEnv
       in
       let%bind globalEnv = if injectCamlLdLibraryPath then
         let%bind value = renderCommandExpr
@@ -698,7 +706,7 @@ let ofPackage
         }
       in
 
-      Result.List.map ~f pkg.buildEnv
+      Result.List.map ~f pkg.build.buildEnv
     in
 
     let buildEnv =
@@ -795,7 +803,7 @@ let ofPackage
 
       let sandboxEnv =
         if includeSandboxEnv then
-          rootPkg.sandboxEnv |> Environment.ofSandboxEnv
+          rootPkg.build.sandboxEnv |> Environment.ofSandboxEnv
         else []
       in
 
@@ -855,8 +863,8 @@ let ofPackage
 
     let opamEnvByDependency =
       let f map (task : t) =
-        match task.pkg.kind with
-        | Manifest.OpamKind ->
+        if isOpamName task.pkg.name
+        then begin
           let open OpamVariable in
           let name = toOpamName task.pkg.name in
           let path v = string (Config.Value.show (Config.Path.toValue v)) in
@@ -874,7 +882,8 @@ let ofPackage
             |> add "build" (path task.paths.buildPath)
           ) in
           StringMap.add name vars map
-        | Manifest.EsyKind -> map
+        end
+        else map
       in
       List.fold_left
         ~init:StringMap.empty
@@ -979,16 +988,16 @@ let ofPackage
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
-        begin match pkg.buildCommands with
-        | Manifest.EsyCommands commands ->
+        begin match pkg.build.buildCommands with
+        | Manifest.Build.EsyCommands commands ->
           let%bind commands = renderEsyCommands commands in
-          let%bind applySubstsCommands = opamSubstsToCommands pkg.substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands pkg.patches in
+          let%bind applySubstsCommands = opamSubstsToCommands pkg.build.substs in
+          let%bind applyPatchesCommands = opamPatchesToCommands pkg.build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
-        | Manifest.OpamCommands commands ->
+        | Manifest.Build.OpamCommands commands ->
           let%bind commands = renderOpamCommands commands in
-          let%bind applySubstsCommands = opamSubstsToCommands pkg.substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands pkg.patches in
+          let%bind applySubstsCommands = opamSubstsToCommands pkg.build.substs in
+          let%bind applyPatchesCommands = opamPatchesToCommands pkg.build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
         end
     in
@@ -996,10 +1005,10 @@ let ofPackage
     let%bind installCommands =
       Run.withContext
         "processing esy.install"
-        begin match pkg.installCommands with
-        | Manifest.EsyCommands commands ->
+        begin match pkg.build.installCommands with
+        | Manifest.Build.EsyCommands commands ->
           renderEsyCommands commands
-        | Manifest.OpamCommands commands ->
+        | Manifest.Build.OpamCommands commands ->
           renderOpamCommands commands
         end
     in
@@ -1066,16 +1075,18 @@ let sandboxEnv (pkg : Package.t) =
     name = "installation_env";
     version = pkg.version;
     dependencies = (Package.Dependency pkg)::devDependencies;
-    sourceType = Manifest.SourceType.Transient;
-    buildType = Manifest.BuildType.OutOfSource;
-    exportedEnv = [];
-    buildCommands = Manifest.EsyCommands None;
-    installCommands = Manifest.EsyCommands None;
-    patches = [];
-    substs = [];
-    kind = Manifest.EsyKind;
-    sandboxEnv = pkg.sandboxEnv;
-    buildEnv = Manifest.Env.empty;
+    build = {
+      Manifest.Build.
+      sourceType = Manifest.SourceType.Transient;
+      buildType = Manifest.BuildType.OutOfSource;
+      exportedEnv = [];
+      buildCommands = Manifest.Build.EsyCommands None;
+      installCommands = Manifest.Build.EsyCommands None;
+      patches = [];
+      substs = [];
+      sandboxEnv = pkg.build.sandboxEnv;
+      buildEnv = Manifest.Env.empty;
+    };
     sourcePath = pkg.sourcePath;
     resolution = None;
   } in
@@ -1115,7 +1126,7 @@ let toBuildProtocol (task : task) =
     name = task.pkg.name;
     version = task.pkg.version;
     sourceType = task.sourceType;
-    buildType = task.pkg.buildType;
+    buildType = task.pkg.build.buildType;
     build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.buildCommands;
     install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.installCommands;
     sourcePath =
