@@ -17,35 +17,41 @@ let cfg = {
 }
 
 module TestCommandExpr = struct
+
+  let commandsEqual = [%derive.eq: string list list]
+
   let dep = Package.{
     id = "%dep%";
     name = "dep";
     version = "1.0.0";
     dependencies = [];
-    build = Package.EsyBuild {
-      buildCommands = Manifest.EsyCommands None;
-      installCommands = Manifest.EsyCommands None;
+    build = {
+      Manifest.Build.
+      buildCommands = EsyCommands None;
+      installCommands = EsyCommands None;
+      patches = [];
+      substs = [];
       buildType = Manifest.BuildType.InSource;
+      sourceType = Manifest.SourceType.Immutable;
+      exportedEnv = [
+        {
+          Manifest.ExportedEnv.
+          name = "OK";
+          value = "#{self.install / 'ok'}";
+          exclusive = false;
+          scope = Local;
+        };
+        {
+          Manifest.ExportedEnv.
+          name = "OK_BY_NAME";
+          value = "#{dep.install / 'ok-by-name'}";
+          exclusive = false;
+          scope = Local;
+        }
+      ];
+      sandboxEnv = [];
+      buildEnv = [];
     };
-    sourceType = Manifest.SourceType.Immutable;
-    exportedEnv = [
-      {
-        Manifest.ExportedEnv.
-        name = "OK";
-        value = "#{self.install / 'ok'}";
-        exclusive = false;
-        scope = Local;
-      };
-      {
-        Manifest.ExportedEnv.
-        name = "OK_BY_NAME";
-        value = "#{dep.install / 'ok-by-name'}";
-        exclusive = false;
-        scope = Local;
-      }
-    ];
-    sandboxEnv = [];
-    buildEnv = [];
     sourcePath = Config.Path.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
@@ -55,20 +61,23 @@ module TestCommandExpr = struct
     name = "pkg";
     version = "1.0.0";
     dependencies = [Dependency dep];
-    build = Package.EsyBuild {
-      buildCommands = Manifest.EsyCommands (Some [
+    build = {
+      Manifest.Build.
+      buildCommands = EsyCommands (Some [
         Manifest.CommandList.Command.Unparsed "cp ./hello #{self.bin}";
         Manifest.CommandList.Command.Unparsed "cp ./hello2 #{pkg.bin}";
       ]);
-      installCommands = Manifest.EsyCommands (Some [
+      installCommands = EsyCommands (Some [
         Manifest.CommandList.Command.Parsed ["cp"; "./man"; "#{self.man}"]
       ]);
+      patches = [];
+      substs = [];
       buildType = Manifest.BuildType.InSource;
+      sourceType = Manifest.SourceType.Immutable;
+      exportedEnv = [];
+      buildEnv = [];
+      sandboxEnv = [];
     };
-    sourceType = Manifest.SourceType.Immutable;
-    exportedEnv = [];
-    buildEnv = [];
-    sandboxEnv = [];
     sourcePath = Config.Path.ofPath cfg (Path.v "/path");
     resolution = Some "ok";
   }
@@ -83,68 +92,70 @@ module TestCommandExpr = struct
 
   let%test "#{...} inside esy.build" =
     check pkg (fun task ->
-      Task.CommandList.(equal
+      let id = task.id in
+      commandsEqual
         task.buildCommands
-        (make [
-          ["cp"; "./hello"; "%store%/s/pkg-1.0.0-da68ba0e/bin"];
-          ["cp"; "./hello2"; "%store%/s/pkg-1.0.0-da68ba0e/bin"];
-          ])
-      )
+        [
+          ["cp"; "./hello"; "%store%/s/" ^ id ^ "/bin"];
+          ["cp"; "./hello2"; "%store%/s/" ^ id ^ "/bin"];
+        ]
     )
 
   let%test "#{...} inside esy.build / esy.install (depends on os)" =
     let pkg = Package.{
       pkg with
-      build = Package.EsyBuild {
-        buildCommands = Manifest.EsyCommands (Some [
+      build = {
+        pkg.build with
+        buildCommands = EsyCommands (Some [
           Manifest.CommandList.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
         ]);
-        installCommands = Manifest.EsyCommands (Some [
+        installCommands = EsyCommands (Some [
           Manifest.CommandList.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
         ]);
         buildType = Manifest.BuildType.InSource;
       }
     } in
     check ~platform:System.Platform.Linux pkg (fun task ->
-      Task.CommandList.(equal
+      commandsEqual
         task.buildCommands
-        (make [["apt-get"; "install"; "pkg"]])
-      )
+        [["apt-get"; "install"; "pkg"]]
       &&
-      Task.CommandList.(equal
+      commandsEqual
         task.installCommands
-        (make [["make"; "install-linux"]])
-      )
+        [["make"; "install-linux"]]
     )
     &&
     check ~platform:System.Platform.Darwin pkg (fun task ->
-      Task.CommandList.(equal
+      commandsEqual
         task.buildCommands
-        (make [["true"]])
-      )
+        [["true"]]
       &&
-      Task.CommandList.(equal
+      commandsEqual
         task.installCommands
-        (make [["make"; "install"]])
-      )
+        [["make"; "install"]]
     )
 
   let%test "#{self...} inside esy.install" =
     check pkg (fun task ->
-      Task.CommandList.(equal
+      let id = task.id in
+      commandsEqual
         task.installCommands
-        (make [["cp"; "./man"; "%store%/s/pkg-1.0.0-da68ba0e/man"]])
-      )
+        [["cp"; "./man"; "%store%/s/" ^ id ^ "/man"]]
     )
 
   let%test "#{...} inside esy.exportedEnv" =
     check pkg (fun task ->
+      let [Task.Dependency dep] =
+        task.dependencies
+        [@@ocaml.warning "-8"]
+      in
+      let id = dep.Task.id in
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
-          Some (value = "%store%/i/dep-1.0.0-d52744ce/ok")
+          Some (value = "%store%/i/" ^ id ^ "/ok")
         | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
-          Some (value = "%store%/i/dep-1.0.0-d52744ce/ok-by-name")
+          Some (value = "%store%/i/" ^ id ^ "/ok-by-name")
         | _ ->
           None
       in
@@ -169,29 +180,32 @@ let checkEnvExists ~name ~value task =
   let%test "#{OCAMLPATH} depending on os" =
     let dep = Package.{
       dep with
-      exportedEnv = [
-        {
-          Manifest.ExportedEnv.
-          name = "OCAMLPATH";
-          value = "#{'one' : 'two'}";
-          exclusive = false;
-          scope = Local;
-        };
-        {
-          Manifest.ExportedEnv.
-          name = "PATH";
-          value = "#{'/bin' : '/usr/bin'}";
-          exclusive = false;
-          scope = Local;
-        };
-        {
-          Manifest.ExportedEnv.
-          name = "OCAMLLIB";
-          value = "#{os == 'windows' ? ('lib' / 'ocaml') : 'lib'}";
-          exclusive = false;
-          scope = Local;
-        };
-      ];
+      build = {
+        dep.build with
+        exportedEnv = [
+          {
+            Manifest.ExportedEnv.
+            name = "OCAMLPATH";
+            value = "#{'one' : 'two'}";
+            exclusive = false;
+            scope = Local;
+          };
+          {
+            Manifest.ExportedEnv.
+            name = "PATH";
+            value = "#{'/bin' : '/usr/bin'}";
+            exclusive = false;
+            scope = Local;
+          };
+          {
+            Manifest.ExportedEnv.
+            name = "OCAMLLIB";
+            value = "#{os == 'windows' ? ('lib' / 'ocaml') : 'lib'}";
+            exclusive = false;
+            scope = Local;
+          };
+        ];
+      };
     } in
     let pkg = Package.{
       pkg with
