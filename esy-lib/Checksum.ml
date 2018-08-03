@@ -68,18 +68,13 @@ let checkFile ~path (checksum : t) =
     in
     (* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths *)
     let normalizedPath = EsyBash.normalizePathForCygwin (Path.to_string path) in
-    print_endline ("PATH");
     match normalizedPath with
-    | Error _ -> RunAsync.error "Unable to normalize path"
+    | Error _ -> RunAsync.error ("Unable to normalize path" ^ Path.to_string path)
     | Ok path -> 
-            print_endline ("running!");
-            print_endline ("Command: " ^ Cmd.toString cmd);
-        let ocmd = Cmd.(cmd % path) in 
-        let o = EsyBash.runOut (Cmd.toBosCmd ocmd) in
-        match o with
-        | Error _ -> RunAsync.error "Failed"
+        let output = EsyBash.runOut Cmd.(cmd % path |> toBosCmd) in
+        match output with
+        | Error _ -> RunAsync.error ("Failed to run command: " ^ Cmd.toString cmd)
         | Ok out ->
-            print_endline ("output: " ^ out);
             match Astring.String.cut ~sep:" " out with
             | Some (v, _) -> return v
             | None -> return (String.trim out)
