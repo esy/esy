@@ -3,15 +3,6 @@
  * build.
  *)
 
-module CommandList : sig
-  type t
-
-  val make : string list list -> t
-
-  val show : t -> string
-  val equal : t -> t -> bool
-end
-
 (** This is an abstract type which represents a scope of a task. *)
 module Scope : sig
   type t
@@ -21,8 +12,8 @@ type t = private {
   id : string;
   pkg : Package.t;
 
-  buildCommands : CommandList.t;
-  installCommands : CommandList.t;
+  buildCommands : string list list;
+  installCommands : string list list;
 
   env : Environment.Closed.t;
   globalEnv : Environment.binding list;
@@ -37,7 +28,7 @@ type t = private {
   scope : Scope.t;
 }
 
-and paths = {
+and paths = private {
   rootPath : Config.Path.t;
   sourcePath : Config.Path.t;
   buildPath : Config.Path.t;

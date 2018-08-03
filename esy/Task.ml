@@ -157,13 +157,6 @@ end = struct
       | _ -> name
     in
 
-    let isOpamName name =
-      match Astring.String.cut ~sep:"@opam/" name with
-      | Some ("", _name) -> true
-      | _ -> false
-
-    in
-
     let opamVarContents = function
       | EsyCommandExpression.Value.String s -> string s
       | EsyCommandExpression.Value.Bool s -> bool s
@@ -209,30 +202,24 @@ end = struct
 
     | Full.Package namespace, "installed" ->
       let namespace = OpamPackage.Name.to_string namespace in
-      if not (isOpamName namespace)
-      then None
-      else
-        let installed = StringMap.mem namespace scope.dependencies in
-        Some (bool installed)
+      let namespace = "@opam/" ^ namespace in
+      let installed = StringMap.mem namespace scope.dependencies in
+      Some (bool installed)
 
     | Full.Package namespace, "enable" ->
       let namespace = OpamPackage.Name.to_string namespace in
-      if not (isOpamName namespace)
-      then None
-      else
-        begin match StringMap.mem namespace scope.dependencies with
-        | true -> Some (string "enable")
-        | false -> Some (string "disable")
-        end
+      let namespace = "@opam/" ^ namespace in
+      begin match StringMap.mem namespace scope.dependencies with
+      | true -> Some (string "enable")
+      | false -> Some (string "disable")
+      end
 
     | Full.Package namespace, name ->
       let namespace = OpamPackage.Name.to_string namespace in
-      if not (isOpamName namespace)
-      then None
-      else begin
-        match StringMap.find_opt namespace scope.dependencies with
-        | Some scope -> opamPackageScope scope name
-        | None -> None
+      let namespace = "@opam/" ^ namespace in
+      begin match StringMap.find_opt namespace scope.dependencies with
+      | Some scope -> opamPackageScope scope name
+      | None -> None
       end
 
 end
@@ -299,40 +286,73 @@ let renderCommandExpr ?name ~platform ~scope expr =
   in
   Run.ofStringError (EsyCommandExpression.render ~pathSep ~colon ~scope expr)
 
-module CommandList = struct
-  type t =
-    string list list
-    [@@deriving (show, eq)]
-
-  let make v = v
-
-  let render ~platform ~env ~scope (commands : Manifest.CommandList.t) =
-    let open Run.Syntax in
-    let env = Environment.Closed.value env in
-    let envScope name =
-      Environment.Value.find name env
-    in
-    match commands with
-    | None -> Ok []
-    | Some commands ->
-      let renderCommand =
-        let render v =
-          let%bind v = renderCommandExpr ~platform ~scope v in
-          ShellParamExpansion.render ~scope:envScope v
-        in
-        function
-        | Manifest.CommandList.Command.Parsed args ->
-          Result.List.map ~f:render args
-        | Manifest.CommandList.Command.Unparsed string ->
-          let%bind string = render string in
-          let%bind args = ShellSplit.split string in
-          return args
+let renderEsyCommands ~env ~platform scope commands =
+  let open Run.Syntax in
+  let scope = Scope.toEsyCommandExpressionScope scope in
+  let env = Environment.Closed.value env in
+  let envScope name =
+    Environment.Value.find name env
+  in
+  match commands with
+  | None -> Ok []
+  | Some commands ->
+    let renderCommand =
+      let render v =
+        let%bind v = renderCommandExpr ~platform ~scope v in
+        ShellParamExpansion.render ~scope:envScope v
       in
-      match Result.List.map ~f:renderCommand commands with
-      | Ok commands -> Ok commands
-      | Error err -> Error err
+      function
+      | Manifest.CommandList.Command.Parsed args ->
+        Result.List.map ~f:render args
+      | Manifest.CommandList.Command.Unparsed string ->
+        let%bind string = render string in
+        let%bind args = ShellSplit.split string in
+        return args
+    in
+    match Result.List.map ~f:renderCommand commands with
+    | Ok commands -> Ok commands
+    | Error err -> Error err
 
-end
+let renderOpamCommands opamEnv commands =
+  let open Run.Syntax in
+  try return (OpamFilter.commands opamEnv commands)
+  with Failure msg -> error msg
+
+let renderOpamSubstsAsCommands _opamEnv substs =
+  let open Run.Syntax in
+  let commands =
+    let f path =
+      let path = Path.addExt ".in" path in
+      ["substs"; Path.toString path]
+    in
+    List.map ~f substs
+  in
+  return commands
+
+let renderOpamPatchesToCommands opamEnv patches =
+  let open Run.Syntax in
+  Run.withContext "processing patch field" (
+    let evalFilter = function
+      | path, None -> return (path, true)
+      | path, Some filter ->
+        let%bind filter =
+          try return (OpamFilter.eval_to_bool opamEnv filter)
+          with Failure msg -> error msg
+        in return (path, filter)
+    in
+
+    let%bind filtered = Result.List.map ~f:evalFilter patches in
+
+    let toCommand (path, _) =
+      ["patch"; "--strip"; "1"; "--input"; Path.toString path]
+    in
+
+    return (
+      filtered
+      |> List.filter ~f:(fun (_, v) -> v)
+      |> List.map ~f:toCommand
+    )
+  )
 
 type task = t
 type task_dependency = dependency
@@ -974,72 +994,21 @@ let ofPackage
         (Environment.Closed.ofBindings buildEnv)
     in
 
-    let renderEsyCommands commands =
-      CommandList.render
-        ~platform
-        ~env
-        ~scope:(Scope.toEsyCommandExpressionScope buildScope)
-        commands
-    in
-
     let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
-
-    let renderOpamCommands commands =
-      try return (OpamFilter.commands opamEnv commands)
-      with Failure msg -> error msg
-    in
-
-    let opamSubstsToCommands substs =
-      let commands =
-        let f path =
-          let path = Path.addExt ".in" path in
-          ["substs"; Path.toString path]
-        in
-        List.map ~f substs
-      in
-      return commands
-    in
-
-    let opamPatchesToCommands patches =
-      Run.withContext "processing patch field" (
-        let open Run.Syntax in
-
-        let evalFilter = function
-          | path, None -> return (path, true)
-          | path, Some filter ->
-            let%bind filter =
-              try return (OpamFilter.eval_to_bool opamEnv filter)
-              with Failure msg -> error msg
-            in return (path, filter)
-        in
-
-        let%bind filtered = Result.List.map ~f:evalFilter patches in
-
-        let toCommand (path, _) =
-          ["patch"; "--strip"; "1"; "--input"; Path.toString path]
-        in
-
-        return (
-          filtered
-          |> List.filter ~f:(fun (_, v) -> v)
-          |> List.map ~f:toCommand
-        )
-      )
-    in
 
     let%bind buildCommands =
       Run.withContext
         "processing esy.build"
         begin match pkg.build.buildCommands with
         | Manifest.Build.EsyCommands commands ->
-          let%bind commands = renderEsyCommands commands in
-          let%bind applySubstsCommands = opamSubstsToCommands pkg.build.substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands pkg.build.patches in
+          let%bind commands = renderEsyCommands ~platform ~env buildScope commands in
+          let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv pkg.build.substs in
+          let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv pkg.build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
         | Manifest.Build.OpamCommands commands ->
-          let%bind commands = renderOpamCommands commands in
-          let%bind applySubstsCommands = opamSubstsToCommands pkg.build.substs in
-          let%bind applyPatchesCommands = opamPatchesToCommands pkg.build.patches in
+          let%bind commands = renderOpamCommands opamEnv commands in
+          let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv pkg.build.substs in
+          let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv pkg.build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
         end
     in
@@ -1049,9 +1018,9 @@ let ofPackage
         "processing esy.install"
         begin match pkg.build.installCommands with
         | Manifest.Build.EsyCommands commands ->
-          renderEsyCommands commands
+          renderEsyCommands ~platform ~env buildScope commands
         | Manifest.Build.OpamCommands commands ->
-          renderOpamCommands commands
+          renderOpamCommands opamEnv commands
         end
     in
 
