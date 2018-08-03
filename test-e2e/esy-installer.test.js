@@ -363,7 +363,6 @@ describe('esy-installer', () => {
         sbin,
         share,
       ],
-      basename: 'root-1.0.0-d9957acc',
     });
   });
 
