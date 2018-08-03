@@ -4,15 +4,265 @@
 
 module Store = EsyLib.Store
 
-let toOpamName name =
-  match Astring.String.cut ~sep:"@opam/" name with
-  | Some ("", name) -> name
-  | _ -> name
+type paths = {
+  rootPath : Config.Path.t;
+  sourcePath : Config.Path.t;
+  buildPath : Config.Path.t;
+  buildInfoPath : Config.Path.t;
+  stagePath : Config.Path.t;
+  installPath : Config.Path.t;
+  logPath : Config.Path.t;
+} [@@deriving ord]
 
-let isOpamName name =
-  match Astring.String.cut ~sep:"@opam/" name with
-  | Some ("", _name) -> true
-  | _ -> false
+module PackageScope : sig
+  type t = private {
+    name : EsyCommandExpression.Value.t;
+    version : EsyCommandExpression.Value.t;
+    root : EsyCommandExpression.Value.t;
+    original_root : EsyCommandExpression.Value.t;
+    target_dir : EsyCommandExpression.Value.t;
+    install : EsyCommandExpression.Value.t;
+    bin : EsyCommandExpression.Value.t;
+    sbin : EsyCommandExpression.Value.t;
+    lib : EsyCommandExpression.Value.t;
+    man : EsyCommandExpression.Value.t;
+    doc : EsyCommandExpression.Value.t;
+    stublibs : EsyCommandExpression.Value.t;
+    toplevel : EsyCommandExpression.Value.t;
+    share : EsyCommandExpression.Value.t;
+    etc : EsyCommandExpression.Value.t;
+  }
+
+  val make : useStagePath:bool -> pkg:Package.t -> paths:paths -> unit -> t
+  val compare : t -> t -> int
+  val lookup : t -> string -> EsyCommandExpression.Value.t option
+
+end = struct
+  module Value = EsyCommandExpression.Value
+
+  type t = {
+    name : Value.t;
+    version : Value.t;
+    root : Value.t;
+    original_root : Value.t;
+    target_dir : Value.t;
+    install : Value.t;
+    bin : Value.t;
+    sbin : Value.t;
+    lib : Value.t;
+    man : Value.t;
+    doc : Value.t;
+    stublibs : Value.t;
+    toplevel : Value.t;
+    share : Value.t;
+    etc : Value.t;
+  } [@@deriving ord]
+
+  let make ~useStagePath ~(pkg : Package.t) ~(paths : paths) () =
+    let s v = EsyCommandExpression.string v in
+    let p v = EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v)) in
+    let installPath =
+      if useStagePath
+      then paths.stagePath
+      else paths.installPath
+    in
+    {
+      name = s pkg.name;
+      version = s pkg.version;
+      root = p paths.rootPath;
+      original_root = p paths.sourcePath;
+      target_dir = p paths.buildPath;
+      install = p installPath;
+      bin = p Config.Path.(installPath / "bin");
+      sbin = p Config.Path.(installPath / "sbin");
+      lib = p Config.Path.(installPath / "lib");
+      man = p Config.Path.(installPath / "man");
+      doc = p Config.Path.(installPath / "doc");
+      stublibs = p Config.Path.(installPath / "stublibs");
+      toplevel = p Config.Path.(installPath / "toplevel");
+      share = p Config.Path.(installPath / "share");
+      etc = p Config.Path.(installPath / "etc");
+    }
+
+  let lookup scope id =
+    match id with
+    | "name" -> Some scope.name;
+    | "version" -> Some scope.version;
+    | "root" -> Some scope.root;
+    | "original_root" -> Some scope.original_root;
+    | "target_dir" -> Some scope.target_dir;
+    | "install" -> Some scope.install;
+    | "bin" -> Some scope.bin;
+    | "sbin" -> Some scope.sbin;
+    | "lib" -> Some scope.lib;
+    | "man" -> Some scope.man;
+    | "doc" -> Some scope.doc;
+    | "stublibs" -> Some scope.stublibs;
+    | "toplevel" -> Some scope.toplevel;
+    | "share" -> Some scope.share;
+    | "etc" -> Some scope.etc;
+    | _ -> None
+
+end
+
+module Scope : sig
+  type t = {
+    platform : System.Platform.t;
+    self : PackageScope.t;
+    dependencies : PackageScope.t StringMap.t;
+  }
+
+  val compare : t -> t -> int
+
+  val toEsyCommandExpressionScope : t -> EsyCommandExpression.scope
+  val toConcreteEsyCommandExpressionScope : cfg:Config.t -> t -> EsyCommandExpression.scope
+  val toOpamEnv : ocamlVersion:string option -> t -> OpamFilter.env
+
+end = struct
+  module Value = EsyCommandExpression.Value
+
+  type t = {
+    platform : System.Platform.t;
+    self : PackageScope.t;
+    dependencies : PackageScope.t StringMap.t;
+  } [@@deriving ord]
+
+  let toEsyCommandExpressionScope scope (namespace, name) =
+    match namespace, name with
+    | Some "self", name -> PackageScope.lookup scope.self name
+    | Some namespace, name ->
+      begin match StringMap.find_opt namespace scope.dependencies, name with
+      | Some _, "installed" -> Some (EsyCommandExpression.bool true)
+      | Some scope, name -> PackageScope.lookup scope name
+      | None, "installed" -> Some (EsyCommandExpression.bool false)
+      | None, _ -> None
+      end
+    | None, "os" -> Some (EsyCommandExpression.string (System.Platform.show scope.platform))
+    | None, _ -> None
+
+  let toConcreteEsyCommandExpressionScope ~cfg scope id =
+    match toEsyCommandExpressionScope scope id with
+    | Some (Value.String v) ->
+      let v = Config.Value.v v in
+      let v = Config.Value.toString cfg v in
+      Some (EsyCommandExpression.string v)
+    | v -> v
+
+  let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
+    let open OpamVariable in
+
+    let toOpamName name =
+      match Astring.String.cut ~sep:"@opam/" name with
+      | Some ("", name) -> name
+      | _ -> name
+    in
+
+    let isOpamName name =
+      match Astring.String.cut ~sep:"@opam/" name with
+      | Some ("", _name) -> true
+      | _ -> false
+
+    in
+
+    let opamVarContents = function
+      | EsyCommandExpression.Value.String s -> string s
+      | EsyCommandExpression.Value.Bool s -> bool s
+    in
+
+    let opamPackageScope (scope : PackageScope.t) name =
+      match name with
+      | "prefix" -> Some (opamVarContents scope.install)
+      | "bin" -> Some (opamVarContents scope.bin)
+      | "sbin" -> Some (opamVarContents scope.sbin)
+      | "etc" -> Some (opamVarContents scope.etc)
+      | "doc" -> Some (opamVarContents scope.doc)
+      | "man" -> Some (opamVarContents scope.man)
+      | "share" -> Some (opamVarContents scope.share)
+      | "lib" -> Some (opamVarContents scope.lib)
+      | "build" -> Some (opamVarContents scope.target_dir)
+      | "name" ->
+        let name =
+          match scope.name with
+          | Value.String name -> string (toOpamName name)
+          | Value.Bool v -> bool v
+        in
+        Some name
+      | "version" -> Some (opamVarContents scope.version)
+      | _ -> None
+    in
+
+    match Full.scope name, to_string (Full.variable name) with
+    | Full.Global, "os" -> Some (string (System.Platform.show scope.platform))
+    | Full.Global, "ocaml-version" ->
+      let open Option.Syntax in
+      let%bind ocamlVersion = ocamlVersion in
+      Some (string ocamlVersion)
+
+    | Full.Global, "ocaml-native" -> Some (bool true)
+    | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
+    | Full.Global, "make" -> Some (string "make")
+    | Full.Global, "jobs" -> Some (string "4")
+    | Full.Global, "pinned" -> Some (bool false)
+    | Full.Global, name -> opamPackageScope scope.self name
+
+    | Full.Self, _ -> None
+
+    | Full.Package namespace, "installed" ->
+      let namespace = OpamPackage.Name.to_string namespace in
+      if not (isOpamName namespace)
+      then None
+      else
+        let installed = StringMap.mem namespace scope.dependencies in
+        Some (bool installed)
+
+    | Full.Package namespace, "enable" ->
+      let namespace = OpamPackage.Name.to_string namespace in
+      if not (isOpamName namespace)
+      then None
+      else
+        begin match StringMap.mem namespace scope.dependencies with
+        | true -> Some (string "enable")
+        | false -> Some (string "disable")
+        end
+
+    | Full.Package namespace, name ->
+      let namespace = OpamPackage.Name.to_string namespace in
+      if not (isOpamName namespace)
+      then None
+      else begin
+        match StringMap.find_opt namespace scope.dependencies with
+        | Some scope -> opamPackageScope scope name
+        | None -> None
+      end
+
+end
+
+type t = {
+  id : string;
+  pkg : Package.t;
+
+  buildCommands : string list list;
+  installCommands : string list list;
+
+  env : Environment.Closed.t;
+  globalEnv : Environment.binding list;
+  localEnv : Environment.binding list;
+  paths : paths;
+
+  sourceType : Manifest.SourceType.t;
+
+  dependencies : dependency list;
+
+  platform : System.Platform.t;
+  scope : Scope.t;
+}
+[@@deriving ord]
+
+and dependency =
+  | Dependency of t
+  | DevDependency of t
+  | BuildTimeDependency of t
+[@@deriving (show, eq, ord)]
 
 let toOCamlVersion version =
   match String.split_on_char '.' version with
@@ -52,7 +302,7 @@ let renderCommandExpr ?name ~platform ~scope expr =
 module CommandList = struct
   type t =
     string list list
-    [@@deriving (show, eq, ord)]
+    [@@deriving (show, eq)]
 
   let make v = v
 
@@ -84,73 +334,12 @@ module CommandList = struct
 
 end
 
-module Scope = struct
-  type t =
-    EsyCommandExpression.Value.t StringMap.t
-    [@@deriving ord]
-end
-
-type t = {
-  id : string;
-  pkg : Package.t;
-
-  buildCommands : CommandList.t;
-  installCommands : CommandList.t;
-
-  env : Environment.Closed.t;
-  globalEnv : Environment.binding list;
-  localEnv : Environment.binding list;
-  paths : paths;
-
-  sourceType : Manifest.SourceType.t;
-
-  dependencies : dependency list;
-
-  platform : System.Platform.t;
-  scope : Scope.t;
-}
-[@@deriving ord]
-
-and paths = {
-  rootPath : Config.Path.t;
-  sourcePath : Config.Path.t;
-  buildPath : Config.Path.t;
-  buildInfoPath : Config.Path.t;
-  stagePath : Config.Path.t;
-  installPath : Config.Path.t;
-  logPath : Config.Path.t;
-}
-
-and dependency =
-  | Dependency of t
-  | DevDependency of t
-  | BuildTimeDependency of t
-[@@deriving (show, eq, ord)]
-
 type task = t
 type task_dependency = dependency
 
-let lookupInScope ?cfg bindings (namespace, name) =
-  let key =
-    match namespace, name with
-    | Some namespace, name -> namespace ^ "." ^ name
-    | None, name -> name
-  in
-  match cfg, StringMap.find key bindings with
-  | Some cfg, Some (EsyCommandExpression.Value.String v) ->
-    let v = Config.Value.v v in
-    let v = Config.Value.toString cfg v in
-    Some (EsyCommandExpression.string v)
-  | Some _, Some v -> Some v
-  | None, Some v -> Some v
-  | _, None ->
-    begin match name with
-    | "installed" -> Some (EsyCommandExpression.bool false)
-    | _ -> None
-    end
-
 let renderExpression ~cfg ~task expr =
-  renderCommandExpr ~platform:task.platform ~scope:(lookupInScope ~cfg task.scope) expr
+  let scope = Scope.toConcreteEsyCommandExpressionScope ~cfg task.scope in
+  renderCommandExpr ~platform:task.platform ~scope expr
 
 module DependencySet = Set.Make(struct
   type t = dependency
@@ -249,61 +438,6 @@ let buildId
 let getenv name =
   try Some (Sys.getenv name)
   with Not_found -> None
-
-let opamPackageName name =
-  let prefix = "@opam/" in
-  if Astring.String.is_prefix ~affix:prefix name
-  then Astring.String.Sub.(v ~start:(String.length prefix) name |> to_string)
-  else name
-
-let addTaskBindings
-  ?(useStageDirectory=false)
-  ~(scopeName : [`Self | `PackageName])
-  (pkg : Package.t)
-  (paths : paths)
-  scope
-  =
-  let installPath =
-    if useStageDirectory
-    then paths.stagePath
-    else paths.installPath
-  in
-  let namespace = match scopeName with
-  | `Self -> "self"
-  | `PackageName -> pkg.name
-  in
-  let add key value scope =
-    StringMap.add (namespace ^ "." ^ key) value scope
-  in
-  let addS k v s = add k (EsyCommandExpression.string v) s in
-  let addB k v s = add k (EsyCommandExpression.bool v) s in
-  let addP k v s = add k (EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v))) s in
-  scope
-  |> addS "name" pkg.name
-  |> addS "version" pkg.version
-  |> addP "root" paths.rootPath
-  |> addP "original_root" pkg.sourcePath
-  |> addP "target_dir" paths.buildPath
-  |> addP "install" installPath
-  |> addP "bin" Config.Path.(installPath / "bin")
-  |> addP "sbin" Config.Path.(installPath / "sbin")
-  |> addP "lib" Config.Path.(installPath / "lib")
-  |> addP "man" Config.Path.(installPath / "man")
-  |> addP "doc" Config.Path.(installPath / "doc")
-  |> addP "stublibs" Config.Path.(installPath / "stublibs")
-  |> addP "toplevel" Config.Path.(installPath / "toplevel")
-  |> addP "share" Config.Path.(installPath / "share")
-  |> addP "etc" Config.Path.(installPath / "etc")
-  |> addB "installed" true
-  |> addS "opam:name" (opamPackageName pkg.name)
-  |> addS "opam:version" pkg.version
-  |> addP "opam:prefix" installPath
-  |> addP "opam:bin" Config.Path.(installPath / "bin")
-  |> addP "opam:etc" Config.Path.(installPath / "etc")
-  |> addP "opam:doc" Config.Path.(installPath / "doc")
-  |> addP "opam:man" Config.Path.(installPath / "man")
-  |> addP "opam:lib" Config.Path.(installPath / "lib")
-  |> addP "opam:share" Config.Path.(installPath / "share")
 
 let addTaskEnvBindings
   (pkg : Package.t)
@@ -593,49 +727,43 @@ let ofPackage
      * while "esy.build/esy.install" commands are used while package is
      * building.
      *)
-    let scopeForExportEnv, scopeForCommands =
-      let bindings =
-        StringMap.(
-          empty
-          |> add "opam:make" (EsyCommandExpression.string "make")
-          |> add "opam:ocaml-native" (EsyCommandExpression.bool true)
-          |> add "opam:ocaml-native-dynlink" (EsyCommandExpression.bool true)
-          |> add "opam:jobs" (EsyCommandExpression.string "4")
-          |> add "opam:pinned" (EsyCommandExpression.bool false)
-        )
-      in
-      let bindings =
-        let f bindings task =
-          addTaskBindings ~scopeName:`PackageName task.pkg task.paths bindings
+    let exportedScope, buildScope =
+
+      let dependencies =
+        let f map (task : t) =
+          let scope =
+            PackageScope.make
+              ~useStagePath:false
+              ~pkg:task.pkg
+              ~paths:task.paths
+              ()
+          in
+          StringMap.add task.pkg.name scope map
         in
-        dependenciesTasks
-        |> List.fold_left ~f ~init:bindings
+        List.fold_left ~f ~init:StringMap.empty dependenciesTasks
       in
-      let bindingsForExportedEnv =
-        bindings
-        |> addTaskBindings
-            ~scopeName:`Self
-            pkg
-            paths
-        |> addTaskBindings
-            ~scopeName:`PackageName
-            pkg
-            paths
+
+      let buildScope =
+        let self = PackageScope.make ~useStagePath:true ~pkg ~paths () in
+        {
+          Scope.
+          platform;
+          self;
+          dependencies = StringMap.add pkg.name self dependencies;
+        }
       in
-      let bindingsForCommands =
-        bindings
-        |> addTaskBindings
-            ~useStageDirectory:true
-            ~scopeName:`Self
-            pkg
-            paths
-        |> addTaskBindings
-            ~useStageDirectory:true
-            ~scopeName:`PackageName
-            pkg
-            paths
+
+      let exportedScope =
+        let self = PackageScope.make ~useStagePath:false ~pkg ~paths () in
+        {
+          Scope.
+          platform;
+          self;
+          dependencies = StringMap.add pkg.name self dependencies;
+        }
       in
-      bindingsForExportedEnv, bindingsForCommands
+
+      exportedScope, buildScope
     in
 
     let%bind globalEnv, localEnv =
@@ -647,7 +775,7 @@ let ofPackage
             renderCommandExpr
               ~platform
               ~name
-              ~scope:(lookupInScope scopeForExportEnv)
+              ~scope:(Scope.toEsyCommandExpressionScope exportedScope)
               value
           in
           match envScope with
@@ -668,7 +796,7 @@ let ofPackage
         let%bind value = renderCommandExpr
           ~platform
           ~name:"CAML_LD_LIBRARY_PATH"
-          ~scope:(lookupInScope scopeForExportEnv)
+          ~scope:(Scope.toEsyCommandExpressionScope exportedScope)
           "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}"
         in
         Ok (Environment.{
@@ -688,7 +816,7 @@ let ofPackage
           renderCommandExpr
             ~platform
             ~name
-            ~scope:(lookupInScope scopeForCommands)
+            ~scope:(Scope.toEsyCommandExpressionScope buildScope)
             value
         in
         return {
@@ -850,90 +978,11 @@ let ofPackage
       CommandList.render
         ~platform
         ~env
-        ~scope:(lookupInScope scopeForCommands)
+        ~scope:(Scope.toEsyCommandExpressionScope buildScope)
         commands
     in
 
-    let opamEnvByDependency =
-      let f map (task : t) =
-        if isOpamName task.pkg.name
-        then begin
-          let open OpamVariable in
-          let name = toOpamName task.pkg.name in
-          let path v = string (Config.Value.show (Config.Path.toValue v)) in
-          let vars = StringMap.(
-            empty
-            |> add "name" (string name)
-            |> add "version" (string task.pkg.version)
-            |> add "bin" (path Config.Path.(task.paths.installPath / "bin"))
-            |> add "sbin" (path Config.Path.(task.paths.installPath / "sbin"))
-            |> add "etc" (path Config.Path.(task.paths.installPath / "etc"))
-            |> add "doc" (path Config.Path.(task.paths.installPath / "doc"))
-            |> add "man" (path Config.Path.(task.paths.installPath / "man"))
-            |> add "share" (path Config.Path.(task.paths.installPath / "share"))
-            |> add "lib" (path Config.Path.(task.paths.installPath / "lib"))
-            |> add "build" (path task.paths.buildPath)
-          ) in
-          StringMap.add name vars map
-        end
-        else map
-      in
-      List.fold_left
-        ~init:StringMap.empty
-        ~f
-        dependenciesTasks
-    in
-
-    let opamEnv (name : OpamVariable.Full.t) =
-      let open OpamVariable in
-      let var = Full.variable name in
-      let scope = Full.scope name in
-      let path v = string (Config.Value.show (Config.Path.toValue v)) in
-      let v =
-        match scope, to_string var with
-        | Full.Global, "os" -> Some (string (System.Platform.show platform))
-        | Full.Global, "ocaml-version" ->
-          let open Option.Syntax in
-          let%bind ocamlVersion = ocamlVersion in
-          Some (string ocamlVersion)
-        | Full.Global, "ocaml-native" -> Some (bool true)
-        | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
-        | Full.Global, "make" -> Some (string "make")
-        | Full.Global, "name" -> Some (string (toOpamName pkg.name))
-        | Full.Global, "version" -> Some (string pkg.version)
-        | Full.Global, "jobs" -> Some (string "4")
-        | Full.Global, "prefix" -> Some (path paths.stagePath)
-        | Full.Global, "bin" -> Some (path Config.Path.(paths.stagePath / "bin"))
-        | Full.Global, "sbin" -> Some (path Config.Path.(paths.stagePath / "sbin"))
-        | Full.Global, "etc" -> Some (path Config.Path.(paths.stagePath / "etc"))
-        | Full.Global, "doc" -> Some (path Config.Path.(paths.stagePath / "doc"))
-        | Full.Global, "man" -> Some (path Config.Path.(paths.stagePath / "man"))
-        | Full.Global, "share" -> Some (path Config.Path.(paths.stagePath / "share"))
-        | Full.Global, "lib" -> Some (path Config.Path.(paths.stagePath / "lib"))
-        | Full.Global, "build" -> Some (path paths.buildPath)
-        | Full.Global, "pinned" -> Some (bool false)
-        | Full.Global, _ -> None
-        | Full.Self, _ -> None
-        | Full.Package pkg, "installed" ->
-          let pkg = OpamPackage.Name.to_string pkg in
-          begin match StringMap.find_opt pkg opamEnvByDependency with
-          | Some _ -> Some (bool true)
-          | None -> Some (bool false)
-          end
-        | Full.Package pkg, "enable" ->
-          let pkg = OpamPackage.Name.to_string pkg in
-          begin match StringMap.find_opt pkg opamEnvByDependency with
-          | Some _ -> Some (string "enable")
-          | None -> Some (string "disable")
-          end
-        | Full.Package pkg, name ->
-          let open Option.Syntax in
-          let pkg = OpamPackage.Name.to_string pkg in
-          let%bind vars = StringMap.find_opt pkg opamEnvByDependency in
-          StringMap.find_opt name vars
-      in
-      v
-    in
+    let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
 
     let renderOpamCommands commands =
       try return (OpamFilter.commands opamEnv commands)
@@ -1022,7 +1071,7 @@ let ofPackage
       dependencies;
 
       platform = platform;
-      scope = scopeForExportEnv;
+      scope = exportedScope;
     } in
 
     return task

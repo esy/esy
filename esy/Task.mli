@@ -12,11 +12,12 @@ module CommandList : sig
   val equal : t -> t -> bool
 end
 
+(** This is an abstract type which represents a scope of a task. *)
 module Scope : sig
   type t
 end
 
-type t = {
+type t = private {
   id : string;
   pkg : Package.t;
 
