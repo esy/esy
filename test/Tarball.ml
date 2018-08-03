@@ -61,3 +61,14 @@ let%test "unpack tarball with stripcomponents" =
         Fs.withTempDir f
     in
     TestLwt.runLwtTest test
+
+let%test "returns error if operation was not successfully" = 
+    let test () =
+        let dst = Path.(v "non-existent-path") in
+        let fileName = Path.(v "non-existent-file.tgz") in
+        let%lwt result = EsyLib.Tarball.unpack ~dst fileName in
+        match result with
+        | Ok _ -> Lwt.return false
+        | _ -> Lwt.return true
+    in
+    TestLwt.runLwtTest test

@@ -25,7 +25,7 @@ let run cmd =
 
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
-  let unpack out =
+  let unpack out = 
     RunAsync.ofBosError (
       let open Result.Syntax in
       let%bind nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
