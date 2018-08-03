@@ -2,6 +2,7 @@ module CommandList = struct
 
   module Command = struct
 
+    [@@@ocaml.warning "-32"]
     type t =
       | Parsed of string list
       | Unparsed of string
@@ -19,6 +20,7 @@ module CommandList = struct
 
   end
 
+  [@@@ocaml.warning "-32"]
   type t =
     Command.t list option
     [@@deriving (show, eq, ord)]
@@ -207,7 +209,7 @@ module Release = struct
   type t = {
     releasedBinaries: string list;
     deleteFromBinaryRelease: (string list [@default []]);
-  } [@@deriving (show, of_yojson { strict = false })]
+  } [@@deriving (of_yojson { strict = false })]
 end
 
 module EsyManifest = struct
