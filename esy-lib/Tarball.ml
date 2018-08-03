@@ -21,18 +21,39 @@ let copyAll ~src ~dst () =
   RunAsync.List.processSeq ~f items
 
 let run cmd =
-    EsyBash.run (Cmd.toBosCmd cmd)
+  let f p =
+      let%lwt stdout = Lwt_io.read p#stdout	
+      and stderr = Lwt_io.read p#stderr in	
+      match%lwt p#status with	
+      | Unix.WEXITED 0 ->	
+        RunAsync.return ()	
+      | _ ->	
+        Logs_lwt.err (fun m -> m	
+          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"	
+          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout	
+        );%lwt	
+        RunAsync.error "error running command"	
+  in	
+  try%lwt	
+    EsyBashLwt.with_process_full cmd f	
+  with	
+  | Unix.Unix_error (err, _, _) ->	
+    let msg = Unix.error_message err in	
+    RunAsync.error msg	
+  | _ ->	
+    RunAsync.error "error running subprocess"	
 
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
   let unpack out = 
-    RunAsync.ofBosError (
+    let%bind cmd = RunAsync.ofBosError (
       let open Result.Syntax in
       let%bind nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
       let%bind normalizedOut = EsyBash.normalizePathForCygwin (Path.to_string out) in
-      let%bind ret = run Cmd.(v "tar" % "xf" % nf % "-C" % normalizedOut) in
-      return ret
+      return Cmd.(v "tar" % "xf" % nf % "-C" % normalizedOut)
     )
+    in
+    run cmd
   in
   match stripComponents with
   | Some stripComponents ->
@@ -46,9 +67,7 @@ let unpackWithTar ?stripComponents ~dst filename =
 let unpackWithUnzip ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
   let unpack out =
-    RunAsync.ofBosError (
-      run Cmd.(v "unzip" % "-q" % "-d" % p out % p filename)
-    )
+    run Cmd.(v "unzip" % "-q" % "-d" % p out % p filename)
   in
   match stripComponents with
   | Some stripComponents ->
