@@ -30,6 +30,14 @@ let both a b =
     | Error err, Error _ -> Error err
   )
 
+let ofResult ?err r = 
+    match r with
+    | Ok v -> return v
+    | Error _ ->
+            match err with
+            | Some e -> error e
+            | None -> error "Unknown error"
+
 module Syntax = struct
   let return = return
   let error = error

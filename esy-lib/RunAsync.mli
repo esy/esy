@@ -48,6 +48,12 @@ val runExn : ?err : string -> 'a t -> 'a
 val ofRun : 'a Run.t -> 'a t
 
 (**
+ * Convert an Rresult into [t]
+ *)
+
+val ofResult: ?err : string -> ('a, 'b) Result.result -> 'a t
+
+(**
  * Convert [option] into [t].
  *
  * [Some] will represent success and [None] a failure.
