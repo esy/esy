@@ -1,6 +1,6 @@
 let find = (~name, task: Task.t) => {
   let f = (task: Task.t) => task.pkg.name == name;
-  Task.DependencyGraph.find(~f, task);
+  Task.Graph.find(~f, task);
 };
 
 let getOcamlfind = (~cfg: Config.t, task: Task.t) =>

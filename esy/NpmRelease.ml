@@ -114,7 +114,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let%bind ocamlopt = RunAsync.ofRun (
       let open Run.Syntax in
       let%bind ocaml =
-        match Task.DependencyGraph.find ~f:(fun task -> task.pkg.name = "ocaml") task with
+        match Task.Graph.find ~f:(fun task -> task.pkg.name = "ocaml") task with
         | Some(ocaml) -> return ocaml
         | None -> error "ocaml isn't available in the sandbox"
       in
@@ -125,7 +125,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       return ocamlopt
     ) in
 
-  let tasks = Task.DependencyGraph.traverse ~traverse:dependenciesForRelease task in
+  let tasks = Task.Graph.traverse ~traverse:dependenciesForRelease task in
 
   let shouldDeleteFromBinaryRelease =
     let patterns =

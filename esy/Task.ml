@@ -1,10 +1,6 @@
 (**
  * Build task.
- *
- * TODO: Reconcile with BuildTask, right now we just reuse types & code
- * from there but it probably should live here instead. Fix that after we decide
- * on better package boundaries.
-*)
+ *)
 
 module Store = EsyLib.Store
 
@@ -91,14 +87,12 @@ end
 module Scope = struct
   type t =
     EsyCommandExpression.Value.t StringMap.t
-    [@@deriving eq, ord]
-
-  let pp fmt _v = Fmt.unit "<scope>" fmt ()
+    [@@deriving ord]
 end
 
 type t = {
   id : string;
-  pkg : Package.t [@printer fun fmt pkg -> Fmt.string fmt pkg.Package.id];
+  pkg : Package.t;
 
   buildCommands : CommandList.t;
   installCommands : CommandList.t;
@@ -115,7 +109,7 @@ type t = {
   platform : System.Platform.t;
   scope : Scope.t;
 }
-[@@deriving (show, eq, ord)]
+[@@deriving ord]
 
 and paths = {
   rootPath : Config.Path.t;
@@ -126,7 +120,6 @@ and paths = {
   installPath : Config.Path.t;
   logPath : Config.Path.t;
 }
-[@@deriving show]
 
 and dependency =
   | Dependency of t
@@ -1098,7 +1091,7 @@ let sandboxEnv (pkg : Package.t) =
       synPkg
   in Ok (Environment.Closed.bindings task.env)
 
-module DependencyGraph = DependencyGraph.Make(struct
+module Graph = DependencyGraph.Make(struct
     type t = task
 
     let compare = Pervasives.compare

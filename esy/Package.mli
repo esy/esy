@@ -26,4 +26,6 @@ val compare : t -> t -> int
 val packageOf : dependency -> t option
 
 module DependencySet : Set.S with type elt = dependency
-module Graph : DependencyGraph.DependencyGraph with type node = t
+module Graph : DependencyGraph.DependencyGraph
+  with type node = t
+  and type dependency := dependency

@@ -35,7 +35,6 @@ type t = {
   platform : System.Platform.t;
   scope : Scope.t;
 }
-[@@deriving (show, eq, ord)]
 
 and paths = {
   rootPath : Config.Path.t;
@@ -46,13 +45,11 @@ and paths = {
   installPath : Config.Path.t;
   logPath : Config.Path.t;
 }
-[@@deriving show]
 
 and dependency =
   | Dependency of t
   | DevDependency of t
   | BuildTimeDependency of t
-[@@deriving (show, eq, ord)]
 
 (** Render expression in task scope. *)
 val renderExpression : cfg:Config.t -> task:t -> string -> string Run.t
@@ -82,6 +79,6 @@ val toBuildProtocolString : ?pretty:bool -> t -> string
 
 val rewritePrefix : cfg:Config.t -> origPrefix:Path.t -> destPrefix:Path.t -> Path.t -> unit RunAsync.t
 
-module DependencyGraph : DependencyGraph.DependencyGraph
+module Graph : DependencyGraph.DependencyGraph
   with type node := t
   and type dependency := dependency
