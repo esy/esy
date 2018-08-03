@@ -21,28 +21,10 @@ let copyAll ~src ~dst () =
   RunAsync.List.processSeq ~f items
 
 let run cmd =
-  let f p =
-    let%lwt stdout = Lwt_io.read p#stdout
-    and stderr = Lwt_io.read p#stderr in
-    match%lwt p#status with
-    | Unix.WEXITED 0 ->
-      RunAsync.return ()
-    | _ ->
-      Logs_lwt.err (fun m -> m
-        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-      );%lwt
-      RunAsync.error "error running command"
-  in
-  try%lwt
-    let cmd = Cmd.getToolAndLine cmd in
-    Lwt_process.with_process_full cmd f
-  with
-  | Unix.Unix_error (err, _, _) ->
-    let msg = Unix.error_message err in
-    RunAsync.error msg
-  | _ ->
-    RunAsync.error "error running subprocess"
+    let result = EsyBash.run (Cmd.toBosCmd cmd) in
+    match result with 
+    | Ok _ -> RunAsync.return ()
+    | Error _ -> RunAsync.error ("error running command")
 
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
