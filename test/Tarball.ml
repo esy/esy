@@ -8,18 +8,14 @@ let%test "creates and unpacks a tarball" =
     let test () = 
         let f tempPath =
             let folderToCreate = Path.(tempPath / "test-folder") in
-            print_endline ("creating folder: " ^ Path.to_string tempPath);
             let%lwt _ = Fs.createDir folderToCreate in
             let fileToCreate = Path.(folderToCreate / "test-file.txt") in
             let data = "test data" in
             let%lwt _ = Fs.writeFile ~data fileToCreate in
-            print_endline ("wrote file");
 
             (* package up the file into a tarball *)
             let filename = Path.(tempPath / "output.tar.gz") in
             let%lwt _ = EsyLib.Tarball.create ~filename folderToCreate in
-
-            print_endline ("Created tarball");
 
             (* unpack the tarball *)
             let dst = Path.(tempPath / "extract-folder") in
