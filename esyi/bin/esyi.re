@@ -2,6 +2,11 @@ open EsyInstall;
 module String = Astring.String;
 
 module Api = {
+  let add = (_sandbox: Sandbox.t) => {
+    open RunAsync.Syntax;
+    error("Add not yet implemented");
+  }
+
   let lockfilePath = (sandbox: Sandbox.t) => {
     open RunAsync.Syntax;
     let filename = Path.(sandbox.path / "esyi.lock.json");
@@ -300,6 +305,13 @@ module CommandLineInterface = {
     (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
+  let addCommand = {
+    let doc = "Add a new dependency";
+    let info = Term.info("add", ~version, ~doc, ~sdocs, ~exits);
+    let cmd = cfg => Api.add(cfg);
+    (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
+  }
+
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
@@ -316,6 +328,7 @@ module CommandLineInterface = {
 
   let commands = [
     installCommand,
+    addCommand,
     solveCommand,
     fetchCommand,
     printCudfUniverse,
