@@ -32,9 +32,7 @@ let readJsonFile (path : Path.t) =
   let%bind data = readFile path in
   try return (Yojson.Safe.from_string data)
   with Yojson.Json_error msg ->
-    let msg = Format.asprintf
-      "error reading JSON file: %a@\n%s" Path.pp path msg
-    in error msg
+    errorf "error reading JSON file: %a@\n%s" Path.pp path msg
 
 let writeJsonFile ~json path =
   let data = Yojson.Safe.pretty_to_string json in

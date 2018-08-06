@@ -1,18 +1,37 @@
 (**
  * A computation which might result in an error.
  *)
-type 'a t = ('a, error) result
+type 'v t = ('v, error) result
 
 and error
 
-val return : 'a -> 'a t
+(**
+ * Failied computation with an error specified by a message.
+ *)
+val return : 'v -> 'v t
 
-val error : string -> 'a t
+(**
+ * Failied computation with an error specified by a message.
+ *)
+val error : string -> 'v t
 
-val ppError : error Fmt.t
+(**
+ * Same with [error] but defined with a formatted string.
+ *)
+val errorf : ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
 (**
  * Wrap computation with a context which will be reported in case of error
+ *)
+val context : 'v t -> string -> 'v t
+
+(**
+ * Same as [context] but defined with a formatter.
+ *)
+val contextf : 'v t -> ('a, Format.formatter, unit, 'v t) format4 -> 'a
+
+(**
+ * Same as [context] but with order of arguments swapped.
  *)
 val withContext : string -> 'a t -> 'a t
 
@@ -25,6 +44,8 @@ val withContextOfLog : ?header:string -> string -> 'a t -> 'a t
  * Format error.
  *)
 val formatError : error -> string
+
+val ppError : error Fmt.t
 
 (**
  * Run computation and raise an exception in case of failure.
@@ -60,6 +81,7 @@ module Syntax : sig
 
   val return : 'a -> 'a t
   val error : string -> 'a t
+  val errorf : ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
   module Let_syntax : sig
     val bind : f:('a -> 'b t) -> 'a t -> 'b t

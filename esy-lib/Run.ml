@@ -26,22 +26,27 @@ let return v =
 let error msg =
   Error (msg, [])
 
-let bind ~f v = match v with
-  | Ok v -> f v
-  | Error err -> Error err
+let errorf fmt =
+  let kerr _ = Error (Format.flush_str_formatter (), []) in
+  Format.kfprintf kerr Format.str_formatter fmt
 
-module Syntax = struct
-  let return = return
-  let error = error
-  module Let_syntax = struct
-    let bind = bind
-  end
-end
+let context v line =
+  match v with
+  | Ok v -> Ok v
+  | Error (msg, context) -> Error (msg, (Line line)::context)
+
+let contextf v fmt =
+  let kerr _ = context v (Format.flush_str_formatter ()) in
+  Format.kfprintf kerr Format.str_formatter fmt
 
 let withContext line v =
   match v with
   | Ok v -> Ok v
   | Error (msg, context) -> Error (msg, (Line line)::context)
+
+let bind ~f v = match v with
+  | Ok v -> f v
+  | Error err -> Error err
 
 let withContextOfLog ?(header="Log output:") content v =
   match v with
@@ -89,6 +94,15 @@ let runExn ?err = function
     | None -> msg
     in
     failwith (formatError (msg, ctx))
+
+module Syntax = struct
+  let return = return
+  let error = error
+  let errorf = errorf
+  module Let_syntax = struct
+    let bind = bind
+  end
+end
 
 module List = struct
 

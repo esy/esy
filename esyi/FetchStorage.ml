@@ -192,8 +192,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
     | _, false ->
       Fs.withTempDir (fun sourcePath ->
         let%bind fetched =
-          let msg = Format.asprintf "fetching %a" Package.Source.pp source in
-          RunAsync.withContext msg (
+          RunAsync.contextf (
             let%bind () = Fs.createDir sourcePath in
             match%bind doFetch sourcePath source with
             | `Done ->
@@ -201,6 +200,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
               return `Done
             | `TryNext err -> return (`TryNext err)
           )
+          "fetching %a" Package.Source.pp source
         in
 
         match fetched with

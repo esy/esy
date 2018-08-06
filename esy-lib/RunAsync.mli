@@ -15,6 +15,21 @@ val return : 'a -> 'a t
 val error : string -> 'a t
 
 (**
+ * Same with [error] but defined with a formatted string.
+ *)
+val errorf : ('a, Format.formatter, unit, 'v t) format4 -> 'a
+
+(**
+ * Wrap computation with a context which will be reported in case of error
+ *)
+val context : 'v t -> string -> 'v t
+
+(**
+ * Same as [context] but defined with a formatter.
+ *)
+val contextf : 'v t -> ('a, Format.formatter, unit, 'v t) format4 -> 'a
+
+(**
  * Wrap computation with a context which will be reported in case of error.
  *
  * Example usage:
@@ -84,6 +99,7 @@ module Syntax : sig
   val return : 'a -> 'a t
 
   val error : string -> 'a t
+  val errorf : ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
   module Let_syntax : sig
     val bind : f:('a -> 'b t) -> 'a t -> 'b t

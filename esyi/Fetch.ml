@@ -695,13 +695,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
     let%bind installed =
       let install installation =
-        let msg =
-          Format.asprintf
-            "installing %a"
-            Layout.pp_installation installation
-        in
-        LwtTaskQueue.submit queue (f installation)
-        |> RunAsync.withContext msg
+        RunAsync.contextf
+          (LwtTaskQueue.submit queue (f installation))
+          "installing %a"
+          Layout.pp_installation installation
       in
       layout
       |> List.map ~f:install
@@ -720,15 +717,12 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
     let f = function
       | (installation, Some ({Manifest. esy = None; _} as manifest)) ->
-        let msg =
-          Format.asprintf
-            "running lifecycle %a"
-            Layout.pp_installation installation
-        in
-        LwtTaskQueue.submit
-          queue
-          (runLifecycle ~installation ~manifest)
-        |> RunAsync.withContext msg
+        RunAsync.contextf
+          (LwtTaskQueue.submit
+            queue
+            (runLifecycle ~installation ~manifest))
+          "running lifecycle %a"
+          Layout.pp_installation installation
       | (_installation, Some {Manifest. esy = Some _; _})
       | (_installation, None) -> return ()
     in
