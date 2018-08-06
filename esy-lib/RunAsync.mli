@@ -30,21 +30,6 @@ val context : 'v t -> string -> 'v t
 val contextf : 'v t -> ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
 (**
- * Wrap computation with a context which will be reported in case of error.
- *
- * Example usage:
- *
- *   let build = withContext "building ocaml" build in ...
- *
- * In case build fails the error message would look like:
- *
- *   Error: command not found aclocal
- *     While building ocaml
- *
- *)
-val withContext : string -> 'a t -> 'a t
-
-(**
  * Same as with the [withContext] but will be formatted as differently, as a
  * single block of text.
  *)

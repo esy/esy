@@ -31,11 +31,6 @@ val context : 'v t -> string -> 'v t
 val contextf : 'v t -> ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
 (**
- * Same as [context] but with order of arguments swapped.
- *)
-val withContext : string -> 'a t -> 'a t
-
-(**
  * Wrap computation with a context which will be reported in case of error
  *)
 val withContextOfLog : ?header:string -> string -> 'a t -> 'a t

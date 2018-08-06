@@ -11,15 +11,11 @@ let errorf fmt =
 
 let context v msg =
   let%lwt v = v in
-  Lwt.return (Run.withContext msg v)
+  Lwt.return (Run.context v msg)
 
 let contextf v fmt =
   let kerr _ = context v (Format.flush_str_formatter ()) in
   Format.kfprintf kerr Format.str_formatter fmt
-
-let withContext msg v =
-  let%lwt v = v in
-  Lwt.return (Run.withContext msg v)
 
 let withContextOfLog ?header content v =
   let%lwt v = v in

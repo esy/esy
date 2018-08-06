@@ -13,9 +13,11 @@ let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
       then Logs_lwt.app(fun m -> m "%s: starting" context)
       else Lwt.return ()
     in
-    let%bind () = RunAsync.withContext context (
-      PackageBuilder.build ~quiet ?stderrout ?force ~buildOnly cfg task
-    ) in
+    let%bind () =
+      RunAsync.context (
+        PackageBuilder.build ~quiet ?stderrout ?force ~buildOnly cfg task
+      ) context
+    in
     let%lwt () = if not quiet
       then Logs_lwt.app(fun m -> m "%s: complete" context)
       else Lwt.return ()

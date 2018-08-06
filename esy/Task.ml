@@ -331,7 +331,7 @@ let renderOpamSubstsAsCommands _opamEnv substs =
 
 let renderOpamPatchesToCommands opamEnv patches =
   let open Run.Syntax in
-  Run.withContext "processing patch field" (
+  Run.context (
     let evalFilter = function
       | path, None -> return (path, true)
       | path, Some filter ->
@@ -352,7 +352,7 @@ let renderOpamPatchesToCommands opamEnv patches =
       |> List.filter ~f:(fun (_, v) -> v)
       |> List.map ~f:toCommand
     )
-  )
+  ) "processing patch field"
 
 type task = t
 type task_dependency = dependency
@@ -789,24 +789,24 @@ let ofPackage
     let%bind globalEnv, localEnv =
       let f acc Manifest.ExportedEnv.{name; scope = envScope; value; exclusive = _} =
         let injectCamlLdLibraryPath, globalEnv, localEnv = acc in
-        let context = Printf.sprintf "processing exportedEnv $%s" name in
-        Run.withContext context (
-          let%bind value =
-            renderCommandExpr
-              ~platform
-              ~name
-              ~scope:(Scope.toEsyCommandExpressionScope exportedScope)
-              value
-          in
-          match envScope with
-          | Manifest.ExportedEnv.Global ->
-            let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath in
-            let globalEnv = Environment.{origin = Some pkg; name; value = Value value}::globalEnv in
-            Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
-          | Manifest.ExportedEnv.Local ->
-            let localEnv = Environment.{origin = Some pkg; name; value = Value value}::localEnv in
-            Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
-        )
+        Run.contextf (
+            let%bind value =
+              renderCommandExpr
+                ~platform
+                ~name
+                ~scope:(Scope.toEsyCommandExpressionScope exportedScope)
+                value
+            in
+            match envScope with
+            | Manifest.ExportedEnv.Global ->
+              let injectCamlLdLibraryPath = name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath in
+              let globalEnv = Environment.{origin = Some pkg; name; value = Value value}::globalEnv in
+              Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
+            | Manifest.ExportedEnv.Local ->
+              let localEnv = Environment.{origin = Some pkg; name; value = Value value}::localEnv in
+              Ok (injectCamlLdLibraryPath, globalEnv, localEnv)
+          )
+          "processing exportedEnv $%s" name
       in
 
       let%bind injectCamlLdLibraryPath, globalEnv, localEnv =
@@ -989,16 +989,15 @@ let ofPackage
     in
 
     let%bind env =
-      Run.withContext
-        "evaluating environment"
+      Run.context
         (Environment.Closed.ofBindings buildEnv)
+        "evaluating environment"
     in
 
     let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
 
     let%bind buildCommands =
-      Run.withContext
-        "processing esy.build"
+      Run.context
         begin match pkg.build.buildCommands with
         | Manifest.Build.EsyCommands commands ->
           let%bind commands = renderEsyCommands ~platform ~env buildScope commands in
@@ -1011,17 +1010,18 @@ let ofPackage
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv pkg.build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
         end
+        "processing esy.build"
     in
 
     let%bind installCommands =
-      Run.withContext
-        "processing esy.install"
+      Run.context
         begin match pkg.build.installCommands with
         | Manifest.Build.EsyCommands commands ->
           renderEsyCommands ~platform ~env buildScope commands
         | Manifest.Build.OpamCommands commands ->
           renderOpamCommands opamEnv commands
         end
+        "processing esy.install"
     in
 
     let task: t = {
@@ -1046,14 +1046,11 @@ let ofPackage
     return task
 
   and taskOfPackageCached ~(includeSandboxEnv: bool) (pkg : Package.t) =
-    let v = Memoize.compute cache pkg.id (fun _ -> taskOfPackage ~includeSandboxEnv pkg) in
-    let context =
-      Printf.sprintf
-        "processing package: %s@%s"
-        pkg.name
-        pkg.version
-    in
-    Run.withContext context v
+    Run.contextf
+      (Memoize.compute cache pkg.id (fun _ -> taskOfPackage ~includeSandboxEnv pkg))
+      "processing package: %s@%s"
+      pkg.name
+      pkg.version
   in
 
   taskOfPackageCached ~includeSandboxEnv:true rootPkg

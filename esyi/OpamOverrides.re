@@ -78,14 +78,16 @@ let load = baseDir => {
   let packageJson = Path.(baseDir / "package.json");
   let filesPath = Path.(baseDir / "files");
   let%bind override =
-    RunAsync.withContext(
-      "Reading " ++ Path.toString(packageJson),
+    RunAsync.contextf(
       {
         let%bind json = Fs.readJsonFile(packageJson);
         RunAsync.ofRun(
           Json.parseJsonWith(Package.OpamOverride.of_yojson, json),
         );
       },
+      "Reading %a",
+      Path.pp,
+      packageJson,
     );
   let%bind files =
     if%bind (Fs.exists(filesPath)) {
