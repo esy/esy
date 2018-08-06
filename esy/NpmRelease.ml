@@ -26,25 +26,25 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
     |> String.concat ";"
   in
   Printf.sprintf {|
-    if ((Array.length Sys.argv) = 2) && (Sys.argv.(1) = "----where") then
-      print_endline "%s"
-    else
-      (let curEnvMap =
-        let curEnv = Unix.environment () in
-        let table = Hashtbl.create (Array.length curEnv) in
-        let f item =
-          try (
-            let idx = String.index item '=' in
-            let name = String.sub item 0 idx in
-            let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-            Hashtbl.replace table name value
-          ) with Not_found -> ()
-        in
-        Array.iter f curEnv;
-        table
-        in
+    let () =
+      if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
+        print_endline "%s"
+      else (
+        let curEnvMap =
+          let curEnv = Unix.environment () in
+          let table = Hashtbl.create (Array.length curEnv) in
+          let f item =
+            try (
+              let idx = String.index item '=' in
+              let name = String.sub item 0 idx in
+              let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+              Hashtbl.replace table name value
+            ) with Not_found -> ()
+          in
+          Array.iter f curEnv;
+          table
+          in
 
-      let () =
         let env =
           let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
           let replace v =
@@ -60,8 +60,9 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
           let f name value items = (name ^ "=" ^ value)::items in
           Array.of_list (Hashtbl.fold f curEnvMap [])
         in
-        Unix.execve "%s" Sys.argv env in
-        ())
+
+        Unix.execve "%s" Sys.argv env
+      )
   |} bin environmentString bin
 
 let configure ~(cfg : Config.t) =
