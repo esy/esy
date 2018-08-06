@@ -94,4 +94,8 @@ it('Common - release', async () => {
     stdout: 'RELEASE-DEP-HELLO\n',
     stderr: '',
   });
+
+  await expect(
+    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release ----where')),
+  ).resolves.not.toThrow();
 });
