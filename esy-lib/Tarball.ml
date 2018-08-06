@@ -35,8 +35,7 @@ let run cmd =
       RunAsync.error "error running command"
   in
   try%lwt
-    let cmd = Cmd.getToolAndLine cmd in
-    Lwt_process.with_process_full cmd f
+    EsyBashLwt.with_process_full cmd f	
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -46,7 +45,16 @@ let run cmd =
 
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
-  let unpack out = run Cmd.(v "tar" % "xf" % p filename % "-C" % p out) in
+  let unpack out = 
+    let%bind cmd = RunAsync.ofBosError (
+      let open Result.Syntax in
+      let%bind nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
+      let%bind normalizedOut = EsyBash.normalizePathForCygwin (Path.to_string out) in
+      return Cmd.(v "tar" % "xf" % nf % "-C" % normalizedOut)
+    )
+    in
+    run cmd
+  in
   match stripComponents with
   | Some stripComponents ->
     Fs.withTempDir begin fun out ->
@@ -69,10 +77,18 @@ let unpackWithUnzip ?stripComponents ~dst filename =
   | None -> unpack dst
 
 let unpack ?stripComponents ~dst filename =
-  match Path.get_ext filename with
+  let ext = Path.get_ext filename in
+  begin match ext with
   | ".zip" -> unpackWithUnzip ?stripComponents ~dst filename
   | _ -> unpackWithTar ?stripComponents ~dst filename
+  end
 
 let create ~filename src =
-  let cmd = Cmd.(v "tar" % "czf" % p filename % "-C" % p src % ".") in
-  ChildProcess.run cmd
+  RunAsync.ofBosError (
+    let open Result.Syntax in
+    let%bind nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
+    let%bind ns = EsyBash.normalizePathForCygwin (Path.to_string src) in
+    let cmd = Cmd.(v "tar" % "czf" % nf % "-C" % ns % ".") in
+    let%bind res = EsyBash.run (Cmd.toBosCmd cmd) in
+    return res
+  )
