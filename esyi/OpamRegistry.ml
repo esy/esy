@@ -222,10 +222,9 @@ module Manifest = struct
     {name = opamName; version = opamVersion; opam; url; path; override; archive} =
 
     let source =
-      let open Run.Syntax in
+      let open Result.Syntax in
 
       let sourceOfOpamUrl url =
-
         let%bind checksum =
           let checksums = OpamFile.URL.checksum url in
           let f c =
@@ -236,8 +235,13 @@ module Manifest = struct
           in
           match List.map ~f checksums with
           | [] ->
-            errorf "no checksum provided for %s@%a" name Version.pp version
-          | checksum::_ -> return checksum
+            let msg =
+              Format.asprintf
+                "no checksum provided for %s@%a"
+                name Version.pp version
+            in
+            Error msg
+          | checksum::_ -> Ok checksum
         in
 
         let convert (url : OpamUrl.t) =
@@ -247,10 +251,10 @@ module Manifest = struct
               url = OpamUrl.to_string url;
               checksum;
             }))
-          | `rsync -> error "unsupported source for opam: rsync"
-          | `hg -> error "unsupported source for opam: hg"
-          | `darcs -> error "unsupported source for opam: darcs"
-          | `git -> error "unsupported source for opam: git"
+          | `rsync -> Error "unsupported source for opam: rsync"
+          | `hg -> Error "unsupported source for opam: hg"
+          | `darcs -> Error "unsupported source for opam: darcs"
+          | `git -> Error "unsupported source for opam: git"
         in
 
         let%bind main = convert (OpamFile.URL.url url) in
@@ -278,7 +282,7 @@ module Manifest = struct
           | Some url -> sourceOfOpamUrl url
           | None ->
             let main = Package.Source Package.Source.NoSource in
-            return (main, [])
+            Ok (main, [])
           end
       in
 
@@ -291,15 +295,15 @@ module Manifest = struct
             checksum = Checksum.Md5, archive.md5;
           })
         in
-        return (Ok (main, mirrors))
+        Ok (main, mirrors)
       | None ->
-        return (Ok (main, mirrors))
+        Ok (main, mirrors)
     in
 
     let open RunAsync.Syntax in
     RunAsync.contextf (
 
-      match%bind RunAsync.ofRun source with
+      match source with
       | Error err -> return (Error err)
       | Ok source ->
 
