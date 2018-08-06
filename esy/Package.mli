@@ -17,8 +17,8 @@ and dependency =
   | DevDependency of t
   | BuildTimeDependency of t
   | InvalidDependency of {
-    pkgName: string;
-    reason: string;
+    name: string;
+    reason: [ | `Reason of string | `Missing ];
   }
 
 val equal : t -> t -> bool
