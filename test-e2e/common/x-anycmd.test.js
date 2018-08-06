@@ -3,12 +3,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {
-  createTestSandbox,
-  promiseExec,
-  ESYCOMMAND,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const {createTestSandbox, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
 
 skipSuiteOnWindows();
@@ -71,9 +66,7 @@ describe('Common - x anycmd', () => {
     await fs.writeFile(path.join(p.projectPath, 'subdir', 'X'), '');
 
     await expect(
-      promiseExec(`${ESYCOMMAND} x ls -1`, {
-        cwd: path.join(p.projectPath, 'subdir'),
-      }),
+      p.esy('x ls -1', {cwd: path.join(p.projectPath, 'subdir')}),
     ).resolves.toEqual(expect.objectContaining({stdout: 'X\n'}));
   });
 });

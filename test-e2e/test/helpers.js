@@ -53,7 +53,7 @@ export type TestSandbox = {
   run: (args: string) => Promise<{stderr: string, stdout: string}>,
   esy: (
     args?: string,
-    options: ?{noEsyPrefix?: boolean, env?: Object},
+    options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
   ) => Promise<{stderr: string, stdout: string}>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
@@ -118,6 +118,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     if (options.env != null) {
       env = {...env, ...options.env};
     }
+    let cwd = projectPath;
+    if (options.cwd != null) {
+      cwd = options.cwd;
+    }
     if (!options.noEsyPrefix) {
       env = {
         ...env,
@@ -130,10 +134,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
 
     const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
-    return promiseExec(execCommand, {
-      cwd: projectPath,
-      env,
-    });
+    return promiseExec(execCommand, {cwd, env});
   }
 
   function npm(args: string) {
