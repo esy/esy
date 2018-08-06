@@ -38,7 +38,11 @@ const fixture = [
     'release.ml',
     outdent`
     let () =
-      let name = Sys.getenv "NAME" in
+      let name =
+        match Sys.getenv_opt "NAME" with
+        | Some name -> name
+        | None -> "name"
+      in
       print_endline ("RELEASE-HELLO-FROM-" ^ name)
   `,
   ),
@@ -92,6 +96,16 @@ it('Common - release', async () => {
     promiseExec(path.join(p.npmPrefixPath, 'bin', 'releaseDep')),
   ).resolves.toEqual({
     stdout: 'RELEASE-DEP-HELLO\n',
+    stderr: '',
+  });
+
+  // check that `release ----where` returns a path to a real `release` binary
+
+  const releaseBinPath = (await promiseExec(
+    path.join(p.npmPrefixPath, 'bin', 'release ----where'),
+  )).stdout.trim();
+  await expect(promiseExec(releaseBinPath)).resolves.toEqual({
+    stdout: 'RELEASE-HELLO-FROM-name\n',
     stderr: '',
   });
 });
