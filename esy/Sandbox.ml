@@ -101,10 +101,10 @@ let ofDir (cfg : Config.t) =
 
       let f dependencies =
         function
-        | Ok (name, `EsyPkg pkg) ->
+        | Ok (name, `PackageWithBuild (pkg, _)) ->
           let dep = make pkg in
           StringMap.add name dep dependencies
-        | Ok (_, `NonEsyPkg transitiveDependencies) ->
+        | Ok (_, `Package transitiveDependencies) ->
           let f k v dependencies =
             if StringMap.mem k dependencies
             then dependencies
@@ -125,51 +125,43 @@ let ofDir (cfg : Config.t) =
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
     in
 
-    let loadDependencies (manifest : Manifest.t) =
+    let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let (>>=) = Lwt.(>>=) in
-      match manifest with
-      | Manifest.Esy manifest ->
-        let ignoreCircularDep = Option.isNone manifest.Manifest.Esy.esy in
-        Lwt.return StringMap.empty
-        >>= addDependencies
-            ~ignoreCircularDep
-            ~make:(fun pkg -> Package.Dependency pkg)
-            (Manifest.Esy.dependencies manifest)
-        >>= addDependencies
-            ~ignoreCircularDep
-            ~make:(fun pkg -> Package.BuildTimeDependency pkg)
-            (Manifest.Esy.buildTimeDependencies manifest)
-        >>= addDependencies
-            ~ignoreCircularDep
-            ~skipUnresolved:true
-            ~make:(fun pkg -> Package.OptDependency pkg)
-            (Manifest.Esy.optDependencies manifest)
-        >>= (fun dependencies ->
-            if Path.equal cfg.sandboxPath path
-            then
-              addDependencies
-                ~ignoreCircularDep ~skipUnresolved:true
-                ~make:(fun pkg -> Package.DevDependency pkg)
-                (Manifest.Esy.devDependencies manifest)
-                dependencies
-            else
-              Lwt.return dependencies)
-      | Manifest.Opam manifest ->
-        Lwt.return StringMap.empty
-        >>= addDependencies
-            ~ignoreCircularDep:false
-            ~make:(fun pkg -> Package.Dependency pkg)
-            (Manifest.Opam.dependencies manifest)
-        >>= addDependencies
-            ~ignoreCircularDep:false
-            ~skipUnresolved:true
-            ~make:(fun pkg -> Package.OptDependency pkg)
-            (Manifest.Opam.optDependencies manifest)
+      Lwt.return StringMap.empty
+      >>= addDependencies
+          ~ignoreCircularDep
+          ~make:(fun pkg -> Package.Dependency pkg)
+          deps.dependencies
+      >>= addDependencies
+          ~ignoreCircularDep
+          ~make:(fun pkg -> Package.BuildTimeDependency pkg)
+          deps.buildTimeDependencies
+      >>= addDependencies
+          ~ignoreCircularDep
+          ~skipUnresolved:true
+          ~make:(fun pkg -> Package.OptDependency pkg)
+          deps.optDependencies
+      >>= (fun dependencies ->
+          if Path.equal cfg.sandboxPath path
+          then
+            addDependencies
+              ~ignoreCircularDep ~skipUnresolved:true
+              ~make:(fun pkg -> Package.DevDependency pkg)
+              deps.devDependencies
+              dependencies
+          else
+            Lwt.return dependencies)
     in
 
     let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
       manifestInfo := (Path.Set.union pathSet (!manifestInfo));
-      let%lwt dependencies = loadDependencies manifest in
+
+      let build = Manifest.build manifest in
+
+      let%lwt dependencies =
+        let ignoreCircularDep = Option.isNone build in
+        loadDependencies ~ignoreCircularDep (Manifest.dependencies manifest)
+      in
 
       let hasDepWithSourceTypeDevelopment =
         StringMap.exists
@@ -178,66 +170,34 @@ let ofDir (cfg : Config.t) =
               | Package.Dependency pkg
               | Package.BuildTimeDependency pkg
               | Package.OptDependency pkg ->
-                pkg.sourceType = Manifest.SourceType.Transient
+                pkg.build.sourceType = Manifest.SourceType.Transient
               | Package.DevDependency _
               | Package.InvalidDependency _ -> false)
           dependencies
       in
 
-      match manifest with
-      | Manifest.Opam manifest ->
-        let pkg = Package.{
-          id = Path.to_string path;
-          name = Manifest.Opam.name manifest;
-          version = Manifest.Opam.version manifest;
-          dependencies = StringMap.values dependencies;
-          sourceType = Manifest.Opam.sourceType manifest;
-          sandboxEnv = Manifest.Env.empty;
-          buildEnv = Manifest.Env.empty;
-          exportedEnv = Manifest.Opam.exportedEnv manifest;
-          build = Package.OpamBuild {
-            name = Manifest.Opam.opamName manifest;
-            version = Manifest.Opam.version manifest;
-            buildCommands = Manifest.Opam.buildCommands manifest;
-            installCommands = Manifest.Opam.installCommands manifest;
-            patches = Manifest.Opam.patches manifest;
-            substs = Manifest.Opam.substs manifest;
-            buildType = Manifest.Opam.buildType manifest;
-          };
-          sourcePath = Config.Path.ofPath cfg sourcePath;
-          resolution = Some ("opam:" ^ Manifest.Opam.version manifest)
-        } in
-        return (`EsyPkg pkg)
 
-      | Manifest.Esy manifest ->
-        begin match manifest.Manifest.Esy.esy with
-        | None -> return (`NonEsyPkg dependencies)
-        | Some esyManifest ->
-          let sourceType =
-            match hasDepWithSourceTypeDevelopment, manifest._resolved with
-            | true, _
-            | false, None -> Manifest.SourceType.Transient
-            | false, Some _ -> Manifest.SourceType.Immutable
-          in
-          let pkg = Package.{
-            id = Path.to_string path;
-            name = manifest.name;
-            version = manifest.version;
-            dependencies = StringMap.values dependencies;
-            sourceType;
-            sandboxEnv = esyManifest.sandboxEnv;
-            buildEnv = esyManifest.buildEnv;
-            exportedEnv = esyManifest.exportedEnv;
-            build = Package.EsyBuild {
-              buildCommands = esyManifest.Manifest.EsyManifest.build;
-              installCommands = esyManifest.install;
-              buildType = esyManifest.buildsInSource;
-            };
-            sourcePath = Config.Path.ofPath cfg sourcePath;
-            resolution = manifest._resolved;
-          } in
-          return (`EsyPkg pkg)
-        end
+      match build with
+      | Some build ->
+        let sourceType =
+          match hasDepWithSourceTypeDevelopment, build.Manifest.Build.sourceType with
+          | true, _
+          | false, Manifest.SourceType.Transient -> Manifest.SourceType.Transient
+          | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
+        in
+        let pkg = {
+          Package.
+          id = Path.to_string path;
+          name = Manifest.name manifest;
+          version = Manifest.version manifest;
+          dependencies = StringMap.values dependencies;
+          build = {build with sourceType};
+          sourcePath = Config.Path.ofPath cfg sourcePath;
+          resolution = Manifest.uniqueDistributionId manifest;
+        } in
+        return (`PackageWithBuild (pkg, manifest))
+      | None ->
+        return (`Package dependencies)
     in
 
     let pathToEsyLink = Path.(path / "_esylink") in
@@ -265,8 +225,7 @@ let ofDir (cfg : Config.t) =
   in
 
   match%bind loadPackageCached cfg.sandboxPath [] with
-  | `EsyPkg root, _ ->
-
+  | `PackageWithBuild (root, manifest), _ ->
     let%bind manifestInfo =
       let statPath path =
         let%bind stat = Fs.stat path in
@@ -277,14 +236,10 @@ let ofDir (cfg : Config.t) =
       |> List.map ~f:statPath
       |> RunAsync.List.joinAll
     in
-
     let%bind scripts =
-      match%bind Manifest.Esy.findOfDir cfg.sandboxPath with
-      | Some filename -> Manifest.Scripts.ofFile filename
-      | None -> return Manifest.Scripts.empty
+      RunAsync.ofRun (Manifest.scripts manifest)
     in
-
-    return {root;scripts;manifestInfo}
+    return {root; scripts; manifestInfo}
 
   | _ ->
     error "root package missing esy config"

@@ -53,7 +53,7 @@ export type TestSandbox = {
   run: (args: string) => Promise<{stderr: string, stdout: string}>,
   esy: (
     args?: string,
-    options: ?{noEsyPrefix?: boolean, env?: Object},
+    options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
   ) => Promise<{stderr: string, stdout: string}>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
@@ -91,7 +91,7 @@ export type TestSandbox = {
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
-  const rootPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
+  const rootPath = await fs.realpath(await fs.mkdtemp(path.join(tmp, 'XXXX')));
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const npmPrefixPath = path.join(rootPath, 'npm');
@@ -118,6 +118,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     if (options.env != null) {
       env = {...env, ...options.env};
     }
+    let cwd = projectPath;
+    if (options.cwd != null) {
+      cwd = options.cwd;
+    }
     if (!options.noEsyPrefix) {
       env = {
         ...env,
@@ -130,10 +134,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
 
     const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
-    return promiseExec(execCommand, {
-      cwd: projectPath,
-      env,
-    });
+    return promiseExec(execCommand, {cwd, env});
   }
 
   function npm(args: string) {

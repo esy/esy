@@ -1,7 +1,20 @@
+module BuildType = struct
+  include EsyBuildPackage.BuildType
+
+  let of_yojson = function
+    | `String "_build" -> Ok JbuilderLike
+    | `Bool true -> Ok InSource
+    | `Bool false -> Ok OutOfSource
+    | _ -> Error "expected false, true or \"_build\""
+end
+
+module SourceType = EsyBuildPackage.SourceType
+
 module CommandList = struct
 
   module Command = struct
 
+    [@@@ocaml.warning "-32"]
     type t =
       | Parsed of string list
       | Unparsed of string
@@ -19,6 +32,7 @@ module CommandList = struct
 
   end
 
+  [@@@ocaml.warning "-32"]
   type t =
     Command.t list option
     [@@deriving (show, eq, ord)]
@@ -48,99 +62,9 @@ module CommandList = struct
 
 end
 
-module Scripts = struct
-
-  type script = {
-    command : CommandList.Command.t;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    script StringMap.t
-    [@@deriving (eq, ord)]
-
-  let empty = StringMap.empty
-
-  let pp =
-    let open Fmt in
-    let ppBinding = hbox (pair (quote string) (quote pp_script)) in
-    vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
-
-  let of_yojson =
-    let script (json: Json.t) =
-      match CommandList.of_yojson json with
-      | Ok command ->
-        begin match command with
-        | None
-        | Some [] -> Error "empty command"
-        | Some [command] -> Ok {command;}
-        | Some _ -> Error "multiple script commands are not supported"
-        end
-      | Error err -> Error err
-    in
-    Json.Parse.stringMap script
-
-  let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
-
-  type scripts = t
-  let scripts_of_yojson = of_yojson
-
-  module ParseManifest = struct
-    type t = {
-      scripts: (scripts [@default empty]);
-    } [@@deriving (of_yojson { strict = false })]
-
-    let parse json =
-      match of_yojson json with
-      | Ok pkg -> Ok pkg.scripts
-      | Error err -> Error err
-  end
-
-  let ofFile (path : Path.t) =
-    let open RunAsync.Syntax in
-    let%bind json = Fs.readJsonFile path in
-    RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind data = Json.parseJsonWith ParseManifest.of_yojson json in
-      return data.ParseManifest.scripts
-    )
-end
-
-(**
- * Environment for the entire sandbox as specified in "esy.sandboxEnv".
- *)
-module Env = struct
-
-  type item = {
-    name : string;
-    value : string;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
-
-  let empty = []
-
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result.Syntax in
-      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
-      | `String value ->
-        Ok ({name = k; value;}::items)
-      | _ -> Error "expected string"
-      in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
-end
-
-(**
- * Environment exported from a package as specified in "esy.exportedEnv".
- *)
 module ExportedEnv = struct
 
+  [@@@ocaml.warning "-32"]
   type scope =
     | Local
     | Global
@@ -160,6 +84,7 @@ module ExportedEnv = struct
     [@@deriving of_yojson]
   end
 
+  [@@@ocaml.warning "-32"]
   type item = {
     name : string;
     value : string;
@@ -187,123 +112,306 @@ module ExportedEnv = struct
 
 end
 
-module BuildType = struct
-  include EsyBuildPackage.BuildType
+module Env = struct
+
+  [@@@ocaml.warning "-32"]
+  type item = {
+    name : string;
+    value : string;
+  }
+  [@@deriving (show, eq, ord)]
+
+  type t =
+    item list
+    [@@deriving (show, eq, ord)]
+
+  let empty = []
 
   let of_yojson = function
-    | `String "_build" -> Ok JbuilderLike
-    | `Bool true -> Ok InSource
-    | `Bool false -> Ok OutOfSource
-    | _ -> Error "expected false, true or \"_build\""
+    | `Assoc items ->
+      let open Result.Syntax in
+      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
+      | `String value ->
+        Ok ({name = k; value;}::items)
+      | _ -> Error "expected string"
+      in
+      let%bind items = Result.List.foldLeft ~f ~init:[] items in
+      Ok (List.rev items)
+    | _ -> Error "expected an object"
 end
 
-module SourceType = EsyBuildPackage.SourceType
+module Build = struct
 
-module EsyReleaseConfig = struct
-  type t = {
-    releasedBinaries: string list;
-    deleteFromBinaryRelease: (string list [@default []]);
-  } [@@deriving (show, of_yojson { strict = false })]
-end
-
-module EsyManifest = struct
+  type commands =
+    | OpamCommands of OpamTypes.command list
+    | EsyCommands of CommandList.t
 
   type t = {
-    build: (CommandList.t [@default CommandList.empty]);
-    install: (CommandList.t [@default CommandList.empty]);
-    buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
-    exportedEnv: (ExportedEnv.t [@default []]);
-    buildEnv: (Env.t [@default Env.empty]);
-    sandboxEnv: (Env.t [@default Env.empty]);
-    release: (EsyReleaseConfig.t option [@default None]);
-  } [@@deriving (show, of_yojson { strict = false })]
-
-  let empty = {
-    build = None;
-    install = None;
-    buildsInSource = BuildType.OutOfSource;
-    exportedEnv = [];
-    sandboxEnv = Env.empty;
-    buildEnv = Env.empty;
-    release = None;
+    sourceType : SourceType.t;
+    buildType : BuildType.t;
+    buildCommands : commands;
+    installCommands : commands;
+    patches : (Path.t * OpamTypes.filter option) list;
+    substs : Path.t list;
+    exportedEnv : ExportedEnv.t;
+    sandboxEnv : Env.t;
+    buildEnv : Env.t;
   }
 
 end
 
-module Esy = struct
+module Dependencies = struct
+  type t = {
+    dependencies : string list list;
+    devDependencies : string list list;
+    buildTimeDependencies : string list list;
+    optDependencies : string list list;
+  }
+end
 
-  module Dependencies = struct
-    type t = string StringMap.t
+module Release = struct
+  type t = {
+    releasedBinaries: string list;
+    deleteFromBinaryRelease: (string list [@default []]);
+  } [@@deriving (of_yojson { strict = false })]
+end
 
-    let empty = StringMap.empty
-    let keys = StringMap.keys
+module Scripts = struct
 
-    let pp =
-      let open Fmt in
-      let ppBinding = hbox (pair (quote string) (quote string)) in
-      vbox ~indent:1 (iter_bindings ~sep:comma StringMap.iter ppBinding)
+  [@@@ocaml.warning "-32"]
+  type script = {
+    command : CommandList.Command.t;
+  }
+  [@@deriving (eq, ord)]
 
-    let of_yojson =
-      Json.Parse.(stringMap string)
+  type t =
+    script StringMap.t
+    [@@deriving (eq, ord)]
+
+  let empty = StringMap.empty
+
+  let of_yojson =
+    let script (json: Json.t) =
+      match CommandList.of_yojson json with
+      | Ok command ->
+        begin match command with
+        | None
+        | Some [] -> Error "empty command"
+        | Some [command] -> Ok {command;}
+        | Some _ -> Error "multiple script commands are not supported"
+        end
+      | Error err -> Error err
+    in
+    Json.Parse.stringMap script
+
+  let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
+end
+
+module type MANIFEST = sig
+  (**
+   * Manifest.
+   *
+   * This can be either esy manifest (package.json/esy.json) or opam manifest but
+   * this type abstracts them out.
+   *)
+  type t
+
+  (** Name. *)
+  val name : t -> string
+
+  (** Version. *)
+  val version : t -> string
+
+  (** License. *)
+  val license : t -> Json.t option
+
+  (** Description. *)
+  val description : t -> string option
+
+  (**
+   * Extract dependency info.
+   *)
+  val dependencies : t -> Dependencies.t
+
+  (**
+   * Extract build config from manifest
+   *
+   * Not all packages have build config defined so we return `None` in this case.
+   *)
+  val build : t -> Build.t option
+
+  (**
+   * Extract release config from manifest
+   *
+   * Not all packages have release config defined so we return `None` in this
+   * case.
+   *)
+  val release : t -> Release.t option
+
+  (**
+   * Extract release config from manifest
+   *
+   * Not all packages have release config defined so we return `None` in this
+   * case.
+   *)
+  val scripts : t -> Scripts.t Run.t
+
+  (**
+   * Unique id of the release.
+   *
+   * This could be a released version, git sha commit or some checksum of package
+   * contents if any.
+   *
+   * This info is used to construct a build key for the corresponding package.
+   *)
+  val uniqueDistributionId : t -> string option
+end
+
+module PackageJsonDependencies = struct
+  type t = string StringMap.t
+
+  let empty = StringMap.empty
+  let keys = StringMap.keys
+
+  let of_yojson =
+    Json.Parse.(stringMap string)
+
+end
+
+module Esy : sig
+  include MANIFEST
+
+  val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
+end = struct
+
+  module EsyManifest = struct
+
+    type t = {
+      build: (CommandList.t [@default CommandList.empty]);
+      install: (CommandList.t [@default CommandList.empty]);
+      buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
+      exportedEnv: (ExportedEnv.t [@default []]);
+      buildEnv: (Env.t [@default Env.empty]);
+      sandboxEnv: (Env.t [@default Env.empty]);
+      release: (Release.t option [@default None]);
+    } [@@deriving (of_yojson { strict = false })]
 
   end
 
-  type t = {
+  type manifest = {
     name : string;
     version : string;
     description : (string option [@default None]);
     license : (Json.t option [@default None]);
-    dependencies : (Dependencies.t [@default Dependencies.empty]);
-    peerDependencies : (Dependencies.t [@default Dependencies.empty]);
-    devDependencies : (Dependencies.t [@default Dependencies.empty]);
-    optDependencies : (Dependencies.t [@default Dependencies.empty]);
-    buildTimeDependencies : (Dependencies.t [@default Dependencies.empty]);
+    dependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+    peerDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+    devDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+    optDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+    buildTimeDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
     esy: EsyManifest.t option [@default None];
     _resolved: (string option [@default None]);
-  } [@@deriving (show, of_yojson {strict = false})]
+  } [@@deriving (of_yojson {strict = false})]
 
-  let name manifest = manifest.name
-  let version manifest = manifest.version
+  type t = manifest * Json.t
 
-  let dependencies manifest =
+  let name (manifest, _) = manifest.name
+  let version (manifest, _) = manifest.version
+  let description (manifest, _) = manifest.description
+  let license (manifest, _) = manifest.license
+  let _resolved (manifest, _) = manifest._resolved
+
+  let dependencies (manifest, _) =
     let dependencies =
-      manifest.dependencies
-      |> Dependencies.keys
+      let dependencies =
+        manifest.dependencies
+        |> PackageJsonDependencies.keys
+        |> List.map ~f:(fun name -> [name])
+      in
+      let peerDependencies =
+        manifest.peerDependencies
+        |> PackageJsonDependencies.keys
+        |> List.map ~f:(fun name -> [name])
+      in
+      dependencies @ peerDependencies
+    in
+
+    let devDependencies =
+      manifest.devDependencies
+      |> PackageJsonDependencies.keys
       |> List.map ~f:(fun name -> [name])
     in
-    let peerDependencies =
-      manifest.peerDependencies
-      |> Dependencies.keys
+
+    let optDependencies =
+      manifest.optDependencies
+      |> PackageJsonDependencies.keys
       |> List.map ~f:(fun name -> [name])
     in
-    dependencies @ peerDependencies
 
-  let devDependencies manifest =
-    manifest.devDependencies
-    |> Dependencies.keys
-    |> List.map ~f:(fun name -> [name])
+    let buildTimeDependencies =
+      manifest.buildTimeDependencies
+      |> PackageJsonDependencies.keys
+      |> List.map ~f:(fun name -> [name])
+    in
 
-  let optDependencies manifest =
-    manifest.optDependencies
-    |> Dependencies.keys
-    |> List.map ~f:(fun name -> [name])
+    {
+      Dependencies.
+      dependencies;
+      devDependencies;
+      optDependencies;
+      buildTimeDependencies
+    }
 
-  let buildTimeDependencies manifest =
-    manifest.buildTimeDependencies
-    |> Dependencies.keys
-    |> List.map ~f:(fun name -> [name])
+  let uniqueDistributionId (manifest, _) =
+    manifest._resolved
+
+  let release (m, _) =
+    let open Option.Syntax in
+    let%bind m = m.esy in
+    let%bind c = m.EsyManifest.release in
+    return c
+
+  let scripts (_, json) =
+    let open Run.Syntax in
+    match json with
+    | `Assoc items ->
+      let f (name, _) = name = "scripts" in
+      begin match List.find_opt ~f items with
+      | Some (_, json) -> Run.ofStringError (Scripts.of_yojson json)
+      | None -> return Scripts.empty
+      end
+    | _ -> return Scripts.empty
+
+  let build (m, _) =
+    let open Option.Syntax in
+    let%bind esy = m.esy in
+    Some {
+      Build.
+      sourceType = (
+        match m._resolved with
+        | None -> SourceType.Transient
+        | Some _ -> SourceType.Immutable);
+      buildType = esy.EsyManifest.buildsInSource;
+      exportedEnv = esy.EsyManifest.exportedEnv;
+      buildEnv = esy.EsyManifest.buildEnv;
+      sandboxEnv = esy.EsyManifest.sandboxEnv;
+      buildCommands = EsyCommands (esy.EsyManifest.build);
+      installCommands = EsyCommands (esy.EsyManifest.install);
+      patches = [];
+      substs = [];
+    }
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind json = Fs.readJsonFile path in
-    RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+    let%bind manifest = RunAsync.ofRun (Json.parseJsonWith manifest_of_yojson json) in
+    return (manifest, json)
 
   let findOfDir (path : Path.t) =
     let open RunAsync.Syntax in
     let filename = Path.(path / "esy.json") in
     if%bind Fs.exists filename
     then return (Some filename)
-    else 
+    else
       let filename = Path.(path / "package.json") in
       if%bind Fs.exists filename
       then return (Some filename)
@@ -324,7 +432,7 @@ module OpamOverride = struct
     build : (CommandList.t option [@default None]);
     install : (CommandList.t option [@default None]);
     exportedEnv : (ExportedEnv.t [@default ExportedEnv.empty]);
-    dependencies : (Esy.Dependencies.t [@default Esy.Dependencies.empty]);
+    dependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
 
   } [@@deriving of_yojson {strict = false}]
 
@@ -336,35 +444,11 @@ module OpamOverride = struct
 end
 
 module Opam : sig
-  type t
-
-  type commands =
-    | Commands of OpamTypes.command list
-    | OverridenCommands of CommandList.t
-
-  val opamName : t -> string
-
-  val name : t -> string
-  val version : t -> string
-
-  val sourceType : t -> SourceType.t
-  val buildType : t -> BuildType.t
-
-  val buildCommands : t -> commands
-  val installCommands : t -> commands
-  val exportedEnv : t -> ExportedEnv.t
-
-  val dependencies : t -> string list list
-  val optDependencies : t -> string list list
+  include MANIFEST
 
   val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
   val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
-
-  val patches : t -> (OpamTypes.basename * OpamTypes.filter option) list
-  val substs : t -> OpamTypes.basename list
-
   val hasMultipleOpamFiles : t -> bool
-
 end = struct
   type t =
     | Installed of {
@@ -372,10 +456,6 @@ end = struct
         override : OpamOverride.t option;
       }
     | AggregatedRoot of (string * OpamFile.OPAM.t) list
-
-  and commands =
-    | Commands of OpamTypes.command list
-    | OverridenCommands of CommandList.t
 
   let hasMultipleOpamFiles = function
     | Installed _ -> false
@@ -409,36 +489,45 @@ end = struct
     | Installed manifest ->
       begin match manifest.override with
       | Some {OpamOverride. build = Some build; _} ->
-        OverridenCommands build
+        Build.EsyCommands build
       | Some {OpamOverride. build = None; _}
       | None ->
-        Commands (OpamFile.OPAM.build manifest.opam)
+        Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
       end
     | AggregatedRoot [_name, opam] ->
-      Commands (OpamFile.OPAM.build opam)
+      Build.OpamCommands (OpamFile.OPAM.build opam)
     | AggregatedRoot _ ->
-      Commands []
+      Build.OpamCommands []
 
   let installCommands = function
     | Installed manifest ->
       begin match manifest.override with
       | Some {OpamOverride. install = Some install; _} ->
-        OverridenCommands install
+        Build.EsyCommands install
       | Some {OpamOverride. install = None; _}
       | None ->
-        Commands (OpamFile.OPAM.install manifest.opam)
+        Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
       end
     | AggregatedRoot [_name, opam] ->
-      Commands (OpamFile.OPAM.install opam)
+      Build.OpamCommands (OpamFile.OPAM.install opam)
     | AggregatedRoot _ ->
-      Commands []
+      Build.OpamCommands []
 
   let patches = function
-    | Installed manifest -> OpamFile.OPAM.patches manifest.opam
+    | Installed manifest ->
+      let patches = OpamFile.OPAM.patches manifest.opam in
+      let f (name, filter) =
+        let name = Path.v (OpamFilename.Base.to_string name) in
+        (name, filter)
+      in
+      List.map ~f patches
     | AggregatedRoot _ -> []
 
   let substs = function
-    | Installed manifest -> OpamFile.OPAM.substs manifest.opam
+    | Installed manifest ->
+      let names = OpamFile.OPAM.substs manifest.opam in
+      let f name = Path.v (OpamFilename.Base.to_string name) in
+      List.map ~f names
     | AggregatedRoot _ -> []
 
   let exportedEnv = function
@@ -472,83 +561,93 @@ end = struct
     List.map ~f:(List.map ~f) cnf
 
   let dependencies manifest =
-    let dependsOfOpam opam =
-      let f = OpamFile.OPAM.depends opam in
+    let dependencies =
+      let dependsOfOpam opam =
+        let f = OpamFile.OPAM.depends opam in
 
-      let f =
-        let env var =
-          match OpamVariable.Full.to_string var with
-          | "test" -> Some (OpamVariable.B false)
-          | "doc" -> Some (OpamVariable.B false)
-          | _ -> None
+        let f =
+          let env var =
+            match OpamVariable.Full.to_string var with
+            | "test" -> Some (OpamVariable.B false)
+            | "doc" -> Some (OpamVariable.B false)
+            | _ -> None
+          in
+          OpamFilter.partial_filter_formula env f
         in
-        OpamFilter.partial_filter_formula env f
-      in
 
-      let dependencies =
-        listPackageNamesOfFormula
-          ~build:true ~test:false ~post:true ~doc:false ~dev:false
-          f
-      in
-      let dependencies = ["ocaml"]::["@esy-ocaml/substs"]::dependencies in
-
-      dependencies
-    in
-    match manifest with
-    | Installed {opam; override} ->
-      let dependencies = dependsOfOpam opam in
-      begin
-      match override with
-      | Some {OpamOverride. dependencies = extraDependencies; _} ->
-        let extraDependencies =
-          extraDependencies
-          |> StringMap.keys
-          |> List.map ~f:(fun name -> [name])
-        in
-        List.append dependencies extraDependencies
-      | None -> dependencies
-      end
-    | AggregatedRoot opams ->
-      let namesPresent =
-        let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
-        List.fold_left ~f ~init:StringSet.empty opams
-      in
-      let f dependencies (_name, opam) =
-        let update = dependsOfOpam opam in
-        let update =
-          let f name = not (StringSet.mem name namesPresent) in
-          List.map ~f:(List.filter ~f) update
-        in
-        let update =
-          let f = function | [] -> false | _ -> true in
-          List.filter ~f update
-        in
-        dependencies @ update
-      in
-      List.fold_left ~f ~init:[] opams
-
-  let optDependencies manifest =
-    match manifest with
-    | Installed {opam;_} ->
-      let dependencies =
-        let f = OpamFile.OPAM.depopts opam in
         let dependencies =
           listPackageNamesOfFormula
             ~build:true ~test:false ~post:true ~doc:false ~dev:false
             f
         in
-        match dependencies with
-        | [] -> []
-        | [single] -> List.map ~f:(fun name -> [name]) single
-        | _multi ->
-          (** apparently depopts has a different structure than depends in opam,
-           * it's always a single list of packages in cnf
-           * TODO: cleanup this mess
-           *)
-          assert false
+        let dependencies = ["ocaml"]::["@esy-ocaml/substs"]::dependencies in
+
+        dependencies
       in
-      dependencies
-    | AggregatedRoot _ -> []
+      match manifest with
+      | Installed {opam; override} ->
+        let dependencies = dependsOfOpam opam in
+        begin
+        match override with
+        | Some {OpamOverride. dependencies = extraDependencies; _} ->
+          let extraDependencies =
+            extraDependencies
+            |> StringMap.keys
+            |> List.map ~f:(fun name -> [name])
+          in
+          List.append dependencies extraDependencies
+        | None -> dependencies
+        end
+      | AggregatedRoot opams ->
+        let namesPresent =
+          let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+          List.fold_left ~f ~init:StringSet.empty opams
+        in
+        let f dependencies (_name, opam) =
+          let update = dependsOfOpam opam in
+          let update =
+            let f name = not (StringSet.mem name namesPresent) in
+            List.map ~f:(List.filter ~f) update
+          in
+          let update =
+            let f = function | [] -> false | _ -> true in
+            List.filter ~f update
+          in
+          dependencies @ update
+        in
+        List.fold_left ~f ~init:[] opams
+    in
+
+    let optDependencies =
+      match manifest with
+      | Installed {opam;_} ->
+        let dependencies =
+          let f = OpamFile.OPAM.depopts opam in
+          let dependencies =
+            listPackageNamesOfFormula
+              ~build:true ~test:false ~post:true ~doc:false ~dev:false
+              f
+          in
+          match dependencies with
+          | [] -> []
+          | [single] -> List.map ~f:(fun name -> [name]) single
+          | _multi ->
+            (** apparently depopts has a different structure than depends in opam,
+            * it's always a single list of packages in cnf
+            * TODO: cleanup this mess
+            *)
+            assert false
+        in
+        dependencies
+      | AggregatedRoot _ -> []
+    in
+    {
+      Dependencies.
+      dependencies;
+      buildTimeDependencies = [];
+      devDependencies = [];
+      optDependencies;
+    }
 
   let ofDirAsInstalled (path : Path.t) =
     let open RunAsync.Syntax in
@@ -593,61 +692,136 @@ end = struct
     in
     return (Some (AggregatedRoot opams, Path.Set.of_list paths))
 
+  let release _ = None
+  let uniqueDistributionId m = Some ("opam:" ^ version m)
+  let description _ = None
+  let license _ = None
+
+  let build m =
+    Some {
+      Build.
+      sourceType = sourceType m;
+      buildType = buildType m;
+      exportedEnv = exportedEnv m;
+      buildEnv = Env.empty;
+      sandboxEnv = Env.empty;
+      buildCommands = buildCommands m;
+      installCommands = installCommands m;
+      patches = patches m;
+      substs = substs m;
+    }
+
+  let scripts _ = Run.return Scripts.empty
+
 end
 
-type t =
-  | Esy of Esy.t
-  | Opam of Opam.t
+module EsyOrOpamManifest : sig
+  include MANIFEST
 
-let ofDir ?(asRoot=false) (path : Path.t) =
+  val dirHasManifest : Path.t -> bool RunAsync.t
+  val ofDir : ?asRoot:bool -> Path.t -> (t * Path.Set.t) option RunAsync.t
+end = struct
+  type t =
+    | Esy of Esy.t
+    | Opam of Opam.t
 
-  let relative p =
-    match Path.relativize ~root:path p with
-    | Some p -> p
-    | None -> p
-  in
+  let name (m : t) =
+    match m with
+    | Opam m -> Opam.name m
+    | Esy m -> Esy.name m
 
-  let ppPaths fmt paths =
-    let paths = Path.Set.map relative paths in
-    let pp = Path.Set.pp ~sep:(Fmt.unit ", ") Path.pp in
-    pp fmt paths
-  in
+  let version (m : t) =
+    match m with
+    | Opam m -> Opam.version m
+    | Esy m -> Esy.version m
 
-  let open RunAsync.Syntax in
-  match%bind Esy.ofDir path with
-  | Some (manifest, paths) ->
-    let%lwt () =
-      if asRoot
-      then Logs_lwt.app (fun m -> m "found esy manifests: %a" ppPaths paths)
-      else Lwt.return ()
+  let description m =
+    match m with
+    | Opam m -> Opam.description m
+    | Esy m -> Esy.description m
+
+  let license m =
+    match m with
+    | Opam m -> Opam.license m
+    | Esy m -> Esy.license m
+
+  let uniqueDistributionId m =
+    match m with
+    | Opam m -> Opam.uniqueDistributionId m
+    | Esy m -> Esy.uniqueDistributionId m
+
+  let dependencies m =
+    match m with
+    | Opam m -> Opam.dependencies m
+    | Esy m -> Esy.dependencies m
+
+  let build m =
+    match m with
+    | Opam m -> Opam.build m
+    | Esy m -> Esy.build m
+
+  let release m =
+    match m with
+    | Opam m -> Opam.release m
+    | Esy m -> Esy.release m
+
+  let scripts m =
+    match m with
+    | Opam m -> Opam.scripts m
+    | Esy m -> Esy.scripts m
+
+  let ofDir ?(asRoot=false) (path : Path.t) =
+
+    let relative p =
+      match Path.relativize ~root:path p with
+      | Some p -> p
+      | None -> p
     in
-    return (Some (Esy manifest, paths))
-  | None ->
-    let opam =
-      if asRoot
-      then Opam.ofDirAsAggregatedRoot path
-      else Opam.ofDirAsInstalled path
+
+    let ppPaths fmt paths =
+      let paths = Path.Set.map relative paths in
+      let pp = Path.Set.pp ~sep:(Fmt.unit ", ") Path.pp in
+      pp fmt paths
     in
-    begin match%bind opam with
+
+    let open RunAsync.Syntax in
+    match%bind Esy.ofDir path with
     | Some (manifest, paths) ->
       let%lwt () =
         if asRoot
-        then (
-          Logs_lwt.app (fun m -> m "found opam manifests: %a" ppPaths paths);%lwt
-          if Opam.hasMultipleOpamFiles manifest
-          then Logs_lwt.warn (fun m -> m "build commands from opam files won't be executed")
-          else Lwt.return ()
-        ) else Lwt.return ()
+        then Logs_lwt.app (fun m -> m "found esy manifests: %a" ppPaths paths)
+        else Lwt.return ()
       in
-      return (Some (Opam manifest, paths))
-    | None -> return None
-    end
+      return (Some (Esy manifest, paths))
+    | None ->
+      let opam =
+        if asRoot
+        then Opam.ofDirAsAggregatedRoot path
+        else Opam.ofDirAsInstalled path
+      in
+      begin match%bind opam with
+      | Some (manifest, paths) ->
+        let%lwt () =
+          if asRoot
+          then (
+            Logs_lwt.app (fun m -> m "found opam manifests: %a" ppPaths paths);%lwt
+            if Opam.hasMultipleOpamFiles manifest
+            then Logs_lwt.warn (fun m -> m "build commands from opam files won't be executed")
+            else Lwt.return ()
+          ) else Lwt.return ()
+        in
+        return (Some (Opam manifest, paths))
+      | None -> return None
+      end
 
-let dirHasManifest (path : Path.t) =
-  let open RunAsync.Syntax in
-  let%bind names = Fs.listDir path in
-  let f = function
-    | "esy.json" | "package.json" | "opam" -> true
-    | name -> Path.(name |> v |> has_ext ".opam")
-  in
-  return (List.exists ~f names)
+  let dirHasManifest (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind names = Fs.listDir path in
+    let f = function
+      | "esy.json" | "package.json" | "opam" -> true
+      | name -> Path.(name |> v |> has_ext ".opam")
+    in
+    return (List.exists ~f names)
+end
+
+include EsyOrOpamManifest

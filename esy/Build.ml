@@ -135,7 +135,7 @@ let buildAll
     =
   let queue = LwtTaskQueue.create ~concurrency () in
   let f = runTask ?force ?buildOnly ~queue cfg rootTask in
-  Task.DependencyGraph.foldWithAllDependencies ~f rootTask
+  Task.Graph.foldWithAllDependencies ~f rootTask
 
 (**
  * Build only dependencies of the task but not the task itself.
@@ -156,4 +156,4 @@ let buildDependencies
       return ()
     ) else runTask ?force ?buildOnly ~allDependencies ~dependencies ~queue cfg rootTask task
   in
-  Task.DependencyGraph.foldWithAllDependencies ~f rootTask
+  Task.Graph.foldWithAllDependencies ~f rootTask

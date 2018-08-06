@@ -62,29 +62,20 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
-  let%bind manifestOpt = Manifest.ofDir cfg.Config.sandboxPath in
-  let%bind manifest = match manifestOpt with
-    | Some (Manifest.Esy manifest, _path) -> return manifest
-    | Some (Manifest.Opam _, _path) ->
-      error "packages with opam manifests do not support release"
-    | None -> error "no manifest found"
-  in
-  let%bind releaseCfg =
-    RunAsync.ofOption ~err:"no release config found" (
-      let open Option.Syntax in
-      let%bind esyManifest = manifest.Manifest.Esy.esy in
-      let%bind releaseCfg = esyManifest.Manifest.EsyManifest.release in
-      return releaseCfg
-    )
-  in
-  return {
-    name = manifest.Manifest.Esy.name;
-    version = manifest.version;
-    license = manifest.license;
-    description = manifest.description;
-    releasedBinaries = releaseCfg.Manifest.EsyReleaseConfig.releasedBinaries;
-    deleteFromBinaryRelease = releaseCfg.Manifest.EsyReleaseConfig.deleteFromBinaryRelease;
-  }
+  match%bind Manifest.ofDir cfg.Config.sandboxPath with
+  | None -> error "no manifest found"
+  | Some (manifest, _) ->
+    let%bind releaseCfg =
+      RunAsync.ofOption ~err:"no release config found" (Manifest.release manifest)
+    in
+    return {
+      name = Manifest.name manifest;
+      version = Manifest.version manifest;
+      license = Manifest.license manifest;
+      description = Manifest.description manifest;
+      releasedBinaries = releaseCfg.Manifest.Release.releasedBinaries;
+      deleteFromBinaryRelease = releaseCfg.Manifest.Release.deleteFromBinaryRelease;
+    }
 
 let dependenciesForRelease (task : Task.t) =
   let f deps dep = match dep with
@@ -123,7 +114,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let%bind ocamlopt = RunAsync.ofRun (
       let open Run.Syntax in
       let%bind ocaml =
-        match Task.DependencyGraph.find ~f:(fun task -> task.pkg.name = "ocaml") task with
+        match Task.Graph.find ~f:(fun task -> task.pkg.name = "ocaml") task with
         | Some(ocaml) -> return ocaml
         | None -> error "ocaml isn't available in the sandbox"
       in
@@ -134,7 +125,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       return ocamlopt
     ) in
 
-  let tasks = Task.DependencyGraph.traverse ~traverse:dependenciesForRelease task in
+  let tasks = Task.Graph.traverse ~traverse:dependenciesForRelease task in
 
   let shouldDeleteFromBinaryRelease =
     let patterns =
@@ -153,7 +144,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     *)
   let devModeIds =
     let f s task =
-      match task.Task.pkg.sourceType with
+      match task.Task.pkg.build.sourceType with
       | Manifest.SourceType.Immutable -> s
       | Manifest.SourceType.Transient -> StringSet.add task.id s
     in
@@ -205,15 +196,18 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
           name = "release-env";
           version = pkg.version;
           dependencies = [Package.Dependency pkg];
-          sourceType = Manifest.SourceType.Transient;
-          sandboxEnv = pkg.sandboxEnv;
-          buildEnv = Manifest.Env.empty;
-          build = Package.EsyBuild {
-              buildCommands = None;
-              installCommands = None;
-              buildType = Manifest.BuildType.OutOfSource;
-            };
-          exportedEnv = [];
+          build = {
+            Manifest.Build.
+            sourceType = Manifest.SourceType.Transient;
+            sandboxEnv = pkg.build.sandboxEnv;
+            buildEnv = Manifest.Env.empty;
+            buildCommands = Manifest.Build.EsyCommands None;
+            installCommands = Manifest.Build.EsyCommands None;
+            buildType = Manifest.BuildType.OutOfSource;
+            patches = [];
+            substs = [];
+            exportedEnv = [];
+          };
           sourcePath = pkg.sourcePath;
           resolution = None;
         } in

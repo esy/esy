@@ -68,8 +68,6 @@ let eval ~pathSep ~colon ~scope string =
       error msg
   in
 
-  let esyPkgName name = "@opam/" ^ name in
-
   let rec evalToString expr =
     match%bind eval expr with
     | V.String v -> return v
@@ -82,37 +80,6 @@ let eval ~pathSep ~colon ~scope string =
     | V.String _ -> error "Expected bool but got string"
 
   and eval = function
-
-    (* First rewrite OpamVar syntax into Esy Syntax *)
-
-    (* name *)
-    | E.OpamVar ([], var) -> lookupValue (None, "opam:" ^ var)
-    (* pkg1+pkg2:enable *)
-    | E.OpamVar (pkgNames, "enable") ->
-      let cond =
-        pkgNames
-        |> List.map ~f:(fun name -> E.Var (Some (esyPkgName name), "installed"))
-        |> List.fold_left
-          ~f:(fun c v -> E.And (c, v))
-          ~init:(E.Bool true)
-      in
-      let expr = E.Condition (cond, E.String "enable", E.String "disable") in
-      eval expr
-    (* pkg:var *)
-    | E.OpamVar ([pkgName], varName) ->
-      let expr = E.Var (Some (esyPkgName pkgName), varName) in
-      eval expr
-    (* pkg1+pkg2:var *)
-    | E.OpamVar (pkgNames, varName) ->
-      let expr =
-        pkgNames
-        |> List.map ~f:(fun name -> E.Var (Some (esyPkgName name), varName))
-        |> List.fold_left
-          ~f:(fun c v -> E.And (c, v))
-          ~init:(E.Bool true)
-      in
-      eval expr
-
     | E.String s -> return (V.String s)
     | E.Bool b -> return (V.Bool b)
     | E.PathSep -> return (V.String pathSep)
@@ -432,47 +399,6 @@ let%test_module "CommandExpr" = (module struct
         Var (None, "lwt"),
         Not (Var (None, "async"))
       ))
-
-  let%test "parse opam global" =
-    expectParseOk
-      "%{name}%"
-      (OpamVar ([], "name"))
-    && expectParseOk
-      "%{name }%"
-      (OpamVar ([], "name"))
-    && expectParseOk
-      "%{ name}%"
-      (OpamVar ([], "name"))
-
-  let%test "parse opam with surroundings" =
-    expectParseOk
-      "%{name}%!"
-      (Concat [OpamVar ([], "name"); String "!"])
-    && expectParseOk
-      "hey, %{name}%!"
-      (Concat [String "hey, "; OpamVar ([], "name"); String "!"])
-
-  let%test "parse opam scoped" =
-    expectParseOk
-      "%{name:var}%"
-      (OpamVar (["name"], "var"))
-    && expectParseOk
-      "%{name :var}%"
-      (OpamVar (["name"], "var"))
-    && expectParseOk
-      "%{name: var}%"
-      (OpamVar (["name"], "var"))
-
-  let%test "parse opam scoped with +" =
-    expectParseOk
-      "%{pkg1+pkg2:var}%"
-      (OpamVar (["pkg1"; "pkg2"], "var"))
-    && expectParseOk
-      "%{pkg1 +pkg2:var}%"
-      (OpamVar (["pkg1"; "pkg2"], "var"))
-    && expectParseOk
-      "%{pkg1+ pkg2:var}%"
-      (OpamVar (["pkg1"; "pkg2"], "var"))
 
   let expectRenderOk scope s expected =
     match render ~scope s with

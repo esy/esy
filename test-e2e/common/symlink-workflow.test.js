@@ -118,9 +118,8 @@ describe('Common - symlink workflow', () => {
     p = await createTestSandbox(...fixture);
 
     appEsy = args =>
-      promiseExec(`${ESYCOMMAND} ${args}`, {
-        cwd: path.resolve(p.projectPath, 'app'),
-        env: {...process.env, ESY__PREFIX: p.esyPrefixPath},
+      p.esy(`${args}`, {
+        cwd: path.join(p.projectPath, 'app'),
       });
 
     await appEsy('install');

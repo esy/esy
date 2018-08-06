@@ -16,7 +16,6 @@ let id              = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-']*
 
 rule read tokens = parse
  | '#' '{'       { expr tokens lexbuf }
- | '%' '{'       { expr (OPAM_OPEN::tokens) lexbuf }
  | '\\' '"'      { uquote tokens (buf_from_str "\"") lexbuf }
  | '\\' '''      { uquote tokens (buf_from_str "'") lexbuf }
  | '\\' '\\'     { uquote tokens (buf_from_str "\\") lexbuf }
@@ -35,7 +34,6 @@ and expr tokens = parse
  | ')'          { expr (PAREN_RIGHT::tokens) lexbuf }
  | '$'          { expr (DOLLAR::tokens) lexbuf }
  | ':'          { expr (COLON::tokens) lexbuf }
- | '+'          { expr (PLUS::tokens) lexbuf }
  | '.'          { expr (DOT::tokens) lexbuf }
  | '@'          { expr (AT::tokens) lexbuf }
  | '?'          { expr (QUESTION_MARK::tokens) lexbuf }
@@ -46,7 +44,6 @@ and expr tokens = parse
    }
  | '''          { literal tokens (Buffer.create 16) lexbuf }
  | '}'          { read tokens lexbuf }
- | '}' '%'      { read (OPAM_CLOSE::tokens) lexbuf }
  | _ as c       {
      let msg = Printf.sprintf "unexpected token '%c' found" c in
      raise (Error (lexbuf.lex_curr_p, msg))
@@ -64,10 +61,6 @@ and uquote tokens buf = parse
  | '#' '{'     {
      let tok = STRING (Buffer.contents buf) in
      expr (tok::tokens) lexbuf
-   }
- | '%' '{'     {
-     let tok = STRING (Buffer.contents buf) in
-     expr (OPAM_OPEN::tok::tokens) lexbuf
    }
  | '\\' '"'    { Buffer.add_string buf "\""; uquote tokens buf lexbuf }
  | '\\' '''    { Buffer.add_string buf "'"; uquote tokens buf lexbuf }

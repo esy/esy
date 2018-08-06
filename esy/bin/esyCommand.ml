@@ -245,7 +245,7 @@ let withBuildTaskByPath
     let resolvedPath = packagePath |> Path.rem_empty_seg |> Path.to_string in
     let findByPath (task : Task.t) =
       String.equal resolvedPath task.pkg.id
-    in begin match Task.DependencyGraph.find ~f:findByPath info.task with
+    in begin match Task.Graph.find ~f:findByPath info.task with
       | None ->
         let msg = Printf.sprintf "No package found at %s" resolvedPath in
         error msg
@@ -506,7 +506,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
     )
   in
 
-  match%bind Task.DependencyGraph.fold ~f ~init:(return None) info.task with
+  match%bind Task.Graph.fold ~f ~init:(return None) info.task with
   | Some tree -> return (print_endline (Esy.TermTree.toString tree))
   | None -> return ()
 
@@ -890,7 +890,7 @@ let () =
 
         let tasks =
           rootTask
-          |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
+          |> Task.Graph.traverse ~traverse:dependenciesForExport
           |> List.filter ~f:(fun (task : Task.t) -> not (task.id = rootTask.id))
         in
 
@@ -978,7 +978,7 @@ let () =
 
         let pkgs =
           rootTask
-          |> Task.DependencyGraph.traverse ~traverse:dependenciesForExport
+          |> Task.Graph.traverse ~traverse:dependenciesForExport
           |> List.filter ~f:(fun (task : Task.t) -> not (task.Task.id = rootTask.id))
         in
 
