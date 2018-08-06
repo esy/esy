@@ -34,7 +34,6 @@ and expr tokens = parse
  | ')'          { expr (PAREN_RIGHT::tokens) lexbuf }
  | '$'          { expr (DOLLAR::tokens) lexbuf }
  | ':'          { expr (COLON::tokens) lexbuf }
- | '+'          { expr (PLUS::tokens) lexbuf }
  | '.'          { expr (DOT::tokens) lexbuf }
  | '@'          { expr (AT::tokens) lexbuf }
  | '?'          { expr (QUESTION_MARK::tokens) lexbuf }
@@ -62,10 +61,6 @@ and uquote tokens buf = parse
  | '#' '{'     {
      let tok = STRING (Buffer.contents buf) in
      expr (tok::tokens) lexbuf
-   }
- | '%' '{'     {
-     let tok = STRING (Buffer.contents buf) in
-     expr (OPAM_OPEN::tok::tokens) lexbuf
    }
  | '\\' '"'    { Buffer.add_string buf "\""; uquote tokens buf lexbuf }
  | '\\' '''    { Buffer.add_string buf "'"; uquote tokens buf lexbuf }

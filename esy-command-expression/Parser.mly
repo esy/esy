@@ -1,6 +1,5 @@
 %token <string> STRING
 %token <string> ID
-%token OPAM_OPEN
 %token QUESTION_MARK
 %token COLON
 %token DOT
@@ -12,7 +11,6 @@
 %token EQ
 %token NEQ
 %token NOT
-%token PLUS
 %token PAREN_LEFT
 %token PAREN_RIGHT
 %token EOF
