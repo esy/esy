@@ -3,7 +3,16 @@
 const path = require('path');
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
-const {file, dir, packageJson, createTestSandbox, ocamlPackage} = helpers;
+const {
+  file,
+  dir,
+  packageJson,
+  createTestSandbox,
+  ocamlPackage,
+  skipSuiteOnWindows,
+} = helpers;
+
+skipSuiteOnWindows('mixed slashes and backslashes in paths');
 
 describe('Variables available for builds', () => {
   it('provides esy variables via #{..} syntax', async () => {
