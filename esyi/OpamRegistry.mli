@@ -20,7 +20,7 @@ module Manifest : sig
     name : string
     -> version : Package.Version.t
     -> t
-    -> Package.t RunAsync.t
+    -> (Package.t, string) result RunAsync.t
 end
 
 val make : cfg:Config.t -> unit -> t

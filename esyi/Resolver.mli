@@ -40,8 +40,13 @@ val resolveSource :
   -> t
   -> Package.Source.t RunAsync.t
 
-(** Fetch the package metadata given the resolution. *)
+(**
+ * Fetch the package metadata given the resolution.
+ *
+ * This returns an error in not valid package cannot be obtained via resolutions
+ * (missing checksums, invalid dependencies format and etc.)
+ *)
 val package :
   resolution:Resolution.t
   -> t
-  -> Package.t RunAsync.t
+  -> (Package.t, string) result RunAsync.t

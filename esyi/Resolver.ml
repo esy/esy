@@ -19,7 +19,7 @@ end
 
 module PackageCache = Memoize.Make(struct
   type key = (string * Package.Version.t)
-  type value = Package.t RunAsync.t
+  type value = (Package.t, string) result RunAsync.t
 end)
 
 module SourceCache = Memoize.Make(struct
@@ -176,10 +176,13 @@ let package ~(resolution : Resolution.t) resolver =
     let%bind pkg =
       match manifest with
       | `PackageJson manifest ->
-        Manifest.toPackage
-          ~name:resolution.name
-          ~version:resolution.version
-          manifest
+        let%bind pkg =
+          Manifest.toPackage
+            ~name:resolution.name
+            ~version:resolution.version
+            manifest
+        in
+        return (Ok pkg)
       | `Opam manifest ->
         OpamRegistry.Manifest.toPackage
           ~name:resolution.name
@@ -280,7 +283,8 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
           (* precache manifest so we don't have to fetch it once more *)
           let key = (resolution.name, resolution.version) in
           PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-            Manifest.toPackage ~version manifest
+            let%bind pkg = Manifest.toPackage ~version manifest in
+            return (Ok pkg)
           end;
 
           resolution
