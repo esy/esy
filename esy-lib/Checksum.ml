@@ -67,13 +67,13 @@ let checkFile ~path (checksum : t) =
       | Sha512, _ -> sha512sum
     in
     (* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths *)
-    RunAsync.ofResult ~err:"Error running checksum" (
-        let open Result.Syntax in
-        let%bind path = EsyBash.normalizePathForCygwin (Path.to_string path) in
-        let%bind out = EsyBash.runOut Cmd.(cmd % path |> toBosCmd) in
-        match Astring.String.cut ~sep:" " out with
-        | Some (v, _) -> return v
-        | None -> return (String.trim out)
+    RunAsync.ofBosError (
+      let open Result.Syntax in
+      let%bind path = EsyBash.normalizePathForCygwin (Path.to_string path) in
+      let%bind out = EsyBash.runOut Cmd.(cmd % path |> toBosCmd) in
+      match Astring.String.cut ~sep:" " out with
+      | Some (v, _) -> return v
+      | None -> return (String.trim out)
     )
   in
   let _, cvalue = checksum in

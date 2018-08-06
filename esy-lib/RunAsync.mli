@@ -50,8 +50,9 @@ val ofRun : 'a Run.t -> 'a t
 (**
  * Convert an Rresult into [t]
  *)
+val ofStringError: ('a, string) Result.result -> 'a t
 
-val ofResult: ?err : string -> ('a, 'b) Result.result -> 'a t
+val ofBosError : ('a, [< `Msg of string | `CommandError of Bos.Cmd.t * Bos.OS.Cmd.status ]) result -> 'a t
 
 (**
  * Convert [option] into [t].
