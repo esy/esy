@@ -21,11 +21,9 @@ let renderExn = (env: env, path: string) => {
 let render = (env: env, path: string) =>
   try (Ok(renderExn(env, path))) {
   | UnknownPathVariable(name) =>
-    let msg =
-      Printf.sprintf(
-        "unable to render path: '%s' because of unknown variable %s",
-        path,
-        name,
-      );
-    Error(`Msg(msg));
+    Run.errorf(
+      "unable to render path: '%s' because of unknown variable %s",
+      path,
+      name,
+    )
   };

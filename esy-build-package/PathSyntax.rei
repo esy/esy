@@ -9,7 +9,7 @@
 type env = string => option(string);
 
 /** Render string using env. */
-let render : (env, string) => result(string, [> `Msg(string) ])
+let render : (env, string) => Run.t(string, 'e)
 
 exception UnknownPathVariable(string);
 
