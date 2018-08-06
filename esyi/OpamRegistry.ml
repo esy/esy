@@ -6,7 +6,7 @@ module Override = Package.OpamOverride
 
 module OpamPathsByVersion = Memoize.Make(struct
   type key = OpamPackage.Name.t
-  type value = Path.t OpamPackage.Version.Map.t RunAsync.t
+  type value = Path.t OpamPackage.Version.Map.t option RunAsync.t
 end)
 
 module OpamFiles = Memoize.Make(struct
@@ -446,15 +446,20 @@ let getVersionIndex (registry : registry) ~(name : OpamPackage.Name.t) =
       / "packages"
       / OpamPackage.Name.to_string name
     ) in
-    let%bind entries = Fs.listDir path in
-    let f index entry =
-      let version = match String.cut ~sep:"." entry with
-        | None -> OpamPackage.Version.of_string ""
-        | Some (_name, version) -> OpamPackage.Version.of_string version
+    if%bind Fs.exists path
+    then (
+      let%bind entries = Fs.listDir path in
+      let f index entry =
+        let version = match String.cut ~sep:"." entry with
+          | None -> OpamPackage.Version.of_string ""
+          | Some (_name, version) -> OpamPackage.Version.of_string version
+        in
+        OpamPackage.Version.Map.add version Path.(path / entry) index
       in
-      OpamPackage.Version.Map.add version Path.(path / entry) index
-    in
-    return (List.fold_left ~init:OpamPackage.Version.Map.empty ~f entries)
+      return (Some (List.fold_left ~init:OpamPackage.Version.Map.empty ~f entries))
+    )
+    else
+      return None
   in
   OpamPathsByVersion.compute registry.pathsCache name f
 
@@ -465,62 +470,70 @@ let getPackage
   (registry : registry)
   =
   let open RunAsync.Syntax in
-  let%bind index = getVersionIndex registry ~name in
-  match OpamPackage.Version.Map.find_opt version index with
-  | None -> return None
-  | Some packagePath ->
-    let opam = Path.(packagePath / "opam") in
-    let%bind url =
-      let url = Path.(packagePath / "url") in
-      if%bind Fs.exists url
-      then return (Some url)
-      else return None
-    in
-
-    let%bind available =
-      let env (var : OpamVariable.Full.t) =
-        let scope = OpamVariable.Full.scope var in
-        let name = OpamVariable.Full.variable var in
-        let v =
-          let open Option.Syntax in
-          let open OpamVariable in
-          match scope, OpamVariable.to_string name with
-          | OpamVariable.Full.Global, "preinstalled" ->
-            return (bool false)
-          | OpamVariable.Full.Global, "compiler"
-          | OpamVariable.Full.Global, "ocaml-version" ->
-            let%bind ocamlVersion = ocamlVersion in
-            return (string (OpamPackage.Version.to_string ocamlVersion))
-          | OpamVariable.Full.Global, _ -> None
-          | OpamVariable.Full.Self, _ -> None
-          | OpamVariable.Full.Package _, _ -> None
-        in v
+  match%bind getVersionIndex registry ~name with
+  | None -> error (Format.asprintf "no opam package %s found" (OpamPackage.Name.to_string name))
+  | Some index ->
+    begin match OpamPackage.Version.Map.find_opt version index with
+    | None -> error (
+        Format.asprintf
+          "no opam package %s@%s found"
+          (OpamPackage.Name.to_string name) (OpamPackage.Version.to_string version))
+    | Some packagePath ->
+      let opam = Path.(packagePath / "opam") in
+      let%bind url =
+        let url = Path.(packagePath / "url") in
+        if%bind Fs.exists url
+        then return (Some url)
+        else return None
       in
-      let%bind opam = readOpamFile ~name ~version registry in
-      let formula = OpamFile.OPAM.available opam in
-      let available = OpamFilter.eval_to_bool ~default:true env formula in
-      return available
-    in
 
-    if available
-    then return (Some { name; opam; url; version })
-    else return None
+      let%bind available =
+        let env (var : OpamVariable.Full.t) =
+          let scope = OpamVariable.Full.scope var in
+          let name = OpamVariable.Full.variable var in
+          let v =
+            let open Option.Syntax in
+            let open OpamVariable in
+            match scope, OpamVariable.to_string name with
+            | OpamVariable.Full.Global, "preinstalled" ->
+              return (bool false)
+            | OpamVariable.Full.Global, "compiler"
+            | OpamVariable.Full.Global, "ocaml-version" ->
+              let%bind ocamlVersion = ocamlVersion in
+              return (string (OpamPackage.Version.to_string ocamlVersion))
+            | OpamVariable.Full.Global, _ -> None
+            | OpamVariable.Full.Self, _ -> None
+            | OpamVariable.Full.Package _, _ -> None
+          in v
+        in
+        let%bind opam = readOpamFile ~name ~version registry in
+        let formula = OpamFile.OPAM.available opam in
+        let available = OpamFilter.eval_to_bool ~default:true env formula in
+        return available
+      in
+
+      if available
+      then return (Some { name; opam; url; version })
+      else return None
+    end
 
 let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
   let open RunAsync.Syntax in
   let%bind registry = initRegistry registry in
-  let%bind index = getVersionIndex registry ~name in
-  let queue = LwtTaskQueue.create ~concurrency:2 () in
-  let%bind resolutions =
-    let getPackageVersion version () =
-      getPackage ?ocamlVersion ~name ~version registry
+  match%bind getVersionIndex registry ~name with
+  | None -> error (Format.asprintf "no opam package %s found" (OpamPackage.Name.to_string name))
+  | Some index ->
+    let queue = LwtTaskQueue.create ~concurrency:2 () in
+    let%bind resolutions =
+      let getPackageVersion version () =
+        getPackage ?ocamlVersion ~name ~version registry
+      in
+      index
+      |> OpamPackage.Version.Map.bindings
+      |> List.map ~f:(fun (version, _path) -> LwtTaskQueue.submit queue (getPackageVersion version))
+      |> RunAsync.List.joinAll
     in
-    index
-    |> OpamPackage.Version.Map.bindings
-    |> List.map ~f:(fun (version, _path) -> LwtTaskQueue.submit queue (getPackageVersion version))
-    |> RunAsync.List.joinAll
-  in
-  return (List.filterNone resolutions)
+    return (List.filterNone resolutions)
 
 let version ~(name : OpamPackage.Name.t) ~version registry =
   let open RunAsync.Syntax in
