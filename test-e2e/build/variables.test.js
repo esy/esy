@@ -143,7 +143,6 @@ describe('Variables available for builds', () => {
             version: '0.2.0',
             esy: {
               buildsInSource: true,
-              build: 'true',
               buildEnv: {
                 build_dep_name: '#{self.name}',
                 build_dep_version: '#{self.version}',
