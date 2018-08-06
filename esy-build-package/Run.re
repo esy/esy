@@ -17,6 +17,11 @@ let ok = Result.ok;
 let return = v => Ok(v);
 let error = msg => Error(`Msg(msg));
 
+let errorf = fmt => {
+  let kerr = _ => Error(`Msg(Format.flush_str_formatter()));
+  Format.kfprintf(kerr, Format.str_formatter, fmt);
+};
+
 let v = Fpath.v;
 let (/) = Fpath.(/);
 

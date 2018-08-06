@@ -141,12 +141,9 @@ let package ~(resolution : Resolution.t) resolver =
             let manifest = {manifest with name = resolution.name} in
             return (`PackageJson manifest)
           | Error err ->
-            let msg =
-              Format.asprintf
-                "cannot read manifest at %a: %s"
-                Source.pp source (Run.formatError err)
-            in
-            error msg
+            errorf
+              "cannot read manifest at %a: %s"
+              Source.pp source (Run.formatError err)
         end
       | Version.Source (Github {user; repo; commit}) ->
         begin match%bind Github.getManifest ~user ~repo ~ref:commit () with
@@ -197,12 +194,9 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
   let open RunAsync.Syntax in
 
   let errorResolvingSource msg =
-    let msg =
-      Format.asprintf
-        "unable to resolve %s@%a: %s"
-        name SourceSpec.pp sourceSpec msg
-    in
-    error msg
+    errorf
+      "unable to resolve %s@%a: %s"
+      name SourceSpec.pp sourceSpec msg
   in
 
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
@@ -275,9 +269,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
               resolver.npmRegistryQueue
               (NpmRegistry.versions ~fullMetadata ~cfg:resolver.cfg ~name)
           with
-          | [] ->
-            let msg = Format.asprintf "no npm package %s found" name in
-            error msg
+          | [] -> errorf "no npm package %s found" name
           | versions -> return versions
         in
 

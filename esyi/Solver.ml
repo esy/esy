@@ -301,15 +301,16 @@ let add ~(dependencies : Dependencies.t) solver =
       report status
     in
     let%bind resolutions, spec =
-      Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
-      |> RunAsync.withContext (Format.asprintf "resolving %a" Req.pp req)
+      RunAsync.contextf (
+        Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
+      ) "resolving %a" Req.pp req
     in
 
     let%bind packages =
       let fetchPackage resolution =
-        Resolver.package ~resolution solver.resolver
-        |> RunAsync.withContext (
-            Format.asprintf "resolving metadata %a" Resolver.Resolution.pp resolution)
+        RunAsync.contextf
+          (Resolver.package ~resolution solver.resolver)
+          "resolving metadata %a" Resolver.Resolution.pp resolution
       in
       resolutions
       |> List.map ~f:fetchPackage
@@ -372,12 +373,9 @@ let solveDependencies ~installed ~strategy dependencies solver =
       | Unix.WEXITED 0 ->
         RunAsync.return ()
       | _ ->
-        let msg =
-          Format.asprintf
-            "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-            Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-        in
-        RunAsync.error msg
+        RunAsync.errorf
+          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
     in
 
     let cmd = Cmd.getToolAndLine cmd in
@@ -520,9 +518,7 @@ let solveDependenciesNaively
     let%bind pkg =
       match resolveOfInstalled req with
       | None -> begin match%bind resolveOfOutside req with
-        | None ->
-          let msg = Format.asprintf "unable to find a match for %a" Req.pp req in
-          error msg
+        | None -> errorf "unable to find a match for %a" Req.pp req
         | Some pkg -> return pkg
         end
       | Some pkg -> return pkg
@@ -560,10 +556,9 @@ let solveDependenciesNaively
     let%bind pkgs =
       let f req =
         let%bind pkg =
-          let context = Format.asprintf "resolving request %a" Req.pp req in
-          RunAsync.withContext
-            context
+          RunAsync.contextf
             (resolve req)
+            "resolving request %a" Req.pp req
         in
         addToInstalled pkg;
         return pkg
@@ -583,10 +578,9 @@ let solveDependenciesNaively
       | false ->
         let seen = Package.Set.add pkg seen in
         let%bind dependencies =
-          let context = Format.asprintf "solving dependencies of %a" Package.pp pkg in
-          RunAsync.withContext
-            context
+          RunAsync.contextf
             (solveDependencies pkg.dependencies)
+            "solving dependencies of %a" Package.pp pkg
         in
         addDependencies pkg dependencies;
         loop seen (rest @ dependencies)
@@ -646,11 +640,9 @@ let solve (sandbox : Sandbox.t) =
   let getResultOrExplain = function
     | Ok dependencies -> return dependencies
     | Error explanation ->
-      let msg = Format.asprintf
+      errorf
         "@[<v>No solution found:@;@;%a@]"
         Explanation.pp explanation
-      in
-      error msg
   in
 
   let opamRegistry = OpamRegistry.make ~cfg:sandbox.cfg () in

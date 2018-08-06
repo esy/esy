@@ -11,12 +11,9 @@ let runGit cmd =
     | Unix.WEXITED 0 ->
       RunAsync.return ()
     | _ ->
-      let msg =
-        Format.asprintf
-          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-      in
-      RunAsync.error msg
+      RunAsync.errorf
+        "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+        Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
   in
   try%lwt
     let cmd = Cmd.getToolAndLine cmd in

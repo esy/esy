@@ -311,14 +311,7 @@ module Installer =
         | Ok(stats) => Run.return(`Stats(stats))
         | Error((Unix.ENOENT, _call, _msg)) => Run.return(`DoesNotExist)
         | Error((errno, _call, _msg)) =>
-          let msg =
-            Format.asprintf(
-              "stat %a: %s",
-              Path.pp,
-              path,
-              Unix.error_message(errno),
-            );
-          Run.error(msg);
+          Run.errorf("stat %a: %s", Path.pp, path, Unix.error_message(errno))
         };
       let readdir = Run.ls;
       let mkdir = Run.mkdir;

@@ -307,17 +307,14 @@ module LockfileV1 = struct
           return (Some solution)
         else return None
       | Error err ->
-        let msg =
-          let path =
-            Option.orDefault
-              ~default:path
-              (Path.relativize ~root:sandbox.path path)
-          in
-          Format.asprintf
-            "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"
-            Path.pp path Run.ppError err
+        let path =
+          Option.orDefault
+            ~default:path
+            (Path.relativize ~root:sandbox.path path)
         in
-        error msg
+        errorf
+          "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"
+          Path.pp path Run.ppError err
     else
       return None
 

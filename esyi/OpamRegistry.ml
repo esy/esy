@@ -221,8 +221,7 @@ module Manifest = struct
   let toPackage ~name ~version
     {name = opamName; version = opamVersion; opam; url; path; override; archive} =
     let open RunAsync.Syntax in
-    let context = Format.asprintf "processing %a opam package" Path.pp path in
-    RunAsync.withContext context (
+    RunAsync.contextf (
 
       let%bind source = RunAsync.ofRun (
         let open Run.Syntax in
@@ -239,7 +238,7 @@ module Manifest = struct
             in
             match List.map ~f checksums with
             | [] ->
-              error (Format.asprintf "no checksum provided for %s@%a" name Version.pp version)
+              errorf "no checksum provided for %s@%a" name Version.pp version
             | checksum::_ -> return checksum
           in
 
@@ -339,11 +338,11 @@ module Manifest = struct
 
       let%bind dependencies =
         let%bind formula =
-          RunAsync.withContext "processing depends field" (
+          RunAsync.context (
             translateFilteredFormula
               ~build:true ~post:true ~test:false ~doc:false ~dev:false
               (OpamFile.OPAM.depends opam)
-          )
+          ) "processing depends field"
         in
         let formula =
           formula
@@ -360,13 +359,13 @@ module Manifest = struct
       in
 
       let%bind devDependencies =
-        RunAsync.withContext "processing depends field" (
+        RunAsync.context (
           let%bind formula =
             translateFilteredFormula
               ~build:false ~post:false ~test:true ~doc:true ~dev:true
               (OpamFile.OPAM.depends opam)
           in return (Package.Dependencies.OpamFormula formula)
-        )
+        ) "processing depends field"
       in
 
       let readOpamFilesForPackage path () =
@@ -391,7 +390,7 @@ module Manifest = struct
         dependencies;
         devDependencies;
       }
-    )
+    ) "processing %a opam package" Path.pp path
 end
 
 let make ~cfg () =

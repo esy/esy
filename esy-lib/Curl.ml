@@ -44,19 +44,13 @@ let runCurl cmd =
       | Ok (_stdout, meta) when meta.Meta.code = 404 ->
         RunAsync.return NotFound
       | Ok (_stdout, meta) ->
-        let msg =
-          Format.asprintf
-            "@[<v>error running curl: %a:@\ncode: %i@\nstderr:@[<v 2>@\n%a@]@]"
-            Cmd.pp cmd meta.code Fmt.lines stderr
-        in
-        RunAsync.error msg
+        RunAsync.errorf
+          "@[<v>error running curl: %a:@\ncode: %i@\nstderr:@[<v 2>@\n%a@]@]"
+          Cmd.pp cmd meta.code Fmt.lines stderr
       | _ ->
-        let msg =
-          Format.asprintf
-            "@[<v>error running curl: %a:@\nstderr:@[<v 2>@\n%a@]@]"
-            Cmd.pp cmd Fmt.lines stderr
-        in
-        RunAsync.error msg
+        RunAsync.errorf
+          "@[<v>error running curl: %a:@\nstderr:@[<v 2>@\n%a@]@]"
+          Cmd.pp cmd Fmt.lines stderr
     end
   in
   try%lwt

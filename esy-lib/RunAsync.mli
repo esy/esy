@@ -15,19 +15,19 @@ val return : 'a -> 'a t
 val error : string -> 'a t
 
 (**
- * Wrap computation with a context which will be reported in case of error.
- *
- * Example usage:
- *
- *   let build = withContext "building ocaml" build in ...
- *
- * In case build fails the error message would look like:
- *
- *   Error: command not found aclocal
- *     While building ocaml
- *
+ * Same with [error] but defined with a formatted string.
  *)
-val withContext : string -> 'a t -> 'a t
+val errorf : ('a, Format.formatter, unit, 'v t) format4 -> 'a
+
+(**
+ * Wrap computation with a context which will be reported in case of error
+ *)
+val context : 'v t -> string -> 'v t
+
+(**
+ * Same as [context] but defined with a formatter.
+ *)
+val contextf : 'v t -> ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
 (**
  * Same as with the [withContext] but will be formatted as differently, as a
@@ -84,6 +84,7 @@ module Syntax : sig
   val return : 'a -> 'a t
 
   val error : string -> 'a t
+  val errorf : ('a, Format.formatter, unit, 'v t) format4 -> 'a
 
   module Let_syntax : sig
     val bind : f:('a -> 'b t) -> 'a t -> 'b t

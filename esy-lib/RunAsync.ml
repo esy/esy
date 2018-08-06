@@ -5,9 +5,17 @@ let return v = Lwt.return (Ok v)
 let error msg =
   Lwt.return (Run.error msg)
 
-let withContext msg v =
+let errorf fmt =
+  let kerr _ = Lwt.return (Run.error (Format.flush_str_formatter ())) in
+  Format.kfprintf kerr Format.str_formatter fmt
+
+let context v msg =
   let%lwt v = v in
-  Lwt.return (Run.withContext msg v)
+  Lwt.return (Run.context v msg)
+
+let contextf v fmt =
+  let kerr _ = context v (Format.flush_str_formatter ()) in
+  Format.kfprintf kerr Format.str_formatter fmt
 
 let withContextOfLog ?header content v =
   let%lwt v = v in
@@ -37,6 +45,7 @@ let ofBosError r = ofRun (Run.ofBosError r)
 module Syntax = struct
   let return = return
   let error = error
+  let errorf = errorf
 
   module Let_syntax = struct
     let bind = bind
