@@ -30,6 +30,10 @@ let both a b =
     | Error err, Error _ -> Error err
   )
 
+let ofRun = Lwt.return
+let ofStringError r = ofRun (Run.ofStringError r)
+let ofBosError r = ofRun (Run.ofBosError r)
+
 module Syntax = struct
   let return = return
   let error = error
@@ -39,8 +43,6 @@ module Syntax = struct
     let both = both
   end
 end
-
-let ofRun = Lwt.return
 
 let ofOption ?err v =
   match v with

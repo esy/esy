@@ -34,7 +34,7 @@ val runExn : ?err : string -> 'a t -> 'a
 
 val ofStringError : ('a, string) result -> 'a t
 
-val ofBosError : ('a, [< `Msg of string]) result -> 'a t
+val ofBosError : ('a, [< `Msg of string | `CommandError of Bos.Cmd.t * Bos.OS.Cmd.status ]) result -> 'a t
 
 val ofOption : ?err : string -> 'a option -> 'a t
 

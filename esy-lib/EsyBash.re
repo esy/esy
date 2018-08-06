@@ -134,3 +134,12 @@ let run = cmd =>
       Bos.OS.Cmd.run(augmentedCommand);
     }
   );
+
+let runOut = cmd =>
+  Result.Syntax.(
+    {
+      let%bind augmentedCommand = toEsyBashCommand(cmd);
+      let ret = Bos.OS.Cmd.(run_out(augmentedCommand));
+      Bos.OS.Cmd.to_string(ret);
+    }
+  );

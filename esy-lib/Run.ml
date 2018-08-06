@@ -62,6 +62,12 @@ let ofBosError v =
   match v with
   | Ok v -> Ok v
   | Error (`Msg line) -> Error (line, [])
+  | Error (`CommandError (cmd, status)) ->
+    let line = Format.asprintf
+      "command %a exited with status %a"
+      Bos.Cmd.pp cmd Bos.OS.Cmd.pp_status status
+    in
+    Error (line, [])
 
 let ofOption ?err = function
   | Some v -> return v
