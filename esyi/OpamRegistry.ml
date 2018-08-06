@@ -220,176 +220,177 @@ module Manifest = struct
 
   let toPackage ~name ~version
     {name = opamName; version = opamVersion; opam; url; path; override; archive} =
+
+    let source =
+      let open Run.Syntax in
+
+      let sourceOfOpamUrl url =
+
+        let%bind checksum =
+          let checksums = OpamFile.URL.checksum url in
+          let f c =
+            match OpamHash.kind c with
+            | `MD5 -> Checksum.Md5, OpamHash.contents c
+            | `SHA256 -> Checksum.Sha256, OpamHash.contents c
+            | `SHA512 -> Checksum.Sha512, OpamHash.contents c
+          in
+          match List.map ~f checksums with
+          | [] ->
+            errorf "no checksum provided for %s@%a" name Version.pp version
+          | checksum::_ -> return checksum
+        in
+
+        let convert (url : OpamUrl.t) =
+          match url.backend with
+          | `http ->
+            return (Package.Source (Package.Source.Archive {
+              url = OpamUrl.to_string url;
+              checksum;
+            }))
+          | `rsync -> error "unsupported source for opam: rsync"
+          | `hg -> error "unsupported source for opam: hg"
+          | `darcs -> error "unsupported source for opam: darcs"
+          | `git -> error "unsupported source for opam: git"
+        in
+
+        let%bind main = convert (OpamFile.URL.url url) in
+        let mirrors =
+          let f mirrors url =
+            match convert url with
+            | Ok mirror -> mirror::mirrors
+            | Error _ -> mirrors
+          in
+          List.fold_left ~f ~init:[] (OpamFile.URL.mirrors url)
+        in
+        return (main, mirrors)
+      in
+
+      let%bind main, mirrors =
+        match override.Override.opam.Override.Opam.source with
+        | Some source ->
+          let main = Package.Source (Package.Source.Archive {
+            url = source.url;
+            checksum = Checksum.Md5, source.checksum;
+          }) in
+          return (main, [])
+        | None -> begin
+          match url with
+          | Some url -> sourceOfOpamUrl url
+          | None ->
+            let main = Package.Source Package.Source.NoSource in
+            return (main, [])
+          end
+      in
+
+      match archive with
+      | Some archive ->
+        let mirrors = main::mirrors in
+        let main =
+          Package.Source (Package.Source.Archive {
+            url = archive.url;
+            checksum = Checksum.Md5, archive.md5;
+          })
+        in
+        return (Ok (main, mirrors))
+      | None ->
+        return (Ok (main, mirrors))
+    in
+
     let open RunAsync.Syntax in
     RunAsync.contextf (
 
-      let%bind source = RunAsync.ofRun (
-        let open Run.Syntax in
+      match%bind RunAsync.ofRun source with
+      | Error err -> return (Error err)
+      | Ok source ->
 
-        let sourceOfOpamUrl url =
+        let translateFormula f =
+          let translateAtom ((name, relop) : OpamFormula.atom) =
+            let module C = OpamVersion.Constraint in
+            let name = "@opam/" ^ OpamPackage.Name.to_string name in
+            let req =
+              match relop with
+              | None -> C.ANY
+              | Some (`Eq, v) -> C.EQ v
+              | Some (`Neq, v) -> C.NEQ v
+              | Some (`Lt, v) -> C.LT v
+              | Some (`Gt, v) -> C.GT v
+              | Some (`Leq, v) -> C.LTE v
+              | Some (`Geq, v) -> C.GTE v
+            in {Package.Dep. name; req = Opam req}
+          in
+          let cnf = OpamFormula.to_cnf f in
+          List.map ~f:(List.map ~f:translateAtom) cnf
+        in
 
-          let%bind checksum =
-            let checksums = OpamFile.URL.checksum url in
-            let f c =
-              match OpamHash.kind c with
-              | `MD5 -> Checksum.Md5, OpamHash.contents c
-              | `SHA256 -> Checksum.Sha256, OpamHash.contents c
-              | `SHA512 -> Checksum.Sha512, OpamHash.contents c
+        let translateFilteredFormula ~build ~post ~test ~doc ~dev f =
+          let%bind f =
+            let env var =
+              match OpamVariable.Full.to_string var with
+              | "test" -> Some (OpamVariable.B test)
+              | "doc" -> Some (OpamVariable.B doc)
+              | _ -> None
             in
-            match List.map ~f checksums with
-            | [] ->
-              errorf "no checksum provided for %s@%a" name Version.pp version
-            | checksum::_ -> return checksum
+            let f = OpamFilter.partial_filter_formula env f in
+            try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
+            with Failure msg -> error msg
           in
+          return (translateFormula f)
+        in
 
-          let convert (url : OpamUrl.t) =
-            match url.backend with
-            | `http ->
-              return (Package.Source (Package.Source.Archive {
-                url = OpamUrl.to_string url;
-                checksum;
-              }))
-            | `rsync -> error "unsupported source for opam: rsync"
-            | `hg -> error "unsupported source for opam: hg"
-            | `darcs -> error "unsupported source for opam: darcs"
-            | `git -> error "unsupported source for opam: git"
+        let%bind dependencies =
+          let%bind formula =
+            RunAsync.context (
+              translateFilteredFormula
+                ~build:true ~post:true ~test:false ~doc:false ~dev:false
+                (OpamFile.OPAM.depends opam)
+            ) "processing depends field"
           in
-
-          let%bind main = convert (OpamFile.URL.url url) in
-          let mirrors =
-            let f mirrors url =
-              match convert url with
-              | Ok mirror -> mirror::mirrors
-              | Error _ -> mirrors
-            in
-            List.fold_left ~f ~init:[] (OpamFile.URL.mirrors url)
-          in
-          return (main, mirrors)
+          let formula =
+            formula
+            @ [
+                [{
+                  Package.Dep.
+                  name = "@esy-ocaml/substs";
+                  req = Npm SemverVersion.Constraint.ANY;
+                }];
+              ]
+            @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.dependencies
+            @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.peerDependencies
+          in return (Package.Dependencies.OpamFormula formula)
         in
 
-        let%bind main, mirrors =
-          match override.Override.opam.Override.Opam.source with
-          | Some source ->
-            let main = Package.Source (Package.Source.Archive {
-              url = source.url;
-              checksum = Checksum.Md5, source.checksum;
-            }) in
-            return (main, [])
-          | None -> begin
-            match url with
-            | Some url -> sourceOfOpamUrl url
-            | None ->
-              let main = Package.Source Package.Source.NoSource in
-              return (main, [])
-            end
-        in
-
-        let main, mirrors =
-          match archive with
-          | Some archive ->
-            let mirrors = main::mirrors in
-            let main =
-              Package.Source (Package.Source.Archive {
-                url = archive.url;
-                checksum = Checksum.Md5, archive.md5;
-              })
-            in
-            main, mirrors
-          | None ->
-            main, mirrors
-        in
-
-        return (main, mirrors)
-      ) in
-
-      let translateFormula f =
-        let translateAtom ((name, relop) : OpamFormula.atom) =
-          let module C = OpamVersion.Constraint in
-          let name = "@opam/" ^ OpamPackage.Name.to_string name in
-          let req =
-            match relop with
-            | None -> C.ANY
-            | Some (`Eq, v) -> C.EQ v
-            | Some (`Neq, v) -> C.NEQ v
-            | Some (`Lt, v) -> C.LT v
-            | Some (`Gt, v) -> C.GT v
-            | Some (`Leq, v) -> C.LTE v
-            | Some (`Geq, v) -> C.GTE v
-          in {Package.Dep. name; req = Opam req}
-        in
-        let cnf = OpamFormula.to_cnf f in
-        List.map ~f:(List.map ~f:translateAtom) cnf
-      in
-
-      let translateFilteredFormula ~build ~post ~test ~doc ~dev f =
-        let%bind f =
-          let env var =
-            match OpamVariable.Full.to_string var with
-            | "test" -> Some (OpamVariable.B test)
-            | "doc" -> Some (OpamVariable.B doc)
-            | _ -> None
-          in
-          let f = OpamFilter.partial_filter_formula env f in
-          try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
-          with Failure msg -> error msg
-        in
-        return (translateFormula f)
-      in
-
-      let%bind dependencies =
-        let%bind formula =
+        let%bind devDependencies =
           RunAsync.context (
-            translateFilteredFormula
-              ~build:true ~post:true ~test:false ~doc:false ~dev:false
-              (OpamFile.OPAM.depends opam)
+            let%bind formula =
+              translateFilteredFormula
+                ~build:false ~post:false ~test:true ~doc:true ~dev:true
+                (OpamFile.OPAM.depends opam)
+            in return (Package.Dependencies.OpamFormula formula)
           ) "processing depends field"
         in
-        let formula =
-          formula
-          @ [
-              [{
-                Package.Dep.
-                name = "@esy-ocaml/substs";
-                req = Npm SemverVersion.Constraint.ANY;
-              }];
-            ]
-          @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.dependencies
-          @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.peerDependencies
-        in return (Package.Dependencies.OpamFormula formula)
-      in
 
-      let%bind devDependencies =
-        RunAsync.context (
-          let%bind formula =
-            translateFilteredFormula
-              ~build:false ~post:false ~test:true ~doc:true ~dev:true
-              (OpamFile.OPAM.depends opam)
-          in return (Package.Dependencies.OpamFormula formula)
-        ) "processing depends field"
-      in
+        let readOpamFilesForPackage path () =
+          let%bind files = readOpamFiles path () in
+          return (files @ override.Override.opam.files)
+        in
 
-      let readOpamFilesForPackage path () =
-        let%bind files = readOpamFiles path () in
-        return (files @ override.Override.opam.files)
-      in
-
-      return {
-        Package.
-        name;
-        version;
-        kind = Package.Esy;
-        source;
-        opam = Some {
-          Package.Opam.
-          name = opamName;
-          version = opamVersion;
-          files = readOpamFilesForPackage path;
-          opam = opam;
-          override = {override with opam = Override.Opam.empty};
-        };
-        dependencies;
-        devDependencies;
-      }
+        return (Ok {
+          Package.
+          name;
+          version;
+          kind = Package.Esy;
+          source;
+          opam = Some {
+            Package.Opam.
+            name = opamName;
+            version = opamVersion;
+            files = readOpamFilesForPackage path;
+            opam = opam;
+            override = {override with opam = Override.Opam.empty};
+          };
+          dependencies;
+          devDependencies;
+        })
     ) "processing %a opam package" Path.pp path
 end
 

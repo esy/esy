@@ -308,9 +308,17 @@ let add ~(dependencies : Dependencies.t) solver =
 
     let%bind packages =
       let fetchPackage resolution =
-        RunAsync.contextf
-          (Resolver.package ~resolution solver.resolver)
-          "resolving metadata %a" Resolver.Resolution.pp resolution
+        let%bind pkg =
+          RunAsync.contextf
+            (Resolver.package ~resolution solver.resolver)
+            "resolving metadata %a" Resolver.Resolution.pp resolution
+        in
+        match pkg with
+        | Ok pkg -> return (Some pkg)
+        | Error reason ->
+          Logs_lwt.warn (fun m ->
+            m "skipping package %a: %s" Resolver.Resolution.pp resolution reason);%lwt
+          return None
       in
       resolutions
       |> List.map ~f:fetchPackage
@@ -318,8 +326,13 @@ let add ~(dependencies : Dependencies.t) solver =
     in
 
     let%bind () =
+      let f tasks pkg =
+        match pkg with
+        | Some pkg -> (addPackage pkg)::tasks
+        | None -> tasks
+      in
       packages
-      |> List.map ~f:addPackage
+      |> List.fold_left ~f ~init:[]
       |> RunAsync.List.waitAll
     in
 
@@ -509,8 +522,11 @@ let solveDependenciesNaively
     let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     match findResolutionForRequest ~req resolutions with
     | Some resolution ->
-      let%bind pkg = Resolver.package ~resolution solver.resolver in
-      return (Some pkg)
+      begin match%bind Resolver.package ~resolution solver.resolver with
+      | Ok pkg -> return (Some pkg)
+      | Error reason ->
+        errorf "invalid package %a: %s" Resolver.Resolution.pp resolution reason
+      end
     | None -> return None
   in
 

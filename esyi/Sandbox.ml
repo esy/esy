@@ -65,7 +65,11 @@ let readAggregatedOpamManifest (path : Path.t) =
   | opams ->
     let%bind pkgs =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
-      let f (name, opam) = OpamRegistry.Manifest.toPackage ~name ~version opam in
+      let f (name, opam) =
+        match%bind OpamRegistry.Manifest.toPackage ~name ~version opam with
+        | Ok pkg -> return pkg
+        | Error err -> error err
+      in
       RunAsync.List.joinAll (List.map ~f opams)
     in
     let dependencies, devDependencies =
