@@ -471,13 +471,12 @@ let getPackage
   =
   let open RunAsync.Syntax in
   match%bind getVersionIndex registry ~name with
-  | None -> error (Format.asprintf "no opam package %s found" (OpamPackage.Name.to_string name))
+  | None -> errorf "no opam package %s found" (OpamPackage.Name.to_string name)
   | Some index ->
     begin match OpamPackage.Version.Map.find_opt version index with
-    | None -> error (
-        Format.asprintf
-          "no opam package %s@%s found"
-          (OpamPackage.Name.to_string name) (OpamPackage.Version.to_string version))
+    | None -> errorf
+        "no opam package %s@%s found"
+        (OpamPackage.Name.to_string name) (OpamPackage.Version.to_string version)
     | Some packagePath ->
       let opam = Path.(packagePath / "opam") in
       let%bind url =
@@ -521,7 +520,7 @@ let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
   let open RunAsync.Syntax in
   let%bind registry = initRegistry registry in
   match%bind getVersionIndex registry ~name with
-  | None -> error (Format.asprintf "no opam package %s found" (OpamPackage.Name.to_string name))
+  | None -> errorf "no opam package %s found" (OpamPackage.Name.to_string name)
   | Some index ->
     let queue = LwtTaskQueue.create ~concurrency:2 () in
     let%bind resolutions =
