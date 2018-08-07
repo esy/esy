@@ -678,7 +678,7 @@
   peerDependencies:
     ocaml "*"
 
-"@opam/opam-format@2.0.0":
+"@opam/opam-format@2.0.0", "@opam/opam-format@=2.0.0":
   version "2.0.0"
   uid "5838e3f8f6888ca4e00c2488613dae76"
   resolved "@opam/opam-format@2.0.0-5838e3f8f6888ca4e00c2488613dae76.tgz"
@@ -688,6 +688,30 @@
     "@opam/jbuilder" " >= 1.0.0-beta18"
     "@opam/opam-core" "=2.0.0"
     "@opam/opam-file-format" " >= 2.0.0-rc2"
+  peerDependencies:
+    ocaml " >= 4.2.3000"
+
+"@opam/opam-repository@=2.0.0":
+  version "2.0.0"
+  uid "17fe92ec1bb01f75d810cfd47070680b"
+  resolved "@opam/opam-repository@2.0.0-17fe92ec1bb01f75d810cfd47070680b.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/jbuilder" " >= 1.0.0-beta17"
+    "@opam/opam-format" "=2.0.0"
+  peerDependencies:
+    ocaml " >= 4.2.3000"
+
+"@opam/opam-state@2.0.0":
+  version "2.0.0"
+  uid b5df4792c083f68e56b265622987f05e
+  resolved "@opam/opam-state@2.0.0-b5df4792c083f68e56b265622987f05e.tgz"
+  dependencies:
+    "@esy-ocaml/esy-installer" "^0.0.0"
+    "@esy-ocaml/substs" "^0.0.1"
+    "@opam/jbuilder" " >= 1.0.0-beta18"
+    "@opam/opam-repository" "=2.0.0"
   peerDependencies:
     ocaml " >= 4.2.3000"
 
