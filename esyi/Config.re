@@ -60,7 +60,7 @@ let make =
       let cacheTarballsPath =
         switch (cacheTarballsPath) {
         | Some(cacheTarballsPath) => cacheTarballsPath
-        | None => Path.(cachePath / "tarballs")
+        | None => Path.(cachePath / "source-tarballs")
         };
       let%bind () = Fs.createDir(cacheTarballsPath);
 
