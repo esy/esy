@@ -52,7 +52,7 @@ let make =
             | Some(cachePath) => return(cachePath)
             | None =>
               let%bind userDir = Path.user();
-              return(Path.(userDir / ".esy" / "esyi"));
+              return(Path.(userDir / ".esy"));
             }
           ),
         );
