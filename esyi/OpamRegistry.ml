@@ -235,13 +235,6 @@ module Manifest = struct
 
         let translateFilteredFormula ~build ~post ~test ~doc ~dev f =
           let%bind f =
-            let env var =
-              match OpamVariable.Full.to_string var with
-              | "test" -> Some (OpamVariable.B test)
-              | "doc" -> Some (OpamVariable.B doc)
-              | _ -> None
-            in
-            let f = OpamFilter.partial_filter_formula env f in
             try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
             with Failure msg -> error msg
           in
