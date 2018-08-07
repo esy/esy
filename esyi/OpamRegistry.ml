@@ -161,7 +161,8 @@ let readOpamFile ~name ~version registry =
   let compute (name, version) =
     let path = Path.(packagePath ~name ~version registry / "opam") in
     let%bind data = Fs.readFile path in
-    return (OpamFile.OPAM.read_from_string data)
+    let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+    return (OpamFile.OPAM.read_from_string ~filename data)
   in
   OpamFiles.compute registry.opamCache (name, version) compute
 
@@ -195,7 +196,8 @@ module Manifest = struct
   let ofFile ~name ~version (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind data = Fs.readFile path in
-    let opam = OpamFile.OPAM.read_from_string data in 
+    let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+    let opam = OpamFile.OPAM.read_from_string ~filename data in
     return {
       name; version; path = Path.parent path;
       opam;
