@@ -540,14 +540,6 @@ end = struct
 
   let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
     let formula =
-      let env var =
-        match OpamVariable.Full.to_string var with
-        | "test" -> Some (OpamVariable.B test)
-        | _ -> None
-      in
-      OpamFilter.partial_filter_formula env formula
-    in
-    let formula =
       OpamFilter.filter_deps
         ~build ~post ~test ~doc ~dev
         formula
@@ -555,25 +547,17 @@ end = struct
     let cnf = OpamFormula.to_cnf formula in
     let f atom =
       let name, _ = atom in
-      let name = OpamPackage.Name.to_string name in
-      "@opam/" ^ name
+      match OpamPackage.Name.to_string name with
+      | "ocaml" -> "ocaml"
+      | name -> "@opam/" ^ name
     in
     List.map ~f:(List.map ~f) cnf
 
   let dependencies manifest =
     let dependencies =
+
       let dependsOfOpam opam =
         let f = OpamFile.OPAM.depends opam in
-
-        let f =
-          let env var =
-            match OpamVariable.Full.to_string var with
-            | "test" -> Some (OpamVariable.B false)
-            | "doc" -> Some (OpamVariable.B false)
-            | _ -> None
-          in
-          OpamFilter.partial_filter_formula env f
-        in
 
         let dependencies =
           listPackageNamesOfFormula

@@ -162,37 +162,40 @@ end = struct
       | EsyCommandExpression.Value.Bool s -> bool s
     in
 
-    let opamPackageScope (scope : PackageScope.t) name =
-      match name with
-      | "prefix" -> Some (opamVarContents scope.install)
-      | "bin" -> Some (opamVarContents scope.bin)
-      | "sbin" -> Some (opamVarContents scope.sbin)
-      | "etc" -> Some (opamVarContents scope.etc)
-      | "doc" -> Some (opamVarContents scope.doc)
-      | "man" -> Some (opamVarContents scope.man)
-      | "share" -> Some (opamVarContents scope.share)
-      | "lib" -> Some (opamVarContents scope.lib)
-      | "build" -> Some (opamVarContents scope.target_dir)
-      | "name" ->
+    let opamPackageScope ?namespace (scope : PackageScope.t) name =
+      match namespace, name with
+
+      (* some specials for ocaml *)
+      | Some "ocaml", "native" -> Some (bool true)
+      | Some "ocaml", "native-dynlink" -> Some (bool true)
+      | Some "ocaml", "version" ->
+        let open Option.Syntax in
+        let%bind ocamlVersion = ocamlVersion in
+        Some (string ocamlVersion)
+
+      | _, "prefix" -> Some (opamVarContents scope.install)
+      | _, "bin" -> Some (opamVarContents scope.bin)
+      | _, "sbin" -> Some (opamVarContents scope.sbin)
+      | _, "etc" -> Some (opamVarContents scope.etc)
+      | _, "doc" -> Some (opamVarContents scope.doc)
+      | _, "man" -> Some (opamVarContents scope.man)
+      | _, "share" -> Some (opamVarContents scope.share)
+      | _, "lib" -> Some (opamVarContents scope.lib)
+      | _, "build" -> Some (opamVarContents scope.target_dir)
+      | _, "version" -> Some (opamVarContents scope.version)
+      | _, "name" ->
         let name =
           match scope.name with
           | Value.String name -> string (toOpamName name)
           | Value.Bool v -> bool v
         in
         Some name
-      | "version" -> Some (opamVarContents scope.version)
+
       | _ -> None
     in
 
     match Full.scope name, to_string (Full.variable name) with
     | Full.Global, "os" -> Some (string (System.Platform.show scope.platform))
-    | Full.Global, "ocaml-version" ->
-      let open Option.Syntax in
-      let%bind ocamlVersion = ocamlVersion in
-      Some (string ocamlVersion)
-
-    | Full.Global, "ocaml-native" -> Some (bool true)
-    | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
     | Full.Global, "make" -> Some (string "make")
     | Full.Global, "jobs" -> Some (string "4")
     | Full.Global, "pinned" -> Some (bool false)
@@ -200,26 +203,26 @@ end = struct
 
     | Full.Self, _ -> None
 
-    | Full.Package namespace, "installed" ->
-      let namespace = OpamPackage.Name.to_string namespace in
-      let namespace = "@opam/" ^ namespace in
-      let installed = StringMap.mem namespace scope.dependencies in
-      Some (bool installed)
-
-    | Full.Package namespace, "enable" ->
-      let namespace = OpamPackage.Name.to_string namespace in
-      let namespace = "@opam/" ^ namespace in
-      begin match StringMap.mem namespace scope.dependencies with
-      | true -> Some (string "enable")
-      | false -> Some (string "disable")
-      end
-
     | Full.Package namespace, name ->
-      let namespace = OpamPackage.Name.to_string namespace in
-      let namespace = "@opam/" ^ namespace in
-      begin match StringMap.find_opt namespace scope.dependencies with
-      | Some scope -> opamPackageScope scope name
-      | None -> None
+      let namespace =
+        match OpamPackage.Name.to_string namespace with
+        | "ocaml" -> "ocaml"
+        | namespace -> "@opam/" ^ namespace
+      in
+      begin match name with
+      | "installed" ->
+        let installed = StringMap.mem namespace scope.dependencies in
+        Some (bool installed)
+      | "enabled" ->
+        begin match StringMap.mem namespace scope.dependencies with
+        | true -> Some (string "enable")
+        | false -> Some (string "disable")
+        end
+      | name ->
+        begin match StringMap.find_opt namespace scope.dependencies with
+        | Some scope -> opamPackageScope ~namespace scope name
+        | None -> None
+        end
       end
 
 end
