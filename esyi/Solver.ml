@@ -316,7 +316,7 @@ let add ~(dependencies : Dependencies.t) solver =
         match pkg with
         | Ok pkg -> return (Some pkg)
         | Error reason ->
-          Logs_lwt.warn (fun m ->
+          Logs_lwt.info (fun m ->
             m "skipping package %a: %s" Resolver.Resolution.pp resolution reason);%lwt
           return None
       in
