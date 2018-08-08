@@ -658,23 +658,39 @@ end = struct
 
   let ofDirAsAggregatedRoot (path : Path.t) =
     let open RunAsync.Syntax in
-    let%bind filenames = Fs.listDir path in
-    let paths =
-      filenames
-      |> List.map ~f:(fun name -> Path.(path / name))
-      |> List.filter ~f:(fun path ->
-          Path.has_ext ".opam" path || Path.basename path = "opam")
+
+    let%bind paths =
+      let isOpamPath path =
+        Path.has_ext ".opam" path
+        || Path.basename path = "opam"
+      in
+      let%bind paths = Fs.listDir path in
+      let paths =
+        paths
+        |> List.map ~f:(fun name -> Path.(path / name))
+        |> List.filter ~f:isOpamPath
+      in
+      return paths
     in
+
     let%bind opams =
-      paths
-      |> List.map ~f:(fun path ->
+
+      let readOpam path =
         let%bind data = Fs.readFile path in
-        let opam = OpamFile.OPAM.read_from_string data in
-        let name = Path.(path |> rem_ext |> basename) in
-        return (name, opam))
+        if String.trim data = ""
+        then return None
+        else
+          let opam = OpamFile.OPAM.read_from_string data in
+          let name = Path.(path |> rem_ext |> basename) in
+          return (Some (name, opam))
+      in
+
+      paths
+      |> List.map ~f:readOpam
       |> RunAsync.List.joinAll
     in
-    return (Some (AggregatedRoot opams, Path.Set.of_list paths))
+
+    return (Some (AggregatedRoot (List.filterNone opams), Path.Set.of_list paths))
 
   let release _ = None
   let uniqueDistributionId m = Some ("opam:" ^ version m)
