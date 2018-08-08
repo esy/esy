@@ -87,7 +87,7 @@ function processWithConcurrencyLimit(tasks, process, concurrency) {
         if (inprogress === 0) {
           resolve();
         }
-        return
+        return;
       }
 
       while (inprogress < concurrency && tasks.length > 0) {
@@ -136,9 +136,6 @@ function fsWalk(dir, relativeDir) {
   return fsReaddir(dir).then(function(filenames) {
     function process(name) {
       var relative = relativeDir ? path.join(relativeDir, name) : name;
-      if (typeof name != 'string') {
-        console.log('oops', name);
-      }
       var loc = path.join(dir, name);
       return fsLstat(loc).then(function(stats) {
         files.push({
@@ -146,7 +143,7 @@ function fsWalk(dir, relativeDir) {
           basename: name,
           absolute: loc,
           mtime: +stats.mtime,
-          stats,
+          stats
         });
 
         if (stats.isDirectory()) {
@@ -234,7 +231,7 @@ function childSpawn(program, args, opts, onData) {
             'Command: ' + program,
             'Arguments: ' + args.join(' '),
             'Directory: ' + (opts.cwd || process.cwd()),
-            'Output:\n' + stdout,
+            'Output:\n' + stdout
           ].join('\n')
         );
         err.EXIT_CODE = code;
@@ -258,7 +255,9 @@ function getStorePathForPrefix(prefix) {
   var prefixLength = path.join(prefix, String(ESY_STORE_VERSION)).length;
   var paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
   if (paddingLength < 0) {
-    error("Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts");
+    error(
+      "Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts"
+    );
   }
   var p = path.join(prefix, String(ESY_STORE_VERSION));
   while (p.length < ESY_STORE_PADDING_LENGTH) {
@@ -280,7 +279,7 @@ var storePath = getStorePathForPrefix(releasePackagePath);
 function importBuild(filename, storePath) {
   var buildId = path.basename(filename).replace(/\.tar\.gz$/g, '');
 
-  info("importing: " + buildId);
+  info('importing: ' + buildId);
 
   // We try to rewrite path prefix inside a stage path and then transactionally
   // mv to the final path
@@ -290,20 +289,16 @@ function importBuild(filename, storePath) {
 
   return fsMkdir(buildStagePath).then(function() {
     return childSpawn('tar', ['xzf', filename, '-C', storeStagePath], {
-      stdio: 'inherit',
+      stdio: 'inherit'
     }).then(function() {
-      return fsReadFile(path.join(buildStagePath, '_esy', 'storePrefix')).then(function(prevStorePrefix) {
+      return fsReadFile(path.join(buildStagePath, '_esy', 'storePrefix')).then(function(
+        prevStorePrefix
+      ) {
         prevStorePrefix = prevStorePrefix.toString();
         return rewritePaths(buildStagePath, prevStorePrefix, storePath).then(function() {
           return fsRename(buildStagePath, buildFinalPath);
         });
       });
-    })
-    .then(function () {
-      return fsReadFile(path.join(releaseBinPath, '_storePath')).then(function (prevStorePath) {
-        prevStorePath = prevStorePath.toString();
-        return rewritePaths(releaseBinPath, prevStorePath, storePath);
-      })
     });
   });
 }
@@ -327,11 +322,6 @@ function rewritePaths(path, from, to) {
 function rewritePathInFile(filename, origPath, destPath) {
   return fsStat(filename).then(function(stat) {
     if (!stat.isFile()) {
-      return;
-    }
-
-    // without this it will forever try to replace the paths
-    if (filename.indexOf("_storePath") !== -1) {
       return;
     }
 
@@ -393,22 +383,39 @@ function main() {
       return Promise.all([
         fsMkdir(path.join(storePath, STORE_BUILD_TREE)),
         fsMkdir(path.join(storePath, STORE_INSTALL_TREE)),
-        fsMkdir(path.join(storePath, STORE_STAGE_TREE)),
+        fsMkdir(path.join(storePath, STORE_STAGE_TREE))
       ]);
     });
   }
 
   function doImport() {
-    return fsWalk(releaseExportPath).then(function(builds) {
-      return Promise.all(
-        builds.map(function(file) {
-          return importBuild(file.absolute, storePath);
-        })
-      );
+    function importBuilds() {
+      return fsWalk(releaseExportPath).then(function(builds) {
+        return Promise.all(
+          builds.map(function(file) {
+            return importBuild(file.absolute, storePath);
+          })
+        );
+      });
+    }
+
+    function rewriteBinWrappers() {
+      return fsReadFile(path.join(releaseBinPath, '_storePath')).then(function(
+        prevStorePath
+      ) {
+        prevStorePath = prevStorePath.toString();
+        return rewritePaths(releaseBinPath, prevStorePath, storePath);
+      });
+    }
+
+    return importBuilds().then(function() {
+      return rewriteBinWrappers();
     });
   }
 
-  return check().then(initStore).then(doImport);
+  return check()
+    .then(initStore)
+    .then(doImport);
 }
 
 process.on('unhandledRejection', error);
