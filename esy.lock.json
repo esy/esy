@@ -1,5 +1,5 @@
 {
-  "hash": "2820802dc6a7b8cedaf5eaf00240b1f6",
+  "hash": "7294d14b0b93f52313a66a7aae7257db",
   "root": "esy@path:.",
   "node": {
     "yargs-parser@9.0.2": {
@@ -4855,9 +4855,10 @@
         "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
         "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
         "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
-        "@opam/menhir@opam:20170712", "@opam/ocp-indent@opam:1.6.1",
+        "@opam/menhir@opam:20171013", "@opam/ocp-indent@opam:1.6.1",
         "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
-        "@opam/opam-format@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
+        "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
+        "@opam/ppx_deriving@opam:4.2.1",
         "@opam/ppx_deriving_yojson@opam:3.1",
         "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
         "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
@@ -7525,6 +7526,50 @@
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
+    "@opam/opam-state@opam:2.0.0": {
+      "record": {
+        "name": "@opam/opam-state",
+        "version": "opam:2.0.0",
+        "source": [
+          "archive:https://opam.ocaml.org/archives/opam-state.2.0.0+opam.tar.gz#md5:54fcfc8a2c73ca70289b7ba46559978f",
+          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50"
+        ],
+        "files": [],
+        "opam": {
+          "name": "opam-state",
+          "version": "2.0.0",
+          "opam":
+            "opam-version: \"1.2\"\nmaintainer: \"opam-devel@lists.ocaml.org\"\nauthors: [\n  \"Vincent Bernardoff <vb@luminar.eu.org>\"\n  \"Raja Boujbel <raja.boujbel@ocamlpro.com>\"\n  \"Roberto Di Cosmo <roberto@dicosmo.org>\"\n  \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\n  \"Louis Gesbert <louis.gesbert@ocamlpro.com>\"\n  \"Fabrice Le Fessant <Fabrice.Le_fessant@inria.fr>\"\n  \"Anil Madhavapeddy <anil@recoil.org>\"\n  \"Guillem Rieu <guillem.rieu@ocamlpro.com>\"\n  \"Ralf Treinen <ralf.treinen@pps.jussieu.fr>\"\n  \"Frederic Tuong <tuong@users.gforge.inria.fr>\"\n]\nhomepage: \"https://opam.ocaml.org/\"\nbug-reports: \"https://github.com/ocaml/opam/issues\"\ndepends: [\n  \"opam-repository\" {= \"2.0.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta18\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"./configure\" \"--disable-checks\" \"--prefix\" prefix]\n  [make \"%{name}%.install\"]\n]\ndev-repo: \"git+https://github.com/ocaml/opam.git\"",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+        "@opam/opam-repository@opam:2.0.0"
+      ]
+    },
+    "@opam/opam-repository@opam:2.0.0": {
+      "record": {
+        "name": "@opam/opam-repository",
+        "version": "opam:2.0.0",
+        "source": [
+          "archive:https://opam.ocaml.org/archives/opam-repository.2.0.0+opam.tar.gz#md5:6aa449a710cf6628c6117a3077ae3f84",
+          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50"
+        ],
+        "files": [],
+        "opam": {
+          "name": "opam-repository",
+          "version": "2.0.0",
+          "opam":
+            "opam-version: \"1.2\"\nmaintainer: \"opam-devel@lists.ocaml.org\"\nauthors: [\n  \"Vincent Bernardoff <vb@luminar.eu.org>\"\n  \"Raja Boujbel <raja.boujbel@ocamlpro.com>\"\n  \"Roberto Di Cosmo <roberto@dicosmo.org>\"\n  \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\n  \"Louis Gesbert <louis.gesbert@ocamlpro.com>\"\n  \"Fabrice Le Fessant <Fabrice.Le_fessant@inria.fr>\"\n  \"Anil Madhavapeddy <anil@recoil.org>\"\n  \"Guillem Rieu <guillem.rieu@ocamlpro.com>\"\n  \"Ralf Treinen <ralf.treinen@pps.jussieu.fr>\"\n  \"Frederic Tuong <tuong@users.gforge.inria.fr>\"\n]\nhomepage: \"https://opam.ocaml.org/\"\nbug-reports: \"https://github.com/ocaml/opam/issues\"\ndepends: [\n  \"opam-format\" {= \"2.0.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"./configure\" \"--disable-checks\" \"--prefix\" prefix]\n  [make \"%{name}%.install\"]\n]\ndev-repo: \"git+https://github.com/ocaml/opam.git\"",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+        "@opam/opam-format@opam:2.0.0"
+      ]
+    },
     "@opam/opam-format@opam:2.0.0": {
       "record": {
         "name": "@opam/opam-format",
@@ -7792,18 +7837,18 @@
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
-    "@opam/menhir@opam:20170712": {
+    "@opam/menhir@opam:20171013": {
       "record": {
         "name": "@opam/menhir",
-        "version": "opam:20170712",
+        "version": "opam:20171013",
         "source": [
-          "archive:https://opam.ocaml.org/archives/menhir.20170712+opam.tar.gz#md5:18aaf814e51aeb4fbfd8b7c1fb7ffbba",
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20170712.tar.gz#md5:85a5c2aef1d3f2224dab7c53d79892e5"
+          "archive:https://opam.ocaml.org/archives/menhir.20171013+opam.tar.gz#md5:b361a87378407e26b9ea2dde7ddf41a0",
+          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11"
         ],
         "files": [],
         "opam": {
           "name": "menhir",
-          "version": "20170712",
+          "version": "20171013",
           "opam":
             "opam-version: \"1.2\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
           "override": null
@@ -8468,7 +8513,7 @@
       },
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
-        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170712",
+        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
