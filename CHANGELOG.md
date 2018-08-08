@@ -6,6 +6,12 @@
 
 - Make Windows executables be installed correctly (@bryphe).
 
+- Add `----where` to bin wrappers produced with `esy release`.
+
+- Fix to release installation (`esy release`) not to corrupt binary wrappers.
+
+- Better error reporting for reading opam metadata.
+
 - Refactored e2e test suite (@ulrikstrid, @andreypopp).
 
 ## 0.2.4 @ latest
