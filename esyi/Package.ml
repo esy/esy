@@ -302,9 +302,9 @@ module VersionSpec = struct
   let ofVersion (version : Version.t) =
     match version with
     | Version.Npm v ->
-      Npm (SemverVersion.Formula.DNF.unit (SemverVersion.Formula.Constraint.EQ v))
+      Npm (SemverVersion.Formula.DNF.unit (SemverVersion.Constraint.EQ v))
     | Version.Opam v ->
-      Opam (OpamVersion.Formula.DNF.unit (OpamVersion.Formula.Constraint.EQ v))
+      Opam (OpamVersion.Formula.DNF.unit (OpamVersion.Constraint.EQ v))
     | Version.Source src ->
       let srcSpec = SourceSpec.ofSource src in
       Source srcSpec
@@ -434,7 +434,7 @@ module Req = struct
         | Some ("@opam", _opamName) -> begin
           match%bind tryParseProto spec with
           | Some v -> Ok v
-          | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parse spec))
+          | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parseExn spec))
           end
         | Some _
         | None -> begin
@@ -557,8 +557,8 @@ module Dep = struct
   }
 
   and req =
-    | Npm of SemverVersion.Formula.Constraint.t
-    | Opam of OpamVersion.Formula.Constraint.t
+    | Npm of SemverVersion.Constraint.t
+    | Opam of OpamVersion.Constraint.t
     | Source of SourceSpec.t
 
   let matches ~name ~version dep =
@@ -573,8 +573,8 @@ module Dep = struct
 
   let pp fmt {name; req;} =
     let ppReq fmt = function
-      | Npm c -> SemverVersion.Formula.Constraint.pp fmt c
-      | Opam c -> OpamVersion.Formula.Constraint.pp fmt c
+      | Npm c -> SemverVersion.Constraint.pp fmt c
+      | Opam c -> OpamVersion.Constraint.pp fmt c
       | Source src -> SourceSpec.pp fmt src
     in
     Fmt.pf fmt "%s@%a" name ppReq req

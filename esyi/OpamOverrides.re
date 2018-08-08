@@ -46,7 +46,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
               | c => c,
               constr,
             );
-          let constr = OpamVersion.Formula.parse(constr);
+          let constr = OpamVersion.Formula.parseExn(constr);
           Some((OpamPackage.Name.of_string(name), constr));
         };
 

@@ -111,8 +111,8 @@ module Dep : sig
   }
 
   and req =
-    | Npm of SemverVersion.Formula.Constraint.t
-    | Opam of OpamVersion.Formula.Constraint.t
+    | Npm of SemverVersion.Constraint.t
+    | Opam of OpamVersion.Constraint.t
     | Source of SourceSpec.t
 
   val pp : t Fmt.t

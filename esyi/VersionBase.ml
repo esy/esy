@@ -1,4 +1,4 @@
-module type VERSION  = sig
+module type VERSION = sig
   type t
   val equal : t -> t -> bool
   val compare : t -> t -> int
@@ -12,11 +12,94 @@ module type VERSION  = sig
   val of_yojson : Json.t -> (t, string) result
 end
 
+module type CONSTRAINT = sig
+  type version
+  type t =
+      EQ of version
+    | NEQ of version
+    | GT of version
+    | GTE of version
+    | LT of version
+    | LTE of version
+    | NONE
+    | ANY
+
+  module VersionSet : Set.S with type elt = version
+
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
+
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+
+  val pp : Format.formatter -> t -> unit
+
+  val matchesSimple :
+    version:version
+    -> t
+    -> bool
+
+  val matches :
+    ?matchPrerelease:VersionSet.t
+    -> version:version
+    -> t -> bool
+
+  val toString : t -> string
+
+  val show : t -> string
+
+  val map : f:(version -> version) -> t -> t
+end
+
+module type FORMULA = sig
+  type version
+  type constr
+
+  type 'f conj = 'f list
+  type 'f disj = 'f list
+
+  module DNF : sig
+    type t = constr disj disj
+    val to_yojson : t Json.encoder
+    val of_yojson : t Json.decoder
+    val equal : t -> t -> bool
+    val compare : t -> t -> int
+    val unit : 'a -> 'a disj disj
+    val matches : version:version -> t -> bool
+    val pp : t Fmt.t
+    val show : t -> string
+    val toString : t -> string
+    val map : f:(version -> version) -> t -> t
+
+    val conj : t -> t -> t
+    val disj : constr disj -> constr disj -> constr disj
+  end
+
+  module CNF : sig
+    type t = constr disj conj
+    val to_yojson : t Json.encoder
+    val of_yojson : t Json.decoder
+    val pp : t Fmt.t
+    val show : t -> string
+    val toString : t -> string
+    val matches : version:version -> constr disj disj -> bool
+  end
+
+  val ofDnfToCnf : DNF.t -> CNF.t
+
+  module Parse : sig
+    val conjunction : parse:(string -> 'a) -> string -> 'a disj
+    val disjunction : parse:(string -> constr disj) -> string -> constr disj disj
+  end
+end
+
 (** Constraints over versions *)
 module Constraint = struct
-  module Make (Version: VERSION) = struct
+  module Make (Version: VERSION) : CONSTRAINT with type version = Version.t = struct
 
     module VersionSet = Set.Make(Version)
+
+    type version = Version.t
 
     type t =
       | EQ of Version.t
@@ -92,13 +175,22 @@ end
 
 module Formula = struct
 
-  module Make (Version: VERSION) = struct
+  module Make (Version : VERSION) (Constraint : CONSTRAINT with type version = Version.t)
+    : FORMULA
+      with type version = Constraint.version
+      and type constr = Constraint.t
+    = struct
 
-    module Constraint = Constraint.Make(Version)
-    module VersionSet = Constraint.VersionSet
+    type version = Constraint.version
+    type constr = Constraint.t
 
+    [@@@ocaml.warning "-32"]
     type 'f conj = 'f list [@@deriving (show, yojson, eq, ord)]
+
+    [@@@ocaml.warning "-32"]
     type 'f disj = 'f list [@@deriving (show, yojson, eq, ord)]
+
+    module VersionSet = Constraint.VersionSet
 
     module DNF = struct
       type t =
@@ -218,8 +310,6 @@ module Formula = struct
         List.for_all ~f:matchesDisj formulas
     end
 
-    type constr = Constraint.t
-
     let ofDnfToCnf (f : DNF.t)  =
       let f : CNF.t =
         match f with
@@ -280,8 +370,8 @@ let%test_module "Formula" = (module struct
     let toString = string_of_int
   end
 
-  module F = Formula.Make(Version)
-  module C = F.Constraint
+  module C = Constraint.Make(Version)
+  module F = Formula.Make(Version)(C)
   open C
 
   let%test "ofDnfToCnf: 1" =
