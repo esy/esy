@@ -66,9 +66,9 @@ ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
 ifeq ($(ESY_VERSION_MINOR),2)
-	@esy legacy-install
-else
 	@esy install
+else
+	$(error "esy command should be at least of version 0.2.0, run 'npm install -g esy'")
 endif
 	@make -C esy-install bootstrap
 	@make build-dev

@@ -21,13 +21,15 @@
   },
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
-    "bootstrap:install-dependencies":
-      "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
+    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
     "test-e2e": "jest --runInBand test-e2e"
+  },
+  "resolutions": {
+    "@opam/merlin-extend": "0.3"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
@@ -47,23 +49,14 @@
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
     "@opam/opam-core": "*",
-    "@opam/ppx_deriving": "^4.2.1",
-    "@opam/ppx_deriving_yojson": "^3.1.0",
-    "@opam/ppx_inline_test": "^100000000.10.0",
-    "@opam/ppx_let": "^100000000.9.0",
+    "@opam/ppx_deriving": "*",
+    "@opam/ppx_deriving_yojson": "*",
+    "@opam/ppx_inline_test": "*",
+    "@opam/ppx_let": "*",
     "@opam/re": "^1.7.1",
     "@opam/yojson": "*",
-    "esy-solve-cudf": "^0.1.5",
-    "fastreplacestring": "github:esy-ocaml/FastReplaceString#9450b6"
-  },
-  "resolutions": {
-    "**/@opam/sexplib0": "100000000.11.0",
-    "**/@opam/lwt": "4.1.0",
-    "**/@opam/result": "1.2.0",
-    "**/@opam/ocaml-migrate-parsetree": "1.0.11",
-    "**/@opam/opam-core": "^2.0.0-rc3",
-    "**/@opam/opam-format": "^2.0.0-rc3",
-    "**/@opam/opam-file-format": "^2.0.0-rc3"
+    "esy-solve-cudf": "^0.1.6",
+    "fastreplacestring": "esy-ocaml/FastReplaceString#9450b6"
   },
   "peerDependencies": {
     "ocaml": "~4.6.0"
