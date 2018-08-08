@@ -23,9 +23,9 @@ const binariesToCopy = [
     'default',
     'esy-build-package',
     'bin',
-    'esyBuildPackageCommand.exe',
+    'esyBuildPackageCommand.exe'
   ),
-  path.join('bin', 'fastreplacestring'),
+  path.join('bin', 'fastreplacestring')
 ];
 
 // implementing it b/c we don't want to depend on fs.copyFileSync which appears
