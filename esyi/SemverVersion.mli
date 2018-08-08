@@ -13,7 +13,6 @@ module Version : sig
   include VersionBase.VERSION with type t := t
 
   val parse : string -> (t, string) result
-  val parseExn : string -> t
 end
 
 module Constraint :

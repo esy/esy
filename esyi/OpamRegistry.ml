@@ -37,7 +37,7 @@ type resolution = {
 
 let ocamlOpamVersionToOcamlNpmVersion v =
   let v = OpamPackage.Version.to_string v in
-  SemverVersion.Version.parseExn v
+  SemverVersion.Version.parse v
 
 let packagePath ~name ~version registry =
   let name = OpamPackage.Name.to_string name in
@@ -195,6 +195,7 @@ module Manifest = struct
       | Ok source ->
 
         let translateFormula f =
+          let open Result.Syntax in
           let translateAtom ((name, relop) : OpamFormula.atom) =
             let name =
               match OpamPackage.Name.to_string name with
@@ -204,17 +205,23 @@ module Manifest = struct
             match name with
             | "ocaml" ->
               let module C = SemverVersion.Constraint in
-              let req =
+              let%bind req =
                 match relop with
-                | None -> C.ANY
-                | Some (`Eq, v) -> C.EQ (ocamlOpamVersionToOcamlNpmVersion v)
-                | Some (`Neq, v) -> C.NEQ (ocamlOpamVersionToOcamlNpmVersion v)
-                | Some (`Lt, v) -> C.LT (ocamlOpamVersionToOcamlNpmVersion v)
-                | Some (`Gt, v) -> C.GT (ocamlOpamVersionToOcamlNpmVersion v)
-                | Some (`Leq, v) -> C.LTE (ocamlOpamVersionToOcamlNpmVersion v)
-                | Some (`Geq, v) -> C.GTE (ocamlOpamVersionToOcamlNpmVersion v)
+                | None -> return C.ANY
+                | Some (`Eq, v) ->
+                  let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.EQ v)
+                | Some (`Neq, v) ->
+                  let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.NEQ v)
+                | Some (`Lt, v) ->
+                  let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.LT v)
+                | Some (`Gt, v) ->
+                  let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GT v)
+                | Some (`Leq, v) ->
+                  let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.LTE v)
+                | Some (`Geq, v) ->
+                  let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GTE v)
               in
-              {Package.Dep. name; req = Npm req}
+              return {Package.Dep. name; req = Npm req}
             | name ->
               let module C = OpamVersion.Constraint in
               let req =
@@ -227,10 +234,10 @@ module Manifest = struct
                 | Some (`Leq, v) -> C.LTE v
                 | Some (`Geq, v) -> C.GTE v
               in
-              {Package.Dep. name; req = Opam req}
+              return {Package.Dep. name; req = Opam req}
           in
           let cnf = OpamFormula.to_cnf f in
-          List.map ~f:(List.map ~f:translateAtom) cnf
+          Result.List.map ~f:(Result.List.map ~f:translateAtom) cnf
         in
 
         let translateFilteredFormula ~build ~post ~test ~doc ~dev f =
@@ -238,7 +245,7 @@ module Manifest = struct
             try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
             with Failure msg -> error msg
           in
-          return (translateFormula f)
+          RunAsync.ofStringError (translateFormula f)
         in
 
         let%bind dependencies =
