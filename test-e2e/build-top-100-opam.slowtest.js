@@ -4,6 +4,7 @@ const child_process = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const rmSync = require('rimraf').sync;
+const isCi = require('is-ci');
 
 const cases = [
   {name: 'ocamlfind', toolchains: ['~4.6.0']},
@@ -116,8 +117,34 @@ const esyPrefixPath = fs.mkdtempSync('/tmp/esy-prefix');
 
 let reposUpdated = false;
 
-for (let c of cases) {
+function shuffle(array) {
+  array = array.slice(0);
+  let counter = array.length;
+
+  while (counter > 0) {
+    let index = Math.floor(Math.random() * counter);
+
+    counter--;
+
+    let temp = array[counter];
+    array[counter] = array[index];
+    array[index] = temp;
+  }
+
+  return array;
+}
+
+const startTime = new Date();
+const runtimeLimit = 20 * 60 * 1000;
+
+for (let c of shuffle(cases)) {
   for (let toolchain of c.toolchains) {
+    const nowTime = new Date();
+    if (isCi && nowTime - startTime > runtimeLimit) {
+      console.log(`*** Exiting earlier ***`);
+      break;
+    }
+
     console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
 
     const sandboxPath = fs.mkdtempSync('/tmp/esy-project');
