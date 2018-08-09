@@ -14,14 +14,9 @@ module Source : sig
     | LocalPathLink of Path.t
     | NoSource
 
-  val compare : t -> t -> int
-  val toString : t -> string
-  val parse : string -> (t, string) result
-  val to_yojson : t -> [> `String of string ]
-  val of_yojson : Json.t -> (t, string) result
+  include Abstract.COMMON with type t := t
 
-  val pp : t Fmt.t
-  val equal : t -> t -> bool
+  val parse : string -> (t, string) result
 
   module Map : Map.S with type key := t
 end
@@ -35,16 +30,11 @@ module Version : sig
     | Opam of OpamVersion.Version.t
     | Source of Source.t
 
-  val compare : t -> t -> int
-  val toString : t -> string
+  include Abstract.COMMON with type t := t
+
   val parse : string -> (t, string) result
   val parseExn : string -> t
-  val to_yojson : t -> [> `String of string ]
-  val of_yojson : Json.t -> (t, string) result
   val toNpmVersion : t -> string
-
-  val pp : Format.formatter -> t -> unit
-  val equal : t -> t -> bool
 
   module Map : Map.S with type key := t
 end
@@ -61,6 +51,7 @@ module SourceSpec : sig
     | LocalPath of Path.t
     | LocalPathLink of Path.t
     | NoSource
+
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
   val pp : t Fmt.t

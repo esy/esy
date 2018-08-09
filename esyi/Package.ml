@@ -33,6 +33,8 @@ module Source = struct
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
 
+  let show = toString
+
   let parse v =
     let open Result.Syntax in
     match%bind Parse.cutWith ":" v with
@@ -88,6 +90,8 @@ module Version = struct
     | Npm t -> SemverVersion.Version.toString(t)
     | Opam v -> "opam:" ^ OpamVersion.Version.toString(v)
     | Source src -> (Source.toString src)
+
+  let show = toString
 
   let pp fmt v =
     Fmt.fmt "%s" fmt (toString v)
