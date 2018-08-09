@@ -3,6 +3,8 @@
 const path = require('path');
 const helpers = require('../test/helpers');
 
+const {packageJson, file, dir} = helpers;
+
 helpers.skipSuiteOnWindows();
 
 describe(`installing linked packages`, () => {
@@ -47,5 +49,47 @@ describe(`installing linked packages`, () => {
         },
       },
     });
+  });
+
+  test('it should install linked packages with bins (esy/esy#354)', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {dep: `link:./dep`},
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {},
+          bin: {
+            dep: './dep.exe',
+          },
+        }),
+        file('dep.exe', 'something'),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+      },
+    });
+
+    const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep');
+    expect(await helpers.exists(binPath)).toBeTruthy();
+    const binContents = await helpers.readFile(binPath);
+    expect(binContents.toString()).toEqual('something');
   });
 });

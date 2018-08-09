@@ -204,6 +204,7 @@ module.exports = {
   makeFakeBinary: fsUtils.makeFakeBinary,
   exists: fs.exists,
   readdir: fs.readdir,
+  readFile: fs.readFile,
   execFile: exec.execFile,
   createTestSandbox,
   isWindows,
