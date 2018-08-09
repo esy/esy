@@ -498,6 +498,16 @@ end = struct
       let dependsOfOpam opam =
         let f = OpamFile.OPAM.depends opam in
 
+        let f =
+          let env var =
+            match OpamVariable.Full.to_string var with
+            | "test" -> Some (OpamVariable.B false)
+            | "doc" -> Some (OpamVariable.B false)
+            | _ -> None
+          in
+          OpamFilter.partial_filter_formula env f
+        in
+
         let dependencies =
           listPackageNamesOfFormula
             ~build:true ~test:false ~post:true ~doc:false ~dev:false

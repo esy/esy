@@ -204,6 +204,15 @@ let convertDependencies manifest =
   let filterAndConvertOpamFormula ~build ~post ~test ~doc ~dev f =
     let open Result.Syntax in
     let%bind f =
+      let f =
+        let env var =
+          match OpamVariable.Full.to_string var with
+          | "test" -> Some (OpamVariable.B test)
+          | "doc" -> Some (OpamVariable.B doc)
+          | _ -> None
+        in
+        OpamFilter.partial_filter_formula env f
+      in
       try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
       with Failure msg -> Error msg
     in
