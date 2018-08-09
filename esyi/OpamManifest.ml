@@ -47,7 +47,7 @@ type t = {
   archive : OpamRegistryArchiveIndex.record option;
 }
 
-let ofFile ~name ~version (path : Path.t) =
+let ofPath ~name ~version (path : Path.t) =
   let open RunAsync.Syntax in
   let%bind opam = File.ofPath path in
   return {
