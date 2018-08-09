@@ -9,8 +9,8 @@ end
 module type JSONABLE = sig
   type t
 
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
+  val to_yojson : t -> Yojson.Safe.json
+  val of_yojson : Yojson.Safe.json -> (t, string) result
 end
 
 module type COMPARABLE = sig
