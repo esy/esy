@@ -16,24 +16,34 @@ type paths = {
 
 module PackageScope : sig
   type t = private {
-    name : EsyCommandExpression.Value.t;
-    version : EsyCommandExpression.Value.t;
-    root : EsyCommandExpression.Value.t;
-    original_root : EsyCommandExpression.Value.t;
-    target_dir : EsyCommandExpression.Value.t;
-    install : EsyCommandExpression.Value.t;
-    bin : EsyCommandExpression.Value.t;
-    sbin : EsyCommandExpression.Value.t;
-    lib : EsyCommandExpression.Value.t;
-    man : EsyCommandExpression.Value.t;
-    doc : EsyCommandExpression.Value.t;
-    stublibs : EsyCommandExpression.Value.t;
-    toplevel : EsyCommandExpression.Value.t;
-    share : EsyCommandExpression.Value.t;
-    etc : EsyCommandExpression.Value.t;
+    id : string;
+    name : string;
+    version : string;
+    root : Config.Path.t;
+    original_root : Config.Path.t;
+    target_dir : Config.Path.t;
+    install : Config.Path.t;
+    bin : Config.Path.t;
+    sbin : Config.Path.t;
+    lib : Config.Path.t;
+    man : Config.Path.t;
+    doc : Config.Path.t;
+    stublibs : Config.Path.t;
+    toplevel : Config.Path.t;
+    share : Config.Path.t;
+    etc : Config.Path.t;
+    dev : bool;
   }
 
-  val make : useStagePath:bool -> pkg:Package.t -> paths:paths -> unit -> t
+  val make :
+    useStagePath:bool
+    -> id:string
+    -> pkg:Package.t
+    -> dev:bool
+    -> paths:paths
+    -> unit
+    -> t
+
   val compare : t -> t -> int
   val lookup : t -> string -> EsyCommandExpression.Value.t option
 
@@ -41,66 +51,73 @@ end = struct
   module Value = EsyCommandExpression.Value
 
   type t = {
-    name : Value.t;
-    version : Value.t;
-    root : Value.t;
-    original_root : Value.t;
-    target_dir : Value.t;
-    install : Value.t;
-    bin : Value.t;
-    sbin : Value.t;
-    lib : Value.t;
-    man : Value.t;
-    doc : Value.t;
-    stublibs : Value.t;
-    toplevel : Value.t;
-    share : Value.t;
-    etc : Value.t;
+    id : string;
+    name : string;
+    version : string;
+    root : Config.Path.t;
+    original_root : Config.Path.t;
+    target_dir : Config.Path.t;
+    install : Config.Path.t;
+    bin : Config.Path.t;
+    sbin : Config.Path.t;
+    lib : Config.Path.t;
+    man : Config.Path.t;
+    doc : Config.Path.t;
+    stublibs : Config.Path.t;
+    toplevel : Config.Path.t;
+    share : Config.Path.t;
+    etc : Config.Path.t;
+    dev : bool;
   } [@@deriving ord]
 
-  let make ~useStagePath ~(pkg : Package.t) ~(paths : paths) () =
-    let s v = EsyCommandExpression.string v in
-    let p v = EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v)) in
+  let make ~useStagePath ~id ~(pkg : Package.t) ~dev ~(paths : paths) () =
     let installPath =
       if useStagePath
       then paths.stagePath
       else paths.installPath
     in
     {
-      name = s pkg.name;
-      version = s pkg.version;
-      root = p paths.rootPath;
-      original_root = p paths.sourcePath;
-      target_dir = p paths.buildPath;
-      install = p installPath;
-      bin = p Config.Path.(installPath / "bin");
-      sbin = p Config.Path.(installPath / "sbin");
-      lib = p Config.Path.(installPath / "lib");
-      man = p Config.Path.(installPath / "man");
-      doc = p Config.Path.(installPath / "doc");
-      stublibs = p Config.Path.(installPath / "stublibs");
-      toplevel = p Config.Path.(installPath / "toplevel");
-      share = p Config.Path.(installPath / "share");
-      etc = p Config.Path.(installPath / "etc");
+      id;
+      name = pkg.name;
+      version = pkg.version;
+      root = paths.rootPath;
+      original_root = paths.sourcePath;
+      target_dir = paths.buildPath;
+      install = installPath;
+      bin = Config.Path.(installPath / "bin");
+      sbin = Config.Path.(installPath / "sbin");
+      lib = Config.Path.(installPath / "lib");
+      man = Config.Path.(installPath / "man");
+      doc = Config.Path.(installPath / "doc");
+      stublibs = Config.Path.(installPath / "stublibs");
+      toplevel = Config.Path.(installPath / "toplevel");
+      share = Config.Path.(installPath / "share");
+      etc = Config.Path.(installPath / "etc");
+      dev;
     }
 
   let lookup scope id =
+    let b v = EsyCommandExpression.bool v in
+    let s v = EsyCommandExpression.string v in
+    let p v = EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v)) in
     match id with
-    | "name" -> Some scope.name;
-    | "version" -> Some scope.version;
-    | "root" -> Some scope.root;
-    | "original_root" -> Some scope.original_root;
-    | "target_dir" -> Some scope.target_dir;
-    | "install" -> Some scope.install;
-    | "bin" -> Some scope.bin;
-    | "sbin" -> Some scope.sbin;
-    | "lib" -> Some scope.lib;
-    | "man" -> Some scope.man;
-    | "doc" -> Some scope.doc;
-    | "stublibs" -> Some scope.stublibs;
-    | "toplevel" -> Some scope.toplevel;
-    | "share" -> Some scope.share;
-    | "etc" -> Some scope.etc;
+    | "id" -> Some (s scope.id);
+    | "name" -> Some (s scope.name);
+    | "version" -> Some (s scope.version);
+    | "root" -> Some (p scope.root);
+    | "original_root" -> Some (p scope.original_root);
+    | "target_dir" -> Some (p scope.target_dir);
+    | "install" -> Some (p scope.install);
+    | "bin" -> Some (p scope.bin);
+    | "sbin" -> Some (p scope.sbin);
+    | "lib" -> Some (p scope.lib);
+    | "man" -> Some (p scope.man);
+    | "doc" -> Some (p scope.doc);
+    | "stublibs" -> Some (p scope.stublibs);
+    | "toplevel" -> Some (p scope.toplevel);
+    | "share" -> Some (p scope.share);
+    | "etc" -> Some (p scope.etc);
+    | "dev" -> Some (b scope.dev);
     | _ -> None
 
 end
@@ -151,15 +168,27 @@ end = struct
   let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
     let open OpamVariable in
 
+    let opamArch = System.Arch.(toString host) in
+
+    let opamOs =
+      match scope.platform with
+      | System.Platform.Darwin -> "macos"
+      | System.Platform.Linux -> "linux"
+      | System.Platform.Cygwin -> "cygwin"
+      | System.Platform.Windows -> "win32"
+      | System.Platform.Unix -> "unix"
+      | System.Platform.Unknown -> "unknown"
+    in
+
+    let configPath v = string (Config.Value.show (Config.Path.toValue v)) in
+
+    let opamOsFamily = opamOs in
+    let opamOsDistribution = opamOs in
+
     let toOpamName name =
       match Astring.String.cut ~sep:"@opam/" name with
       | Some ("", name) -> name
       | _ -> name
-    in
-
-    let opamVarContents = function
-      | EsyCommandExpression.Value.String s -> string s
-      | EsyCommandExpression.Value.Bool s -> bool s
     in
 
     let opamPackageScope ?namespace (scope : PackageScope.t) name =
@@ -172,36 +201,40 @@ end = struct
         let open Option.Syntax in
         let%bind ocamlVersion = ocamlVersion in
         Some (string ocamlVersion)
-
-      | _, "prefix" -> Some (opamVarContents scope.install)
-      | _, "bin" -> Some (opamVarContents scope.bin)
-      | _, "sbin" -> Some (opamVarContents scope.sbin)
-      | _, "etc" -> Some (opamVarContents scope.etc)
-      | _, "doc" -> Some (opamVarContents scope.doc)
-      | _, "man" -> Some (opamVarContents scope.man)
-      | _, "share" -> Some (opamVarContents scope.share)
-      | _, "lib" -> Some (opamVarContents scope.lib)
-      | _, "build" -> Some (opamVarContents scope.target_dir)
-      | _, "version" -> Some (opamVarContents scope.version)
-      | _, "name" ->
-        let name =
-          match scope.name with
-          | Value.String name -> string (toOpamName name)
-          | Value.Bool v -> bool v
-        in
-        Some name
-
+      | _, "hash" -> Some (string "")
+      | _, "build-id" -> Some (string scope.id)
+      | _, "dev" -> Some (bool scope.dev)
+      | _, "prefix" -> Some (configPath scope.install)
+      | _, "bin" -> Some (configPath scope.bin)
+      | _, "sbin" -> Some (configPath scope.sbin)
+      | _, "etc" -> Some (configPath scope.etc)
+      | _, "doc" -> Some (configPath scope.doc)
+      | _, "man" -> Some (configPath scope.man)
+      | _, "share" -> Some (configPath scope.share)
+      | _, "stublibs" -> Some (configPath scope.stublibs)
+      | _, "toplevel" -> Some (configPath scope.toplevel)
+      | _, "lib" -> Some (configPath scope.lib)
+      | _, "build" -> Some (configPath scope.target_dir)
+      | _, "version" -> Some (string scope.version)
+      | _, "name" -> Some (string (toOpamName scope.name))
       | _ -> None
     in
 
     match Full.scope name, to_string (Full.variable name) with
-    | Full.Global, "os" -> Some (string (System.Platform.show scope.platform))
+    | Full.Global, "os" -> Some (string opamOs)
+    | Full.Global, "os-family" -> Some (string opamOsFamily)
+    | Full.Global, "os-distribution" -> Some (string opamOsDistribution)
+    | Full.Global, "os-version" -> Some (string "")
+    | Full.Global, "arch" -> Some (string opamArch)
+    | Full.Global, "opam-version" -> Some (string "2")
     | Full.Global, "make" -> Some (string "make")
     | Full.Global, "jobs" -> Some (string "4")
     | Full.Global, "pinned" -> Some (bool false)
     | Full.Global, name -> opamPackageScope scope.self name
 
-    | Full.Self, _ -> None
+    | Full.Self, "enable" -> Some (bool true)
+    | Full.Self, "installed" -> Some (bool true)
+    | Full.Self, name -> opamPackageScope scope.self name
 
     | Full.Package namespace, name ->
       let namespace =
@@ -756,9 +789,15 @@ let ofPackage
         let f map (task : t) =
           let scope =
             PackageScope.make
+              ~id:task.id
               ~useStagePath:false
               ~pkg:task.pkg
               ~paths:task.paths
+              ~dev:(
+                match task.sourceType with
+                | Manifest.SourceType.Immutable -> false
+                | Manifest.SourceType.Transient -> true
+                )
               ()
           in
           StringMap.add task.pkg.name scope map
@@ -766,8 +805,14 @@ let ofPackage
         List.fold_left ~f ~init:StringMap.empty dependenciesTasks
       in
 
+      let dev =
+        match sourceType with
+        | Manifest.SourceType.Immutable -> false
+        | Manifest.SourceType.Transient -> true
+      in
+
       let buildScope =
-        let self = PackageScope.make ~useStagePath:true ~pkg ~paths () in
+        let self = PackageScope.make ~useStagePath:true ~id ~pkg ~dev ~paths () in
         {
           Scope.
           platform;
@@ -777,7 +822,7 @@ let ofPackage
       in
 
       let exportedScope =
-        let self = PackageScope.make ~useStagePath:false ~pkg ~paths () in
+        let self = PackageScope.make ~useStagePath:false ~id ~pkg ~dev ~paths () in
         {
           Scope.
           platform;
