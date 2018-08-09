@@ -1,17 +1,26 @@
+(**
+ * This module defines utilities for working with versions.
+ *)
+
+(**
+ * Type for versions.
+ *
+ * opam's versions and npm's semver versions implement this.
+ *)
 module type VERSION  = sig
   type t
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val show : t -> string
-  val pp : Format.formatter -> t -> unit
+
+  include Abstract.COMMON with type t := t
+
   val parse : string -> (t, string) result
+
   val prerelease : t -> bool
   val stripPrerelease : t -> t
-  val toString : t -> string
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> (t, string) result
 end
 
+(**
+ * Constraints over versions.
+ *)
 module type CONSTRAINT = sig
   type version
   type t =
@@ -24,15 +33,9 @@ module type CONSTRAINT = sig
     | NONE
     | ANY
 
+  include Abstract.COMMON with type t := t
+
   module VersionSet : Set.S with type elt = version
-
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
-
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-
-  val pp : Format.formatter -> t -> unit
 
   val matchesSimple :
     version:version
@@ -44,13 +47,12 @@ module type CONSTRAINT = sig
     -> version:version
     -> t -> bool
 
-  val toString : t -> string
-
-  val show : t -> string
-
   val map : f:(version -> version) -> t -> t
 end
 
+(**
+ * Formulas over constraints.
+ *)
 module type FORMULA = sig
   type version
   type constr
@@ -58,33 +60,36 @@ module type FORMULA = sig
   type 'f conj = 'f list
   type 'f disj = 'f list
 
+  (**
+   * Disjnuction normal form.
+   *)
   module DNF : sig
-    type t = constr disj disj
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-    val equal : t -> t -> bool
-    val compare : t -> t -> int
-    val unit : 'a -> 'a disj disj
+    type t = constr conj disj
+
+    include Abstract.COMMON with type t := t
+
+    val unit : constr -> t
     val matches : version:version -> t -> bool
-    val pp : t Fmt.t
-    val show : t -> string
-    val toString : t -> string
     val map : f:(version -> version) -> t -> t
 
     val conj : t -> t -> t
     val disj : constr disj -> constr disj -> constr disj
   end
 
+  (**
+   * Conjunction normal form.
+   *)
   module CNF : sig
     type t = constr disj conj
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-    val pp : t Fmt.t
-    val show : t -> string
-    val toString : t -> string
+
+    include Abstract.COMMON with type t := t
+
     val matches : version:version -> constr disj disj -> bool
   end
 
+  (**
+   * Convert from DNF to CNF.
+   *)
   val ofDnfToCnf : DNF.t -> CNF.t
 
   module Parse : sig

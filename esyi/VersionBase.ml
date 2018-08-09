@@ -1,19 +1,17 @@
 module type VERSION = sig
   type t
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val show : t -> string
-  val pp : Format.formatter -> t -> unit
+
+  include Abstract.COMMON with type t := t
+
   val parse : string -> (t, string) result
+
   val prerelease : t -> bool
   val stripPrerelease : t -> t
-  val toString : t -> string
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> (t, string) result
 end
 
 module type CONSTRAINT = sig
   type version
+
   type t =
       EQ of version
     | NEQ of version
@@ -24,15 +22,9 @@ module type CONSTRAINT = sig
     | NONE
     | ANY
 
+  include Abstract.COMMON with type t := t
+
   module VersionSet : Set.S with type elt = version
-
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
-
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-
-  val pp : Format.formatter -> t -> unit
 
   val matchesSimple :
     version:version
@@ -43,10 +35,6 @@ module type CONSTRAINT = sig
     ?matchPrerelease:VersionSet.t
     -> version:version
     -> t -> bool
-
-  val toString : t -> string
-
-  val show : t -> string
 
   val map : f:(version -> version) -> t -> t
 end
@@ -59,16 +47,12 @@ module type FORMULA = sig
   type 'f disj = 'f list
 
   module DNF : sig
-    type t = constr disj disj
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-    val equal : t -> t -> bool
-    val compare : t -> t -> int
-    val unit : 'a -> 'a disj disj
+    type t = constr conj disj
+
+    include Abstract.COMMON with type t := t
+
+    val unit : constr -> t
     val matches : version:version -> t -> bool
-    val pp : t Fmt.t
-    val show : t -> string
-    val toString : t -> string
     val map : f:(version -> version) -> t -> t
 
     val conj : t -> t -> t
@@ -77,12 +61,10 @@ module type FORMULA = sig
 
   module CNF : sig
     type t = constr disj conj
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-    val pp : t Fmt.t
-    val show : t -> string
-    val toString : t -> string
-    val matches : version:version -> constr disj disj -> bool
+
+    include Abstract.COMMON with type t := t
+
+    val matches : version:version -> t -> bool
   end
 
   val ofDnfToCnf : DNF.t -> CNF.t
@@ -264,7 +246,7 @@ module Formula = struct
       [@@@ocaml.warning "-32"]
       type t =
         Constraint.t disj conj
-        [@@deriving yojson]
+        [@@deriving yojson, eq, ord]
 
       let pp fmt f =
         let ppDisj fmt = function
