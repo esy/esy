@@ -9,13 +9,23 @@
 module Platform : sig
   type t = Darwin | Linux | Cygwin | Windows | Unix | Unknown
 
-  val show : t -> string
-  val pp : Format.formatter -> t -> unit
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
 
-  (** Platform we are currently running on *)
   val host : t
+  (** Platform we are currently running on *)
+
+  include Abstract.PRINTABLE with type t := t
+  include Abstract.COMPARABLE with type t := t
+end
+
+module Arch : sig
+  type t = X86_32 | X86_64 | Ppc32 | Ppc64 | Arm32 | Arm64 | Unknown
+
+  val host : t
+  (** Arch we are currently running on *)
+
+  include Abstract.PRINTABLE with type t := t
+  include Abstract.COMPARABLE with type t := t
+
 end
 
 module Environment : sig

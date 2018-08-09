@@ -10,7 +10,7 @@ module Record : sig
   module Opam : sig
     type t = {
       name : Package.Opam.OpamName.t;
-      version : Package.Opam.OpamVersion.t;
+      version : Package.Opam.OpamPackageVersion.t;
       opam : Package.Opam.OpamFile.t;
       override : Package.OpamOverride.t option;
     }

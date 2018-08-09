@@ -18,6 +18,8 @@ module Platform = struct
 
   let pp fmt v = Fmt.string fmt (show v)
 
+  let toString = show
+
   let host =
     let uname () =
       let ic = Unix.open_process_in "uname" in
@@ -34,6 +36,47 @@ module Platform = struct
       | "Cygwin" -> Cygwin
       | _ -> Unknown
 
+end
+
+module Arch = struct
+  type t =
+    | X86_32
+    | X86_64
+    | Ppc32
+    | Ppc64
+    | Arm32
+    | Arm64
+    | Unknown
+    [@@deriving eq, ord]
+
+  let show = function
+    | X86_32 -> "x86_32"
+    | X86_64 -> "x86_64"
+    | Ppc32 -> "ppc32"
+    | Ppc64 -> "ppc64"
+    | Arm32 -> "arm32"
+    | Arm64 -> "arm64"
+    | Unknown -> "unknown"
+
+  let pp fmt v = Fmt.string fmt (show v)
+
+  let toString = show
+
+  let host =
+    let uname () =
+      let ic = Unix.open_process_in "uname -m" in
+      let uname = input_line ic in
+      let () = close_in ic in
+      match String.lowercase_ascii uname with
+      | "x86_32" -> X86_32
+      | "x86_64" -> X86_64
+      | "ppc32" -> Ppc32
+      | "ppc64" -> Ppc64
+      | "arm32" -> Arm32
+      | "arm64" -> Arm64
+      | _ -> Unknown
+    in
+    uname ()
 end
 
 module Environment = struct

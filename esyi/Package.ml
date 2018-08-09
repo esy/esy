@@ -33,6 +33,8 @@ module Source = struct
     | LocalPathLink path -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
 
+  let show = toString
+
   let parse v =
     let open Result.Syntax in
     match%bind Parse.cutWith ":" v with
@@ -79,15 +81,17 @@ end
 module Version = struct
   type t =
     | Npm of SemverVersion.Version.t
-    | Opam of OpamVersion.Version.t
+    | Opam of OpamPackageVersion.Version.t
     | Source of Source.t
     [@@deriving (ord, eq)]
 
   let toString v =
     match v with
     | Npm t -> SemverVersion.Version.toString(t)
-    | Opam v -> "opam:" ^ OpamVersion.Version.toString(v)
+    | Opam v -> "opam:" ^ OpamPackageVersion.Version.toString(v)
     | Source src -> (Source.toString src)
+
+  let show = toString
 
   let pp fmt v =
     Fmt.fmt "%s" fmt (toString v)
@@ -99,7 +103,7 @@ module Version = struct
       let%bind v = SemverVersion.Version.parse v in
       return (Npm v)
     | Ok ("opam", v) ->
-      let%bind v = OpamVersion.Version.parse v in
+      let%bind v = OpamPackageVersion.Version.parse v in
       return (Opam v)
     | Ok _ ->
       let%bind v = Source.parse v in
@@ -120,7 +124,7 @@ module Version = struct
   let toNpmVersion v =
     match v with
     | Npm v -> SemverVersion.Version.toString(v)
-    | Opam t -> OpamVersion.Version.toString(t)
+    | Opam t -> OpamPackageVersion.Version.toString(t)
     | Source src -> Source.toString src
 
   module Map = Map.Make(struct
@@ -270,13 +274,13 @@ module VersionSpec = struct
 
   type t =
     | Npm of SemverVersion.Formula.DNF.t
-    | Opam of OpamVersion.Formula.DNF.t
+    | Opam of OpamPackageVersion.Formula.DNF.t
     | Source of SourceSpec.t
     [@@deriving (eq, ord)]
 
   let toString = function
     | Npm formula -> SemverVersion.Formula.DNF.toString formula
-    | Opam formula -> OpamVersion.Formula.DNF.toString formula
+    | Opam formula -> OpamPackageVersion.Formula.DNF.toString formula
     | Source src -> SourceSpec.toString src
 
   let pp fmt spec =
@@ -291,7 +295,7 @@ module VersionSpec = struct
     | Npm _, _ -> false
 
     | Opam formula, Version.Opam version ->
-      OpamVersion.Formula.DNF.matches ~version formula
+      OpamPackageVersion.Formula.DNF.matches ~version formula
     | Opam _, _ -> false
 
     | Source srcSpec, Version.Source src ->
@@ -302,9 +306,9 @@ module VersionSpec = struct
   let ofVersion (version : Version.t) =
     match version with
     | Version.Npm v ->
-      Npm (SemverVersion.Formula.DNF.unit (SemverVersion.Formula.Constraint.EQ v))
+      Npm (SemverVersion.Formula.DNF.unit (SemverVersion.Constraint.EQ v))
     | Version.Opam v ->
-      Opam (OpamVersion.Formula.DNF.unit (OpamVersion.Formula.Constraint.EQ v))
+      Opam (OpamPackageVersion.Formula.DNF.unit (OpamPackageVersion.Constraint.EQ v))
     | Version.Source src ->
       let srcSpec = SourceSpec.ofSource src in
       Source srcSpec
@@ -434,7 +438,7 @@ module Req = struct
         | Some ("@opam", _opamName) -> begin
           match%bind tryParseProto spec with
           | Some v -> Ok v
-          | None -> Ok (VersionSpec.Opam (OpamVersion.Formula.parse spec))
+          | None -> Ok (VersionSpec.Opam (OpamPackageVersion.Formula.parseExn spec))
           end
         | Some _
         | None -> begin
@@ -557,8 +561,8 @@ module Dep = struct
   }
 
   and req =
-    | Npm of SemverVersion.Formula.Constraint.t
-    | Opam of OpamVersion.Formula.Constraint.t
+    | Npm of SemverVersion.Constraint.t
+    | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
 
   let matches ~name ~version dep =
@@ -566,15 +570,15 @@ module Dep = struct
       match version, dep.req with
       | Version.Npm version, Npm c -> SemverVersion.Constraint.matches ~version c
       | Version.Npm _, _ -> false
-      | Version.Opam version, Opam c -> OpamVersion.Constraint.matches ~version c
+      | Version.Opam version, Opam c -> OpamPackageVersion.Constraint.matches ~version c
       | Version.Opam _, _ -> false
       | Version.Source source, Source c -> SourceSpec.matches ~source c
       | Version.Source _, _ -> false
 
   let pp fmt {name; req;} =
     let ppReq fmt = function
-      | Npm c -> SemverVersion.Formula.Constraint.pp fmt c
-      | Opam c -> OpamVersion.Formula.Constraint.pp fmt c
+      | Npm c -> SemverVersion.Constraint.pp fmt c
+      | Opam c -> OpamPackageVersion.Constraint.pp fmt c
       | Source src -> SourceSpec.pp fmt src
     in
     Fmt.pf fmt "%s@%a" name ppReq req
@@ -618,10 +622,10 @@ module NpmDependencies = struct
           let formula = SemverVersion.Formula.ofDnfToCnf formula in
           List.map ~f:(List.map ~f) formula
         | VersionSpec.Opam formula ->
-          let f (c : OpamVersion.Constraint.t) =
+          let f (c : OpamPackageVersion.Constraint.t) =
             {Dep. name = req.name; req = Opam c}
           in
-          let formula = OpamVersion.Formula.ofDnfToCnf formula in
+          let formula = OpamPackageVersion.Formula.ofDnfToCnf formula in
           List.map ~f:(List.map ~f) formula
         | VersionSpec.Source spec ->
           [[{Dep. name = req.name; req = Source spec}]]
@@ -661,7 +665,7 @@ module Dependencies = struct
             let spec =
               match dep.req with
               | Dep.Npm _ -> VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-              | Dep.Opam _ -> VersionSpec.Opam [[OpamVersion.Constraint.ANY]]
+              | Dep.Opam _ -> VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
               | Dep.Source srcSpec -> VersionSpec.Source srcSpec
             in
             Req.Set.add {Req.name = dep.name; spec} reqs
@@ -681,7 +685,7 @@ module Dependencies = struct
           let req =
             match version with
             | Version.Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
-            | Version.Opam v -> Dep.Opam (OpamVersion.Constraint.EQ v)
+            | Version.Opam v -> Dep.Opam (OpamPackageVersion.Constraint.EQ v)
             | Version.Source src -> Dep.Source (SourceSpec.ofSource src)
           in
           {dep with req}
@@ -859,7 +863,7 @@ module Opam = struct
       | _ -> Error "expected string"
   end
 
-  module OpamVersion = struct
+  module OpamPackageVersion = struct
     type t = OpamPackage.Version.t
     let pp fmt name = Fmt.string fmt (OpamPackage.Version.to_string name)
     let to_yojson name = `String (OpamPackage.Version.to_string name)
@@ -870,7 +874,7 @@ module Opam = struct
 
   type t = {
     name : OpamName.t;
-    version : OpamVersion.t;
+    version : OpamPackageVersion.t;
     opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
     override : OpamOverride.t;

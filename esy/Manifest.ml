@@ -477,76 +477,7 @@ end = struct
       OpamPackage.Version.to_string version
     | AggregatedRoot _ -> "dev"
 
-  let sourceType = function
-    | Installed _ -> SourceType.Immutable
-    | AggregatedRoot _ -> SourceType.Transient
-
-  let buildType = function
-    | Installed _ -> BuildType.InSource
-    | AggregatedRoot _ -> BuildType.Unsafe
-
-  let buildCommands = function
-    | Installed manifest ->
-      begin match manifest.override with
-      | Some {OpamOverride. build = Some build; _} ->
-        Build.EsyCommands build
-      | Some {OpamOverride. build = None; _}
-      | None ->
-        Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
-      end
-    | AggregatedRoot [_name, opam] ->
-      Build.OpamCommands (OpamFile.OPAM.build opam)
-    | AggregatedRoot _ ->
-      Build.OpamCommands []
-
-  let installCommands = function
-    | Installed manifest ->
-      begin match manifest.override with
-      | Some {OpamOverride. install = Some install; _} ->
-        Build.EsyCommands install
-      | Some {OpamOverride. install = None; _}
-      | None ->
-        Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
-      end
-    | AggregatedRoot [_name, opam] ->
-      Build.OpamCommands (OpamFile.OPAM.install opam)
-    | AggregatedRoot _ ->
-      Build.OpamCommands []
-
-  let patches = function
-    | Installed manifest ->
-      let patches = OpamFile.OPAM.patches manifest.opam in
-      let f (name, filter) =
-        let name = Path.v (OpamFilename.Base.to_string name) in
-        (name, filter)
-      in
-      List.map ~f patches
-    | AggregatedRoot _ -> []
-
-  let substs = function
-    | Installed manifest ->
-      let names = OpamFile.OPAM.substs manifest.opam in
-      let f name = Path.v (OpamFilename.Base.to_string name) in
-      List.map ~f names
-    | AggregatedRoot _ -> []
-
-  let exportedEnv = function
-    | Installed manifest ->
-      begin match manifest.override with
-      | Some {OpamOverride. exportedEnv;_} -> exportedEnv
-      | None -> ExportedEnv.empty
-      end
-    | AggregatedRoot _ -> ExportedEnv.empty
-
   let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
-    let formula =
-      let env var =
-        match OpamVariable.Full.to_string var with
-        | "test" -> Some (OpamVariable.B test)
-        | _ -> None
-      in
-      OpamFilter.partial_filter_formula env formula
-    in
     let formula =
       OpamFilter.filter_deps
         ~build ~post ~test ~doc ~dev
@@ -555,26 +486,17 @@ end = struct
     let cnf = OpamFormula.to_cnf formula in
     let f atom =
       let name, _ = atom in
-      let name = OpamPackage.Name.to_string name in
-      "@opam/" ^ name
+      match OpamPackage.Name.to_string name with
+      | "ocaml" -> "ocaml"
+      | name -> "@opam/" ^ name
     in
     List.map ~f:(List.map ~f) cnf
 
   let dependencies manifest =
     let dependencies =
+
       let dependsOfOpam opam =
         let f = OpamFile.OPAM.depends opam in
-
-        let f =
-          let env var =
-            match OpamVariable.Full.to_string var with
-            | "test" -> Some (OpamVariable.B false)
-            | "doc" -> Some (OpamVariable.B false)
-            | _ -> None
-          in
-          OpamFilter.partial_filter_formula env f
-        in
-
         let dependencies =
           listPackageNamesOfFormula
             ~build:true ~test:false ~post:true ~doc:false ~dev:false
@@ -658,7 +580,9 @@ end = struct
       let%bind opam =
         let%bind data = Fs.readFile filename in
         let filename = OpamFile.make (OpamFilename.of_string (Path.toString filename)) in
-        return (OpamFile.OPAM.read_from_string ~filename data)
+        let opam = OpamFile.OPAM.read_from_string ~filename data in
+        let opam = OpamFormatUpgrade.opam_file ~filename opam in
+        return opam
       in
       let%bind manifest =
         if%bind Fs.exists overrideFilename
@@ -674,41 +598,133 @@ end = struct
 
   let ofDirAsAggregatedRoot (path : Path.t) =
     let open RunAsync.Syntax in
-    let%bind filenames = Fs.listDir path in
-    let paths =
-      filenames
-      |> List.map ~f:(fun name -> Path.(path / name))
-      |> List.filter ~f:(fun path ->
-          Path.has_ext ".opam" path || Path.basename path = "opam")
+
+    let%bind paths =
+      let isOpamPath path =
+        Path.has_ext ".opam" path
+        || Path.basename path = "opam"
+      in
+      let%bind paths = Fs.listDir path in
+      let paths =
+        paths
+        |> List.map ~f:(fun name -> Path.(path / name))
+        |> List.filter ~f:isOpamPath
+      in
+      return paths
     in
+
     let%bind opams =
-      paths
-      |> List.map ~f:(fun path ->
+
+      let readOpam path =
         let%bind data = Fs.readFile path in
-        let opam = OpamFile.OPAM.read_from_string data in
-        let name = Path.(path |> rem_ext |> basename) in
-        return (name, opam))
+        if String.trim data = ""
+        then return None
+        else
+          let opam = OpamFile.OPAM.read_from_string data in
+          let name = Path.(path |> rem_ext |> basename) in
+          return (Some (name, opam))
+      in
+
+      paths
+      |> List.map ~f:readOpam
       |> RunAsync.List.joinAll
     in
-    return (Some (AggregatedRoot opams, Path.Set.of_list paths))
+
+    return (Some (AggregatedRoot (List.filterNone opams), Path.Set.of_list paths))
 
   let release _ = None
   let uniqueDistributionId m = Some ("opam:" ^ version m)
   let description _ = None
   let license _ = None
 
+
   let build m =
+    let buildCommands =
+      match m with
+      | Installed manifest ->
+        begin match manifest.override with
+        | Some {OpamOverride. build = Some build; _} ->
+          Build.EsyCommands build
+        | Some {OpamOverride. build = None; _}
+        | None ->
+          Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
+        end
+      | AggregatedRoot [_name, opam] ->
+        Build.OpamCommands (OpamFile.OPAM.build opam)
+      | AggregatedRoot _ ->
+        Build.OpamCommands []
+    in
+
+    let installCommands =
+      match m with
+      | Installed manifest ->
+        begin match manifest.override with
+        | Some {OpamOverride. install = Some install; _} ->
+          Build.EsyCommands install
+        | Some {OpamOverride. install = None; _}
+        | None ->
+          Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
+        end
+      | AggregatedRoot [_name, opam] ->
+        Build.OpamCommands (OpamFile.OPAM.install opam)
+      | AggregatedRoot _ ->
+        Build.OpamCommands []
+    in
+
+    let patches =
+      match m with
+      | Installed manifest ->
+        let patches = OpamFile.OPAM.patches manifest.opam in
+        let f (name, filter) =
+          let name = Path.v (OpamFilename.Base.to_string name) in
+          (name, filter)
+        in
+        List.map ~f patches
+      | AggregatedRoot _ -> []
+    in
+
+    let substs =
+      match m with
+      | Installed manifest ->
+        let names = OpamFile.OPAM.substs manifest.opam in
+        let f name = Path.v (OpamFilename.Base.to_string name) in
+        List.map ~f names
+      | AggregatedRoot _ -> []
+    in
+
+    let buildType =
+      match m with
+      | Installed _ -> BuildType.InSource
+      | AggregatedRoot _ -> BuildType.Unsafe
+    in
+
+    let sourceType =
+      match m with
+      | Installed _ -> SourceType.Immutable
+      | AggregatedRoot _ -> SourceType.Transient
+    in
+
+    let exportedEnv =
+      match m with
+      | Installed manifest ->
+        begin match manifest.override with
+        | Some {OpamOverride. exportedEnv;_} -> exportedEnv
+        | None -> ExportedEnv.empty
+        end
+      | AggregatedRoot _ -> ExportedEnv.empty
+    in
+
     Some {
       Build.
-      sourceType = sourceType m;
-      buildType = buildType m;
-      exportedEnv = exportedEnv m;
+      sourceType;
+      buildType;
+      exportedEnv;
       buildEnv = Env.empty;
       sandboxEnv = Env.empty;
-      buildCommands = buildCommands m;
-      installCommands = installCommands m;
-      patches = patches m;
-      substs = substs m;
+      buildCommands;
+      installCommands;
+      patches;
+      substs;
     }
 
   let scripts _ = Run.return Scripts.empty

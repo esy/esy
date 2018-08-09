@@ -21,6 +21,7 @@ opam install --yes yojson
 opam install --yes bos
 opam install --yes re
 opam install --yes opam-format
+opam install --yes opam-state
 opam install --yes cudf
 opam install --yes dose3
 

@@ -225,10 +225,15 @@ module Layout = struct
 
   let%test_module "Layout" = (module struct
 
+    let parseVersionExn v =
+      match SemverVersion.Version.parse v with
+      | Ok v -> v
+      | Error msg -> failwith msg
+
     let r name version = ({
       Record.
       name;
-      version = Version.Npm (SemverVersion.Version.parseExn version);
+      version = Version.Npm (parseVersionExn version);
       source = Package.Source.NoSource, [];
       files = [];
       opam = None;
@@ -236,7 +241,7 @@ module Layout = struct
 
     let id name version =
       let version = version ^ ".0.0" in
-      let version = Version.Npm (SemverVersion.Version.parseExn version) in
+      let version = Version.Npm (parseVersionExn version) in
       ((name, version) : Solution.Id.t)
 
     let expect layout expectation =

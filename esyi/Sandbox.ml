@@ -26,21 +26,38 @@ let readPackageJsonManifest (path : Path.t) =
 
 let readAggregatedOpamManifest (path : Path.t) =
   let open RunAsync.Syntax in
-  let%bind filenames = Fs.listDir path in
 
   let%bind opams =
     let version = OpamPackage.Version.of_string "dev" in
-    filenames
-    |> List.map ~f:(fun name -> Path.(path / name))
-    |> List.filter ~f:(fun path ->
-        Path.has_ext ".opam" path || Path.basename path = "opam")
-    |> List.map ~f:(fun path ->
+
+    let isOpamPath path =
+      Path.has_ext ".opam" path
+      || Path.basename path = "opam"
+    in
+
+    let readOpam path =
+      let%bind data = Fs.readFile path in
+      if String.trim data = ""
+      then return None
+      else 
         let name = Path.(path |> rem_ext |> basename) in
         let%bind manifest =
-          OpamRegistry.Manifest.ofFile ~name:(OpamPackage.Name.of_string name) ~version path
+          OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path
         in
-        return (name, manifest))
-    |> RunAsync.List.joinAll
+        return (Some (name, manifest))
+    in
+
+    let%bind paths = Fs.listDir path in
+
+    let%bind opams =
+      paths
+      |> List.map ~f:(fun name -> Path.(path / name))
+      |> List.filter ~f:isOpamPath
+      |> List.map ~f:readOpam
+      |> RunAsync.List.joinAll
+    in
+
+    return (List.filterNone opams)
   in
 
   let namesPresent =
@@ -66,7 +83,7 @@ let readAggregatedOpamManifest (path : Path.t) =
     let%bind pkgs =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
       let f (name, opam) =
-        match%bind OpamRegistry.Manifest.toPackage ~name ~version opam with
+        match%bind OpamManifest.toPackage ~name ~version opam with
         | Ok pkg -> return pkg
         | Error err -> error err
       in

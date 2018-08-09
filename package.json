@@ -60,6 +60,7 @@
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
     "@opam/opam-core": "*",
+    "@opam/opam-state": "*",
     "@opam/ppx_deriving": "*",
     "@opam/ppx_deriving_yojson": "*",
     "@opam/ppx_inline_test": "*",

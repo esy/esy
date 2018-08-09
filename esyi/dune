@@ -18,5 +18,6 @@
             logs.lwt
             dose3.algo
             opam-format
+            opam-state
             opam-file-format)
   )

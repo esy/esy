@@ -245,7 +245,11 @@ let add ~(dependencies : Dependencies.t) solver =
       match pkg.kind with
       | Package.Esy ->
         universe := Universe.add ~pkg !universe;
-        let%bind dependencies = addDependencies pkg.dependencies in
+        let%bind dependencies =
+          RunAsync.contextf
+            (addDependencies pkg.dependencies)
+            "processing package %a" Package.pp pkg
+        in
         universe := (
           let pkg = {pkg with dependencies} in
           Universe.add ~pkg !universe
@@ -316,7 +320,7 @@ let add ~(dependencies : Dependencies.t) solver =
         match pkg with
         | Ok pkg -> return (Some pkg)
         | Error reason ->
-          Logs_lwt.warn (fun m ->
+          Logs_lwt.info (fun m ->
             m "skipping package %a: %s" Resolver.Resolution.pp resolution reason);%lwt
           return None
       in
@@ -681,7 +685,7 @@ let solve (sandbox : Sandbox.t) =
             match ocamlVersion with
             | Package.Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
             | Package.Version.Source src -> Package.Dep.Source (Package.SourceSpec.ofSource src)
-            | Package.Version.Opam v -> Package.Dep.Opam (OpamVersion.Constraint.EQ v)
+            | Package.Version.Opam v -> Package.Dep.Opam (OpamPackageVersion.Constraint.EQ v)
           in
           let ocamlDep = {Package.Dep. name = "ocaml"; req;} in
           Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])

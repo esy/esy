@@ -1,5 +1,3 @@
-module MakeFormula = Version.Formula.Make
-module MakeConstraint = Version.Constraint.Make
 module String = Astring.String
 
 (** opam versions are Debian-style versions *)
@@ -49,14 +47,14 @@ let tildaRange v =
     Ok (v, ve)
   | Error _ -> Error ("~ cannot be applied to: " ^ v)
 
-module Constraint = MakeConstraint(Version)
+module Constraint = VersionBase.Constraint.Make(Version)
 
 (**
  * Npm formulas over opam versions.
  *)
 module Formula = struct
 
-  include MakeFormula(Version)
+  include VersionBase.Formula.Make(Version)(Constraint)
 
   let any: DNF.t = [[Constraint.ANY]];
 
@@ -105,8 +103,7 @@ module Formula = struct
         return [C.EQ v]
       end
 
-  (* TODO: do not use failwith here *)
-  let parse v =
+  let parseExn v =
     let parseSimple v =
       let parse v =
         let v = String.trim v in
@@ -126,11 +123,14 @@ module Formula = struct
     in
     Parse.disjunction ~parse:parseSimple v
 
+  let parse v =
+    Ok (parseExn v)
+
   let%test_module "parse" = (module struct
     let v = Version.parseExn
 
     let parsesOk f e =
-      let pf = parse f in
+      let pf = parseExn f in
       if pf <> e
       then failwith ("Received: " ^ (DNF.show pf))
       else ()
@@ -143,7 +143,7 @@ module Formula = struct
 
   let%test_module "matches" = (module struct
     let v = Version.parseExn
-    let f = parse
+    let f = parseExn
 
     let%test _ = DNF.matches ~version:(v "1.8.0") (f ">=1.7.0")
     let%test _ = DNF.matches ~version:(v "0.3") (f "=0.3")

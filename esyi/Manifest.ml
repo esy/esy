@@ -59,7 +59,6 @@ type t = {
 type manifest = t
 
 let name manifest = manifest.name
-let version manifest = Version.parseExn manifest.version
 
 let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
   let dependencies =
@@ -107,11 +106,14 @@ let toPackage ?name ?version (manifest : t) =
     | Some name -> name
     | None -> manifest.name
   in
-  let version =
+  let%bind version = RunAsync.ofStringError (
+    let open Result.Syntax in
     match version with
-    | Some version -> version
-    | None -> Package.Version.Npm (SemverVersion.Version.parseExn manifest.version)
-  in
+    | Some version -> return version
+    | None ->
+      let%bind version = SemverVersion.Version.parse manifest.version in
+      return (Package.Version.Npm version)
+  ) in
   let source =
     match version with
     | Package.Version.Source src -> Package.Source src

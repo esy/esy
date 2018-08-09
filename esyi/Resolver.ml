@@ -51,7 +51,12 @@ let toOpamOcamlVersion version =
       else patch / 1000
     in
     let v = Printf.sprintf "%i.%s.%i" major minor patch in
-    Some (OpamVersion.Version.parseExn v)
+    let v =
+      match OpamPackageVersion.Version.parse v with
+      | Ok v -> v
+      | Error msg -> failwith msg
+    in
+    Some v
   | Some (Package.Version.Opam v) -> Some v
   | Some (Package.Version.Source _) -> None
   | None -> None
@@ -184,7 +189,7 @@ let package ~(resolution : Resolution.t) resolver =
         in
         return (Ok pkg)
       | `Opam manifest ->
-        OpamRegistry.Manifest.toPackage
+        OpamManifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
@@ -254,7 +259,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     match spec with
     | None ->
       if Package.isOpamPackageName name
-      then VersionSpec.Opam [[OpamVersion.Constraint.ANY]]
+      then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
       else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
     | Some spec -> spec
   in

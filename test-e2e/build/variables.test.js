@@ -28,6 +28,7 @@ describe('Variables available for builds', () => {
           buildsInSource: true,
           build: [['ocamlopt', '-o', '#{self.bin/}hello.exe', './hello.ml']],
           buildEnv: {
+            build_root_id: '#{self.id}',
             build_root_name: '#{self.name}',
             build_root_version: '#{self.version}',
             build_root_root: '#{self.root}',
@@ -45,6 +46,7 @@ describe('Variables available for builds', () => {
             build_root_etc: '#{self.etc}',
           },
           exportedEnv: {
+            export_root_id: {val: '#{self.id}'},
             export_root_name: {val: '#{self.name}'},
             export_root_version: {val: '#{self.version}'},
             export_root_root: {val: '#{self.root}'},
@@ -68,6 +70,7 @@ describe('Variables available for builds', () => {
         outdent`
 
           let var_names = [
+            "build_root_id";
             "build_root_name";
             "build_root_version";
             "build_root_root";
@@ -98,6 +101,7 @@ describe('Variables available for builds', () => {
             "build_dep_toplevel";
             "build_dep_share";
             "build_dep_etc";
+            "export_root_id";
             "export_root_name";
             "export_root_version";
             "export_root_root";
@@ -170,6 +174,7 @@ describe('Variables available for builds', () => {
                 build_dep_etc: '#{self.etc}',
               },
               exportedEnv: {
+                export_dep_id: {val: '#{self.id}', scope: 'global'},
                 export_dep_name: {val: '#{self.name}', scope: 'global'},
                 export_dep_version: {val: '#{self.version}', scope: 'global'},
                 export_dep_root: {val: '#{self.root}', scope: 'global'},
@@ -199,6 +204,7 @@ describe('Variables available for builds', () => {
 
     const {stdout} = await p.esy('x hello.exe');
     expect(stdout.trim()).toEqual(outdent`
+build_root_id=<novalue>
 build_root_name=<novalue>
 build_root_version=<novalue>
 build_root_root=<novalue>
@@ -229,6 +235,7 @@ build_dep_stublibs=<novalue>
 build_dep_toplevel=<novalue>
 build_dep_share=<novalue>
 build_dep_etc=<novalue>
+export_root_id=${rootId}
 export_root_name=root
 export_root_version=0.1.0
 export_root_root=${path.join(

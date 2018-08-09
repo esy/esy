@@ -25,6 +25,15 @@ export type OpamRegistry = {
 async function initialize(): Promise<OpamRegistry> {
   const registryPath = await createTemporaryFolder();
   await fs.mkdirp(path.join(registryPath, 'packages'));
+  await fs.writeFile(
+    path.join(registryPath, 'repo'),
+    outdent`
+      opam-version: "1.2"
+      browse: "https://opam.ocaml.org/pkg/"
+      upstream: "https://github.com/ocaml/opam-repository/tree/master/"
+    `,
+  );
+
   const overridePath = await createTemporaryFolder();
   await fs.mkdirp(path.join(overridePath, 'packages'));
 

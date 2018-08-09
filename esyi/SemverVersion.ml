@@ -1,6 +1,3 @@
-module MakeFormula = Version.Formula.Make
-module MakeConstraint = Version.Constraint.Make
-
 module Version = struct
   type t = {
     major : int;
@@ -396,10 +393,10 @@ module Version = struct
 
 end
 
-module Constraint = MakeConstraint(Version)
+module Constraint = VersionBase.Constraint.Make(Version)
 
 module Formula = struct
-  include MakeFormula(Version)
+  include VersionBase.Formula.Make(Version)(Constraint)
 
   let any: DNF.t = [[Constraint.ANY]]
 
@@ -408,28 +405,6 @@ module Formula = struct
       String.sub text num ((String.length text) - num)
 
     let isint v = try ignore (int_of_string v); true with | _ -> false
-
-    let getRest parts =
-      match parts = [] with
-      | true -> None
-      | false -> Some (String.concat "." parts)
-
-    let splitRest value =
-      try
-        match String.split_on_char '-' value with
-        | _single::[] ->
-          (match String.split_on_char '+' value with
-            | _single::[] ->
-              (match String.split_on_char '~' value with
-              | single::[] -> int_of_string single, None
-              | single::rest -> int_of_string single, Some ("~" ^ String.concat "~" rest)
-              | _ -> 0, Some value)
-            | single::rest -> int_of_string single, Some ("+" ^ String.concat "+" rest)
-            | _ -> 0, Some value)
-        | single::rest -> int_of_string single, Some ("-" ^ String.concat "-" rest)
-        | _ -> 0, Some value
-      with
-      | _ -> 0, Some value
 
     let parsePrerelaseAndBuild v =
       match Version.parsePrerelaseAndBuild v with
@@ -935,3 +910,4 @@ module Formula = struct
 
   end)
 end
+

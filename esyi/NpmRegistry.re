@@ -47,14 +47,17 @@ let versions = (~fullMetadata=false, ~cfg: Config.t, ~name, ()) => {
     let%bind packument =
       RunAsync.ofRun(Json.parseStringWith(Packument.of_yojson, data));
 
-    return(
+    let results =
       packument.Packument.versions
       |> StringMap.bindings
-      |> List.map(~f=((version, packageJson)) => {
+      |> Result.List.map(~f=((version, packageJson)) => {
+           open Result.Syntax;
            let manifest = Manifest.ofPackageJson(packageJson);
-           (SemverVersion.Version.parseExn(version), manifest);
-         }),
-    );
+           let%bind version = SemverVersion.Version.parse(version);
+           return((version, manifest));
+         });
+
+    RunAsync.ofStringError(results);
   };
 };
 
