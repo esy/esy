@@ -42,7 +42,7 @@ let readAggregatedOpamManifest (path : Path.t) =
       else 
         let name = Path.(path |> rem_ext |> basename) in
         let%bind manifest =
-          OpamRegistry.Manifest.ofFile ~name:(OpamPackage.Name.of_string name) ~version path
+          OpamManifest.ofFile ~name:(OpamPackage.Name.of_string name) ~version path
         in
         return (Some (name, manifest))
     in
@@ -83,7 +83,7 @@ let readAggregatedOpamManifest (path : Path.t) =
     let%bind pkgs =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
       let f (name, opam) =
-        match%bind OpamRegistry.Manifest.toPackage ~name ~version opam with
+        match%bind OpamManifest.toPackage ~name ~version opam with
         | Ok pkg -> return pkg
         | Error err -> error err
       in

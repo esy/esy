@@ -11,22 +11,6 @@ type resolution = private {
   url: Path.t option;
 }
 
-module Manifest : sig
-  type t
-
-  val ofFile :
-    name:OpamTypes.name
-    -> version:OpamTypes.version
-    -> Path.t
-    -> t RunAsync.t
-
-  val toPackage :
-    name : string
-    -> version : Package.Version.t
-    -> t
-    -> (Package.t, string) result RunAsync.t
-end
-
 val make : cfg:Config.t -> unit -> t
 (** Configure a new opam registry instance. *)
 
@@ -40,5 +24,5 @@ val version :
   name : OpamPackage.Name.t
   -> version : OpamPackage.Version.t
   -> t
-  -> Manifest.t option RunAsync.t
+  -> OpamManifest.t option RunAsync.t
 (** Return an opam manifest for a given opam package name, version. *)

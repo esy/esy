@@ -165,7 +165,7 @@ let package ~(resolution : Resolution.t) resolver =
         in
         return (Ok pkg)
       | `Opam manifest ->
-        OpamRegistry.Manifest.toPackage
+        OpamManifest.toPackage
           ~name:resolution.name
           ~version:resolution.version
           manifest
