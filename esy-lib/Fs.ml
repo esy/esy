@@ -44,9 +44,15 @@ let exists (path : Path.t) =
   RunAsync.return exists
 
 let chmod permission (path : Path.t) =
-  let path = Path.to_string path in
-  let%lwt () = Lwt_unix.chmod path permission in
-  RunAsync.return ()
+  RunAsync.contextf (
+    try%lwt
+      let path = Path.to_string path in
+      let%lwt () = Lwt_unix.chmod path permission in
+      RunAsync.return ()
+    with Unix.Unix_error (errno, _, _) ->
+      let msg = Unix.error_message errno in
+      RunAsync.error msg
+  ) "changing permissions for path %a" Path.pp path
 
 let createDir (path : Path.t) =
   let rec create path =

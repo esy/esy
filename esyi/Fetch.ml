@@ -54,8 +54,8 @@ module Manifest = struct
     else
       return None
 
-  let packageCommands (path : Path.t) manifest =
-    let makePathToCmd cmdPath = Path.(path // v cmdPath |> normalize) in
+  let packageCommands (sourcePath : Path.t) manifest =
+    let makePathToCmd cmdPath = Path.(sourcePath // v cmdPath |> normalize) in
     match manifest.bin with
     | Some (Bin.One cmd) ->
       [manifest.name, makePathToCmd cmd]
@@ -743,14 +743,19 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let%bind () = Fs.createDir binPath in
 
     let installBinWrapper (name, path) =
-      let%bind () = Fs.chmod 0o777 path in
-      let%bind () = Fs.symlink ~src:path Path.(binPath / name) in
-      return ()
+      if%bind Fs.exists path
+      then (
+        let%bind () = Fs.chmod 0o777 path in
+        Fs.symlink ~src:path Path.(binPath / name)
+      ) else (
+        Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp path);%lwt
+        return ()
+      )
     in
 
     let installBinWrappersForPkg = function
       | (installation, Some manifest) ->
-        Manifest.packageCommands installation.Layout.path manifest
+        Manifest.packageCommands installation.Layout.sourcePath manifest
         |> List.map ~f:installBinWrapper
         |> RunAsync.List.waitAll
       | (_installation, None) -> return ()
