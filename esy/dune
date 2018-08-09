@@ -23,6 +23,7 @@
             astring
             EsyBuildPackage
             opam-format
+            opam-state
             )
 )
 

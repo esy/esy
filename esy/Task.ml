@@ -222,12 +222,6 @@ end = struct
 
     match Full.scope name, to_string (Full.variable name) with
     | Full.Global, "os" -> Some (string opamOs)
-    | Full.Global, "ocaml-version" ->
-       let open Option.Syntax in
-       let%bind ocamlVersion = ocamlVersion in
-       Some (string ocamlVersion)
-    | Full.Global, "ocaml-native" -> Some (bool true)
-    | Full.Global, "ocaml-native-dynlink" -> Some (bool true)
     | Full.Global, "os-family" -> Some (string opamOsFamily)
     | Full.Global, "os-distribution" -> Some (string opamOsDistribution)
     | Full.Global, "os-version" -> Some (string "")

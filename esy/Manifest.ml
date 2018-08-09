@@ -497,17 +497,6 @@ end = struct
 
       let dependsOfOpam opam =
         let f = OpamFile.OPAM.depends opam in
-
-        let f =
-          let env var =
-            match OpamVariable.Full.to_string var with
-            | "test" -> Some (OpamVariable.B false)
-            | "doc" -> Some (OpamVariable.B false)
-            | _ -> None
-          in
-          OpamFilter.partial_filter_formula env f
-        in
-
         let dependencies =
           listPackageNamesOfFormula
             ~build:true ~test:false ~post:true ~doc:false ~dev:false
@@ -591,7 +580,9 @@ end = struct
       let%bind opam =
         let%bind data = Fs.readFile filename in
         let filename = OpamFile.make (OpamFilename.of_string (Path.toString filename)) in
-        return (OpamFile.OPAM.read_from_string ~filename data)
+        let opam = OpamFile.OPAM.read_from_string ~filename data in
+        let opam = OpamFormatUpgrade.opam_file ~filename opam in
+        return opam
       in
       let%bind manifest =
         if%bind Fs.exists overrideFilename
