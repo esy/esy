@@ -1,11 +1,16 @@
 {
   "name": "esy",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
     "build": [
-      ["dune", "build", "-j", "4"],
+      [
+        "dune",
+        "build",
+        "-j",
+        "4"
+      ],
       [
         "dune",
         "build",
@@ -14,8 +19,14 @@
       ]
     ],
     "install": [
-      ["esy-installer", "./esy-build-package.install"],
-      ["esy-installer", "./esy.install"]
+      [
+        "esy-installer",
+        "./esy-build-package.install"
+      ],
+      [
+        "esy-installer",
+        "./esy.install"
+      ]
     ],
     "buildsInSource": "_build"
   },
