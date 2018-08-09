@@ -1,4 +1,5 @@
-type t = OpamPackage.Name.Map.t(list((OpamVersion.Formula.DNF.t, Fpath.t)));
+type t =
+  OpamPackage.Name.Map.t(list((OpamPackageVersion.Formula.DNF.t, Fpath.t)));
 
 let init = (~cfg, ()) : RunAsync.t(t) =>
   RunAsync.Syntax.(
@@ -36,7 +37,10 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
       let parseOverrideSpec = spec =>
         switch (String.cut(~sep=".", spec)) {
         | None =>
-          Some((OpamPackage.Name.of_string(spec), OpamVersion.Formula.any))
+          Some((
+            OpamPackage.Name.of_string(spec),
+            OpamPackageVersion.Formula.any,
+          ))
         | Some(("", _)) => None
         | Some((name, constr)) =>
           let constr =
@@ -46,7 +50,7 @@ let init = (~cfg, ()) : RunAsync.t(t) =>
               | c => c,
               constr,
             );
-          let constr = OpamVersion.Formula.parseExn(constr);
+          let constr = OpamPackageVersion.Formula.parseExn(constr);
           Some((OpamPackage.Name.of_string(name), constr));
         };
 
@@ -124,7 +128,7 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
         List.find_opt(
           ~f=
             ((formula, _path)) =>
-              OpamVersion.Formula.DNF.matches(formula, ~version),
+              OpamPackageVersion.Formula.DNF.matches(formula, ~version),
           items,
         )
       ) {

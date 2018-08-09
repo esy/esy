@@ -6,14 +6,18 @@ module File = struct
     type value = OpamFile.OPAM.t RunAsync.t
   end)
 
-  let ofPath ?cache path =
+  let ofPath ?(upgradeToFormat2=false) ?cache path =
     let open RunAsync.Syntax in
     let load path =
       let%bind data = Fs.readFile path in
       let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
       (* TODO: error handling here *)
       let opam = OpamFile.OPAM.read_from_string ~filename data in
-      let opam = OpamFormatUpgrade.opam_file ~filename opam in
+      let opam =
+        if upgradeToFormat2
+        then OpamFormatUpgrade.opam_file ~filename opam
+        else opam
+      in
       return opam
     in
     match cache with
@@ -95,7 +99,7 @@ let convertOpamAtom ((name, relop) : OpamFormula.atom) =
     in
     return {Package.Dep. name; req = Npm req}
   | name ->
-    let module C = OpamVersion.Constraint in
+    let module C = OpamPackageVersion.Constraint in
     let req =
       match relop with
       | None -> C.ANY

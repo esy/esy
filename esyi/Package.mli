@@ -27,7 +27,7 @@ end
 module Version : sig
   type t =
       Npm of SemverVersion.Version.t
-    | Opam of OpamVersion.Version.t
+    | Opam of OpamPackageVersion.Version.t
     | Source of Source.t
 
   include Abstract.COMMON with type t := t
@@ -67,7 +67,7 @@ end
 module VersionSpec : sig
   type t =
       Npm of SemverVersion.Formula.DNF.t
-    | Opam of OpamVersion.Formula.DNF.t
+    | Opam of OpamPackageVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
   val toString : t -> string
@@ -103,7 +103,7 @@ module Dep : sig
 
   and req =
     | Npm of SemverVersion.Constraint.t
-    | Opam of OpamVersion.Constraint.t
+    | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
 
   val pp : t Fmt.t
@@ -219,7 +219,7 @@ module Opam : sig
     val of_yojson : t Json.decoder
   end
 
-  module OpamVersion : sig
+  module OpamPackageVersion : sig
     type t = OpamPackage.Version.t
     val pp : t Fmt.t
     val to_yojson : t Json.encoder
@@ -228,7 +228,7 @@ module Opam : sig
 
   type t = {
     name : OpamName.t;
-    version : OpamVersion.t;
+    version : OpamPackageVersion.t;
     opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
     override : OpamOverride.t;

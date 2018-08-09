@@ -115,7 +115,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
           Format.asprintf
             "name: \"%a\"\nversion: \"%a\"\n%a"
             Package.Opam.OpamName.pp name
-            Package.Opam.OpamVersion.pp version
+            Package.Opam.OpamPackageVersion.pp version
             Package.Opam.OpamFile.pp opam
         in
         let%bind () = Fs.createDir Path.(path / "_esy") in

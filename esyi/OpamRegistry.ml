@@ -16,6 +16,7 @@ type t = {
 }
 
 and registry = {
+  version : OpamVersion.t option;
   repoPath : Path.t;
   overrides : OpamOverrides.t;
   pathsCache : OpamPathsByVersion.t;
@@ -68,7 +69,16 @@ let make ~cfg () =
     let%bind overrides = OpamOverrides.init ~cfg () in
     let%bind archiveIndex = OpamRegistryArchiveIndex.init ~cfg () in
 
+    let%bind repo =
+      let path = Path.(repoPath / "repo") in
+      let%bind data = Fs.readFile path in
+      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+      let repo = OpamFile.Repo.read_from_string ~filename data in
+      return repo
+    in
+
     return {
+      version = OpamFile.Repo.opam_version repo;
       repoPath;
       pathsCache = OpamPathsByVersion.make ();
       opamCache = OpamManifest.File.Cache.make ();
@@ -115,6 +125,7 @@ let getPackageVersionIndex (registry : registry) ~(name : OpamPackage.Name.t) =
   OpamPathsByVersion.compute registry.pathsCache name f
 
 let resolve
+  ?ocamlVersion
   ~(name : OpamPackage.Name.t)
   ~(version : OpamPackage.Version.t)
   (registry : registry)
@@ -128,6 +139,8 @@ let resolve
         "no opam package %s@%s found"
         (OpamPackage.Name.to_string name) (OpamPackage.Version.to_string version)
     | Some packagePath ->
+
+
       let opam = Path.(packagePath / "opam") in
       let%bind url =
         let url = Path.(packagePath / "url") in
@@ -136,10 +149,37 @@ let resolve
         else return None
       in
 
-      return { name; opam; url; version }
+      let%bind available =
+        let env (var : OpamVariable.Full.t) =
+          let scope = OpamVariable.Full.scope var in
+          let name = OpamVariable.Full.variable var in
+          let v =
+            let open Option.Syntax in
+            let open OpamVariable in
+            match scope, OpamVariable.to_string name with
+            | OpamVariable.Full.Global, "preinstalled" ->
+              return (bool false)
+            | OpamVariable.Full.Global, "compiler"
+            | OpamVariable.Full.Global, "ocaml-version" ->
+              let%bind ocamlVersion = ocamlVersion in
+              return (string (OpamPackage.Version.to_string ocamlVersion))
+            | OpamVariable.Full.Global, _ -> None
+            | OpamVariable.Full.Self, _ -> None
+            | OpamVariable.Full.Package _, _ -> None
+          in v
+        in
+        let%bind opam = readOpamFileOfRegistry ~name ~version registry in
+        let formula = OpamFile.OPAM.available opam in
+        let available = OpamFilter.eval_to_bool ~default:true env formula in
+        return available
+      in
+
+      if available
+      then return (Some { name; opam; url; version })
+      else return None
     end
 
-let versions ~(name : OpamPackage.Name.t) registry =
+let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
   let open RunAsync.Syntax in
   let%bind registry = initRegistry registry in
   match%bind getPackageVersionIndex registry ~name with
@@ -148,36 +188,39 @@ let versions ~(name : OpamPackage.Name.t) registry =
     let queue = LwtTaskQueue.create ~concurrency:2 () in
     let%bind resolutions =
       let getPackageVersion version () =
-        resolve ~name ~version registry
+        resolve ?ocamlVersion ~name ~version registry
       in
       index
       |> OpamPackage.Version.Map.bindings
       |> List.map ~f:(fun (version, _path) -> LwtTaskQueue.submit queue (getPackageVersion version))
       |> RunAsync.List.joinAll
     in
-    return resolutions
+    return (List.filterNone resolutions)
 
 let version ~(name : OpamPackage.Name.t) ~version registry =
   let open RunAsync.Syntax in
   let%bind registry = initRegistry registry in
-  let%bind { opam = _; url; name; version } = resolve registry ~name ~version in
-  let%bind pkg =
-    let path = packagePath ~name ~version registry in
-    let%bind opam = readOpamFileOfRegistry ~name ~version registry in
-    let%bind url =
-      match OpamFile.OPAM.url opam with
-      | Some url -> return (Some url)
-      | None ->
-        begin match url with
-        | Some url ->
-          let%bind data = Fs.readFile url in
-          return (Some (OpamFile.URL.read_from_string data))
-        | None -> return None
-        end
+  match%bind resolve ~name ~version registry with
+  | None -> return None
+  | Some { opam = _; url; name; version } ->
+    let%bind pkg =
+      let path = packagePath ~name ~version registry in
+      let%bind opam = readOpamFileOfRegistry ~name ~version registry in
+      let%bind url =
+        match OpamFile.OPAM.url opam with
+        | Some url -> return (Some url)
+        | None ->
+          begin match url with
+          | Some url ->
+            let%bind data = Fs.readFile url in
+            return (Some (OpamFile.URL.read_from_string data))
+          | None -> return None
+          end
+      in
+      let archive = OpamRegistryArchiveIndex.find ~name ~version registry.archiveIndex in
+      return {OpamManifest.name; version; opam; url; path; override = Override.empty; archive}
     in
-    let archive = OpamRegistryArchiveIndex.find ~name ~version registry.archiveIndex in
-    return {OpamManifest.name; version; opam; url; path; override = Override.empty; archive}
-  in
-  match%bind OpamOverrides.find ~name ~version registry.overrides with
-  | None -> return (Some pkg)
-  | Some override -> return (Some {pkg with OpamManifest. override})
+    begin match%bind OpamOverrides.find ~name ~version registry.overrides with
+    | None -> return (Some pkg)
+    | Some override -> return (Some {pkg with OpamManifest. override})
+    end

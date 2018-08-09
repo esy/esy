@@ -15,7 +15,8 @@ val make : cfg:Config.t -> unit -> t
 (** Configure a new opam registry instance. *)
 
 val versions :
-  name : OpamPackage.Name.t
+  ?ocamlVersion : OpamPackageVersion.Version.t
+  -> name : OpamPackage.Name.t
   -> t
   -> resolution list RunAsync.t
 (** Return a list of resolutions for a given opam package name. *)

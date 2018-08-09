@@ -17,7 +17,11 @@ module File : sig
     with type key := Path.t
     and type value := OpamFile.OPAM.t RunAsync.t
 
-  val ofPath : ?cache:Cache.t -> Fpath.t -> OpamFile.OPAM.t RunAsync.t
+  val ofPath :
+    ?upgradeToFormat2:bool
+    -> ?cache:Cache.t
+    -> Fpath.t
+    -> OpamFile.OPAM.t RunAsync.t
 end
 
 val ofPath :

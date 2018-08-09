@@ -37,6 +37,30 @@ let toOpamName name =
   | Some ("", name) -> OpamPackage.Name.of_string name
   | _ -> failwith ("invalid opam package name: " ^ name)
 
+let toOpamOcamlVersion version =
+  match version with
+  | Some (Package.Version.Npm { major; minor; patch; _ }) ->
+    let minor =
+      if minor < 10
+      then "0" ^ (string_of_int minor)
+      else string_of_int minor
+    in
+    let patch =
+      if patch < 1000
+      then patch
+      else patch / 1000
+    in
+    let v = Printf.sprintf "%i.%s.%i" major minor patch in
+    let v =
+      match OpamPackageVersion.Version.parse v with
+      | Ok v -> v
+      | Error msg -> failwith msg
+    in
+    Some v
+  | Some (Package.Version.Opam v) -> Some v
+  | Some (Package.Version.Source _) -> None
+  | None -> None
+
 module Github = struct
 
   let remote ~user ~repo =
@@ -235,7 +259,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     match spec with
     | None ->
       if Package.isOpamPackageName name
-      then VersionSpec.Opam [[OpamVersion.Constraint.ANY]]
+      then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
       else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
     | Some spec -> spec
   in
@@ -289,6 +313,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
         let%bind versions =
           let name = toOpamName name in
           OpamRegistry.versions
+            ?ocamlVersion:(toOpamOcamlVersion resolver.ocamlVersion)
             ~name
             resolver.opamRegistry
         in
