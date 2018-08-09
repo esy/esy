@@ -62,201 +62,209 @@ let ocamlOpamVersionToOcamlNpmVersion v =
   let v = OpamPackage.Version.to_string v in
   SemverVersion.Version.parse v
 
-let toPackage ~name ~version
-  {name = opamName; version = opamVersion; opam; url; path; override; archive} =
-
-  let source =
-    let open Result.Syntax in
-
-    let sourceOfOpamUrl url =
-      let%bind checksum =
-        let checksums = OpamFile.URL.checksum url in
-        let f c =
-          match OpamHash.kind c with
-          | `MD5 -> Checksum.Md5, OpamHash.contents c
-          | `SHA256 -> Checksum.Sha256, OpamHash.contents c
-          | `SHA512 -> Checksum.Sha512, OpamHash.contents c
-        in
-        match List.map ~f checksums with
-        | [] ->
-          let msg =
-            Format.asprintf
-              "no checksum provided for %s@%a"
-              name Package.Version.pp version
-          in
-          Error msg
-        | checksum::_ -> Ok checksum
-      in
-
-      let convert (url : OpamUrl.t) =
-        match url.backend with
-        | `http ->
-          return (Package.Source (Package.Source.Archive {
-            url = OpamUrl.to_string url;
-            checksum;
-          }))
-        | `rsync -> Error "unsupported source for opam: rsync"
-        | `hg -> Error "unsupported source for opam: hg"
-        | `darcs -> Error "unsupported source for opam: darcs"
-        | `git -> Error "unsupported source for opam: git"
-      in
-
-      let%bind main = convert (OpamFile.URL.url url) in
-      let mirrors =
-        let f mirrors url =
-          match convert url with
-          | Ok mirror -> mirror::mirrors
-          | Error _ -> mirrors
-        in
-        List.fold_left ~f ~init:[] (OpamFile.URL.mirrors url)
-      in
-      return (main, mirrors)
-    in
-
-    let%bind main, mirrors =
-      match override.Override.opam.Override.Opam.source with
-      | Some source ->
-        let main = Package.Source (Package.Source.Archive {
-          url = source.url;
-          checksum = Checksum.Md5, source.checksum;
-        }) in
-        return (main, [])
-      | None -> begin
-        match url with
-        | Some url -> sourceOfOpamUrl url
-        | None ->
-          let main = Package.Source Package.Source.NoSource in
-          Ok (main, [])
+let convertOpamAtom ((name, relop) : OpamFormula.atom) =
+  let open Result.Syntax in
+  let name =
+    match OpamPackage.Name.to_string name with
+    | "ocaml" -> "ocaml"
+    | name -> "@opam/" ^ name
+  in
+  match name with
+  | "ocaml" ->
+    let module C = SemverVersion.Constraint in
+    let%bind req =
+      match relop with
+      | None -> return C.ANY
+      | Some (`Eq, v) ->
+        begin match OpamPackage.Version.to_string v with
+        | "broken" -> return C.ANY
+        | _ ->
+          let%bind v = ocamlOpamVersionToOcamlNpmVersion v in
+          return (C.EQ v)
         end
+      | Some (`Neq, v) ->
+        let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.NEQ v)
+      | Some (`Lt, v) ->
+        let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.LT v)
+      | Some (`Gt, v) ->
+        let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GT v)
+      | Some (`Leq, v) ->
+        let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.LTE v)
+      | Some (`Geq, v) ->
+        let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GTE v)
+    in
+    return {Package.Dep. name; req = Npm req}
+  | name ->
+    let module C = OpamVersion.Constraint in
+    let req =
+      match relop with
+      | None -> C.ANY
+      | Some (`Eq, v) -> C.EQ v
+      | Some (`Neq, v) -> C.NEQ v
+      | Some (`Lt, v) -> C.LT v
+      | Some (`Gt, v) -> C.GT v
+      | Some (`Leq, v) -> C.LTE v
+      | Some (`Geq, v) -> C.GTE v
+    in
+    return {Package.Dep. name; req = Opam req}
+
+let convertOpamFormula f =
+  let cnf = OpamFormula.to_cnf f in
+  Result.List.map ~f:(Result.List.map ~f:convertOpamAtom) cnf
+
+let convertOpamUrl (manifest : t) =
+  let open Result.Syntax in
+
+  let sourceOfOpamUrl url =
+    let%bind checksum =
+      let checksums = OpamFile.URL.checksum url in
+      let f c =
+        match OpamHash.kind c with
+        | `MD5 -> Checksum.Md5, OpamHash.contents c
+        | `SHA256 -> Checksum.Sha256, OpamHash.contents c
+        | `SHA512 -> Checksum.Sha512, OpamHash.contents c
+      in
+      match List.map ~f checksums with
+      | [] ->
+        let msg =
+          Format.asprintf
+            "no checksum provided for %s@%s"
+            (OpamPackage.Name.to_string manifest.name)
+            (OpamPackage.Version.to_string manifest.version)
+        in
+        Error msg
+      | checksum::_ -> Ok checksum
     in
 
-    match archive with
-    | Some archive ->
-      let mirrors = main::mirrors in
-      let main =
-        Package.Source (Package.Source.Archive {
-          url = archive.url;
-          checksum = Checksum.Md5, archive.md5;
-        })
+    let convert (url : OpamUrl.t) =
+      match url.backend with
+      | `http ->
+        return (Package.Source (Package.Source.Archive {
+          url = OpamUrl.to_string url;
+          checksum;
+        }))
+      | `rsync -> Error "unsupported source for opam: rsync"
+      | `hg -> Error "unsupported source for opam: hg"
+      | `darcs -> Error "unsupported source for opam: darcs"
+      | `git -> Error "unsupported source for opam: git"
+    in
+
+    let%bind main = convert (OpamFile.URL.url url) in
+    let mirrors =
+      let f mirrors url =
+        match convert url with
+        | Ok mirror -> mirror::mirrors
+        | Error _ -> mirrors
       in
-      Ok (main, mirrors)
-    | None ->
-      Ok (main, mirrors)
+      List.fold_left ~f ~init:[] (OpamFile.URL.mirrors url)
+    in
+    return (main, mirrors)
   in
 
-  let open RunAsync.Syntax in
-  RunAsync.contextf (
+  let%bind main, mirrors =
+    match manifest.override.Override.opam.Override.Opam.source with
+    | Some source ->
+      let main = Package.Source (Package.Source.Archive {
+        url = source.url;
+        checksum = Checksum.Md5, source.checksum;
+      }) in
+      return (main, [])
+    | None -> begin
+      match manifest.url with
+      | Some url -> sourceOfOpamUrl url
+      | None ->
+        let main = Package.Source Package.Source.NoSource in
+        Ok (main, [])
+      end
+  in
 
-    match source with
-    | Error err -> return (Error err)
-    | Ok source ->
-
-      let translateFormula f =
-        let open Result.Syntax in
-        let translateAtom ((name, relop) : OpamFormula.atom) =
-          let name =
-            match OpamPackage.Name.to_string name with
-            | "ocaml" -> "ocaml"
-            | name -> "@opam/" ^ name
-          in
-          match name with
-          | "ocaml" ->
-            let module C = SemverVersion.Constraint in
-            let%bind req =
-              match relop with
-              | None -> return C.ANY
-              | Some (`Eq, v) ->
-                let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.EQ v)
-              | Some (`Neq, v) ->
-                let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.NEQ v)
-              | Some (`Lt, v) ->
-                let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.LT v)
-              | Some (`Gt, v) ->
-                let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GT v)
-              | Some (`Leq, v) ->
-                let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.LTE v)
-              | Some (`Geq, v) ->
-                let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GTE v)
-            in
-            return {Package.Dep. name; req = Npm req}
-          | name ->
-            let module C = OpamVersion.Constraint in
-            let req =
-              match relop with
-              | None -> C.ANY
-              | Some (`Eq, v) -> C.EQ v
-              | Some (`Neq, v) -> C.NEQ v
-              | Some (`Lt, v) -> C.LT v
-              | Some (`Gt, v) -> C.GT v
-              | Some (`Leq, v) -> C.LTE v
-              | Some (`Geq, v) -> C.GTE v
-            in
-            return {Package.Dep. name; req = Opam req}
-        in
-        let cnf = OpamFormula.to_cnf f in
-        Result.List.map ~f:(Result.List.map ~f:translateAtom) cnf
-      in
-
-      let translateFilteredFormula ~build ~post ~test ~doc ~dev f =
-        let%bind f =
-          try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
-          with Failure msg -> error msg
-        in
-        RunAsync.ofStringError (translateFormula f)
-      in
-
-      let%bind dependencies =
-        let%bind formula =
-          RunAsync.context (
-            translateFilteredFormula
-              ~build:true ~post:true ~test:false ~doc:false ~dev:false
-              (OpamFile.OPAM.depends opam)
-          ) "processing depends field"
-        in
-        let formula =
-          formula
-          @ [
-              [{
-                Package.Dep.
-                name = "@esy-ocaml/substs";
-                req = Npm SemverVersion.Constraint.ANY;
-              }];
-            ]
-          @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.dependencies
-          @ Package.NpmDependencies.toOpamFormula override.Package.OpamOverride.peerDependencies
-        in return (Package.Dependencies.OpamFormula formula)
-      in
-
-      let%bind devDependencies =
-        RunAsync.context (
-          let%bind formula =
-            translateFilteredFormula
-              ~build:false ~post:false ~test:true ~doc:true ~dev:true
-              (OpamFile.OPAM.depends opam)
-          in return (Package.Dependencies.OpamFormula formula)
-        ) "processing depends field"
-      in
-
-      let readOpamFilesForPackage path () =
-        let%bind files = readFiles path () in
-        return (files @ override.Override.opam.files)
-      in
-
-      return (Ok {
-        Package.
-        name;
-        version;
-        kind = Package.Esy;
-        source;
-        opam = Some {
-          Package.Opam.
-          name = opamName;
-          version = opamVersion;
-          files = readOpamFilesForPackage path;
-          opam = opam;
-          override = {override with opam = Override.Opam.empty};
-        };
-        dependencies;
-        devDependencies;
+  match manifest.archive with
+  | Some archive ->
+    let mirrors = main::mirrors in
+    let main =
+      Package.Source (Package.Source.Archive {
+        url = archive.url;
+        checksum = Checksum.Md5, archive.md5;
       })
-  ) "processing %a opam package" Path.pp path
+    in
+    Ok (main, mirrors)
+  | None ->
+    Ok (main, mirrors)
+
+let convertDependencies manifest =
+  let open Result.Syntax in
+  let filterAndConvertOpamFormula ~build ~post ~test ~doc ~dev f =
+    let open Result.Syntax in
+    let%bind f =
+      try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
+      with Failure msg -> Error msg
+    in
+    convertOpamFormula f
+  in
+
+  let%bind dependencies =
+    let%bind formula =
+      filterAndConvertOpamFormula
+        ~build:true ~post:true ~test:false ~doc:false ~dev:false
+        (OpamFile.OPAM.depends manifest.opam)
+    in
+    let formula =
+      formula
+      @ [
+          [{
+            Package.Dep.
+            name = "@esy-ocaml/substs";
+            req = Npm SemverVersion.Constraint.ANY;
+          }];
+        ]
+      @ Package.NpmDependencies.toOpamFormula manifest.override.dependencies
+      @ Package.NpmDependencies.toOpamFormula manifest.override.peerDependencies
+    in return (Package.Dependencies.OpamFormula formula)
+  in
+
+  let%bind devDependencies =
+    let%bind formula =
+      filterAndConvertOpamFormula
+        ~build:false ~post:false ~test:true ~doc:true ~dev:true
+        (OpamFile.OPAM.depends manifest.opam)
+    in return (Package.Dependencies.OpamFormula formula)
+  in
+
+  return (dependencies, devDependencies)
+
+let toPackage ~name ~version manifest =
+  let open RunAsync.Syntax in
+
+  let readOpamFilesForPackage path () =
+    let%bind files = readFiles path () in
+    return (files @ manifest.override.opam.files)
+  in
+
+  let converted =
+    let open Result.Syntax in
+    let%bind source = convertOpamUrl manifest in
+    let%bind dependencies, devDependencies = convertDependencies manifest in
+    return (source, dependencies, devDependencies)
+  in
+
+  match converted with
+  | Error err -> return (Error err)
+  | Ok (source, dependencies, devDependencies) ->
+
+    return (Ok {
+      Package.
+      name;
+      version;
+      kind = Package.Esy;
+      source;
+      opam = Some {
+        Package.Opam.
+        name = manifest.name;
+        version = manifest.version;
+        files = readOpamFilesForPackage manifest.path;
+        opam = manifest.opam;
+        override = {manifest.override with opam = Override.Opam.empty};
+      };
+      dependencies;
+      devDependencies;
+    })
