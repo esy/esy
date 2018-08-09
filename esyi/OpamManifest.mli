@@ -18,7 +18,7 @@ module File : sig
     and type value := OpamFile.OPAM.t RunAsync.t
 
   val ofPath :
-    ?upgradeToFormat2:bool
+    ?upgradeIfOpamVersionIsLessThan:OpamVersion.t
     -> ?cache:Cache.t
     -> Fpath.t
     -> OpamFile.OPAM.t RunAsync.t

@@ -43,7 +43,10 @@ let packagePath ~name ~version registry =
 
 let readOpamFileOfRegistry ~name ~version registry =
   let path = Path.(packagePath ~name ~version registry / "opam") in
-  OpamManifest.File.ofPath ~cache:registry.opamCache path
+  OpamManifest.File.ofPath
+    ?upgradeIfOpamVersionIsLessThan:registry.version
+    ~cache:registry.opamCache
+    path
 
 let make ~cfg () =
   let init () =

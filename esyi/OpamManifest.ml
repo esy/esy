@@ -6,7 +6,7 @@ module File = struct
     type value = OpamFile.OPAM.t RunAsync.t
   end)
 
-  let ofPath ?(upgradeToFormat2=false) ?cache path =
+  let ofPath ?upgradeIfOpamVersionIsLessThan ?cache path =
     let open RunAsync.Syntax in
     let load path =
       let%bind data = Fs.readFile path in
@@ -14,9 +14,13 @@ module File = struct
       (* TODO: error handling here *)
       let opam = OpamFile.OPAM.read_from_string ~filename data in
       let opam =
-        if upgradeToFormat2
-        then OpamFormatUpgrade.opam_file ~filename opam
-        else opam
+        match upgradeIfOpamVersionIsLessThan with
+        | Some upgradeIfOpamVersionIsLessThan ->
+          let opamVersion = OpamFile.OPAM.opam_version opam in
+          if OpamVersion.compare opamVersion upgradeIfOpamVersionIsLessThan < 0
+          then OpamFormatUpgrade.opam_file ~filename opam
+          else opam
+        | None -> opam
       in
       return opam
     in
