@@ -2,47 +2,6 @@ open EsyInstall;
 module String = Astring.String;
 
 module Api = {
-  let add = (packages: list(string), sandbox: Sandbox.t) => {
-    let updateDeps = (depsJson, json) : Yojson.Safe.json => {
-      let fromAssoc = json => `Assoc(json);
-      json
-      |> Yojson.Safe.Util.to_assoc
-      |> List.map(~f=((k, v)) =>
-           if (k == "dependencies") {
-             (k, depsJson);
-           } else {
-             (k, v);
-           }
-         )
-      |> fromAssoc;
-    };
-    open RunAsync.Syntax;
-    module NpmDeps = Package.NpmDependencies;
-    switch (packages) {
-    | [] => error("No package provided")
-    | pkgNames =>
-      let path = Path.(sandbox.path / "package.json");
-      let%bind fullPkgJson = Fs.readJsonFile(path);
-      let%bind oldDepsJson =
-        fullPkgJson
-        |> Json.Parse.field(~name="dependencies")
-        |> RunAsync.ofStringError;
-      let%bind oldDeps =
-        oldDepsJson |> NpmDeps.of_yojson |> RunAsync.ofStringError;
-      let%bind newDeps =
-        pkgNames
-        |> List.map(~f=name =>
-             Package.Req.make(~name, ~spec="") |> RunAsync.ofStringError
-           )
-        |> RunAsync.List.joinAll;
-      let%bind dependencies = oldDeps |> NpmDeps.override(newDeps) |> return;
-      let%bind json =
-        updateDeps(NpmDeps.to_yojson(dependencies), fullPkgJson) |> return;
-      let%bind () = Fs.writeJsonFile(~json, path);
-      return();
-    };
-  };
-  /*  Api.solveAndFetch(sandbox) */
 
   let lockfilePath = (sandbox: Sandbox.t) => {
     open RunAsync.Syntax;
@@ -115,6 +74,48 @@ module Api = {
         };
       }
     );
+
+    let add = (packages: list(string), sandbox: Sandbox.t) => {
+      let updateDeps = (depsJson, json) : Yojson.Safe.json => {
+        let fromAssoc = json => `Assoc(json);
+        json
+        |> Yojson.Safe.Util.to_assoc
+        |> List.map(~f=((k, v)) =>
+             if (k == "dependencies") {
+               (k, depsJson);
+             } else {
+               (k, v);
+             }
+           )
+        |> fromAssoc;
+      };
+      open RunAsync.Syntax;
+      module NpmDeps = Package.NpmDependencies;
+      switch (packages) {
+      | [] => error("No package provided")
+      | pkgNames =>
+        let path = Path.(sandbox.path / "package.json");
+        let%bind fullPkgJson = Fs.readJsonFile(path);
+        let%bind oldDepsJson =
+          fullPkgJson
+          |> Json.Parse.field(~name="dependencies")
+          |> RunAsync.ofStringError;
+        let%bind oldDeps =
+          oldDepsJson |> NpmDeps.of_yojson |> RunAsync.ofStringError;
+        let%bind newDeps =
+          pkgNames
+          |> List.map(~f=name =>
+               Package.Req.make(~name, ~spec="") |> RunAsync.ofStringError
+             )
+          |> RunAsync.List.joinAll;
+        let%bind dependencies = oldDeps |> NpmDeps.override(newDeps) |> return;
+        let%bind json =
+          updateDeps(NpmDeps.to_yojson(dependencies), fullPkgJson) |> return;
+        let%bind () = Fs.writeJsonFile(~json, path);
+        let%bind () = solveAndFetch(sandbox);
+        return();
+      };
+    };
 };
 
 module CommandLineInterface = {
