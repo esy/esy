@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.2.6 @ latest
+
+- Fix `esy` npm package to be compat with Node 4.
+
+- Fix installing binaries of linked npm packages.
+
+- Do not fail on binaries which are declared by npm package but do not exist.
+
 ## 0.2.5 @ latest
 
 - `esy` invocation now does `esy install` and then `esy build` (@ulrikstrid).
