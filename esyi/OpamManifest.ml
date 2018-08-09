@@ -77,7 +77,7 @@ let convertOpamAtom ((name, relop) : OpamFormula.atom) =
       | None -> return C.ANY
       | Some (`Eq, v) ->
         begin match OpamPackage.Version.to_string v with
-        | "broken" -> return C.ANY
+        | "broken" -> error "package is marked as broken"
         | _ ->
           let%bind v = ocamlOpamVersionToOcamlNpmVersion v in
           return (C.EQ v)
