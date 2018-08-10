@@ -17,14 +17,16 @@ let find (path : Path.t) =
   then return (Some packageJson)
   else return None
 
+module EsyJson = struct
+  type t = {
+    _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
+  } [@@deriving of_yojson { strict = false }]
+end
+
 (* This is used just to read the Json.t *)
 module PackageJson = struct
 
-  module EsyJson = struct
-    type t = {
-      _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
-    } [@@deriving yojson { strict = false }]
-  end
+  module EsyJson = EsyJson
 
   type t = {
     name : string;
@@ -47,6 +49,26 @@ module PackageJson = struct
     return pkgJson
 end
 
+(* This is only used in the root directory *)
+module RootPackageJson = struct
+
+  module EsyJson = EsyJson
+
+  type t = {
+    name : (string [@default "root"]);
+    version : string;
+    dependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
+    devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
+    dist : (dist option [@default None]);
+    esy : (EsyJson.t option [@default None]);
+  } [@@deriving of_yojson { strict = false }]
+
+  and dist = {
+    tarball : string;
+    shasum : string;
+  }
+end
+
 type t = {
   name : string;
   version : string;
@@ -59,6 +81,31 @@ type t = {
 type manifest = t
 
 let name manifest = manifest.name
+
+let ofRootPackageJson ?(source=Source.NoSource) (pkgJson : RootPackageJson.t) =
+  let dependencies =
+    match pkgJson.esy with
+    | None
+    | Some {_dependenciesForNewEsyInstaller= None} ->
+      pkgJson.dependencies
+    | Some {_dependenciesForNewEsyInstaller= Some dependencies} ->
+      dependencies
+  in
+  {
+    name = pkgJson.name;
+    version = pkgJson.version;
+    dependencies;
+    devDependencies = pkgJson.devDependencies;
+    hasEsyManifest = Option.isSome pkgJson.esy;
+    source =
+      match pkgJson.dist with
+      | Some dist ->
+        Source.Archive {
+          url = dist.RootPackageJson.tarball;
+          checksum = Checksum.Sha1, dist.RootPackageJson.shasum;
+        }
+      | None -> source;
+  }
 
 let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
   let dependencies =

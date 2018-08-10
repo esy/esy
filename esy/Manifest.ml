@@ -299,7 +299,7 @@ end = struct
   end
 
   type manifest = {
-    name : string;
+    name : (string [@default "root"]);
     version : string;
     description : (string option [@default None]);
     license : (Json.t option [@default None]);
