@@ -17,14 +17,14 @@ let find (path : Path.t) =
   then return (Some packageJson)
   else return None
 
+module EsyPackageJson = struct
+  type t = {
+    _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
+  } [@@deriving yojson { strict = false }]
+end
+
 (* This is used just to read the Json.t *)
 module PackageJson = struct
-
-  module EsyJson = struct
-    type t = {
-      _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
-    } [@@deriving yojson { strict = false }]
-  end
 
   type t = {
     name : string;
@@ -32,7 +32,7 @@ module PackageJson = struct
     dependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     dist : (dist option [@default None]);
-    esy : (EsyJson.t option [@default None]);
+    esy : (EsyPackageJson.t option [@default None]);
   } [@@deriving yojson { strict = false }]
 
   and dist = {
@@ -47,6 +47,24 @@ module PackageJson = struct
     return pkgJson
 end
 
+(* This is only used in the root directory *)
+module RootPackageJson = struct
+
+  type t = {
+    name : (string option [@default None]);
+    version : (string option [@default None]);
+    dependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
+    devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
+    dist : (dist option [@default None]);
+    esy : (EsyPackageJson.t option [@default None]);
+  } [@@deriving of_yojson { strict = false }]
+
+  and dist = {
+    tarball : string;
+    shasum : string;
+  }
+end
+
 type t = {
   name : string;
   version : string;
@@ -59,6 +77,34 @@ type t = {
 type manifest = t
 
 let name manifest = manifest.name
+
+let ofRootPackageJson ~path (pkgJson : RootPackageJson.t) =
+  let dependencies =
+    match pkgJson.esy with
+    | None
+    | Some {_dependenciesForNewEsyInstaller= None} ->
+      pkgJson.dependencies
+    | Some {_dependenciesForNewEsyInstaller= Some dependencies} ->
+      dependencies
+  in
+  let name =
+    match pkgJson.name with
+    | Some name -> name
+    | None -> Path.basename path
+  in
+  let version =
+    match pkgJson.version with
+    | Some version -> version
+    | None -> "0.0.0"
+  in
+  {
+    name;
+    version;
+    dependencies;
+    devDependencies = pkgJson.devDependencies;
+    hasEsyManifest = Option.isSome pkgJson.esy;
+    source = Source.NoSource
+  }
 
 let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
   let dependencies =

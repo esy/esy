@@ -39,6 +39,32 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
   });
 
+  it('no package name, no package version', async () => {
+    const fixture = [
+      packageJson({
+        esy: {
+          build: [
+            'cp root.ml #{self.target_dir/}root.ml',
+            'ocamlopt -o #{self.target_dir/}root.exe #{self.target_dir/}root.ml',
+          ],
+          install: ['cp #{self.target_dir/}root.exe #{self.bin/}root.exe'],
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+        devDependencies: {
+          ocaml: '*',
+        },
+      }),
+      file('root.ml', 'print_endline "__root__"'),
+    ];
+    const p = await createTestSandbox(...fixture);
+    await p.esy('install');
+    await p.esy('build');
+    const {stdout} = await p.esy('x root.exe');
+    expect(stdout.trim()).toEqual('__root__');
+  });
+
   it('no dependencies, only ocaml devDep', async () => {
     const fixture = [
       packageJson({
