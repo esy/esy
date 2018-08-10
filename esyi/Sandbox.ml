@@ -24,10 +24,10 @@ let readPackageJsonManifest (path : Path.t) =
   match%bind Manifest.find path with
   | Some filename ->
     let%bind json = Fs.readJsonFile filename in
-    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.PackageJson.of_yojson json) in
+    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.RootPackageJson.of_yojson json) in
     let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
-    let manifest = Manifest.ofPackageJson pkgJson in
-    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions, Esy(filename)))
+    let manifest = Manifest.ofRootPackageJson pkgJson in
+    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions))
   | None -> return None
 
 let readAggregatedOpamManifest (path : Path.t) =
