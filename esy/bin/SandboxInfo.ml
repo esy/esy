@@ -9,9 +9,9 @@ type t = {
 
 let cachePath (cfg : Config.t) =
   let hash = [
-    Path.to_string cfg.storePath;
-    Path.to_string cfg.localStorePath;
-    Path.to_string cfg.sandboxPath;
+    Path.toString cfg.storePath;
+    Path.toString cfg.localStorePath;
+    Path.toString cfg.sandboxPath;
     cfg.esyVersion
   ]
     |> String.concat "$$"
@@ -33,7 +33,7 @@ let writeCache (cfg : Config.t) (info : t) =
       in
       let cachePath = cachePath cfg in
       let%bind () = Fs.createDir (Path.parent cachePath) in
-      Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string cachePath) f
+      Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString cachePath) f
     in
 
     let%bind () =
@@ -43,7 +43,7 @@ let writeCache (cfg : Config.t) (info : t) =
           let%lwt () = Lwt_io.flush oc in
           return ()
         in
-        Lwt_io.with_file ~mode:Lwt_io.Output (Path.to_string filename) f
+        Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
       in
       let sandboxBin = Path.(
           cfg.sandboxPath
@@ -107,7 +107,7 @@ let readCache (cfg : Config.t) =
       then return None
       else return (Some info)
     in
-    try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.to_string cachePath) f
+    try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.toString cachePath) f
     with | Unix.Unix_error _ -> return None
   in Esy.Perf.measureTime ~label:"reading sandbox info cache" f
 

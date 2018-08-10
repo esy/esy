@@ -272,7 +272,7 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let nextStorePrefix = String.make (String.length (Path.toString Config.(cfg.storePath))) '_' in
         (Config.(cfg.storePath), Path.v nextStorePrefix)
       in
-      let%bind () = Fs.writeFile ~data:(Path.to_string destPrefix) Path.(binPath / "_storePath") in
+      let%bind () = Fs.writeFile ~data:(Path.toString destPrefix) Path.(binPath / "_storePath") in
       Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
     in
 

@@ -18,8 +18,8 @@ let ofPath path =
         match acc, item with
         | Ok { prefixPath = None }, ("esy-prefix-path", P.String value) ->
           let open Result.Syntax in
-          let%bind value = Path.of_string value in
-          let value = if Path.is_abs value
+          let%bind value = Path.ofString value in
+          let value = if Path.isAbs value
             then value
             else Path.(value |> (append path) |> normalize)
           in

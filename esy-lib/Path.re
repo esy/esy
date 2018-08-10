@@ -1,40 +1,73 @@
-include Fpath;
+type t = Fpath.t;
+type ext = Fpath.ext;
 
-let show = to_string;
-let addExt = add_ext;
-let addSeg = add_seg;
-let toString = to_string;
-let isPrefix = is_prefix;
-let remPrefix = rem_prefix;
+module Set = Fpath.Set;
+
+let v = Fpath.v;
+let (/) = Fpath.(/);
+let (/\/) = Fpath.(/\/);
+
+let dirSep = Fpath.dir_sep;
+
+let hasExt = Fpath.has_ext;
+let addExt = Fpath.add_ext;
+let remExt = Fpath.rem_ext;
+let getExt = Fpath.get_ext;
+
+let addSeg = Fpath.add_seg;
+
+let ofString = v => {
+  let v = Fpath.of_string(v);
+  (v: result(t, [ | `Msg(string)]) :> result(t, [> | `Msg(string)]));
+};
+
+let isAbs = Fpath.is_abs;
+let isPrefix = Fpath.is_prefix;
+let remPrefix = Fpath.rem_prefix;
 
 let user = () => Run.ofBosError(Bos.OS.Dir.user());
 let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
-let backSlashRegex = Str.regexp("\\\\");
+let relativize = Fpath.relativize;
+let parent = Fpath.parent;
+let basename = Fpath.basename;
+let append = Fpath.append;
 
-let normalizePathSlashes = p => Str.global_replace(backSlashRegex, "/", p);
+let normalizePathSlashes = {
+  let backSlashRegex = Str.regexp("\\\\");
+  p => Str.global_replace(backSlashRegex, "/", p);
+};
 
-/**
- * Convert a path to a string and replace a prefix to ~ if it's happened to be a
- * a user home directory.
- */
+let remEmptySeg = Fpath.rem_empty_seg;
+let normalize = Fpath.normalize;
+let normalizeAndRemoveEmptySeg = p =>
+  Fpath.rem_empty_seg(Fpath.normalize(p));
+
+/* COMPARABLE */
+
+let compare = Fpath.compare;
+let equal = Fpath.equal;
+
+/* PRINTABLE */
+
+let show = Fpath.to_string;
+let pp = Fpath.pp;
+let toString = Fpath.to_string;
 let toPrettyString = p =>
   Run.Syntax.(
     {
       let%bind path = {
         let%bind user = user();
         switch (remPrefix(user, p)) {
-        | Some(p) => return(append(v("~"), p))
+        | Some(p) => return(Fpath.append(Fpath.v("~"), p))
         | None => return(p)
         };
       };
-      return(toString(path));
+      return(Fpath.to_string(path));
     }
   );
 
-/*
- * yojson protocol
- */
+/* JSONABLE */
 
 let of_yojson = (json: Yojson.Safe.json) =>
   switch (json) {
@@ -46,7 +79,7 @@ let of_yojson = (json: Yojson.Safe.json) =>
   | _ => Error("invalid path")
   };
 
-let to_yojson = (path: t) => `String(to_string(path));
+let to_yojson = (path: t) => `String(toString(path));
 
 let safeSeg = {
   let replaceAt = Str.regexp("@");

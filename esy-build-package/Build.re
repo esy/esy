@@ -25,8 +25,7 @@ let isRoot = (build: t) =>
   Config.Value.equal(build.task.sourcePath, Config.Value.sandbox);
 
 let regex = (base, segments) => {
-  let pat =
-    String.concat(Path.dir_sep, [Path.to_string(base), ...segments]);
+  let pat = String.concat(Path.dirSep, [Path.toString(base), ...segments]);
   Sandbox.Regex(pat);
 };
 
@@ -106,7 +105,7 @@ module JBuilderLifecycle: LIFECYCLE = {
   let getRootPath = (build: build) => build.sourcePath;
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[
-      Subpath(Path.to_string(sourcePath / "_build")),
+      Subpath(Path.toString(sourcePath / "_build")),
       regex(sourcePath, [".*", "[^/]*\\.install"]),
       regex(sourcePath, ["[^/]*\\.install"]),
       regex(sourcePath, [".*", "[^/]*\\.opam"]),
@@ -181,7 +180,7 @@ module UnsafeLifecycle: LIFECYCLE = {
   let getRootPath = (build: build) => build.sourcePath;
 
   let getAllowedToWritePaths = (_task, sourcePath) =>
-    Sandbox.[Subpath(Path.to_string(sourcePath))];
+    Sandbox.[Subpath(Path.toString(sourcePath))];
 
   let prepare = _build => Ok();
   let finalize = _build => Ok();
@@ -245,15 +244,15 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
       let%bind tempPath = {
         let v = Path.v(Bos.OS.Env.opt_var("TMPDIR", ~absent="/tmp"));
         let%bind v = realpath(v);
-        Ok(Path.to_string(v));
+        Ok(Path.toString(v));
       };
       Ok({
         Sandbox.allowWrite: [
           regex(sourcePath, [".*", "\\.merlin"]),
           regex(sourcePath, ["\\.merlin"]),
           regex(sourcePath, [".*\\.install"]),
-          Subpath(Path.to_string(buildPath)),
-          Subpath(Path.to_string(stagePath)),
+          Subpath(Path.toString(buildPath)),
+          Subpath(Path.toString(stagePath)),
           Subpath("/private/tmp"),
           Subpath("/tmp"),
           Subpath(tempPath),
@@ -327,7 +326,7 @@ let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
 };
 
 let withLock = (lockPath: Path.t, f) => {
-  let lockPath = Path.to_string(lockPath);
+  let lockPath = Path.toString(lockPath);
   let fd =
     UnixLabels.(
       openfile(
@@ -369,8 +368,8 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     Bos.OS.Cmd.run(cmd);
   };
   let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
-    let origPrefixString = Path.to_string(origPrefix);
-    let destPrefixString = Path.to_string(destPrefix);
+    let origPrefixString = Path.toString(origPrefix);
+    let destPrefixString = Path.toString(destPrefix);
     switch (System.Platform.host) {
     | Windows =>
       /* On Windows, the slashes could be either `/` or windows-style `\` */
@@ -400,7 +399,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
     let%bind targetPath = readlink(path);
-    switch (Path.rem_prefix(origPrefix, targetPath)) {
+    switch (Path.remPrefix(origPrefix, targetPath)) {
     | Some(basePath) =>
       let nextTargetPath = Path.append(destPrefix, basePath);
       let%bind () = rm(path);
@@ -427,7 +426,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     };
   let%bind () =
     write(
-      ~data=Path.to_string(config.storePath),
+      ~data=Path.toString(config.storePath),
       Path.(build.stagePath / "_esy" / "storePrefix"),
     );
   let%bind () = traverse(build.stagePath, relocate);
@@ -617,7 +616,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
           let%bind items = Run.ls(rootPath);
           return(
             items
-            |> List.filter(name => Path.has_ext(".install", name))
+            |> List.filter(name => Path.hasExt(".install", name))
             |> List.map(name => Path.basename(name)),
           );
         };

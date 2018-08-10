@@ -20,9 +20,9 @@ and bindingValue =
 
 let renderPath ~storePath ~localStorePath ~sandboxPath value =
   let lookup = function
-  | "store" -> Some (Path.to_string storePath)
-  | "localStore" -> Some (Path.to_string localStorePath)
-  | "sandbox" -> Some (Path.to_string sandboxPath)
+  | "store" -> Some (Path.toString storePath)
+  | "localStore" -> Some (Path.toString localStorePath)
+  | "sandbox" -> Some (Path.toString sandboxPath)
   | _ -> None
   in
   Run.ofBosError (EsyBuildPackage.PathSyntax.render lookup value)

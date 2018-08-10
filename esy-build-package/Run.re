@@ -169,7 +169,7 @@ let copyContents = (~from, ~ignore=[], dest) => {
       if (Path.equal(path, from)) {
         Ok();
       } else if (Path.Set.mem(
-                   Path.rem_empty_seg(Path.parent(path)),
+                   Path.remEmptySeg(Path.parent(path)),
                    excludePathsWithinSymlink^,
                  )) {
         Ok();
@@ -186,10 +186,7 @@ let copyContents = (~from, ~ignore=[], dest) => {
           Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
         | Unix.S_LNK =>
           excludePathsWithinSymlink :=
-            Path.Set.add(
-              Path.rem_empty_seg(path),
-              excludePathsWithinSymlink^,
-            );
+            Path.Set.add(Path.remEmptySeg(path), excludePathsWithinSymlink^);
           let%bind targetPath = Bos.OS.Path.symlink_target(path);
           let nextTargetPath = rebasePath(targetPath);
           Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);

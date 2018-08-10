@@ -156,13 +156,13 @@ end = struct
 
   let toPath config p =
     let env = function
-      | "sandbox" -> Some (Path.to_string config.sandboxPath)
-      | "store" -> Some (Path.to_string config.storePath)
-      | "localStore" -> Some (Path.to_string config.localStorePath)
+      | "sandbox" -> Some (Path.toString config.sandboxPath)
+      | "store" -> Some (Path.toString config.storePath)
+      | "localStore" -> Some (Path.toString config.localStorePath)
       | _ -> None
     in
-    let path = EsyBuildPackage.PathSyntax.renderExn env (Path.to_string p) in
-    match Path.of_string path with
+    let path = EsyBuildPackage.PathSyntax.renderExn env (Path.toString p) in
+    match Path.ofString path with
     | Ok path -> path
     | Error (`Msg msg) ->
       (* FIXME: really should be fixed by ofPath returning result (validating) *)
@@ -171,7 +171,7 @@ end = struct
   let cwd = Path.v (Sys.getcwd ())
 
   let ofPath config p =
-    let p = if Path.is_abs p then p else Path.(cwd // p) in
+    let p = if Path.isAbs p then p else Path.(cwd // p) in
     let p = Path.normalize p in
     if Path.equal p config.storePath then
       store
@@ -180,11 +180,11 @@ end = struct
     else if Path.equal p config.sandboxPath then
       sandbox
     else begin
-      match Path.rem_prefix config.storePath p with
+      match Path.remPrefix config.storePath p with
       | Some suffix -> Path.(store // suffix)
-      | None -> begin match Path.rem_prefix config.localStorePath p with
+      | None -> begin match Path.remPrefix config.localStorePath p with
         | Some suffix -> Path.(localStore // suffix)
-        | None -> begin match Path.rem_prefix config.sandboxPath p with
+        | None -> begin match Path.remPrefix config.sandboxPath p with
           | Some suffix -> Path.(sandbox // suffix)
           | None -> p
         end
