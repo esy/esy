@@ -16,11 +16,11 @@ type config = t
 let defaultPrefixPath = Path.v "~/.esy"
 
 let initStore (path: Path.t) =
-  let open Result.Syntax in
-  let%bind _ = Bos.OS.Dir.create(Path.(path / "i")) in
-  let%bind _ = Bos.OS.Dir.create(Path.(path / "b")) in
-  let%bind _ = Bos.OS.Dir.create(Path.(path / "s")) in
-  Ok ()
+  let open RunAsync.Syntax in
+  let%bind () = Fs.createDir(Path.(path / "i")) in
+  let%bind () = Fs.createDir(Path.(path / "b")) in
+  let%bind () = Fs.createDir(Path.(path / "s")) in
+  return ()
 
 let create
   ~fastreplacestringCommand
@@ -33,29 +33,21 @@ let create
 
     let%bind prefixPath =
       match prefixPath with
-      | Some v -> Ok v
+      | Some v -> return v
       | None ->
         let%bind home = Bos.OS.Dir.user() in
-        Ok Path.(home / ".esy")
+        return Path.(home / ".esy")
     in
 
     let%bind storePath =
       let%bind storePadding = Store.getPadding prefixPath in
-      Ok Path.(prefixPath / (Store.version ^ storePadding))
+      return Path.(prefixPath / (Store.version ^ storePadding))
     in
     let localStorePath =
       Path.(sandboxPath / "node_modules" / ".cache" / "_esy" / "store")
     in
-    let storeLinkPath =
-      Path.(prefixPath / Store.version)
-    in
 
-    let%bind () = initStore storePath in
-    let%bind () = initStore localStorePath in
-    let%bind () = if%bind Bos.OS.Path.exists storeLinkPath
-      then Ok ()
-      else Bos.OS.Path.symlink ~target:storePath storeLinkPath
-    in Ok {
+    return {
       esyVersion;
       prefixPath;
       storePath;
@@ -66,7 +58,19 @@ let create
       esyInstallJsCommand;
     }
   in
-  value |> Run.ofBosError |> RunAsync.ofRun
+  Run.ofBosError value
+
+let init cfg =
+  let open RunAsync.Syntax in
+  let%bind () = initStore cfg.storePath in
+  let%bind () = initStore cfg.localStorePath in
+  let%bind () =
+    let storeLinkPath = Path.(cfg.prefixPath / Store.version) in
+    if%bind Fs.exists storeLinkPath
+    then return ()
+    else Fs.symlink ~src:cfg.storePath storeLinkPath
+  in
+  return ()
 
 module type ABSTRACT_STRING = sig
   type t
@@ -156,13 +160,13 @@ end = struct
 
   let toPath config p =
     let env = function
-      | "sandbox" -> Some (Path.to_string config.sandboxPath)
-      | "store" -> Some (Path.to_string config.storePath)
-      | "localStore" -> Some (Path.to_string config.localStorePath)
+      | "sandbox" -> Some (Path.toString config.sandboxPath)
+      | "store" -> Some (Path.toString config.storePath)
+      | "localStore" -> Some (Path.toString config.localStorePath)
       | _ -> None
     in
-    let path = EsyBuildPackage.PathSyntax.renderExn env (Path.to_string p) in
-    match Path.of_string path with
+    let path = EsyBuildPackage.PathSyntax.renderExn env (Path.toString p) in
+    match Path.ofString path with
     | Ok path -> path
     | Error (`Msg msg) ->
       (* FIXME: really should be fixed by ofPath returning result (validating) *)
@@ -171,7 +175,7 @@ end = struct
   let cwd = Path.v (Sys.getcwd ())
 
   let ofPath config p =
-    let p = if Path.is_abs p then p else Path.(cwd // p) in
+    let p = if Path.isAbs p then p else Path.(cwd // p) in
     let p = Path.normalize p in
     if Path.equal p config.storePath then
       store
@@ -180,11 +184,11 @@ end = struct
     else if Path.equal p config.sandboxPath then
       sandbox
     else begin
-      match Path.rem_prefix config.storePath p with
+      match Path.remPrefix config.storePath p with
       | Some suffix -> Path.(store // suffix)
-      | None -> begin match Path.rem_prefix config.localStorePath p with
+      | None -> begin match Path.remPrefix config.localStorePath p with
         | Some suffix -> Path.(localStore // suffix)
-        | None -> begin match Path.rem_prefix config.sandboxPath p with
+        | None -> begin match Path.remPrefix config.sandboxPath p with
           | Some suffix -> Path.(sandbox // suffix)
           | None -> p
         end

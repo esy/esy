@@ -187,7 +187,7 @@ let ofDir (cfg : Config.t) =
         in
         let pkg = {
           Package.
-          id = Path.to_string path;
+          id = Path.toString path;
           name = Manifest.name manifest;
           version = Manifest.version manifest;
           dependencies = StringMap.values dependencies;

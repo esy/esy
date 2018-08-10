@@ -48,8 +48,8 @@ let unpackWithTar ?stripComponents ~dst filename =
   let unpack out = 
     let%bind cmd = RunAsync.ofBosError (
       let open Result.Syntax in
-      let%bind nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
-      let%bind normalizedOut = EsyBash.normalizePathForCygwin (Path.to_string out) in
+      let%bind nf = EsyBash.normalizePathForCygwin (Path.toString filename) in
+      let%bind normalizedOut = EsyBash.normalizePathForCygwin (Path.toString out) in
       return Cmd.(v "tar" % "xf" % nf % "-C" % normalizedOut)
     )
     in
@@ -77,7 +77,7 @@ let unpackWithUnzip ?stripComponents ~dst filename =
   | None -> unpack dst
 
 let unpack ?stripComponents ~dst filename =
-  let ext = Path.get_ext filename in
+  let ext = Path.getExt filename in
   begin match ext with
   | ".zip" -> unpackWithUnzip ?stripComponents ~dst filename
   | _ -> unpackWithTar ?stripComponents ~dst filename
@@ -86,8 +86,8 @@ let unpack ?stripComponents ~dst filename =
 let create ~filename src =
   RunAsync.ofBosError (
     let open Result.Syntax in
-    let%bind nf = EsyBash.normalizePathForCygwin (Path.to_string filename) in
-    let%bind ns = EsyBash.normalizePathForCygwin (Path.to_string src) in
+    let%bind nf = EsyBash.normalizePathForCygwin (Path.toString filename) in
+    let%bind ns = EsyBash.normalizePathForCygwin (Path.toString src) in
     let cmd = Cmd.(v "tar" % "czf" % nf % "-C" % ns % ".") in
     let%bind res = EsyBash.run (Cmd.toBosCmd cmd) in
     return res

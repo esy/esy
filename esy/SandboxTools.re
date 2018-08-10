@@ -17,7 +17,7 @@ let getOcamlfind = (~cfg: Config.t, task: Task.t) =>
         );
       let%bind built = Fs.exists(ocamlfindBin);
       if (built) {
-        return(Path.to_string(ocamlfindBin));
+        return(Path.toString(ocamlfindBin));
       } else {
         /* TODO Autmatically build ocamlfind instead */
         error(
@@ -39,7 +39,7 @@ let getOcamlobjinfo = (~cfg: Config.t, task: Task.t) =>
         );
       let%bind built = Fs.exists(ocamlobjinfoBin);
       if (built) {
-        return(Path.to_string(ocamlobjinfoBin));
+        return(Path.toString(ocamlobjinfoBin));
       } else {
         /* TODO Automatically build ocaml instead */
         error(
@@ -66,7 +66,7 @@ let getPackageLibraries =
     switch (task) {
     | Some((task: Task.t)) =>
       Config.Path.(task.paths.installPath / "lib" |> toPath(cfg))
-      |> Path.to_string
+      |> Path.toString
     | None => ""
     };
   let env =
@@ -97,7 +97,7 @@ let queryMeta = (~cfg: Config.t, ~ocamlfind: string, ~task: Task.t, lib) => {
   open RunAsync.Syntax;
   let ocamlpath =
     Config.Path.(task.paths.installPath / "lib" |> toPath(cfg))
-    |> Path.to_string;
+    |> Path.toString;
   let env =
     `CustomEnv(Astring.String.Map.(empty |> add("OCAMLPATH", ocamlpath)));
   let cmd =

@@ -4,7 +4,7 @@ module Path = EsyLib.Path
 let%test "simple patch test" =
     let test () = 
         let f tempPath =
-            print_endline ("Running test: " ^ (Path.to_string tempPath));
+            print_endline ("Running test: " ^ (Path.toString tempPath));
             let fileToPatch = Path.(tempPath / "input.txt") in
             let patchFile = Path.(tempPath / "patch.txt") in
             let originalContents = "Hello OCaml\n" in

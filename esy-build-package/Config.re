@@ -69,9 +69,9 @@ module Value = {
   let toString = (~cfg, v) => {
     let lookupVar =
       fun
-      | "sandbox" => Some(Path.to_string(cfg.sandboxPath))
-      | "store" => Some(Path.to_string(cfg.storePath))
-      | "localStore" => Some(Path.to_string(cfg.localStorePath))
+      | "sandbox" => Some(Path.toString(cfg.sandboxPath))
+      | "store" => Some(Path.toString(cfg.storePath))
+      | "localStore" => Some(Path.toString(cfg.localStorePath))
       | _ => None;
     PathSyntax.render(lookupVar, v);
   };

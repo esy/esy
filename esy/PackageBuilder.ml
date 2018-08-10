@@ -23,7 +23,7 @@ let run
         % "--prefix-path" % p cfg.prefixPath
         % "--sandbox-path" % p cfg.sandboxPath
         % "--build"
-        % Path.to_string buildJsonFilename
+        % Path.toString buildJsonFilename
         |> addArgs args
       )
     ) in
@@ -37,7 +37,7 @@ let run
     | `Log ->
       let logPath = Config.Path.toPath cfg task.paths.logPath in
       let%lwt fd = Lwt_unix.openfile
-        (Path.to_string logPath)
+        (Path.toString logPath)
         Lwt_unix.[O_WRONLY; O_CREAT]
         0o644
       in

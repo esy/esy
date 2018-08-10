@@ -489,7 +489,7 @@ let buildId
   let id = List.fold_left ~f:updateWithDepId ~init:id dependencies in
   let hash = Digest.to_hex id in
   let hash = String.sub hash 0 8 in
-  (EsyLib.Path.safeName pkg.name ^ "-" ^ EsyLib.Path.safePath pkg.version ^ "-" ^ hash)
+  (EsyLib.Path.safeSeg pkg.name ^ "-" ^ EsyLib.Path.safePath pkg.version ^ "-" ^ hash)
 
 let getenv name =
   try Some (Sys.getenv name)
@@ -1213,7 +1213,7 @@ let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
   in
   let rewriteTargetInSymlink path =
     let%bind link = Fs.readlink path in
-    match Path.rem_prefix origPrefix link with
+    match Path.remPrefix origPrefix link with
     | Some basePath ->
       let nextTargetPath = Path.(destPrefix // basePath) in
       let%bind () = Fs.unlink path in
@@ -1265,9 +1265,9 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
 let importBuild (cfg : Config.t) buildPath =
   let open RunAsync.Syntax in
   let buildId, kind =
-    if Path.has_ext "tar.gz" buildPath
+    if Path.hasExt "tar.gz" buildPath
     then
-      (buildPath |> Path.rem_ext |> Path.rem_ext |> Path.basename, `Archive)
+      (buildPath |> Path.remExt |> Path.remExt |> Path.basename, `Archive)
     else
       (buildPath |> Path.basename, `Dir)
   in

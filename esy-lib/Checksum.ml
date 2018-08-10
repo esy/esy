@@ -69,7 +69,7 @@ let checkFile ~path (checksum : t) =
     (* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths *)
     RunAsync.ofBosError (
       let open Result.Syntax in
-      let%bind path = EsyBash.normalizePathForCygwin (Path.to_string path) in
+      let%bind path = EsyBash.normalizePathForCygwin (Path.toString path) in
       let%bind out = EsyBash.runOut Cmd.(cmd % path |> toBosCmd) in
       match Astring.String.cut ~sep:" " out with
       | Some (v, _) -> return v

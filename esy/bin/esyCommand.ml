@@ -39,7 +39,7 @@ module EsyRuntime = struct
           Printf.sprintf
           "unable to resolve %s from %s"
           req
-          (Path.to_string currentDirname)
+          (Path.toString currentDirname)
         in
         RunAsync.error msg
       | Error (`Msg err) -> RunAsync.error err
@@ -104,17 +104,17 @@ end
 let esyEnvOverride (cfg : Config.t) =
   let env = Astring.String.Map.(
       empty
-      |> add "ESY__PREFIX" (Path.to_string cfg.prefixPath)
-      |> add "ESY__SANDBOX" (Path.to_string cfg.sandboxPath)
+      |> add "ESY__PREFIX" (Path.toString cfg.prefixPath)
+      |> add "ESY__SANDBOX" (Path.toString cfg.sandboxPath)
     ) in
   `CurrentEnvOverride env
 
 let resolvedPathTerm =
   let open Cmdliner in
   let parse v =
-    match Path.of_string v with
+    match Path.ofString v with
     | Ok path ->
-      if Path.is_abs path then
+      if Path.isAbs path then
         Ok path
       else
         Ok Path.(EsyRuntime.currentWorkingDir // path |> normalize)
@@ -202,11 +202,13 @@ let configTerm =
       return (Cmd.v cmd)
     in
     let%bind esyInstallJsCommand = EsyRuntime.esyInstallJsCommand in
-    Config.create
-      ~esyInstallJsCommand
-      ~esyBuildPackageCommand
-      ~fastreplacestringCommand
-      ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
+    RunAsync.ofRun (
+      Config.create
+        ~esyInstallJsCommand
+        ~esyBuildPackageCommand
+        ~fastreplacestringCommand
+        ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
+    )
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
@@ -242,7 +244,7 @@ let withBuildTaskByPath
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
-    let resolvedPath = packagePath |> Path.rem_empty_seg |> Path.to_string in
+    let resolvedPath = packagePath |> Path.remEmptySeg |> Path.toString in
     let findByPath (task : Task.t) =
       String.equal resolvedPath task.pkg.id
     in begin match Task.Graph.find ~f:findByPath info.task with
@@ -570,10 +572,10 @@ let lsModules ~libs:only cfg =
       let description = Chalk.dim(meta.description) in
       return [TermTree.Node { line=description; children=[]; }]
     else begin
-      Path.of_string (meta.location ^ Path.dir_sep ^ meta.archive) |> function
+      Path.ofString (meta.location ^ Path.dirSep ^ meta.archive) |> function
       | Ok archive ->
         if%bind Fs.exists archive then begin
-          let archive = Path.to_string archive in
+          let archive = Path.toString archive in
           let%bind lines =
             SandboxTools.queryModules ~ocamlobjinfo archive
           in
@@ -645,6 +647,7 @@ let () =
     let open RunAsync.Syntax in
     let result =
       let%bind cfg = cfg in
+      let%bind () = Config.init cfg in
       let%lwt () = match header with
         | `Standard ->
           let commandName =
@@ -676,7 +679,7 @@ let () =
       | None ->
         let installRes =
           let f cfg = runEsyInstallCommand cfg None [] in
-            runCommandWithConfig ~info ~cfg f
+          runCommandWithConfig ~info ~cfg f
         in
         begin match installRes with
         | `Ok () ->
