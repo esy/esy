@@ -51,10 +51,12 @@ module Source = struct
       return (Archive {url; checksum})
     | "no-source", "" ->
       return NoSource
-    | "path", p ->
-      return (LocalPath (Path.v p))
-    | "link", p ->
-      return (LocalPathLink (Path.v p))
+    | "path", path ->
+      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+      return (LocalPath path)
+    | "link", path ->
+      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+      return (LocalPathLink path)
     | _, _ ->
       let msg = Printf.sprintf "unknown source: %s" v in
       error msg
@@ -391,11 +393,13 @@ module Req = struct
   let tryParseProto v =
     let open Result.Syntax in
     match parseProto v with
-    | Some ("link:", v) ->
-      let spec = SourceSpec.LocalPathLink (Path.v v) in
+    | Some ("link:", path) ->
+      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+      let spec = SourceSpec.LocalPathLink path in
       return (Some (VersionSpec.Source spec))
-    | Some ("file:", v) ->
-      let spec = SourceSpec.LocalPath (Path.v v) in
+    | Some ("file:", path) ->
+      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+      let spec = SourceSpec.LocalPath path in
       return (Some (VersionSpec.Source spec))
     | Some ("https:", _)
     | Some ("http:", _) ->
