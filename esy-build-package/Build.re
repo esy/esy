@@ -47,13 +47,23 @@ module OutOfSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.sourcePath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
   let prepare = _build => Ok();
+
+  let setupSymlinkToBuildDir = (build: build) => {
+    let source = build.sourcePath / "_build";
+    let target = build.buildPath;
+    let%bind () =
+      if%bind (exists(source)) {
+        rm(source);
+      } else {
+        ok;
+      };
+    let%bind () = symlink(~target, source);
+    ok;
+  };
+
   let finalize = (build: build) =>
     if (isRoot(build)) {
-      symlink(
-        ~force=true,
-        ~target=build.buildPath,
-        Path.(build.sourcePath / "_build"),
-      );
+      setupSymlinkToBuildDir(build);
     } else {
       ok;
     };
@@ -151,6 +161,13 @@ module JBuilderLifecycle: LIFECYCLE = {
 
   let prepare = (build: build) =>
     if (isRoot(build)) {
+      let duneBuildDir = build.sourcePath / "_build";
+      let%bind () =
+        switch (lstat(duneBuildDir)) {
+        | Ok({Unix.st_kind: S_DIR, _}) => ok
+        | Ok(_) => rm(duneBuildDir)
+        | Error(_) => ok
+        };
       ok;
     } else {
       prepareImpl(build);
