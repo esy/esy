@@ -112,15 +112,15 @@ let ofDir (cfg : Config.t) =
           in
           StringMap.fold f transitiveDependencies dependencies
         | Ok (_, `Ignored) -> dependencies
-        | Ok (pkgName, `Unresolved) ->
+        | Ok (name, `Unresolved) ->
           if skipUnresolved
           then dependencies
           else
-            let dep = Package.InvalidDependency {pkgName; reason="unable to resolve package";} in
-            StringMap.add pkgName dep dependencies
-        | Error (pkgName, reason) ->
-          let dep = Package.InvalidDependency {pkgName;reason;} in
-          StringMap.add pkgName dep dependencies
+            let dep = Package.InvalidDependency {name; reason = `Missing;} in
+            StringMap.add name dep dependencies
+        | Error (name, reason) ->
+          let dep = Package.InvalidDependency {name;reason = `Reason reason;} in
+          StringMap.add name dep dependencies
       in
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
     in

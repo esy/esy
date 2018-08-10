@@ -26,7 +26,7 @@ describe('Build - not enough deps', () => {
         expect.stringMatching('processing package: not-enough-deps@1.0.0'),
       );
       expect(e.stderr).toEqual(
-        expect.stringMatching('invalid dependency dep: unable to resolve package'),
+        expect.stringMatching("package dep is missing, run 'esy install' to fix that"),
       );
     });
   });

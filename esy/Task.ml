@@ -626,9 +626,10 @@ let ofPackage
         let dependencies = (DevDependency task)::dependencies in
         let seen = Package.DependencySet.add dep seen in
         return (seen, dependencies)
-    | Package.InvalidDependency { pkgName; reason; } ->
-      let msg = Printf.sprintf "invalid dependency %s: %s" pkgName reason in
-      Run.error msg
+    | Package.InvalidDependency { name; reason = `Missing; } ->
+      Run.errorf "package %s is missing, run 'esy install' to fix that" name
+    | Package.InvalidDependency { name; reason = `Reason reason; } ->
+      Run.errorf "invalid package %s: %s" name reason
 
   and directDependenciesOf (pkg : Package.t) =
     let seen = Package.DependencySet.empty in
