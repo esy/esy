@@ -48,7 +48,7 @@ let of_yojson = (json: Yojson.Safe.json) =>
 
 let to_yojson = (path: t) => `String(to_string(path));
 
-let safeName = {
+let safeSeg = {
   let replaceAt = Str.regexp("@");
   let replaceUnderscore = Str.regexp("_+");
   let replaceSlash = Str.regexp("\\/");

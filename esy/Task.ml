@@ -489,7 +489,7 @@ let buildId
   let id = List.fold_left ~f:updateWithDepId ~init:id dependencies in
   let hash = Digest.to_hex id in
   let hash = String.sub hash 0 8 in
-  (EsyLib.Path.safeName pkg.name ^ "-" ^ EsyLib.Path.safePath pkg.version ^ "-" ^ hash)
+  (EsyLib.Path.safeSeg pkg.name ^ "-" ^ EsyLib.Path.safePath pkg.version ^ "-" ^ hash)
 
 let getenv name =
   try Some (Sys.getenv name)
