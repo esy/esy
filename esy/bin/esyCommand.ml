@@ -202,11 +202,13 @@ let configTerm =
       return (Cmd.v cmd)
     in
     let%bind esyInstallJsCommand = EsyRuntime.esyInstallJsCommand in
-    Config.create
-      ~esyInstallJsCommand
-      ~esyBuildPackageCommand
-      ~fastreplacestringCommand
-      ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
+    RunAsync.ofRun (
+      Config.create
+        ~esyInstallJsCommand
+        ~esyBuildPackageCommand
+        ~fastreplacestringCommand
+        ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
+    )
   in
   Term.(const(parse) $ prefixPath $ sandboxPath)
 
@@ -645,6 +647,7 @@ let () =
     let open RunAsync.Syntax in
     let result =
       let%bind cfg = cfg in
+      let%bind () = Config.init cfg in
       let%lwt () = match header with
         | `Standard ->
           let commandName =
@@ -676,7 +679,7 @@ let () =
       | None ->
         let installRes =
           let f cfg = runEsyInstallCommand cfg None [] in
-            runCommandWithConfig ~info ~cfg f
+          runCommandWithConfig ~info ~cfg f
         in
         begin match installRes with
         | `Ok () ->

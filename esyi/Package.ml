@@ -499,10 +499,10 @@ module Req = struct
       });
 
       make ~name:"pkg" ~spec:"file:./some/file",
-      VersionSpec.Source (SourceSpec.LocalPath (Path.v "./some/file"));
+      VersionSpec.Source (SourceSpec.LocalPath (Path.v "some/file"));
 
       make ~name:"pkg" ~spec:"link:./some/file",
-      VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "./some/file"));
+      VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "some/file"));
       make ~name:"pkg" ~spec:"link:../reason-wall-demo",
       VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "../reason-wall-demo"));
 
@@ -544,7 +544,8 @@ module Req = struct
 
     let%test "parsing" =
       let f passes (req, e) =
-        passes && (expectParsesTo req e)
+        let thisPasses = expectParsesTo req e in
+        passes && thisPasses
       in
       List.fold_left ~f ~init:true cases
 

@@ -22,7 +22,9 @@ val create :
   -> esyVersion:string
   -> prefixPath:Fpath.t option
   -> Fpath.t
-  -> t RunAsync.t
+  -> t Run.t
+
+val init : t -> unit RunAsync.t
 
 module Value : sig
   type t
