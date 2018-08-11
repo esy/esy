@@ -2,7 +2,7 @@ open EsyInstall;
 module String = Astring.String;
 
 module Api = {
-
+  /** Asyncronously find the lockfile path. */
   let lockfilePath = (sandbox: Sandbox.t) => {
     open RunAsync.Syntax;
     let filename = Path.(sandbox.path / "esyi.lock.json");
@@ -75,47 +75,87 @@ module Api = {
       }
     );
 
-    let add = (packages: list(string), sandbox: Sandbox.t) => {
-      let updateDeps = (depsJson, json) : Yojson.Safe.json => {
-        let fromAssoc = json => `Assoc(json);
+  let add = (packages: list(string), sandbox: Sandbox.t) => {
+    open RunAsync.Syntax;
+    module NpmDeps = Package.NpmDependencies;
+    let err = RunAsync.ofStringError;
+
+    let makeReqs = (~specFun=_ => "*", names) =>
+      names
+      |> List.map(~f=name => Package.Req.make(~name, ~spec=specFun(name)))
+      |> Result.List.map(~f=a => a)
+      |> err;
+
+    let%bind depsToAdd =
+      switch (packages) {
+      | [] => error("Missing list of packages to add as dependencies.")
+      | packageNames => makeReqs(packageNames)
+      };
+
+    let%bind combinedDeps =
+      Package.Dependencies.(
+        switch (sandbox.root.dependencies) {
+        | NpmFormula(deps) => return(NpmFormula(depsToAdd @ deps))
+        | OpamFormula(_) => error("Opam formulas not currently supported")
+        /*return(OpamFormula(NpmDeps.toOpamFormula(depsToAdd) @ deps)))*/
+        }
+      );
+
+    let newRoot = {...sandbox.root, dependencies: combinedDeps};
+    let newSandbox = {...sandbox, root: newRoot};
+    let%bind () = solveAndFetch(newSandbox);
+    let%bind lockfilePath = lockfilePath(newSandbox);
+    let%bind solution =
+      switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
+      | Some(solution) => return(solution)
+      | None => error("Failed to load lockfile")
+      };
+
+    /* getVersion fails with an exception b/c it can't find the name in the record set.
+     * Probably because it uses a name that includes the version in it.
+     * Thus we can't get the version this way, and will probably need to extract it
+     * from the solution a different way. TODO: Figure out how to do that.
+     **/
+    let getVersion = (name, rs) => {
+      let r = Solution.Record.Set.find_first(r => r.name == name, rs);
+      r.version;
+    };
+
+    let records = Solution.records(solution);
+    let%bind (specFun, configPath) =
+      switch (newSandbox.origin) {
+      | Opam(path) => ((_ => "*"), path) |> return
+      | Esy(path) =>
+        (
+          (
+            name => "^" ++ Package.Version.toString(getVersion(name, records))
+          ),
+          path,
+        )
+        |> return
+      | AggregatedOpam(_) =>
+        error("esy add does not support aggregated opam files")
+      };
+
+    let%bind updatedDeps = makeReqs(~specFun, packages);
+    let%bind configJson = Fs.readJsonFile(configPath);
+    /* TODO: handle devdependencies etc. */
+    let name = "dependencies";
+    let%bind depsjson = Json.Parse.field(~name, configJson) |> err;
+    let%bind deps = NpmDeps.of_yojson(depsjson) |> err;
+
+    let updateDeps = (depsJson: Json.t, field, json) : Json.t =>
+      `Assoc(
         json
         |> Yojson.Safe.Util.to_assoc
-        |> List.map(~f=((k, v)) =>
-             if (k == "dependencies") {
-               (k, depsJson);
-             } else {
-               (k, v);
-             }
-           )
-        |> fromAssoc;
-      };
-      open RunAsync.Syntax;
-      module NpmDeps = Package.NpmDependencies;
-      switch (packages) {
-      | [] => error("No package provided")
-      | pkgNames =>
-        let path = Path.(sandbox.path / "package.json");
-        let%bind fullPkgJson = Fs.readJsonFile(path);
-        let%bind oldDepsJson =
-          fullPkgJson
-          |> Json.Parse.field(~name="dependencies")
-          |> RunAsync.ofStringError;
-        let%bind oldDeps =
-          oldDepsJson |> NpmDeps.of_yojson |> RunAsync.ofStringError;
-        let%bind newDeps =
-          pkgNames
-          |> List.map(~f=name =>
-               Package.Req.make(~name, ~spec="") |> RunAsync.ofStringError
-             )
-          |> RunAsync.List.joinAll;
-        let%bind dependencies = oldDeps |> NpmDeps.override(newDeps) |> return;
-        let%bind json =
-          updateDeps(NpmDeps.to_yojson(dependencies), fullPkgJson) |> return;
-        let%bind () = Fs.writeJsonFile(~json, path);
-        let%bind () = solveAndFetch(sandbox);
-        return();
-      };
-    };
+        |> List.map(~f=((k, v)) => k == field ? (k, depsJson) : (k, v)),
+      );
+
+    let newDeps = NpmDeps.override(updatedDeps, deps);
+    let json = updateDeps(NpmDeps.to_yojson(newDeps), name, configJson);
+    let%bind () = Fs.writeJsonFile(~json, configPath);
+    return();
+  };
 };
 
 module CommandLineInterface = {
