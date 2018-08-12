@@ -80,9 +80,20 @@ module Api = {
     module NpmDeps = Package.NpmDependencies;
     let err = RunAsync.ofStringError;
 
-    let makeReqs = (~specFun=_ => "*", names) =>
+    let%bind lockfilePath = lockfilePath(sandbox);
+
+    let getSolution = sandbox =>
+      switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
+      | Some(solution) => return(solution)
+      | None => error("Failed to load lockfile")
+      };
+
+    let makeReqs = (~specFun=_ => "", names) =>
       names
-      |> List.map(~f=name => Package.Req.make(~name, ~spec=specFun(name)))
+      |> List.map(~f=name => {
+           let spec = specFun(name);
+           Package.Req.make(~name, ~spec);
+         })
       |> Result.List.map(~f=a => a)
       |> err;
 
@@ -92,36 +103,30 @@ module Api = {
       | packageNames => makeReqs(packageNames)
       };
 
-    let%bind combinedDeps =
+    let concatDeps = (depsToAdd, origDeps) =>
       Package.Dependencies.(
-        switch (sandbox.root.dependencies) {
+        switch (origDeps) {
         | NpmFormula(deps) => return(NpmFormula(depsToAdd @ deps))
         | OpamFormula(_) => error("Opam formulas not currently supported")
-        /*return(OpamFormula(NpmDeps.toOpamFormula(depsToAdd) @ deps)))*/
         }
       );
 
-    let newRoot = {...sandbox.root, dependencies: combinedDeps};
-    let newSandbox = {...sandbox, root: newRoot};
-    let%bind () = solveAndFetch(newSandbox);
-    let%bind lockfilePath = lockfilePath(newSandbox);
-    let%bind solution =
-      switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
-      | Some(solution) => return(solution)
-      | None => error("Failed to load lockfile")
-      };
+    let%bind combinedDeps = concatDeps(depsToAdd, sandbox.root.dependencies);
+    let%bind sbDeps = concatDeps(depsToAdd, sandbox.dependencies);
+    let root = {...sandbox.root, dependencies: combinedDeps};
+    let newSandbox = {...sandbox, root, dependencies: sbDeps};
 
-    /* getVersion fails with an exception b/c it can't find the name in the record set.
-     * Probably because it uses a name that includes the version in it.
-     * Thus we can't get the version this way, and will probably need to extract it
-     * from the solution a different way. TODO: Figure out how to do that.
-     **/
-    let getVersion = (name, rs) => {
-      let r = Solution.Record.Set.find_first(r => r.name == name, rs);
+    let%bind () = solve(newSandbox);
+    let%bind () = fetch(newSandbox);
+    let%bind newSolution = getSolution(newSandbox);
+
+    let getVersion = (name, records) => {
+      open Solution.Record;
+      let r = Set.find_first(r => r.name == name, records);
       r.version;
     };
 
-    let records = Solution.records(solution);
+    let records = Solution.records(newSolution);
     let%bind (specFun, configPath) =
       switch (newSandbox.origin) {
       | Opam(path) => ((_ => "*"), path) |> return
@@ -151,9 +156,10 @@ module Api = {
         |> List.map(~f=((k, v)) => k == field ? (k, depsJson) : (k, v)),
       );
 
-    let newDeps = NpmDeps.override(updatedDeps, deps);
+    let newDeps = NpmDeps.override(deps, updatedDeps);
     let json = updateDeps(NpmDeps.to_yojson(newDeps), name, configJson);
     let%bind () = Fs.writeJsonFile(~json, configPath);
+
     return();
   };
 };
