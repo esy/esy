@@ -9,8 +9,3 @@ and item =
 
 exception UnknownShellEscape of (Lexing.position * string)
 exception UnmatchedChar of (Lexing.position * char)
-
-let buffer_of_string str =
-  let buf = Buffer.create 16 in
-  Buffer.add_string buf str;
-  buf

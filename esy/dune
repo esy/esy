@@ -5,6 +5,7 @@
   (libraries
             EsyLib
             EsyCommandExpression
+            EsyShellExpansion
             lwt
             lwt.unix
             cmdliner
@@ -28,5 +29,5 @@
 )
 
 (ocamllex
-  (modules ShellParamExpansionParser LockfileLexer)
+  (modules LockfileLexer)
   )
