@@ -1,5 +1,3 @@
-module P = LockfileParser
-
 type t =
   { prefixPath : Path.t option }
   [@@deriving (show)]
@@ -11,12 +9,12 @@ let ofPath path =
 
   let ofFilename filename =
     let%bind data = Fs.readFile filename in
-    let%bind ast = RunAsync.ofRun (P.parse data) in
+    let%bind ast = RunAsync.ofStringError (EsyYarnLockfile.parse data) in
     match ast with
-    | P.Mapping items ->
+    | EsyYarnLockfile.Mapping items ->
       let f acc item =
         match acc, item with
-        | Ok { prefixPath = None }, ("esy-prefix-path", P.String value) ->
+        | Ok { prefixPath = None }, ("esy-prefix-path", EsyYarnLockfile.String value) ->
           let open Result.Syntax in
           let%bind value = Path.ofString value in
           let value = if Path.isAbs value
