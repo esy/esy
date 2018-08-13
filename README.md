@@ -25,16 +25,71 @@ documentation refer to [esy.sh][] documentation site.
 
 ## Repository structure
 
-- `esy-build-package` — source code for `esy-build-package` command
-- `esy` — source code for `esy` core commands
-- `esy-install` — source code for `esy install`, `esy add` and other yarn-based
-  command.
-  - `esy-install/esy-install` — this is a submodule which points to
-    `esy/esy-install` repo, a fork of `yarn`.
-- `test` — unit tests
-- `test-e2e` — integration tests for `esy`
-- `test-opam` — "OPAM top 100 packages" test suite
-- `linux-build` — Docker based macOS to Linux cross compilation infra
+The following snippet lists esy repository structured (omitting irrelevant or
+obvious items) with further explanations:
+
+    ├── CHANGELOG.md
+    ├── LICENSE
+    ├── README.md
+    │
+    ├── Makefile
+    │   Common tasks and workflows for esy development.
+    │
+    ├── bin
+    │
+    ├── docs
+    │   esy end user documentation in markdown format.
+    │
+    ├── dune
+    ├── dune-project
+    │
+    ├── esy
+    │   This dune library implements sandbox builder - a routine which builds
+    │   the enture dependency graph and provides other introspection APIs.
+    ├── esy/bin
+    │   This dune executable implements "esy" command.
+    │
+    ├── esyi
+    │   This dune library implements installer.
+    ├── esyi/bin
+    │   This dune executable implements "esy install" command.
+    │
+    ├── esy-build-package
+    │   This dune library implements package builder. esy library uses this to
+    │   build each package.
+    ├── esy-build-package/bin
+    │   This dune executable implements "esy-build-package" command.
+    │
+    ├── esy-installer
+    │   Implementation of installation procedure defined with *.install files.
+    │   This re-implements opam-installer.
+    │
+    ├── esy-command-expression
+    │   Parser for #{...} syntax used in esy manifests.
+    ├── esy-shell-expansion
+    │   A simple shell expansion.
+    ├── esy-yarn-lockfile
+    │   Parser for a subset of yarn lockfile format.
+    │
+    ├── esy-lib
+    │   A collection of utility modules shared between other libraries.
+    │
+    ├── site
+    │   Sources for https://esy.sh
+    │
+    ├── esy-install
+    │   (deprecated) an old "esy install" command implementation which is based
+    │   on yarn.
+    │
+    ├── esy.lock.json
+    ├── package.json
+    │
+    ├── scripts
+    ├── test
+    │   Unit tests.
+    │
+    └── test-e2e
+        End-to-end test suite.
 
 ## Workflow
 
