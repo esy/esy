@@ -56,9 +56,9 @@ let make =
 module Value = {
   type t = string;
 
-  let sandbox = "%sandbox%";
-  let store = "%store%";
-  let localStore = "%localStore%";
+  let sandbox = "%{sandbox}%";
+  let store = "%{store}%";
+  let localStore = "%{localStore}%";
 
   let show = v => v;
   let pp = Fmt.string;
