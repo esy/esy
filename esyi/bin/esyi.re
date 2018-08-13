@@ -77,16 +77,7 @@ module Api = {
 
   let add = (packages: list(string), sandbox: Sandbox.t) => {
     open RunAsync.Syntax;
-    module NpmDeps = Package.NpmDependencies;
-    let err = RunAsync.ofStringError;
-
-    let%bind lockfilePath = lockfilePath(sandbox);
-
-    let getSolution = sandbox =>
-      switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
-      | Some(solution) => return(solution)
-      | None => error("Failed to load lockfile")
-      };
+    module NpmDependencies = Package.NpmDependencies;
 
     let makeReqs = (~specFun=_ => "", names) =>
       names
@@ -95,7 +86,7 @@ module Api = {
            Package.Req.make(~name, ~spec);
          })
       |> Result.List.map(~f=a => a)
-      |> err;
+      |> RunAsync.ofStringError;
 
     let%bind depsToAdd =
       switch (packages) {
@@ -103,61 +94,66 @@ module Api = {
       | packageNames => makeReqs(packageNames)
       };
 
-    let concatDeps = (depsToAdd, origDeps) =>
+    let concatDeps = origDeps =>
       Package.Dependencies.(
         switch (origDeps) {
         | NpmFormula(deps) => return(NpmFormula(depsToAdd @ deps))
-        | OpamFormula(_) => error("Opam formulas not currently supported")
+        | OpamFormula(_) =>
+          error(
+            "The esy add command doesn't work with opam sandboxes. "
+            ++ "Please send a pull request to fix this!",
+          )
         }
       );
 
-    let%bind combinedDeps = concatDeps(depsToAdd, sandbox.root.dependencies);
-    let%bind sbDeps = concatDeps(depsToAdd, sandbox.dependencies);
-    let root = {...sandbox.root, dependencies: combinedDeps};
-    let newSandbox = {...sandbox, root, dependencies: sbDeps};
-
-    let%bind () = solve(newSandbox);
-    let%bind () = fetch(newSandbox);
-    let%bind newSolution = getSolution(newSandbox);
-
-    let getVersion = (name, records) => {
-      open Solution.Record;
-      let r = Set.find_first(r => r.name == name, records);
-      r.version;
+    let%bind sandbox = {
+      let%bind combinedDeps = concatDeps(sandbox.root.dependencies);
+      let%bind sbDeps = concatDeps(sandbox.dependencies);
+      let root = {...sandbox.root, dependencies: combinedDeps};
+      return({...sandbox, root, dependencies: sbDeps});
     };
 
-    let records = Solution.records(newSolution);
-    let%bind (specFun, configPath) =
-      switch (newSandbox.origin) {
-      | Opam(path) => ((_ => "*"), path) |> return
+    let%bind () = solve(sandbox);
+    let%bind () = fetch(sandbox);
+
+    let%bind (specFun, configPath) = {
+      let%bind lockfilePath = lockfilePath(sandbox);
+      let%bind solution =
+        switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
+        | Some(solution) => return(solution)
+        | None => error("Failed to load lockfile")
+        };
+      let records = Solution.records(solution);
+      switch (sandbox.Sandbox.origin) {
+      | Opam(path) => return((_ => "*", path))
       | Esy(path) =>
-        (
-          (
-            name => "^" ++ Package.Version.toString(getVersion(name, records))
-          ),
-          path,
-        )
-        |> return
-      | AggregatedOpam(_) =>
-        error("esy add does not support aggregated opam files")
+        let getVersion = name => {
+          let r = Solution.Record.Set.find_first(r => r.name == name, records);
+          Package.Version.toString(r.version);
+        };
+        return((name => "^" ++ getVersion(name), path));
       };
+    };
 
-    let%bind updatedDeps = makeReqs(~specFun, packages);
-    let%bind configJson = Fs.readJsonFile(configPath);
-    /* TODO: handle devdependencies etc. */
-    let name = "dependencies";
-    let%bind depsjson = Json.Parse.field(~name, configJson) |> err;
-    let%bind deps = NpmDeps.of_yojson(depsjson) |> err;
+    let%bind json = {
+      let err = RunAsync.ofStringError;
 
-    let updateDeps = (depsJson: Json.t, field, json) : Json.t =>
-      `Assoc(
-        json
-        |> Yojson.Safe.Util.to_assoc
-        |> List.map(~f=((k, v)) => k == field ? (k, depsJson) : (k, v)),
+      /* TODO: handle devdependencies etc. */
+      let name = "dependencies";
+      let%bind updatedDeps = makeReqs(~specFun, packages);
+      let%bind configJson = Fs.readJsonFile(configPath);
+      let%bind depsjson = Json.Parse.field(~name, configJson) |> err;
+      let%bind deps = NpmDependencies.of_yojson(depsjson) |> err;
+      let newDepsJson =
+        NpmDependencies.(updatedDeps |> override(deps) |> to_yojson);
+      return(
+        `Assoc(
+          configJson
+          |> Yojson.Safe.Util.to_assoc
+          |> List.map(~f=((k, v)) => k == name ? (k, newDepsJson) : (k, v)),
+        ),
       );
-
-    let newDeps = NpmDeps.override(deps, updatedDeps);
-    let json = updateDeps(NpmDeps.to_yojson(newDeps), name, configJson);
+    };
     let%bind () = Fs.writeJsonFile(~json, configPath);
 
     return();
@@ -396,7 +392,9 @@ module CommandLineInterface = {
       runWithSandbox(Api.add(packages), sandbox);
     let packageTerm = {
       let doc = "Package to install";
-      Arg.(value & pos_all(string, []) & info([], ~docv="PACKAGE", ~doc));
+      Arg.(
+        non_empty & pos_all(string, []) & info([], ~docv="PACKAGE", ~doc)
+      );
     };
     (
       Term.(ret(const(cmd) $ sandboxTerm $ packageTerm $ Cli.setupLogTerm)),

@@ -31,7 +31,6 @@ type t = {
 and origin =
   | Esy of Path.t
   | Opam of Path.t
-  | AggregatedOpam of Path.t list
 
 val originOfPath : Path.t -> origin RunAsync.t
 

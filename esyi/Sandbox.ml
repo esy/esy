@@ -11,7 +11,6 @@ type t = {
 and origin =
   | Esy of Path.t
   | Opam of Path.t
-  | AggregatedOpam of Path.t list
 
 let originOfPath path =
   let open RunAsync.Syntax in
@@ -33,7 +32,7 @@ let readPackageJsonManifest (path : Path.t) =
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.PackageJson.of_yojson json) in
     let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
     let manifest = Manifest.ofPackageJson pkgJson in
-    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions))
+    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions, Esy(filename)))
   | None -> return None
 
 let readAggregatedOpamManifest (path : Path.t) =
@@ -120,7 +119,7 @@ let ocamlReqAny =
 let ofDir ~cfg (path : Path.t) =
   let open RunAsync.Syntax in
   match%bind readPackageJsonManifest path with
-  | Some (manifest, resolutions) ->
+  | Some (manifest, resolutions, origin) ->
 
     let reqs =
       Package.NpmDependencies.override manifest.Manifest.dependencies manifest.devDependencies
@@ -132,8 +131,6 @@ let ofDir ~cfg (path : Path.t) =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
       Manifest.toPackage ~version manifest
     in
-
-   let%bind origin = originOfPath path in
 
     return {
       cfg;
