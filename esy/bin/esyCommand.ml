@@ -604,10 +604,16 @@ let lsModules ~libs:only cfg =
           in
 
           let modules =
-            lines |> List.map ~f:(fun line ->
-                let line = Chalk.cyan(line) in
-                TermTree.Node { line; children=[]; }
-              )
+            let isPublicModule name =
+              not (Astring.String.is_infix ~affix:"__" name)
+            in
+            let toTermNode name =
+              let line = Chalk.cyan name in
+              TermTree.Node { line; children=[]; }
+            in
+            lines
+            |> List.filter ~f:isPublicModule
+            |> List.map ~f:toTermNode
           in
 
           return modules
