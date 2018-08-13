@@ -88,11 +88,7 @@ module Api = {
       |> Result.List.map(~f=a => a)
       |> RunAsync.ofStringError;
 
-    let%bind depsToAdd =
-      switch (packages) {
-      | [] => error("Missing list of packages to add as dependencies.")
-      | packageNames => makeReqs(packageNames)
-      };
+    let%bind depsToAdd = makeReqs(packages);
 
     let concatDeps = origDeps =>
       Package.Dependencies.(
