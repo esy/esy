@@ -52,10 +52,9 @@ module OutOfSourceLifecycle: LIFECYCLE = {
     let source = build.sourcePath / "_build";
     let target = build.buildPath;
     let%bind () =
-      if%bind (exists(source)) {
-        rm(source);
-      } else {
-        ok;
+      switch (lstat(source)) {
+      | Ok(_) => rm(source)
+      | Error(_) => ok
       };
     let%bind () = symlink(~target, source);
     ok;
