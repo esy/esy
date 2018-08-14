@@ -212,7 +212,7 @@ module Formula = struct
         List.exists ~f:matchesConj formulas
 
       let pp fmt f =
-        let ppConj = Fmt.(list ~sep:(unit " && ") Constraint.pp) in
+        let ppConj = Fmt.(list ~sep:(unit " ") Constraint.pp) in
         Fmt.(list ~sep:(unit " || ") ppConj) fmt f
 
       let show f =
