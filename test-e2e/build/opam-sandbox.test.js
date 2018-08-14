@@ -103,6 +103,7 @@ describe('build opam sandbox', () => {
         build: [
           ["global-prefix" prefix]
           ["global-lib" lib]
+          ["global-libexec" libexec]
           ["global-bin" bin]
           ["global-sbin" sbin]
           ["global-share" share]
@@ -132,9 +133,13 @@ describe('build opam sandbox', () => {
           ["self-bin" _:bin]
           ["self-sbin" _:sbin]
           ["self-lib" _:lib]
+          ["self-lib_root" _:lib_root]
+          ["self-libexec" _:libexec]
+          ["self-libexec_root" _:libexec_root]
           ["self-man" _:man]
           ["self-doc" _:doc]
           ["self-share" _:share]
+          ["self-share_root" _:share_root]
           ["self-etc" _:etc]
           ["self-toplevel" _:toplevel]
           ["self-stublibs" _:stublibs]
@@ -152,9 +157,13 @@ describe('build opam sandbox', () => {
           ["scoped-bin" root:bin]
           ["scoped-sbin" root:sbin]
           ["scoped-lib" root:lib]
+          ["scoped-lib_root" root:lib_root]
+          ["scoped-libexec" root:libexec]
+          ["scoped-libexec_root" root:libexec_root]
           ["scoped-man" root:man]
           ["scoped-doc" root:doc]
           ["scoped-share" root:share]
+          ["scoped-share_root" root:share_root]
           ["scoped-etc" root:etc]
           ["scoped-toplevel" root:toplevel]
           ["scoped-stublibs" root:stublibs]
@@ -172,9 +181,13 @@ describe('build opam sandbox', () => {
           ["dep-bin" dep:bin]
           ["dep-sbin" dep:sbin]
           ["dep-lib" dep:lib]
+          ["dep-lib_root" dep:lib_root]
+          ["dep-libexec" dep:libexec]
+          ["dep-libexec_root" dep:libexec_root]
           ["dep-man" dep:man]
           ["dep-doc" dep:doc]
           ["dep-share" dep:share]
+          ["dep-share_root" dep:share_root]
           ["dep-etc" dep:etc]
           ["dep-toplevel" dep:toplevel]
           ["dep-stublibs" dep:stublibs]
@@ -186,6 +199,7 @@ describe('build opam sandbox', () => {
         install: [
           ["global-prefix" prefix]
           ["global-lib" lib]
+          ["global-libexec" libexec]
           ["global-bin" bin]
           ["global-sbin" sbin]
           ["global-share" share]
@@ -215,9 +229,13 @@ describe('build opam sandbox', () => {
           ["self-bin" _:bin]
           ["self-sbin" _:sbin]
           ["self-lib" _:lib]
+          ["self-lib_root" _:lib_root]
+          ["self-libexec" _:libexec]
+          ["self-libexec_root" _:libexec_root]
           ["self-man" _:man]
           ["self-doc" _:doc]
           ["self-share" _:share]
+          ["self-share_root" _:share_root]
           ["self-etc" _:etc]
           ["self-toplevel" _:toplevel]
           ["self-stublibs" _:stublibs]
@@ -235,9 +253,13 @@ describe('build opam sandbox', () => {
           ["scoped-bin" root:bin]
           ["scoped-sbin" root:sbin]
           ["scoped-lib" root:lib]
+          ["scoped-lib_root" root:lib_root]
+          ["scoped-libexec" root:libexec]
+          ["scoped-libexec_root" root:libexec_root]
           ["scoped-man" root:man]
           ["scoped-doc" root:doc]
           ["scoped-share" root:share]
+          ["scoped-share_root" root:share_root]
           ["scoped-etc" root:etc]
           ["scoped-toplevel" root:toplevel]
           ["scoped-stublibs" root:stublibs]
@@ -255,9 +277,13 @@ describe('build opam sandbox', () => {
           ["dep-bin" dep:bin]
           ["dep-sbin" dep:sbin]
           ["dep-lib" dep:lib]
+          ["dep-lib_root" dep:lib_root]
+          ["dep-libexec" dep:libexec]
+          ["dep-libexec_root" dep:libexec_root]
           ["dep-man" dep:man]
           ["dep-doc" dep:doc]
           ["dep-share" dep:share]
+          ["dep-share_root" dep:share_root]
           ["dep-etc" dep:etc]
           ["dep-toplevel" dep:toplevel]
           ["dep-stublibs" dep:stublibs]
@@ -310,6 +336,7 @@ describe('build opam sandbox', () => {
     expect(plan.build).toEqual([
       ['global-prefix', `%{localStore}%/s/${plan.id}`],
       ['global-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['global-libexec', `%{localStore}%/s/${plan.id}/lib`],
       ['global-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['global-sbin', `%{localStore}%/s/${plan.id}/sbin`],
       ['global-share', `%{localStore}%/s/${plan.id}/share`],
@@ -338,11 +365,15 @@ describe('build opam sandbox', () => {
       ['self-pinned', ''],
       ['self-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['self-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['self-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['self-lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['self-lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['self-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['self-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
       ['self-man', `%{localStore}%/s/${plan.id}/man`],
-      ['self-doc', `%{localStore}%/s/${plan.id}/doc`],
-      ['self-share', `%{localStore}%/s/${plan.id}/share`],
-      ['self-etc', `%{localStore}%/s/${plan.id}/etc`],
+      ['self-doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['self-share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['self-share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['self-etc', `%{localStore}%/s/${plan.id}/etc/root`],
       ['self-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['self-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
       ['self-build', `%{localStore}%/b/${plan.id}`],
@@ -358,11 +389,15 @@ describe('build opam sandbox', () => {
       ['scoped-pinned', ''],
       ['scoped-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['scoped-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['scoped-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['scoped-lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['scoped-lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['scoped-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['scoped-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
       ['scoped-man', `%{localStore}%/s/${plan.id}/man`],
-      ['scoped-doc', `%{localStore}%/s/${plan.id}/doc`],
-      ['scoped-share', `%{localStore}%/s/${plan.id}/share`],
-      ['scoped-etc', `%{localStore}%/s/${plan.id}/etc`],
+      ['scoped-doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['scoped-share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['scoped-share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['scoped-etc', `%{localStore}%/s/${plan.id}/etc/root`],
       ['scoped-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['scoped-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
       ['scoped-build', `%{localStore}%/b/${plan.id}`],
@@ -378,11 +413,15 @@ describe('build opam sandbox', () => {
       ['dep-pinned', ''],
       ['dep-bin', `%{store}%/i/${depPlan.id}/bin`],
       ['dep-sbin', `%{store}%/i/${depPlan.id}/sbin`],
-      ['dep-lib', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep-lib', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep-lib_root', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep-libexec', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep-libexec_root', `%{store}%/i/${depPlan.id}/lib`],
       ['dep-man', `%{store}%/i/${depPlan.id}/man`],
-      ['dep-doc', `%{store}%/i/${depPlan.id}/doc`],
-      ['dep-share', `%{store}%/i/${depPlan.id}/share`],
-      ['dep-etc', `%{store}%/i/${depPlan.id}/etc`],
+      ['dep-doc', `%{store}%/i/${depPlan.id}/doc/dep`],
+      ['dep-share', `%{store}%/i/${depPlan.id}/share/dep`],
+      ['dep-share_root', `%{store}%/i/${depPlan.id}/share`],
+      ['dep-etc', `%{store}%/i/${depPlan.id}/etc/dep`],
       ['dep-toplevel', `%{store}%/i/${depPlan.id}/toplevel`],
       ['dep-stublibs', `%{store}%/i/${depPlan.id}/stublibs`],
       ['dep-build', `%{store}%/b/${depPlan.id}`],
@@ -394,6 +433,7 @@ describe('build opam sandbox', () => {
     expect(plan.install).toEqual([
       ['global-prefix', `%{localStore}%/s/${plan.id}`],
       ['global-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['global-libexec', `%{localStore}%/s/${plan.id}/lib`],
       ['global-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['global-sbin', `%{localStore}%/s/${plan.id}/sbin`],
       ['global-share', `%{localStore}%/s/${plan.id}/share`],
@@ -422,11 +462,15 @@ describe('build opam sandbox', () => {
       ['self-pinned', ''],
       ['self-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['self-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['self-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['self-lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['self-lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['self-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['self-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
       ['self-man', `%{localStore}%/s/${plan.id}/man`],
-      ['self-doc', `%{localStore}%/s/${plan.id}/doc`],
-      ['self-share', `%{localStore}%/s/${plan.id}/share`],
-      ['self-etc', `%{localStore}%/s/${plan.id}/etc`],
+      ['self-doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['self-share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['self-share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['self-etc', `%{localStore}%/s/${plan.id}/etc/root`],
       ['self-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['self-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
       ['self-build', `%{localStore}%/b/${plan.id}`],
@@ -442,11 +486,15 @@ describe('build opam sandbox', () => {
       ['scoped-pinned', ''],
       ['scoped-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['scoped-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['scoped-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['scoped-lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['scoped-lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['scoped-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['scoped-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
       ['scoped-man', `%{localStore}%/s/${plan.id}/man`],
-      ['scoped-doc', `%{localStore}%/s/${plan.id}/doc`],
-      ['scoped-share', `%{localStore}%/s/${plan.id}/share`],
-      ['scoped-etc', `%{localStore}%/s/${plan.id}/etc`],
+      ['scoped-doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['scoped-share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['scoped-share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['scoped-etc', `%{localStore}%/s/${plan.id}/etc/root`],
       ['scoped-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['scoped-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
       ['scoped-build', `%{localStore}%/b/${plan.id}`],
@@ -462,11 +510,15 @@ describe('build opam sandbox', () => {
       ['dep-pinned', ''],
       ['dep-bin', `%{store}%/i/${depPlan.id}/bin`],
       ['dep-sbin', `%{store}%/i/${depPlan.id}/sbin`],
-      ['dep-lib', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep-lib', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep-lib_root', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep-libexec', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep-libexec_root', `%{store}%/i/${depPlan.id}/lib`],
       ['dep-man', `%{store}%/i/${depPlan.id}/man`],
-      ['dep-doc', `%{store}%/i/${depPlan.id}/doc`],
-      ['dep-share', `%{store}%/i/${depPlan.id}/share`],
-      ['dep-etc', `%{store}%/i/${depPlan.id}/etc`],
+      ['dep-doc', `%{store}%/i/${depPlan.id}/doc/dep`],
+      ['dep-share', `%{store}%/i/${depPlan.id}/share/dep`],
+      ['dep-share_root', `%{store}%/i/${depPlan.id}/share`],
+      ['dep-etc', `%{store}%/i/${depPlan.id}/etc/dep`],
       ['dep-toplevel', `%{store}%/i/${depPlan.id}/toplevel`],
       ['dep-stublibs', `%{store}%/i/${depPlan.id}/stublibs`],
       ['dep-build', `%{store}%/b/${depPlan.id}`],

@@ -185,13 +185,16 @@ end = struct
     let opamOsFamily = opamOs in
     let opamOsDistribution = opamOs in
 
-    let toOpamName name =
-      match Astring.String.cut ~sep:"@opam/" name with
+
+    let opamName (scope : PackageScope.t) =
+      match Astring.String.cut ~sep:"@opam/" scope.name with
       | Some ("", name) -> name
-      | _ -> name
+      | _ -> scope.name
     in
 
+
     let opamPackageScope ?namespace (scope : PackageScope.t) name =
+      let opamName = opamName scope in
       match namespace, name with
 
       (* some specials for ocaml *)
@@ -207,16 +210,20 @@ end = struct
       | _, "prefix" -> Some (configPath scope.install)
       | _, "bin" -> Some (configPath scope.bin)
       | _, "sbin" -> Some (configPath scope.sbin)
-      | _, "etc" -> Some (configPath scope.etc)
-      | _, "doc" -> Some (configPath scope.doc)
+      | _, "etc" -> Some (configPath Config.Path.(scope.etc / opamName))
+      | _, "doc" -> Some (configPath Config.Path.(scope.doc / opamName))
       | _, "man" -> Some (configPath scope.man)
-      | _, "share" -> Some (configPath scope.share)
+      | _, "share" -> Some (configPath Config.Path.(scope.share / opamName))
+      | _, "share_root" -> Some (configPath scope.share)
       | _, "stublibs" -> Some (configPath scope.stublibs)
       | _, "toplevel" -> Some (configPath scope.toplevel)
-      | _, "lib" -> Some (configPath scope.lib)
+      | _, "lib" -> Some (configPath Config.Path.(scope.lib / opamName))
+      | _, "lib_root" -> Some (configPath scope.lib)
+      | _, "libexec" -> Some (configPath Config.Path.(scope.lib / opamName))
+      | _, "libexec_root" -> Some (configPath scope.lib)
       | _, "build" -> Some (configPath scope.target_dir)
       | _, "version" -> Some (string scope.version)
-      | _, "name" -> Some (string (toOpamName scope.name))
+      | _, "name" -> Some (string opamName)
       | _ -> None
     in
 
@@ -230,7 +237,22 @@ end = struct
     | Full.Global, "make" -> Some (string "make")
     | Full.Global, "jobs" -> Some (string "4")
     | Full.Global, "pinned" -> Some (bool false)
-    | Full.Global, name -> opamPackageScope scope.self name
+
+    | Full.Global, "prefix" -> Some (configPath scope.self.install)
+    | Full.Global, "bin" -> Some (configPath scope.self.bin)
+    | Full.Global, "sbin" -> Some (configPath scope.self.sbin)
+    | Full.Global, "etc" -> Some (configPath scope.self.etc)
+    | Full.Global, "doc" -> Some (configPath scope.self.doc)
+    | Full.Global, "man" -> Some (configPath scope.self.man)
+    | Full.Global, "share" -> Some (configPath scope.self.share)
+    | Full.Global, "stublibs" -> Some (configPath scope.self.stublibs)
+    | Full.Global, "toplevel" -> Some (configPath scope.self.toplevel)
+    | Full.Global, "lib" -> Some (configPath scope.self.lib)
+    | Full.Global, "libexec" -> Some (configPath scope.self.lib)
+    | Full.Global, "version" -> Some (string scope.self.version)
+    | Full.Global, "name" -> Some (string (opamName scope.self))
+
+    | Full.Global, _ -> None
 
     | Full.Self, "enable" -> Some (bool true)
     | Full.Self, "installed" -> Some (bool true)
