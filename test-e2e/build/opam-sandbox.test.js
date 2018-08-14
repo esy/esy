@@ -103,13 +103,10 @@ describe('build opam sandbox', () => {
         build: [
           ["global-prefix" prefix]
           ["global-lib" lib]
-          ["global-lib_root" lib_root]
           ["global-libexec" libexec]
-          ["global-libexec_root" libexec_root]
           ["global-bin" bin]
           ["global-sbin" sbin]
           ["global-share" share]
-          ["global-share_root" share_root]
           ["global-doc" doc]
           ["global-etc" etc]
           ["global-man" man]
@@ -202,13 +199,10 @@ describe('build opam sandbox', () => {
         install: [
           ["global-prefix" prefix]
           ["global-lib" lib]
-          ["global-lib_root" lib_root]
           ["global-libexec" libexec]
-          ["global-libexec_root" libexec_root]
           ["global-bin" bin]
           ["global-sbin" sbin]
           ["global-share" share]
-          ["global-share_root" share_root]
           ["global-doc" doc]
           ["global-etc" etc]
           ["global-man" man]
@@ -341,16 +335,13 @@ describe('build opam sandbox', () => {
 
     expect(plan.build).toEqual([
       ['global-prefix', `%{localStore}%/s/${plan.id}`],
-      ['global-lib', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['global-lib_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['global-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['global-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['global-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['global-libexec', `%{localStore}%/s/${plan.id}/lib`],
       ['global-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['global-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['global-share', `%{localStore}%/s/${plan.id}/share/root`],
-      ['global-share_root', `%{localStore}%/s/${plan.id}/share`],
-      ['global-doc', `%{localStore}%/s/${plan.id}/doc/root`],
-      ['global-etc', `%{localStore}%/s/${plan.id}/etc/root`],
+      ['global-share', `%{localStore}%/s/${plan.id}/share`],
+      ['global-doc', `%{localStore}%/s/${plan.id}/doc`],
+      ['global-etc', `%{localStore}%/s/${plan.id}/etc`],
       ['global-man', `%{localStore}%/s/${plan.id}/man`],
       ['global-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['global-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
@@ -441,16 +432,13 @@ describe('build opam sandbox', () => {
 
     expect(plan.install).toEqual([
       ['global-prefix', `%{localStore}%/s/${plan.id}`],
-      ['global-lib', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['global-lib_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['global-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['global-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['global-lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['global-libexec', `%{localStore}%/s/${plan.id}/lib`],
       ['global-bin', `%{localStore}%/s/${plan.id}/bin`],
       ['global-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['global-share', `%{localStore}%/s/${plan.id}/share/root`],
-      ['global-share_root', `%{localStore}%/s/${plan.id}/share`],
-      ['global-doc', `%{localStore}%/s/${plan.id}/doc/root`],
-      ['global-etc', `%{localStore}%/s/${plan.id}/etc/root`],
+      ['global-share', `%{localStore}%/s/${plan.id}/share`],
+      ['global-doc', `%{localStore}%/s/${plan.id}/doc`],
+      ['global-etc', `%{localStore}%/s/${plan.id}/etc`],
       ['global-man', `%{localStore}%/s/${plan.id}/man`],
       ['global-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['global-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],

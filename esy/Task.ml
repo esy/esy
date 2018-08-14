@@ -186,14 +186,15 @@ end = struct
     let opamOsDistribution = opamOs in
 
 
+    let opamName (scope : PackageScope.t) =
+      match Astring.String.cut ~sep:"@opam/" scope.name with
+      | Some ("", name) -> name
+      | _ -> scope.name
+    in
+
+
     let opamPackageScope ?namespace (scope : PackageScope.t) name =
-
-      let opamName =
-        match Astring.String.cut ~sep:"@opam/" scope.name with
-        | Some ("", name) -> name
-        | _ -> name
-      in
-
+      let opamName = opamName scope in
       match namespace, name with
 
       (* some specials for ocaml *)
@@ -236,7 +237,22 @@ end = struct
     | Full.Global, "make" -> Some (string "make")
     | Full.Global, "jobs" -> Some (string "4")
     | Full.Global, "pinned" -> Some (bool false)
-    | Full.Global, name -> opamPackageScope scope.self name
+
+    | Full.Global, "prefix" -> Some (configPath scope.self.install)
+    | Full.Global, "bin" -> Some (configPath scope.self.bin)
+    | Full.Global, "sbin" -> Some (configPath scope.self.sbin)
+    | Full.Global, "etc" -> Some (configPath scope.self.etc)
+    | Full.Global, "doc" -> Some (configPath scope.self.doc)
+    | Full.Global, "man" -> Some (configPath scope.self.man)
+    | Full.Global, "share" -> Some (configPath scope.self.share)
+    | Full.Global, "stublibs" -> Some (configPath scope.self.stublibs)
+    | Full.Global, "toplevel" -> Some (configPath scope.self.toplevel)
+    | Full.Global, "lib" -> Some (configPath scope.self.lib)
+    | Full.Global, "libexec" -> Some (configPath scope.self.lib)
+    | Full.Global, "version" -> Some (string scope.self.version)
+    | Full.Global, "name" -> Some (string (opamName scope.self))
+
+    | Full.Global, _ -> None
 
     | Full.Self, "enable" -> Some (bool true)
     | Full.Self, "installed" -> Some (bool true)
