@@ -29,3 +29,5 @@ module Formula : sig
   val parse : string -> (DNF.t, string) result
   val parseExn : string -> DNF.t
 end
+
+val caretRangeOfVersion : Version.t -> Formula.DNF.t
