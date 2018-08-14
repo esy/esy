@@ -85,11 +85,10 @@ module Api = {
 
     let makeReqs = (~specFun=_ => "", names) =>
       names
-      |> List.map(~f=name => {
+      |> Result.List.map(~f=name => {
            let spec = specFun(name);
            Package.Req.make(~name, ~spec);
          })
-      |> Result.List.map(~f=a => a)
       |> RunAsync.ofStringError;
 
     let%bind depsToAdd = makeReqs(packages);
