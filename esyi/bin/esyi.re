@@ -22,7 +22,9 @@ module Api = {
       {
         let%bind solution = Solver.solve(sandbox);
         let%bind lockfilePath = lockfilePath(sandbox);
-        Solution.LockfileV1.toFile(~sandbox, ~solution, lockfilePath);
+        let%bind () =
+          Solution.LockfileV1.toFile(~sandbox, ~solution, lockfilePath);
+        return(solution);
       }
     );
 
@@ -69,7 +71,7 @@ module Api = {
             fetch(sandbox);
           }
         | None =>
-          let%bind () = solve(sandbox);
+          let%bind _ = solve(sandbox);
           fetch(sandbox);
         };
       }
@@ -91,64 +93,98 @@ module Api = {
          })
       |> RunAsync.ofStringError;
 
-    let%bind depsToAdd = makeReqs(packages);
+    let%bind reqs = makeReqs(packages);
 
-    let concatDeps = origDeps =>
+    let addReqs = origDeps =>
       Package.Dependencies.(
         switch (origDeps) {
-        | NpmFormula(deps) => return(NpmFormula(depsToAdd @ deps))
+        | NpmFormula(prevReqs) => return(NpmFormula(reqs @ prevReqs))
         | OpamFormula(_) => error(aggOpamErrorMsg)
         }
       );
 
     let%bind sandbox = {
-      let%bind combinedDeps = concatDeps(sandbox.root.dependencies);
-      let%bind sbDeps = concatDeps(sandbox.dependencies);
+      let%bind combinedDeps = addReqs(sandbox.root.dependencies);
+      let%bind sbDeps = addReqs(sandbox.dependencies);
       let root = {...sandbox.root, dependencies: combinedDeps};
       return({...sandbox, root, dependencies: sbDeps});
     };
 
-    let%bind () = solve(sandbox);
+    let%bind solution = solve(sandbox);
     let%bind () = fetch(sandbox);
 
-    let%bind (specFun, configPath) = {
-      let%bind lockfilePath = lockfilePath(sandbox);
-      let%bind solution =
-        switch%bind (Solution.LockfileV1.ofFile(~sandbox, lockfilePath)) {
-        | Some(solution) => return(solution)
-        | None => error("Failed to load lockfile")
-        };
-      let recs = Solution.records(solution);
-      switch (sandbox.Sandbox.origin) {
-      | Opam(path) => return((_ => "*", path))
-      | Esy(path) =>
-        let getVersion = name => {
-          let r = Solution.Record.Set.find_first(r => r.name == name, recs);
-          "^" ++ Package.Version.toString(r.version);
-        };
-        return((name => getVersion(name), path));
-      | AggregatedOpam(_) => error(aggOpamErrorMsg)
+    let%bind (addedDependencies, configPath) = {
+      let records = {
+        let f = (record: Solution.Record.t, map) =>
+          StringMap.add(record.name, record, map);
+        Solution.Record.Set.fold(
+          f,
+          Solution.records(solution),
+          StringMap.empty,
+        );
       };
+
+      let addedDependencies = {
+        let f = name =>
+          switch (StringMap.find(name, records)) {
+          | Some(record) =>
+            let constr =
+              switch (record.Solution.Record.version) {
+              | Package.Version.Npm(version) =>
+                SemverVersion.Formula.DNF.toString(
+                  SemverVersion.caretRangeOfVersion(version),
+                )
+              | Package.Version.Opam(version) =>
+                OpamPackage.Version.to_string(version)
+              | Package.Version.Source(_) =>
+                Package.Version.toString(record.Solution.Record.version)
+              };
+            (name, `String(constr));
+          | None =>
+            /* this shouldn't happen */
+            assert(false)
+          };
+        List.map(~f, packages);
+      };
+
+      let%bind path =
+        switch (sandbox.Sandbox.origin) {
+        | Esy(path) => return(path)
+        | Opam(_) => error(aggOpamErrorMsg)
+        | AggregatedOpam(_) => error(aggOpamErrorMsg)
+        };
+
+      return((addedDependencies, path));
     };
 
     let%bind json = {
-      let err = RunAsync.ofStringError;
-
       /* TODO: handle devdependencies etc. */
-      let name = "dependencies";
-      let%bind updatedDeps = makeReqs(~specFun, packages);
-      let%bind configJson = Fs.readJsonFile(configPath);
-      let%bind depsjson = Json.Parse.field(~name, configJson) |> err;
-      let%bind deps = NpmDependencies.of_yojson(depsjson) |> err;
-      let newDepsJson =
-        NpmDependencies.(updatedDeps |> override(deps) |> to_yojson);
-      return(
-        `Assoc(
-          configJson
-          |> Yojson.Safe.Util.to_assoc
-          |> List.map(~f=((k, v)) => k == name ? (k, newDepsJson) : (k, v)),
-        ),
-      );
+      let keyToUpdate = "dependencies";
+
+      let%bind json = Fs.readJsonFile(configPath);
+      let%bind json =
+        RunAsync.ofStringError(
+          Result.Syntax.(
+            {
+              let%bind items = Json.Parse.assoc(json);
+              let%bind items = {
+                let f = ((key, json)) =>
+                  if (key == keyToUpdate) {
+                    let%bind dependencies = Json.Parse.assoc(json);
+                    let dependencies =
+                      Json.mergeAssoc(dependencies, addedDependencies);
+                    return((key, `Assoc(dependencies)));
+                  } else {
+                    return((key, json));
+                  };
+                Result.List.map(~f, items);
+              };
+              let json = `Assoc(items);
+              return(json);
+            }
+          ),
+        );
+      return(json);
     };
     let%bind () = Fs.writeJsonFile(~json, configPath);
 
@@ -401,7 +437,13 @@ module CommandLineInterface = {
   let solveCommand = {
     let doc = "Solve dependencies and store the solution as a lockfile";
     let info = Term.info("solve", ~version, ~doc, ~sdocs, ~exits);
-    let cmd = cfg => Api.solve(cfg);
+    let cmd = cfg =>
+      RunAsync.Syntax.(
+        {
+          let%bind _ = Api.solve(cfg);
+          return();
+        }
+      );
     (Term.(ret(const(runWithSandbox(cmd)) $ sandboxTerm)), info);
   };
 
