@@ -1154,6 +1154,13 @@ let () =
       ()
   in
 
+  let addCommand =
+    makeCommandDelegatingToEsyInstall
+      ~name:"add"
+      ~doc:"Add a new dependency"
+      ()
+  in
+
   let solveCommand =
     makeCommandDelegatingToEsyInstall
       ~name:"solve"
@@ -1204,6 +1211,7 @@ let () =
     importBuildCommand;
 
     installCommand;
+    addCommand;
     solveCommand;
     fetchCommand;
 

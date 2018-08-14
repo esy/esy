@@ -15,6 +15,16 @@ let parseStringWith parser data =
   let json = Yojson.Safe.from_string data in
   parseJsonWith parser json
 
+let mergeAssoc items update =
+  let toMap items =
+    let f map (name, json) = StringMap.add name json map in
+    List.fold_left ~f ~init:StringMap.empty items
+  in
+  let items = toMap items in
+  let update = toMap update in
+  let result = StringMap.mergeOverride items update in
+  StringMap.bindings result
+
 module Parse = struct
 
   let string (json : t) =

@@ -5,7 +5,13 @@ type t = {
   dependencies : Package.Dependencies.t;
   resolutions : Manifest.Resolutions.t;
   ocamlReq : Package.Req.t option;
+  origin: origin;
 }
+
+and origin =
+  | Esy of Path.t
+  | Opam of Path.t
+  | AggregatedOpam of Path.t list
 
 module PackageJsonWithResolutions = struct
   type t = {
@@ -21,7 +27,7 @@ let readPackageJsonManifest (path : Path.t) =
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.PackageJson.of_yojson json) in
     let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
     let manifest = Manifest.ofPackageJson pkgJson in
-    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions))
+    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions, Esy(filename)))
   | None -> return None
 
 let readAggregatedOpamManifest (path : Path.t) =
@@ -44,7 +50,7 @@ let readAggregatedOpamManifest (path : Path.t) =
         let%bind manifest =
           OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path
         in
-        return (Some (name, manifest))
+        return (Some (name, manifest, path))
     in
 
     let%bind paths = Fs.listDir path in
@@ -61,7 +67,7 @@ let readAggregatedOpamManifest (path : Path.t) =
   in
 
   let namesPresent =
-    let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+    let f names (name, _, _) = StringSet.add ("@opam/" ^ name) names in
     List.fold_left ~f ~init:StringSet.empty opams
   in
 
@@ -82,7 +88,7 @@ let readAggregatedOpamManifest (path : Path.t) =
   | opams ->
     let%bind pkgs =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
-      let f (name, opam) =
+      let f (name, opam, _) =
         match%bind OpamManifest.toPackage ~name ~version opam with
         | Ok pkg -> return pkg
         | Error err -> error err
@@ -99,7 +105,14 @@ let readAggregatedOpamManifest (path : Path.t) =
       in
       List.fold_left ~f ~init:([], []) pkgs
     in
-    return (Some (dependencies, devDependencies))
+    let origin =
+      let f (_, _, paths) = paths in
+      let paths = List.map ~f opams in
+      match paths with
+      | [path] -> Opam path
+      | paths -> AggregatedOpam paths
+    in
+    return (Some (dependencies, devDependencies, origin))
 
 let ocamlReqAny =
   let spec = Package.VersionSpec.Npm SemverVersion.Formula.any in
@@ -108,7 +121,7 @@ let ocamlReqAny =
 let ofDir ~cfg (path : Path.t) =
   let open RunAsync.Syntax in
   match%bind readPackageJsonManifest path with
-  | Some (manifest, resolutions) ->
+  | Some (manifest, resolutions, origin) ->
 
     let reqs =
       Package.NpmDependencies.override manifest.Manifest.dependencies manifest.devDependencies
@@ -128,33 +141,35 @@ let ofDir ~cfg (path : Path.t) =
       resolutions;
       ocamlReq;
       dependencies = Package.Dependencies.NpmFormula reqs;
+      origin;
     }
   | None ->
     begin match%bind readAggregatedOpamManifest path with
-    | Some (dependencies, devDependencies) ->
+      | Some (dependencies, devDependencies, origin) ->
 
-      let root = {
-        Package.
-        name = "root";
-        version = Package.Version.Source (Package.Source.LocalPath path);
-        source = Package.Source (Package.Source.LocalPath path), [];
-        dependencies = Package.Dependencies.OpamFormula dependencies;
-        devDependencies = Package.Dependencies.OpamFormula devDependencies;
-        opam = None;
-        kind = Package.Esy;
-      } in
+        let root = {
+          Package.
+          name = "root";
+          version = Package.Version.Source (Package.Source.LocalPath path);
+          source = Package.Source (Package.Source.LocalPath path), [];
+          dependencies = Package.Dependencies.OpamFormula dependencies;
+          devDependencies = Package.Dependencies.OpamFormula devDependencies;
+          opam = None;
+          kind = Package.Esy;
+        } in
 
-      let dependencies =
-        Package.Dependencies.OpamFormula (dependencies @ devDependencies)
-      in
+        let dependencies =
+          Package.Dependencies.OpamFormula (dependencies @ devDependencies)
+        in
 
-      return {
-        cfg;
-        path;
-        root;
-        resolutions = Manifest.Resolutions.empty;
-        dependencies;
-        ocamlReq = Some ocamlReqAny;
-      }
-    | None -> error "unable to find either package.json or opam files"
+        return {
+          cfg;
+          path;
+          root;
+          resolutions = Manifest.Resolutions.empty;
+          dependencies;
+          ocamlReq = Some ocamlReqAny;
+          origin;
+        }
+      | None -> error "unable to find either package.json or opam files"
     end

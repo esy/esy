@@ -14,6 +14,7 @@ module type VERSION  = sig
 
   val parse : string -> (t, string) result
 
+  val majorMinorPatch : t -> (int * int * int) option
   val prerelease : t -> bool
   val stripPrerelease : t -> t
 end

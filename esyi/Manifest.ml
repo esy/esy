@@ -23,7 +23,7 @@ module PackageJson = struct
   module EsyJson = struct
     type t = {
       _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
-    } [@@deriving of_yojson { strict = false }]
+    } [@@deriving yojson { strict = false }]
   end
 
   type t = {
@@ -33,7 +33,7 @@ module PackageJson = struct
     devDependencies : (NpmDependencies.t [@default NpmDependencies.empty]);
     dist : (dist option [@default None]);
     esy : (EsyJson.t option [@default None]);
-  } [@@deriving of_yojson { strict = false }]
+  } [@@deriving yojson { strict = false }]
 
   and dist = {
     tarball : string;

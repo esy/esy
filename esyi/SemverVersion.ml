@@ -49,6 +49,8 @@ module Version = struct
   let pp fmt v =
     Fmt.pf fmt "%s" (toString v)
 
+  let majorMinorPatch v = Some (v.major, v.minor, v.patch)
+
   let prerelease v = match v.prerelease, v.build with
   | [], [] -> false
   | _, _ -> true
@@ -911,3 +913,22 @@ module Formula = struct
   end)
 end
 
+let caretRangeOfVersion (version : Version.t) =
+  let upperBound =
+    if version.major < 1
+    then Version.{
+      major = 0;
+      minor = version.minor + 1;
+      patch = 0;
+      prerelease = [];
+      build = [];
+    }
+    else Version.{
+      major = version.major + 1;
+      minor = 0;
+      patch = 0;
+      prerelease = [];
+      build = [];
+    }
+  in
+  [[Constraint.GTE version; Constraint.LT upperBound]]
