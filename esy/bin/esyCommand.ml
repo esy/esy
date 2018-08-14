@@ -261,11 +261,12 @@ let buildPlan packagePath cfg =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
-    return (
-      Task.toBuildProtocolString ~pretty:true task
-      |> print_endline
-    )
-  in withBuildTaskByPath ~info packagePath f
+    let json = EsyBuildPackage.Task.to_yojson task.Task.plan in
+    let data = Yojson.Safe.pretty_to_string json in
+    print_endline data;
+    return ()
+  in
+  withBuildTaskByPath ~info packagePath f
 
 let buildShell packagePath cfg =
   let open RunAsync.Syntax in

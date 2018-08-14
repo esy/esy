@@ -57,7 +57,10 @@ let run
       command waitForProcess
   in
 
-  let buildJson = Task.toBuildProtocolString task in
+  let buildJson =
+    let json = EsyBuildPackage.Task.to_yojson task.plan in
+    Yojson.Safe.to_string json
+  in
   Fs.withTempFile ~data:buildJson runProcess
 
 let build

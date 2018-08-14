@@ -6,6 +6,7 @@ open Result.Syntax;
 
 module Env = {
   type t = Astring.String.Map.t(Config.Value.t);
+  let compare = Astring.String.Map.compare(Config.Value.compare);
   let pp = (_fmt, _env) => ();
   let of_yojson = (json: Yojson.Safe.json) =>
     switch (json) {
@@ -26,7 +27,7 @@ module Env = {
   };
 };
 
-[@deriving yojson]
+[@deriving (yojson, ord)]
 type t = {
   id: string,
   name: string,

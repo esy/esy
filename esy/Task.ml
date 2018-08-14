@@ -16,7 +16,6 @@ type paths = {
 
 module PackageScope : sig
   type t = private {
-    id : string;
     name : string;
     version : string;
     root : Config.Path.t;
@@ -37,7 +36,6 @@ module PackageScope : sig
 
   val make :
     useStagePath:bool
-    -> id:string
     -> pkg:Package.t
     -> dev:bool
     -> paths:paths
@@ -51,7 +49,6 @@ end = struct
   module Value = EsyCommandExpression.Value
 
   type t = {
-    id : string;
     name : string;
     version : string;
     root : Config.Path.t;
@@ -70,14 +67,13 @@ end = struct
     dev : bool;
   } [@@deriving ord]
 
-  let make ~useStagePath ~id ~(pkg : Package.t) ~dev ~(paths : paths) () =
+  let make ~useStagePath ~(pkg : Package.t) ~dev ~(paths : paths) () =
     let installPath =
       if useStagePath
       then paths.stagePath
       else paths.installPath
     in
     {
-      id;
       name = pkg.name;
       version = pkg.version;
       root = paths.rootPath;
@@ -101,7 +97,7 @@ end = struct
     let s v = EsyCommandExpression.string v in
     let p v = EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v)) in
     match id with
-    | "id" -> Some (s scope.id);
+    | "id" -> Some (s "%{id}%");
     | "name" -> Some (s scope.name);
     | "version" -> Some (s scope.version);
     | "root" -> Some (p scope.root);
@@ -205,7 +201,7 @@ end = struct
         let%bind ocamlVersion = ocamlVersion in
         Some (string ocamlVersion)
       | _, "hash" -> Some (string "")
-      | _, "build-id" -> Some (string scope.id)
+      | _, "build-id" -> Some (string "%{id}%")
       | _, "dev" -> Some (bool scope.dev)
       | _, "prefix" -> Some (configPath scope.install)
       | _, "bin" -> Some (configPath scope.bin)
@@ -285,9 +281,7 @@ end
 type t = {
   id : string;
   pkg : Package.t;
-
-  buildCommands : string list list;
-  installCommands : string list list;
+  plan : EsyBuildPackage.Task.t;
 
   env : Environment.Closed.t;
   globalEnv : Environment.binding list;
@@ -419,6 +413,65 @@ let renderExpression ~cfg ~task expr =
   let scope = Scope.toConcreteEsyCommandExpressionScope ~cfg task.scope in
   renderCommandExpr ~platform:task.platform ~scope expr
 
+let makePlan
+  ~name
+  ~version
+  ~sourcePath
+  ~env
+  ~build
+  ~install
+  ~sourceType
+  ~buildType
+  ~(dependencies : dependency list) () =
+  let build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) build in
+  let install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) install in
+  let sourcePath =
+    let value = Config.Value.show (Config.Path.toValue sourcePath) in
+    EsyBuildPackage.Config.Value.v value
+  in
+  let env =
+    env
+    |> Environment.Closed.value
+    |> Astring.String.Map.map EsyBuildPackage.Config.Value.v
+  in
+
+  let task = EsyBuildPackage.Task.{
+    id = "<none>";
+    name;
+    version;
+    sourceType;
+    buildType;
+    build;
+    install;
+    sourcePath;
+    env;
+  } in
+
+  let id =
+    let self =
+      let json = EsyBuildPackage.Task.to_yojson task in
+      Yojson.Safe.to_string json
+    in
+    let dependencies =
+      let f dependency =
+        match dependency with
+        | Dependency task -> Some task.id
+        | BuildTimeDependency task -> Some task.id
+        | DevDependency _ -> None
+      in
+      dependencies
+      |> List.sort ~cmp:compare_dependency
+      |> List.map ~f
+      |> List.filterNone
+    in
+    String.concat "__" (self::dependencies)
+    |> Digest.string
+    |> Digest.to_hex
+    |> fun hash -> String.sub hash 0 8
+  in
+
+  {task with id;}
+
 module DependencySet = Set.Make(struct
   type t = dependency
   let compare = compare_dependency
@@ -429,89 +482,6 @@ let taskOf (dep : dependency) =
   | Dependency task -> task
   | DevDependency task -> task
   | BuildTimeDependency task -> task
-
-let buildId
-  (rootPkg : Package.t)
-  (pkg : Package.t)
-  (dependencies : dependency list) =
-
-  let hashCommands (commands : Manifest.Build.commands) =
-    match commands with
-    | Manifest.Build.EsyCommands commands ->
-      Manifest.CommandList.show commands
-    | Manifest.Build.OpamCommands commands ->
-      let commandsToString (commands : OpamTypes.command list) =
-        let argsToString (args : OpamTypes.arg list) =
-          let f ((arg, filter) : OpamTypes.arg) =
-            match arg, filter with
-            | OpamTypes.CString arg, None
-            | OpamTypes.CIdent arg, None -> arg
-            | OpamTypes.CString arg, Some filter
-            | OpamTypes.CIdent arg, Some filter ->
-              let filter = OpamFilter.to_string filter in
-              arg ^ " {" ^ filter ^ "}"
-          in
-          args
-          |> List.map ~f
-          |> String.concat " "
-        in
-        let f ((args, filter) : OpamTypes.command) =
-          match filter with
-          | Some filter ->
-            let filter = OpamFilter.to_string filter in
-            let args = argsToString args in
-            args ^ " {" ^ filter ^ "}"
-          | None ->
-          argsToString args
-        in
-        commands
-        |> List.map ~f
-        |> String.concat ";"
-      in
-      commandsToString commands
-  in
-
-  let patchesToString patches =
-    let f = function
-      | path, None -> Path.toString path
-      | path, Some filter ->
-        let path = Path.toString path in
-        path ^ " {" ^ (OpamFilter.to_string filter) ^ "}"
-    in
-    patches
-    |> List.map ~f
-    |> String.concat "__SEP__"
-  in
-
-  let digest acc update = Digest.string (acc ^ "--" ^ update) in
-  let id =
-    List.fold_left ~f:digest ~init:"" [
-      hashCommands pkg.build.buildCommands;
-      hashCommands pkg.build.installCommands;
-      patchesToString pkg.build.patches;
-      Manifest.BuildType.show pkg.build.buildType;
-      Manifest.Env.show pkg.build.buildEnv;
-      Manifest.Env.show rootPkg.build.sandboxEnv;
-    ]
-  in
-  let id =
-    List.fold_left ~f:digest ~init:id [
-      pkg.name;
-      pkg.version;
-      (match pkg.resolution with
-       | Some resolved -> resolved
-       | None -> "")
-    ]
-  in
-  let updateWithDepId id = function
-    | Dependency pkg -> digest id pkg.id
-    | BuildTimeDependency pkg -> digest id pkg.id
-    | DevDependency _ -> id
-  in
-  let id = List.fold_left ~f:updateWithDepId ~init:id dependencies in
-  let hash = Digest.to_hex id in
-  let hash = String.sub hash 0 8 in
-  (EsyLib.Path.safeSeg pkg.name ^ "-" ^ EsyLib.Path.safePath pkg.version ^ "-" ^ hash)
 
 let getenv name =
   try Some (Sys.getenv name)
@@ -742,8 +712,6 @@ let ofPackage
       |> uniqueTasksOfDependencies
     in
 
-    let id = buildId rootPkg pkg dependencies in
-
     let sourceType =
       match forceImmutable, pkg.build.sourceType with
       | true, _ -> Manifest.SourceType.Immutable
@@ -757,20 +725,20 @@ let ofPackage
         | Manifest.SourceType.Transient -> Config.Path.localStore
       in
       let buildPath =
-        Config.Path.(storePath / Store.buildTree / id)
+        Config.Path.(storePath / Store.buildTree / "%{id}%")
       in
       let buildInfoPath =
-        let name = id ^ ".info" in
+        let name = "%{id}%" ^ ".info" in
         Config.Path.(storePath / Store.buildTree / name)
       in
       let stagePath =
-        Config.Path.(storePath / Store.stageTree / id)
+        Config.Path.(storePath / Store.stageTree / "%{id}%")
       in
       let installPath =
-        Config.Path.(storePath / Store.installTree / id)
+        Config.Path.(storePath / Store.installTree / "%{id}%")
       in
       let logPath =
-        let basename = id ^ ".log" in
+        let basename = "%{id}" ^ ".log" in
         Config.Path.(storePath / Store.buildTree / basename)
       in
       let rootPath =
@@ -812,7 +780,6 @@ let ofPackage
         let f map (task : t) =
           let scope =
             PackageScope.make
-              ~id:task.id
               ~useStagePath:false
               ~pkg:task.pkg
               ~paths:task.paths
@@ -835,7 +802,7 @@ let ofPackage
       in
 
       let buildScope =
-        let self = PackageScope.make ~useStagePath:true ~id ~pkg ~dev ~paths () in
+        let self = PackageScope.make ~useStagePath:true ~pkg ~dev ~paths () in
         {
           Scope.
           platform;
@@ -845,7 +812,7 @@ let ofPackage
       in
 
       let exportedScope =
-        let self = PackageScope.make ~useStagePath:false ~id ~pkg ~dev ~paths () in
+        let self = PackageScope.make ~useStagePath:false ~pkg ~dev ~paths () in
         {
           Scope.
           platform;
@@ -1067,7 +1034,7 @@ let ofPackage
 
     let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
 
-    let%bind buildCommands =
+    let%bind build =
       Run.context
         begin match pkg.build.buildCommands with
         | Manifest.Build.EsyCommands commands ->
@@ -1084,7 +1051,7 @@ let ofPackage
         "processing esy.build"
     in
 
-    let%bind installCommands =
+    let%bind install =
       Run.context
         begin match pkg.build.installCommands with
         | Manifest.Build.EsyCommands commands ->
@@ -1095,11 +1062,23 @@ let ofPackage
         "processing esy.install"
     in
 
+    let plan = makePlan
+      ~name:pkg.name
+      ~version:pkg.version
+      ~env:env
+      ~install
+      ~build
+      ~sourcePath:pkg.sourcePath
+      ~sourceType:sourceType
+      ~buildType:pkg.build.buildType
+      ~dependencies
+      ()
+    in
+
     let task: t = {
-      id;
+      id = plan.id;
       pkg;
-      buildCommands;
-      installCommands;
+      plan;
 
       env;
       globalEnv;
@@ -1198,30 +1177,6 @@ module Graph = DependencyGraph.Make(struct
       in
       List.map ~f task.dependencies
   end)
-
-let toBuildProtocol (task : task) =
-  EsyBuildPackage.Task.{
-    id = task.id;
-    name = task.pkg.name;
-    version = task.pkg.version;
-    sourceType = task.sourceType;
-    buildType = task.pkg.build.buildType;
-    build = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.buildCommands;
-    install = List.map ~f:(List.map ~f:EsyBuildPackage.Config.Value.v) task.installCommands;
-    sourcePath =
-      EsyBuildPackage.Config.Value.v (Config.Value.show (Config.Path.toValue task.paths.sourcePath));
-    env =
-      task.env
-      |> Environment.Closed.value
-      |> Astring.String.Map.map EsyBuildPackage.Config.Value.v;
-  }
-
-let toBuildProtocolString ?(pretty=false) (task : task) =
-  let task = toBuildProtocol task in
-  let json = EsyBuildPackage.Task.to_yojson task in
-  if pretty
-  then Yojson.Safe.pretty_to_string json
-  else Yojson.Safe.to_string json
 
 (** Check if task is a root task with the current config. *)
 let isRoot ~cfg task =

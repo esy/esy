@@ -11,9 +11,7 @@ end
 type t = private {
   id : string;
   pkg : Package.t;
-
-  buildCommands : string list list;
-  installCommands : string list list;
+  plan : EsyBuildPackage.Task.t;
 
   env : Environment.Closed.t;
   globalEnv : Environment.binding list;
@@ -66,8 +64,6 @@ val ofPackage :
 
 val exportBuild : cfg:Config.t -> outputPrefixPath:Path.t -> Path.t -> unit RunAsync.t
 val importBuild : Config.t -> Path.t -> unit RunAsync.t
-
-val toBuildProtocolString : ?pretty:bool -> t -> string
 
 val rewritePrefix : cfg:Config.t -> origPrefix:Path.t -> destPrefix:Path.t -> Path.t -> unit RunAsync.t
 

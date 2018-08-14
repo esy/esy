@@ -78,4 +78,5 @@ module Value = {
 
   let of_yojson = EsyLib.Json.Parse.string;
   let to_yojson = v => `String(v);
+  let compare = String.compare;
 };

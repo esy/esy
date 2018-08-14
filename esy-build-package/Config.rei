@@ -26,11 +26,12 @@ module Value: {
 
   let show : t => string;
   let pp : Fmt.t(t);
-  let equal : t => t => bool;
 
   let v: string => t;
   let toString : (~cfg: config, t) => Run.t(string, _);
 
   let of_yojson: EsyLib.Json.decoder(t);
   let to_yojson: EsyLib.Json.encoder(t);
+
+  include EsyLib.Abstract.COMPARABLE with type t := t
 };

@@ -27,6 +27,7 @@ type t = {
   env: Env.t,
 };
 
+let compare: (t, t) => int;
 let of_yojson: EsyLib.Json.decoder(t);
 let to_yojson: EsyLib.Json.encoder(t);
 let ofFile: EsyLib.Path.t => Run.t(t, _);
