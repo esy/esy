@@ -185,13 +185,15 @@ end = struct
     let opamOsFamily = opamOs in
     let opamOsDistribution = opamOs in
 
-    let toOpamName name =
-      match Astring.String.cut ~sep:"@opam/" name with
-      | Some ("", name) -> name
-      | _ -> name
-    in
 
     let opamPackageScope ?namespace (scope : PackageScope.t) name =
+
+      let opamName =
+        match Astring.String.cut ~sep:"@opam/" scope.name with
+        | Some ("", name) -> name
+        | _ -> name
+      in
+
       match namespace, name with
 
       (* some specials for ocaml *)
@@ -207,16 +209,20 @@ end = struct
       | _, "prefix" -> Some (configPath scope.install)
       | _, "bin" -> Some (configPath scope.bin)
       | _, "sbin" -> Some (configPath scope.sbin)
-      | _, "etc" -> Some (configPath scope.etc)
-      | _, "doc" -> Some (configPath scope.doc)
+      | _, "etc" -> Some (configPath Config.Path.(scope.etc / opamName))
+      | _, "doc" -> Some (configPath Config.Path.(scope.doc / opamName))
       | _, "man" -> Some (configPath scope.man)
-      | _, "share" -> Some (configPath scope.share)
+      | _, "share" -> Some (configPath Config.Path.(scope.share / opamName))
+      | _, "share_root" -> Some (configPath scope.share)
       | _, "stublibs" -> Some (configPath scope.stublibs)
       | _, "toplevel" -> Some (configPath scope.toplevel)
-      | _, "lib" -> Some (configPath scope.lib)
+      | _, "lib" -> Some (configPath Config.Path.(scope.lib / opamName))
+      | _, "lib_root" -> Some (configPath scope.lib)
+      | _, "libexec" -> Some (configPath Config.Path.(scope.lib / opamName))
+      | _, "libexec_root" -> Some (configPath scope.lib)
       | _, "build" -> Some (configPath scope.target_dir)
       | _, "version" -> Some (string scope.version)
-      | _, "name" -> Some (string (toOpamName scope.name))
+      | _, "name" -> Some (string opamName)
       | _ -> None
     in
 
