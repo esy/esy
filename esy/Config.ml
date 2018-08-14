@@ -109,9 +109,9 @@ end = struct
 
   let v v = v
 
-  let sandboxRe = Str.regexp "%sandbox%"
-  let storeRe = Str.regexp "%store%"
-  let localStoreRe = Str.regexp "%localStore%"
+  let sandboxRe = Str.regexp "%{sandbox}%"
+  let storeRe = Str.regexp "%{store}%"
+  let localStoreRe = Str.regexp "%{localStore}%"
 
   let toString config v =
     v
@@ -124,9 +124,9 @@ end = struct
     let storeRe = Str.regexp (Path.toString config.storePath) in
     let localStoreRe = Str.regexp (Path.toString config.localStorePath) in
     v
-    |> Str.global_replace sandboxRe "%sandbox%"
-    |> Str.global_replace storeRe "%store%"
-    |> Str.global_replace localStoreRe "%localStore%"
+    |> Str.global_replace sandboxRe "%{sandbox}%"
+    |> Str.global_replace storeRe "%{store}%"
+    |> Str.global_replace localStoreRe "%{localStore}%"
 
   let show v = v
   let pp = Fmt.string
@@ -152,9 +152,9 @@ end = struct
 
   let v v = Path.v v
 
-  let sandbox = Path.v "%sandbox%"
-  let store = Path.v "%store%"
-  let localStore = Path.v "%localStore%"
+  let sandbox = Path.v "%{sandbox}%"
+  let store = Path.v "%{store}%"
+  let localStore = Path.v "%{localStore}%"
 
   let (/) a b = Path.(a / b)
 

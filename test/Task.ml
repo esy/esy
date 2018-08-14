@@ -96,8 +96,8 @@ module TestCommandExpr = struct
       commandsEqual
         task.buildCommands
         [
-          ["cp"; "./hello"; "%store%/s/" ^ id ^ "/bin"];
-          ["cp"; "./hello2"; "%store%/s/" ^ id ^ "/bin"];
+          ["cp"; "./hello"; "%{store}%/s/" ^ id ^ "/bin"];
+          ["cp"; "./hello2"; "%{store}%/s/" ^ id ^ "/bin"];
         ]
     )
 
@@ -140,7 +140,7 @@ module TestCommandExpr = struct
       let id = task.id in
       commandsEqual
         task.installCommands
-        [["cp"; "./man"; "%store%/s/" ^ id ^ "/man"]]
+        [["cp"; "./man"; "%{store}%/s/" ^ id ^ "/man"]]
     )
 
   let%test "#{...} inside esy.exportedEnv" =
@@ -153,9 +153,9 @@ module TestCommandExpr = struct
       let bindings = Environment.Closed.bindings task.env in
       let f = function
         | {Environment. name = "OK"; value = Value value; _} ->
-          Some (value = "%store%/i/" ^ id ^ "/ok")
+          Some (value = "%{store}%/i/" ^ id ^ "/ok")
         | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
-          Some (value = "%store%/i/" ^ id ^ "/ok-by-name")
+            Some (value = "%{store}%/i/" ^ id ^ "/ok-by-name")
         | _ ->
           None
       in
