@@ -82,7 +82,7 @@ let writeCache (cfg : Config.t) (info : t) =
 
     return ()
 
-  in Esy.Perf.measureTime ~label:"writing sandbox info cache" f
+  in Perf.measure ~label:"writing sandbox info cache" f
 
 let readCache (cfg : Config.t) =
   let open RunAsync.Syntax in
@@ -109,7 +109,7 @@ let readCache (cfg : Config.t) =
     in
     try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.toString cachePath) f
     with | Unix.Unix_error _ -> return None
-  in Esy.Perf.measureTime ~label:"reading sandbox info cache" f
+  in Perf.measure ~label:"reading sandbox info cache" f
 
 let ofConfig (cfg : Config.t) =
   let open RunAsync.Syntax in
@@ -124,7 +124,7 @@ let ofConfig (cfg : Config.t) =
           return (task, commandEnv, sandboxEnv)
         ) in
       return {task; sandbox; commandEnv; sandboxEnv}
-    in Esy.Perf.measureTime ~label:"constructing sandbox info" f
+    in Perf.measure ~label:"constructing sandbox info" f
   in
   match%bind readCache cfg with
   | Some info -> return info
@@ -132,3 +132,138 @@ let ofConfig (cfg : Config.t) =
     let%bind info = makeInfo () in
     let%bind () = writeCache cfg info in
     return info
+
+let findTaskByName ~pkgName root =
+  let f (task : Task.t) = (task.pkg).name = pkgName in
+  Task.Graph.find ~f root
+
+let resolvePackage ~pkgName ~cfg info =
+  let open RunAsync.Syntax in
+  match findTaskByName ~pkgName info.task
+  with
+  | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
+  | Some task ->
+    let installPath = Config.Path.toPath cfg task.paths.installPath in
+    let%bind built = Fs.exists installPath in
+    if built
+    then return installPath
+    else errorf "package %s isn't built yet, run 'esy build'" pkgName
+
+let ocamlfind = resolvePackage ~pkgName:"@opam/ocamlfind"
+let ocaml = resolvePackage ~pkgName:"ocaml"
+
+let splitBy line ch =
+  match String.index line ch with
+  | idx ->
+    let key = String.sub line 0 idx in
+    let pos = idx + 1 in
+    let val_ = String.(trim (sub line pos (length line - pos))) in
+    Some (key, val_)
+  | exception Not_found -> None
+
+let libraries ~cfg ~ocamlfind ?builtIns ?task () =
+  let open RunAsync.Syntax in
+  let ocamlpath =
+    match task with
+    | Some task ->
+      Config.Path.(task.Task.paths.installPath / "lib" |> toPath cfg)
+      |> Path.toString
+    | None -> ""
+  in
+  let env =
+    `CustomEnv Astring.String.Map.(
+      empty |>
+      add "OCAMLPATH" ocamlpath
+  ) in
+  let cmd = Cmd.(v (p ocamlfind) % "list") in
+  let%bind out = ChildProcess.runOut ~env cmd in
+  let libs =
+    String.split_on_char '\n' out |>
+    List.map ~f:(fun line -> splitBy line ' ')
+    |> List.filterNone
+    |> List.map ~f:(fun (key, _) -> key)
+    |> List.rev
+  in
+  match builtIns with
+  | Some discard ->
+    return (List.diff libs discard)
+  | None -> return libs
+
+let modules ~ocamlobjinfo archive =
+  let open RunAsync.Syntax in
+  let env = `CustomEnv Astring.String.Map.empty in
+  let cmd = let open Cmd in (v (p ocamlobjinfo)) % archive in
+  let%bind out = ChildProcess.runOut ~env cmd in
+  let startsWith s1 s2 =
+    let len1 = String.length s1 in
+    let len2 = String.length s2 in
+    match len1 < len2 with
+    | true -> false
+    | false -> (String.sub s1 0 len2) = s2
+  in
+  let lines =
+    let f line =
+      startsWith line "Name: " || startsWith line "Unit name: "
+    in
+    String.split_on_char '\n' out
+    |> List.filter ~f
+    |> List.map ~f:(fun line -> splitBy line ':')
+    |> List.filterNone
+    |> List.map ~f:(fun (_, val_) -> val_)
+    |> List.rev
+  in
+  return lines
+
+module Findlib = struct
+  type meta = {
+    package : string;
+    description : string;
+    version : string;
+    archive : string;
+    location : string;
+  }
+
+  let query ~cfg ~ocamlfind ~task lib =
+    let open RunAsync.Syntax in
+    let ocamlpath =
+      Config.Path.(task.Task.paths.installPath / "lib" |> toPath cfg)
+    in
+    let env =
+      `CustomEnv Astring.String.Map.(
+        empty |>
+        add "OCAMLPATH" (Path.toString ocamlpath)
+    ) in
+    let cmd = Cmd.(
+      v (p ocamlfind)
+      % "query"
+      % "-predicates"
+      % "byte,native"
+      % "-long-format"
+      % lib
+    ) in
+    let%bind out = ChildProcess.runOut ~env cmd in
+    let lines =
+      String.split_on_char '\n' out
+      |> List.map ~f:(fun line -> splitBy line ':')
+      |> List.filterNone
+      |> List.rev
+    in
+    let findField ~name  =
+      let f (field, value) =
+        match field = name with
+        | true -> Some value
+        | false -> None
+      in
+      lines
+      |> List.map ~f
+      |> List.filterNone
+      |> List.hd
+    in
+    return {
+      package = findField ~name:"package";
+      description = findField ~name:"description";
+      version = findField ~name:"version";
+      archive = findField ~name:"archive(s)";
+      location = findField ~name:"location";
+    }
+end

@@ -335,7 +335,7 @@ let renderEsyCommands ~env ~platform scope commands =
     let renderCommand =
       let render v =
         let%bind v = renderCommandExpr ~platform ~scope v in
-        ShellParamExpansion.render ~scope:envScope v
+        Run.ofStringError (EsyShellExpansion.render ~scope:envScope v)
       in
       function
       | Manifest.CommandList.Command.Parsed args ->

@@ -2,7 +2,8 @@
  * Produce an npm release for the [sandbox].
  *)
 val make :
-  esyInstallRelease:Path.t
+  ocamlopt:Path.t
+  -> esyInstallRelease:Path.t
   -> outputPath:Path.t
   -> concurrency:int
   -> cfg:Config.t

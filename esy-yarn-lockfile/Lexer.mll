@@ -1,5 +1,5 @@
 {
-include LockfileLexerSupport
+include Types
 }
 
 let digit   = ['0'-'9']

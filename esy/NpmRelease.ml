@@ -100,7 +100,7 @@ let dependenciesForRelease (task : Task.t) =
   |> List.fold_left ~f ~init:[]
   |> List.rev
 
-let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
+let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
   let open RunAsync.Syntax in
 
 
@@ -114,21 +114,6 @@ let make ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     * between stores (b/c of a fixed path length).
     *)
   let%bind task = RunAsync.ofRun (Task.ofPackage ~forceImmutable:true sandbox.Sandbox.root) in
-
-  (* Path to ocamlopt executable *)
-  let%bind ocamlopt = RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind ocaml =
-        match Task.Graph.find ~f:(fun task -> task.pkg.name = "ocaml") task with
-        | Some(ocaml) -> return ocaml
-        | None -> error "ocaml isn't available in the sandbox"
-      in
-      let ocamlopt =
-        let installPath = Config.Path.toPath cfg ocaml.Task.paths.installPath in
-        Path.(installPath / "bin" / "ocamlopt")
-      in
-      return ocamlopt
-    ) in
 
   let tasks = Task.Graph.traverse ~traverse:dependenciesForRelease task in
 

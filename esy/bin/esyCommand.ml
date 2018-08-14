@@ -509,8 +509,22 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
   in
 
   match%bind Task.Graph.fold ~f ~init:(return None) info.task with
-  | Some tree -> return (print_endline (Esy.TermTree.toString tree))
+  | Some tree -> return (print_endline (TermTree.toString tree))
   | None -> return ()
+
+let formatPackageInfo ~built:(built : bool)  (task : Task.t) =
+  let open RunAsync.Syntax in
+  let pkg = task.pkg in
+  let version = Chalk.grey ("@" ^ pkg.version) in
+  let status =
+    match task.sourceType, built with
+    | Manifest.SourceType.Immutable, true ->
+      Chalk.green "[built]"
+    | _, _ ->
+      Chalk.blue "[build pending]"
+  in
+  let line = Printf.sprintf "%s%s %s" pkg.name version status in
+  return line
 
 let lsBuilds ~includeTransitive cfg =
   let open RunAsync.Syntax in
@@ -519,7 +533,7 @@ let lsBuilds ~includeTransitive cfg =
 
   let computeTermNode ~cfg task children =
     let%bind built = Task.isBuilt ~cfg task in
-    let%bind line = SandboxTools.formatPackageInfo ~built task in
+    let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
   makeLsCommand ~computeTermNode ~includeTransitive cfg info
@@ -529,16 +543,19 @@ let lsLibs ~includeTransitive cfg =
 
   let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
-  let%bind ocamlfind = SandboxTools.getOcamlfind ~cfg info.task in
-  let%bind builtIns = SandboxTools.getPackageLibraries ~cfg ~ocamlfind () in
+  let%bind ocamlfind =
+    let%bind p = SandboxInfo.ocamlfind ~cfg info in
+    return Path.(p / "bin" / "ocamlfind")
+  in
+  let%bind builtIns = SandboxInfo.libraries ~cfg ~ocamlfind () in
 
   let computeTermNode ~cfg (task: Task.t) children =
     let%bind built = Task.isBuilt ~cfg task in
-    let%bind line = SandboxTools.formatPackageInfo ~built task in
+    let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
       if built then
-        SandboxTools.getPackageLibraries ~cfg ~ocamlfind ~builtIns ~task ()
+        SandboxInfo.libraries ~cfg ~ocamlfind ~builtIns ~task ()
       else
         return []
     in
@@ -560,13 +577,19 @@ let lsModules ~libs:only cfg =
 
   let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
 
-  let%bind ocamlfind = SandboxTools.getOcamlfind ~cfg info.task in
-  let%bind ocamlobjinfo = SandboxTools.getOcamlobjinfo ~cfg info.task in
-  let%bind builtIns = SandboxTools.getPackageLibraries ~cfg ~ocamlfind () in
+  let%bind ocamlfind =
+    let%bind p = SandboxInfo.ocamlfind ~cfg info in
+    return Path.(p / "bin" / "ocamlfind")
+  in
+  let%bind ocamlobjinfo =
+    let%bind p = SandboxInfo.ocaml ~cfg info in
+    return Path.(p / "bin" / "ocamlobjinfo")
+  in
+  let%bind builtIns = SandboxInfo.libraries ~cfg ~ocamlfind () in
 
   let formatLibraryModules ~cfg ~task lib =
-    let%bind meta = SandboxTools.queryMeta ~cfg ~ocamlfind ~task lib in
-    let open SandboxTools in
+    let%bind meta = SandboxInfo.Findlib.query ~cfg ~ocamlfind ~task lib in
+    let open SandboxInfo.Findlib in
 
     if String.length(meta.archive) == 0 then
       let description = Chalk.dim(meta.description) in
@@ -577,14 +600,20 @@ let lsModules ~libs:only cfg =
         if%bind Fs.exists archive then begin
           let archive = Path.toString archive in
           let%bind lines =
-            SandboxTools.queryModules ~ocamlobjinfo archive
+            SandboxInfo.modules ~ocamlobjinfo archive
           in
 
           let modules =
-            lines |> List.map ~f:(fun line ->
-                let line = Chalk.cyan(line) in
-                TermTree.Node { line; children=[]; }
-              )
+            let isPublicModule name =
+              not (Astring.String.is_infix ~affix:"__" name)
+            in
+            let toTermNode name =
+              let line = Chalk.cyan name in
+              TermTree.Node { line; children=[]; }
+            in
+            lines
+            |> List.filter ~f:isPublicModule
+            |> List.map ~f:toTermNode
           in
 
           return modules
@@ -596,11 +625,11 @@ let lsModules ~libs:only cfg =
 
   let computeTermNode ~cfg (task: Task.t) children =
     let%bind built = Task.isBuilt ~cfg task in
-    let%bind line = SandboxTools.formatPackageInfo ~built task in
+    let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
       if built then
-        SandboxTools.getPackageLibraries ~cfg ~ocamlfind ~builtIns ~task ()
+        SandboxInfo.libraries ~cfg ~ocamlfind ~builtIns ~task ()
       else
         return []
     in
@@ -1031,7 +1060,7 @@ let () =
     let cmd cfg () =
       runCommandWithConfig ~info ~cfg (fun cfg ->
         let open RunAsync.Syntax in
-        let%bind {SandboxInfo. sandbox; _} = SandboxInfo.ofConfig cfg in
+        let%bind info = SandboxInfo.ofConfig cfg in
 
         let%bind outputPath =
           let outputDir = "_release" in
@@ -1040,14 +1069,22 @@ let () =
           return outputPath
         in
 
+        let%bind () = build None cfg in
+
         let%bind esyInstallRelease = EsyRuntime.esyInstallRelease in
 
+        let%bind ocamlopt =
+          let%bind p = SandboxInfo.ocaml ~cfg info in
+          return Path.(p / "bin" / "ocamlopt")
+        in
+
         NpmRelease.make
+          ~ocamlopt
           ~esyInstallRelease
           ~outputPath
           ~concurrency:EsyRuntime.concurrency
           ~cfg
-          ~sandbox
+          ~sandbox:info.SandboxInfo.sandbox
       )
     in
     Term.(ret (const cmd $ configTerm $ Cli.setupLogTerm)), info

@@ -144,7 +144,7 @@ module Value = struct
       let scope name = StringMap.find name env in
       match binding.value with
       | Value value ->
-        let%bind value = ShellParamExpansion.render ~scope value in
+        let%bind value = Run.ofStringError (EsyShellExpansion.render ~scope value) in
         Ok (StringMap.add binding.name value env)
       | ExpandedValue value ->
         Ok (StringMap.add binding.name value env)
