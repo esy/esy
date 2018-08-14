@@ -119,19 +119,13 @@ module Api = {
         | Some(solution) => return(solution)
         | None => error("Failed to load lockfile")
         };
-      let records = Solution.records(solution);
+      let recs = Solution.records(solution);
       switch (sandbox.Sandbox.origin) {
       | Opam(path) => return((_ => "*", path))
       | Esy(path) =>
         let getVersion = name => {
-          let r =
-            Solution.Record.Set.find_first(r => r.name == name, records);
-          let v = Package.Version.toString(r.version);
-          print_endline("GOT VER: " ++ v);
-          /*let v = v.[0] == '=' ? "^" ++ Str.string_after(v, 0) : v;*/
-          let v = "^" ++ v;
-          print_endline("CHG VER: " ++ v);
-          v;
+          let r = Solution.Record.Set.find_first(r => r.name == name, recs);
+          "^" ++ Package.Version.toString(r.version);
         };
         return((name => getVersion(name), path));
       | AggregatedOpam(_) => error(aggOpamErrorMsg)
