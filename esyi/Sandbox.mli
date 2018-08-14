@@ -28,11 +28,11 @@ type t = {
   origin : origin;
 }
 
+(** Types of configuration files containing their paths. *)
 and origin =
   | Esy of Path.t
   | Opam of Path.t
-
-val originOfPath : Path.t -> origin RunAsync.t
+  | AggregatedOpam of Path.t list
 
 (** Read sandbox out of directory given the config. *)
 val ofDir : cfg:Config.t -> Path.t -> t RunAsync.t

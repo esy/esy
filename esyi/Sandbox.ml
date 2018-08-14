@@ -11,12 +11,7 @@ type t = {
 and origin =
   | Esy of Path.t
   | Opam of Path.t
-
-let originOfPath path =
-  let open RunAsync.Syntax in
-  match%bind Manifest.find path with
-    | Some origPath -> return (Esy origPath)
-    | None -> return (Opam path)
+  | AggregatedOpam of Path.t list
 
 module PackageJsonWithResolutions = struct
   type t = {
@@ -55,7 +50,7 @@ let readAggregatedOpamManifest (path : Path.t) =
         let%bind manifest =
           OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path
         in
-        return (Some (name, manifest))
+        return (Some (name, manifest, path))
     in
 
     let%bind paths = Fs.listDir path in
@@ -72,7 +67,7 @@ let readAggregatedOpamManifest (path : Path.t) =
   in
 
   let namesPresent =
-    let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+    let f names (name, _, _) = StringSet.add ("@opam/" ^ name) names in
     List.fold_left ~f ~init:StringSet.empty opams
   in
 
@@ -93,7 +88,7 @@ let readAggregatedOpamManifest (path : Path.t) =
   | opams ->
     let%bind pkgs =
       let version = Package.Version.Source (Package.Source.LocalPath path) in
-      let f (name, opam) =
+      let f (name, opam, _) =
         match%bind OpamManifest.toPackage ~name ~version opam with
         | Ok pkg -> return pkg
         | Error err -> error err
@@ -110,7 +105,14 @@ let readAggregatedOpamManifest (path : Path.t) =
       in
       List.fold_left ~f ~init:([], []) pkgs
     in
-    return (Some (dependencies, devDependencies))
+    let origin =
+      let f (_, _, paths) = paths in
+      let paths = List.map ~f opams in
+      match paths with
+      | [path] -> Opam path
+      | paths -> AggregatedOpam paths
+    in
+    return (Some (dependencies, devDependencies, origin))
 
 let ocamlReqAny =
   let spec = Package.VersionSpec.Npm SemverVersion.Formula.any in
@@ -143,7 +145,7 @@ let ofDir ~cfg (path : Path.t) =
     }
   | None ->
     begin match%bind readAggregatedOpamManifest path with
-      | Some (dependencies, devDependencies) ->
+      | Some (dependencies, devDependencies, origin) ->
 
         let root = {
           Package.
@@ -159,8 +161,6 @@ let ofDir ~cfg (path : Path.t) =
         let dependencies =
           Package.Dependencies.OpamFormula (dependencies @ devDependencies)
         in
-
-        let%bind origin = originOfPath path in
 
         return {
           cfg;

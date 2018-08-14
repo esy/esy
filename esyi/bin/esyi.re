@@ -79,6 +79,10 @@ module Api = {
     open RunAsync.Syntax;
     module NpmDependencies = Package.NpmDependencies;
 
+    let aggOpamErrorMsg =
+      "The esy add command doesn't work with opam sandboxes. "
+      ++ "Please send a pull request to fix this!";
+
     let makeReqs = (~specFun=_ => "", names) =>
       names
       |> List.map(~f=name => {
@@ -94,11 +98,7 @@ module Api = {
       Package.Dependencies.(
         switch (origDeps) {
         | NpmFormula(deps) => return(NpmFormula(depsToAdd @ deps))
-        | OpamFormula(_) =>
-          error(
-            "The esy add command doesn't work with opam sandboxes. "
-            ++ "Please send a pull request to fix this!",
-          )
+        | OpamFormula(_) => error(aggOpamErrorMsg)
         }
       );
 
@@ -124,10 +124,17 @@ module Api = {
       | Opam(path) => return((_ => "*", path))
       | Esy(path) =>
         let getVersion = name => {
-          let r = Solution.Record.Set.find_first(r => r.name == name, records);
-          Package.Version.toString(r.version);
+          let r =
+            Solution.Record.Set.find_first(r => r.name == name, records);
+          let v = Package.Version.toString(r.version);
+          print_endline("GOT VER: " ++ v);
+          /*let v = v.[0] == '=' ? "^" ++ Str.string_after(v, 0) : v;*/
+          let v = "^" ++ v;
+          print_endline("CHG VER: " ++ v);
+          v;
         };
-        return((name => "^" ++ getVersion(name), path));
+        return((name => getVersion(name), path));
+      | AggregatedOpam(_) => error(aggOpamErrorMsg)
       };
     };
 
