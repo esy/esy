@@ -3,8 +3,7 @@ id: commands
 title: Commands
 ---
 
-Reference of all available esy commands. The most common commands are [`esy
-install`](#esy-install) and [`esy build`](#esy-build).
+Reference of all available esy commands. The most common commands are [`esy install`](#esy-install) and [`esy build`](#esy-build).
 
 ## Main commands
 
@@ -174,8 +173,6 @@ Example:
 ```bash
 % esy add @opam/lwt
 ```
-
-This is analogue of `yarn add` command and is based on it internally.
 
 ### `esy release`
 
