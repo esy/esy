@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 0.2.7 @ latest
+
+- Add `esy add PACKAGENAME...` command which allows to update `package.json`
+  with new dependencies specified on a command line and perform installation
+  (#346) (@zploskey).
+
+- Fix `esy ls-modules` command not to show private modules (modules with `__` in
+  their names) (#361).
+
+- Make dev environment more resilent to user environment, previously esy was
+  failing if user environment contained variables with `%somename%` values
+  (#363).
+
+- Normalize paths when linking packages (#357).
+
+- Improvements to handling opam metadata: more comprehensive set of opam
+  variables is supported, automatically upgrade to opam 2 metadata format, ...
+  (#351, #364).
+
 ## 0.2.6 @ latest
 
 - Fix `esy` npm package to be compat with Node 4.
