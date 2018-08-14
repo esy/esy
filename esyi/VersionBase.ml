@@ -5,6 +5,7 @@ module type VERSION = sig
 
   val parse : string -> (t, string) result
 
+  val majorMinorPatch : t -> (int * int * int) option
   val prerelease : t -> bool
   val stripPrerelease : t -> t
 end
@@ -212,7 +213,26 @@ module Formula = struct
         List.exists ~f:matchesConj formulas
 
       let pp fmt f =
-        let ppConj = Fmt.(list ~sep:(unit " ") Constraint.pp) in
+        let ppConjDefault = Fmt.(list ~sep:(unit " ") Constraint.pp) in
+        let ppConj fmt conj =
+          match conj with
+          | [Constraint.GTE a; Constraint.LT b] ->
+            begin match
+              Version.majorMinorPatch a,
+              Version.majorMinorPatch b,
+              Version.prerelease b
+            with
+            | Some (0, aMinor, _), Some (0, bMinor, 0), false
+              when bMinor - aMinor = 1 ->
+              Fmt.pf fmt "^%a" Version.pp a
+            | Some (aMajor, _, _), Some (bMajor, 0, 0), false
+              when aMajor > 0 && bMajor > 0 && bMajor - aMajor = 1 ->
+              Fmt.pf fmt "^%a" Version.pp a
+            | _ ->
+              ppConjDefault fmt conj
+            end
+          | _ -> ppConjDefault fmt conj
+        in
         Fmt.(list ~sep:(unit " || ") ppConj) fmt f
 
       let show f =
@@ -339,6 +359,7 @@ let%test_module "Formula" = (module struct
 
   module Version = struct
     type t = int [@@deriving yojson]
+    let majorMinorPatch n = Some (n, 0, 0)
     let equal = (=)
     let compare = compare
     let pp = Fmt.int

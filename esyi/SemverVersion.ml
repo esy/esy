@@ -49,6 +49,8 @@ module Version = struct
   let pp fmt v =
     Fmt.pf fmt "%s" (toString v)
 
+  let majorMinorPatch v = Some (v.major, v.minor, v.patch)
+
   let prerelease v = match v.prerelease, v.build with
   | [], [] -> false
   | _, _ -> true
