@@ -1,9 +1,9 @@
 /*
 
-  Task configuration.
+  Build plan.
 
   This represents platform-specific (a list of commands is specific to a
-  platfoerm) but host-agnostic (do not have host specific absolute paths)
+  platform) but host-agnostic (do not have host specific absolute paths)
   package builds.
 
  */

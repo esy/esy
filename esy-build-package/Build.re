@@ -5,7 +5,7 @@ module System = EsyLib.System;
 open Run;
 
 type t = {
-  task: Task.t,
+  plan: Plan.t,
   sourcePath: Path.t,
   storePath: Path.t,
   installPath: Path.t,
@@ -22,7 +22,7 @@ type t = {
 type build = t;
 
 let isRoot = (build: t) =>
-  Config.Value.equal(build.task.sourcePath, Config.Value.sandbox);
+  Config.Value.equal(build.plan.sourcePath, Config.Value.sandbox);
 
 let regex = (base, segments) => {
   let pat = String.concat(Path.dirSep, [Path.toString(base), ...segments]);
@@ -31,7 +31,7 @@ let regex = (base, segments) => {
 
 module type LIFECYCLE = {
   let getRootPath: build => Path.t;
-  let getAllowedToWritePaths: (Task.t, Path.t) => list(Sandbox.pattern);
+  let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
   let prepare: build => Run.t(unit, _);
   let finalize: build => Run.t(unit, _);
 };
@@ -202,9 +202,9 @@ module UnsafeLifecycle: LIFECYCLE = {
   let finalize = _build => Ok();
 };
 
-let configureBuild = (~cfg: Config.t, task: Task.t) => {
+let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   let (module Lifecycle): (module LIFECYCLE) =
-    switch (task.buildType, task.sourceType) {
+    switch (plan.buildType, plan.sourceType) {
     | (InSource, Immutable) => (module RelocateSourceLifecycle)
     | (InSource, Transient) => (module RelocateSourceLifecycle)
     | (JbuilderLike, Immutable) => (module RelocateSourceLifecycle)
@@ -223,7 +223,7 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
           Ok(Astring.String.Map.add(k, v, result));
         }
       | error => error;
-    Astring.String.Map.fold(f, task.env, Ok(Astring.String.Map.empty));
+    Astring.String.Map.fold(f, plan.env, Ok(Astring.String.Map.empty));
   };
 
   let renderCommands = (~cfg, cmds) => {
@@ -234,26 +234,26 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
     };
     EsyLib.Result.List.map(~f, cmds);
   };
-  let%bind install = renderCommands(~cfg, task.install);
-  let%bind build = renderCommands(~cfg, task.build);
+  let%bind install = renderCommands(~cfg, plan.install);
+  let%bind build = renderCommands(~cfg, plan.build);
 
   let storePath =
-    switch (task.sourceType) {
+    switch (plan.sourceType) {
     | Immutable => cfg.storePath
     | Transient => cfg.localStorePath
     };
 
   let%bind sourcePath = {
-    let%bind sourcePath = Config.Value.toString(~cfg, task.sourcePath);
+    let%bind sourcePath = Config.Value.toString(~cfg, plan.sourcePath);
     return(Path.v(sourcePath));
   };
-  let installPath = Path.(storePath / EsyLib.Store.installTree / task.id);
-  let stagePath = Path.(storePath / EsyLib.Store.stageTree / task.id);
-  let buildPath = Path.(storePath / EsyLib.Store.buildTree / task.id);
+  let installPath = Path.(storePath / EsyLib.Store.installTree / plan.id);
+  let stagePath = Path.(storePath / EsyLib.Store.stageTree / plan.id);
+  let buildPath = Path.(storePath / EsyLib.Store.buildTree / plan.id);
   let lockPath =
-    Path.(storePath / EsyLib.Store.buildTree / task.id |> addExt(".lock"));
+    Path.(storePath / EsyLib.Store.buildTree / plan.id |> addExt(".lock"));
   let infoPath =
-    Path.(storePath / EsyLib.Store.buildTree / task.id |> addExt(".info"));
+    Path.(storePath / EsyLib.Store.buildTree / plan.id |> addExt(".info"));
 
   let%bind sandbox = {
     let%bind config = {
@@ -272,7 +272,7 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
           Subpath("/private/tmp"),
           Subpath("/tmp"),
           Subpath(tempPath),
-          ...Lifecycle.getAllowedToWritePaths(task, sourcePath),
+          ...Lifecycle.getAllowedToWritePaths(plan, sourcePath),
         ],
       });
     };
@@ -281,7 +281,7 @@ let configureBuild = (~cfg: Config.t, task: Task.t) => {
 
   return((
     {
-      task,
+      plan,
       env,
       build,
       install,
@@ -485,8 +485,8 @@ let findSourceModTime = (build: build) => {
   );
 };
 
-let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
-  let%bind (build, lifecycle) = configureBuild(~cfg, task);
+let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
+  let%bind (build, lifecycle) = configureBuild(~cfg, plan);
 
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
 
@@ -556,7 +556,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, task: Task.t, f) => {
     ok;
   };
 
-  switch (build.task.sourceType) {
+  switch (build.plan.sourceType) {
   | SourceType.Transient => withLock(build.lockPath, perform)
   | SourceType.Immutable => perform()
   };
@@ -611,17 +611,17 @@ let runCommandInteractive = (build, cmd) => {
   };
 };
 
-let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
-  let%bind (build, lifecycle) = configureBuild(~cfg, task);
-  Logs.debug(m => m("start %s", build.task.id));
+let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
+  let%bind (build, lifecycle) = configureBuild(~cfg, plan);
+  Logs.debug(m => m("start %s", build.plan.id));
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
   let performBuild = sourceModTime => {
     Logs.debug(m => m("building"));
     Logs.app(m =>
       m(
         "# esy-build-package: building: %s@%s",
-        build.task.name,
-        build.task.version,
+        build.plan.name,
+        build.plan.version,
       )
     );
 
@@ -720,10 +720,10 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
     };
     let startTime = Unix.gettimeofday();
     let%bind () =
-      withBuild(~commit=! buildOnly, ~cfg, task, runBuildAndInstall);
+      withBuild(~commit=! buildOnly, ~cfg, plan, runBuildAndInstall);
     let%bind info = {
       let%bind sourceModTime =
-        switch (sourceModTime, build.task.sourceType) {
+        switch (sourceModTime, build.plan.sourceType) {
         | (None, SourceType.Transient) =>
           if (isRoot(build)) {
             Ok(None);
@@ -743,7 +743,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, task: Task.t) => {
     };
     BuildInfo.toFile(build.infoPath, info);
   };
-  switch (force, build.task.sourceType) {
+  switch (force, build.plan.sourceType) {
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);

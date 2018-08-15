@@ -261,7 +261,7 @@ let buildPlan packagePath cfg =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
-    let json = EsyBuildPackage.Task.to_yojson task.Task.plan in
+    let json = EsyBuildPackage.Plan.to_yojson task.Task.plan in
     let data = Yojson.Safe.pretty_to_string json in
     print_endline data;
     return ()

@@ -281,7 +281,7 @@ end
 type t = {
   id : string;
   pkg : Package.t;
-  plan : EsyBuildPackage.Task.t;
+  plan : EsyBuildPackage.Plan.t;
 
   env : Environment.Closed.t;
   globalEnv : Environment.binding list;
@@ -435,7 +435,7 @@ let makePlan
     |> Astring.String.Map.map EsyBuildPackage.Config.Value.v
   in
 
-  let task = EsyBuildPackage.Task.{
+  let task = EsyBuildPackage.Plan.{
     id = "<none>";
     name;
     version;
@@ -449,7 +449,7 @@ let makePlan
 
   let id =
     let self =
-      let json = EsyBuildPackage.Task.to_yojson task in
+      let json = EsyBuildPackage.Plan.to_yojson task in
       Yojson.Safe.to_string json
     in
     let dependencies =

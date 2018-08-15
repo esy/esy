@@ -44,7 +44,7 @@ let ofFile = (path: Path.t) => {
   let%bind data = Run.read(path);
   let json = Yojson.Safe.from_string(data);
   switch (of_yojson(json)) {
-  | Ok(task) => Ok(task)
+  | Ok(plan) => Ok(plan)
   | Error(err) => Error(`Msg(err))
   };
 };

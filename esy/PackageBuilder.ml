@@ -58,7 +58,7 @@ let run
   in
 
   let buildJson =
-    let json = EsyBuildPackage.Task.to_yojson task.plan in
+    let json = EsyBuildPackage.Plan.to_yojson task.plan in
     Yojson.Safe.to_string json
   in
   Fs.withTempFile ~data:buildJson runProcess

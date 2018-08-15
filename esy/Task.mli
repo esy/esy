@@ -11,7 +11,7 @@ end
 type t = private {
   id : string;
   pkg : Package.t;
-  plan : EsyBuildPackage.Task.t;
+  plan : EsyBuildPackage.Plan.t;
 
   env : Environment.Closed.t;
   globalEnv : Environment.binding list;
