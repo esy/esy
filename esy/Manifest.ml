@@ -480,7 +480,7 @@ end = struct
   let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
     let formula =
       OpamFilter.filter_deps
-        ~build ~post ~test ~doc ~dev
+        ~default:true ~build ~post ~test ~doc ~dev
         formula
     in
     let cnf = OpamFormula.to_cnf formula in
