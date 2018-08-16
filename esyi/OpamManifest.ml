@@ -213,7 +213,7 @@ let convertDependencies manifest =
         in
         OpamFilter.partial_filter_formula env f
       in
-      try return (OpamFilter.filter_deps ~build ~post ~test ~doc ~dev f)
+      try return (OpamFilter.filter_deps ~default:true ~build ~post ~test ~doc ~dev f)
       with Failure msg -> Error msg
     in
     convertOpamFormula f
