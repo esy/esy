@@ -49,6 +49,7 @@ const cases = [
   {name: 'xmlm', toolchains: ['~4.6.0']},
   {name: 'configurator', toolchains: ['~4.6.0']},
   {name: 'bin_prot', toolchains: ['~4.6.0']},
+  {name: 'conf-libcurl', toolchains: ['~4.6.0']},
   {name: 'core_kernel', toolchains: ['~4.6.0']},
   {name: 'zed', toolchains: ['~4.6.0']},
   {name: 'lambda-term', toolchains: ['~4.6.0']},
