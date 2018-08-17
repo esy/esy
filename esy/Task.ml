@@ -1118,7 +1118,7 @@ let ofPackage
 
   and taskOfPackageCached ~(includeSandboxEnv: bool) (pkg : Package.t) =
     Run.contextf
-      (Memoize.compute cache pkg.id (fun _ -> taskOfPackage ~includeSandboxEnv pkg))
+      (Memoize.compute cache pkg.id (fun () -> taskOfPackage ~includeSandboxEnv pkg))
       "processing package: %s@%s"
       pkg.name
       pkg.version
