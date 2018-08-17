@@ -45,7 +45,7 @@ let ofDir (cfg : Config.t) =
 
   let resolvePackageCached pkgName basedir =
     let key = (pkgName, basedir) in
-    let compute _ = resolvePackage pkgName basedir in
+    let compute () = resolvePackage pkgName basedir in
     Memoize.compute resolutionCache key compute
   in
 
@@ -220,7 +220,7 @@ let ofDir (cfg : Config.t) =
       error "unable to find manifest"
 
   and loadPackageCached (path : Path.t) stack =
-    let compute _ = loadPackage path stack in
+    let compute () = loadPackage path stack in
     Memoize.compute packageCache path compute
   in
 
