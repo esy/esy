@@ -16,13 +16,19 @@ module Manifest = struct
 
   module Bin = struct
     type t =
+      | Empty
       | One of string
       | Many of string StringMap.t
 
     let of_yojson =
       let open Result.Syntax in
       function
-      | `String cmd -> return (One cmd)
+      | `String cmd ->
+        let cmd = String.trim cmd in
+        begin match cmd with
+        | "" -> return Empty
+        | cmd -> return (One cmd)
+        end
       | `Assoc items ->
         let%bind items =
           let f cmds (name, json) =
@@ -38,7 +44,7 @@ module Manifest = struct
 
   type t = {
     name : string;
-    bin : (Bin.t option [@default None]);
+    bin : (Bin.t [@default Bin.Empty]);
     scripts : (Scripts.t [@default Scripts.empty]);
     esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
@@ -57,12 +63,12 @@ module Manifest = struct
   let packageCommands (sourcePath : Path.t) manifest =
     let makePathToCmd cmdPath = Path.(sourcePath // v cmdPath |> normalize) in
     match manifest.bin with
-    | Some (Bin.One cmd) ->
+    | Bin.One cmd ->
       [manifest.name, makePathToCmd cmd]
-    | Some (Bin.Many cmds) ->
+    | Bin.Many cmds ->
       let f name cmd cmds = (name, makePathToCmd cmd)::cmds in
       (StringMap.fold f cmds [])
-    | None -> []
+    | Bin.Empty -> []
 
 end
 

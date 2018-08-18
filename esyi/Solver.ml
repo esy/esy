@@ -559,6 +559,9 @@ let solveDependenciesNaively
   in
 
   let solveDependencies dependencies =
+    let dependencies =
+      Dependencies.applyResolutions solver.resolutions dependencies
+    in
     let reqs =
       match dependencies with
       | Dependencies.NpmFormula reqs -> reqs
