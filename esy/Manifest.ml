@@ -298,19 +298,35 @@ end = struct
 
   end
 
+  module JsonManifest = struct
+    type t = {
+      name : (string option [@default None]);
+      version : string;
+      description : (string option [@default None]);
+      license : (Json.t option [@default None]);
+      dependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+      peerDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+      devDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+      optDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+      buildTimeDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
+      esy: EsyManifest.t option [@default None];
+      _resolved: (string option [@default None]);
+    } [@@deriving (of_yojson {strict = false})]
+  end
+
   type manifest = {
-    name : (string [@default "root"]);
+    name : string;
     version : string;
-    description : (string option [@default None]);
-    license : (Json.t option [@default None]);
-    dependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
-    peerDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
-    devDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
-    optDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
-    buildTimeDependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
-    esy: EsyManifest.t option [@default None];
-    _resolved: (string option [@default None]);
-  } [@@deriving (of_yojson {strict = false})]
+    description : string option;
+    license : Json.t option;
+    dependencies : PackageJsonDependencies.t;
+    peerDependencies : PackageJsonDependencies.t;
+    devDependencies : PackageJsonDependencies.t;
+    optDependencies : PackageJsonDependencies.t;
+    buildTimeDependencies : PackageJsonDependencies.t;
+    esy: EsyManifest.t option;
+    _resolved: string option;
+  }
 
   type t = manifest * Json.t
 
@@ -400,10 +416,33 @@ end = struct
       substs = [];
     }
 
+  let ofJsonManifest (jsonManifest: JsonManifest.t) (path: Path.t) =
+    let name = 
+      match jsonManifest.name with
+      | Some(name) -> name
+      | None -> Path.basename path
+    in
+    {
+      name;
+      version = jsonManifest.version;
+      description = jsonManifest.description;
+      license = jsonManifest.license;
+      dependencies = jsonManifest.dependencies;
+      peerDependencies = jsonManifest.peerDependencies;
+      devDependencies = jsonManifest.devDependencies;
+      optDependencies = jsonManifest.optDependencies;
+      buildTimeDependencies = jsonManifest.buildTimeDependencies;
+      esy = jsonManifest.esy;
+      _resolved = jsonManifest._resolved;
+    }
+
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind json = Fs.readJsonFile path in
-    let%bind manifest = RunAsync.ofRun (Json.parseJsonWith manifest_of_yojson json) in
+    let%bind jsonManifest =
+      RunAsync.ofRun (Json.parseJsonWith JsonManifest.of_yojson json)
+    in
+    let manifest = ofJsonManifest jsonManifest path in
     return (manifest, json)
 
   let findOfDir (path : Path.t) =

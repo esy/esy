@@ -27,7 +27,7 @@ let readPackageJsonManifest (path : Path.t) =
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.RootPackageJson.of_yojson json) in
     let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
     let manifest = Manifest.ofRootPackageJson pkgJson in
-    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions))
+    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions, Esy(filename)))
   | None -> return None
 
 let readAggregatedOpamManifest (path : Path.t) =
