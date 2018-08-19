@@ -6,6 +6,11 @@
   with new dependencies specified on a command line and perform installation
   (#346) (@zploskey).
 
+- Apply resolutions for npm packages as well (#370) (@rauanmayemir).
+
+- Do not fail on empty `bin` in `package.json` on npm packages installation
+  (#370) (@rauanmayemir).
+
 - Fix `esy ls-modules` command not to show private modules (modules with `__` in
   their names) (#361).
 
@@ -18,6 +23,9 @@
 - Improvements to handling opam metadata: more comprehensive set of opam
   variables is supported, automatically upgrade to opam 2 metadata format, ...
   (#351, #364).
+
+- Fix for release wrappers to have the corrent arg0, some programs (ocamlmerlin
+  notably) were failing b/c they used arg0 to locate helper programs.
 
 ## 0.2.6 @ latest
 
