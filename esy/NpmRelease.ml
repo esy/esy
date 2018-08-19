@@ -26,44 +26,46 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
     |> String.concat ";"
   in
   Printf.sprintf {|
+    let curEnvMap =
+      let curEnv = Unix.environment () in
+      let table = Hashtbl.create (Array.length curEnv) in
+      let f item =
+        try (
+          let idx = String.index item '=' in
+          let name = String.sub item 0 idx in
+          let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+          Hashtbl.replace table name value
+        ) with Not_found -> ()
+      in
+      Array.iter f curEnv;
+      table;;
+
+    let env =
+      let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
+      let replace v =
+        let name = Str.matched_group 1 v in
+        try Hashtbl.find curEnvMap name
+        with Not_found -> ""
+      in
+      let f (name, value) =
+        let value = Str.global_substitute findVarRe replace value in
+        Hashtbl.replace curEnvMap name value
+      in
+      Array.iter f [|%s|];
+      let f name value items = (name ^ "=" ^ value)::items in
+      Array.of_list (Hashtbl.fold f curEnvMap []);;
+
     let () =
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
         print_endline "%s"
+      else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----env" then
+        Array.iter print_endline env
       else (
-        let curEnvMap =
-          let curEnv = Unix.environment () in
-          let table = Hashtbl.create (Array.length curEnv) in
-          let f item =
-            try (
-              let idx = String.index item '=' in
-              let name = String.sub item 0 idx in
-              let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-              Hashtbl.replace table name value
-            ) with Not_found -> ()
-          in
-          Array.iter f curEnv;
-          table
-          in
-
-        let env =
-          let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
-          let replace v =
-            let name = Str.matched_group 1 v in
-            try Hashtbl.find curEnvMap name
-            with Not_found -> ""
-          in
-          let f (name, value) =
-            let value = Str.global_substitute findVarRe replace value in
-            Hashtbl.replace curEnvMap name value
-          in
-          Array.iter f [|%s|];
-          let f name value items = (name ^ "=" ^ value)::items in
-          Array.of_list (Hashtbl.fold f curEnvMap [])
-        in
-
-        Unix.execve "%s" Sys.argv env
+        let program = "%s" in
+        Sys.argv.(0) <- program;
+        Unix.execve program Sys.argv env
       )
-  |} bin environmentString bin
+  |} environmentString bin bin
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
