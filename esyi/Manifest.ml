@@ -20,7 +20,7 @@ let find (path : Path.t) =
 module EsyJson = struct
   type t = {
     _dependenciesForNewEsyInstaller : (NpmDependencies.t option [@default None]);
-  } [@@deriving of_yojson { strict = false }]
+  } [@@deriving yojson { strict = false }]
 end
 
 (* This is used just to read the Json.t *)
@@ -82,7 +82,7 @@ type manifest = t
 
 let name manifest = manifest.name
 
-let ofRootPackageJson ?(source=Source.NoSource) (pkgJson : RootPackageJson.t) =
+let ofRootPackageJson (pkgJson : RootPackageJson.t) =
   let dependencies =
     match pkgJson.esy with
     | None
@@ -97,14 +97,7 @@ let ofRootPackageJson ?(source=Source.NoSource) (pkgJson : RootPackageJson.t) =
     dependencies;
     devDependencies = pkgJson.devDependencies;
     hasEsyManifest = Option.isSome pkgJson.esy;
-    source =
-      match pkgJson.dist with
-      | Some dist ->
-        Source.Archive {
-          url = dist.RootPackageJson.tarball;
-          checksum = Checksum.Sha1, dist.RootPackageJson.shasum;
-        }
-      | None -> source;
+    source = Source.NoSource
   }
 
 let ofPackageJson ?(source=Source.NoSource) (pkgJson : PackageJson.t) =
