@@ -215,27 +215,6 @@ let addRoot ~(record : Record.t) ~dependencies sol =
   let id = Id.ofRecord record in
   {sol with root = Some id;}
 
-let computeSandboxChecksum (sandbox : Sandbox.t) =
-  let hashDependencies ~dependencies digest =
-    Digest.string (digest ^ "__" ^ Package.Dependencies.show dependencies)
-  in
-  let hashResolutions ~resolutions digest =
-    let f digest (key, version) =
-     Digest.string (digest ^ "__" ^ key ^ "__" ^ Version.toString version)
-    in
-    List.fold_left
-      ~f ~init:digest
-      (Package.Resolutions.entries resolutions)
-  in
-  let digest =
-    Digest.string ""
-    |> hashResolutions
-      ~resolutions:sandbox.resolutions
-    |> hashDependencies
-      ~dependencies:sandbox.dependencies
-  in
-  Digest.to_hex digest
-
 module LockfileV1 = struct
 
   type t = {
@@ -254,6 +233,71 @@ module LockfileV1 = struct
     (* List of dependency ids. *)
     dependencies : Id.t list;
   } [@@deriving yojson]
+
+  let computeSandboxChecksum (sandbox : Sandbox.t) =
+
+    let ppDependencies fmt deps =
+
+      let ppOpamDependencies fmt deps =
+        let ppDisj fmt disj =
+          match disj with
+          | [] -> Fmt.unit "true" fmt ()
+          | [dep] -> Package.Dep.pp fmt dep
+          | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Package.Dep.pp) deps
+        in
+        Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
+      in
+
+      let ppNpmDependencies fmt deps =
+        let ppDnf ppConstr fmt f =
+          let ppConj = Fmt.(list ~sep:(unit " && ") ppConstr) in
+          Fmt.(list ~sep:(unit " || ") ppConj) fmt f
+        in
+        let ppVersionSpec fmt spec =
+          match spec with
+          | Package.VersionSpec.Npm f ->
+            ppDnf SemverVersion.Constraint.pp fmt f
+          | Package.VersionSpec.Opam f ->
+            ppDnf OpamPackageVersion.Constraint.pp fmt f
+          | Package.VersionSpec.Source src ->
+            Fmt.pf fmt "%a" Package.SourceSpec.pp src
+        in
+        let ppReq fmt req =
+          let name = Package.Req.name req in
+          let spec = Package.Req.spec req in
+          Fmt.fmt "%s@%a" fmt name ppVersionSpec spec
+        in
+        Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
+      in
+
+      match deps with
+      | Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+      | Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+    in
+
+    let showDependencies (deps : Package.Dependencies.t) =
+      Format.asprintf "%a" ppDependencies deps
+    in
+
+    let hashDependencies ~dependencies digest =
+      Digest.string (digest ^ "__" ^ showDependencies dependencies)
+    in
+    let hashResolutions ~resolutions digest =
+      let f digest (key, version) =
+      Digest.string (digest ^ "__" ^ key ^ "__" ^ Version.toString version)
+      in
+      List.fold_left
+        ~f ~init:digest
+        (Package.Resolutions.entries resolutions)
+    in
+    let digest =
+      Digest.string ""
+      |> hashResolutions
+        ~resolutions:sandbox.resolutions
+      |> hashDependencies
+        ~dependencies:sandbox.dependencies
+    in
+    Digest.to_hex digest
 
   let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
     let derelativize path = Path.(sandbox.path // path |> normalize) in

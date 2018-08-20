@@ -70,6 +70,7 @@ module VersionSpec : sig
     | Opam of OpamPackageVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
+  val pp : t Fmt.t
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
 
