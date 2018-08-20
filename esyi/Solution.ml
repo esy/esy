@@ -43,6 +43,34 @@ module Record = struct
     opam : Opam.t option;
   } [@@deriving yojson]
 
+  let mapVersion ~f (record : t) =
+    let version =
+      match record.version with
+      | Version.Source (Package.Source.LocalPath p) ->
+        Version.Source (Package.Source.LocalPath (f p))
+      | Version.Npm _
+      | Version.Opam _
+      | Version.Source _ -> record.version
+    in
+    let source =
+      let f source =
+        match source with
+        | Package.Source.LocalPathLink p ->
+          Package.Source.LocalPathLink (f p)
+        | Package.Source.LocalPath p ->
+          Package.Source.LocalPath (f p)
+        | Package.Source.Archive _
+        | Package.Source.Git _
+        | Package.Source.Github _
+        | Package.Source.NoSource -> source
+      in
+      let main, mirrors = record.source in
+      let main = f main in
+      let mirrors = List.map ~f mirrors in
+      main, mirrors
+    in
+    {record with source; version}
+
   let compare a b =
     let c = String.compare a.name b.name in
     if c = 0
@@ -79,6 +107,17 @@ module Id = struct
   let of_yojson = function
     | `String v -> parse v
     | _ -> Error "expected string"
+
+  let mapVersion ~f ((name, version) : t) =
+    let version =
+      match version with
+      | Version.Source (Source.LocalPath p) ->
+        Version.Source (Source.LocalPath (f p))
+      | Version.Npm _
+      | Version.Opam _
+      | Version.Source _ -> version
+    in
+    ((name, version) : t)
 
   let ofRecord (record : Record.t) =
     record.name, record.version
@@ -216,51 +255,12 @@ module LockfileV1 = struct
     dependencies : Id.t list;
   } [@@deriving yojson]
 
-  let mapId ~f ((name, version) : Id.t) =
-    let version =
-      match version with
-      | Version.Source (Source.LocalPath p) ->
-        Version.Source (Source.LocalPath (f p))
-      | Version.Npm _
-      | Version.Opam _
-      | Version.Source _ -> version
-    in
-    name, version
-
-  let mapRecord ~f (record : Record.t) =
-    let version =
-      match record.version with
-      | Version.Source (Source.LocalPath p) ->
-        Version.Source (Source.LocalPath (f p))
-      | Version.Npm _
-      | Version.Opam _
-      | Version.Source _ -> record.version
-    in
-    let source =
-      let f source =
-        match source with
-        | Source.LocalPathLink p ->
-          Source.LocalPathLink (f p)
-        | Source.LocalPath p ->
-          Source.LocalPath (f p)
-        | Source.Archive _
-        | Source.Git _
-        | Source.Github _
-        | Source.NoSource -> source
-      in
-      let main, mirrors = record.source in
-      let main = f main in
-      let mirrors = List.map ~f mirrors in
-      main, mirrors
-    in
-    {record with source; version}
-
   let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
     let derelativize path = Path.(sandbox.path // path |> normalize) in
-    let root = mapId ~f:derelativize root in
+    let root = Id.mapVersion ~f:derelativize root in
     let f id {record; dependencies} sol =
-      let record = mapRecord ~f:derelativize record in
-      let id = mapId ~f:derelativize id in
+      let record = Record.mapVersion ~f:derelativize record in
+      let id = Id.mapVersion ~f:derelativize id in
       if Id.equal root id
       then addRoot ~record ~dependencies sol
       else add ~record ~dependencies sol
@@ -278,15 +278,15 @@ module LockfileV1 = struct
     let node =
       let f id record nodes =
         let dependencies = Id.Map.find id sol.dependencies in
-        let id = mapId ~f:relativize id in
-        let record = mapRecord ~f:relativize record in
+        let id = Id.mapVersion ~f:relativize id in
+        let record = Record.mapVersion ~f:relativize record in
         Id.Map.add id {record; dependencies = Id.Set.elements dependencies} nodes
       in
       Id.Map.fold f sol.records Id.Map.empty
     in
     let root =
       match sol.root with
-      | Some root -> mapId ~f:relativize root
+      | Some root -> Id.mapVersion ~f:relativize root
       | None -> failwith "empty solution"
     in
     root, node
