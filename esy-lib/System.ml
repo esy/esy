@@ -22,6 +22,7 @@ module Platform = struct
 
   let host =
     let uname () =
+      print_endline ("Platform.host.uname");
       let ic = Unix.open_process_in "uname" in
       let uname = input_line ic in
       let () = close_in ic in
@@ -64,12 +65,19 @@ module Arch = struct
 
   let host =
     let uname () =
-      let ic = Unix.open_process_in "uname -m" in
+      let cmd =
+          match Platform.host with
+          | Windows -> "echo %PROCESSOR_ARCHITECTURE%"
+          | _ -> "uname -m"
+      in
+      let ic = Unix.open_process_in cmd in
       let uname = input_line ic in
       let () = close_in ic in
-      match String.lowercase_ascii uname with
-      | "x86_32" -> X86_32
-      | "x86_64" -> X86_64
+      match String.trim (String.lowercase_ascii uname) with
+      (* Return values for Windows PROCESSOR_ARCHITECTURE environment variable *)
+      | "x86" -> X86_32
+      | "amd64" -> X86_64
+      (* Return values for uname on other platforms *)
       | "ppc32" -> Ppc32
       | "ppc64" -> Ppc64
       | "arm32" -> Arm32
