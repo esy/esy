@@ -19,6 +19,7 @@
             ppx_deriving_yojson.runtime
             str
             astring
+            EsyShellExpansion
             )
   )
 

@@ -13,8 +13,8 @@ module Platform : sig
   val host : t
   (** Platform we are currently running on *)
 
-  include Abstract.PRINTABLE with type t := t
-  include Abstract.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.COMPARABLE with type t := t
 end
 
 module Arch : sig
@@ -23,14 +23,14 @@ module Arch : sig
   val host : t
   (** Arch we are currently running on *)
 
-  include Abstract.PRINTABLE with type t := t
-  include Abstract.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.COMPARABLE with type t := t
 
 end
 
 module Environment : sig
   (** Environment variable separator which is used for $PATH and etc *)
-  val sep : string
+  val sep : ?platform:Platform.t -> ?name:string -> unit -> string
 
   (** Value of $PATH environment variable. *)
   val path : string list

@@ -33,9 +33,9 @@ let getExt : (~multi: bool=?, t) => ext;
 
 let dirSep : string;
 
-include Abstract.PRINTABLE with type t := t;
-include Abstract.COMPARABLE with type t := t;
-include Abstract.JSONABLE with type t := t;
+include S.PRINTABLE with type t := t;
+include S.COMPARABLE with type t := t;
+include S.JSONABLE with type t := t;
 
 module Set : (module type of Fpath.Set);
 
