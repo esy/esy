@@ -22,7 +22,6 @@ module Platform = struct
 
   let host =
     let uname () =
-      print_endline ("Platform.host.uname");
       let ic = Unix.open_process_in "uname" in
       let uname = input_line ic in
       let () = close_in ic in
