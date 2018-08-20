@@ -14,7 +14,7 @@ module Source : sig
     | LocalPathLink of Path.t
     | NoSource
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
 
@@ -30,7 +30,7 @@ module Version : sig
     | Opam of OpamPackageVersion.Version.t
     | Source of Source.t
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
   val parseExn : string -> t

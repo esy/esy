@@ -10,7 +10,7 @@
 module type VERSION  = sig
   type t
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
 
@@ -34,7 +34,7 @@ module type CONSTRAINT = sig
     | NONE
     | ANY
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   module VersionSet : Set.S with type elt = version
 
@@ -67,7 +67,7 @@ module type FORMULA = sig
   module DNF : sig
     type t = constr conj disj
 
-    include Abstract.COMMON with type t := t
+    include S.COMMON with type t := t
 
     val unit : constr -> t
     val matches : version:version -> t -> bool
@@ -83,7 +83,7 @@ module type FORMULA = sig
   module CNF : sig
     type t = constr disj conj
 
-    include Abstract.COMMON with type t := t
+    include S.COMMON with type t := t
 
     val matches : version:version -> constr disj disj -> bool
   end
