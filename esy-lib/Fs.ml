@@ -178,9 +178,9 @@ let copyStatLwt ~stat path =
     let%lwt () = Lwt_unix.utimes path stat.Unix.st_atime stat.Unix.st_mtime in
     let%lwt () = Lwt_unix.chmod path stat.Unix.st_perm in
     let%lwt () = 
-      try%lwt Lwt_unix.chown path uid gid
+      try%lwt Lwt_unix.chown path stat.Unix.st_uid stat.Unix.st_gid 
       with Unix.Unix_error (Unix.EPERM, _, _) -> Lwt.return ()
-    Lwt.return ()
+    in Lwt.return ()
 
 let copyFileLwt ~src ~dst =
 
