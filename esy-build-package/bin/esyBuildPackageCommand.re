@@ -26,21 +26,23 @@ let setupLog = (style_renderer, level) => {
 let createConfig = (copts: commonOpts) => {
   open Run;
   let {prefixPath, sandboxPath, _} = copts;
-  let%bind fastreplacestringCmd = {
+  let%bind fastreplacestringPath = {
     let program = Sys.argv[0];
     let%bind program = realpath(v(program));
     let basedir = Fpath.parent(program);
-    let resolution =
-      EsyLib.NodeResolution.resolve(
-        "../../../../bin/fastreplacestring",
-        basedir,
-      );
-    switch%bind (Run.coerceFromMsgOnly(resolution)) {
-    | Some(path) => Ok(Fpath.to_string(path))
-    | None => Error(`Msg("cannot resolve fastreplacestring command"))
+    switch%bind (
+      coerceFromMsgOnly(
+        EsyLib.NodeResolution.resolve(
+          "../../../../bin/fastreplacestring",
+          basedir,
+        ),
+      )
+    ) {
+    | Some(path) => Ok(path)
+    | None => Error(`Msg("unable to find fastreplacestring command"))
     };
   };
-  Config.make(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
+  Config.make(~fastreplacestringPath, ~prefixPath?, ~sandboxPath?, ());
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {

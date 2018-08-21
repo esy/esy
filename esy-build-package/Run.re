@@ -24,6 +24,16 @@ let errorf = fmt => {
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 
+let runExn = v =>
+  switch (v) {
+  | Ok(v) => v
+  | Error(`Msg(err)) => failwith(err)
+  | Error(`CommandError(cmd, _)) =>
+    let err = Format.asprintf("error running command %a", Cmd.pp, cmd);
+    failwith(err);
+  | Error(_) => assert(false)
+  };
+
 let v = Fpath.v;
 let (/) = Fpath.(/);
 

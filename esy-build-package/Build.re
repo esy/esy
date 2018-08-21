@@ -219,7 +219,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     let f = (k, v) =>
       fun
       | Ok(result) => {
-          let%bind v = Config.Value.toString(~cfg, v);
+          let v = Config.Value.render(cfg, v);
           Ok(Astring.String.Map.add(k, v, result));
         }
       | error => error;
@@ -228,8 +228,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
 
   let renderCommands = (~cfg, cmds) => {
     let f = cmd => {
-      let%bind cmd =
-        EsyLib.Result.List.map(~f=Config.Value.toString(~cfg), cmd);
+      let cmd = List.map(Config.Value.render(cfg), cmd);
       return(Cmd.of_list(cmd));
     };
     EsyLib.Result.List.map(~f, cmds);
@@ -243,9 +242,9 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     | Transient => cfg.localStorePath
     };
 
-  let%bind sourcePath = {
-    let%bind sourcePath = Config.Value.toString(~cfg, plan.sourcePath);
-    return(Path.v(sourcePath));
+  let sourcePath = {
+    let sourcePath = Config.Value.render(cfg, plan.sourcePath);
+    Path.v(sourcePath);
   };
   let installPath = Path.(storePath / EsyLib.Store.installTree / plan.id);
   let stagePath = Path.(storePath / EsyLib.Store.stageTree / plan.id);
@@ -376,7 +375,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     let cmd =
       Cmd.(
         empty
-        % config.fastreplacestringCmd
+        % p(config.fastreplacestringPath)
         % p(path)
         % origPrefix
         % destPrefix
@@ -570,7 +569,7 @@ let runCommand = (build, cmd) => {
     };
   let path =
     switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.Environment.sep.[0], path)
+    | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
     | None => []
     };
 
@@ -595,7 +594,7 @@ let runCommandInteractive = (build, cmd) => {
     };
   let path =
     switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.Environment.sep.[0], path)
+    | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
     | None => []
     };
   let%bind ((), (_runInfo, runStatus)) = {

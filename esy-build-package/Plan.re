@@ -1,33 +1,8 @@
 module Path = EsyLib.Path;
-module Result = EsyLib.Result;
-module Let_syntax = Result.Syntax.Let_syntax;
 
-open Result.Syntax;
+module Env = EsyLib.Environment.Make(Config.Value);
 
-module Env = {
-  type t = Astring.String.Map.t(Config.Value.t);
-  let compare = Astring.String.Map.compare(Config.Value.compare);
-  let pp = (_fmt, _env) => ();
-  let of_yojson = (json: Yojson.Safe.json) =>
-    switch (json) {
-    | `Assoc(items) =>
-      let f = (res, (key, value)) =>
-        switch (res, value) {
-        | (Ok(res), `String(value)) =>
-          Ok(Astring.String.Map.add(key, Config.Value.v(value), res))
-        | _ => Error("expected a string value")
-        };
-      List.fold_left(f, Ok(Astring.String.Map.empty), items);
-    | _ => Error("expected an object")
-    };
-  let to_yojson = (env: t) => {
-    let f = (k, v, items) => [(k, Config.Value.to_yojson(v)), ...items];
-    let items = Astring.String.Map.fold(f, env, []);
-    `Assoc(items);
-  };
-};
-
-[@deriving (yojson, ord)]
+[@deriving (yojson, ord, eq)]
 type t = {
   id: string,
   name: string,
@@ -41,6 +16,7 @@ type t = {
 };
 
 let ofFile = (path: Path.t) => {
+  module Let_syntax = EsyLib.Result.Syntax.Let_syntax;
   let%bind data = Run.read(path);
   let json = Yojson.Safe.from_string(data);
   switch (of_yojson(json)) {
