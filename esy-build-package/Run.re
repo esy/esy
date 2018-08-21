@@ -45,12 +45,16 @@ let rm = path =>
   | Ok({Unix.st_kind: S_DIR, _}) =>
     Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
   | Ok({Unix.st_kind: S_LNK, _}) =>
-    switch (Bos.OS.U.unlink(path)) {
-    | Ok () => ok
-    | Error(`Unix(err)) =>
-      let msg = Unix.error_message(err);
-      error(msg);
-    }
+    switch (System.Platform.host) {
+    | Windows => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
+    | _ =>
+        switch (Bos.OS.U.unlink(path)) {
+        | Ok () => ok
+        | Error(`Unix(err)) =>
+          let msg = Unix.error_message(err);
+          error(msg);
+        };
+    };
   | Ok({Unix.st_kind: _, _}) => Bos.OS.Path.delete(~must_exist=false, path)
   | Error(_) => ok
   };
