@@ -21,7 +21,7 @@ let run
         cfg.esyBuildPackageCommand
         % action
         % "--prefix-path" % p cfg.prefixPath
-        % "--sandbox-path" % p cfg.sandboxPath
+        % "--sandbox-path" % p cfg.buildConfig.sandboxPath
         % "--build"
         % Path.toString buildJsonFilename
         |> addArgs args
@@ -35,7 +35,7 @@ let run
 
     let%bind stdout, stderr, log = match stderrout with
     | `Log ->
-      let logPath = Config.Path.toPath cfg task.paths.logPath in
+      let logPath = Config.Path.toPath cfg.buildConfig (Task.logPath task) in
       let%lwt fd = Lwt_unix.openfile
         (Path.toString logPath)
         Lwt_unix.[O_WRONLY; O_CREAT]
@@ -58,7 +58,7 @@ let run
   in
 
   let buildJson =
-    let json = EsyBuildPackage.Plan.to_yojson task.plan in
+    let json = EsyBuildPackage.Plan.to_yojson (Task.plan task) in
     Yojson.Safe.to_string json
   in
   Fs.withTempFile ~data:buildJson runProcess

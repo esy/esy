@@ -31,7 +31,6 @@ const fixture = [
 ];
 
 it('Build - sandbox stress _build', async () => {
-  expect.assertions(1);
   const p = await createTestSandbox(...fixture);
   await p.esy('build');
 

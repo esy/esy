@@ -105,7 +105,7 @@ let esyEnvOverride (cfg : Config.t) =
   let env = Astring.String.Map.(
       empty
       |> add "ESY__PREFIX" (Path.toString cfg.prefixPath)
-      |> add "ESY__SANDBOX" (Path.toString cfg.sandboxPath)
+      |> add "ESY__SANDBOX" (Path.toString cfg.buildConfig.sandboxPath)
     ) in
   `CurrentEnvOverride env
 
@@ -246,8 +246,10 @@ let withBuildTaskByPath
   | Some packagePath ->
     let resolvedPath = packagePath |> Path.remEmptySeg |> Path.toString in
     let findByPath (task : Task.t) =
-      String.equal resolvedPath task.pkg.id
-    in begin match Task.Graph.find ~f:findByPath info.task with
+      let pkg = Task.pkg task in
+      String.equal resolvedPath pkg.id
+    in
+    begin match Task.Graph.find ~f:findByPath info.task with
       | None ->
         let msg = Printf.sprintf "No package found at %s" resolvedPath in
         error msg
@@ -261,7 +263,7 @@ let buildPlan packagePath cfg =
   let%bind info = SandboxInfo.ofConfig cfg in
 
   let f task =
-    let json = EsyBuildPackage.Plan.to_yojson task.Task.plan in
+    let json = EsyBuildPackage.Plan.to_yojson (Task.plan task) in
     let data = Yojson.Safe.pretty_to_string json in
     print_endline data;
     return ()
@@ -321,43 +323,47 @@ let makeEnvCommand ~computeEnv ~header asJson packagePath cfg =
 
   let f (task : Task.t) =
     let%bind source = RunAsync.ofRun (
-        let open Run.Syntax in
-        let%bind env = computeEnv task.pkg in
-        let header = header task.pkg in
-        if asJson
-        then
-          let%bind env = Environment.Value.ofBindings env in
-          let%bind env = Environment.Value.bindToConfig cfg env in
-          Ok (
-            env
-            |> Environment.Value.to_yojson
-            |> Yojson.Safe.pretty_to_string)
-        else
-          Environment.renderToShellSource
-            ~header
-            ~sandboxPath:cfg.sandboxPath
-            ~storePath:cfg.storePath
-            ~localStorePath:cfg.localStorePath
-            env
+      let open Run.Syntax in
+      let%bind env = computeEnv cfg task in
+      let pkg = Task.pkg task in
+      let header = header pkg in
+      if asJson
+      then
+        let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
+        Ok (
+          env
+          |> Environment.to_yojson
+          |> Yojson.Safe.pretty_to_string)
+      else
+        Environment.renderToShellSource
+          ~header
+          env
       ) in
     let%lwt () = Lwt_io.print source in
     return ()
   in withBuildTaskByPath ~info packagePath f
 
 let buildEnv =
+  let open Run.Syntax in
   let header (pkg : Package.t) =
     Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
   in
-  makeEnvCommand ~computeEnv:Task.buildEnv ~header
+  let computeEnv cfg task =
+    let%bind env = Task.buildEnv task in
+    let env = Config.Environment.Bindings.render cfg.Config.buildConfig env in
+    return env
+  in
+  makeEnvCommand ~computeEnv ~header
 
 let commandEnv =
   let open Run.Syntax in
   let header (pkg : Package.t) =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv pkg =
-    let%bind env = Task.commandEnv pkg in
-    Ok (Environment.current @ env)
+  let computeEnv cfg task =
+    let%bind env = Task.commandEnv task in
+    let env = Config.Environment.Bindings.render cfg.Config.buildConfig env in
+    return (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
 
@@ -366,8 +372,9 @@ let sandboxEnv =
   let header (pkg : Package.t) =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv pkg =
-    let%bind env = Task.sandboxEnv pkg in
+  let computeEnv cfg task =
+    let%bind env = Task.sandboxEnv task in
+    let env = Config.Environment.Bindings.render cfg.Config.buildConfig env in
     Ok (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
@@ -388,16 +395,15 @@ let makeExecCommand
     else return ()
   in
 
-  let%bind env = RunAsync.ofRun (
-    let open Run.Syntax in
+  let%bind env = RunAsync.ofStringError (
+    let open Result.Syntax in
     let env = match env with
       | `CommandEnv -> commandEnv
       | `SandboxEnv -> sandboxEnv
     in
     let env = Environment.current @ env in
-    let%bind env = Environment.Value.ofBindings env in
-    let%bind env = Environment.Value.bindToConfig cfg env in
-    Ok (`CustomEnv env)
+    let%bind env = Environment.Bindings.eval env in
+    return (`CustomEnv env)
   ) in
 
   let cmd =
@@ -425,8 +431,8 @@ let exec cmd cfg =
   let%bind () =
     let installPath =
       Config.Path.toPath
-        cfg
-        info.SandboxInfo.task.paths.installPath
+        cfg.buildConfig
+        (Task.installPath info.SandboxInfo.task)
     in
     if%bind Fs.exists installPath then
       return ()
@@ -492,12 +498,13 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
   let seen = ref StringSet.empty in
 
   let f ~foldDependencies _prev (task : Task.t) =
-    if StringSet.mem task.id !seen then
+    let id = Task.id task in
+    if StringSet.mem id !seen then
       return None
     else (
-      seen := StringSet.add task.id !seen;
+      seen := StringSet.add id !seen;
       let%bind children =
-        if not includeTransitive && task.id <> info.task.id then
+        if not includeTransitive && id <> (Task.id info.task) then
           return []
         else
           foldDependencies ()
@@ -515,10 +522,10 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
 
 let formatPackageInfo ~built:(built : bool)  (task : Task.t) =
   let open RunAsync.Syntax in
-  let pkg = task.pkg in
+  let pkg = Task.pkg task in
   let version = Chalk.grey ("@" ^ pkg.version) in
   let status =
-    match task.sourceType, built with
+    match (Task.sourceType task), built with
     | Manifest.SourceType.Immutable, true ->
       Chalk.green "[built]"
     | _, _ ->
@@ -635,7 +642,7 @@ let lsModules ~libs:only cfg =
         return []
     in
 
-    let isNotRoot = task.id <> info.task.id in
+    let isNotRoot = Task.id task <> Task.id info.task in
     let constraintsSet = List.length only <> 0 in
     let noMatchedLibs = List.length (List.intersect only libs) = 0 in
 
@@ -874,19 +881,15 @@ let () =
 
   let dependenciesForExport (task : Task.t) =
     let f deps dep = match dep with
-      | Task.Dependency ({
-          sourceType = Manifest.SourceType.Immutable;
-          _
-        } as task)
-      | Task.BuildTimeDependency ({
-          sourceType = Manifest.SourceType.Immutable; _
-        } as task) ->
-        (task, dep)::deps
-      | Task.Dependency _
-      | Task.DevDependency _
-      | Task.BuildTimeDependency _ -> deps
+      | Task.Dependency depTask
+      | Task.BuildTimeDependency depTask ->
+        begin match Task.sourceType depTask with
+        | Manifest.SourceType.Immutable -> (depTask, dep)::deps
+        | _ -> deps
+        end
+      | Task.DevDependency _ -> deps
     in
-    task.dependencies
+    Task.dependencies task
     |> List.fold_left ~f ~init:[]
     |> List.rev
   in
@@ -924,26 +927,25 @@ let () =
         let tasks =
           rootTask
           |> Task.Graph.traverse ~traverse:dependenciesForExport
-          |> List.filter ~f:(fun (task : Task.t) -> not (task.id = rootTask.id))
+          |> List.filter ~f:(fun (task : Task.t) -> not (Task.id task = Task.id rootTask))
         in
 
         let queue = LwtTaskQueue.create ~concurrency:8 () in
 
         let exportBuild (task : Task.t) =
+          let pkg = Task.pkg task in
           let aux () =
-            let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" task.pkg.name task.pkg.version) in
-            let buildPath = Config.Path.toPath cfg task.paths.installPath in
+            let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" pkg.name pkg.version) in
+            let buildPath = Config.Path.toPath cfg.Config.buildConfig (Task.installPath task) in
             if%bind Fs.exists buildPath
             then
               let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
               Task.exportBuild ~outputPrefixPath ~cfg buildPath
             else (
-              let msg =
-                Printf.sprintf
-                  "%s@%s was not built, run 'esy build' first"
-                  task.pkg.name
-                  task.pkg.version
-              in error msg
+              errorf
+                "%s@%s was not built, run 'esy build' first"
+                pkg.name
+                pkg.version
             )
           in LwtTaskQueue.submit queue aux
         in
@@ -1006,32 +1008,33 @@ let () =
 
         let fromPath = match fromPath with
           | Some fromPath -> fromPath
-          | None -> Path.(cfg.Config.sandboxPath / "_export")
+          | None -> Path.(cfg.Config.buildConfig.sandboxPath / "_export")
         in
 
         let pkgs =
           rootTask
           |> Task.Graph.traverse ~traverse:dependenciesForExport
-          |> List.filter ~f:(fun (task : Task.t) -> not (task.Task.id = rootTask.id))
+          |> List.filter ~f:(fun (task : Task.t) -> not (Task.id task = Task.id rootTask))
         in
 
         let queue = LwtTaskQueue.create ~concurrency:16 () in
 
         let importBuild (task : Task.t) =
           let aux () =
-            let installPath = Config.Path.toPath cfg task.paths.installPath in
+            let installPath = Config.Path.toPath cfg.buildConfig (Task.installPath task) in
             if%bind Fs.exists installPath
             then return ()
             else (
-              let pathDir = Path.(fromPath / task.id) in
-              let pathTgz = Path.(fromPath / (task.id ^ ".tar.gz")) in
+              let id = Task.id task in
+              let pathDir = Path.(fromPath / id) in
+              let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
               if%bind Fs.exists pathDir
               then Task.importBuild cfg pathDir
               else if%bind Fs.exists pathTgz
               then Task.importBuild cfg pathTgz
               else
                 let%lwt () =
-                  Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" task.id)
+                  Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id)
                 in return ()
             )
           in LwtTaskQueue.submit queue aux
@@ -1065,7 +1068,7 @@ let () =
 
         let%bind outputPath =
           let outputDir = "_release" in
-          let outputPath = Path.(cfg.Config.sandboxPath / outputDir) in
+          let outputPath = Path.(cfg.Config.buildConfig.sandboxPath / outputDir) in
           let%bind () = Fs.rmPath outputPath in
           return outputPath
         in

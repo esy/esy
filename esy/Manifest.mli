@@ -74,6 +74,8 @@ module Build : sig
     sandboxEnv : Env.t;
     buildEnv : Env.t;
   }
+
+  val to_yojson : t -> Json.t
 end
 
 (**

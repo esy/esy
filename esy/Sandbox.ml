@@ -142,7 +142,7 @@ let ofDir (cfg : Config.t) =
           ~make:(fun pkg -> Package.OptDependency pkg)
           deps.optDependencies
       >>= (fun dependencies ->
-          if Path.equal cfg.sandboxPath path
+          if Path.equal cfg.buildConfig.sandboxPath path
           then
             addDependencies
               ~ignoreCircularDep ~skipUnresolved:true
@@ -192,7 +192,7 @@ let ofDir (cfg : Config.t) =
           version = Manifest.version manifest;
           dependencies = StringMap.values dependencies;
           build = {build with sourceType};
-          sourcePath = Config.Path.ofPath cfg sourcePath;
+          sourcePath = Config.Path.ofPath cfg.buildConfig sourcePath;
           resolution = Manifest.uniqueDistributionId manifest;
         } in
         return (`PackageWithBuild (pkg, manifest))
@@ -211,7 +211,7 @@ let ofDir (cfg : Config.t) =
         return path
     in
 
-    let asRoot = Path.equal sourcePath cfg.sandboxPath in
+    let asRoot = Path.equal sourcePath cfg.buildConfig.sandboxPath in
     match%bind Manifest.ofDir ~asRoot sourcePath with
     | Some (manifest, pathSet) ->
       let%bind pkg = packageOfManifest ~sourcePath manifest pathSet in
@@ -224,7 +224,7 @@ let ofDir (cfg : Config.t) =
     Memoize.compute packageCache path compute
   in
 
-  match%bind loadPackageCached cfg.sandboxPath [] with
+  match%bind loadPackageCached cfg.buildConfig.sandboxPath [] with
   | `PackageWithBuild (root, manifest), _ ->
     let%bind manifestInfo =
       let statPath path =

@@ -75,13 +75,17 @@ module ExportedEnv = struct
     | `String "local" -> Ok Local
     | _ -> Error "expected either \"local\" or \"global\""
 
+  let scope_to_yojson = function
+    | Local -> `String "local"
+    | Global -> `String "global"
+
   module Item = struct
     type t = {
       value : string [@key "val"];
       scope : (scope [@default Local]);
       exclusive : (bool [@default false]);
     }
-    [@@deriving of_yojson]
+    [@@deriving yojson]
   end
 
   [@@@ocaml.warning "-32"]
@@ -109,6 +113,19 @@ module ExportedEnv = struct
       let%bind items = Result.List.foldLeft ~f ~init:[] items in
       Ok (List.rev items)
     | _ -> Error "expected an object"
+
+  let to_yojson env =
+    let items =
+      let f {name; value; scope; exclusive;} =
+        name, `Assoc [
+          "val", `String value;
+          "scope", scope_to_yojson scope;
+          "exclusive", `Bool exclusive;
+        ]
+      in
+      List.map ~f env
+    in
+    `Assoc items
 
 end
 
@@ -138,25 +155,56 @@ module Env = struct
       let%bind items = Result.List.foldLeft ~f ~init:[] items in
       Ok (List.rev items)
     | _ -> Error "expected an object"
+
+  let to_yojson env =
+    let items =
+      let f {name; value} = name, `String value in
+      List.map ~f env
+    in
+    `Assoc items
 end
 
 module Build = struct
 
+  (* aliases for opam types with to_yojson implementations *)
+  module OpamTypes = struct
+    type filter = OpamTypes.filter
+
+    let filter_to_yojson filter = `String (OpamFilter.to_string filter)
+
+    type command = arg list * filter option [@@deriving to_yojson]
+    and arg = simple_arg * filter option
+    and simple_arg = OpamTypes.simple_arg =
+      | CString of string
+      | CIdent of string
+  end
+
   type commands =
     | OpamCommands of OpamTypes.command list
     | EsyCommands of CommandList.t
+    [@@deriving to_yojson]
+
+  type patch = Path.t * OpamTypes.filter option
+
+  let patch_to_yojson (path, filter) =
+    let filter =
+      match filter with
+      | None -> `Null
+      | Some filter -> `String (OpamFilter.to_string filter)
+    in
+    `Assoc ["path", Path.to_yojson path; "filter", filter]
 
   type t = {
     sourceType : SourceType.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
-    patches : (Path.t * OpamTypes.filter option) list;
+    patches : patch list;
     substs : Path.t list;
     exportedEnv : ExportedEnv.t;
     sandboxEnv : Env.t;
     buildEnv : Env.t;
-  }
+  } [@@deriving to_yojson]
 
 end
 

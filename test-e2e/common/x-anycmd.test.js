@@ -18,8 +18,6 @@ describe('Common - x anycmd', () => {
   });
 
   it('normal case works', async () => {
-    expect.assertions(2);
-
     await expect(p.esy('x dep')).resolves.toEqual({
       stdout: '__dep__\n',
       stderr: '',
