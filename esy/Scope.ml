@@ -73,8 +73,8 @@ end = struct
 
       let exportedEnvGlobal =
         let path = "PATH", "#{self.bin : $PATH}" in
-        let manPath = "MAN_PATH", "#{self.man : $PATH}" in
-        let ocamlpath = "OCAMLPATH", "#{self.lib : $PATH}" in
+        let manPath = "MAN_PATH", "#{self.man : $MAN_PATH}" in
+        let ocamlpath = "OCAMLPATH", "#{self.lib : $OCAMLPATH}" in
         path::manPath::ocamlpath::exportedEnvGlobal
       in
 
@@ -169,8 +169,11 @@ end = struct
       then stagePath scope
       else installPath scope
     in
-    let builtins =
-      let p v = Config.Path.toString v in
+
+    let p v = Config.Path.toString v in
+
+    (* add builtins *)
+    let env =
       [
         "cur__name", scope.pkg.name;
         "cur__version", scope.pkg.version;
@@ -192,11 +195,19 @@ end = struct
         "OCAMLFIND_COMMANDS", "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       ]
     in
-    let userDefined =
-      let f {Manifest.Env. name; value;} = name, value in
-      List.map ~f scope.pkg.build.buildEnv
+
+    let env =
+      let f env {Manifest.Env. name; value;} = (name, value)::env in
+      List.fold_left ~f ~init:env scope.pkg.build.buildEnv
     in
-    builtins @ userDefined
+
+    let env =
+      match scope.pkg.build.buildType with
+      | Manifest.BuildType.OutOfSource -> ("DUNE_BUILD_DIR", p (buildPath scope))::env
+      | _ -> env
+    in
+
+    env
 
 end
 
@@ -208,9 +219,6 @@ type t = {
 
   sandboxEnv : Config.Environment.Bindings.t;
   finalEnv : Config.Environment.Bindings.t;
-  mutable buildEnv : Config.Environment.Bindings.t option;
-  mutable exportedEnvLocal : Config.Environment.Bindings.t option;
-  mutable exportedEnvGlobal : Config.Environment.Bindings.t option;
 }
 
 let make ~platform ~sandboxEnv ~id ~sourceType ~buildIsInProgress pkg =
@@ -235,13 +243,9 @@ let make ~platform ~sandboxEnv ~id ~sourceType ~buildIsInProgress pkg =
       in
       Config.[
         Environment.Bindings.value "PATH" (Value.v defaultPath);
-        Environment.Bindings.value "MAN_PATH" (Value.v "");
         Environment.Bindings.value "SHELL" (Value.v "env -i /bin/bash --norc --noprofile");
       ]
     );
-    buildEnv = None;
-    exportedEnvGlobal = None;
-    exportedEnvLocal = None;
   }
 
 let add ~direct ~dep scope =
@@ -323,33 +327,21 @@ let makeEnvBindings bindings scope =
 
 let buildEnv scope =
   let open Run.Syntax in
-  match scope.buildEnv with
-  | Some env -> return env
-  | None ->
-    let bindings = PackageScope.buildEnv scope.self in
-    let%bind env = makeEnvBindings bindings scope in
-    scope.buildEnv <- Some env;
-    return env
+  let bindings = PackageScope.buildEnv scope.self in
+  let%bind env = makeEnvBindings bindings scope in
+  return env
 
 let exportedEnvGlobal scope =
   let open Run.Syntax in
-  match scope.exportedEnvGlobal with
-  | Some env -> return env
-  | None ->
-    let bindings = PackageScope.exportedEnvGlobal scope.self in
-    let%bind env = makeEnvBindings bindings scope in
-    scope.exportedEnvGlobal <- Some env;
-    return env
+  let bindings = PackageScope.exportedEnvGlobal scope.self in
+  let%bind env = makeEnvBindings bindings scope in
+  return env
 
 let exportedEnvLocal scope =
   let open Run.Syntax in
-  match scope.exportedEnvLocal with
-  | Some env -> return env
-  | None ->
-    let bindings = PackageScope.exportedEnvLocal scope.self in
-    let%bind env = makeEnvBindings bindings scope in
-    scope.exportedEnvLocal <- Some env;
-    return env
+  let bindings = PackageScope.exportedEnvLocal scope.self in
+  let%bind env = makeEnvBindings bindings scope in
+  return env
 
 let env ~includeBuildEnv scope =
   let open Run.Syntax in

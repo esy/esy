@@ -246,23 +246,6 @@ let ofPackage
 
   and taskOfPackage (pkg : Package.t) =
 
-    let pkg =
-      match pkg.build.buildType with
-      | Manifest.BuildType.OutOfSource ->
-        {
-          pkg with
-          build = {
-            pkg.build with
-            buildEnv = {
-              Manifest.Env.
-              name = "DUNE_BUILD_DIR";
-              value = "#{self.target_dir}";
-            }::pkg.build.buildEnv
-          };
-        }
-      | _ -> pkg
-    in
-
     let ocamlVersion =
       let f pkg = pkg.Package.name = "ocaml" in
       match Package.Graph.find ~f pkg with
