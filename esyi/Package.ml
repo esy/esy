@@ -98,16 +98,19 @@ module Version = struct
   let pp fmt v =
     Fmt.fmt "%s" fmt (toString v)
 
-  let parse v =
+  let parse ?(tryAsOpam=false) v =
     let open Result.Syntax in
-    match Parse.cutWith ":" v with
-    | Error _ ->
+    match tryAsOpam, Parse.cutWith ":" v with
+    | false, Error _ ->
       let%bind v = SemverVersion.Version.parse v in
       return (Npm v)
-    | Ok ("opam", v) ->
+    | true, Error _ ->
       let%bind v = OpamPackageVersion.Version.parse v in
       return (Opam v)
-    | Ok _ ->
+    | _, Ok ("opam", v) ->
+      let%bind v = OpamPackageVersion.Version.parse v in
+      return (Opam v)
+    | _, Ok _ ->
       let%bind v = Source.parse v in
       return (Source v)
 
@@ -163,9 +166,8 @@ module Resolutions = struct
     let parseValue key =
       function
       | `String v -> begin
-        match String.cut ~sep:"/" key, String.cut ~sep:":" v with
-        | Some ("@opam", _), Some("opam", _) -> Version.parse v
-        | Some ("@opam", _), _ -> Version.parse ("opam:" ^ v)
+        match String.cut ~sep:"/" key with
+        | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
         | _ -> Version.parse v
         end
       | _ -> Error "expected string"

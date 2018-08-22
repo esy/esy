@@ -32,7 +32,7 @@ module Version : sig
 
   include Abstract.COMMON with type t := t
 
-  val parse : string -> (t, string) result
+  val parse : ?tryAsOpam:bool -> string -> (t, string) result
   val parseExn : string -> t
   val toNpmVersion : t -> string
 
