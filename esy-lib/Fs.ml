@@ -170,24 +170,17 @@ let traverse ?skipTraverse ~f path =
   let f _ path stat = f path stat in
   fold ?skipTraverse ~f ~init:() path
 
-let chownOrIgnoreLwt path uid gid =
-  match System.Platform.host with
-  | Windows -> Lwt.return () (* chown is not available in Windows *)
-  | _ ->
-    try%lwt Lwt_unix.chown path uid gid
-    with Unix.Unix_error (Unix.EPERM, _, _) -> Lwt.return ()
-
-let chmodOrIgnoreLwt path uid =
-  match System.Platform.host with
-  | Windows -> Lwt.return () (* chmod is not necessary on Windows, and can cause Permission Denied errors *)
-  | _ -> Lwt_unix.chmod path uid
-
 let copyStatLwt ~stat path =
-  let path = Path.toString path in
-  let%lwt () = Lwt_unix.utimes path stat.Unix.st_atime stat.Unix.st_mtime in
-  let%lwt () = chmodOrIgnoreLwt path stat.Unix.st_perm in
-  let%lwt () = chownOrIgnoreLwt path stat.Unix.st_uid stat.Unix.st_gid in
-  Lwt.return ()
+  match System.Platform.host with
+  | Windows -> Lwt.return () (* copying these stats is not necessary on Windows, and can cause Permission Denied errors *)
+  | _ ->
+    let path = Path.toString path in
+    let%lwt () = Lwt_unix.utimes path stat.Unix.st_atime stat.Unix.st_mtime in
+    let%lwt () = Lwt_unix.chmod path stat.Unix.st_perm in
+    let%lwt () = 
+      try%lwt Lwt_unix.chown path stat.Unix.st_uid stat.Unix.st_gid 
+      with Unix.Unix_error (Unix.EPERM, _, _) -> Lwt.return ()
+    in Lwt.return ()
 
 let copyFileLwt ~src ~dst =
 
