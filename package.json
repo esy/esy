@@ -71,13 +71,13 @@
     "fastreplacestring": "esy-ocaml/FastReplaceString#9450b6"
   },
   "peerDependencies": {
-    "ocaml": "~4.6.0"
+    "ocaml": "esy-ocaml/ocaml#6aacc05"
   },
   "devDependencies": {
     "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
     "@opam/ocp-indent": "*",
-    "ocaml": "~4.6.0",
+    "ocaml": "esy-ocaml/ocaml#6aacc05",
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "del": "^3.0.0",
