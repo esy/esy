@@ -26,7 +26,7 @@ let readPackageJsonManifest (path : Path.t) =
     let%bind json = Fs.readJsonFile filename in
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.RootPackageJson.of_yojson json) in
     let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
-    let manifest = Manifest.ofRootPackageJson pkgJson in
+    let manifest = Manifest.ofRootPackageJson ~path:filename pkgJson in
     return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions, Esy(filename)))
   | None -> return None
 

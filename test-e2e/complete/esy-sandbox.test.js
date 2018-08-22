@@ -39,10 +39,9 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
   });
 
-  it('no package name, no dependencies, only ocaml devDep', async () => {
+  it('no package name, no package version', async () => {
     const fixture = [
       packageJson({
-        version: '1.0.0',
         esy: {
           build: [
             'cp root.ml #{self.target_dir/}root.ml',

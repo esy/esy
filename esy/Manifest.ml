@@ -301,7 +301,7 @@ end = struct
   module JsonManifest = struct
     type t = {
       name : (string option [@default None]);
-      version : string;
+      version : (string option [@default None]);
       description : (string option [@default None]);
       license : (Json.t option [@default None]);
       dependencies : (PackageJsonDependencies.t [@default PackageJsonDependencies.empty]);
@@ -419,12 +419,17 @@ end = struct
   let ofJsonManifest (jsonManifest: JsonManifest.t) (path: Path.t) =
     let name = 
       match jsonManifest.name with
-      | Some(name) -> name
+      | Some name  -> name
       | None -> Path.basename path
+    in
+    let version =
+      match jsonManifest.version with
+      | Some version  -> version
+      | None -> "0.0.0"
     in
     {
       name;
-      version = jsonManifest.version;
+      version;
       description = jsonManifest.description;
       license = jsonManifest.license;
       dependencies = jsonManifest.dependencies;
