@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## 0.2.7 @ latest
+## 0.2.8 @ next
+
+- Bring back windows binaries.
+
+- Fix `esy install` to support links to `@opam/*` packages.
+
+## 0.2.7 @ next
 
 - Add `esy add PACKAGENAME...` command which allows to update `package.json`
   with new dependencies specified on a command line and perform installation
