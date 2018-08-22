@@ -170,7 +170,7 @@ end = struct
       else installPath scope
     in
 
-    let p v = Config.Path.toString v in
+    let p v = Config.Value.toString (Config.Path.toValue v) in
 
     (* add builtins *)
     let env =
