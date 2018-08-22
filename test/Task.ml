@@ -160,9 +160,19 @@ module TestCommandExpr = struct
       let bindings = Run.runExn (Task.buildEnv task) in
       let f = function
         | "OK", value ->
-          Some (value = Fpath.(cfg.buildConfig.storePath / "i" / id / "ok" |> to_string))
+          let expected = 
+            Fpath.(cfg.buildConfig.storePath / "i" / id / "ok")
+            |> Fpath.to_string
+            |> EsyLib.Path.normalizePathSlashes
+          in
+          Some (value = expected)
         | "OK_BY_NAME", value ->
-          Some (value = Fpath.(cfg.buildConfig.storePath / "i" / id / "ok-by-name" |> to_string))
+          let expected = 
+            Fpath.(cfg.buildConfig.storePath / "i" / id / "ok-by-name")
+            |> Fpath.to_string
+            |> EsyLib.Path.normalizePathSlashes
+          in
+          Some (value = expected)
         | _ ->
           None
       in
