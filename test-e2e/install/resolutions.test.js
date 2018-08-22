@@ -168,7 +168,7 @@ describe(`Installing with resolutions`, () => {
     });
   });
 
-  test.only(`resolutions could be a linked package (@opam case)`, async () => {
+  test(`resolutions could be a linked package (@opam case)`, async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
