@@ -82,7 +82,8 @@ module Path: {
 
   let toValue = path => Value.v(toString(path));
 
-  let toPath = (cfg, path) => path |> toString |> render(cfg) |> v;
+  let toPath = (cfg, path) =>
+    path |> toString |> EsyLib.Path.normalizePathSlashes |> render(cfg) |> v;
 
   let ofPath = (cfg, p) => {
     let p =
