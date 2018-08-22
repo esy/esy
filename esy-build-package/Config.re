@@ -80,10 +80,10 @@ module Path: {
   let store = v("%{store}%");
   let localStore = v("%{localStore}%");
 
-  let toValue = path => Value.v(toString(path));
+  let toValue = path =>
+    path |> toString |> EsyLib.Path.normalizePathSlashes |> Value.v;
 
-  let toPath = (cfg, path) =>
-    path |> toString |> EsyLib.Path.normalizePathSlashes |> render(cfg) |> v;
+  let toPath = (cfg, path) => path |> toString |> render(cfg) |> v;
 
   let ofPath = (cfg, p) => {
     let p =
