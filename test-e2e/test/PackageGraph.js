@@ -14,44 +14,73 @@ export type Package = {
   dependencies: {[name: string]: Package},
 };
 
-async function crawl(directory: string): Promise<?Package> {
-  const esyLinkPath = path.join(directory, '_esylink');
-  const nodeModulesPath = path.join(directory, 'node_modules');
-
-  let packageJsonPath;
-  if (await fsUtils.exists(esyLinkPath)) {
-    let sourcePath = await fsUtils.readFile(esyLinkPath, 'utf8');
-    sourcePath = sourcePath.trim();
-    packageJsonPath = path.join(sourcePath, 'package.json');
-  } else {
-    packageJsonPath = path.join(directory, 'package.json');
-  }
-
-  if (!(await fsUtils.exists(packageJsonPath))) {
-    return null;
-  }
-  const packageJson = await fsUtils.readJson(packageJsonPath);
+async function crawlDependencies(nodeModulesPath) {
   const dependencies = {};
 
   if (await fsUtils.exists(nodeModulesPath)) {
     const items = await fsUtils.readdir(nodeModulesPath);
     await Promise.all(
       items.map(async name => {
-        const depDirectory = path.join(directory, 'node_modules', name);
-        const dep = await crawl(depDirectory);
-        if (dep != null) {
-          dependencies[dep.name] = dep;
+        if (name[0] === '@') {
+          const scopedNodeModulesPath = path.join(nodeModulesPath, name);
+          const items = await fsUtils.readdir(scopedNodeModulesPath);
+          for (const name of items) {
+            const depDirectory = path.join(scopedNodeModulesPath, name);
+            const dep = await crawl(depDirectory);
+            if (dep != null) {
+              dependencies[dep.name] = dep;
+            }
+          }
+        } else {
+          const depDirectory = path.join(nodeModulesPath, name);
+          const dep = await crawl(depDirectory);
+          if (dep != null) {
+            dependencies[dep.name] = dep;
+          }
         }
       }),
     );
   }
+  return dependencies;
+}
 
-  return {
-    name: packageJson.name,
-    version: packageJson.version,
-    path: directory,
-    dependencies,
-  };
+async function crawl(directory: string): Promise<?Package> {
+  const esyLinkPath = path.join(directory, '_esylink');
+  const nodeModulesPath = path.join(directory, 'node_modules');
+
+  let packageJsonPath;
+  let opamPath;
+  if (await fsUtils.exists(esyLinkPath)) {
+    let sourcePath = await fsUtils.readFile(esyLinkPath, 'utf8');
+    sourcePath = sourcePath.trim();
+    packageJsonPath = path.join(sourcePath, 'package.json');
+    opamPath = path.join(sourcePath, '_esy', 'opam');
+  } else {
+    packageJsonPath = path.join(directory, 'package.json');
+    opamPath = path.join(directory, '_esy', 'opam');
+  }
+
+  if (await fsUtils.exists(packageJsonPath)) {
+    const packageJson = await fsUtils.readJson(packageJsonPath);
+    const dependencies = await crawlDependencies(nodeModulesPath);
+    return {
+      name: packageJson.name,
+      version: packageJson.version,
+      path: directory,
+      dependencies,
+    };
+  } else if (await fsUtils.exists(opamPath)) {
+    console.log('x');
+    const dependencies = await crawlDependencies(nodeModulesPath);
+    return {
+      name: path.basename(directory),
+      version: 'opam',
+      path: directory,
+      dependencies,
+    };
+  } else {
+    return null;
+  }
 }
 
 module.exports = {crawl};
