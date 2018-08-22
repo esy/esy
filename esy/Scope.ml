@@ -41,14 +41,6 @@ end = struct
   }
 
   let make ~id ~sourceType ~buildIsInProgress (pkg : Package.t) =
-    let storePath =
-      match sourceType with
-      | Manifest.SourceType.Immutable -> Config.Path.store
-      | Manifest.SourceType.Transient -> Config.Path.localStore
-    in
-
-    let installPath = Config.Path.(storePath / Store.installTree / id) in
-
     let exportedEnvGlobal, exportedEnvLocal =
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
@@ -80,13 +72,9 @@ end = struct
       in
 
       let exportedEnvGlobal =
-        let prefix name path =
-          let value = Config.Path.toString path in
-          name, "#{'" ^ value ^ "' : $" ^ name ^ "}"
-        in
-        let path = prefix "PATH" Config.Path.(installPath / "bin") in
-        let manPath = prefix "MAN_PATH" Config.Path.(installPath / "bin") in
-        let ocamlpath = prefix "OCAMLPATH" Config.Path.(installPath / "lib") in
+        let path = "PATH", "#{self.bin : $PATH}" in
+        let manPath = "MAN_PATH", "#{self.man : $PATH}" in
+        let ocamlpath = "OCAMLPATH", "#{self.lib : $PATH}" in
         path::manPath::ocamlpath::exportedEnvGlobal
       in
 
