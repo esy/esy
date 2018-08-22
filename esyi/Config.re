@@ -73,7 +73,7 @@ let make =
       };
 
       let esyOpamOverride = {
-        let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
+        let defaultRemote = "https://github.com/bryphe/esy-opam-override";
         let defaultLocal = Path.(cachePath / "esy-opam-override");
         configureCheckout(~defaultLocal, ~defaultRemote, esyOpamOverride);
       };
