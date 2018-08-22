@@ -3,4 +3,4 @@
 # means that when checking out code, LF endings get converted
 # to CRLF. This causes problems for shell scripts, as bash
 # gets choked up on the extra `\r` character.
-**/*.sh text eol=LF
+*.sh text eol=lf
