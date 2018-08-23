@@ -67,7 +67,11 @@ let make =
       let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
 
       let opamRepository = {
-        let defaultRemote = "https://github.com/ocaml/opam-repository";
+        let defaultRemote =
+            switch (System.Platform.host) {
+            | Windows => "https://github.com/fdopen/opam-repository-mingw"
+            | _ => "https://github.com/ocaml/opam-repository"
+            };
         let defaultLocal = Path.(cachePath / "opam-repository");
         configureCheckout(~defaultLocal, ~defaultRemote, opamRepository);
       };
