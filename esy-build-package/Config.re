@@ -46,11 +46,16 @@ let make = (~fastreplacestringPath=?, ~prefixPath=?, ~sandboxPath=?, ()) =>
   );
 
 let render = (cfg, v) => {
+  let path = v =>
+    v |> EsyLib.Path.toString |> EsyLib.Path.normalizePathSlashes;
+  let sandboxPath = path(cfg.sandboxPath);
+  let storePath = path(cfg.storePath);
+  let localStorePath = path(cfg.localStorePath);
   let lookupVar =
     fun
-    | "sandbox" => Some(EsyLib.Path.toString(cfg.sandboxPath))
-    | "store" => Some(EsyLib.Path.toString(cfg.storePath))
-    | "localStore" => Some(EsyLib.Path.toString(cfg.localStorePath))
+    | "sandbox" => Some(sandboxPath)
+    | "store" => Some(storePath)
+    | "localStore" => Some(localStorePath)
     | _ => None;
   PathSyntax.renderExn(lookupVar, v);
 };
