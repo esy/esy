@@ -1,15 +1,15 @@
 module Store = EsyLib.Store;
-module Path = EsyLib.Path;
 
 type t = {
+  fastreplacestringPath: Fpath.t,
   sandboxPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
-  rsyncCmd: string,
-  fastreplacestringCmd: string,
 };
 
 type config = t;
+
+let cwd = EsyLib.Path.v(Sys.getcwd());
 
 /**
  * Initialize config optionally with prefixPath and sandboxPath.
@@ -17,14 +17,7 @@ type config = t;
  * If prefixPath is not provided then ~/.esy is used.
  * If sandboxPath is not provided then $PWD us used.
  */
-let make =
-    (
-      ~prefixPath,
-      ~sandboxPath,
-      ~rsyncCmd="rsync",
-      ~fastreplacestringCmd="fastreplacestring.exe",
-      (),
-    ) =>
+let make = (~fastreplacestringPath=?, ~prefixPath=?, ~sandboxPath=?, ()) =>
   Run.(
     {
       let%bind prefixPath =
@@ -39,43 +32,93 @@ let make =
         | Some(v) => Ok(v)
         | None => Bos.OS.Dir.current()
         };
+      let fastreplacestringPath =
+        switch (fastreplacestringPath) {
+        | Some(p) => p
+        | None => Fpath.v("fastreplacestring.exe")
+        };
       let%bind padding = Store.getPadding(prefixPath);
       let storePath = prefixPath / (Store.version ++ padding);
       let localStorePath =
         sandboxPath / "node_modules" / ".cache" / "_esy" / "store";
-      Ok({
-        storePath,
-        sandboxPath,
-        localStorePath,
-        fastreplacestringCmd,
-        rsyncCmd,
-      });
+      Ok({fastreplacestringPath, storePath, sandboxPath, localStorePath});
     }
   );
 
-module Value = {
-  type t = string;
-
-  let sandbox = "%{sandbox}%";
-  let store = "%{store}%";
-  let localStore = "%{localStore}%";
-
-  let show = v => v;
-  let pp = Fmt.string;
-  let equal = String.equal;
-
-  let v = v => v;
-
-  let toString = (~cfg, v) => {
-    let lookupVar =
-      fun
-      | "sandbox" => Some(Path.toString(cfg.sandboxPath))
-      | "store" => Some(Path.toString(cfg.storePath))
-      | "localStore" => Some(Path.toString(cfg.localStorePath))
-      | _ => None;
-    PathSyntax.render(lookupVar, v);
-  };
-
-  let of_yojson = EsyLib.Json.Parse.string;
-  let to_yojson = v => `String(v);
+let render = (cfg, v) => {
+  let path = v =>
+    v |> EsyLib.Path.toString |> EsyLib.Path.normalizePathSlashes;
+  let sandboxPath = path(cfg.sandboxPath);
+  let storePath = path(cfg.storePath);
+  let localStorePath = path(cfg.localStorePath);
+  let lookupVar =
+    fun
+    | "sandbox" => Some(sandboxPath)
+    | "store" => Some(storePath)
+    | "localStore" => Some(localStorePath)
+    | _ => None;
+  PathSyntax.renderExn(lookupVar, v);
 };
+
+module Value = {
+  include EsyLib.Abstract.String.Make({
+    type ctx = config;
+    let render = render;
+  });
+
+  let sandbox = v("%{sandbox}%");
+  let store = v("%{store}%");
+  let localStore = v("%{localStore}%");
+};
+
+module Path: {
+  include EsyLib.Abstract.PATH with type ctx = config;
+  let toValue: t => Value.t;
+  let store: t;
+  let localStore: t;
+  let sandbox: t;
+} = {
+  include EsyLib.Path;
+  type ctx = config;
+
+  let sandbox = v("%{sandbox}%");
+  let store = v("%{store}%");
+  let localStore = v("%{localStore}%");
+
+  let toValue = path =>
+    path |> toString |> EsyLib.Path.normalizePathSlashes |> Value.v;
+
+  let toPath = (cfg, path) => path |> toString |> render(cfg) |> v;
+
+  let ofPath = (cfg, p) => {
+    let p =
+      if (isAbs(p)) {
+        p;
+      } else {
+        cwd /\/ p;
+      };
+    let p = normalize(p);
+    if (equal(p, cfg.storePath)) {
+      store;
+    } else if (equal(p, cfg.localStorePath)) {
+      localStore;
+    } else if (equal(p, cfg.sandboxPath)) {
+      sandbox;
+    } else {
+      switch (remPrefix(cfg.storePath, p)) {
+      | Some(suffix) => store /\/ suffix
+      | None =>
+        switch (remPrefix(cfg.localStorePath, p)) {
+        | Some(suffix) => localStore /\/ suffix
+        | None =>
+          switch (remPrefix(cfg.sandboxPath, p)) {
+          | Some(suffix) => sandbox /\/ suffix
+          | None => p
+          }
+        }
+      };
+    };
+  };
+};
+
+module Environment = EsyLib.Environment.Make(Value);

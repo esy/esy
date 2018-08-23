@@ -20,7 +20,7 @@ let renderExn = (env: env, path: string) => {
   let replace = g => {
     let name = Re.Group.get(g, 1);
     switch (env(name)) {
-    | None => "%" ++ name ++ "%"
+    | None => "%{" ++ name ++ "}%"
     | Some(value) => value
     };
   };

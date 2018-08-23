@@ -9,20 +9,17 @@ type config = {
   deleteFromBinaryRelease : string list;
 }
 
-let makeBinWrapper ~bin ~(environment : Environment.t) =
+let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
   let environmentString =
     environment
-    |> List.filter ~f:(fun {Environment. name; _} ->
+    |> Environment.renderToList
+    |> List.filter ~f:(fun (name, _) ->
         match name with
         | "cur__original_root" | "cur__root" -> false
         | _ -> true
       )
-    |> List.map ~f:(fun {Environment. name; value; _} ->
-        match value with
-        | Environment.Value value ->
-          "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\""
-        | Environment.ExpandedValue value ->
-          "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\"")
+    |> List.map ~f:(fun (name, value) ->
+        "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\"")
     |> String.concat ";"
   in
   Printf.sprintf {|
@@ -69,7 +66,7 @@ let makeBinWrapper ~bin ~(environment : Environment.t) =
 
 let configure ~(cfg : Config.t) =
   let open RunAsync.Syntax in
-  match%bind Manifest.ofDir cfg.Config.sandboxPath with
+  match%bind Manifest.ofDir cfg.Config.buildConfig.sandboxPath with
   | None -> error "no manifest found"
   | Some (manifest, _) ->
     let%bind releaseCfg =
@@ -86,19 +83,15 @@ let configure ~(cfg : Config.t) =
 
 let dependenciesForRelease (task : Task.t) =
   let f deps dep = match dep with
-    | Task.Dependency ({
-        sourceType = Manifest.SourceType.Immutable;
-        _
-      } as task)
-    | Task.BuildTimeDependency ({
-          sourceType = Manifest.SourceType.Immutable; _
-        } as task) ->
-      (task, dep)::deps
-    | Task.Dependency _
-    | Task.DevDependency _
-    | Task.BuildTimeDependency _ -> deps
+    | Task.Dependency depTask
+    | Task.BuildTimeDependency depTask ->
+      begin match Task.sourceType depTask with
+      | Manifest.SourceType.Immutable -> (depTask, dep)::deps
+      | _ -> deps
+      end
+    | Task.DevDependency _ -> deps
   in
-  task.dependencies
+  Task.dependencies task
   |> List.fold_left ~f ~init:[]
   |> List.rev
 
@@ -136,9 +129,9 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     *)
   let devModeIds =
     let f s task =
-      match task.Task.pkg.build.sourceType with
+      match Task.sourceType task with
       | Manifest.SourceType.Immutable -> s
-      | Manifest.SourceType.Transient -> StringSet.add task.id s
+      | Manifest.SourceType.Transient -> StringSet.add (Task.id task) s
     in
     List.fold_left
       ~init:StringSet.empty
@@ -163,12 +156,12 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let f (task : Task.t) =
-      if shouldDeleteFromBinaryRelease task.id
+      if shouldDeleteFromBinaryRelease (Task.id task)
       then
-        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
+        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" (Task.id task)) in
         return ()
       else
-        let buildPath = Config.Path.toPath cfg task.paths.installPath in
+        let buildPath = Config.Path.toPath cfg.buildConfig (Task.installPath task) in
         let outputPrefixPath = Path.(outputPath / "_export") in
         LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
     in
@@ -179,49 +172,42 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
 
-    let%bind env = RunAsync.ofRun (
-        let open Run.Syntax in
-        let pkg = sandbox.Sandbox.root in
-        let synPkg = {
-          Package.
-          id = "__release_env__";
-          name = "release-env";
-          version = pkg.version;
-          dependencies = [Package.Dependency pkg];
-          build = {
-            Manifest.Build.
-            sourceType = Manifest.SourceType.Transient;
-            sandboxEnv = pkg.build.sandboxEnv;
-            buildEnv = Manifest.Env.empty;
-            buildCommands = Manifest.Build.EsyCommands None;
-            installCommands = Manifest.Build.EsyCommands None;
-            buildType = Manifest.BuildType.OutOfSource;
-            patches = [];
-            substs = [];
-            exportedEnv = [];
-          };
-          sourcePath = pkg.sourcePath;
-          resolution = None;
-        } in
-        let%bind task = Task.ofPackage
-            ~initTerm:(Some "$TERM")
-            ~initPath:"$PATH"
-            ~initManPath:"$MAN_PATH"
-            ~initCamlLdLibraryPath:"$CAML_LD_LIBRARY_PATH"
-            ~forceImmutable:true
-            ~overrideShell:false
-            synPkg
-        in
-        return task.Task.env
-      ) in
+    let%bind bindings = RunAsync.ofRun (
+      let open Run.Syntax in
+      let pkg = sandbox.Sandbox.root in
+      let synPkg = {
+        Package.
+        id = "__release_env__";
+        name = "release-env";
+        version = pkg.version;
+        dependencies = [Package.Dependency pkg];
+        build = {
+          Manifest.Build.
+          sourceType = Manifest.SourceType.Transient;
+          sandboxEnv = pkg.build.sandboxEnv;
+          buildEnv = Manifest.Env.empty;
+          buildCommands = Manifest.Build.EsyCommands None;
+          installCommands = Manifest.Build.EsyCommands None;
+          buildType = Manifest.BuildType.OutOfSource;
+          patches = [];
+          substs = [];
+          exportedEnv = [];
+        };
+        sourcePath = pkg.sourcePath;
+        resolution = None;
+      } in
+      let%bind task = Task.ofPackage ~forceImmutable:true synPkg in
+      let%bind bindings = Task.sandboxEnv task in
+      return bindings
+    ) in
 
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let%bind bindings = RunAsync.ofRun (Environment.bindToConfig cfg (Environment.Closed.bindings env)) in
-      let%bind value = RunAsync.ofRun (Environment.Value.bindToConfig cfg (Environment.Closed.value env)) in
+      let bindings = Config.Environment.Bindings.render cfg.Config.buildConfig bindings in
+      let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
       let generateBinaryWrapper stagePath name =
         let resolveBinInEnv ~env prg =
@@ -233,7 +219,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
             String.split_on_char ':' v
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
-        let%bind namePath = resolveBinInEnv ~env:value name in
+        let%bind namePath = resolveBinInEnv ~env name in
         (* Create the .ml file that we will later compile and write it to disk *)
         let data = makeBinWrapper ~environment:bindings ~bin:namePath in
         let mlPath = Path.(stagePath / (name ^ ".ml")) in
@@ -256,8 +242,10 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       in
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
-        let nextStorePrefix = String.make (String.length (Path.toString Config.(cfg.storePath))) '_' in
-        (Config.(cfg.storePath), Path.v nextStorePrefix)
+        let nextStorePrefix =
+          String.make (String.length (Path.toString Config.(cfg.buildConfig.storePath))) '_'
+        in
+        (Config.(cfg.buildConfig.storePath), Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.toString destPrefix) Path.(binPath / "_storePath") in
       Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath

@@ -269,7 +269,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
   | VersionSpec.Npm _ ->
 
     let%bind resolutions =
-      ResolutionCache.compute resolver.resolutionCache name begin fun name ->
+      ResolutionCache.compute resolver.resolutionCache name begin fun () ->
         let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
           match%bind
@@ -308,7 +308,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =
-      ResolutionCache.compute resolver.resolutionCache name begin fun name ->
+      ResolutionCache.compute resolver.resolutionCache name begin fun () ->
         let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
           let name = toOpamName name in

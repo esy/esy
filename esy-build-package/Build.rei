@@ -6,7 +6,7 @@
  */
 
 type t = pri {
-  task: Task.t,
+  plan: Plan.t,
   sourcePath: EsyLib.Path.t,
   storePath: EsyLib.Path.t,
   installPath: EsyLib.Path.t,
@@ -36,7 +36,7 @@ let build:
     ~buildOnly: bool=?,
     ~force: bool=?,
     ~cfg: Config.t,
-    Task.t
+    Plan.t
   ) => Run.t(unit, 'b);
 
 /**
@@ -50,7 +50,7 @@ let withBuild:
   (
     ~commit: bool=?,
     ~cfg: Config.t,
-    Task.t,
+    Plan.t,
     t => Run.t(unit, 'b)
   ) => Run.t(unit, 'b);
 
