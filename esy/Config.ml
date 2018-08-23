@@ -6,7 +6,6 @@ type t = {
   prefixPath : Path.t;
   fastreplacestringCommand : Cmd.t;
   esyBuildPackageCommand : Cmd.t;
-  esyInstallJsCommand : string;
 }
 
 type config = t
@@ -23,7 +22,6 @@ let initStore (path: Path.t) =
 let create
   ~fastreplacestringCommand
   ~esyBuildPackageCommand
-  ~esyInstallJsCommand
   ~esyVersion
   ~prefixPath (sandboxPath : Path.t) =
   let value =
@@ -50,7 +48,6 @@ let create
       prefixPath;
       fastreplacestringCommand;
       esyBuildPackageCommand;
-      esyInstallJsCommand;
     }
   in
   Run.ofBosError value

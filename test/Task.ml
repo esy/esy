@@ -13,7 +13,6 @@ let cfg =
     buildConfig = EsyBuildPackage.(Run.runExn (Config.make ~prefixPath ()));
     fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
     esyBuildPackageCommand = Cmd.v "esy-build-package";
-    esyInstallJsCommand = "esy-install.js";
   }
 
 module TestCommandExpr = struct
