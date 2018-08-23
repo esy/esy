@@ -60,8 +60,6 @@ help:
 	@echo "$$HELP"
 
 bootstrap:
-	@git submodule init
-	@git submodule update
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
@@ -70,7 +68,6 @@ ifeq ($(ESY_VERSION_MINOR),2)
 else
 	$(error "esy command should be at least of version 0.2.0, run 'npm install -g esy'")
 endif
-	@make -C esy-install bootstrap
 	@make build-dev
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
 	@make -C site bootstrap
@@ -141,17 +138,13 @@ RELEASE_FILES = \
 	postinstall.js \
 	LICENSE \
 	README.md \
-	package.json \
-	bin/esy-install.js
+	package.json
 
 release:
 	@echo "Creating $(ESY_RELEASE_TAG) release"
 	@rm -rf $(RELEASE_ROOT)
 	@mkdir -p $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
-
-$(RELEASE_ROOT)/bin/esy-install.js:
-	@$(MAKE) -C esy-install BUILD=../$(@) build
 
 $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)

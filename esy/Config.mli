@@ -6,7 +6,6 @@ type t = {
   prefixPath : Path.t;
   fastreplacestringCommand : Cmd.t;
   esyBuildPackageCommand : Cmd.t;
-  esyInstallJsCommand : string;
 }
 
 type config = t
@@ -16,7 +15,6 @@ val defaultPrefixPath : Path.t
 val create :
   fastreplacestringCommand:Cmd.t
   -> esyBuildPackageCommand:Cmd.t
-  -> esyInstallJsCommand:string
   -> esyVersion:string
   -> prefixPath:Fpath.t option
   -> Fpath.t

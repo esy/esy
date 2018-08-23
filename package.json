@@ -5,12 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": [
-      [
-        "dune",
-        "build",
-        "-j",
-        "4"
-      ],
+      ["dune", "build", "-j", "4"],
       [
         "dune",
         "build",
@@ -19,21 +14,14 @@
       ]
     ],
     "install": [
-      [
-        "esy-installer",
-        "./esy-build-package.install"
-      ],
-      [
-        "esy-installer",
-        "./esy.install"
-      ]
+      ["esy-installer", "./esy-build-package.install"],
+      ["esy-installer", "./esy.install"]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
-    "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",

@@ -18,9 +18,6 @@ dune build _build/default/esy/bin/esyCommand.exe
 echo "dune:build esyi"
 dune build _build/default/esyi/bin/esyi.exe
 
-echo "make: esy-install"
-make _release/bin/esy-install.js
-
 echo "make: postinstall.sh"
 make _release/bin/esyInstallRelease.js
 

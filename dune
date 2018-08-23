@@ -1,1 +1,1 @@
-(ignored_subdirs (node_modules esy-install flow-typed scripts test-e2e site))
+(ignored_subdirs (node_modules flow-typed scripts test-e2e site))
