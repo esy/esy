@@ -29,7 +29,7 @@ npm install rimraf
 
 # If updating the version for this,
 # make sure to also update it in `scripts/release-postinstall.js`, too!
-npm install esy-bash@0.1.21
+npm install esy-bash@0.1.22
 
 npm install esy-ocaml/FastReplaceString.git#9450b6
 
