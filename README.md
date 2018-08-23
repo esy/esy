@@ -77,10 +77,6 @@ obvious items) with further explanations:
     ├── site
     │   Sources for https://esy.sh
     │
-    ├── esy-install
-    │   (deprecated) an old "esy install" command implementation which is based
-    │   on yarn.
-    │
     ├── esy.lock.json
     ├── package.json
     │
@@ -170,7 +166,6 @@ The release workflow is the following:
 [hello-ocaml]: https://github.com/esy-ocaml/hello-ocaml
 [hello-reason]: https://github.com/esy-ocaml/hello-reason
 [esy/esy]: https://github.com/esy/esy
-[esy-ocaml/esy-install]: https://github.com/esy-ocaml/esy-install
 [esy-ocaml/esy-opam]: https://github.com/esy-ocaml/esy-opam
 [opam]: https://opam.ocaml.org
 [npm]: https://npmjs.org
