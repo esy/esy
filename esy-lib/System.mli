@@ -34,4 +34,7 @@ module Environment : sig
 
   (** Value of $PATH environment variable. *)
   val path : string list
+
+  (** Value of $HOME environment on *nix platforms and USERPROFILE on Windows *)
+  val homedir: string
 end
