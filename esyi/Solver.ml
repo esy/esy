@@ -645,18 +645,33 @@ let solveDependenciesNaively
 
   return packagesToDependencies
 
-let solveOCamlReq ~cfg ~opamRegistry req =
+let solveOCamlReq ~cfg ~opamRegistry (req : Req.t) =
   let open RunAsync.Syntax in
   let%bind resolver = Resolver.make ~opamRegistry ~cfg () in
-  let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
-  begin match findResolutionForRequest ~req resolutions with
-  | Some res ->
-    Logs_lwt.app (fun m -> m "using %a" Resolver.Resolution.pp res);%lwt
-    return (Some res.version)
-  | None ->
-    Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
-    return None
-  end
+
+  let resolveVersionFromPackage resolution =
+    match%bind Resolver.package ~resolution resolver with
+    | Ok pkg ->
+      Logs_lwt.app (fun m -> m "using %a" Package.pp pkg);%lwt
+      return pkg.originalVersion
+    | Error err -> error err
+  in
+
+  match req.spec with
+  | VersionSpec.Npm _ ->
+    let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
+    begin match findResolutionForRequest ~req resolutions with
+    | Some resolution ->
+      resolveVersionFromPackage resolution
+    | None ->
+      Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
+      return None
+    end
+  | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
+  | VersionSpec.Source sourceSpec ->
+    let%bind source = Resolver.resolveSource ~name:req.name ~sourceSpec resolver in
+    let resolution = Resolver.Resolution.make req.name (Version.Source source) in
+    resolveVersionFromPackage resolution
 
 let solve (sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
@@ -675,7 +690,11 @@ let solve (sandbox : Sandbox.t) =
     match sandbox.ocamlReq with
     | None -> return (sandbox.dependencies, None)
     | Some ocamlReq ->
-      let%bind ocamlVersion = solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry ocamlReq in
+      let%bind ocamlVersion =
+        RunAsync.contextf
+          (solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry ocamlReq)
+          "resolving %a" Req.pp ocamlReq
+      in
 
       let dependencies =
         match ocamlVersion, sandbox.dependencies with
