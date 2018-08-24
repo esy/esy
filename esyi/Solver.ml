@@ -662,16 +662,18 @@ let solveOCamlReq ~cfg ~opamRegistry (req : Req.t) =
     let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
     begin match findResolutionForRequest ~req resolutions with
     | Some resolution ->
-      resolveVersionFromPackage resolution
+      let%bind origVersion = resolveVersionFromPackage resolution in
+      return (origVersion, Some resolution.version)
     | None ->
       Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
-      return None
+      return (None, None)
     end
   | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
   | VersionSpec.Source sourceSpec ->
     let%bind source = Resolver.resolveSource ~name:req.name ~sourceSpec resolver in
     let resolution = Resolver.Resolution.make req.name (Version.Source source) in
-    resolveVersionFromPackage resolution
+    let%bind origVersion = resolveVersionFromPackage resolution in
+    return (origVersion, Some resolution.version)
 
 let solve (sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
@@ -690,7 +692,7 @@ let solve (sandbox : Sandbox.t) =
     match sandbox.ocamlReq with
     | None -> return (sandbox.dependencies, None)
     | Some ocamlReq ->
-      let%bind ocamlVersion =
+      let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
           (solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry ocamlReq)
           "resolving %a" Req.pp ocamlReq
@@ -714,7 +716,8 @@ let solve (sandbox : Sandbox.t) =
           Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])
         | None, deps -> deps
       in
-      return (dependencies, ocamlVersion)
+
+      return (dependencies, ocamlVersionOrig)
   in
 
   let%bind solver, dependencies =
