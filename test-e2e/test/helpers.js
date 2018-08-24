@@ -18,7 +18,6 @@ const OpamRegistryMock = require('./OpamRegistryMock.js');
 const {
   ocamlPackagePath,
   ESYCOMMAND,
-  ESYICOMMAND,
   isWindows,
   ocamloptName,
 } = require('./jestGlobalSetup.js');

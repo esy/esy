@@ -133,7 +133,6 @@ RELEASE_FILES = \
 	platform-windows-x64 \
 	bin/esyInstallRelease.js \
 	_build/default/esy/bin/esyCommand.exe \
-	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	postinstall.js \
 	LICENSE \
@@ -145,11 +144,6 @@ release:
 	@rm -rf $(RELEASE_ROOT)
 	@mkdir -p $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
-
-$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
-	@mkdir -p $(@D)
-	@echo "Placeholder: to be replaced by postinstall step" > $(@)
-	@chmod +x $(@)
 
 $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)
@@ -182,8 +176,7 @@ console.log(
 			postinstall: "node ./postinstall.js"
 		},
 		bin: {
-			esy: "_build/default/esy/bin/esyCommand.exe",
-			esyi: "_build/default/esyi/bin/esyi.exe"
+			esy: "_build/default/esy/bin/esyCommand.exe"
 		},
 		files: [
 			"bin/",
@@ -212,7 +205,6 @@ PLATFORM_RELEASE_ROOT = _platformrelease/$(PLATFORM)
 PLATFORM_RELEASE_FILES = \
 	bin/fastreplacestring \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy/bin/esyCommand.exe \
 
 platform-release: $(PLATFORM_RELEASE_NAME)
@@ -231,10 +223,6 @@ $(PLATFORM_RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 $(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(PLATFORM_RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esyi/bin/esyi.exe $(@)
 
 $(PLATFORM_RELEASE_ROOT)/bin/fastreplacestring:
 	@mkdir -p $(@D)

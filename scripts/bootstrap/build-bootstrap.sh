@@ -15,9 +15,6 @@ dune build _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 echo "dune:build esy"
 dune build _build/default/esy/bin/esyCommand.exe
 
-echo "dune:build esyi"
-dune build _build/default/esyi/bin/esyi.exe
-
 echo "make: postinstall.sh"
 make _release/bin/esyInstallRelease.js
 
@@ -29,9 +26,6 @@ make _release/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 
 echo "make: release esy"
 make _release/_build/default/esy/bin/esyCommand.exe
-
-echo "make: release esyi"
-make _release/_build/default/esyi/bin/esyi.exe
 
 echo "make: fastreplacestring"
 make _release/bin/fastreplacestring

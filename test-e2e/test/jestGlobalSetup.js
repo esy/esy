@@ -14,11 +14,6 @@ const ESYCOMMAND =
     ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe')
     : require.resolve('../../bin/esy');
 
-const ESYICOMMAND =
-  process.platform === 'win32'
-    ? require.resolve('../../_release/_build/default/esyi/bin/esyi.exe')
-    : require.resolve('../../_build/default/esyi/bin/esyi.exe');
-
 const INSTALL_COMMAND = process.platform === 'win32' ? 'legacy-install' : 'install';
 
 const ocamloptName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
@@ -111,6 +106,5 @@ module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
 
 module.exports.ocamlPackagePath = ocamlPackagePath;
 module.exports.ESYCOMMAND = ESYCOMMAND;
-module.exports.ESYICOMMAND = ESYICOMMAND;
 module.exports.isWindows = isWindows;
 module.exports.ocamloptName = ocamloptName;
