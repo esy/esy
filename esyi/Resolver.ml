@@ -10,6 +10,8 @@ module Resolution = struct
     version: Version.t
   } [@@deriving (eq, ord)]
 
+  let make name version = {name; version;}
+
   let cmpByVersion a b =
     Version.compare a.version b.version
 

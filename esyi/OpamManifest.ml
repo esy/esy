@@ -272,6 +272,7 @@ let toPackage ~name ~version manifest =
       Package.
       name;
       version;
+      originalVersion = None;
       kind = Package.Esy;
       source;
       opam = Some {

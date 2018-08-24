@@ -240,6 +240,7 @@ end
 type t = {
   name : string;
   version : Version.t;
+  originalVersion : Version.t option;
   source : source * source list;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
