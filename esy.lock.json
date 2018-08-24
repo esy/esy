@@ -1,5 +1,5 @@
 {
-  "hash": "7768a9f587fcca5fb54e54171e9ced9e",
+  "hash": "7294d14b0b93f52313a66a7aae7257db",
   "root": "esy@path:.",
   "node": {
     "yargs-parser@9.0.2": {
@@ -2108,11 +2108,12 @@
       },
       "dependencies": [ "wrappy@1.0.2" ]
     },
-    "ocaml@github:esy-ocaml/ocaml#6aacc05": {
+    "ocaml@4.6.5": {
       "record": {
         "name": "ocaml",
-        "version": "github:esy-ocaml/ocaml#6aacc05",
-        "source": "github:esy-ocaml/ocaml#6aacc05",
+        "version": "4.6.5",
+        "source":
+          "archive:https://registry.npmjs.org/ocaml/-/ocaml-4.6.5.tgz#sha1:23b6d4dc36437f431c427953a5236447e7b51368",
         "files": [],
         "opam": null
       },
@@ -4845,7 +4846,7 @@
         "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
         "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
         "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
-        "@opam/menhir@opam:20171013", "@opam/ocp-indent@opam:1.6.1",
+        "@opam/menhir@opam:20170712", "@opam/ocp-indent@opam:1.6.1",
         "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
         "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
         "@opam/ppx_deriving@opam:4.2.1",
@@ -4856,9 +4857,9 @@
         "babel-preset-flow@6.23.0", "del@3.0.0", "esy-solve-cudf@0.1.6",
         "fastreplacestring@github:esy-ocaml/FastReplaceString#9450b6",
         "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
-        "minimatch@3.0.4", "ocaml@github:esy-ocaml/ocaml#6aacc05",
-        "outdent@0.3.0", "prettier@1.14.2", "rimraf@2.6.2", "semver@5.5.1",
-        "super-resolve@1.0.0", "tar@4.4.6", "tar-fs@1.16.3", "tmp@0.0.33"
+        "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
+        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
+        "tar-fs@1.16.3", "tmp@0.0.33"
       ]
     },
     "esutils@2.0.2": {
@@ -4979,12 +4980,12 @@
       },
       "dependencies": [ "once@1.4.0" ]
     },
-    "electron-to-chromium@1.3.60": {
+    "electron-to-chromium@1.3.61": {
       "record": {
         "name": "electron-to-chromium",
-        "version": "1.3.60",
+        "version": "1.3.61",
         "source":
-          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.60.tgz#sha1:85a28db8484f3dd84de46bdcb7aa829e2f016423",
+          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.61.tgz#sha1:a8ac295b28d0f03d85e37326fd16b6b6b17a1795",
         "files": [],
         "opam": null
       },
@@ -5685,7 +5686,7 @@
         "opam": null
       },
       "dependencies": [
-        "caniuse-lite@1.0.30000878", "electron-to-chromium@1.3.60"
+        "caniuse-lite@1.0.30000878", "electron-to-chromium@1.3.61"
       ]
     },
     "browser-resolve@1.11.3": {
@@ -7209,31 +7210,27 @@
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
-    "@opam/seq@opam:base": {
+    "@opam/seq@opam:0.1": {
       "record": {
         "name": "@opam/seq",
-        "version": "opam:base",
-        "source": "no-source:",
-        "files": [
-          {
-            "name": "seq.install",
-            "content": "lib:[\n  \"META.seq\" {\"META\"}\n]\n"
-          },
-          {
-            "name": "META.seq",
-            "content":
-              "name=\"seq\"\nversion=\"[distributed with OCaml 4.07 or above]\"\ndescription=\"dummy backward-compatibility package for iterators\"\nrequires=\"\"\n"
-          }
+        "version": "opam:0.1",
+        "source": [
+          "archive:https://opam.ocaml.org/archives/seq.0.1+opam.tar.gz#md5:82d3359b7b0a1d5fb0f8f6dea16d24be",
+          "archive:https://github.com/c-cube/seq/archive/0.1.tar.gz#md5:0e87f9709541ed46ecb6f414bc31458c"
         ],
+        "files": [],
         "opam": {
           "name": "seq",
-          "version": "base",
+          "version": "0.1",
           "opam":
-            "opam-version: \"1.2\"\nmaintainer: \" \"\nauthors: \" \"\nhomepage: \" \"\nbug-reports: \"https://caml.inria.fr/mantis/main_page.php\"\navailable: ocaml-version >= \"4.07.0\"\ndev-repo: \"git+https://github.com/ocaml/ocaml.git\"",
+            "opam-version: \"1.2\"\nmaintainer: \"simon.cruanes.2007@m4x.org\"\nauthors: \"Simon Cruanes\"\nlicense: \"GPL\"\ntags: [\"iterator\" \"seq\" \"pure\" \"list\" \"compatibility\" \"cascade\"]\nhomepage: \"https://github.com/c-cube/seq/\"\nbug-reports: \"https://github.com/c-cube/seq/issues\"\ndepends: [\n  \"ocamlfind\" {build}\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version < \"4.07.0\"\nbuild: [make \"build\"]\ninstall: [make \"install\"]\nremove: [\"ocamlfind\" \"remove\" \"seq\"]\ndev-repo: \"git+https://github.com/c-cube/seq.git\"",
           "override": null
         }
       },
-      "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/ocamlbuild@opam:0.12.0",
+        "@opam/ocamlfind@opam:1.8.0"
+      ]
     },
     "@opam/rresult@opam:0.5.0": {
       "record": {
@@ -7320,7 +7317,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/seq@opam:base"
+        "@opam/seq@opam:0.1"
       ]
     },
     "@opam/ppxlib@opam:0.3.0": {
@@ -7820,18 +7817,18 @@
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
-    "@opam/menhir@opam:20171013": {
+    "@opam/menhir@opam:20170712": {
       "record": {
         "name": "@opam/menhir",
-        "version": "opam:20171013",
+        "version": "opam:20170712",
         "source": [
-          "archive:https://opam.ocaml.org/archives/menhir.20171013+opam.tar.gz#md5:b361a87378407e26b9ea2dde7ddf41a0",
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11"
+          "archive:https://opam.ocaml.org/archives/menhir.20170712+opam.tar.gz#md5:18aaf814e51aeb4fbfd8b7c1fb7ffbba",
+          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20170712.tar.gz#md5:85a5c2aef1d3f2224dab7c53d79892e5"
         ],
         "files": [],
         "opam": {
           "name": "menhir",
-          "version": "20171013",
+          "version": "20170712",
           "opam":
             "opam-version: \"1.2\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
           "override": null
@@ -8496,7 +8493,7 @@
       },
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
-        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
+        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170712",
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
