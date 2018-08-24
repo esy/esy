@@ -5,6 +5,7 @@ module Resolution : sig
     version: Package.Version.t
   }
 
+  val make : string -> Package.Version.t -> t
   val pp : t Fmt.t
   val compare : t -> t -> int
   val equal : t -> t -> bool
