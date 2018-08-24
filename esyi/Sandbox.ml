@@ -151,6 +151,7 @@ let ofDir ~cfg (path : Path.t) =
           Package.
           name = "root";
           version = Package.Version.Source (Package.Source.LocalPath path);
+          originalVersion = None;
           source = Package.Source (Package.Source.LocalPath path), [];
           dependencies = Package.Dependencies.OpamFormula dependencies;
           devDependencies = Package.Dependencies.OpamFormula devDependencies;

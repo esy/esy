@@ -152,14 +152,16 @@ let toPackage ?name ?version (manifest : t) =
     | Some name -> name
     | None -> manifest.name
   in
-  let%bind version = RunAsync.ofStringError (
+  let%bind originalVersion = RunAsync.ofStringError (
     let open Result.Syntax in
-    match version with
-    | Some version -> return version
-    | None ->
-      let%bind version = SemverVersion.Version.parse manifest.version in
-      return (Package.Version.Npm version)
+    let%bind version = SemverVersion.Version.parse manifest.version in
+    return (Package.Version.Npm version)
   ) in
+  let version =
+    match version with
+    | Some version -> version
+    | None -> originalVersion
+  in
   let source =
     match version with
     | Package.Version.Source src -> Package.Source src
@@ -170,6 +172,7 @@ let toPackage ?name ?version (manifest : t) =
     Package.
     name;
     version;
+    originalVersion = Some originalVersion;
     dependencies = Dependencies.NpmFormula manifest.dependencies;
     devDependencies = Dependencies.NpmFormula manifest.devDependencies;
     source = source, [];

@@ -410,6 +410,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     Package.
     name = "ROOT";
     version = Version.parseExn "0.0.0";
+    originalVersion = None;
     source = Package.Source Source.NoSource, [];
     opam = None;
     dependencies;
