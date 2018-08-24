@@ -91,6 +91,24 @@ let pathConv =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
+let checkoutConv =
+  let open Cmdliner in
+  let parse v =
+    match Astring.String.cut ~sep:":" v with
+    | Some (remote, "") -> Ok (`Remote remote)
+    | Some ("", local) -> Ok (`Local (Path.v local))
+    | Some (remote, local) -> Ok (`RemoteLocal (remote, (Path.v local)))
+    | None -> Ok (`Remote v)
+  in
+  let print (fmt : Format.formatter) v =
+    match v with
+    | `RemoteLocal (remote, local) -> Fmt.pf fmt "%s:%s" remote (Path.toString local)
+    | `Local local -> Fmt.pf fmt ":%s" (Path.toString local)
+    | `Remote remote -> Fmt.pf fmt "%s" remote
+  in
+  Arg.conv ~docv:"VAL" (parse, print)
+
+
 let cmdTerm ~doc ~docv =
   let open Cmdliner in
   let commandTerm =
