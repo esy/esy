@@ -259,13 +259,13 @@ module CommonOptions = struct
           Config.make
             ~esySolveCmd
             ~createProgressReporter
+            ~skipRepositoryUpdate
             ?cachePath
             ?cacheTarballsPath
             ?npmRegistry
             ?opamRepository
             ?esyOpamOverride
             ?solveTimeout
-            ~skipRepositoryUpdate
             ()
         in
         Sandbox.ofDir ~cfg sandboxPath
@@ -286,153 +286,6 @@ module CommonOptions = struct
       $ skipRepositoryUpdateArg
     )
 
-end
-
-module EsyInstallApi = struct
-  open EsyInstall
-
-  let lockfilePath (sandbox : Sandbox.t) =
-    let open RunAsync.Syntax in
-    let filename = Path.(sandbox.path / "esyi.lock.json") in
-    if%bind Fs.exists filename
-    then
-      let%lwt () =
-        Logs_lwt.warn
-          (fun m -> m "found esyi.lock.json, please rename it to esy.lock.json") in
-      return filename
-    else
-      return Path.(sandbox.path / "esy.lock.json")
-
-    let solve {CommonOptions. installSandbox; _} =
-      let open RunAsync.Syntax in
-      let%bind solution = Solver.solve installSandbox in
-      let%bind lockfilePath = lockfilePath installSandbox in
-      let%bind () =
-        Solution.LockfileV1.toFile ~sandbox:installSandbox ~solution lockfilePath
-      in
-      return solution
-
-    let fetch {CommonOptions. installSandbox; _} =
-      let open RunAsync.Syntax in
-      let%bind lockfilePath = lockfilePath installSandbox in
-      match%bind Solution.LockfileV1.ofFile ~sandbox:installSandbox lockfilePath with
-      | Some solution ->
-        let%bind () = Fs.rmPath Path.(installSandbox.path / "node_modules") in
-        Fetch.fetch ~sandbox:installSandbox solution
-      | None ->
-        error "no lockfile found, run 'esy solve' first"
-
-    let solveAndFetch ({CommonOptions. installSandbox; _} as copts) =
-      let open RunAsync.Syntax in
-      let%bind lockfilePath = lockfilePath installSandbox in
-      match%bind Solution.LockfileV1.ofFile ~sandbox:installSandbox lockfilePath with
-      | Some solution ->
-        if%bind Fetch.isInstalled ~sandbox:installSandbox solution
-        then return ()
-        else fetch copts
-      | None ->
-        let%bind _ : Solution.t = solve copts in fetch copts
-
-    let add (packages : string list) ({CommonOptions. installSandbox; _} as copts) =
-      let open RunAsync.Syntax in
-      let module NpmDependencies = Package.NpmDependencies in
-      let aggOpamErrorMsg =
-        "The esy add command doesn't work with opam sandboxes. "
-        ^ "Please send a pull request to fix this!"
-      in
-      let makeReqs ?(specFun= fun _ -> "") names =
-        names
-        |> Result.List.map
-            ~f:(fun name ->
-                  let spec = specFun name in
-                  Package.Req.make ~name ~spec)
-        |> RunAsync.ofStringError
-      in
-
-      let%bind reqs = makeReqs packages in
-
-      let addReqs origDeps =
-        let open Package.Dependencies in
-        match origDeps with
-        | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
-        | OpamFormula _ -> error aggOpamErrorMsg
-      in
-
-      let%bind installSandbox =
-        let%bind combinedDeps = addReqs installSandbox.root.dependencies in
-        let%bind sbDeps = addReqs installSandbox.dependencies in
-        let root = { installSandbox.root with dependencies = combinedDeps } in
-        return { installSandbox with root; dependencies = sbDeps }
-      in
-
-      let copts = {copts with installSandbox} in
-
-      let%bind solution = solve copts in
-      let%bind () = fetch copts in
-
-      let%bind addedDependencies, configPath =
-        let records =
-          let f (record : Solution.Record.t) map =
-            StringMap.add record.name record map
-          in
-          Solution.Record.Set.fold f (Solution.records solution) StringMap.empty
-        in
-        let addedDependencies =
-          let f name =
-            match StringMap.find name records with
-            | Some record ->
-              let constr =
-                match record.Solution.Record.version with
-                | Package.Version.Npm version ->
-                  SemverVersion.Formula.DNF.toString
-                    (SemverVersion.caretRangeOfVersion version)
-                | Package.Version.Opam version ->
-                  OpamPackage.Version.to_string version
-                | Package.Version.Source _ ->
-                  Package.Version.toString record.Solution.Record.version
-              in
-              name, `String constr
-            | None -> assert false
-          in
-          List.map ~f packages
-        in
-        let%bind path =
-          match copts.installSandbox.Sandbox.origin with
-          | Esy path -> return path
-          | Opam _ -> error aggOpamErrorMsg
-          | AggregatedOpam _ -> error aggOpamErrorMsg
-          in
-          return (addedDependencies, path)
-        in
-        let%bind json =
-          let keyToUpdate = "dependencies" in
-          let%bind json = Fs.readJsonFile configPath in
-            let%bind json =
-              RunAsync.ofStringError (
-                let open Result.Syntax in
-                let%bind items = Json.Parse.assoc json in
-                let%bind items =
-                  let f (key, json) =
-                    if key = keyToUpdate
-                    then
-                        let%bind dependencies =
-                          Json.Parse.assoc json in
-                        let dependencies =
-                          Json.mergeAssoc dependencies
-                            addedDependencies in
-                        return
-                          (key, (`Assoc dependencies))
-                    else return (key, json)
-                  in
-                  Result.List.map ~f items
-                in
-                let json = `Assoc items
-                in return json
-              ) in
-            return json
-          in
-          let%bind () = Fs.writeJsonFile ~json configPath in
-          return ()
 end
 
 let resolvedPathTerm =
@@ -892,6 +745,153 @@ let lsModules ~libs:only {CommonOptions. cfg; _} =
   in
   makeLsCommand ~computeTermNode ~includeTransitive:false cfg info
 
+let lockfilePath (sandbox : EsyInstall.Sandbox.t) =
+  let open RunAsync.Syntax in
+  let filename = Path.(sandbox.path / "esyi.lock.json") in
+  if%bind Fs.exists filename
+  then
+    let%lwt () =
+      Logs_lwt.warn
+        (fun m -> m "found esyi.lock.json, please rename it to esy.lock.json") in
+    return filename
+  else
+    return Path.(sandbox.path / "esy.lock.json")
+
+let solve {CommonOptions. installSandbox; _} =
+  let open EsyInstall in
+  let open RunAsync.Syntax in
+  let%bind solution = Solver.solve installSandbox in
+  let%bind lockfilePath = lockfilePath installSandbox in
+  let%bind () =
+    Solution.LockfileV1.toFile ~sandbox:installSandbox ~solution lockfilePath
+  in
+  return solution
+
+let fetch {CommonOptions. installSandbox; _} =
+  let open EsyInstall in
+  let open RunAsync.Syntax in
+  let%bind lockfilePath = lockfilePath installSandbox in
+  match%bind Solution.LockfileV1.ofFile ~sandbox:installSandbox lockfilePath with
+  | Some solution ->
+    let%bind () = Fs.rmPath Path.(installSandbox.path / "node_modules") in
+    Fetch.fetch ~sandbox:installSandbox solution
+  | None ->
+    error "no lockfile found, run 'esy solve' first"
+
+let solveAndFetch ({CommonOptions. installSandbox; _} as copts) =
+  let open EsyInstall in
+  let open RunAsync.Syntax in
+  let%bind lockfilePath = lockfilePath installSandbox in
+  match%bind Solution.LockfileV1.ofFile ~sandbox:installSandbox lockfilePath with
+  | Some solution ->
+    if%bind Fetch.isInstalled ~sandbox:installSandbox solution
+    then return ()
+    else fetch copts
+  | None ->
+    let%bind _ : Solution.t = solve copts in fetch copts
+
+let add (packages : string list) ({CommonOptions. installSandbox; _} as copts) =
+  let open EsyInstall in
+  let open RunAsync.Syntax in
+  let module NpmDependencies = Package.NpmDependencies in
+  let aggOpamErrorMsg =
+    "The esy add command doesn't work with opam sandboxes. "
+    ^ "Please send a pull request to fix this!"
+  in
+  let makeReqs ?(specFun= fun _ -> "") names =
+    names
+    |> Result.List.map
+        ~f:(fun name ->
+              let spec = specFun name in
+              Package.Req.make ~name ~spec)
+    |> RunAsync.ofStringError
+  in
+
+  let%bind reqs = makeReqs packages in
+
+  let addReqs origDeps =
+    let open Package.Dependencies in
+    match origDeps with
+    | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
+    | OpamFormula _ -> error aggOpamErrorMsg
+  in
+
+  let%bind installSandbox =
+    let%bind combinedDeps = addReqs installSandbox.root.dependencies in
+    let%bind sbDeps = addReqs installSandbox.dependencies in
+    let root = { installSandbox.root with dependencies = combinedDeps } in
+    return { installSandbox with root; dependencies = sbDeps }
+  in
+
+  let copts = {copts with installSandbox} in
+
+  let%bind solution = solve copts in
+  let%bind () = fetch copts in
+
+  let%bind addedDependencies, configPath =
+    let records =
+      let f (record : Solution.Record.t) map =
+        StringMap.add record.name record map
+      in
+      Solution.Record.Set.fold f (Solution.records solution) StringMap.empty
+    in
+    let addedDependencies =
+      let f name =
+        match StringMap.find name records with
+        | Some record ->
+          let constr =
+            match record.Solution.Record.version with
+            | Package.Version.Npm version ->
+              SemverVersion.Formula.DNF.toString
+                (SemverVersion.caretRangeOfVersion version)
+            | Package.Version.Opam version ->
+              OpamPackage.Version.to_string version
+            | Package.Version.Source _ ->
+              Package.Version.toString record.Solution.Record.version
+          in
+          name, `String constr
+        | None -> assert false
+      in
+      List.map ~f packages
+    in
+    let%bind path =
+      match copts.installSandbox.Sandbox.origin with
+      | Esy path -> return path
+      | Opam _ -> error aggOpamErrorMsg
+      | AggregatedOpam _ -> error aggOpamErrorMsg
+      in
+      return (addedDependencies, path)
+    in
+    let%bind json =
+      let keyToUpdate = "dependencies" in
+      let%bind json = Fs.readJsonFile configPath in
+        let%bind json =
+          RunAsync.ofStringError (
+            let open Result.Syntax in
+            let%bind items = Json.Parse.assoc json in
+            let%bind items =
+              let f (key, json) =
+                if key = keyToUpdate
+                then
+                    let%bind dependencies =
+                      Json.Parse.assoc json in
+                    let dependencies =
+                      Json.mergeAssoc dependencies
+                        addedDependencies in
+                    return
+                      (key, (`Assoc dependencies))
+                else return (key, json)
+              in
+              Result.List.map ~f items
+            in
+            let json = `Assoc items
+            in return json
+          ) in
+        return json
+      in
+      let%bind () = Fs.writeJsonFile ~json configPath in
+      return ()
+
 let () =
   let open Cmdliner in
 
@@ -935,7 +935,7 @@ let () =
       match cmd with
       | Some command -> runCommand ~header:`No ~info ~copts (devExec command)
       | None ->
-        let installRes = runCommand ~info ~copts EsyInstallApi.solveAndFetch in
+        let installRes = runCommand ~info ~copts solveAndFetch in
         begin match installRes with
         | `Ok () -> runCommand ~header:`No ~info ~copts (build None)
         | other -> other
@@ -1315,7 +1315,7 @@ let () =
     let doc = "Solve & fetch dependencies" in
     let info = Term.info "install" ~version:EsyRuntime.version ~doc in
     let cmd copts =
-      runCommand ~info ~copts EsyInstallApi.solveAndFetch
+      runCommand ~info ~copts solveAndFetch
     in
     Term.(ret (const cmd $ CommonOptions.term)), info
   in
@@ -1324,7 +1324,7 @@ let () =
     let doc = "Add a new dependency" in
     let info = Term.info "add" ~version:EsyRuntime.version ~doc in
     let cmd copts packages () =
-      runCommand ~info ~copts (EsyInstallApi.add packages)
+      runCommand ~info ~copts (add packages)
     in
     let packageTerm =
       let doc = "Package to install" in
@@ -1343,7 +1343,7 @@ let () =
     let cmd copts =
       let open RunAsync.Syntax in
       runCommand ~info ~copts (fun copts ->
-      let%bind _ = EsyInstallApi.solve copts in return ())
+      let%bind _ = solve copts in return ())
     in
     Term.(ret (const cmd $ CommonOptions.term)), info
   in
@@ -1352,7 +1352,7 @@ let () =
     let doc = "Fetch dependencies using the solution in a lockfile" in
     let info = Term.info "fetch" ~version:EsyRuntime.version ~doc in
     let cmd copts =
-      runCommand ~info ~copts EsyInstallApi.fetch
+      runCommand ~info ~copts fetch
     in
     Term.(ret (const cmd $ CommonOptions.term)), info
   in
@@ -1454,7 +1454,6 @@ let () =
    *)
   | Some "init"
   | Some "import-opam"
-  | Some "install"
   | Some "x"
   | Some "b"
   | Some "build" ->
