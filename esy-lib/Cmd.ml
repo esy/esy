@@ -83,7 +83,9 @@ let checkIfExecutable path =
     let open Result.Syntax in
     match System.Platform.host with
     (* Windows has a different file policy model than Unix - matching with the Unix permissions won't work *)
-    | Windows -> 
+    (* In particular, the Unix.stat implementation emulates this on Windows by checking the extension for `exe`/`com`/`cmd`/`bat` *)
+    (* But in our case, since we're deferring to the Cygwin layer, it's possible to have executables that don't confirm to that rule *)
+    | Windows ->
         let%bind exists = Bos.OS.Path.exists path in
         begin match exists with
         | true -> Ok (Some path)
