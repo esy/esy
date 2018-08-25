@@ -124,7 +124,6 @@ module Environment = struct
   let dataPath =
     match Platform.host with
     | Platform.Windows -> Sys.getenv("LOCALAPPDATA")
-    | Platform.Darwin -> Sys.getenv("HOME") ^ "/Library/Application Support"
     | _ -> Sys.getenv("HOME")
 
 end
