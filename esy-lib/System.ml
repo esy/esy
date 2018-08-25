@@ -113,6 +113,11 @@ module Environment = struct
     | None -> []
 
   let homeDir =
+    (** if HOME is set use that *)
+    match (Sys.getenv_opt("HOME"), Platform.host) with
+    | (Some(dir), _) -> dir
+    | (None, Platform.Windows) -> Sys.getenv("USERPROFILE")
+    | _ -> raise (EnvironmentNotFound "Could not find HOME dir")
     match Platform.host with
     | Platform.Windows -> Sys.getenv("USERPROFILE")
     | _ -> Sys.getenv("HOME")
