@@ -115,15 +115,16 @@ module Environment = struct
     | None -> []
 
   let homeDir =
+    
     (** if HOME is set use that *)
-    match (Sys.getenv_opt("HOME"), Platform.host) with
-    | (Some(dir), _) -> dir
-    | (None, Platform.Windows) -> Sys.getenv("USERPROFILE")
-    | _ -> raise (EnvironmentNotFound "Could not find HOME dir")
+    match (Sys.getenv_opt "HOME", Platform.host) with
+    | (Some dir, _) -> dir      
+    | (None, Platform.Windows) -> Sys.getenv "USERPROFILE"
+    | (None, _) -> raise (EnvironmentNotFound "Could not find HOME dir")
 
   let dataPath =
     match Platform.host with
-    | Platform.Windows -> Sys.getenv("LOCALAPPDATA")
-    | _ -> Sys.getenv("HOME")
+    | Platform.Windows -> Sys.getenv "LOCALAPPDATA"
+    | _ -> Sys.getenv "HOME"
 
 end
