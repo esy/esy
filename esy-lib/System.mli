@@ -3,7 +3,7 @@
  *
  * It does some I/O to query the system and if it fails then esy isn't operable
  * on the system at all.
-*)
+ *)
 
 (** Platform *)
 module Platform : sig
