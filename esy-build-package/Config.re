@@ -24,7 +24,8 @@ let make = (~fastreplacestringPath=?, ~prefixPath=?, ~sandboxPath=?, ()) =>
         switch (prefixPath) {
         | Some(v) => Ok(v)
         | None =>
-          let%bind home = EsyLib.Path.ofString(EsyLib.System.Environment.homedir);
+          let%bind home =
+            EsyLib.Path.ofString(EsyLib.System.Environment.homeDir);
           Ok(home / ".esy");
         };
       let%bind sandboxPath =

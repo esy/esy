@@ -14,9 +14,7 @@ let (/\/) : t => t => t;
 let addSeg : (t, string) => t;
 let append : (t, t) => t;
 
-let ofString : string => result(t, [> |`Msg(string)]);
-let current : unit => Run.t(t);
-let user : unit => Run.t(t);
+let homeDir: unit => Run.t(t);
 
 let isPrefix : (t, t) => bool;
 let remPrefix : (t, t) => option(t);

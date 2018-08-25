@@ -36,5 +36,5 @@ module Environment : sig
   val path : string list
 
   (** Value of $HOME environment on *nix platforms and USERPROFILE on Windows *)
-  val homedir: string
+  val homeDir: string
 end

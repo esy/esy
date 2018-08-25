@@ -112,7 +112,7 @@ module Environment = struct
     | Some path -> String.split_on_char sep.[0] path
     | None -> []
 
-  let homedir =
+  let homeDir =
     match Platform.host with
     | Platform.Windows -> Sys.getenv("USERPROFILE")
     | _ -> Sys.getenv("HOME")
