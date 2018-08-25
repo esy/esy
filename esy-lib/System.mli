@@ -3,7 +3,7 @@
  *
  * It does some I/O to query the system and if it fails then esy isn't operable
  * on the system at all.
- *)
+*)
 
 (** Platform *)
 module Platform : sig
@@ -37,4 +37,7 @@ module Environment : sig
 
   (** Value of $HOME environment on *nix platforms and USERPROFILE on Windows *)
   val homeDir: string
+
+  (** Value of LOCALAPPDATA environment on Windows, $HOME + "/Library/Application Support" and $HOME on the rest *)
+  val dataPath: string
 end

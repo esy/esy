@@ -6,7 +6,7 @@ module Platform = struct
     | Windows (* mingw msvc *)
     | Unix (* all other unix-y systems *)
     | Unknown
-    [@@deriving eq, ord]
+  [@@deriving eq, ord]
 
   let show = function
     | Darwin -> "darwin"
@@ -31,10 +31,10 @@ module Platform = struct
       | _ -> Unix
     in
     match Sys.os_type with
-      | "Unix" -> uname ()
-      | "Win32" -> Windows
-      | "Cygwin" -> Cygwin
-      | _ -> Unknown
+    | "Unix" -> uname ()
+    | "Win32" -> Windows
+    | "Cygwin" -> Cygwin
+    | _ -> Unknown
 
 end
 
@@ -47,7 +47,7 @@ module Arch = struct
     | Arm32
     | Arm64
     | Unknown
-    [@@deriving eq, ord]
+  [@@deriving eq, ord]
 
   let show = function
     | X86_32 -> "x86_32"
@@ -65,9 +65,9 @@ module Arch = struct
   let host =
     let uname () =
       let cmd =
-          match Platform.host with
-          | Windows -> "echo %PROCESSOR_ARCHITECTURE%"
-          | _ -> "uname -m"
+        match Platform.host with
+        | Windows -> "echo %PROCESSOR_ARCHITECTURE%"
+        | _ -> "uname -m"
       in
       let ic = Unix.open_process_in cmd in
       let uname = input_line ic in
@@ -87,6 +87,8 @@ module Arch = struct
 end
 
 module Environment = struct
+
+  exception EnvironmentNotFound of string
 
   let sep ?(platform=Platform.host) ?name () =
     match name, platform with
@@ -118,8 +120,11 @@ module Environment = struct
     | (Some(dir), _) -> dir
     | (None, Platform.Windows) -> Sys.getenv("USERPROFILE")
     | _ -> raise (EnvironmentNotFound "Could not find HOME dir")
+
+  let dataPath =
     match Platform.host with
-    | Platform.Windows -> Sys.getenv("USERPROFILE")
+    | Platform.Windows -> Sys.getenv("LOCALAPPDATA")
+    | Platform.Darwin -> Sys.getenv("HOME") ^ "/Library/Application Support"
     | _ -> Sys.getenv("HOME")
 
 end

@@ -26,6 +26,8 @@ let isPrefix = Fpath.is_prefix;
 let remPrefix = Fpath.rem_prefix;
 
 let homeDir = () => Run.return(Fpath.v(System.Environment.homeDir));
+
+let dataPath = () => Run.return(Fpath.v(System.Environment.dataPath));
 let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
 let relativize = Fpath.relativize;
@@ -57,7 +59,7 @@ let toPrettyString = p =>
   Run.Syntax.(
     {
       let%bind path = {
-        let%bind user = user();
+        let%bind user = homeDir();
         switch (remPrefix(user, p)) {
         | Some(p) => return(Fpath.append(Fpath.v("~"), p))
         | None => return(p)

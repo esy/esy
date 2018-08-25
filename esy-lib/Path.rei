@@ -15,6 +15,7 @@ let addSeg : (t, string) => t;
 let append : (t, t) => t;
 
 let homeDir: unit => Run.t(t);
+let dataPath: unit => Run.t(t);
 
 let isPrefix : (t, t) => bool;
 let remPrefix : (t, t) => option(t);
