@@ -387,20 +387,31 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     let destPrefixString = Path.toString(destPrefix);
     switch (System.Platform.host) {
     | Windows =>
-      /* On Windows, the slashes could be either `/` or windows-style `\` */
-      /* We'll replace both styles */
+      /* On Windows, the slashes could be either `/` or windows-style `\`, or even escaped like `\\` */
+      /* Replace windows-style slashes: `\` */
       let%bind () =
         rewritePrefixInFile(
           ~origPrefix=origPrefixString,
           ~destPrefix=destPrefixString,
           path,
         );
+      /* Replace normalized slashes: `/` */
       let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
       let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
       let%bind () =
         rewritePrefixInFile(
           ~origPrefix=normalizedOrigPrefix,
           ~destPrefix=normalizedDestPrefix,
+          path,
+        );
+      /* Replace escaped slashes: `\\` (#399) */
+      let forwardSlashRegex = Str.regexp("/");
+      let escapedOrigPrefix = Str.global_replace(forwardSlashRegex, "\\\\\\\\", normalizedOrigPrefix);
+      let escapedDestPrefix = Str.global_replace(forwardSlashRegex, "\\\\\\\\", normalizedDestPrefix);
+      let%bind () =
+        rewritePrefixInFile(
+          ~origPrefix=escapedOrigPrefix,
+          ~destPrefix=escapedDestPrefix,
           path,
         );
       ok;
