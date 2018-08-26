@@ -79,14 +79,26 @@ let getPotentialExtensions =
     | Windows -> [""; ".exe"]
     | _ -> [""]
 
-let checkIfCommandIsAvailable fullPath =
+let checkIfExecutable path =
     let open Result.Syntax in
-    let isExecutable p = 
-        let%bind stats = Bos.OS.Path.stat p in
-        match stats.Unix.st_kind, isExecutable stats with
-        | Unix.S_REG, true -> Ok (Some p)
+    match System.Platform.host with
+    (* Windows has a different file policy model than Unix - matching with the Unix permissions won't work *)
+    (* In particular, the Unix.stat implementation emulates this on Windows by checking the extension for `exe`/`com`/`cmd`/`bat` *)
+    (* But in our case, since we're deferring to the Cygwin layer, it's possible to have executables that don't confirm to that rule *)
+    | Windows ->
+        let%bind exists = Bos.OS.Path.exists path in
+        begin match exists with
+        | true -> Ok (Some path)
         | _ -> Ok None
-    in
+        end
+    | _ ->
+        let%bind stats = Bos.OS.Path.stat path in
+        begin match stats.Unix.st_kind, isExecutable stats with
+        | Unix.S_REG, true -> Ok (Some path)
+        | _ -> Ok None
+        end
+
+let checkIfCommandIsAvailable fullPath =
     let extensions = getPotentialExtensions in
     let evaluate prev next =
         match prev with
@@ -94,7 +106,7 @@ let checkIfCommandIsAvailable fullPath =
         | _ -> 
             let pathToTest = (Fpath.to_string fullPath) ^ next in
             let p = Fpath.v pathToTest in
-            isExecutable p
+            checkIfExecutable p
     in
     List.fold_left ~f:evaluate ~init:(Ok None) extensions
 
