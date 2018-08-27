@@ -4,6 +4,7 @@ module type VERSION = sig
   include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
+  val parseExn : string -> t
 
   val majorMinorPatch : t -> (int * int * int) option
   val prerelease : t -> bool
@@ -370,6 +371,7 @@ let%test_module "Formula" = (module struct
       match int_of_string_opt v with
       | Some v -> Ok v
       | None -> Error "not a version"
+    let parseExn = int_of_string
     let toString = string_of_int
   end
 
