@@ -5,7 +5,7 @@ module Version = struct
     patch : int;
     prerelease : prerelease;
     build : build;
-  } [@@deriving (eq, yojson)]
+  } [@@deriving eq]
 
   and prerelease = segment list
 
@@ -392,6 +392,14 @@ module Version = struct
       List.fold_left ~f ~init:true cases
 
   end)
+
+  let of_yojson json =
+    match json with
+    | `String v -> parse v
+    | _ -> Error "expected string"
+
+  let to_yojson v =
+    `String (toString v)
 
 end
 
