@@ -273,17 +273,17 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun () ->
         let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
-        let%bind versions =
+        let%bind {NpmRegistry. versions;_ } =
           match%bind
             LwtTaskQueue.submit
               resolver.npmRegistryQueue
               (NpmRegistry.versions ~fullMetadata ~cfg:resolver.cfg ~name)
           with
-          | [] -> errorf "no npm package %s found" name
-          | versions -> return versions
+          | None -> errorf "no npm package %s found" name
+          | Some versions -> return versions
         in
 
-        let f (version, manifest) =
+        let f {NpmRegistry. version; manifest} =
           let version = Package.Version.Npm version in
           let resolution = {Resolution. name; version} in
 

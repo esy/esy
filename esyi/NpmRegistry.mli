@@ -1,9 +1,18 @@
+type versions = {
+  versions : version list;
+  distTags : SemverVersion.Version.t StringMap.t;
+}
+and version = {
+  version : SemverVersion.Version.t;
+  manifest : Manifest.t;
+}
+
 val versions :
   ?fullMetadata:bool
   -> cfg:Config.t
   -> name:string
   -> unit
-  -> (SemverVersion.Version.t * Manifest.t) list RunAsync.t
+  -> versions option RunAsync.t
 
 val version :
   cfg:Config.t
