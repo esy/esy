@@ -66,7 +66,8 @@ end
  *)
 module VersionSpec : sig
   type t =
-      Npm of SemverVersion.Formula.DNF.t
+    | Npm of SemverVersion.Formula.DNF.t
+    | NpmDistTag of string * SemverVersion.Version.t option
     | Opam of OpamPackageVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
@@ -104,6 +105,7 @@ module Dep : sig
 
   and req =
     | Npm of SemverVersion.Constraint.t
+    | NpmDistTag of string
     | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
 

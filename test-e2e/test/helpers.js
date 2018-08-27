@@ -60,7 +60,7 @@ export type TestSandbox = {
 
   defineNpmPackage: (
     packageJson: {name: string, version: string},
-    options?: {shasum?: string},
+    options?: {distTag?: string, shasum?: string},
   ) => Promise<string>,
 
   defineNpmPackageOfFixture: (fixture: Fixture) => Promise<void>,

@@ -19,7 +19,7 @@ type t = {
   dependencies : Package.Dependencies.t;
 
   (** A set of resolutions. *)
-  resolutions : Manifest.Resolutions.t;
+  resolutions : Package.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
   ocamlReq : Package.Req.t option;

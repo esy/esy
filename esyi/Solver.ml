@@ -658,7 +658,8 @@ let solveOCamlReq ~cfg ~opamRegistry (req : Req.t) =
   in
 
   match req.spec with
-  | VersionSpec.Npm _ ->
+  | VersionSpec.Npm _
+  | VersionSpec.NpmDistTag _ ->
     let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
     begin match findResolutionForRequest ~req resolutions with
     | Some resolution ->

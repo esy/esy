@@ -13,6 +13,7 @@ module type VERSION  = sig
   include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
+  val parseExn : string -> t
 
   val majorMinorPatch : t -> (int * int * int) option
   val prerelease : t -> bool
