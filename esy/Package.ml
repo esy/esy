@@ -6,7 +6,7 @@ type t = {
   build : ((Manifest.Build.t [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
   sourcePath : Config.Path.t;
   resolution : string option;
-} [@@deriving (eq, ord)]
+}
 
 and dependencies =
   dependency list
@@ -20,6 +20,25 @@ and dependency =
     name: string;
     reason: [ | `Reason of string | `Missing ];
   }
+
+let compare a b = String.compare a.id b.id
+let compare_dependency a b =
+  match a, b with
+  | Dependency a, Dependency b -> compare a b
+  | OptDependency a, OptDependency b -> compare a b
+  | BuildTimeDependency a, BuildTimeDependency b -> compare a b
+  | InvalidDependency a, InvalidDependency b -> String.compare a.name b.name
+  | Dependency _, _ -> 1
+  | OptDependency _, Dependency _ -> -1
+  | OptDependency _, _ -> 1
+  | BuildTimeDependency _, Dependency _ -> -1
+  | BuildTimeDependency _, OptDependency _ -> -1
+  | BuildTimeDependency _, _ -> 1
+  | DevDependency _, Dependency _ -> -1
+  | DevDependency _, OptDependency _ -> -1
+  | DevDependency _, BuildTimeDependency _ -> -1
+  | DevDependency _, _ -> 1
+  | InvalidDependency _, _ -> -1
 
 type pkg = t
 type pkg_dependency = dependency

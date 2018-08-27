@@ -21,7 +21,6 @@ and dependency =
     reason: [ | `Reason of string | `Missing ];
   }
 
-val equal : t -> t -> bool
 val compare : t -> t -> int
 val packageOf : dependency -> t option
 
