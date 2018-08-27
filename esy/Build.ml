@@ -26,7 +26,7 @@ let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
     return ()
   in
   let label = Printf.sprintf "building %s" pkg.id in
-  Perf.measure ~label f
+  Perf.measureLwt ~label f
 
 let runTask
   ?(force=`ForRoot)
@@ -91,7 +91,7 @@ let runTask
       | Error _ -> buildTask ~buildOnly cfg task
     in
     let label = Printf.sprintf "checking mtime for %s" (Task.id task) in
-    Perf.measure ~label f
+    Perf.measureLwt ~label f
   in
 
   let performBuildIfNeeded () =
