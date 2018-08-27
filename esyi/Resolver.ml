@@ -82,17 +82,11 @@ module Github = struct
     in
     match%lwt fetchFile "esy.json" with
     | Ok data ->
-      let%bind packageJson =
-        RunAsync.ofRun (Json.parseStringWith Manifest.of_yojson data)
-      in
-      return (`PackageJson packageJson)
+      RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data)
     | Error _ ->
       begin match%lwt fetchFile "package.json" with
       | Ok text ->
-        let%bind packageJson =
-          RunAsync.ofRun (Json.parseStringWith Manifest.of_yojson text)
-        in
-        return (`PackageJson packageJson)
+        RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson text)
       | Error _ ->
         error "no manifest found"
       end
@@ -134,72 +128,73 @@ let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
   let key = (resolution.name, resolution.version) in
   PackageCache.compute resolver.pkgCache key begin fun _ ->
+    match resolution.version with
+    | Version.Source ((Source.LocalPath path) as source)
+    | Version.Source ((Source.LocalPathLink path) as source) ->
+      let%bind manifest = PackageJson.ofDir path in
+      let pkg =
+        PackageJson.toPackage
+          ~name:resolution.name
+          ~version:resolution.version
+          ~source:(Package.Source source)
+          manifest
+      in
+      return (Ok pkg)
 
-    let%bind manifest =
-      match resolution.version with
-
-      | Version.Source (Source.LocalPath path)
-      | Version.Source (Source.LocalPathLink path) ->
-        let%bind manifest = Manifest.ofDir path in
-        return (`PackageJson manifest)
-
-      | Version.Source (Git {remote; commit} as source) ->
-        Fs.withTempDir begin fun repo ->
-          let%bind () = Git.clone ~dst:repo ~remote () in
-          let%bind () = Git.checkout ~ref:commit ~repo () in
-          match%lwt Manifest.ofDir repo with
-          | Ok manifest ->
-            let manifest = {manifest with name = resolution.name} in
-            return (`PackageJson manifest)
-          | Error err ->
-            errorf
-              "cannot read manifest at %a: %s"
-              Source.pp source (Run.formatError err)
-        end
-      | Version.Source (Github {user; repo; commit}) ->
-        begin match%bind Github.getManifest ~user ~repo ~ref:commit () with
-        | `PackageJson manifest ->
-          return (`PackageJson (Manifest.{ manifest with name = resolution.name }))
-        end
-      | Version.Source Source.NoSource -> error "no source"
-      | Version.Source (Source.Archive _) -> error "not implemented"
-      | Version.Npm version ->
-        let%bind manifest =
-          NpmRegistry.package ~name:resolution.name ~version resolver.npmRegistry ()
-        in
-        return (`PackageJson manifest)
-      | Version.Opam version ->
-        begin match%bind
-          let name = toOpamName resolution.name in
-          OpamRegistry.version
-            ~name
-            ~version
-            resolver.opamRegistry
-        with
-          | Some manifest ->
-            return (`Opam manifest)
-          | None -> error ("no such opam package: " ^ resolution.name)
-        end
-    in
-
-    let%bind pkg =
-      match manifest with
-      | `PackageJson manifest ->
-        let%bind pkg =
-          Manifest.toPackage
+    | Version.Source (Git {remote; commit} as source) ->
+      Fs.withTempDir begin fun repo ->
+        let%bind () = Git.clone ~dst:repo ~remote () in
+        let%bind () = Git.checkout ~ref:commit ~repo () in
+        match%lwt PackageJson.ofDir repo with
+        | Ok manifest ->
+          let pkg =
+            PackageJson.toPackage
+              ~name:resolution.name
+              ~version:resolution.version
+              ~source:(Package.Source source)
+              manifest
+          in
+          return (Ok pkg)
+        | Error err ->
+          errorf
+            "cannot read manifest at %a: %s"
+            Source.pp source (Run.formatError err)
+      end
+    | Version.Source ((Github {user; repo; commit}) as source) ->
+      let%bind pkgJson = Github.getManifest ~user ~repo ~ref:commit () in
+      let pkg =
+        PackageJson.toPackage
+          ~name:resolution.name
+          ~version:resolution.version
+          ~source:(Package.Source source)
+          pkgJson
+      in
+      return (Ok pkg)
+    | Version.Source Source.NoSource -> error "no source"
+    | Version.Source (Source.Archive _) -> error "not implemented"
+    | Version.Npm version ->
+      let%bind pkg =
+        NpmRegistry.package
+          ~name:resolution.name
+          ~version
+          resolver.npmRegistry ()
+      in
+      return (Ok pkg)
+    | Version.Opam version ->
+      begin match%bind
+        let name = toOpamName resolution.name in
+        OpamRegistry.version
+          ~name
+          ~version
+          resolver.opamRegistry
+      with
+        | Some manifest ->
+          OpamManifest.toPackage
             ~name:resolution.name
             ~version:resolution.version
             manifest
-        in
-        return (Ok pkg)
-      | `Opam manifest ->
-        OpamManifest.toPackage
-          ~name:resolution.name
-          ~version:resolution.version
-          manifest
-    in
-
-    return pkg
+        | None -> error ("no such opam package: " ^ resolution.name)
+      end
   end
 
 let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
@@ -284,18 +279,9 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
       in
 
       let resolutions =
-        let f {NpmRegistry. version; manifest} =
+        let f version =
           let version = Package.Version.Npm version in
-          let resolution = {Resolution. name; version} in
-
-          (* precache manifest so we don't have to fetch it once more *)
-          let key = (resolution.name, resolution.version) in
-          PackageCache.ensureComputed resolver.pkgCache key begin fun _ ->
-            let%bind pkg = Manifest.toPackage ~version manifest in
-            return (Ok pkg)
-          end;
-
-          resolution
+          {Resolution. name; version}
         in
         List.map ~f versions
       in

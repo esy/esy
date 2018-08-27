@@ -3,7 +3,7 @@ type t = {
   path : Path.t;
   root : Package.t;
   dependencies : Package.Dependencies.t;
-  resolutions : Manifest.Resolutions.t;
+  resolutions : Package.Resolutions.t;
   ocamlReq : Package.Req.t option;
   origin: origin;
 }
@@ -21,13 +21,12 @@ end
 
 let readPackageJsonManifest (path : Path.t) =
   let open RunAsync.Syntax in
-  match%bind Manifest.find path with
+  match%bind PackageJson.findInDir path with
   | Some filename ->
     let%bind json = Fs.readJsonFile filename in
-    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith Manifest.RootPackageJson.of_yojson json) in
+    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
     let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
-    let manifest = Manifest.ofRootPackageJson ~path:filename pkgJson in
-    return (Some (manifest, resolutions.PackageJsonWithResolutions.resolutions, Esy(filename)))
+    return (Some (pkgJson, resolutions.PackageJsonWithResolutions.resolutions, Esy filename))
   | None -> return None
 
 let readAggregatedOpamManifest (path : Path.t) =
@@ -124,14 +123,18 @@ let ofDir ~cfg (path : Path.t) =
   | Some (manifest, resolutions, origin) ->
 
     let reqs =
-      Package.NpmDependencies.override manifest.Manifest.dependencies manifest.devDependencies
+      Package.NpmDependencies.override
+        manifest.PackageJson.dependencies
+        manifest.devDependencies
     in
 
     let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in
 
-    let%bind root =
-      let version = Package.Version.Source (Package.Source.LocalPath path) in
-      Manifest.toPackage ~version manifest
+    let root =
+      let source = Package.Source.LocalPath path in
+      let version = Package.Version.Source source in
+      let name = Path.basename path in
+      PackageJson.toPackage ~name ~version ~source:(Package.Source source) manifest
     in
 
     return {
@@ -167,7 +170,7 @@ let ofDir ~cfg (path : Path.t) =
           cfg;
           path;
           root;
-          resolutions = Manifest.Resolutions.empty;
+          resolutions = Package.Resolutions.empty;
           dependencies;
           ocamlReq = Some ocamlReqAny;
           origin;

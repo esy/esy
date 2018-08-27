@@ -1,10 +1,85 @@
+module Esy = PackageJson.EsyPackageJson
+
+module PackageJson = struct
+  type t = {
+    name : string;
+    version : string;
+    dependencies : (Package.NpmDependencies.t [@default Package.NpmDependencies.empty]);
+    devDependencies : (Package.NpmDependencies.t [@default Package.NpmDependencies.empty]);
+    dist : dist;
+    esy : (PackageJson.EsyPackageJson.t option [@default None]);
+  } [@@deriving of_yojson { strict = false }]
+
+  and dist = {
+    tarball : string;
+    shasum : string;
+  }
+end
+
+module Packument = struct
+  type t = {
+    versions : PackageJson.t StringMap.t;
+    distTags : SemverVersion.Version.t StringMap.t [@key "dist-tags"];
+  } [@@deriving of_yojson { strict = false }]
+end
+
+let packageJsonToPackage ?name ?version (pkgJson : PackageJson.t) =
+  let open Run.Syntax in
+  let name =
+    match name with
+    | Some name -> name
+    | None -> pkgJson.name
+  in
+  let%bind originalVersion = Run.ofStringError (
+    let open Result.Syntax in
+    let%bind version = SemverVersion.Version.parse pkgJson.version in
+    return (Package.Version.Npm version)
+  ) in
+  let version =
+    match version with
+    | Some version -> Package.Version.Npm version
+    | None -> originalVersion
+  in
+  let source =
+    match version with
+    | Package.Version.Source src -> src
+    | _ ->
+      Package.Source.Archive {
+        url = pkgJson.dist.tarball;
+        checksum = Checksum.Sha1, pkgJson.dist.shasum;
+      }
+  in
+
+  let dependencies =
+    match pkgJson.esy with
+    | None
+    | Some {Esy. _dependenciesForNewEsyInstaller= None} ->
+      pkgJson.dependencies
+    | Some {Esy. _dependenciesForNewEsyInstaller= Some dependencies} ->
+      dependencies
+  in
+
+  let pkg = {
+    Package.
+    name;
+    version;
+    originalVersion = Some originalVersion;
+    dependencies = Package.Dependencies.NpmFormula dependencies;
+    devDependencies = Package.Dependencies.NpmFormula pkgJson.devDependencies;
+    source = Package.Source source, [];
+    opam = None;
+    kind =
+      (match pkgJson.esy with
+        | Some _ -> Esy
+        | None -> Npm);
+  } in
+
+  return pkg
+
+
 type versions = {
-  versions : version list;
+  versions : SemverVersion.Version.t list;
   distTags : SemverVersion.Version.t StringMap.t;
-}
-and version = {
-  version : SemverVersion.Version.t;
-  manifest : Manifest.t;
 }
 
 module VersionsCache = Memoize.Make(struct
@@ -14,7 +89,7 @@ end)
 
 module PackageCache = Memoize.Make(struct
   type key = string * SemverVersion.Version.t
-  type value = Manifest.t RunAsync.t
+  type value = Package.t RunAsync.t
 end)
 
 type t = {
@@ -23,13 +98,6 @@ type t = {
   pkgCache : PackageCache.t;
   queue : LwtTaskQueue.t;
 }
-
-module Packument = struct
-  type t = {
-    versions : Manifest.PackageJson.t StringMap.t;
-    distTags : SemverVersion.Version.t StringMap.t [@key "dist-tags"];
-  } [@@deriving of_yojson { strict = false }]
-end
 
 let rec retryInCaseOfError ~num ~desc  f =
   match%lwt f () with
@@ -80,9 +148,11 @@ let versions ?(fullMetadata= false) ~name registry () =
       let%bind versions = RunAsync.ofStringError (
         let f (version, packageJson) =
           let open Result.Syntax in
-          let manifest = Manifest.ofPackageJson packageJson in
           let%bind version = SemverVersion.Version.parse version in
-          return {version; manifest}
+          PackageCache.ensureComputed registry.pkgCache (name, version) begin fun () ->
+            RunAsync.ofRun (packageJsonToPackage ~version packageJson)
+          end;
+          return version
         in
         packument.Packument.versions
         |> StringMap.bindings
@@ -103,11 +173,12 @@ let package ~name ~version registry () =
       let url = registry.url ^ "/" ^ name ^ "/" ^ SemverVersion.Version.toString version in
       retryInCaseOfError ~num:3 ~desc (fun () -> Curl.get url)
     in
-    let%bind packageJson = RunAsync.ofRun (
-      Json.parseStringWith Manifest.PackageJson.of_yojson data
-    ) in
-    let manifest = Manifest.ofPackageJson packageJson in
-    return manifest
+    RunAsync.ofRun (
+      let open Run.Syntax in
+      let%bind pkgJson = Json.parseStringWith PackageJson.of_yojson data in
+      let%bind pkg = packageJsonToPackage pkgJson in
+      return pkg
+    )
   in
   fetchPackage
   |> LwtTaskQueue.queued registry.queue

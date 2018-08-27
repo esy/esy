@@ -1,12 +1,8 @@
 type t
 
 type versions = {
-  versions : version list;
+  versions : SemverVersion.Version.t list;
   distTags : SemverVersion.Version.t StringMap.t;
-}
-and version = {
-  version : SemverVersion.Version.t;
-  manifest : Manifest.t;
 }
 
 val make :
@@ -27,4 +23,4 @@ val package :
   -> version:SemverVersion.Version.t
   -> t
   -> unit
-  -> Manifest.t RunAsync.t
+  -> Package.t RunAsync.t
