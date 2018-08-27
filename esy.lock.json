@@ -1270,7 +1270,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "glob@7.1.2" ]
+      "dependencies": [ "glob@7.1.3" ]
     },
     "right-align@0.1.3": {
       "record": {
@@ -1399,7 +1399,7 @@
         "combined-stream@1.0.6", "extend@3.0.2", "forever-agent@0.6.1",
         "form-data@2.3.2", "har-validator@5.1.0", "http-signature@1.2.0",
         "is-typedarray@1.0.0", "isstream@0.1.2", "json-stringify-safe@5.0.1",
-        "mime-types@2.1.19", "oauth-sign@0.9.0", "performance-now@2.1.0",
+        "mime-types@2.1.20", "oauth-sign@0.9.0", "performance-now@2.1.0",
         "qs@6.5.2", "safe-buffer@5.1.2", "tough-cookie@2.4.3",
         "tunnel-agent@0.6.0", "uuid@3.3.2"
       ]
@@ -2512,23 +2512,23 @@
       },
       "dependencies": []
     },
-    "mime-types@2.1.19": {
+    "mime-types@2.1.20": {
       "record": {
         "name": "mime-types",
-        "version": "2.1.19",
+        "version": "2.1.20",
         "source":
-          "archive:https://registry.npmjs.org/mime-types/-/mime-types-2.1.19.tgz#sha1:71e464537a7ef81c15f2db9d97e913fc0ff606f0",
+          "archive:https://registry.npmjs.org/mime-types/-/mime-types-2.1.20.tgz#sha1:930cb719d571e903738520f8470911548ca2cc19",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "mime-db@1.35.0" ]
+      "dependencies": [ "mime-db@1.36.0" ]
     },
-    "mime-db@1.35.0": {
+    "mime-db@1.36.0": {
       "record": {
         "name": "mime-db",
-        "version": "1.35.0",
+        "version": "1.36.0",
         "source":
-          "archive:https://registry.npmjs.org/mime-db/-/mime-db-1.35.0.tgz#sha1:0569d657466491283709663ad379a99b90d9ab47",
+          "archive:https://registry.npmjs.org/mime-db/-/mime-db-1.36.0.tgz#sha1:5020478db3c7fe93aad7bbcc4dcf869c43363397",
         "files": [],
         "opam": null
       },
@@ -3200,7 +3200,7 @@
         "opam": null
       },
       "dependencies": [
-        "@babel/code-frame@7.0.0-rc.3", "chalk@2.4.1", "micromatch@2.3.11",
+        "@babel/code-frame@7.0.0-rc.4", "chalk@2.4.1", "micromatch@2.3.11",
         "slash@1.0.0", "stack-utils@1.0.1"
       ]
     },
@@ -3341,7 +3341,7 @@
       },
       "dependencies": [
         "babel-core@6.26.3", "babel-jest@23.4.2", "chalk@2.4.1",
-        "glob@7.1.2", "jest-environment-jsdom@23.4.0",
+        "glob@7.1.3", "jest-environment-jsdom@23.4.0",
         "jest-environment-node@23.4.0", "jest-get-type@22.4.3",
         "jest-jasmine2@23.5.0", "jest-regex-util@23.3.0",
         "jest-resolve@23.5.0", "jest-util@23.4.0", "jest-validate@23.5.0",
@@ -3358,7 +3358,7 @@
         "opam": null
       },
       "dependencies": [
-        "ansi-escapes@3.1.0", "chalk@2.4.1", "exit@0.1.2", "glob@7.1.2",
+        "ansi-escapes@3.1.0", "chalk@2.4.1", "exit@0.1.2", "glob@7.1.3",
         "graceful-fs@4.1.11", "import-local@1.0.0", "is-ci@1.2.0",
         "istanbul-api@1.3.6", "istanbul-lib-coverage@1.2.0",
         "istanbul-lib-instrument@1.10.1", "istanbul-lib-source-maps@1.2.5",
@@ -4287,7 +4287,7 @@
         "opam": null
       },
       "dependencies": [
-        "array-union@1.0.2", "glob@7.1.2", "object-assign@4.1.1",
+        "array-union@1.0.2", "glob@7.1.3", "object-assign@4.1.1",
         "pify@2.3.0", "pinkie-promise@2.0.1"
       ]
     },
@@ -4335,12 +4335,12 @@
       },
       "dependencies": [ "glob-parent@2.0.0", "is-glob@2.0.1" ]
     },
-    "glob@7.1.2": {
+    "glob@7.1.3": {
       "record": {
         "name": "glob",
-        "version": "7.1.2",
+        "version": "7.1.3",
         "source":
-          "archive:https://registry.npmjs.org/glob/-/glob-7.1.2.tgz#sha1:c19c9df9a028702d678612384a6552404c636d15",
+          "archive:https://registry.npmjs.org/glob/-/glob-7.1.3.tgz#sha1:3960832d3f1574108342dafd3a67b332c0969df1",
         "files": [],
         "opam": null
       },
@@ -4497,7 +4497,7 @@
         "opam": null
       },
       "dependencies": [
-        "asynckit@0.4.0", "combined-stream@1.0.6", "mime-types@2.1.19"
+        "asynckit@0.4.0", "combined-stream@1.0.6", "mime-types@2.1.20"
       ]
     },
     "forever-agent@0.6.1": {
@@ -4592,7 +4592,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "glob@7.1.2", "minimatch@3.0.4" ]
+      "dependencies": [ "glob@7.1.3", "minimatch@3.0.4" ]
     },
     "filename-regex@2.0.1": {
       "record": {
@@ -7095,13 +7095,27 @@
           "archive:https://opam.ocaml.org/archives/utop.2.2.0+opam.tar.gz#md5:0f638cca878347aaae983d79104c34d1",
           "archive:https://github.com/diml/utop/releases/download/2.2.0/utop-2.2.0.tbz#md5:c8e4805883ce27a2ef27b0e4322d6f04"
         ],
-        "files": [],
+        "files": [
+          {
+            "name": "_esy/utop-2.2.0.patch",
+            "content":
+              "--- ./src/lib/uTop_main.ml\n+++ ./src/lib/uTop_main.ml\n@@ -1308,6 +1308,9 @@\n   (* We lost the terminal. *)\n   catch Sys.sighup;\n   (* Termination request. *)\n+  if Sys.win32 && !emacs_mode then\n+    Sys.set_signal Sys.sigterm Sys.Signal_ignore\n+  else\n   catch Sys.sigterm\n \n let load_inputrc () =\n--- ./src/top/expunge/expunge.ml\n+++ ./src/top/expunge/expunge.ml\n@@ -3,7 +3,9 @@\n \n let run_and_read_lines args =\n   let cmd = String.concat ~sep:\" \" (List.map args ~f:Filename.quote) in\n+  let cmd = if Sys.win32 then \"\\\"\" ^ cmd ^ \"\\\"\" else cmd in\n   let ic = Unix.open_process_in cmd in\n+  set_binary_mode_in ic false;\n   let rec loop acc =\n     match input_line ic with\n     | exception End_of_file -> List.rev acc\n@@ -60,6 +62,7 @@\n       (Filename.quote dst)\n       (String.concat ~sep:\" \" (S.elements modules_to_keep))\n   in\n+  let cmdline = if Sys.win32 then \"\\\"\" ^ cmdline ^ \"\\\"\" else cmdline in\n   if verbose then prerr_endline cmdline;\n   exit (Sys.command cmdline)\n \n"
+          }
+        ],
         "opam": {
           "name": "utop",
           "version": "2.2.0",
           "opam":
             "opam-version: \"1.2\"\nname: \"utop\"\nversion: \"2.2.0\"\nmaintainer: \"jeremie@dimino.org\"\nauthors: \"Jérémie Dimino\"\nlicense: \"BSD3\"\nhomepage: \"https://github.com/diml/utop\"\nbug-reports: \"https://github.com/diml/utop/issues\"\ndepends: [\n  \"base-unix\"\n  \"base-threads\"\n  \"ocamlfind\" {>= \"1.7.2\"}\n  \"lambda-term\" {>= \"1.2\"}\n  \"lwt\"\n  \"lwt_react\"\n  \"camomile\"\n  \"react\" {>= \"1.0.0\"}\n  \"cppo\" {build & >= \"1.1.2\"}\n  \"jbuilder\" {build & >= \"1.0+beta9\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/diml/utop.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/utop-2.2.0.patch' : 'true' }"
+              ],
+              [ "jbuilder", "build", "-p", "utop", "-j", "4" ]
+            ]
+          }
         }
       },
       "dependencies": [
@@ -7333,20 +7347,20 @@
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0"
       ]
     },
-    "@opam/ppx_tools_versioned@opam:5.2": {
+    "@opam/ppx_tools_versioned@opam:5.2.1": {
       "record": {
         "name": "@opam/ppx_tools_versioned",
-        "version": "opam:5.2",
+        "version": "opam:5.2.1",
         "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_tools_versioned.5.2+opam.tar.gz#md5:8fd1b5ae4a846543df0b1ed6e008cfc8",
-          "archive:https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.tar.gz#md5:f2f1a1cd11aeb9f91a92ab691720a401"
+          "archive:https://opam.ocaml.org/archives/ppx_tools_versioned.5.2.1+opam.tar.gz#md5:41dadea597e9f646cafb8db3367a6833",
+          "archive:https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.1.tar.gz#md5:1ae6ae43ec161fbbf12c2b4d3a7e26f5"
         ],
         "files": [],
         "opam": {
           "name": "ppx_tools_versioned",
-          "version": "5.2",
+          "version": "5.2.1",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ppx_tools_versioned\"\nversion: \"5.2\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Alain Frisch <alain.frisch@lexifi.com>\"\n]\nlicense: \"MIT\"\ntags: \"syntax\"\nhomepage: \"https://github.com/let-def/ppx_tools_versioned\"\nbug-reports: \"https://github.com/let-def/ppx_tools_versioned/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"ocaml-migrate-parsetree\" {>= \"0.5\"}\n]\navailable: ocaml-version >= \"4.02.0\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/let-def/ppx_tools_versioned.git\"",
+            "opam-version: \"1.2\"\nname: \"ppx_tools_versioned\"\nversion: \"5.2.1\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Alain Frisch <alain.frisch@lexifi.com>\"\n]\nlicense: \"MIT\"\ntags: \"syntax\"\nhomepage: \"https://github.com/let-def/ppx_tools_versioned\"\nbug-reports: \"https://github.com/let-def/ppx_tools_versioned/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.10\"}\n]\navailable: ocaml-version >= \"4.02.0\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/let-def/ppx_tools_versioned.git\"",
           "override": null
         }
       },
@@ -7736,7 +7750,19 @@
           "version": "0.12.0",
           "opam":
             "opam-version: \"1.2\"\nname: \"ocamlbuild\"\nversion: \"0.12.0\"\nmaintainer: \"Gabriel Scherer <gabriel.scherer@gmail.com>\"\nauthors: [\"Nicolas Pouillard\" \"Berke Durak\"]\nlicense: \"LGPL-2 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocamlbuild/\"\ndoc: \"https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc\"\nbug-reports: \"https://github.com/ocaml/ocamlbuild/issues\"\nconflicts: [\n  \"base-ocamlbuild\"\n  \"ocamlfind\" {< \"1.6.2\"}\n]\navailable: ocaml-version >= \"4.03\"\nbuild: [\n  [\n    make\n    \"-f\"\n    \"configure.make\"\n    \"all\"\n    \"OCAMLBUILD_PREFIX=%{prefix}%\"\n    \"OCAMLBUILD_BINDIR=%{bin}%\"\n    \"OCAMLBUILD_LIBDIR=%{lib}%\"\n    \"OCAMLBUILD_MANDIR=%{man}%\"\n    \"OCAML_NATIVE=%{ocaml-native}%\"\n    \"OCAML_NATIVE_TOOLS=%{ocaml-native}%\"\n  ]\n  [make \"check-if-preinstalled\" \"all\" \"opam-install\"]\n]\ndev-repo: \"git+https://github.com/ocaml/ocamlbuild.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "make", "-f", "configure.make", "all",
+                "OCAMLBUILD_PREFIX=#{self.install}",
+                "OCAMLBUILD_BINDIR=#{self.bin}",
+                "OCAMLBUILD_LIBDIR=#{self.lib}",
+                "OCAMLBUILD_MANDIR=#{self.man}", "OCAMLBUILD_NATIVE=true",
+                "OCAMLBUILD_NATIVE_TOOLS=true"
+              ],
+              [ "make", "check-if-preinstalled", "all", "opam-install" ]
+            ]
+          }
         }
       },
       "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
@@ -7881,7 +7907,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.0.11",
-        "@opam/ppx_tools_versioned@opam:5.2"
+        "@opam/ppx_tools_versioned@opam:5.2.1"
       ]
     },
     "@opam/lwt_log@opam:1.1.0": {
@@ -7974,7 +8000,10 @@
             "opam-version: \"1.2\"\nname: \"lambda-term\"\nversion: \"1.13\"\nmaintainer: \"jeremie@dimino.org\"\nauthors: \"Jérémie Dimino\"\nlicense: \"BSD3\"\nhomepage: \"https://github.com/diml/lambda-term\"\nbug-reports: \"https://github.com/diml/lambda-term/issues\"\ndepends: [\n  \"lwt\" {>= \"2.7.0\"}\n  \"lwt_log\"\n  \"react\"\n  \"zed\" {>= \"1.2\"}\n  \"camomile\" {>= \"0.8.6\"}\n  \"lwt_react\"\n  \"jbuilder\" {build & >= \"1.0+beta9\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/diml/lambda-term.git\"",
           "override": {
             "build": [
-              [ "bash", "-c", "patch -p1 < _esy/lambda-term-1.13.patch" ],
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/lambda-term-1.13.patch' : 'true'}"
+              ],
               [ "jbuilder", "build", "-p", "lambda-term", "-j", "4" ]
             ]
           }
@@ -8590,12 +8619,12 @@
       },
       "dependencies": []
     },
-    "@babel/highlight@7.0.0-rc.3": {
+    "@babel/highlight@7.0.0-rc.4": {
       "record": {
         "name": "@babel/highlight",
-        "version": "7.0.0-rc.3",
+        "version": "7.0.0-rc.4",
         "source":
-          "archive:https://registry.npmjs.org/@babel/highlight/-/highlight-7.0.0-rc.3.tgz#sha1:c2ee83f8e5c0c387279a8c48e06fef2e32027004",
+          "archive:https://registry.npmjs.org/@babel/highlight/-/highlight-7.0.0-rc.4.tgz#sha1:63fb56721e08a166e6693ebd5ab03a08bcb370cb",
         "files": [],
         "opam": null
       },
@@ -8662,16 +8691,16 @@
         "source-map@0.5.7", "trim-right@1.0.1"
       ]
     },
-    "@babel/code-frame@7.0.0-rc.3": {
+    "@babel/code-frame@7.0.0-rc.4": {
       "record": {
         "name": "@babel/code-frame",
-        "version": "7.0.0-rc.3",
+        "version": "7.0.0-rc.4",
         "source":
-          "archive:https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.0.0-rc.3.tgz#sha1:d77a587401f818a3168700f596e41cd6905947b2",
+          "archive:https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.0.0-rc.4.tgz#sha1:e15e3ba1193bbb8d474c244446bffd8c6f804556",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "@babel/highlight@7.0.0-rc.3" ]
+      "dependencies": [ "@babel/highlight@7.0.0-rc.4" ]
     },
     "@babel/code-frame@7.0.0-beta.51": {
       "record": {
