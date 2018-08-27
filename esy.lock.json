@@ -8178,6 +8178,11 @@
             "name": "0003-Fix-for-ocaml-4.06.patch",
             "content":
               "From aeca7656f499d7f4595319858f242276920e31bb Mon Sep 17 00:00:00 2001\nFrom: Louis Gesbert <louis.gesbert@ocamlpro.com>\nDate: Sat, 2 Dec 2017 12:51:01 +0100\nSubject: [PATCH] Fix for ocaml 4.06\n\n---\n common/criteria_lexer.mll | 8 ++++----\n common/util.ml            | 2 +-\n 2 files changed, 5 insertions(+), 5 deletions(-)\n\ndiff --git a/common/criteria_lexer.mll b/common/criteria_lexer.mll\nindex 71f9178..fc4eae3 100644\n--- a/common/criteria_lexer.mll\n+++ b/common/criteria_lexer.mll\n@@ -18,7 +18,7 @@\n     let c = Lexing.lexeme_char lexbuf 2 in (* the delimiter can be any character *)\n     (* find the terminating delimiter *)\n     let endpos =\n-      try String.index_from lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) c with\n+      try Bytes.index_from lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) c with\n       |Invalid_argument _ ->\n           raise (Format822.Syntax_error (\n             Format822.error lexbuf \"String too short\"))\n@@ -27,9 +27,9 @@\n             Format822.error lexbuf (Printf.sprintf \"cannot find: %c\" c)))\n     in\n     let len = endpos - (lexbuf.lex_start_pos + 3) in\n-    let s = String.sub lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) len in\n-    lexbuf.Lexing.lex_curr_pos <- lexbuf.Lexing.lex_start_pos + ((String.length s)+4);\n-    s\n+    let s = Bytes.sub lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) len in\n+    lexbuf.Lexing.lex_curr_pos <- lexbuf.Lexing.lex_start_pos + ((Bytes.length s)+4);\n+    Bytes.to_string s\n \n }\n \ndiff --git a/common/util.ml b/common/util.ml\nindex 598f266..36ca3d1 100644\n--- a/common/util.ml\n+++ b/common/util.ml\n@@ -87,7 +87,7 @@ module MakeMessages(X : sig val label : string end) = struct\n   let clean label =\n     try \n       let s = Filename.chop_extension (Filename.basename label) in\n-      String.capitalize s\n+      String.capitalize_ascii s\n     with Invalid_argument _ -> label\n \n   let create ?(enabled=false) label =\n-- \n2.11.0\n\n"
+          },
+          {
+            "name": "_esy/dose3-5.0.1.patch",
+            "content":
+              "--- ./configure\n+++ ./configure\n@@ -3907,7 +3907,7 @@\n  as_fn_error $? \"Please install OCaml findlib module 'ocamlgraph'.\" \"$LINENO\" 5\n fi\n TMPVERSION=`$OCAMLFIND query -format %v ocamlgraph | sed 's/\\.//g'`\n-CONFIG_OCAMLGRAPH=\"-D 'OCAMLGRAPHVERSION $TMPVERSION'\"\n+CONFIG_OCAMLGRAPH=\"-D \\\"OCAMLGRAPHVERSION $TMPVERSION\\\"\"\n \n \n # Check whether --with-parmap was given.\n@@ -5324,7 +5324,7 @@\n $as_echo_n \"checking for a workable solution for ln -s... \" >&6; }\n   ln -s configure conftestLink\n   if test \"`cmd /c dir conftestLink 2>/dev/null | fgrep SYMLINK`\" = \"\"; then :\n-  LN=cp\n+  LN=\"cp -a\"\n else\n   LN=\"ln -s\"\n fi\n--- ./configure.ac\n+++ ./configure.ac\n@@ -104,7 +104,7 @@\n  AC_MSG_ERROR([Please install OCaml findlib module 'ocamlgraph'.])\n fi\n TMPVERSION=`$OCAMLFIND query -format %v ocamlgraph | sed 's/\\.//g'`\n-CONFIG_OCAMLGRAPH=\"-D 'OCAMLGRAPHVERSION $TMPVERSION'\"\n+CONFIG_OCAMLGRAPH=\"-D \\\"OCAMLGRAPHVERSION $TMPVERSION\\\"\"\n \n AC_ARG_WITH(parmap,\n         [ --with-parmap ],\n@@ -260,7 +260,7 @@\n AS_IF([test \"${OCAML_OS_TYPE}\" = \"Win32\"],[\n   AC_MSG_CHECKING([for a workable solution for ln -s])\n   ln -s configure conftestLink\n-  AS_IF([test \"`cmd /c dir conftestLink 2>/dev/null | fgrep SYMLINK`\" = \"\"],[LN=cp],[LN=\"ln -s\"])\n+  AS_IF([test \"`cmd /c dir conftestLink 2>/dev/null | fgrep SYMLINK`\" = \"\"],[LN=\"cp -a\"],[LN=\"ln -s\"])\n   AC_MSG_RESULT([$LN])\n ],[\n   LN=\"ln -s\"\n--- ./Makefile\n+++ ./Makefile\n@@ -1,5 +1,6 @@\n #this is a forward reference to the target all below\n-all: all\n+.PHONY: default\n+default: all\n \n #SHELL=/bin/bash\n include Makefile.config\n@@ -15,8 +16,8 @@\n #OBFLAGS := $(OBFLAGS) -classic-display\n \n addnotrpm:\n-\t@if [ ! -s doseparseNoRpm ]; then $(LN) doseparse doseparseNoRpm ; fi\n-\t@cd doseparse ; \\\n+\t@if [ ! -e doseparseNoRpm ]; then $(LN) doseparse doseparseNoRpm ; fi\n+\t@cd doseparseNoRpm ; \\\n \t\tif [ ! -s doseparseNoRpm.mlpack ]; then \\\n \t\t\t$(LN) doseparse.mlpack doseparseNoRpm.mlpack ; \\\n \t\tfi ; \\\n"
           }
         ],
         "opam": {
@@ -8185,7 +8190,17 @@
           "version": "5.0.1",
           "opam":
             "opam-version: \"1.2\"\nname: \"dose3\"\nversion: \"5.0.1\"\nmaintainer: \"pietro.abate@inria.fr\"\nauthors: [\n  \"Pietro Abate\"\n  \"Jaap Boender\"\n  \"Roberto Di Cosmo\"\n  \"Johannes Schauer\"\n  \"Ralf Treinen\"\n  \"Stefano Zacchiroli\"\n  \"Jakub Zwolakowski\"\n  \"Olivier Rosello\"\n]\nlicense: \"LGPL-v3+ with OCaml linking exception\"\nhomepage: \"http://www.mancoosi.org/software/\"\nbug-reports: \"https://gforge.inria.fr/tracker/?group_id=4395\"\ndepends: [\n  \"ocamlgraph\" {>= \"1.8.6\"}\n  \"cudf\" {>= \"0.7\"}\n  \"conf-perl\" {build}\n  (\"extlib\" {>= \"1.7.0\"} | \"extlib-compat\" {>= \"1.7.0\"})\n  \"re\" {>= \"1.2.2\"}\n  \"ocamlbuild\" {build}\n  \"cppo\" {build & >= \"1.1.2\"}\n]\nconflicts: [\"dose\"]\nbuild: [\n  [\"./configure\"]\n  [make \"printconf\"]\n  [make]\n]\ninstall: [make \"installlib\"]\nremove: [\n  [\"./configure\"]\n  [make \"uninstalllib\"]\n]\npatches: [\n  \"0001-Install-mli-cmx-etc.patch\"\n  \"0002-dont-make-printconf.patch\"\n  \"0003-Fix-for-ocaml-4.06.patch\" {ocaml-version >= \"4.06.0\"}\n  \"0004-Add-unix-as-dependency-to-dose3.common-in-META.in.patch\"\n]\ndev-repo: \"git+https://gforge.inria.fr/git/dose/dose.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/dose3-5.0.1.patch' : 'true'}"
+              ],
+              [ "./configure" ],
+              [ "make", "printconf" ],
+              [ "bash", "-c", "#{os == 'windows' ? 'make' : 'make libs'}" ]
+            ]
+          }
         }
       },
       "dependencies": [
@@ -8474,13 +8489,27 @@
           "archive:https://opam.ocaml.org/archives/base.v0.11.1+opam.tar.gz#md5:c211940166b706df35bd47a8ffd4b89f",
           "archive:https://github.com/janestreet/base/releases/download/v0.11.1/base-v0.11.1.tbz#md5:e7e7dc5db3f1fea19d74a31bbd4ac621"
         ],
-        "files": [],
+        "files": [
+          {
+            "name": "_esy/base-v0.11.1.patch",
+            "content":
+              "--- ./src/exn_stubs.c\n+++ ./src/exn_stubs.c\n@@ -1,8 +1,13 @@\n #include <caml/mlvalues.h>\n \n extern int caml_backtrace_pos;\n+#ifndef _MSC_VER\n+#define UNUSED __attribute__((unused))\n+#else\n+#define UNUSED\n+#endif\n \n-CAMLprim value Base_clear_caml_backtrace_pos (value __attribute__((unused)) unit) {\n+CAMLprim value Base_clear_caml_backtrace_pos (value UNUSED unit) {\n   caml_backtrace_pos = 0;\n   return Val_unit;\n }\n--- ./src/int_math_stubs.c\n+++ ./src/int_math_stubs.c\n@@ -5,6 +5,25 @@\n #include <caml/mlvalues.h>\n #include <caml/memory.h>\n \n+#if defined(_MSC_VER)\n+#include <intrin.h>\n+#ifdef ARCH_SIXTYFOUR\n+#define __builtin_popcountll(x) __popcnt64((uint64_t)(x))\n+static __inline uint32_t __builtin_clzll(uint64_t value) {\n+  uint32_t leading_zero = 0;\n+  _BitScanReverse64(&leading_zero, value);\n+  return (63 - leading_zero);\n+}\n+#else\n+#define __builtin_popcount(x) __popcnt((unsigned int)(x))\n+static __inline uint32_t __builtin_clz(uint32_t value) {\n+  uint32_t leading_zero = 0;\n+  _BitScanReverse(&leading_zero, value);\n+  return (31 - leading_zero);\n+}\n+#endif /* ARCH_SIXTYFOUR */\n+#endif /* defined(_MSC_VER) */\n+\n static int64_t int_pow(int64_t base, int64_t exponent) {\n   int64_t ret = 1;\n   int64_t mul[4];\n--- ./src/jbuild\n+++ ./src/jbuild\n@@ -65,7 +65,7 @@\n     (progn\n      (with-stdout-to popcnt_test.c\n       (echo \"int main(int argc, char ** argv) { return __builtin_popcount(argc); }\"))\n-     (system \"${CC} -mpopcnt -c popcnt_test.c 2> ${null} && \\\n+     (bash \"${CC} -mpopcnt -c popcnt_test.c 2> ${null} && \\\n echo '(-mpopcnt)' > ${@} || echo '()' > ${@}\"))))))\n \n (ocamllex (hex_lexer))\n"
+          }
+        ],
         "opam": {
           "name": "base",
           "version": "v0.11.1",
           "opam":
             "opam-version: \"1.2\"\nname: \"base\"\nversion: \"v0.11.1\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/janestreet/base\"\nbug-reports: \"https://github.com/janestreet/base/issues\"\ndepends: [\n  \"sexplib0\" {>= \"v0.11\" & < \"v0.12\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n]\ndepopts: [\"base-native-int63\"]\navailable: ocaml-version >= \"4.04.1\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/janestreet/base.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/base-v0.11.1.patch' : 'true'}"
+              ],
+              [ "jbuilder", "build", "-p", "base", "-j", "4" ]
+            ]
+          }
         }
       },
       "dependencies": [
