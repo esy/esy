@@ -1,3 +1,5 @@
+type t
+
 type versions = {
   versions : version list;
   distTags : SemverVersion.Version.t StringMap.t;
@@ -7,16 +9,22 @@ and version = {
   manifest : Manifest.t;
 }
 
+val make :
+  ?concurrency:int
+  -> ?url:string
+  -> unit
+  -> t
+
 val versions :
   ?fullMetadata:bool
-  -> cfg:Config.t
   -> name:string
+  -> t
   -> unit
   -> versions option RunAsync.t
 
-val version :
-  cfg:Config.t
-  -> name:string
+val package :
+  name:string
   -> version:SemverVersion.Version.t
+  -> t
   -> unit
   -> Manifest.t RunAsync.t
