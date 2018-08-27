@@ -257,6 +257,8 @@ module LockfileV1 = struct
           match spec with
           | Package.VersionSpec.Npm f ->
             ppDnf SemverVersion.Constraint.pp fmt f
+          | Package.VersionSpec.NpmDistTag (tag, _version) ->
+            Fmt.string fmt tag
           | Package.VersionSpec.Opam f ->
             ppDnf OpamPackageVersion.Constraint.pp fmt f
           | Package.VersionSpec.Source src ->

@@ -102,26 +102,30 @@ type t = {
   cfg: Config.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
-  npmRegistryQueue : LwtTaskQueue.t;
   opamRegistry : OpamRegistry.t;
+  npmRegistry : NpmRegistry.t;
   ocamlVersion : Package.Version.t option;
   resolutionCache : ResolutionCache.t;
 }
 
-let make ?ocamlVersion ?opamRegistry ~cfg () =
+let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
   let open RunAsync.Syntax in
   let opamRegistry =
     match opamRegistry with
     | Some opamRegistry -> opamRegistry
     | None -> OpamRegistry.make ~cfg ()
   in
-  let npmRegistryQueue = LwtTaskQueue.create ~concurrency:25 () in
+  let npmRegistry =
+    match npmRegistry with
+    | Some npmRegistry -> npmRegistry
+    | None -> NpmRegistry.make ~url:cfg.Config.npmRegistry ()
+  in
   return {
     cfg;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
-    npmRegistryQueue;
     opamRegistry;
+    npmRegistry;
     ocamlVersion;
     resolutionCache = ResolutionCache.make ();
   }
@@ -161,9 +165,7 @@ let package ~(resolution : Resolution.t) resolver =
       | Version.Source (Source.Archive _) -> error "not implemented"
       | Version.Npm version ->
         let%bind manifest =
-          LwtTaskQueue.submit
-            resolver.npmRegistryQueue
-            (NpmRegistry.version ~cfg:resolver.cfg ~name:resolution.name ~version)
+          NpmRegistry.package ~name:resolution.name ~version resolver.npmRegistry ()
         in
         return (`PackageJson manifest)
       | Version.Opam version ->
@@ -268,21 +270,20 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
 
   match spec with
 
-  | VersionSpec.Npm _ ->
+  | VersionSpec.Npm _
+  | VersionSpec.NpmDistTag _ ->
 
-    let%bind resolutions =
-      ResolutionCache.compute resolver.resolutionCache name begin fun () ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
-        let%bind {NpmRegistry. versions;_ } =
-          match%bind
-            LwtTaskQueue.submit
-              resolver.npmRegistryQueue
-              (NpmRegistry.versions ~fullMetadata ~cfg:resolver.cfg ~name)
-          with
-          | None -> errorf "no npm package %s found" name
-          | Some versions -> return versions
-        in
+    let%bind resolutions, distTags =
+      let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
+      let%bind {NpmRegistry. versions; distTags;} =
+        match%bind
+          NpmRegistry.versions ~fullMetadata ~name resolver.npmRegistry ()
+        with
+        | None -> errorf "no npm package %s found" name
+        | Some versions -> return versions
+      in
 
+      let resolutions =
         let f {NpmRegistry. version; manifest} =
           let version = Package.Version.Npm version in
           let resolution = {Resolution. name; version} in
@@ -296,9 +297,23 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
 
           resolution
         in
-        return (List.map ~f versions)
-      end
+        List.map ~f versions
+      in
+
+      return (resolutions, distTags)
     in
+
+    let rewrittenSpec =
+      match spec with
+      | VersionSpec.NpmDistTag (tag, _) ->
+        begin match StringMap.find_opt tag distTags with
+        | Some version -> Some (VersionSpec.NpmDistTag (tag, Some version))
+        | None -> None
+        end
+      | _ -> None
+    in
+
+    let spec = Option.orDefault ~default:spec rewrittenSpec in
 
     let resolutions =
       resolutions
@@ -306,7 +321,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
       |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
     in
 
-    return (resolutions, None)
+    return (resolutions, rewrittenSpec)
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =

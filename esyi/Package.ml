@@ -248,7 +248,6 @@ module SourceSpec = struct
       String.(equal spec.user src.user && equal spec.repo src.repo)
     | Github _, _ -> false
 
-
     | Git ({ref = Some specRef; _} as spec), Source.Git src ->
       String.(
         equal spec.remote src.remote
@@ -278,12 +277,14 @@ module VersionSpec = struct
 
   type t =
     | Npm of SemverVersion.Formula.DNF.t
+    | NpmDistTag of string * SemverVersion.Version.t option
     | Opam of OpamPackageVersion.Formula.DNF.t
     | Source of SourceSpec.t
     [@@deriving (eq, ord)]
 
   let toString = function
     | Npm formula -> SemverVersion.Formula.DNF.toString formula
+    | NpmDistTag (tag, _version) -> tag
     | Opam formula -> OpamPackageVersion.Formula.DNF.toString formula
     | Source src -> SourceSpec.toString src
 
@@ -297,6 +298,11 @@ module VersionSpec = struct
     | Npm formula, Version.Npm version ->
       SemverVersion.Formula.DNF.matches ~version formula
     | Npm _, _ -> false
+
+    | NpmDistTag (_tag, Some resolvedVersion), Version.Npm version ->
+      SemverVersion.Version.equal resolvedVersion version
+    | NpmDistTag (_tag, None), Version.Npm _ -> assert false
+    | NpmDistTag (_tag, _), _ -> false
 
     | Opam formula, Version.Opam version ->
       OpamPackageVersion.Formula.DNF.matches ~version formula
@@ -434,6 +440,16 @@ module Req = struct
 
   let make ~name ~spec =
     let open Result.Syntax in
+
+    let isNpmDistTag v =
+      (* npm dist tags can be any strings which cannot be npm version ranges,
+       * this is a simplified check for that. *)
+      match v.[0] with
+      | 'v' -> false
+      | '0'..'9' -> false
+      | _ -> true
+    in
+
     if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
     then
       let spec = VersionSpec.Source (SourceSpec.LocalPath (Path.v spec)) in
@@ -454,8 +470,12 @@ module Req = struct
             begin match SemverVersion.Formula.parse spec with
               | Ok v -> Ok (VersionSpec.Npm v)
               | Error _ ->
-                Logs.warn (fun m -> m "error parsing version: %s" spec);
-                Ok (VersionSpec.Npm [[SemverVersion.Constraint.ANY]])
+                if isNpmDistTag spec
+                then Ok (VersionSpec.NpmDistTag (spec, None))
+                else (
+                  Logs.warn (fun m -> m "error parsing version: %s" spec);
+                  Ok (VersionSpec.Npm [[SemverVersion.Constraint.ANY]])
+                )
             end
           end
       in
@@ -528,6 +548,16 @@ module Req = struct
       VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
       make ~name:"pkg" ~spec:"npm:name@>4.1.0",
       VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
+
+      (* npm tags *)
+      make ~name:"pkg" ~spec:"latest",
+      VersionSpec.NpmDistTag ("latest", None);
+      make ~name:"pkg" ~spec:"next",
+      VersionSpec.NpmDistTag ("next", None);
+      make ~name:"pkg" ~spec:"alpha",
+      VersionSpec.NpmDistTag ("alpha", None);
+      make ~name:"pkg" ~spec:"beta",
+      VersionSpec.NpmDistTag ("beta", None);
     ]
 
     let expectParsesTo req e =
@@ -569,6 +599,7 @@ module Dep = struct
 
   and req =
     | Npm of SemverVersion.Constraint.t
+    | NpmDistTag of string
     | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
 
@@ -585,6 +616,7 @@ module Dep = struct
   let pp fmt {name; req;} =
     let ppReq fmt = function
       | Npm c -> SemverVersion.Constraint.pp fmt c
+      | NpmDistTag tag -> Fmt.string fmt tag
       | Opam c -> OpamPackageVersion.Constraint.pp fmt c
       | Source src -> SourceSpec.pp fmt src
     in
@@ -628,6 +660,8 @@ module NpmDependencies = struct
           in
           let formula = SemverVersion.Formula.ofDnfToCnf formula in
           List.map ~f:(List.map ~f) formula
+        | VersionSpec.NpmDistTag (tag, _) ->
+          [[{Dep. name = req.name; req = NpmDistTag tag}]]
         | VersionSpec.Opam formula ->
           let f (c : OpamPackageVersion.Constraint.t) =
             {Dep. name = req.name; req = Opam c}
@@ -672,6 +706,7 @@ module Dependencies = struct
             let spec =
               match dep.req with
               | Dep.Npm _ -> VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+              | Dep.NpmDistTag tag -> VersionSpec.NpmDistTag (tag, None)
               | Dep.Opam _ -> VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
               | Dep.Source srcSpec -> VersionSpec.Source srcSpec
             in

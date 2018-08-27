@@ -247,6 +247,7 @@ module Version = struct
       "1+1.a", Ok (make ~build:["1"; "a"] 1 0 0);
       "1.1.1+001.002", Ok (make ~build:["001"; "002"] 1 1 1);
       "a", Error "err";
+      "latest", Error "latest";
       "1._", Error "err";
     ]
 
@@ -611,8 +612,8 @@ module Formula = struct
             [ EQ (Version.make ~prerelease ~build m i 0)]
           | `Patch (m, i, p, prerelease, build) ->
             [EQ (Version.make ~prerelease ~build m i p)]
-          | `Raw (prerelease, build) ->
-            [EQ (Version.make ~prerelease ~build 0 0 0)]
+          | `Raw (_prerelease, _build) ->
+            failwith "bad version"
         end
 
     let parseConj v =
@@ -768,6 +769,10 @@ module Formula = struct
         ">1.1.1-alpha", Ok ([[GT Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
         "<=1.1.1-alpha", Ok ([[LTE Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
         "<1.1.1-alpha", Ok ([[LT Version.(make ~prerelease:[W "alpha"] 1 1 1)]]);
+
+        "1-alpha", Ok ([[EQ Version.(make ~prerelease:[W "alpha"] 1 0 0)]]);
+        "1.1-alpha", Ok ([[EQ Version.(make ~prerelease:[W "alpha"] 1 1 0)]]);
+        "alpha", Error "err";
 
 
         "> 1", Ok ([[GT Version.(make 1 0 0)]]);
