@@ -7851,13 +7851,31 @@
           "archive:https://opam.ocaml.org/archives/menhir.20171013+opam.tar.gz#md5:b361a87378407e26b9ea2dde7ddf41a0",
           "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11"
         ],
-        "files": [],
+        "files": [
+          {
+            "name": "_esy/menhir-20171013.patch",
+            "content":
+              "--- ./Makefile\n+++ ./Makefile\n@@ -59,13 +59,8 @@\n \n # If the compiler is MSVC, then object file names end in .obj instead of .o.\n \n-ifneq (,$(shell ocamlc -config | grep -E \"ccomp_type: msvc\"))\n-  OBJ          := obj\n-# LIBSUFFIX    := lib\n-else\n-  OBJ          := o\n-# LIBSUFFIX    := a\n-endif\n+OBJ          := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_obj:/ {print $$2}' | tr -d '.')\n+#LIBSUFFIX   := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_lib:/ {print $$2}' | tr -d '.')\n \n # If we are under Windows (regardless of whether we are using MSVC or mingw)\n # then the name of the executable file ends in .exe.\n@@ -91,8 +86,9 @@\n # performed if \"os_type\" is \"Win32\" or \"Win64\", and must not be performed if\n # \"os_type\" is \"Cygwin\" or \"Unix\".\n \n-ifneq (,$(shell ocamlc -config | grep -E \"os_type: (Win32|Win64)\"))\n-installation_libdir := $(shell cygpath -m $(libdir))\n+OS_TYPE:=\t$(shell ocamlc -config | awk -F '[\\t \\r]+' '/^os_type:/ {print $$2}')\n+ifeq ($(OS_TYPE),Win32)\n+installation_libdir := $(shell cygpath -m $(libdir) || echo $(libdir))\n else\n installation_libdir := $(libdir)\n endif\n--- ./src/cmly_write.ml\n+++ ./src/cmly_write.ml\n@@ -168,6 +168,6 @@\n   output_value oc (t : grammar)\n \n let write filename =\n-  let oc = open_out filename in\n+  let oc = open_out_bin filename in\n   write oc (encode());\n   close_out oc\n"
+          }
+        ],
         "opam": {
           "name": "menhir",
           "version": "20171013",
           "opam":
             "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20171013\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/menhir-20171013.patch' : 'true'}"
+              ],
+              [
+                "make", "-f", "Makefile", "PREFIX=#{self.install}",
+                "USE_OCAMLFIND=true", "docdir=#{self.doc}/menhir",
+                "libdir=#{self.lib}/menhir", "mandir=#{self.man}/man1"
+              ]
+            ]
+          }
         }
       },
       "dependencies": [
