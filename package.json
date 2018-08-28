@@ -67,7 +67,8 @@
     "@opam/ppx_let": "*",
     "@opam/re": "^1.7.1",
     "@opam/yojson": "*",
-    "esy-solve-cudf": "^0.1.6"
+    "esy-solve-cudf": "^0.1.6",
+    "fastreplacestring": "bryphe/FastReplaceString#de87ac7"
   },
   "peerDependencies": {
     "ocaml": "~4.6.0"
