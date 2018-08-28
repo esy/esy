@@ -1,6 +1,30 @@
 # CHANGELOG
 
-## 0.2.8 @ next
+## 0.2.9 @ latest
+
+- Support for installing dependencies specified via npm dist-tags:
+
+  ```
+  "dependencies": {
+    "react": "alpha",
+    ...
+  }
+  ```
+
+- On big sandboxes (lots of dependencies) esy initialization time is improved
+  (~20 seconds down to ~300ms on a test sandbox).
+
+- Numerous improvements to native Windows support. Esy can build `merlin`
+  package and many more.
+
+- Support for installing compiler from sources other than npm registry.
+  Previously compiler version wasn't correctly set in such cases.
+
+- `esyi` executable is removed, all `esyi` subcommands are available through
+  `esy` subcommands now, this includes `esy solve`, `esy fetch`, `esy install`,
+  ...
+
+## 0.2.8 @ latest
 
 - Bring back windows binaries.
 
