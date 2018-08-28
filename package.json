@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
@@ -33,7 +33,6 @@
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
-    "bootstrap:esy-install": "cd esy-install && yarn install",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
@@ -68,7 +67,7 @@
     "@opam/re": "^1.7.1",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.6",
-    "fastreplacestring": "bryphe/FastReplaceString#de87ac7"
+    "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
   "peerDependencies": {
     "ocaml": "~4.6.0"

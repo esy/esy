@@ -12,10 +12,8 @@ install:
 # This whole 'bootstrapping' duplication of our install / build will go away
 # once we have an `esy` build published for Windows that supports a minimal set of primitives
 # to support our current build system.
-    - git submodule update --init --recursive
     - powershell scripts/bootstrap/install-npm-dependencies.ps1
     - node scripts/bootstrap/copy-fastreplacestring.js
-    - appveyor-retry yarn run bootstrap:esy-install
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
 

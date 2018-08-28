@@ -20,35 +20,37 @@ let parseExn v =
   Lexer.read [] `Init lexbuf
 
 let parse src =
-  let open Result.Syntax in
-  try return (parseExn src)
+  try Ok (parseExn src)
   with
   | UnmatchedChar (pos, _) ->
     let cnum = pos.Lexing.pos_cnum - 1 in
     let msg = formatParseError ~src ~cnum "unknown character" in
-    error msg
+    Error msg
   | UnknownShellEscape (pos, str) ->
     let cnum = pos.Lexing.pos_cnum - String.length str in
     let msg = formatParseError ~src ~cnum "unknown shell escape sequence" in
-    error msg
+    Error msg
 
 type scope = string -> string option
 
 let render ?(fallback=Some "") ~(scope : scope) v =
-  let open Result.Syntax in
-  let%bind tokens = parse v in
-  let f segments = function
-    | String v -> return (v::segments)
-    | Var (name, default) ->
+
+  let rec renderTokens segments tokens =
+    match tokens with
+    | [] -> Ok (String.concat "" (List.rev segments))
+    | String v::restTokens -> renderTokens (v::segments) restTokens
+    | Var (name, default)::restTokens ->
       begin match scope name, default, fallback with
       | Some v, _, _
-      | None, Some v, _ -> return (v::segments)
-      | None, None, Some v -> return (v::segments)
-      | _, _, _ -> error ("unable to resolve: $" ^ name)
+      | None, Some v, _ -> renderTokens (v::segments) restTokens
+      | None, None, Some v -> renderTokens (v::segments) restTokens
+      | _, _, _ -> Error ("unable to resolve: $" ^ name)
       end
   in
-  let%bind segments = Result.List.foldLeft ~f ~init:[] tokens in
-  return (segments |> List.rev |> String.concat "")
+
+  match parse v with
+  | Error err -> Error err
+  | Ok tokens -> renderTokens [] tokens
 
 let%test_module _ = (module struct
   let expectParseOk s expectedTokens =

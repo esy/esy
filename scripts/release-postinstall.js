@@ -16,7 +16,6 @@ var os = require('os');
 var platform = process.platform;
 
 const binariesToCopy = [
-  path.join('_build', 'default', 'esyi', 'bin', 'esyi.exe'),
   path.join('_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
   path.join(
     '_build',
@@ -60,7 +59,7 @@ switch (platform) {
     copyPlatformBinaries('windows-x64');
 
     console.log('Installing cygwin sandbox...');
-    cp.execSync('npm install esy-bash@0.1.21');
+    cp.execSync(`npm install esy-bash@0.1.22 --prefix ${__dirname}`);
     console.log('Cygwin installed successfully.');
     break;
   case 'linux':

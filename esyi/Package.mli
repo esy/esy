@@ -14,7 +14,7 @@ module Source : sig
     | LocalPathLink of Path.t
     | NoSource
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
 
@@ -30,7 +30,7 @@ module Version : sig
     | Opam of OpamPackageVersion.Version.t
     | Source of Source.t
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   val parse : ?tryAsOpam:bool -> string -> (t, string) result
   val parseExn : string -> t
@@ -66,7 +66,8 @@ end
  *)
 module VersionSpec : sig
   type t =
-      Npm of SemverVersion.Formula.DNF.t
+    | Npm of SemverVersion.Formula.DNF.t
+    | NpmDistTag of string * SemverVersion.Version.t option
     | Opam of OpamPackageVersion.Formula.DNF.t
     | Source of SourceSpec.t
 
@@ -104,6 +105,7 @@ module Dep : sig
 
   and req =
     | Npm of SemverVersion.Constraint.t
+    | NpmDistTag of string
     | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
 
@@ -240,6 +242,7 @@ end
 type t = {
   name : string;
   version : Version.t;
+  originalVersion : Version.t option;
   source : source * source list;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;

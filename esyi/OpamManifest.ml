@@ -8,7 +8,7 @@ module File = struct
 
   let ofPath ?upgradeIfOpamVersionIsLessThan ?cache path =
     let open RunAsync.Syntax in
-    let load path =
+    let load () =
       let%bind data = Fs.readFile path in
       let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
       (* TODO: error handling here *)
@@ -26,7 +26,7 @@ module File = struct
     in
     match cache with
     | Some cache -> Cache.compute cache path load
-    | None -> load path
+    | None -> load ()
 end
 
 let readFiles (path : Path.t) () =
@@ -272,6 +272,7 @@ let toPackage ~name ~version manifest =
       Package.
       name;
       version;
+      originalVersion = None;
       kind = Package.Esy;
       source;
       opam = Some {

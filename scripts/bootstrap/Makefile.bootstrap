@@ -106,7 +106,6 @@ RELEASE_ROOT = _release
 RELEASE_FILES = \
 	bin/esy \
 	bin/fastreplacestring.exe \
-	bin/esy-install.js \
 	bin/esyInstallRelease.js \
 	package.json \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
@@ -126,9 +125,6 @@ $(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(RELEASE_ROOT)/bin/esy-install.js:
-	@$(MAKE) -C esy-install BUILD=../$(@) build
 
 $(RELEASE_ROOT)/bin/fastreplacestring:
 	@mkdir -p $(@D)

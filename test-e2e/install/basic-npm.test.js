@@ -180,6 +180,162 @@ describe(`Basic tests for npm packages`, () => {
     ).toBeFalsy();
   });
 
+  test(`it should correctly install a dependency by a dist-tag (latest)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {tagged: `latest`},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '2.0.0',
+    });
+
+    await p.esy('install');
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        tagged: {
+          name: 'tagged',
+          version: '2.0.0',
+        },
+      },
+    });
+  });
+
+  test(`it should correctly install a dependency by a dist-tag (legacy)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {tagged: `legacy`},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage(
+      {
+        name: 'tagged',
+        version: '1.0.0',
+      },
+      {distTag: 'legacy'},
+    );
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '2.0.0',
+    });
+
+    await p.esy('install');
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        tagged: {
+          name: 'tagged',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
+
+  test(`it should correctly install a dependency by a dist-tag (latest, prereleases present)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {tagged: `latest`},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '2.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '3.0.0-alpha',
+    });
+
+    await p.esy('install');
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        tagged: {
+          name: 'tagged',
+          version: '2.0.0',
+        },
+      },
+    });
+  });
+
+  test(`it should correctly install a dependency by a dist-tag (next)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {tagged: `next`},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'tagged',
+      version: '2.0.0',
+    });
+
+    await p.defineNpmPackage(
+      {
+        name: 'tagged',
+        version: '3.0.0',
+      },
+      {distTag: 'next'},
+    );
+
+    await p.esy('install');
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        tagged: {
+          name: 'tagged',
+          version: '3.0.0',
+        },
+      },
+    });
+  });
+
   // test.skip(
   //   `it should correctly install an inter-dependency loop`,
   //   helpers.makeTemporaryEnv(

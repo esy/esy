@@ -88,10 +88,13 @@ end
 
 module Environment = struct
 
-  let sep =
-    match Platform.host with
-    | Platform.Windows -> ";"
-    | _ -> ":"
+  let sep ?(platform=Platform.host) ?name () =
+    match name, platform with
+    (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)
+    | Some "OCAMLPATH", (Platform.Linux | Darwin | Unix | Unknown) -> ":"
+    | Some "OCAMLPATH", (Cygwin | Windows) -> ";"
+    | _, (Linux | Darwin | Unix | Unknown | Cygwin) -> ":"
+    | _, Windows -> ";"
 
   let current =
     let f map item =
@@ -104,6 +107,7 @@ module Environment = struct
     Array.fold_left f StringMap.empty items
 
   let path =
+    let sep = sep () in
     match StringMap.find_opt "PATH" current with
     | Some path -> String.split_on_char sep.[0] path
     | None -> []

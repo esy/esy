@@ -6,9 +6,10 @@ let waitForDependencies dependencies =
   |> RunAsync.List.waitAll
 
 let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
+  let pkg = Task.pkg task in
   let f () =
     let open RunAsync.Syntax in
-    let context = Printf.sprintf "Building %s@%s" task.pkg.name task.pkg.version in
+    let context = Printf.sprintf "Building %s@%s" pkg.name pkg.version in
     let%lwt () = if not quiet
       then Logs_lwt.app(fun m -> m "%s: starting" context)
       else Lwt.return ()
@@ -24,8 +25,8 @@ let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
     in
     return ()
   in
-  let label = Printf.sprintf "building %s" task.pkg.id in
-  Perf.measure ~label f
+  let label = Printf.sprintf "building %s" pkg.id in
+  Perf.measureLwt ~label f
 
 let runTask
   ?(force=`ForRoot)
@@ -41,8 +42,8 @@ let runTask
 
   let%bind () = waitForDependencies dependencies in
 
-  let isRoot = task.id == rootTask.id in
-  let installPath = Config.Path.toPath cfg task.paths.installPath in
+  let isRoot = Task.id task == Task.id rootTask in
+  let installPath = Config.Path.toPath cfg.buildConfig (Task.installPath task) in
 
   let buildOnly = match buildOnly with
   | `ForRoot -> isRoot
@@ -53,11 +54,11 @@ let runTask
   let checkSourceModTime () =
     let f () =
       let infoPath =
-        task.paths.buildInfoPath
-        |> Config.Path.toPath cfg
+        Task.buildInfoPath task
+        |> Config.Path.toPath cfg.buildConfig
       and sourcePath =
-        task.paths.sourcePath
-        |> Config.Path.toPath cfg
+        Task.sourcePath task
+        |> Config.Path.toPath cfg.buildConfig
       in
       match%lwt Fs.readFile infoPath with
       | Ok data ->
@@ -89,13 +90,13 @@ let runTask
         end
       | Error _ -> buildTask ~buildOnly cfg task
     in
-    let label = Printf.sprintf "checking mtime for %s" task.pkg.id in
-    Perf.measure ~label f
+    let label = Printf.sprintf "checking mtime for %s" (Task.id task) in
+    Perf.measureLwt ~label f
   in
 
   let performBuildIfNeeded () =
     let f () =
-    match task.sourceType with
+    match Task.sourceType task with
     | Manifest.SourceType.Immutable ->
       if%bind Fs.exists installPath
       then return ()
@@ -121,7 +122,7 @@ let runTask
   | `Yes ->
     buildTask ~force:true ~buildOnly cfg task
   | `Select items ->
-    if StringSet.mem task.id items
+    if StringSet.mem (Task.id task) items
     then buildTask ~force:true ~buildOnly cfg task
     else performBuildIfNeeded ()
 
@@ -152,7 +153,7 @@ let buildDependencies
   let open RunAsync.Syntax in
   let queue = LwtTaskQueue.create ~concurrency () in
   let f ~allDependencies ~dependencies (task : Task.t) =
-    if task.id = rootTask.id
+    if Task.id task = Task.id rootTask
     then (
       let%bind () = waitForDependencies dependencies in
       return ()

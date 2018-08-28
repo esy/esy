@@ -4,21 +4,23 @@ module Path = EsyLib.Path
 module Run = EsyLib.Run
 module System = EsyLib.System
 
-let cfg = {
-  Config.
-  esyVersion = "0.x.x";
-  sandboxPath = Path.v "/tmp/__sandbox__";
-  prefixPath = Path.v "/tmp/__prefix__";
-  storePath = Path.v "/tmp/__store__";
-  localStorePath = Path.v "/tmp/__local_store__";
-  fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
-  esyBuildPackageCommand = Cmd.v "esy-build-package";
-  esyInstallJsCommand = "esy-install.js";
-}
+let cfg =
+  let prefixPath = Path.v "/tmp/__prefix__" in
+  {
+    Config.
+    esyVersion = "0.x.x";
+    prefixPath;
+    buildConfig = EsyBuildPackage.(Run.runExn (Config.make ~prefixPath ()));
+    fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
+    esyBuildPackageCommand = Cmd.v "esy-build-package";
+  }
 
 module TestCommandExpr = struct
 
   let commandsEqual = [%derive.eq: string list list]
+  let checkCommandsEqual commands expectation =
+    let commands = List.map (List.map Config.Value.toString) commands in
+    commandsEqual commands expectation
 
   let dep = Package.{
     id = "%dep%";
@@ -52,7 +54,7 @@ module TestCommandExpr = struct
       sandboxEnv = [];
       buildEnv = [];
     };
-    sourcePath = Config.Path.ofPath cfg (Path.v "/path");
+    sourcePath = Config.Path.ofPath cfg.buildConfig (Path.v "/path");
     resolution = Some "ok";
   }
 
@@ -78,7 +80,7 @@ module TestCommandExpr = struct
       buildEnv = [];
       sandboxEnv = [];
     };
-    sourcePath = Config.Path.ofPath cfg (Path.v "/path");
+    sourcePath = Config.Path.ofPath cfg.buildConfig (Path.v "/path");
     resolution = Some "ok";
   }
 
@@ -92,9 +94,10 @@ module TestCommandExpr = struct
 
   let%test "#{...} inside esy.build" =
     check pkg (fun task ->
-      let id = task.id in
-      commandsEqual
-        task.buildCommands
+      let plan = Task.plan task in
+      let id = Task.id task in
+      checkCommandsEqual
+        plan.EsyBuildPackage.Plan.build
         [
           ["cp"; "./hello"; "%{store}%/s/" ^ id ^ "/bin"];
           ["cp"; "./hello2"; "%{store}%/s/" ^ id ^ "/bin"];
@@ -116,66 +119,83 @@ module TestCommandExpr = struct
       }
     } in
     check ~platform:System.Platform.Linux pkg (fun task ->
-      commandsEqual
-        task.buildCommands
+      let plan = Task.plan task in
+      checkCommandsEqual
+        plan.EsyBuildPackage.Plan.build
         [["apt-get"; "install"; "pkg"]]
       &&
-      commandsEqual
-        task.installCommands
+      checkCommandsEqual
+        plan.EsyBuildPackage.Plan.install
         [["make"; "install-linux"]]
     )
     &&
     check ~platform:System.Platform.Darwin pkg (fun task ->
-      commandsEqual
-        task.buildCommands
+      let plan = Task.plan task in
+      checkCommandsEqual
+        plan.EsyBuildPackage.Plan.build
         [["true"]]
       &&
-      commandsEqual
-        task.installCommands
+      checkCommandsEqual
+        plan.EsyBuildPackage.Plan.install
         [["make"; "install"]]
     )
 
   let%test "#{self...} inside esy.install" =
     check pkg (fun task ->
-      let id = task.id in
-      commandsEqual
-        task.installCommands
+      let id = Task.id task in
+      let plan = Task.plan task in
+      checkCommandsEqual
+        plan.EsyBuildPackage.Plan.install
         [["cp"; "./man"; "%{store}%/s/" ^ id ^ "/man"]]
     )
 
   let%test "#{...} inside esy.exportedEnv" =
     check pkg (fun task ->
       let [Task.Dependency dep] =
-        task.dependencies
+        Task.dependencies task
         [@@ocaml.warning "-8"]
       in
-      let id = dep.Task.id in
-      let bindings = Environment.Closed.bindings task.env in
+      let id = Task.id dep in
+      let bindings = Run.runExn (Task.buildEnv task) in
       let f = function
-        | {Environment. name = "OK"; value = Value value; _} ->
-          Some (value = "%{store}%/i/" ^ id ^ "/ok")
-        | {Environment. name = "OK_BY_NAME"; value = Value value; _} ->
-            Some (value = "%{store}%/i/" ^ id ^ "/ok-by-name")
+        | "OK", value ->
+          let expected =
+            Fpath.(cfg.buildConfig.storePath / "i" / id / "ok")
+            |> Fpath.to_string
+            |> EsyLib.Path.normalizePathSlashes
+          in
+          Some (value = expected)
+        | "OK_BY_NAME", value ->
+          let expected =
+            Fpath.(cfg.buildConfig.storePath / "i" / id / "ok-by-name")
+            |> Fpath.to_string
+            |> EsyLib.Path.normalizePathSlashes
+          in
+          Some (value = expected)
         | _ ->
           None
       in
       not (
         bindings
+        |> Config.Environment.Bindings.render cfg.buildConfig
+        |> EsyLib.Environment.renderToList
         |> List.map f
         |> List.exists (function | Some false -> true | _ -> false)
       )
     )
 
 let checkEnvExists ~name ~value task =
-  let bindings = Environment.Closed.bindings task.Task.env in
+  let bindings =
+    Config.Environment.Bindings.render cfg.buildConfig (Run.runExn (Task.buildEnv task))
+  in
   List.exists
     (function
-      | {Environment. name = n; value = Value v; _} when name = n ->
+      | n, v when name = n ->
         if v = value
         then true
         else false
       | _ -> false)
-    bindings
+    (EsyLib.Environment.renderToList bindings)
 
   let%test "#{OCAMLPATH} depending on os" =
     let dep = Package.{

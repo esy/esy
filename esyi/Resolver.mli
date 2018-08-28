@@ -5,6 +5,7 @@ module Resolution : sig
     version: Package.Version.t
   }
 
+  val make : string -> Package.Version.t -> t
   val pp : t Fmt.t
   val compare : t -> t -> int
   val equal : t -> t -> bool
@@ -16,6 +17,7 @@ type t
 (** Make new resolver *)
 val make :
   ?ocamlVersion:Package.Version.t
+  -> ?npmRegistry:NpmRegistry.t
   -> ?opamRegistry:OpamRegistry.t
   -> cfg:Config.t
   -> unit

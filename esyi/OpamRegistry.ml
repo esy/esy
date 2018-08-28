@@ -104,7 +104,7 @@ let initRegistry (registry : t) =
 
 let getPackageVersionIndex (registry : registry) ~(name : OpamPackage.Name.t) =
   let open RunAsync.Syntax in
-  let f name =
+  let f () =
     let path = Path.(
       registry.repoPath
       / "packages"

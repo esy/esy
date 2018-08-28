@@ -30,7 +30,10 @@ export type PackageDesc = {|
   packageJson: Object,
   shasum?: string,
 |};
-export type PackageEntry = Map<string, PackageDesc>;
+export type PackageEntry = {
+  versions: Map<string, PackageDesc>,
+  distTags: {[name: string]: string},
+};
 
 export type PackageRunDriver = (
   string,
@@ -41,7 +44,7 @@ export type PackageRunDriver = (
 async function definePackage(
   packageRegistry: PackageRegistry,
   packageJson: {name: string, version: string},
-  options: {shasum?: string} = {},
+  options: {distTag?: string, shasum?: string} = {},
 ) {
   const {name, version} = packageJson;
   invariant(name != null, 'Missing "name" in package.json');
@@ -50,16 +53,20 @@ async function definePackage(
   let packageEntry = packageRegistry.packages.get(name);
 
   if (!packageEntry) {
-    packageRegistry.packages.set(name, (packageEntry = new Map()));
+    packageEntry = {distTags: {}, versions: new Map()};
+    packageRegistry.packages.set(name, packageEntry);
   }
 
   const packagePath = await fsUtils.createTemporaryFolder();
   await fsUtils.writeJson(path.join(packagePath, 'package.json'), packageJson);
-  packageEntry.set(version, {
+  packageEntry.versions.set(version, {
     path: packagePath,
     packageJson,
     shasum: options.shasum,
   });
+  if (options.distTag != null) {
+    packageEntry.distTags[options.distTag] = version;
+  }
   return packagePath;
 }
 
@@ -79,7 +86,8 @@ async function definePackageOfFixture(
   let packageEntry = packageRegistry.packages.get(name);
 
   if (!packageEntry) {
-    packageRegistry.packages.set(name, (packageEntry = new Map()));
+    packageEntry = {distTags: {}, versions: new Map()};
+    packageRegistry.packages.set(name, packageEntry);
   }
 
   const packageDesc = {
@@ -87,7 +95,7 @@ async function definePackageOfFixture(
     packageJson,
     shasum: '',
   };
-  packageEntry.set(version, packageDesc);
+  packageEntry.versions.set(version, packageDesc);
 
   packageDesc.shasum = await getPackageArchiveHash(packageRegistry, name, version);
 }
@@ -123,7 +131,7 @@ async function getPackageArchiveStream(
     throw new Error(`Unknown package "${name}"`);
   }
 
-  const packageVersionEntry = packageEntry.get(version);
+  const packageVersionEntry = packageEntry.versions.get(version);
 
   if (!packageVersionEntry) {
     throw new Error(`Unknown version "${version}" for package "${name}"`);
@@ -145,7 +153,7 @@ async function getPackageArchivePath(
     throw new Error(`Unknown package "${name}"`);
   }
 
-  const packageVersionEntry = packageEntry.get(version);
+  const packageVersionEntry = packageEntry.versions.get(version);
 
   if (!packageVersionEntry) {
     throw new Error(`Unknown version "${version}" for package "${name}"`);
@@ -193,7 +201,7 @@ async function getPackageHttpArchivePath(
     throw new Error(`Unknown package "${name}"`);
   }
 
-  const packageVersionEntry = packageEntry.get(version);
+  const packageVersionEntry = packageEntry.versions.get(version);
 
   if (!packageVersionEntry) {
     throw new Error(`Unknown version "${version}" for package "${name}"`);
@@ -215,7 +223,7 @@ async function getPackageDirectoryPath(
     throw new Error(`Unknown package "${name}"`);
   }
 
-  const packageVersionEntry = packageEntry.get(version);
+  const packageVersionEntry = packageEntry.versions.get(version);
 
   if (!packageVersionEntry) {
     throw new Error(`Unknown version "${version}" for package "${name}"`);
@@ -241,10 +249,11 @@ async function initialize(
     let packageEntry = packages.get(name);
 
     if (!packageEntry) {
-      packages.set(name, (packageEntry = new Map()));
+      packageEntry = {distTags: {}, versions: new Map()};
+      packages.set(name, packageEntry);
     }
 
-    packageEntry.set(version, {
+    packageEntry.versions.set(version, {
       path: require('path').dirname(packageFile),
       packageJson,
     });
@@ -267,7 +276,7 @@ async function initialize(
       return processError(res, 404, `Package not found: ${name}`);
     }
 
-    const versions = Array.from(packageEntry.keys());
+    const versions = Array.from(packageEntry.versions.keys());
 
     const data = JSON.stringify({
       name,
@@ -275,7 +284,7 @@ async function initialize(
         {},
         ...(await Promise.all(
           versions.map(async version => {
-            const packageVersionEntry = packageEntry.get(version);
+            const packageVersionEntry = packageEntry.versions.get(version);
             invariant(packageVersionEntry, 'This can only exist');
 
             return {
@@ -295,7 +304,10 @@ async function initialize(
           }),
         )),
       ),
-      ['dist-tags']: {latest: semver.maxSatisfying(versions, '*')},
+      ['dist-tags']: {
+        ...packageEntry.distTags,
+        latest: semver.maxSatisfying(versions, '*'),
+      },
     });
 
     res.writeHead(200, {['Content-Type']: 'application/json'});
@@ -321,7 +333,7 @@ async function initialize(
       return processError(res, 404, `Package not found: ${name}`);
     }
 
-    const packageVersionEntry = packageEntry.get(version);
+    const packageVersionEntry = packageEntry.versions.get(version);
 
     if (!packageVersionEntry) {
       return processError(res, 404, `Package not found: ${name}@${version}`);

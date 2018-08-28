@@ -1,30 +1,51 @@
-module type PRINTABLE = sig
+module type STRING = sig
   type t
+  type ctx
 
-  val pp : t Fmt.t
-  val show : t -> string
-  val toString : t -> string
+  val v : string -> t
+  val render : ctx -> t -> string
+
+  include S.PRINTABLE with type t := t
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
 end
 
-module type JSONABLE = sig
+module type PATH = sig
   type t
+  type ctx
 
-  val to_yojson : t -> Yojson.Safe.json
-  val of_yojson : Yojson.Safe.json -> (t, string) result
+  val v : string -> t
+  val (/) : t -> string -> t
+
+  include S.PRINTABLE with type t := t
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+
+  val ofPath : ctx -> Path.t -> t
+  val toPath : ctx -> t -> Path.t
 end
 
-module type COMPARABLE = sig
-  type t
-
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
+module type STRING_CORE = sig
+  type ctx
+  val render : ctx -> string -> string
 end
 
-module type COMMON = sig
-  type t
+module String = struct
+  module Make (Core : STRING_CORE) : STRING with type ctx = Core.ctx = struct
+    type t = string
+    type ctx = Core.ctx
 
-  include COMPARABLE with type t := t
-  include PRINTABLE with type t := t
-  include JSONABLE with type t := t
+    let v v = v
+    let render = Core.render
+
+    let toString v = v
+    let show v = v
+    let pp = Fmt.string
+
+    let compare = String.compare
+    let equal = String.equal
+
+    let of_yojson = Json.Parse.string
+    let to_yojson v = `String v
+  end
 end
-

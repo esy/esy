@@ -15,12 +15,6 @@ dune build _build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 echo "dune:build esy"
 dune build _build/default/esy/bin/esyCommand.exe
 
-echo "dune:build esyi"
-dune build _build/default/esyi/bin/esyi.exe
-
-echo "make: esy-install"
-make _release/bin/esy-install.js
-
 echo "make: postinstall.sh"
 make _release/bin/esyInstallRelease.js
 
@@ -33,14 +27,13 @@ make _release/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe
 echo "make: release esy"
 make _release/_build/default/esy/bin/esyCommand.exe
 
-echo "make: release esyi"
-make _release/_build/default/esyi/bin/esyi.exe
-
 echo "make: fastreplacestring"
 make _release/bin/fastreplacestring
 
 cd _release
 npm install @esy-ocaml/esy-opam
 
-echo "release: copy esy-bash"
-cp -r ../node_modules/esy-bash node_modules/esy-bash
+echo "release: link esy-bash"
+cd node_modules
+rm -rf esy-bash
+ln -s ./../../node_modules/esy-bash esy-bash

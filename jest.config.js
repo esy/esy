@@ -6,7 +6,6 @@ module.exports = {
   globalSetup: '<rootDir>/test-e2e/test/jestGlobalSetup.js',
   globalTeardown: '<rootDir>/test-e2e/test/jestGlobalTeardown.js',
   modulePathIgnorePatterns: [
-    '<rootDir>/esy-install/',
     '<rootDir>/node_modules/',
     '<rootDir>/test-e2e/build/fixtures/',
   ],

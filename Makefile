@@ -60,8 +60,6 @@ help:
 	@echo "$$HELP"
 
 bootstrap:
-	@git submodule init
-	@git submodule update
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy'")
 endif
@@ -70,7 +68,6 @@ ifeq ($(ESY_VERSION_MINOR),2)
 else
 	$(error "esy command should be at least of version 0.2.0, run 'npm install -g esy'")
 endif
-	@make -C esy-install bootstrap
 	@make build-dev
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
 	@make -C site bootstrap
@@ -136,27 +133,17 @@ RELEASE_FILES = \
 	platform-windows-x64 \
 	bin/esyInstallRelease.js \
 	_build/default/esy/bin/esyCommand.exe \
-	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	postinstall.js \
 	LICENSE \
 	README.md \
-	package.json \
-	bin/esy-install.js
+	package.json
 
 release:
 	@echo "Creating $(ESY_RELEASE_TAG) release"
 	@rm -rf $(RELEASE_ROOT)
 	@mkdir -p $(RELEASE_ROOT)
 	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
-
-$(RELEASE_ROOT)/bin/esy-install.js:
-	@$(MAKE) -C esy-install BUILD=../$(@) build
-
-$(RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe $(RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe $(RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
-	@mkdir -p $(@D)
-	@echo "Placeholder: to be replaced by postinstall step" > $(@)
-	@chmod +x $(@)
 
 $(RELEASE_ROOT)/%: $(PWD)/%
 	@mkdir -p $(@D)
@@ -189,8 +176,7 @@ console.log(
 			postinstall: "node ./postinstall.js"
 		},
 		bin: {
-			esy: "_build/default/esy/bin/esyCommand.exe",
-			esyi: "_build/default/esyi/bin/esyi.exe"
+			esy: "_build/default/esy/bin/esyCommand.exe"
 		},
 		files: [
 			"bin/",
@@ -219,7 +205,6 @@ PLATFORM_RELEASE_ROOT = _platformrelease/$(PLATFORM)
 PLATFORM_RELEASE_FILES = \
 	bin/fastreplacestring \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	_build/default/esyi/bin/esyi.exe \
 	_build/default/esy/bin/esyCommand.exe \
 
 platform-release: $(PLATFORM_RELEASE_NAME)
@@ -238,10 +223,6 @@ $(PLATFORM_RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
 $(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(PLATFORM_RELEASE_ROOT)/_build/default/esyi/bin/esyi.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esyi/bin/esyi.exe $(@)
 
 $(PLATFORM_RELEASE_ROOT)/bin/fastreplacestring:
 	@mkdir -p $(@D)

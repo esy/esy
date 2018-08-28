@@ -26,21 +26,23 @@ let setupLog = (style_renderer, level) => {
 let createConfig = (copts: commonOpts) => {
   open Run;
   let {prefixPath, sandboxPath, _} = copts;
-  let%bind fastreplacestringCmd = {
+  let%bind fastreplacestringPath = {
     let program = Sys.argv[0];
     let%bind program = realpath(v(program));
     let basedir = Fpath.parent(program);
-    let resolution =
-      EsyLib.NodeResolution.resolve(
-        "../../../../bin/fastreplacestring",
-        basedir,
-      );
-    switch%bind (Run.coerceFromMsgOnly(resolution)) {
-    | Some(path) => Ok(Fpath.to_string(path))
-    | None => Error(`Msg("cannot resolve fastreplacestring command"))
+    switch%bind (
+      coerceFromMsgOnly(
+        EsyLib.NodeResolution.resolve(
+          "../../../../bin/fastreplacestring",
+          basedir,
+        ),
+      )
+    ) {
+    | Some(path) => Ok(path)
+    | None => Error(`Msg("unable to find fastreplacestring command"))
     };
   };
-  Config.make(~prefixPath, ~sandboxPath, ~fastreplacestringCmd, ());
+  Config.make(~fastreplacestringPath, ~prefixPath?, ~sandboxPath?, ());
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
@@ -48,8 +50,8 @@ let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind cfg = createConfig(copts);
-  let%bind task = Task.ofFile(buildPath);
-  let%bind () = Build.build(~buildOnly, ~force, ~cfg, task);
+  let%bind plan = Plan.ofFile(buildPath);
+  let%bind () = Build.build(~buildOnly, ~force, ~cfg, plan);
   Ok();
 };
 
@@ -58,7 +60,7 @@ let shell = (copts: commonOpts) => {
   let {buildPath, _} = copts;
   let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
   let%bind cfg = createConfig(copts);
-  let%bind task = Task.ofFile(buildPath);
+  let%bind plan = Plan.ofFile(buildPath);
 
   let ppBanner = (build: Build.t) => {
     open Fmt;
@@ -78,7 +80,7 @@ let shell = (copts: commonOpts) => {
 
     let ppBanner = (ppf, ()) => {
       Format.open_vbox(0);
-      fmt("Package: %s@%s", ppf, task.Task.name, task.Task.version);
+      fmt("Package: %s@%s", ppf, plan.Plan.name, plan.Plan.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
       ppList(Cmd.pp, ppf, ("Build Commands:", build.build));
@@ -113,7 +115,7 @@ let shell = (copts: commonOpts) => {
     Build.runCommandInteractive(build, cmd);
   };
 
-  let%bind () = Build.withBuild(~cfg, task, runShell);
+  let%bind () = Build.withBuild(~cfg, plan, runShell);
   ok;
 };
 
@@ -126,8 +128,8 @@ let exec = (copts, command) => {
     let cmd = Cmd.of_list(command);
     Build.runCommandInteractive(build, cmd);
   };
-  let%bind task = Task.ofFile(buildPath);
-  let%bind () = Build.withBuild(~cfg, task, runCommand);
+  let%bind plan = Plan.ofFile(buildPath);
+  let%bind () = Build.withBuild(~cfg, plan, runCommand);
   ok;
 };
 
@@ -218,8 +220,8 @@ let () = {
       );
     };
     let buildPath = {
-      let doc = "Specifies path to build task.";
-      let env = Arg.env_var("ESY__BUILD_SPEC", ~doc);
+      let doc = "Specifies path to build plan.";
+      let env = Arg.env_var("ESY__BUILD_PLAN", ~doc);
       Arg.(
         value
         & opt(some(path), None)

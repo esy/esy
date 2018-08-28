@@ -101,7 +101,7 @@ module Make (Kernel : Kernel) : DependencyGraph
       Memoize.compute
         fCached
         (Kernel.id node)
-        (fun _ -> f ~allDependencies ~dependencies node)
+        (fun () -> f ~allDependencies ~dependencies node)
     in
 
 
@@ -151,7 +151,7 @@ module Make (Kernel : Kernel) : DependencyGraph
       allDependencies, dependencies, value
 
     and visitCached node =
-      Memoize.compute visitCache (Kernel.id node) (fun _ -> visit node)
+      Memoize.compute visitCache (Kernel.id node) (fun () -> visit node)
     in
 
     let _, _, (value : 'a) = visitCached node in value

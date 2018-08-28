@@ -1,16 +1,14 @@
-type t = {
+type t = pri {
+  fastreplacestringPath: Fpath.t,
   sandboxPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
-  rsyncCmd: string,
-  fastreplacestringCmd: string,
 };
 
 let make : (
-  ~prefixPath: option(Fpath.t),
-  ~sandboxPath: option(Fpath.t),
-  ~rsyncCmd: string=?,
-  ~fastreplacestringCmd: string=?,
+  ~fastreplacestringPath: Fpath.t=?,
+  ~prefixPath: Fpath.t=?,
+  ~sandboxPath: Fpath.t=?,
   unit
 ) => Run.t(t, _);
 
@@ -18,19 +16,20 @@ type config = t
 
 /* Config parametrized string value */
 module Value: {
-  type t;
-
+  include EsyLib.Abstract.STRING with type ctx = config;
   let store : t;
   let localStore : t;
   let sandbox : t;
-
-  let show : t => string;
-  let pp : Fmt.t(t);
-  let equal : t => t => bool;
-
-  let v: string => t;
-  let toString : (~cfg: config, t) => Run.t(string, _);
-
-  let of_yojson: EsyLib.Json.decoder(t);
-  let to_yojson: EsyLib.Json.encoder(t);
 };
+
+module Path: {
+  include EsyLib.Abstract.PATH with type ctx = config;
+  let toValue: t => Value.t;
+  let store : t;
+  let localStore : t;
+  let sandbox : t;
+}
+
+module Environment : EsyLib.Environment.S
+  with type value = Value.t
+  and type ctx = t

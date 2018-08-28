@@ -20,6 +20,10 @@ let bind : (~f: 'a => result('b, 'c), result('a, 'c)) => result('b, 'c)
 let coerceFromMsgOnly : result('a, [ `Msg(string) ]) => t('a, _);
 let coerceFromClosed : result('a, [ `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status) ]) => t('a, _);
 
+/** Run computation and fail with exception in case of err, only to be used for
+ * tests and etc. */
+let runExn : t('v, _) => 'v;
+
 let ok : t(unit, _);
 
 module Let_syntax: {

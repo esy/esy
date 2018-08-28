@@ -1,9 +1,10 @@
 module type VERSION = sig
   type t
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   val parse : string -> (t, string) result
+  val parseExn : string -> t
 
   val majorMinorPatch : t -> (int * int * int) option
   val prerelease : t -> bool
@@ -23,7 +24,7 @@ module type CONSTRAINT = sig
     | NONE
     | ANY
 
-  include Abstract.COMMON with type t := t
+  include S.COMMON with type t := t
 
   module VersionSet : Set.S with type elt = version
 
@@ -50,7 +51,7 @@ module type FORMULA = sig
   module DNF : sig
     type t = constr conj disj
 
-    include Abstract.COMMON with type t := t
+    include S.COMMON with type t := t
 
     val unit : constr -> t
     val matches : version:version -> t -> bool
@@ -63,7 +64,7 @@ module type FORMULA = sig
   module CNF : sig
     type t = constr disj conj
 
-    include Abstract.COMMON with type t := t
+    include S.COMMON with type t := t
 
     val matches : version:version -> t -> bool
   end
@@ -370,6 +371,7 @@ let%test_module "Formula" = (module struct
       match int_of_string_opt v with
       | Some v -> Ok v
       | None -> Error "not a version"
+    let parseExn = int_of_string
     let toString = string_of_int
   end
 
