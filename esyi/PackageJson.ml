@@ -38,12 +38,21 @@ let toPackage ~name ~version ~source (pkgJson : t) =
     match pkgJson.version with
     | Some version -> Some (Package.Version.Npm version)
     | None -> None
-  in {
+  in
+  let dependencies =
+    match pkgJson.esy with
+    | None
+    | Some {EsyPackageJson. _dependenciesForNewEsyInstaller= None} ->
+      pkgJson.dependencies
+    | Some {EsyPackageJson. _dependenciesForNewEsyInstaller= Some dependencies} ->
+      dependencies
+  in
+  {
     Package.
     name;
     version;
     originalVersion;
-    dependencies = Dependencies.NpmFormula pkgJson.dependencies;
+    dependencies = Dependencies.NpmFormula dependencies;
     devDependencies = Dependencies.NpmFormula pkgJson.devDependencies;
     source = source, [];
     opam = None;
