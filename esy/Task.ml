@@ -187,53 +187,48 @@ let ofPackage
 
   let rec allDependenciesOf (pkg : Package.t) =
 
-    let rec collectDependency ~direct (seen, dependencies) dep =
+    let collectDependency ~direct dependencies dep =
       match dep with
       | Package.Dependency depPkg
       | Package.OptDependency depPkg ->
-        if Package.DependencySet.mem dep seen
-        then return (seen, dependencies)
-        else
-          let%bind task = taskOfPackageCached depPkg in
-          let dependencies = (direct, Dependency task)::dependencies in
-          let seen = Package.DependencySet.add dep seen in
-          return (seen, dependencies)
+        let%bind task = taskOfPackageCached depPkg in
+        let dependencies = (direct, Dependency task)::dependencies in
+        return dependencies
       | Package.BuildTimeDependency depPkg ->
-        if Package.DependencySet.mem dep seen
-        then return (seen, dependencies)
-        else
-          if direct
-          then
-            let%bind task = taskOfPackageCached depPkg in
-            let dependencies = (direct, BuildTimeDependency task)::dependencies in
-            let seen = Package.DependencySet.add dep seen in
-            return (seen, dependencies)
-          else
-            return (seen, dependencies)
-      | Package.DevDependency depPkg ->
-        if Package.DependencySet.mem dep seen
-        then return (seen, dependencies)
-        else
+        if direct
+        then
           let%bind task = taskOfPackageCached depPkg in
-          let dependencies = (direct, DevDependency task)::dependencies in
-          let seen = Package.DependencySet.add dep seen in
-          return (seen, dependencies)
+          let dependencies = (direct, BuildTimeDependency task)::dependencies in
+          return dependencies
+        else
+          return dependencies
+      | Package.DevDependency depPkg ->
+        let%bind task = taskOfPackageCached depPkg in
+        let dependencies = (direct, DevDependency task)::dependencies in
+        return dependencies
       | Package.InvalidDependency { name; reason = `Missing; } ->
         Run.errorf "package %s is missing, run 'esy install' to fix that" name
       | Package.InvalidDependency { name; reason = `Reason reason; } ->
         Run.errorf "invalid package %s: %s" name reason
     in
 
-    let rec aux ?(direct=true) _pkg acc dep =
-      match Package.packageOf dep with
-      | None -> return acc
-      | Some depPkg ->
-        let%bind acc = Result.List.foldLeft
-          ~f:(aux ~direct:false depPkg)
-          ~init:acc
-          depPkg.dependencies
-        in
-        collectDependency ~direct acc dep
+    let rec aux ?(direct=true) _pkg (seen, dependencies) dep =
+      if Package.DependencySet.mem dep seen
+      then return (seen, dependencies)
+      else (
+        let seen = Package.DependencySet.add dep seen in
+        match Package.packageOf dep with
+        | None -> return (seen, dependencies)
+        | Some depPkg ->
+          let%bind (seen, dependencies) = Result.List.foldLeft
+            ~f:(aux ~direct:false depPkg)
+            ~init:(seen, dependencies)
+            depPkg.dependencies
+          in
+          let%bind dependencies = collectDependency ~direct dependencies dep in
+          return (seen, dependencies)
+
+      )
     in
 
     let seen = Package.DependencySet.empty in

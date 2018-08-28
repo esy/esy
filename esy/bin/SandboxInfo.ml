@@ -77,7 +77,7 @@ let writeCache (cfg : Config.t) (info : t) =
 
     return ()
 
-  in Perf.measure ~label:"writing sandbox info cache" f
+  in Perf.measureLwt ~label:"writing sandbox info cache" f
 
 let readCache (cfg : Config.t) =
   let open RunAsync.Syntax in
@@ -104,7 +104,7 @@ let readCache (cfg : Config.t) =
     in
     try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.toString cachePath) f
     with | Unix.Unix_error _ -> return None
-  in Perf.measure ~label:"reading sandbox info cache" f
+  in Perf.measureLwt ~label:"reading sandbox info cache" f
 
 let ofConfig (cfg : Config.t) =
   let open RunAsync.Syntax in
@@ -125,7 +125,7 @@ let ofConfig (cfg : Config.t) =
         return (task, commandEnv, sandboxEnv)
       ) in
       return {task; sandbox; commandEnv; sandboxEnv}
-    in Perf.measure ~label:"constructing sandbox info" f
+    in Perf.measureLwt ~label:"constructing sandbox info" f
   in
   match%bind readCache cfg with
   | Some info -> return info
