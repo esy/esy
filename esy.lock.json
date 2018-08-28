@@ -7773,7 +7773,7 @@
               ],
               [
                 "make", "check-if-preinstalled", "all",
-                "#{os == 'windows' ? 'install-bin' : 'opam-install'}"
+                "#{os == 'windows' ? 'install' : 'opam-install'}"
               ]
             ]
           }
