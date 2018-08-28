@@ -1,5 +1,5 @@
 {
-  "hash": "bb107706100a42d28e9633fb43a2e0e2",
+  "hash": "250cc94d431bec260202a09bffb8d67d",
   "root": "esy@path:.",
   "node": {
     "yargs-parser@9.0.2": {
@@ -4616,11 +4616,11 @@
       },
       "dependencies": [ "bser@2.0.0" ]
     },
-    "fastreplacestring@github:bryphe/FastReplaceString#de87ac7": {
+    "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b": {
       "record": {
         "name": "fastreplacestring",
-        "version": "github:bryphe/FastReplaceString#de87ac7",
-        "source": "github:bryphe/FastReplaceString#de87ac7",
+        "version": "github:esy-ocaml/FastReplaceString#95f408b",
+        "source": "github:esy-ocaml/FastReplaceString#95f408b",
         "files": [],
         "opam": null
       },
@@ -4846,16 +4846,15 @@
         "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
         "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
         "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
-        "@opam/menhir@opam:20171013", "@opam/ocp-indent@opam:1.6.1",
-        "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
-        "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
-        "@opam/ppx_deriving@opam:4.2.1",
+        "@opam/menhir@opam:20170712", "@opam/opam-core@opam:2.0.0",
+        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
+        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
         "@opam/ppx_deriving_yojson@opam:3.1",
         "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
         "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
         "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
         "babel-preset-flow@6.23.0", "del@3.0.0", "esy-solve-cudf@0.1.6",
-        "fastreplacestring@github:bryphe/FastReplaceString#de87ac7",
+        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
         "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
         "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
         "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
@@ -7481,13 +7480,29 @@
           "archive:https://opam.ocaml.org/archives/ppx_deriving.4.2.1+opam.tar.gz#md5:17337ce91b5b1baa423e411a358a3de8",
           "archive:https://github.com/ocaml-ppx/ppx_deriving/archive/v4.2.1.tar.gz#md5:2195fccf2a527c3ff9ec5b4e36e2f0a8"
         ],
-        "files": [],
+        "files": [
+          {
+            "name": "_esy/ppx_deriving-4.2.1.patch",
+            "content":
+              "--- ./pkg/topkg.ml\n+++ ./pkg/topkg.ml\n@@ -152,7 +152,63 @@\n module Exts : Exts = struct\n   let interface = [\".mli\"; \".cmi\"; \".cmti\"]\n   let interface_opt = \".cmx\" :: interface\n-  let c_library = if Sys.win32 then [\".lib\"] else [\".a\"]\n+  let c_library =\n+    match Sys.win32 with\n+    | false -> [\".a\"]\n+    | true ->\n+      let input_line ch =\n+        try\n+          let s = input_line ch in\n+          let len = String.length s in\n+          if len > 0 && Sys.os_type = \"Win32\" && s.[len-1] = '\\r' then\n+            Some (String.sub s 0 (pred len))\n+          else\n+            Some s\n+        with\n+        | End_of_file -> None\n+      in\n+      let rec get_ext_lib ch =\n+        match input_line ch with\n+        | None -> \".a\"\n+        | Some s ->\n+          let len = String.length s in\n+          if len < 11 || s.[0] <> 'e' || String.sub s 0 9 <> \"ext_lib: \" then\n+            get_ext_lib ch\n+          else\n+            String.sub s 9 (len - 9)\n+      in\n+      let get_ext_lib fln =\n+        let ch = open_in fln in\n+        let ch_closed = ref false in\n+        try\n+          let res = get_ext_lib ch in\n+          ch_closed := true;\n+          close_in ch ;\n+          res\n+        with\n+        | x when !ch_closed = false ->\n+          close_in_noerr ch;\n+          raise x\n+      in\n+      let e_null = if Sys.win32 then \" 2>NUL\" else \" 2>/dev/null\" in\n+      let fln = Filename.temp_file \"get_ext\" \".txt\" in\n+      let cleanup = lazy (try Sys.remove fln with Sys_error _ -> ()) in\n+      try\n+        let qfln = Filename.quote fln in\n+        let cmd = \"ocamlfind ocamlc -config > \" ^ qfln ^ e_null in\n+        let ec = Sys.command cmd in\n+        if ec <> 0 then (\n+          let cmd = \"ocamlc -config > \" ^ qfln ^ e_null in\n+          let ec = Sys.command cmd in\n+          if ec <> 0 then\n+            failwith (Printf.sprintf \"couldn't call ocamlc -config\");\n+        );\n+        let res = get_ext_lib fln in\n+        Lazy.force cleanup;\n+        [res]\n+      with\n+      | x -> Lazy.force cleanup; raise x\n+\n   let c_dll_library = if Sys.win32 then [\".dll\"] else [\".so\"]\n   let library = [\".cma\"; \".cmxa\"; \".cmxs\"] @ c_library\n   let module_library = (interface_opt @ library)\n@@ -258,7 +314,9 @@\n     let src, dst =\n       if not auto then src, dst else\n       let dst = match dst with\n-      | None -> Some (Filename.basename src)\n+      | None ->\n+        let src = if Sys.os_type <> \"Win32\" then src else src ^ \".exe\" in\n+        Some (Filename.basename src)\n       | Some _ as dst -> dst\n       in\n       let src = if Env.native then src ^ \".native\" else src ^ \".byte\" in\n"
+          }
+        ],
         "opam": {
           "name": "ppx_deriving",
           "version": "4.2.1",
           "opam":
             "opam-version: \"1.2\"\nname: \"ppx_deriving\"\nversion: \"4.2.1\"\nmaintainer: \"whitequark <whitequark@whitequark.org>\"\nauthors: \"whitequark <whitequark@whitequark.org>\"\nlicense: \"MIT\"\ntags: \"syntax\"\nhomepage: \"https://github.com/whitequark/ppx_deriving\"\ndoc: \"https://whitequark.github.io/ppx_deriving\"\nbug-reports: \"https://github.com/whitequark/ppx_deriving/issues\"\ndepends: [\n  \"ocamlbuild\" {build}\n  \"ocamlfind\" {build & >= \"1.6.0\"}\n  \"cppo\" {build}\n  \"cppo_ocamlbuild\" {build}\n  \"ocaml-migrate-parsetree\"\n  \"ppx_derivers\"\n  \"ppx_tools\" {>= \"4.02.3\"}\n  \"result\"\n  \"ounit\" {test}\n]\navailable: ocaml-version > \"4.03.0\" & opam-version >= \"1.2\"\nbuild: [\n  \"ocaml\"\n  \"pkg/build.ml\"\n  \"native=%{ocaml-native-dynlink}%\"\n  \"native-dynlink=%{ocaml-native-dynlink}%\"\n]\nrun-test: [\n  \"ocamlbuild\"\n  \"-classic-display\"\n  \"-use-ocamlfind\"\n  \"src_test/test_ppx_deriving.byte\"\n  \"--\"\n]\nsubsts: \"pkg/META\"\ndev-repo: \"git+https://github.com/whitequark/ppx_deriving.git\"\nbuild-doc: [make \"doc\"]",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/ppx_deriving-4.2.1.patch' : 'true'}"
+              ],
+              [
+                "ocaml", "pkg/build.ml", "native=true", "native-dynlink=true"
+              ]
+            ]
+          }
         }
       },
       "dependencies": [
@@ -7627,50 +7642,6 @@
         "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.4",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
         "@opam/re@opam:1.8.0"
-      ]
-    },
-    "@opam/ocp-indent@opam:1.6.1": {
-      "record": {
-        "name": "@opam/ocp-indent",
-        "version": "opam:1.6.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocp-indent.1.6.1+opam.tar.gz#md5:9aa56d9b3e059027dc4b51042156ceea",
-          "archive:https://github.com/OCamlPro/ocp-indent/archive/1.6.1.tar.gz#md5:935d03f4f6376d687c46f350ff5eecdd"
-        ],
-        "files": [],
-        "opam": {
-          "name": "ocp-indent",
-          "version": "1.6.1",
-          "opam":
-            "opam-version: \"1.2\"\nname: \"ocp-indent\"\nversion: \"1.6.1\"\nmaintainer: \"contact@ocamlpro.com\"\nauthors: [\n  \"Louis Gesbert <louis.gesbert@ocamlpro.com>\"\n  \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\n  \"Jun Furuse\"\n]\nlicense: \"LGPL\"\ntags: [\"org:ocamlpro\" \"org:typerex\"]\nhomepage: \"http://www.typerex.org/ocp-indent.html\"\nbug-reports: \"https://github.com/OCamlPro/ocp-indent/issues\"\ndepends: [\n  \"ocp-build\" {build & >= \"1.99.6-beta\"}\n  \"cmdliner\" {>= \"1.0.0\"}\n  \"base-bytes\"\n]\nbuild: [\n  [\"./configure\" \"--prefix\" prefix]\n  [make]\n]\npost-messages:\n  \"\"\"\nThis package requires additional configuration for use in editors. Install package 'user-setup', or manually:\n\n* for Emacs, add these lines to ~/.emacs:\n  (add-to-list 'load-path \"%{share}%/emacs/site-lisp\")\n  (require 'ocp-indent)\n\n* for Vim, add this line to ~/.vimrc:\n  set rtp^=\"%{share}%/ocp-indent/vim\\\"\"\"\"\n    {success & !user-setup:installed}\ndev-repo: \"git+https://github.com/OCamlPro/ocp-indent.git\"",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/cmdliner@opam:1.0.2", "@opam/ocp-build@opam:1.99.20-beta"
-      ]
-    },
-    "@opam/ocp-build@opam:1.99.20-beta": {
-      "record": {
-        "name": "@opam/ocp-build",
-        "version": "opam:1.99.20-beta",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocp-build.1.99.20-beta+opam.tar.gz#md5:9743ce4c218b25569577270859cb6665",
-          "archive:http://github.com/OCamlPro/ocp-build/archive/1.99.20-beta.tar.gz#md5:72d9c1b1a42d1873628e2d6e7529d8cb"
-        ],
-        "files": [],
-        "opam": {
-          "name": "ocp-build",
-          "version": "1.99.20-beta",
-          "opam":
-            "opam-version: \"1.2\"\nname: \"ocp-build\"\nversion: \"1.99.20-beta\"\nmaintainer: \"Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>\"\nauthors: \"Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>\"\nhomepage: \"http://www.typerex.org/ocp-build.html\"\nbug-reports: \"https://github.com/OCamlPro/ocp-build/issues\"\ndepends: [\n  \"ocamlfind\"\n  \"cmdliner\" {>= \"1.0\"}\n]\nconflicts: [\n  \"typerex\" {< \"1.99.7\"}\n  \"typerex-build\"\n]\navailable: ocaml-version >= \"4.02.1\"\nbuild: [\n  [\"./configure\" \"--prefix\" \"%{prefix}%\"]\n  [make]\n]\ninstall: [make \"install\"]\nremove: [\n  [\"rm\" \"-f\" \"%{prefix}%/bin/ocp-build\"]\n  [\"rm\" \"-f\" \"%{prefix}%/bin/ocp-pp\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocp-build\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocplib-compat\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocplib-debug\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocplib-lang\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocplib-subcmd\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocplib-system\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/ocplib-unix\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/typerex/installed.ocp\"]\n  [\"rm\" \"-rf\" \"%{prefix}%/lib/ocaml/site-ocp2/ocp-build\"]\n  [\"sh\" \"-exc\" \"rmdir %{prefix}%/lib/ocaml/typerex || true\"]\n]\ndev-repo: \"git+https://github.com/OCamlPro/ocp-build.git\"",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cmdliner@opam:1.0.2",
-        "@opam/ocamlfind@opam:1.8.0"
       ]
     },
     "@opam/ocamlgraph@opam:1.8.8": {
@@ -7857,31 +7828,31 @@
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
-    "@opam/menhir@opam:20171013": {
+    "@opam/menhir@opam:20170712": {
       "record": {
         "name": "@opam/menhir",
-        "version": "opam:20171013",
+        "version": "opam:20170712",
         "source": [
-          "archive:https://opam.ocaml.org/archives/menhir.20171013+opam.tar.gz#md5:b361a87378407e26b9ea2dde7ddf41a0",
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11"
+          "archive:https://opam.ocaml.org/archives/menhir.20170712+opam.tar.gz#md5:18aaf814e51aeb4fbfd8b7c1fb7ffbba",
+          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20170712.tar.gz#md5:85a5c2aef1d3f2224dab7c53d79892e5"
         ],
         "files": [
           {
-            "name": "_esy/menhir-20171013.patch",
+            "name": "_esy/menhir-20170712.patch",
             "content":
-              "--- ./Makefile\n+++ ./Makefile\n@@ -59,13 +59,8 @@\n \n # If the compiler is MSVC, then object file names end in .obj instead of .o.\n \n-ifneq (,$(shell ocamlc -config | grep -E \"ccomp_type: msvc\"))\n-  OBJ          := obj\n-# LIBSUFFIX    := lib\n-else\n-  OBJ          := o\n-# LIBSUFFIX    := a\n-endif\n+OBJ          := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_obj:/ {print $$2}' | tr -d '.')\n+#LIBSUFFIX   := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_lib:/ {print $$2}' | tr -d '.')\n \n # If we are under Windows (regardless of whether we are using MSVC or mingw)\n # then the name of the executable file ends in .exe.\n@@ -91,8 +86,9 @@\n # performed if \"os_type\" is \"Win32\" or \"Win64\", and must not be performed if\n # \"os_type\" is \"Cygwin\" or \"Unix\".\n \n-ifneq (,$(shell ocamlc -config | grep -E \"os_type: (Win32|Win64)\"))\n-installation_libdir := $(shell cygpath -m $(libdir))\n+OS_TYPE:=\t$(shell ocamlc -config | awk -F '[\\t \\r]+' '/^os_type:/ {print $$2}')\n+ifeq ($(OS_TYPE),Win32)\n+installation_libdir := $(shell cygpath -m $(libdir) || echo $(libdir))\n else\n installation_libdir := $(libdir)\n endif\n--- ./src/cmly_write.ml\n+++ ./src/cmly_write.ml\n@@ -168,6 +168,6 @@\n   output_value oc (t : grammar)\n \n let write filename =\n-  let oc = open_out filename in\n+  let oc = open_out_bin filename in\n   write oc (encode());\n   close_out oc\n"
+              "--- ./Makefile\n+++ ./Makefile\n@@ -60,10 +60,11 @@\n # If the compiler is MSVC, then the name of the executable file ends in .exe,\n # and object file names end in .obj instead of .o.\n \n-ifneq (,$(shell ocamlc -config | grep -E \"ccomp_type: msvc\"))\n+OS_TYPE:=$(shell ocamlc -config | tr -d '\\15' | awk '/^os_type:/ {print $$2}')\n+ifeq ($(OS_TYPE),$(filter $(OS_TYPE),Win32 Cygwin))\n   MENHIREXE    := menhir.exe\n-  OBJ          := obj\n-# LIBSUFFIX    := lib\n+  OBJ          := $(shell ocamlc -config | tr -d '\\15' | awk '/^ext_obj:/ {print $$2}' | tr -d '.')\n+# LIBSUFFIX    := $(shell ocamlc -config | tr -d '\\15' | awk '/^ext_lib:/ {print $$2}' | tr -d '.')\n else\n   MENHIREXE    := menhir\n   OBJ          := o\n@@ -85,8 +86,8 @@\n # performed if \"os_type\" is \"Win32\" or \"Win64\", and must not be performed if\n # \"os_type\" is \"Cygwin\" or \"Unix\".\n \n-ifneq (,$(shell ocamlc -config | grep -E \"os_type: (Win32|Win64)\"))\n-installation_libdir := $(shell cygpath -m $(libdir))\n+ifeq ($(OS_TYPE),Win32)\n+installation_libdir := $(shell cygpath -m $(libdir) || echo $(libdir))\n else\n installation_libdir := $(libdir)\n endif\n--- ./src/cmly_write.ml\n+++ ./src/cmly_write.ml\n@@ -168,6 +168,6 @@\n   output_value oc (t : grammar)\n \n let write filename =\n-  let oc = open_out filename in\n+  let oc = open_out_bin filename in\n   write oc (encode());\n   close_out oc\n"
           }
         ],
         "opam": {
           "name": "menhir",
-          "version": "20171013",
+          "version": "20170712",
           "opam":
-            "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20171013\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
+            "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20170712\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
           "override": {
             "build": [
               [
                 "bash", "-c",
-                "#{os == 'windows' ? 'patch -p1 < _esy/menhir-20171013.patch' : 'true'}"
+                "#{os == 'windows' ? 'patch -p1 < _esy/menhir-20170712.patch' : 'true'}"
               ],
               [
                 "make", "-f", "Makefile", "PREFIX=#{self.install}",
@@ -8594,7 +8565,7 @@
       },
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
-        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
+        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170712",
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
