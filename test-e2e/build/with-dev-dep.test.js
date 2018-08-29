@@ -11,7 +11,39 @@ const {
   skipSuiteOnWindows,
 } = require('../test/helpers');
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows('Needs investigation');
+
+function makePackage(
+  {
+    name,
+    dependencies = {},
+    devDependencies = {},
+  }: {
+    name: string,
+    dependencies?: {[name: string]: string},
+    devDependencies?: {[name: string]: string},
+  },
+  ...items
+) {
+  return dir(
+    name,
+    packageJson({
+      name: name,
+      version: '1.0.0',
+      license: 'MIT',
+      esy: {
+        buildsInSource: true,
+        build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
+        install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+      },
+      dependencies,
+      devDependencies,
+      _resolved: '...',
+    }),
+    file(`${name}.ml`, `let () = print_endline "__${name}__"`),
+    ...items,
+  );
+}
 
 const fixture = [
   packageJson({
@@ -29,46 +61,20 @@ const fixture = [
   }),
   dir(
     'node_modules',
-    dir(
-      'dep',
-      packageJson({
-        name: 'dep',
-        version: '1.0.0',
-        esy: {
-          buildsInSource: true,
-          build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-          install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        _resolved: '...',
-      }),
-      file('dep.ml', 'let () = print_endline "__dep__"'),
-    ),
-    dir(
-      'devDep',
-      packageJson({
-        name: 'devDep',
-        version: '1.0.0',
-        license: 'MIT',
-        esy: {
-          buildsInSource: true,
-          build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-          install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        _resolved: '...',
-      }),
-      file('devDep.ml', 'let () = print_endline "__devDep__"'),
-    ),
+    makePackage({
+      name: 'dep',
+      dependencies: {ocaml: '*'},
+      devDependencies: {devDepOfDep: '*'},
+    }),
+    makePackage({
+      name: 'devDep',
+      dependencies: {ocaml: '*'},
+    }),
     ocamlPackage(),
   ),
 ];
 
-describe('Build - with dev dep', () => {
+describe('devDep workflow', () => {
   let p;
 
   beforeEach(async () => {
