@@ -81,3 +81,8 @@ module DependencySet = Set.Make(struct
   type t = dependency
   let compare = compare_dependency
 end)
+
+module DependencyMap = Map.Make(struct
+  type t = dependency
+  let compare = compare_dependency
+end)
