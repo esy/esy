@@ -5,6 +5,7 @@ type t = {
   task : Task.t;
   commandEnv : Environment.Bindings.t;
   sandboxEnv : Environment.Bindings.t;
+  info : Sandbox.info;
 }
 
 let cachePath (cfg : Config.t) =
@@ -93,7 +94,7 @@ let readCache (cfg : Config.t) =
               | Ok { Unix.st_mtime = curMtime; _ } -> return (curMtime > mtime)
               | Error _ -> return true
             in
-            List.map ~f info.sandbox.manifestInfo
+            List.map ~f info.info
           )
         in
         return (List.exists ~f:(fun x -> x) checks)
@@ -110,7 +111,7 @@ let ofConfig (cfg : Config.t) =
   let open RunAsync.Syntax in
   let makeInfo () =
     let f () =
-      let%bind sandbox = Sandbox.ofDir cfg in
+      let%bind sandbox, info = Sandbox.ofDir cfg in
       let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind task = Task.ofPackage sandbox.root in
@@ -124,7 +125,7 @@ let ofConfig (cfg : Config.t) =
         in
         return (task, commandEnv, sandboxEnv)
       ) in
-      return {task; sandbox; commandEnv; sandboxEnv}
+      return {task; sandbox; commandEnv; sandboxEnv; info}
     in Perf.measureLwt ~label:"constructing sandbox info" f
   in
   match%bind readCache cfg with

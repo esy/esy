@@ -1,8 +1,9 @@
 type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
-  manifestInfo : (Path.t * float) list;
 }
+
+type info = (Path.t * float) list
 
 let packagePathAt ?scope ~name basedir =
   match scope with
@@ -244,7 +245,7 @@ let ofDir (cfg : Config.t) =
     let%bind scripts =
       RunAsync.ofRun (Manifest.scripts manifest)
     in
-    return {root; scripts; manifestInfo}
+    return ({root; scripts;}, manifestInfo)
 
   | _ ->
     error "root package missing esy config"

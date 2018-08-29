@@ -9,6 +9,7 @@ type t = private {
   task : Task.t;
   commandEnv : Environment.Bindings.t;
   sandboxEnv : Environment.Bindings.t;
+  info : Sandbox.info;
 }
 
 val ofConfig : Config.t -> t RunAsync.t
