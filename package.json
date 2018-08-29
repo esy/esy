@@ -33,7 +33,7 @@
   "scripts": {
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
-    "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
+    "bootstrap:build": "esy-bash make bootstrap",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
     "test-e2e": "jest --runInBand test-e2e"
@@ -75,6 +75,7 @@
   "devDependencies": {
     "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
+    "esy-bash": "0.1.22",
     "ocaml": "~4.6.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
