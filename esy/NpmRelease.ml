@@ -108,7 +108,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     * the release tarball as only globally stored artefacts can be relocated
     * between stores (b/c of a fixed path length).
     *)
-  let%bind task = RunAsync.ofRun (Task.ofPackage ~forceImmutable:true sandbox.Sandbox.root) in
+  let%bind task = RunAsync.ofRun (Task.ofSandbox ~forceImmutable:true sandbox) in
 
   let tasks = Task.Graph.traverse ~traverse:dependenciesForRelease task in
 
@@ -175,28 +175,30 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     let%bind bindings = RunAsync.ofRun (
       let open Run.Syntax in
       let pkg = sandbox.Sandbox.root in
-      let synPkg = {
-        Package.
-        id = "__release_env__";
-        name = "release-env";
-        version = pkg.version;
-        dependencies = [Package.Dependency pkg];
-        build = {
-          Manifest.Build.
-          sourceType = Manifest.SourceType.Transient;
-          sandboxEnv = pkg.build.sandboxEnv;
-          buildEnv = Manifest.Env.empty;
-          buildCommands = Manifest.Build.EsyCommands None;
-          installCommands = Manifest.Build.EsyCommands None;
-          buildType = Manifest.BuildType.OutOfSource;
-          patches = [];
-          substs = [];
-          exportedEnv = [];
-        };
-        sourcePath = pkg.sourcePath;
-        resolution = None;
-      } in
-      let%bind task = Task.ofPackage ~forceImmutable:true synPkg in
+      let sandbox =
+        let root = {
+          Package.
+          id = "__release_env__";
+          name = "release-env";
+          version = pkg.version;
+          dependencies = [Package.Dependency pkg];
+          build = {
+            Manifest.Build.
+            sourceType = Manifest.SourceType.Transient;
+            buildEnv = Manifest.Env.empty;
+            buildCommands = Manifest.Build.EsyCommands None;
+            installCommands = Manifest.Build.EsyCommands None;
+            buildType = Manifest.BuildType.OutOfSource;
+            patches = [];
+            substs = [];
+            exportedEnv = [];
+          };
+          sourcePath = pkg.sourcePath;
+          resolution = None;
+        } in
+        {sandbox with root}
+      in
+      let%bind task = Task.ofSandbox ~forceImmutable:true sandbox in
       let%bind bindings = Task.sandboxEnv task in
       return bindings
     ) in

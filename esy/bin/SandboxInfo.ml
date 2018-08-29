@@ -114,7 +114,7 @@ let ofConfig (cfg : Config.t) =
       let%bind sandbox, info = Sandbox.ofDir cfg in
       let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun (
         let open Run.Syntax in
-        let%bind task = Task.ofPackage sandbox.root in
+        let%bind task = Task.ofSandbox sandbox in
         let%bind commandEnv =
           let%bind env = Task.commandEnv task in
           return (Config.Environment.Bindings.render cfg.buildConfig env)

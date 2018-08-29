@@ -181,10 +181,10 @@ module DependencySet = Set.Make(struct
   let compare = compare_dependency
 end)
 
-let ofPackage
+let ofSandbox
     ?(forceImmutable=false)
     ?(platform=System.Platform.host)
-    (rootPkg : Package.t)
+    (sandbox : Sandbox.t)
   =
 
   let cache = Memoize.make ~size:200 () in
@@ -320,7 +320,13 @@ let ofPackage
           | None -> ""
         in
 
-        String.concat "__" (resolution::self::dependencies)
+        let sandboxEnv =
+          sandbox.env
+          |> Manifest.Env.to_yojson
+          |> Yojson.Safe.to_string
+        in
+
+        String.concat "__" (sandboxEnv::resolution::self::dependencies)
         |> Digest.string
         |> Digest.to_hex
         |> fun hash -> String.sub hash 0 8
@@ -355,7 +361,7 @@ let ofPackage
         let f {Manifest.Env. name; value} =
           Config.Environment.Bindings.value name (Config.Value.v value)
         in
-        List.map ~f pkg.build.sandboxEnv
+        List.map ~f sandbox.Sandbox.env
       in
 
       let exportedScope =
@@ -464,7 +470,7 @@ let ofPackage
       pkg.version
   in
 
-  taskOfPackageCached rootPkg
+  taskOfPackageCached sandbox.root
 
 let exposeUserEnv scope =
   scope

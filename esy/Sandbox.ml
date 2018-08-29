@@ -1,6 +1,7 @@
 type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
+  env : Manifest.Env.t;
 }
 
 type info = (Path.t * float) list
@@ -242,10 +243,9 @@ let ofDir (cfg : Config.t) =
       |> List.map ~f:statPath
       |> RunAsync.List.joinAll
     in
-    let%bind scripts =
-      RunAsync.ofRun (Manifest.scripts manifest)
-    in
-    return ({root; scripts;}, manifestInfo)
+    let%bind scripts = RunAsync.ofRun (Manifest.scripts manifest) in
+    let%bind env = RunAsync.ofRun (Manifest.sandboxEnv manifest) in
+    return ({root; scripts; env;}, manifestInfo)
 
   | _ ->
     error "root package missing esy config"

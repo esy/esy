@@ -202,7 +202,6 @@ module Build = struct
     patches : patch list;
     substs : Path.t list;
     exportedEnv : ExportedEnv.t;
-    sandboxEnv : Env.t;
     buildEnv : Env.t;
   } [@@deriving to_yojson]
 
@@ -303,6 +302,8 @@ module type MANIFEST = sig
    * case.
    *)
   val scripts : t -> Scripts.t Run.t
+
+  val sandboxEnv : t -> Env.t Run.t
 
   (**
    * Unique id of the release.
@@ -445,6 +446,11 @@ end = struct
       end
     | _ -> return Scripts.empty
 
+  let sandboxEnv (m, _) =
+    match m.esy with
+    | None -> Run.return Env.empty
+    | Some m -> Run.return m.sandboxEnv
+
   let build (m, _) =
     let open Option.Syntax in
     let%bind esy = m.esy in
@@ -457,7 +463,6 @@ end = struct
       buildType = esy.EsyManifest.buildsInSource;
       exportedEnv = esy.EsyManifest.exportedEnv;
       buildEnv = esy.EsyManifest.buildEnv;
-      sandboxEnv = esy.EsyManifest.sandboxEnv;
       buildCommands = EsyCommands (esy.EsyManifest.build);
       installCommands = EsyCommands (esy.EsyManifest.install);
       patches = [];
@@ -812,7 +817,6 @@ end = struct
       buildType;
       exportedEnv;
       buildEnv = Env.empty;
-      sandboxEnv = Env.empty;
       buildCommands;
       installCommands;
       patches;
@@ -820,6 +824,8 @@ end = struct
     }
 
   let scripts _ = Run.return Scripts.empty
+
+  let sandboxEnv _ = Run.return Env.empty
 
 end
 
@@ -877,6 +883,11 @@ end = struct
     match m with
     | Opam m -> Opam.scripts m
     | Esy m -> Esy.scripts m
+
+  let sandboxEnv m =
+    match m with
+    | Opam m -> Opam.sandboxEnv m
+    | Esy m -> Esy.sandboxEnv m
 
   let ofDir ?(asRoot=false) (path : Path.t) =
 

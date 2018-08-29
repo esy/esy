@@ -5,6 +5,7 @@
 type t = {
   root : Package.t;
   scripts : Manifest.Scripts.t;
+  env : Manifest.Env.t;
 }
 
 type info = (Path.t * float) list

@@ -41,10 +41,12 @@ val buildEnv : t -> Config.Environment.Bindings.t Run.t
 val commandEnv : t -> Config.Environment.Bindings.t Run.t
 val sandboxEnv : t -> Config.Environment.Bindings.t Run.t
 
-val ofPackage :
-  ?forceImmutable:bool ->
-  ?platform:System.Platform.t ->
-  Package.t -> t Run.t
+val ofSandbox :
+  ?forceImmutable:bool
+  -> ?platform:System.Platform.t
+  -> Sandbox.t
+  -> t Run.t
+(** Create task tree of sandbox. *)
 
 val exportBuild : cfg:Config.t -> outputPrefixPath:Path.t -> Path.t -> unit RunAsync.t
 val importBuild : Config.t -> Path.t -> unit RunAsync.t
