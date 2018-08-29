@@ -204,8 +204,7 @@ let ofPackage
         then
           let%bind task = taskOfPackageCached depPkg in
           return (Some (BuildTimeDependency task))
-        else
-          return None
+        else return None
       | Package.DevDependency depPkg ->
         if direct
         then
@@ -218,19 +217,19 @@ let ofPackage
         Run.errorf "invalid package %s: %s" name reason
     in
 
-    let rec aux ?(direct=true) _pkg (map, order) dep =
+    let rec aux ?(direct=true) (map, order) dep =
       match direct, Package.DependencyMap.find_opt dep map with
       | false, Some _ -> return (map, order)
+      | true, Some (true, _) -> return (map, order)
       | true, Some (false, deptask) ->
         let map = Package.DependencyMap.add dep (true, deptask) map in
         return (map, order)
-      | true, Some (true, _) -> return (map, order)
       | _, None ->
         begin match Package.packageOf dep with
         | None -> return (map, order)
         | Some depPkg ->
           let%bind (map, order) = Result.List.foldLeft
-            ~f:(aux ~direct:false depPkg)
+            ~f:(aux ~direct:false)
             ~init:(map, order)
             depPkg.dependencies
           in
@@ -247,18 +246,19 @@ let ofPackage
 
       let%bind map, order =
         Result.List.foldLeft
-          ~f:(aux ~direct:true pkg)
+          ~f:(aux ~direct:true)
           ~init:(Package.DependencyMap.empty, [])
           pkg.dependencies
       in
       return (
         let f dep =
           match Package.DependencyMap.find_opt dep map with
-          | Some dep -> dep
-          | None -> failwith "invariant violation: task is not found"
+          | Some v -> v
+          | None ->
+            let msg = Format.asprintf "task wasn't found: %a" Package.pp_dependency dep in
+            failwith msg
         in
-        order
-        |> List.rev_map ~f
+        List.rev_map ~f order
       )
 
   and taskOfPackage (pkg : Package.t) =
