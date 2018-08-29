@@ -7842,7 +7842,10 @@
             "opam-version: \"1.2\"\nname: \"merlin-extend\"\nversion: \"0.3\"\nmaintainer: \"Frederic Bour <frederic.bour@lakaban.net>\"\nauthors: \"Frederic Bour <frederic.bour@lakaban.net>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/let-def/merlin-extend\"\nbug-reports: \"https://github.com/let-def/merlin-extend\"\ndepends: [\n  \"ocamlfind\" {build}\n  \"cppo\" {build}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: make\ninstall: [make \"install\"]\nremove: [\"ocamlfind\" \"remove\" \"merlin_extend\"]\ndev-repo: \"git+https://github.com/let-def/merlin-extend.git\"",
           "override": {
             "build": [
-              [ "bash", "-c", "patch -p1 < _esy/merlin-extend-winfix.patch" ],
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/merlin-extend-winfix.patch' : 'true'}"
+              ],
               [ "make" ]
             ]
           }
