@@ -27,6 +27,7 @@ let compare_dependency a b =
   | Dependency a, Dependency b -> compare a b
   | OptDependency a, OptDependency b -> compare a b
   | BuildTimeDependency a, BuildTimeDependency b -> compare a b
+  | DevDependency a, DevDependency b -> compare a b
   | InvalidDependency a, InvalidDependency b -> String.compare a.name b.name
   | Dependency _, _ -> 1
   | OptDependency _, Dependency _ -> -1
@@ -39,6 +40,14 @@ let compare_dependency a b =
   | DevDependency _, BuildTimeDependency _ -> -1
   | DevDependency _, _ -> 1
   | InvalidDependency _, _ -> -1
+
+let pp_dependency fmt dep =
+  match dep with
+  | Dependency p -> Fmt.pf fmt "Dependency %s" p.id
+  | OptDependency p -> Fmt.pf fmt "OptDependency %s" p.id
+  | DevDependency p -> Fmt.pf fmt "DevDependency %s" p.id
+  | BuildTimeDependency p -> Fmt.pf fmt "BuildTimeDependency %s" p.id
+  | InvalidDependency p -> Fmt.pf fmt "InvalidDependency %s" p.name
 
 type pkg = t
 type pkg_dependency = dependency
@@ -78,6 +87,11 @@ module Graph = DependencyGraph.Make(struct
 end)
 
 module DependencySet = Set.Make(struct
+  type t = dependency
+  let compare = compare_dependency
+end)
+
+module DependencyMap = Map.Make(struct
   type t = dependency
   let compare = compare_dependency
 end)
