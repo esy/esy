@@ -193,57 +193,70 @@ let ofPackage
 
   let rec allDependenciesOf (pkg : Package.t) =
 
-    let collectDependency ~direct dependencies dep =
+    let addDependency ~direct dep =
       match dep with
       | Package.Dependency depPkg
       | Package.OptDependency depPkg ->
         let%bind task = taskOfPackageCached depPkg in
-        let dependencies = (direct, Dependency task)::dependencies in
-        return dependencies
+        return (Some (Dependency task))
       | Package.BuildTimeDependency depPkg ->
         if direct
         then
           let%bind task = taskOfPackageCached depPkg in
-          let dependencies = (direct, BuildTimeDependency task)::dependencies in
-          return dependencies
+          return (Some (BuildTimeDependency task))
         else
-          return dependencies
+          return None
       | Package.DevDependency depPkg ->
         let%bind task = taskOfPackageCached depPkg in
-        let dependencies = (direct, DevDependency task)::dependencies in
-        return dependencies
+        return (Some (DevDependency task))
       | Package.InvalidDependency { name; reason = `Missing; } ->
         Run.errorf "package %s is missing, run 'esy install' to fix that" name
       | Package.InvalidDependency { name; reason = `Reason reason; } ->
         Run.errorf "invalid package %s: %s" name reason
     in
 
-    let rec aux ?(direct=true) _pkg (seen, dependencies) dep =
-      if Package.DependencySet.mem dep seen
-      then return (seen, dependencies)
-      else (
-        let seen = Package.DependencySet.add dep seen in
-        match Package.packageOf dep with
-        | None -> return (seen, dependencies)
+    let rec aux ?(direct=true) _pkg (map, order) dep =
+      match direct, Package.DependencyMap.find_opt dep map with
+      | false, Some _ -> return (map, order)
+      | true, Some (false, deptask) ->
+        let map = Package.DependencyMap.add dep (true, deptask) map in
+        return (map, order)
+      | true, Some (true, _) -> return (map, order)
+      | _, None ->
+        begin match Package.packageOf dep with
+        | None -> return (map, order)
         | Some depPkg ->
-          let%bind (seen, dependencies) = Result.List.foldLeft
+          let%bind (map, order) = Result.List.foldLeft
             ~f:(aux ~direct:false depPkg)
-            ~init:(seen, dependencies)
+            ~init:(map, order)
             depPkg.dependencies
           in
-          let%bind dependencies = collectDependency ~direct dependencies dep in
-          return (seen, dependencies)
+          begin match%bind addDependency ~direct dep with
+          | Some deptask ->
+            let map = Package.DependencyMap.add dep (direct, deptask) map in
+            let order = dep::order in
+            return (map, order)
+          | None ->
+            return (map, order)
+            end
+          end
+      in
 
+      let%bind map, order =
+        Result.List.foldLeft
+          ~f:(aux ~direct:true pkg)
+          ~init:(Package.DependencyMap.empty, [])
+          pkg.dependencies
+      in
+      return (
+        let f dep =
+          match Package.DependencyMap.find_opt dep map with
+          | Some dep -> dep
+          | None -> failwith "invariant violation: task is not found"
+        in
+        order
+        |> List.rev_map ~f
       )
-    in
-
-    let seen = Package.DependencySet.empty in
-    let%bind _, dependencies =
-      Result.List.foldLeft
-        ~f:(aux ~direct:true pkg)
-        ~init:(seen, [])
-        pkg.dependencies
-    in return (List.rev dependencies)
 
   and taskOfPackage (pkg : Package.t) =
 
