@@ -1,6 +1,6 @@
 {
   "hash": "250cc94d431bec260202a09bffb8d67d",
-  "root": "esy-test-build@path:.",
+  "root": "esy@path:.",
   "node": {
     "yargs-parser@9.0.2": {
       "record": {
@@ -4819,9 +4819,20 @@
       },
       "dependencies": [ "merge@1.2.0" ]
     },
-    "esy-test-build@path:.": {
+    "esy-solve-cudf@0.1.6": {
       "record": {
-        "name": "esy-test-build",
+        "name": "esy-solve-cudf",
+        "version": "0.1.6",
+        "source":
+          "archive:https://registry.npmjs.org/esy-solve-cudf/-/esy-solve-cudf-0.1.6.tgz#sha1:e5fe6e16be1e71964e1bfe3cdb80688e072dbe0f",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": []
+    },
+    "esy@path:.": {
+      "record": {
+        "name": "esy",
         "version": "path:.",
         "source": "path:.",
         "files": [],
@@ -4849,17 +4860,6 @@
         "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
         "tar-fs@1.16.3", "tmp@0.0.33"
       ]
-    },
-    "esy-solve-cudf@0.1.6": {
-      "record": {
-        "name": "esy-solve-cudf",
-        "version": "0.1.6",
-        "source":
-          "archive:https://registry.npmjs.org/esy-solve-cudf/-/esy-solve-cudf-0.1.6.tgz#sha1:e5fe6e16be1e71964e1bfe3cdb80688e072dbe0f",
-        "files": [],
-        "opam": null
-      },
-      "dependencies": []
     },
     "esutils@2.0.2": {
       "record": {
