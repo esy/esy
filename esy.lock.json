@@ -7716,22 +7716,7 @@
           "version": "0.12.0",
           "opam":
             "opam-version: \"1.2\"\nname: \"ocamlbuild\"\nversion: \"0.12.0\"\nmaintainer: \"Gabriel Scherer <gabriel.scherer@gmail.com>\"\nauthors: [\"Nicolas Pouillard\" \"Berke Durak\"]\nlicense: \"LGPL-2 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocamlbuild/\"\ndoc: \"https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc\"\nbug-reports: \"https://github.com/ocaml/ocamlbuild/issues\"\nconflicts: [\n  \"base-ocamlbuild\"\n  \"ocamlfind\" {< \"1.6.2\"}\n]\navailable: ocaml-version >= \"4.03\"\nbuild: [\n  [\n    make\n    \"-f\"\n    \"configure.make\"\n    \"all\"\n    \"OCAMLBUILD_PREFIX=%{prefix}%\"\n    \"OCAMLBUILD_BINDIR=%{bin}%\"\n    \"OCAMLBUILD_LIBDIR=%{lib}%\"\n    \"OCAMLBUILD_MANDIR=%{man}%\"\n    \"OCAML_NATIVE=%{ocaml-native}%\"\n    \"OCAML_NATIVE_TOOLS=%{ocaml-native}%\"\n  ]\n  [make \"check-if-preinstalled\" \"all\" \"opam-install\"]\n]\ndev-repo: \"git+https://github.com/ocaml/ocamlbuild.git\"",
-          "override": {
-            "build": [
-              [
-                "make", "-f", "configure.make", "all",
-                "OCAMLBUILD_PREFIX=#{self.install}",
-                "OCAMLBUILD_BINDIR=#{self.bin}",
-                "OCAMLBUILD_LIBDIR=#{self.lib}",
-                "OCAMLBUILD_MANDIR=#{self.man}", "OCAMLBUILD_NATIVE=true",
-                "OCAMLBUILD_NATIVE_TOOLS=true"
-              ],
-              [
-                "make", "check-if-preinstalled", "all",
-                "#{os == 'windows' ? 'install' : 'opam-install'}"
-              ]
-            ]
-          }
+          "override": null
         }
       },
       "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
@@ -7787,24 +7772,13 @@
           "archive:https://opam.ocaml.org/archives/merlin-extend.0.3+opam.tar.gz#md5:5bc02f7e256c5a2e99e8dc01b26b81c2",
           "archive:https://github.com/let-def/merlin-extend/archive/v0.3.tar.gz#md5:9c6dfd4f53328f02f12fcc265f4e2dda"
         ],
-        "files": [
-          {
-            "name": "_esy/merlin-extend-winfix.patch",
-            "content":
-              "--- ./extend_helper.ml\n+++ ./extend_helper.ml\n@@ -1,13 +1,6 @@\n-(*pp cppo -V OCAML:`ocamlc -version` *)\n open Parsetree\n open Extend_protocol\n \n-#if OCAML_VERSION < (4, 3, 0)\n-# define CONST_STRING Asttypes.Const_string\n-#else\n-# define CONST_STRING Parsetree.Pconst_string\n-#endif\n-\n (** Default implementation for [Reader_def.print_outcome] using\n     [Oprint] from compiler-libs *)\n let print_outcome_using_oprint ppf = function\n@@ -28,7 +21,7 @@\n       pstr_loc = Location.none;\n       pstr_desc = Pstr_eval ({\n           pexp_loc = Location.none;\n-          pexp_desc = Pexp_constant (CONST_STRING (msg, None));\n+          pexp_desc = Pexp_constant (Parsetree.Pconst_string (msg, None));\n           pexp_attributes = [];\n         }, []);\n     }]\n@@ -112,7 +105,7 @@\n   let msg = match payload with\n     | PStr [{\n         pstr_desc = Pstr_eval ({\n-            pexp_desc = Pexp_constant (CONST_STRING (msg, _));\n+            pexp_desc = Pexp_constant (Parsetree.Pconst_string (msg, _));\n           }, _);\n       }] -> msg\n     | _ -> \"Warning: extension produced an incorrect syntax-error node\"\n"
-          }
-        ],
+        "files": [],
         "opam": {
           "name": "merlin-extend",
           "version": "0.3",
           "opam":
             "opam-version: \"1.2\"\nname: \"merlin-extend\"\nversion: \"0.3\"\nmaintainer: \"Frederic Bour <frederic.bour@lakaban.net>\"\nauthors: \"Frederic Bour <frederic.bour@lakaban.net>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/let-def/merlin-extend\"\nbug-reports: \"https://github.com/let-def/merlin-extend\"\ndepends: [\n  \"ocamlfind\" {build}\n  \"cppo\" {build}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: make\ninstall: [make \"install\"]\nremove: [\"ocamlfind\" \"remove\" \"merlin_extend\"]\ndev-repo: \"git+https://github.com/let-def/merlin-extend.git\"",
-          "override": {
-            "build": [
-              [ "bash", "-c", "patch -p1 < _esy/merlin-extend-winfix.patch" ],
-              [ "make" ]
-            ]
-          }
+          "override": null
         }
       },
       "dependencies": [
