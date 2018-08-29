@@ -25,8 +25,8 @@ let isAbs = Fpath.is_abs;
 let isPrefix = Fpath.is_prefix;
 let remPrefix = Fpath.rem_prefix;
 
-let homeDir = () => Run.return(Fpath.v(System.Environment.homeDir));
-let dataPath = () => Run.return(Fpath.v(System.Environment.dataPath));
+let homeDir = () => Run.return(Fpath.v(System.Environment.homeDir()));
+let dataPath = () => Run.return(Fpath.v(System.Environment.dataPath()));
 let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
 let relativize = Fpath.relativize;

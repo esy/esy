@@ -36,8 +36,8 @@ module Environment : sig
   val path : string list
 
   (** Value of $HOME environment on *nix platforms and USERPROFILE on Windows *)
-  val homeDir: string
+  val homeDir: unit -> string
 
   (** Value of LOCALAPPDATA environment on Windows, $HOME + "/Library/Application Support" and $HOME on the rest *)
-  val dataPath: string
+  val dataPath: unit -> string
 end
