@@ -88,6 +88,7 @@ module Dependencies : sig
     buildTimeDependencies : string list list;
     optDependencies : string list list;
   }
+  val show : t -> string
 end
 
 module type MANIFEST = sig

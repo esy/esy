@@ -26,6 +26,12 @@ and dependency =
   | DevDependency of t
   | BuildTimeDependency of t
 
+let pp_dependency fmt (dep : dependency) =
+  match dep with
+  | Dependency t -> Fmt.pf fmt "Dependency %s" t.id
+  | DevDependency t -> Fmt.pf fmt "DevDependency %s" t.id
+  | BuildTimeDependency t -> Fmt.pf fmt "BuildTimeDependency %s" t.id
+
 let compare a b =
   String.compare a.id b.id
 
@@ -187,57 +193,73 @@ let ofPackage
 
   let rec allDependenciesOf (pkg : Package.t) =
 
-    let collectDependency ~direct dependencies dep =
+    let addDependency ~direct dep =
       match dep with
       | Package.Dependency depPkg
       | Package.OptDependency depPkg ->
         let%bind task = taskOfPackageCached depPkg in
-        let dependencies = (direct, Dependency task)::dependencies in
-        return dependencies
+        return (Some (Dependency task))
       | Package.BuildTimeDependency depPkg ->
         if direct
         then
           let%bind task = taskOfPackageCached depPkg in
-          let dependencies = (direct, BuildTimeDependency task)::dependencies in
-          return dependencies
-        else
-          return dependencies
+          return (Some (BuildTimeDependency task))
+        else return None
       | Package.DevDependency depPkg ->
-        let%bind task = taskOfPackageCached depPkg in
-        let dependencies = (direct, DevDependency task)::dependencies in
-        return dependencies
+        if direct
+        then
+          let%bind task = taskOfPackageCached depPkg in
+          return (Some (DevDependency task))
+        else return None
       | Package.InvalidDependency { name; reason = `Missing; } ->
         Run.errorf "package %s is missing, run 'esy install' to fix that" name
       | Package.InvalidDependency { name; reason = `Reason reason; } ->
         Run.errorf "invalid package %s: %s" name reason
     in
 
-    let rec aux ?(direct=true) _pkg (seen, dependencies) dep =
-      if Package.DependencySet.mem dep seen
-      then return (seen, dependencies)
-      else (
-        let seen = Package.DependencySet.add dep seen in
-        match Package.packageOf dep with
-        | None -> return (seen, dependencies)
+    let rec aux ?(direct=true) (map, order) dep =
+      match direct, Package.DependencyMap.find_opt dep map with
+      | false, Some _ -> return (map, order)
+      | true, Some (true, _) -> return (map, order)
+      | true, Some (false, deptask) ->
+        let map = Package.DependencyMap.add dep (true, deptask) map in
+        return (map, order)
+      | _, None ->
+        begin match Package.packageOf dep with
+        | None -> return (map, order)
         | Some depPkg ->
-          let%bind (seen, dependencies) = Result.List.foldLeft
-            ~f:(aux ~direct:false depPkg)
-            ~init:(seen, dependencies)
+          let%bind (map, order) = Result.List.foldLeft
+            ~f:(aux ~direct:false)
+            ~init:(map, order)
             depPkg.dependencies
           in
-          let%bind dependencies = collectDependency ~direct dependencies dep in
-          return (seen, dependencies)
+          begin match%bind addDependency ~direct dep with
+          | Some deptask ->
+            let map = Package.DependencyMap.add dep (direct, deptask) map in
+            let order = dep::order in
+            return (map, order)
+          | None ->
+            return (map, order)
+            end
+          end
+      in
 
+      let%bind map, order =
+        Result.List.foldLeft
+          ~f:(aux ~direct:true)
+          ~init:(Package.DependencyMap.empty, [])
+          pkg.dependencies
+      in
+      return (
+        let f dep =
+          match Package.DependencyMap.find_opt dep map with
+          | Some v -> v
+          | None ->
+            let msg = Format.asprintf "task wasn't found: %a" Package.pp_dependency dep in
+            failwith msg
+        in
+        List.rev_map ~f order
       )
-    in
-
-    let seen = Package.DependencySet.empty in
-    let%bind _, dependencies =
-      Result.List.foldLeft
-        ~f:(aux ~direct:true pkg)
-        ~init:(seen, [])
-        pkg.dependencies
-    in return (List.rev dependencies)
 
   and taskOfPackage (pkg : Package.t) =
 
