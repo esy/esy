@@ -40,6 +40,14 @@ let compare_dependency a b =
   | DevDependency _, _ -> 1
   | InvalidDependency _, _ -> -1
 
+let pp_dependency fmt dep =
+  match dep with
+  | Dependency p -> Fmt.pf fmt "Dependency %s" p.id
+  | OptDependency p -> Fmt.pf fmt "OptDependency %s" p.id
+  | DevDependency p -> Fmt.pf fmt "DevDependency %s" p.id
+  | BuildTimeDependency p -> Fmt.pf fmt "BuildTimeDependency %s" p.id
+  | InvalidDependency p -> Fmt.pf fmt "InvalidDependency %s" p.name
+
 type pkg = t
 type pkg_dependency = dependency
 

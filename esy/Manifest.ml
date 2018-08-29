@@ -214,7 +214,7 @@ module Dependencies = struct
     devDependencies : string list list;
     buildTimeDependencies : string list list;
     optDependencies : string list list;
-  }
+  } [@@deriving show]
 end
 
 module Release = struct

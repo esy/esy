@@ -10,6 +10,8 @@ type dependency =
   | DevDependency of t
   | BuildTimeDependency of t
 
+val pp_dependency : dependency Fmt.t
+
 val id : t -> string
 val pkg : t -> Package.t
 val plan : t -> EsyBuildPackage.Plan.t

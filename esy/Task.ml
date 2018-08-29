@@ -26,6 +26,12 @@ and dependency =
   | DevDependency of t
   | BuildTimeDependency of t
 
+let pp_dependency fmt (dep : dependency) =
+  match dep with
+  | Dependency t -> Fmt.pf fmt "Dependency %s" t.id
+  | DevDependency t -> Fmt.pf fmt "DevDependency %s" t.id
+  | BuildTimeDependency t -> Fmt.pf fmt "BuildTimeDependency %s" t.id
+
 let compare a b =
   String.compare a.id b.id
 

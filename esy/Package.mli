@@ -21,6 +21,7 @@ and dependency =
     reason: [ | `Reason of string | `Missing ];
   }
 
+val pp_dependency : dependency Fmt.t
 val compare : t -> t -> int
 val packageOf : dependency -> t option
 
