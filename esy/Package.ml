@@ -27,6 +27,7 @@ let compare_dependency a b =
   | Dependency a, Dependency b -> compare a b
   | OptDependency a, OptDependency b -> compare a b
   | BuildTimeDependency a, BuildTimeDependency b -> compare a b
+  | DevDependency a, DevDependency b -> compare a b
   | InvalidDependency a, InvalidDependency b -> String.compare a.name b.name
   | Dependency _, _ -> 1
   | OptDependency _, Dependency _ -> -1
