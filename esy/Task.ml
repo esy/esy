@@ -207,8 +207,11 @@ let ofPackage
         else
           return None
       | Package.DevDependency depPkg ->
-        let%bind task = taskOfPackageCached depPkg in
-        return (Some (DevDependency task))
+        if direct
+        then
+          let%bind task = taskOfPackageCached depPkg in
+          return (Some (DevDependency task))
+        else return None
       | Package.InvalidDependency { name; reason = `Missing; } ->
         Run.errorf "package %s is missing, run 'esy install' to fix that" name
       | Package.InvalidDependency { name; reason = `Reason reason; } ->
