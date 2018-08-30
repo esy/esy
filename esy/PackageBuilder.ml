@@ -20,10 +20,10 @@ let run
       return Cmd.(
         sandbox.cfg.esyBuildPackageCommand
         % action
-        % "--prefix-path" % p sandbox.cfg.prefixPath
-        % "--sandbox-path" % p sandbox.buildConfig.projectPath
-        % "--build"
-        % Path.toString buildJsonFilename
+        % "--store-path" % p sandbox.buildConfig.storePath
+        % "--local-store-path" % p sandbox.buildConfig.localStorePath
+        % "--project-path" % p sandbox.buildConfig.projectPath
+        % "--build" % p buildJsonFilename
         |> addArgs args
       )
     ) in

@@ -72,9 +72,18 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   let resolutionCache = Memoize.make ~size:200 () in
   let packageCache = Memoize.make ~size:200 () in
 
+  let sandboxName =
+    match sandbox with
+    | Project.Esy { name = Some name; _ } -> name
+    | Project.Esy { name = None; _ } -> "default"
+    | Project.Opam _ -> "default"
+    | Project.AggregatedOpam _ -> "default"
+  in
+
   let%bind buildConfig = RunAsync.ofBosError (
     EsyBuildPackage.Config.make
       ~storePath:cfg.storePath
+      ~localStorePath:Path.(projectPath / "_esy" / sandboxName / "store")
       ~projectPath
       ()
   ) in
@@ -257,15 +266,8 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     let%bind manifest, packagesPath =
       if asRoot
       then
-        let name =
-          match sandbox with
-          | Project.Esy { name = Some name; _ } -> name
-          | Project.Esy { name = None; _ } -> "default"
-          | Project.Opam _ -> "default"
-          | Project.AggregatedOpam _ -> "default"
-        in
         let%bind m = Manifest.ofSandbox sandbox in
-        return (Some m, Path.(projectPath / "_esy" / name))
+        return (Some m, Path.(projectPath / "_esy" / sandboxName))
       else
         let%bind m = Manifest.ofDir sourcePath in
         return (m, sourcePath)
