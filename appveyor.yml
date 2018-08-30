@@ -5,6 +5,9 @@ cache:
     - C:\Users\appveyor\.esy
     - C:\Users\appveyor\.esytest
 
+environment:
+   HOME: C:\Users\appveyor
+
 install:
     # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
