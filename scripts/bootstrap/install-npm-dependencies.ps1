@@ -10,27 +10,8 @@ function exitIfFailed() {
     }
 }
 
-npm install babel-preset-env
-npm install babel-preset-flow
-npm install del
-npm install flow-bin
-npm install fs-extra
-npm install jest-cli
-npm install prettier
-npm install klaw
-npm install minimatch
-npm install semver
-npm install super-resolve
-npm install tar
-npm install tar-fs
-npm install tmp
-npm install outdent
-npm install rimraf
-
 # If updating the version for this,
 # make sure to also update it in `scripts/release-postinstall.js`, too!
 npm install esy-bash@0.1.22
-
-npm install esy-ocaml/FastReplaceString.git#9450b6
 
 exitIfFailed

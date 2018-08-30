@@ -31,6 +31,8 @@
     "buildsInSource": "_build"
   },
   "scripts": {
+    "make:bootstrap": "esy-bash make bootstrap",
+    "make:test": "esy-bash make test",
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
     "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:build": "esy-bash make bootstrap",

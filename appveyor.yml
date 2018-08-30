@@ -2,31 +2,22 @@ platform:
     - x64
 
 cache:
-    - C:\Users\appveyor\.opam -> **\dune
+    - C:\Users\appveyor\.esy
     - C:\Users\appveyor\.esytest
 
 install:
-    - where git
     - npm install -g rimraf
-    - npm install -g yarn
-# This whole 'bootstrapping' duplication of our install / build will go away
-# once we have an `esy` build published for Windows that supports a minimal set of primitives
-# to support our current build system.
-    - powershell scripts/bootstrap/install-npm-dependencies.ps1
-    - node scripts/bootstrap/copy-fastreplacestring.js
-    - npm run bootstrap:install-opam
-    - npm run bootstrap:install-dependencies
+    - npm install -g esy@0.2.9
+    - appveyor-retry esy install
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
     - echo $PATH
     - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
-    - npm run bootstrap:build
-    - npm run bootstrap:unit-test
-    - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
-# TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
-    - powershell scripts/bootstrap/Test.ps1
+    - C:\projects\esy\_build\default\esy\bin\esyCommand.exe --help
+    - npm run make:bootstrap
+    - npm run make:test
     - npm run bootstrap:make-release-package
 
 artifacts:
