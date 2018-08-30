@@ -331,6 +331,7 @@ module Esy : sig
   include MANIFEST
 
   val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
+  val ofFile : Path.t -> t RunAsync.t
 end = struct
 
   module EsyManifest = struct
@@ -543,6 +544,7 @@ end
 module Opam : sig
   include MANIFEST
 
+  val ofFiles : Path.t list -> t RunAsync.t
   val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
   val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
   val hasMultipleOpamFiles : t -> bool
@@ -693,23 +695,8 @@ end = struct
     else
       return None
 
-  let ofDirAsAggregatedRoot (path : Path.t) =
+  let ofFiles paths =
     let open RunAsync.Syntax in
-
-    let%bind paths =
-      let isOpamPath path =
-        Path.hasExt ".opam" path
-        || Path.basename path = "opam"
-      in
-      let%bind paths = Fs.listDir path in
-      let paths =
-        paths
-        |> List.map ~f:(fun name -> Path.(path / name))
-        |> List.filter ~f:isOpamPath
-      in
-      return paths
-    in
-
     let%bind opams =
 
       let readOpam path =
@@ -727,7 +714,31 @@ end = struct
       |> RunAsync.List.joinAll
     in
 
-    return (Some (AggregatedRoot (List.filterNone opams), Path.Set.of_list paths))
+    return (AggregatedRoot (List.filterNone opams))
+
+  let ofDirAsAggregatedRoot (path : Path.t) =
+    let open RunAsync.Syntax in
+
+    let%bind paths =
+      let isOpamPath path =
+        Path.hasExt ".opam" path
+        || Path.basename path = "opam"
+      in
+      let%bind paths = Fs.listDir path in
+      let paths =
+        paths
+        |> List.map ~f:(fun name -> Path.(path / name))
+        |> List.filter ~f:isOpamPath
+      in
+      return paths
+    in
+
+    match paths with
+    | [] -> return None
+    | paths ->
+      let%bind manifest = ofFiles paths in
+      let files = Path.Set.of_list paths in
+      return (Some (manifest, files))
 
   let release _ = None
   let uniqueDistributionId m = Some ("opam:" ^ version m)
@@ -833,6 +844,7 @@ module EsyOrOpamManifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
+  val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
   val ofDir : ?asRoot:bool -> Path.t -> (t * Path.Set.t) option RunAsync.t
 end = struct
   type t =
@@ -932,6 +944,19 @@ end = struct
         return (Some (Opam manifest, paths))
       | None -> return None
       end
+
+  let ofSandbox (sandbox : Project.sandbox) =
+    let open RunAsync.Syntax in
+    match sandbox with
+    | Project.Esy {path; _} ->
+      let%bind manifest = Esy.ofFile path in
+      return (Esy manifest, Path.Set.(empty |> add path))
+    | Project.Opam {path; _} ->
+      let%bind manifest = Opam.ofFiles [path] in
+      return (Opam manifest, Path.Set.(empty |> add path))
+    | Project.AggregatedOpam {paths} -> 
+      let%bind manifest = Opam.ofFiles paths in
+      return (Opam manifest, Path.Set.of_list paths)
 
   let dirHasManifest (path : Path.t) =
     let open RunAsync.Syntax in

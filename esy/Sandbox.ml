@@ -11,7 +11,7 @@ and pkg = {
   name : string;
   version : string;
   dependencies : dependencies;
-  build : ((Manifest.Build.t [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
+  build : Manifest.Build.t;
   sourcePath : EsyBuildPackage.Config.Path.t;
   resolution : string option;
 }
@@ -31,12 +31,13 @@ and dependency =
 
 type info = (Path.t * float) list
 
-let packagePathAt ?scope ~name basedir =
-  match scope with
-  | Some scope -> Path.(basedir / "node_modules" / scope / name)
-  | None -> Path.(basedir / "node_modules" / name)
-
 let rec resolvePackage (name : string) (basedir : Path.t) =
+
+  let packagePathAt ?scope ~name basedir =
+    match scope with
+    | Some scope -> Path.(basedir / "node_modules" / scope / name)
+    | None -> Path.(basedir / "node_modules" / name)
+  in
 
   let packagePath basedir =
     match name.[0] with
@@ -63,17 +64,18 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
   resolve basedir
 
-let ofDir (cfg : Config.t) sandboxPath =
+let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   let open RunAsync.Syntax in
 
   let manifestInfo = ref Path.Set.empty in
 
   let resolutionCache = Memoize.make ~size:200 () in
+  let packageCache = Memoize.make ~size:200 () in
 
   let%bind buildConfig = RunAsync.ofBosError (
     EsyBuildPackage.Config.make
       ~prefixPath:cfg.prefixPath
-      ~sandboxPath
+      ~sandboxPath:projectPath
       ()
   ) in
 
@@ -83,12 +85,10 @@ let ofDir (cfg : Config.t) sandboxPath =
     Memoize.compute resolutionCache key compute
   in
 
-  let packageCache = Memoize.make ~size:200 () in
-
   let rec loadPackage (path : Path.t) (stack : Path.t list) =
 
-    let resolve ~ignoreCircularDep (pkgName : string) =
-      match%lwt resolvePackageCached pkgName path with
+    let resolve ~ignoreCircularDep ~packagesPath (pkgName : string) =
+      match%lwt resolvePackageCached pkgName packagesPath with
       | Ok (Some depPackagePath) ->
         if List.mem depPackagePath ~set:stack
         then
@@ -106,6 +106,7 @@ let ofDir (cfg : Config.t) sandboxPath =
 
     let addDependencies
       ?(skipUnresolved= false)
+      ~packagesPath
       ~ignoreCircularDep
       ~make
       (dependencies : string list list)
@@ -115,17 +116,16 @@ let ofDir (cfg : Config.t) sandboxPath =
         match names with
         | [] -> Lwt.return_ok ("ignore", `Ignored)
         | name::[] ->
-          resolve ~ignoreCircularDep name
+          resolve ~ignoreCircularDep ~packagesPath name
         | name::names ->
-          begin match%lwt resolve ~ignoreCircularDep name with
+          begin match%lwt resolve ~ignoreCircularDep ~packagesPath name with
           | Ok (_, `Unresolved) -> tryResolve names
           | res -> Lwt.return res
           end
       in
 
       let%lwt dependencies =
-        dependencies
-        |> Lwt_list.map_s tryResolve
+        Lwt_list.map_s tryResolve dependencies
       in
 
       let f dependencies =
@@ -154,13 +154,14 @@ let ofDir (cfg : Config.t) sandboxPath =
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
     in
 
-    let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
+    let loadDependencies ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let dependencies = StringMap.empty in
       let%lwt dependencies =
         if Path.equal buildConfig.EsyBuildPackage.Config.sandboxPath path
         then
           addDependencies
             ~ignoreCircularDep ~skipUnresolved:true
+            ~packagesPath
             ~make:(fun pkg -> DevDependency pkg)
             deps.devDependencies
             dependencies
@@ -170,6 +171,7 @@ let ofDir (cfg : Config.t) sandboxPath =
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
+          ~packagesPath
           ~make:(fun pkg -> BuildTimeDependency pkg)
           deps.buildTimeDependencies
           dependencies
@@ -177,6 +179,7 @@ let ofDir (cfg : Config.t) sandboxPath =
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
+          ~packagesPath
           ~skipUnresolved:true
           ~make:(fun pkg -> OptDependency pkg)
           deps.optDependencies
@@ -185,6 +188,7 @@ let ofDir (cfg : Config.t) sandboxPath =
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
+          ~packagesPath
           ~make:(fun pkg -> Dependency pkg)
           deps.dependencies
           dependencies
@@ -192,14 +196,14 @@ let ofDir (cfg : Config.t) sandboxPath =
       Lwt.return dependencies
     in
 
-    let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
+    let packageOfManifest ~sourcePath ~packagesPath (manifest : Manifest.t) pathSet =
       manifestInfo := (Path.Set.union pathSet (!manifestInfo));
 
       let build = Manifest.build manifest in
 
       let%lwt dependencies =
         let ignoreCircularDep = Option.isNone build in
-        loadDependencies ~ignoreCircularDep (Manifest.dependencies manifest)
+        loadDependencies ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
       in
 
       let hasDepWithSourceTypeDevelopment =
@@ -249,10 +253,26 @@ let ofDir (cfg : Config.t) sandboxPath =
         return path
     in
 
-    let asRoot = Path.equal sourcePath sandboxPath in
-    match%bind Manifest.ofDir ~asRoot sourcePath with
+    let asRoot = Path.equal sourcePath projectPath in
+    let%bind manifest, packagesPath =
+      if asRoot
+      then
+        let name =
+          match sandbox with
+          | Project.Esy { name = Some name; _ } -> name
+          | Project.Esy { name = None; _ } -> "default"
+          | Project.Opam _ -> "default"
+          | Project.AggregatedOpam _ -> "default"
+        in
+        let%bind m = Manifest.ofSandbox sandbox in
+        return (Some m, Path.(projectPath / "_esy" / name))
+      else
+        let%bind m = Manifest.ofDir sourcePath in
+        return (m, sourcePath)
+    in
+    match manifest with
     | Some (manifest, pathSet) ->
-      let%bind pkg = packageOfManifest ~sourcePath manifest pathSet in
+      let%bind pkg = packageOfManifest ~sourcePath ~packagesPath manifest pathSet in
       return (pkg, pathSet)
     | None ->
       error "unable to find manifest"
@@ -262,7 +282,7 @@ let ofDir (cfg : Config.t) sandboxPath =
     Memoize.compute packageCache path compute
   in
 
-  match%bind loadPackageCached sandboxPath [] with
+  match%bind loadPackageCached projectPath [] with
   | `PackageWithBuild (root, manifest), _ ->
     let%bind manifestInfo =
       let statPath path =

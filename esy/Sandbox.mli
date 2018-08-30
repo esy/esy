@@ -40,6 +40,8 @@ module PackageGraph : DependencyGraph.DependencyGraph
   with type node = pkg
   and type dependency := dependency
 
+module PackageMap : Map.S with type key = pkg
+
 module DependencySet : Set.S with type elt = dependency
 module DependencyMap : Map.S with type key = dependency
 
@@ -49,7 +51,7 @@ type info = (Path.t * float) list
 val isSandbox : Path.t -> bool RunAsync.t
 
 (** Init sandbox from given the config *)
-val ofDir : Config.t -> Path.t -> (t * info) RunAsync.t
+val make : cfg:Config.t -> Path.t -> Project.sandbox -> (t * info) RunAsync.t
 
 val init : t -> unit RunAsync.t
 

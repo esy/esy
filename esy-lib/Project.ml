@@ -1,10 +1,8 @@
-type 'sandbox project = {
+type t = {
   path : Path.t;
-  sandbox : 'sandbox;
-  sandboxByName : 'sandbox StringMap.t;
+  sandbox : sandbox;
+  sandboxByName : sandbox StringMap.t;
 }
-
-type t = sandbox project
 
 and sandbox =
   | Esy of {path : Path.t; name : string option}
@@ -75,31 +73,12 @@ let ofDir path =
   | None, false -> return None
   | Some sandbox, _ -> return (Some {path; sandbox; sandboxByName;})
 
-let initWith f project =
+let initByName ~init ?name project =
   let open RunAsync.Syntax in
-  let%bind sandbox =
-    let%bind sandbox = f project.sandbox in
-    return sandbox
-  in
-  let%bind sandboxByName =
-    let f name sandbox map =
-      let%bind map = map in
-      let%bind sandbox = f sandbox in
-      let map = StringMap.add name sandbox map in
-      return map
-    in
-    StringMap.fold f project.sandboxByName (return StringMap.empty)
-  in
-  return {sandbox; sandboxByName; path = project.path}
-
-let forEach f project =
-  let open RunAsync.Syntax in
-  let%bind () = f None project.sandbox in
-  let%bind () =
-    let f name sandbox prev =
-      let%bind () = prev in
-      f (Some name) sandbox
-    in
-    StringMap.fold f project.sandboxByName (return ())
-  in
-  return ()
+  match name with
+  | None -> init project.path project.sandbox
+  | Some name ->
+    begin match StringMap.find name project.sandboxByName with
+    | Some sandbox -> init project.path sandbox
+    | None -> errorf "no sandbox %s found" name
+    end

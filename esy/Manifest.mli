@@ -164,6 +164,8 @@ include MANIFEST
  * If manifest was found then returns also a set of paths which were used to
  * load manifest. Client code can check those paths to invalidate caches.
  *)
-val ofDir : ?asRoot:bool -> Fpath.t -> (t * Fpath.set) option RunAsync.t
+val ofDir : ?asRoot:bool -> Path.t -> (t * Path.Set.t) option RunAsync.t
+
+val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

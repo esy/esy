@@ -2,13 +2,11 @@
  * Project representation.
  *)
 
-type 'sandbox project = {
+type t = {
   path : Path.t;
-  sandbox : 'sandbox;
-  sandboxByName : 'sandbox StringMap.t;
+  sandbox : sandbox;
+  sandboxByName : sandbox StringMap.t;
 }
-
-type t = sandbox project
 
 and sandbox =
   | Esy of {path : Path.t; name : string option}
@@ -18,13 +16,9 @@ and sandbox =
 val ofDir : Path.t -> t option RunAsync.t
 (** Read project repr of a directory path. Returns None if no project is found. *)
 
-val initWith :
-  (sandbox -> 'sandbox RunAsync.t)
+val initByName :
+  init:(Path.t -> sandbox -> 'sandbox RunAsync.t)
+  -> ?name:string
   -> t
-  -> 'sandbox project RunAsync.t
+  -> 'sandbox RunAsync.t
 (** Init project from a description. *)
-
-val forEach :
-  (string option -> 'sandbox -> unit RunAsync.t)
-  -> 'sandbox project
-  -> unit RunAsync.t
