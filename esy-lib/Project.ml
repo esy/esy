@@ -77,6 +77,7 @@ let initByName ~init ?name project =
   let open RunAsync.Syntax in
   match name with
   | None -> init project.path project.sandbox
+  | Some "@default" -> init project.path project.sandbox
   | Some name ->
     begin match StringMap.find name project.sandboxByName with
     | Some sandbox -> init project.path sandbox
