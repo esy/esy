@@ -57,7 +57,7 @@ let render = (cfg, v) => {
     | "store" => Some(storePath)
     | "localStore" => Some(localStorePath)
     | _ => None;
-  PathSyntax.renderExn(lookupVar, v);
+  EsyLib.PathSyntax.renderExn(lookupVar, v);
 };
 
 module Value = {
