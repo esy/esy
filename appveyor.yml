@@ -14,7 +14,7 @@ install:
     - npm install -g rimraf
     - npm install -g esy-bash@0.1.22
     - npm install -g esy@0.2.9
-    - appveyor-retry esy install
+    - appveyor-retry appveyor-retry esy install
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
@@ -22,7 +22,7 @@ build_script:
     - echo $PATH
     - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
     - C:\projects\esy\_build\default\esy\bin\esyCommand.exe --help
-    - npm run make:bootstrap
+    - esy build
     - npm run make:test
     - npm run bootstrap:make-release-package
 
