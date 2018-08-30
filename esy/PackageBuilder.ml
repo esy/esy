@@ -21,7 +21,7 @@ let run
         sandbox.cfg.esyBuildPackageCommand
         % action
         % "--prefix-path" % p sandbox.cfg.prefixPath
-        % "--sandbox-path" % p sandbox.buildConfig.sandboxPath
+        % "--sandbox-path" % p sandbox.buildConfig.projectPath
         % "--build"
         % Path.toString buildJsonFilename
         |> addArgs args

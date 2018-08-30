@@ -22,7 +22,7 @@ type t = {
 type build = t;
 
 let isRoot = (build: t) =>
-  Config.Value.equal(build.plan.sourcePath, Config.Value.sandbox);
+  Config.Value.equal(build.plan.sourcePath, Config.Value.project);
 
 let regex = (base, segments) => {
   let pat = String.concat(Path.dirSep, [Path.toString(base), ...segments]);
@@ -90,6 +90,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
     let%bind () = {
       let ignore = [
         "node_modules",
+        "_esy",
         "_build",
         "_install",
         "_release",
@@ -406,8 +407,18 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         );
       /* Replace escaped slashes: `\\` (#399) */
       let forwardSlashRegex = Str.regexp("/");
-      let escapedOrigPrefix = Str.global_replace(forwardSlashRegex, "\\\\\\\\", normalizedOrigPrefix);
-      let escapedDestPrefix = Str.global_replace(forwardSlashRegex, "\\\\\\\\", normalizedDestPrefix);
+      let escapedOrigPrefix =
+        Str.global_replace(
+          forwardSlashRegex,
+          "\\\\\\\\",
+          normalizedOrigPrefix,
+        );
+      let escapedDestPrefix =
+        Str.global_replace(
+          forwardSlashRegex,
+          "\\\\\\\\",
+          normalizedDestPrefix,
+        );
       let%bind () =
         rewritePrefixInFile(
           ~origPrefix=escapedOrigPrefix,
@@ -527,25 +538,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(build.buildPath / "_esy");
 
     let rootPath = Lifecycle.getRootPath(build);
-
-    /*
-       Detect if there's dune-project which means this is a dune based sandbox,
-       we need to make dune ignore node_modules as it might recurse into it and
-       error.
-     */
-    let%bind () = {
-      let%bind hasDune = exists(rootPath / "dune-project");
-      let%bind hasNodeModules = exists(rootPath / "node_modules");
-      if (hasDune && hasNodeModules) {
-        let%bind items = ls(rootPath / "node_modules");
-        let items = items |> List.map(Path.toString) |> String.concat(" ");
-        let data = "(ignored_subdirs (" ++ items ++ "))\n";
-        let%bind () = write(~data, rootPath / "node_modules" / "dune");
-        ok;
-      } else {
-        ok;
-      };
-    };
 
     let%bind () =
       switch (withCwd(rootPath, ~f=() => f(build))) {

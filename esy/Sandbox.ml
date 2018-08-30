@@ -74,8 +74,8 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
 
   let%bind buildConfig = RunAsync.ofBosError (
     EsyBuildPackage.Config.make
-      ~prefixPath:cfg.prefixPath
-      ~sandboxPath:projectPath
+      ~storePath:cfg.storePath
+      ~projectPath
       ()
   ) in
 
@@ -157,7 +157,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     let loadDependencies ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let dependencies = StringMap.empty in
       let%lwt dependencies =
-        if Path.equal buildConfig.EsyBuildPackage.Config.sandboxPath path
+        if Path.equal buildConfig.EsyBuildPackage.Config.projectPath path
         then
           addDependencies
             ~ignoreCircularDep ~skipUnresolved:true

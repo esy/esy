@@ -47,7 +47,7 @@ module SandboxInfo = struct
           Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
         in
         let sandboxBin = Path.(
-            info.sandbox.buildConfig.sandboxPath
+            info.sandbox.buildConfig.projectPath
             / "node_modules"
             / ".cache"
             / "_esy"
@@ -1320,7 +1320,7 @@ let importDependencies {CommonOptions. cfg; project; sandbox; _} fromPath () =
 
   let fromPath = match fromPath with
     | Some fromPath -> fromPath
-    | None -> Path.(sandbox.buildConfig.sandboxPath / "_export")
+    | None -> Path.(sandbox.buildConfig.projectPath / "_export")
   in
 
   let pkgs =
@@ -1362,7 +1362,7 @@ let release ({CommonOptions. cfg; project; sandbox; _} as copts) () =
 
   let%bind outputPath =
     let outputDir = "_release" in
-    let outputPath = Path.(info.sandbox.buildConfig.sandboxPath / outputDir) in
+    let outputPath = Path.(info.sandbox.buildConfig.projectPath / outputDir) in
     let%bind () = Fs.rmPath outputPath in
     return outputPath
   in

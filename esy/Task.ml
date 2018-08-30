@@ -528,7 +528,7 @@ let isRoot ~sandbox task =
     let path = Scope.sourcePath task.exportedScope in
     Sandbox.Path.toPath sandbox.Sandbox.buildConfig path
   in
-  Path.equal sandbox.Sandbox.buildConfig.sandboxPath sourcePath
+  Path.equal sandbox.Sandbox.buildConfig.projectPath sourcePath
 
 let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
   let open RunAsync.Syntax in

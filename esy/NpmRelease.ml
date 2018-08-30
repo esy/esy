@@ -66,7 +66,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
 
 let configure ~(sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
-  match%bind Manifest.ofDir sandbox.buildConfig.sandboxPath with
+  match%bind Manifest.ofDir sandbox.buildConfig.projectPath with
   | None -> error "no manifest found"
   | Some (manifest, _) ->
     let%bind releaseCfg =

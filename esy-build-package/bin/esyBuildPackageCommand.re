@@ -10,8 +10,9 @@ type verb =
 
 type commonOpts = {
   buildPath: option(Fpath.t),
-  prefixPath: option(Fpath.t),
-  sandboxPath: option(Fpath.t),
+  storePath: option(Fpath.t),
+  localStorePath: option(Fpath.t),
+  projectPath: option(Fpath.t),
   logLevel: option(Logs.level),
 };
 
@@ -25,7 +26,7 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {prefixPath, sandboxPath, _} = copts;
+  let {storePath, localStorePath, projectPath, _} = copts;
   let%bind fastreplacestringPath = {
     let program = Sys.argv[0];
     let%bind program = realpath(v(program));
@@ -42,7 +43,13 @@ let createConfig = (copts: commonOpts) => {
     | None => Error(`Msg("unable to find fastreplacestring command"))
     };
   };
-  Config.make(~fastreplacestringPath, ~prefixPath?, ~sandboxPath?, ());
+  Config.make(
+    ~fastreplacestringPath,
+    ~storePath?,
+    ~localStorePath?,
+    ~projectPath?,
+    (),
+  );
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
@@ -188,12 +195,6 @@ let () = {
     `P("Check bug reports at https://github.com/esy/esy."),
   ];
   /* Options common to all commands */
-  let commonOpts = (prefixPath, sandboxPath, buildPath, logLevel) => {
-    prefixPath,
-    sandboxPath,
-    buildPath,
-    logLevel,
-  };
   let path = {
     let parse = Fpath.of_string;
     let print = Fpath.pp;
@@ -201,22 +202,31 @@ let () = {
   };
   let commonOptsT = {
     let docs = Manpage.s_common_options;
-    let prefixPath = {
-      let doc = "Specifies esy prefix path.";
-      let env = Arg.env_var("ESY__PREFIX", ~doc);
+    let projectPath = {
+      let doc = "Specifies esy project path.";
+      let env = Arg.env_var("ESY__PROJECT", ~doc);
       Arg.(
         value
         & opt(some(path), None)
-        & info(["prefix-path", "P"], ~env, ~docs, ~docv="PATH", ~doc)
+        & info(["project-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
-    let sandboxPath = {
-      let doc = "Specifies esy sandbox path.";
-      let env = Arg.env_var("ESY__SANDBOX", ~doc);
+    let storePath = {
+      let doc = "Specifies esy store path.";
+      let env = Arg.env_var("ESY__STORE", ~doc);
       Arg.(
         value
         & opt(some(path), None)
-        & info(["sandbox-path", "S"], ~env, ~docs, ~docv="PATH", ~doc)
+        & info(["store-path"], ~env, ~docs, ~docv="PATH", ~doc)
+      );
+    };
+    let localStorePath = {
+      let doc = "Specifies esy local store path.";
+      let env = Arg.env_var("ESY__LOCAL_STORE", ~doc);
+      Arg.(
+        value
+        & opt(some(path), None)
+        & info(["local-store-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
     let buildPath = {
@@ -225,7 +235,7 @@ let () = {
       Arg.(
         value
         & opt(some(path), None)
-        & info(["build", "B"], ~env, ~docs, ~docv="PATH", ~doc)
+        & info(["build", "b"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
     let setupLogT =
@@ -234,8 +244,20 @@ let () = {
         $ Fmt_cli.style_renderer()
         $ Logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
       );
+    let parse = (projectPath, storePath, localStorePath, buildPath, logLevel) => {
+      storePath,
+      localStorePath,
+      projectPath,
+      buildPath,
+      logLevel,
+    };
     Term.(
-      const(commonOpts) $ prefixPath $ sandboxPath $ buildPath $ setupLogT
+      const(parse)
+      $ projectPath
+      $ storePath
+      $ localStorePath
+      $ buildPath
+      $ setupLogT
     );
   };
   /* Command terms */
