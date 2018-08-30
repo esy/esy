@@ -230,7 +230,9 @@ module CommonOptions = struct
             Config.create
               ~esyBuildPackageCommand
               ~fastreplacestringCommand
-              ~esyVersion:EsyRuntime.version ~prefixPath sandboxPath
+              ~esyVersion:EsyRuntime.version
+              ~prefixPath
+              ()
           )
         in
 
@@ -272,7 +274,6 @@ module CommonOptions = struct
           | Some desc -> Project.initWith (Sandbox.make ~cfg) desc
           | None -> error "no sandboxes found"
         in
-        let%bind () = Config.init cfg in
         return {cfg; installation}
       in
       match Lwt_main.run copts with
@@ -340,7 +341,7 @@ let withBuildTaskByPath
 let buildPlan {CommonOptions. cfg; _} packagePath () =
   let open RunAsync.Syntax in
 
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind info = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let f task =
     let json = EsyBuildPackage.Plan.to_yojson (Task.plan task) in
@@ -353,11 +354,16 @@ let buildPlan {CommonOptions. cfg; _} packagePath () =
 let buildShell {CommonOptions. cfg; _} packagePath () =
   let open RunAsync.Syntax in
 
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let f task =
-    let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
-    match%bind PackageBuilder.buildShell cfg task with
+    let%bind () =
+      Build.buildDependencies
+        ~concurrency:EsyRuntime.concurrency
+        info.sandbox
+        task
+    in
+    match%bind PackageBuilder.buildShell info.sandbox task with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
     | Unix.WSTOPPED n
@@ -367,15 +373,20 @@ let buildShell {CommonOptions. cfg; _} packagePath () =
 let buildPackage {CommonOptions. cfg; _} packagePath () =
   let open RunAsync.Syntax in
 
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let f task =
-    Build.buildAll ~concurrency:EsyRuntime.concurrency ~force:`ForRoot cfg task
-  in withBuildTaskByPath ~info packagePath f
+    Build.buildAll
+      ~concurrency:EsyRuntime.concurrency
+      ~force:`ForRoot
+      info.sandbox
+      task
+  in
+  withBuildTaskByPath ~info packagePath f
 
 let build ?(buildOnly=true) {CommonOptions. cfg; _} cmd () =
   let open RunAsync.Syntax in
-  let%bind {SandboxInfo. task; _} = SandboxInfo.ofConfig cfg in
+  let%bind {SandboxInfo. task; sandbox; _} = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   (** TODO: figure out API to build devDeps in parallel with the root *)
 
@@ -385,12 +396,19 @@ let build ?(buildOnly=true) {CommonOptions. cfg; _} cmd () =
       Build.buildDependencies
         ~concurrency:EsyRuntime.concurrency
         ~force:`ForRoot
-        cfg task
-    in Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly cfg task
+        sandbox
+        task
+    in
+    Build.buildTask ~force:true ~stderrout:`Keep ~quiet:true ~buildOnly sandbox task
 
   | Some cmd ->
-    let%bind () = Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task in
-    match%bind PackageBuilder.buildExec cfg task cmd with
+    let%bind () =
+      Build.buildDependencies
+        ~concurrency:EsyRuntime.concurrency
+        sandbox
+        task
+    in
+    match%bind PackageBuilder.buildExec sandbox task cmd with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
     | Unix.WSTOPPED n
@@ -399,12 +417,12 @@ let build ?(buildOnly=true) {CommonOptions. cfg; _} cmd () =
 let makeEnvCommand ~computeEnv ~header {CommonOptions. cfg; _} asJson packagePath () =
   let open RunAsync.Syntax in
 
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind info = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let f (task : Task.t) =
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env = computeEnv cfg task in
+      let%bind env = computeEnv info in
       let pkg = Task.pkg task in
       let header = header pkg in
       if asJson
@@ -425,36 +443,36 @@ let makeEnvCommand ~computeEnv ~header {CommonOptions. cfg; _} asJson packagePat
 
 let buildEnv =
   let open Run.Syntax in
-  let header (pkg : Package.t) =
+  let header (pkg : Sandbox.pkg) =
     Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv cfg task =
-    let%bind env = Task.buildEnv task in
-    let env = Config.Environment.Bindings.render cfg.Config.buildConfig env in
+  let computeEnv (info : SandboxInfo.t) =
+    let%bind env = Task.buildEnv info.task in
+    let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return env
   in
   makeEnvCommand ~computeEnv ~header
 
 let commandEnv =
   let open Run.Syntax in
-  let header (pkg : Package.t) =
+  let header (pkg : Sandbox.pkg) =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv cfg task =
-    let%bind env = Task.commandEnv task in
-    let env = Config.Environment.Bindings.render cfg.Config.buildConfig env in
+  let computeEnv (info : SandboxInfo.t) =
+    let%bind env = Task.commandEnv info.task in
+    let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
 
 let sandboxEnv =
   let open Run.Syntax in
-  let header (pkg : Package.t) =
+  let header (pkg : Sandbox.pkg) =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv cfg task =
-    let%bind env = Task.sandboxEnv task in
-    let env = Config.Environment.Bindings.render cfg.Config.buildConfig env in
+  let computeEnv (info : SandboxInfo.t) =
+    let%bind env = Task.sandboxEnv info.task in
+    let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     Ok (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
@@ -462,7 +480,7 @@ let sandboxEnv =
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
     ~env
-    ~cfg
+    ~sandbox
     ~info
     cmd
     ()
@@ -472,7 +490,7 @@ let makeExecCommand
 
   let%bind () =
     if checkIfDependenciesAreBuilt
-    then Build.buildDependencies ~concurrency:EsyRuntime.concurrency cfg task
+    then Build.buildDependencies ~concurrency:EsyRuntime.concurrency sandbox task
     else return ()
   in
 
@@ -510,11 +528,15 @@ let makeExecCommand
 
 let exec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
-  let%bind info = SandboxInfo.ofConfig copts.cfg in
+  let%bind (info : SandboxInfo.t) =
+    SandboxInfo.ofConfig
+      copts.cfg
+      EsyRuntime.currentWorkingDir
+  in
   let%bind () =
     let installPath =
-      Config.Path.toPath
-        copts.cfg.buildConfig
+      Sandbox.Path.toPath
+        info.sandbox.buildConfig
         (Task.installPath info.SandboxInfo.task)
     in
     if%bind Fs.exists installPath then
@@ -524,14 +546,14 @@ let exec (copts : CommonOptions.t) cmd () =
   in
   makeExecCommand
     ~env:`SandboxEnv
-    ~cfg:copts.cfg
+    ~sandbox:info.sandbox
     ~info
     cmd
     ()
 
 let devExec {CommonOptions. cfg; _} cmd () =
   let open RunAsync.Syntax in
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
   let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
@@ -543,10 +565,14 @@ let devExec {CommonOptions. cfg; _} cmd () =
     let renderCommand (cmd : Manifest.CommandList.Command.t) =
       match cmd with
       | Manifest.CommandList.Command.Parsed args ->
-        let%bind args = Result.List.map ~f:(Task.renderExpression ~cfg ~task:info.task) args in
+        let%bind args =
+          Result.List.map
+            ~f:(Task.renderExpression ~sandbox:info.sandbox ~task:info.task)
+            args
+        in
         return (Cmd.ofListExn args)
       | Manifest.CommandList.Command.Unparsed line ->
-        let%bind string = Task.renderExpression ~cfg ~task:info.task line in
+        let%bind string = Task.renderExpression ~sandbox:info.sandbox ~task:info.task line in
         let%bind args = ShellSplit.split string in
         return (Cmd.ofListExn args)
     in
@@ -559,7 +585,7 @@ let devExec {CommonOptions. cfg; _} cmd () =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
     ~env:`CommandEnv
-    ~cfg
+    ~sandbox:info.sandbox
     ~info
     cmd
     ()
@@ -570,15 +596,15 @@ let devShell {CommonOptions. cfg; _} () =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
   makeExecCommand
     ~env:`CommandEnv
-    ~cfg
+    ~sandbox:info.sandbox
     ~info
     (Cmd.v shell)
     ()
 
-let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) =
+let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
   let open RunAsync.Syntax in
 
   let seen = ref StringSet.empty in
@@ -598,7 +624,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive cfg (info: SandboxInfo.t) 
           |> RunAsync.List.joinAll
       in
       let children = children |> List.filterNone in
-      computeTermNode ~cfg task children
+      computeTermNode task children
     )
   in
 
@@ -623,33 +649,33 @@ let formatPackageInfo ~built:(built : bool)  (task : Task.t) =
 let lsBuilds {CommonOptions. cfg; _} includeTransitive () =
   let open RunAsync.Syntax in
 
-  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
-  let computeTermNode ~cfg task children =
-    let%bind built = Task.isBuilt ~cfg task in
+  let computeTermNode task children =
+    let%bind built = Task.isBuilt ~sandbox:info.sandbox task in
     let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive cfg info
+  makeLsCommand ~computeTermNode ~includeTransitive info
 
 let lsLibs {CommonOptions. cfg; _} includeTransitive () =
   let open RunAsync.Syntax in
 
-  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let%bind ocamlfind =
-    let%bind p = SandboxInfo.ocamlfind ~cfg info in
+    let%bind p = SandboxInfo.ocamlfind ~sandbox:info.sandbox info in
     return Path.(p / "bin" / "ocamlfind")
   in
-  let%bind builtIns = SandboxInfo.libraries ~cfg ~ocamlfind () in
+  let%bind builtIns = SandboxInfo.libraries ~sandbox:info.sandbox ~ocamlfind () in
 
-  let computeTermNode ~cfg (task: Task.t) children =
-    let%bind built = Task.isBuilt ~cfg task in
+  let computeTermNode (task: Task.t) children =
+    let%bind built = Task.isBuilt ~sandbox:info.sandbox task in
     let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
       if built then
-        SandboxInfo.libraries ~cfg ~ocamlfind ~builtIns ~task ()
+        SandboxInfo.libraries ~sandbox:info.sandbox ~ocamlfind ~builtIns ~task ()
       else
         return []
     in
@@ -664,25 +690,25 @@ let lsLibs {CommonOptions. cfg; _} includeTransitive () =
 
     return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive cfg info
+  makeLsCommand ~computeTermNode ~includeTransitive info
 
 let lsModules {CommonOptions. cfg; _} only () =
   let open RunAsync.Syntax in
 
-  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let%bind ocamlfind =
-    let%bind p = SandboxInfo.ocamlfind ~cfg info in
+    let%bind p = SandboxInfo.ocamlfind ~sandbox:info.sandbox info in
     return Path.(p / "bin" / "ocamlfind")
   in
   let%bind ocamlobjinfo =
-    let%bind p = SandboxInfo.ocaml ~cfg info in
+    let%bind p = SandboxInfo.ocaml ~sandbox:info.sandbox info in
     return Path.(p / "bin" / "ocamlobjinfo")
   in
-  let%bind builtIns = SandboxInfo.libraries ~cfg ~ocamlfind () in
+  let%bind builtIns = SandboxInfo.libraries ~sandbox:info.sandbox ~ocamlfind () in
 
-  let formatLibraryModules ~cfg ~task lib =
-    let%bind meta = SandboxInfo.Findlib.query ~cfg ~ocamlfind ~task lib in
+  let formatLibraryModules ~task lib =
+    let%bind meta = SandboxInfo.Findlib.query ~sandbox:info.sandbox ~ocamlfind ~task lib in
     let open SandboxInfo.Findlib in
 
     if String.length(meta.archive) == 0 then
@@ -717,13 +743,13 @@ let lsModules {CommonOptions. cfg; _} only () =
     end
   in
 
-  let computeTermNode ~cfg (task: Task.t) children =
-    let%bind built = Task.isBuilt ~cfg task in
+  let computeTermNode (task: Task.t) children =
+    let%bind built = Task.isBuilt ~sandbox:info.sandbox task in
     let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
       if built then
-        SandboxInfo.libraries ~cfg ~ocamlfind ~builtIns ~task ()
+        SandboxInfo.libraries ~sandbox:info.sandbox ~ocamlfind ~builtIns ~task ()
       else
         return []
     in
@@ -746,7 +772,7 @@ let lsModules {CommonOptions. cfg; _} only () =
         |> List.map ~f:(fun lib ->
             let line = Chalk.yellow(lib) in
             let%bind children =
-              formatLibraryModules ~cfg ~task lib
+              formatLibraryModules ~task lib
             in
             return (TermTree.Node { line; children; })
           )
@@ -755,7 +781,7 @@ let lsModules {CommonOptions. cfg; _} only () =
 
       return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive:false cfg info
+  makeLsCommand ~computeTermNode ~includeTransitive:false info
 
 (* let lockfilePath (sandbox : EsyInstall.Sandbox.t) = *)
 (*   let open RunAsync.Syntax in *)
@@ -941,7 +967,9 @@ let exportBuild {CommonOptions. cfg; _} buildPath () =
 let exportDependencies {CommonOptions. cfg; _} () =
   let open RunAsync.Syntax in
 
-  let%bind {SandboxInfo. task = rootTask; _} = SandboxInfo.ofConfig cfg in
+  let%bind {SandboxInfo. task = rootTask; sandbox; _} =
+    SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir
+  in
 
   let tasks =
     rootTask
@@ -955,7 +983,7 @@ let exportDependencies {CommonOptions. cfg; _} () =
     let pkg = Task.pkg task in
     let aux () =
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" pkg.name pkg.version) in
-      let buildPath = Config.Path.toPath cfg.Config.buildConfig (Task.installPath task) in
+      let buildPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in
       if%bind Fs.exists buildPath
       then
         let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
@@ -995,11 +1023,13 @@ let importBuild {CommonOptions. cfg; _} fromPath buildPaths () =
 let importDependencies {CommonOptions. cfg; _} fromPath () =
   let open RunAsync.Syntax in
 
-  let%bind {SandboxInfo. task = rootTask; _} = SandboxInfo.ofConfig cfg in
+  let%bind {SandboxInfo. task = rootTask; sandbox; _} =
+    SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir
+  in
 
   let fromPath = match fromPath with
     | Some fromPath -> fromPath
-    | None -> Path.(cfg.Config.buildConfig.sandboxPath / "_export")
+    | None -> Path.(sandbox.buildConfig.sandboxPath / "_export")
   in
 
   let pkgs =
@@ -1012,7 +1042,7 @@ let importDependencies {CommonOptions. cfg; _} fromPath () =
 
   let importBuild (task : Task.t) =
     let aux () =
-      let installPath = Config.Path.toPath cfg.buildConfig (Task.installPath task) in
+      let installPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in
       if%bind Fs.exists installPath
       then return ()
       else (
@@ -1037,11 +1067,11 @@ let importDependencies {CommonOptions. cfg; _} fromPath () =
 
 let release ({CommonOptions. cfg; _} as copts) () =
   let open RunAsync.Syntax in
-  let%bind info = SandboxInfo.ofConfig cfg in
+  let%bind info = SandboxInfo.ofConfig cfg EsyRuntime.currentWorkingDir in
 
   let%bind outputPath =
     let outputDir = "_release" in
-    let outputPath = Path.(cfg.Config.buildConfig.sandboxPath / outputDir) in
+    let outputPath = Path.(info.sandbox.buildConfig.sandboxPath / outputDir) in
     let%bind () = Fs.rmPath outputPath in
     return outputPath
   in
@@ -1051,7 +1081,7 @@ let release ({CommonOptions. cfg; _} as copts) () =
   let%bind esyInstallRelease = EsyRuntime.esyInstallRelease in
 
   let%bind ocamlopt =
-    let%bind p = SandboxInfo.ocaml ~cfg info in
+    let%bind p = SandboxInfo.ocaml ~sandbox:info.sandbox info in
     return Path.(p / "bin" / "ocamlopt")
   in
 
@@ -1060,7 +1090,6 @@ let release ({CommonOptions. cfg; _} as copts) () =
     ~esyInstallRelease
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
-    ~cfg
     ~sandbox:info.SandboxInfo.sandbox
 
 let makeCommand

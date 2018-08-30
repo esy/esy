@@ -1,8 +1,33 @@
 type t = {
-  root : Package.t;
+  cfg : Config.t;
+  buildConfig: EsyBuildPackage.Config.t;
+  root : pkg;
   scripts : Manifest.Scripts.t;
   env : Manifest.Env.t;
 }
+
+and pkg = {
+  id : string;
+  name : string;
+  version : string;
+  dependencies : dependencies;
+  build : ((Manifest.Build.t [@equal fun _ _ -> true]) [@compare fun _ _ -> 0]);
+  sourcePath : EsyBuildPackage.Config.Path.t;
+  resolution : string option;
+}
+
+and dependencies =
+  dependency list
+
+and dependency =
+  | Dependency of pkg
+  | OptDependency of pkg
+  | DevDependency of pkg
+  | BuildTimeDependency of pkg
+  | InvalidDependency of {
+    name: string;
+    reason: [ | `Reason of string | `Missing ];
+  }
 
 type info = (Path.t * float) list
 
@@ -38,12 +63,19 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
   resolve basedir
 
-let ofDir (cfg : Config.t) =
+let ofDir (cfg : Config.t) sandboxPath =
   let open RunAsync.Syntax in
 
   let manifestInfo = ref Path.Set.empty in
 
   let resolutionCache = Memoize.make ~size:200 () in
+
+  let%bind buildConfig = RunAsync.ofBosError (
+    EsyBuildPackage.Config.make
+      ~prefixPath:cfg.prefixPath
+      ~sandboxPath
+      ()
+  ) in
 
   let resolvePackageCached pkgName basedir =
     let key = (pkgName, basedir) in
@@ -77,7 +109,7 @@ let ofDir (cfg : Config.t) =
       ~ignoreCircularDep
       ~make
       (dependencies : string list list)
-      (prevDependencies : Package.dependency StringMap.t) =
+      (prevDependencies : dependency StringMap.t) =
 
       let rec tryResolve names =
         match names with
@@ -113,10 +145,10 @@ let ofDir (cfg : Config.t) =
           if skipUnresolved
           then dependencies
           else
-            let dep = Package.InvalidDependency {name; reason = `Missing;} in
+            let dep = InvalidDependency {name; reason = `Missing;} in
             StringMap.add name dep dependencies
         | Error (name, reason) ->
-          let dep = Package.InvalidDependency {name;reason = `Reason reason;} in
+          let dep = InvalidDependency {name;reason = `Reason reason;} in
           StringMap.add name dep dependencies
       in
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
@@ -125,11 +157,11 @@ let ofDir (cfg : Config.t) =
     let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let dependencies = StringMap.empty in
       let%lwt dependencies =
-        if Path.equal cfg.buildConfig.sandboxPath path
+        if Path.equal buildConfig.EsyBuildPackage.Config.sandboxPath path
         then
           addDependencies
             ~ignoreCircularDep ~skipUnresolved:true
-            ~make:(fun pkg -> Package.DevDependency pkg)
+            ~make:(fun pkg -> DevDependency pkg)
             deps.devDependencies
             dependencies
         else
@@ -138,7 +170,7 @@ let ofDir (cfg : Config.t) =
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
-          ~make:(fun pkg -> Package.BuildTimeDependency pkg)
+          ~make:(fun pkg -> BuildTimeDependency pkg)
           deps.buildTimeDependencies
           dependencies
       in
@@ -146,14 +178,14 @@ let ofDir (cfg : Config.t) =
         addDependencies
           ~ignoreCircularDep
           ~skipUnresolved:true
-          ~make:(fun pkg -> Package.OptDependency pkg)
+          ~make:(fun pkg -> OptDependency pkg)
           deps.optDependencies
           dependencies
       in
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
-          ~make:(fun pkg -> Package.Dependency pkg)
+          ~make:(fun pkg -> Dependency pkg)
           deps.dependencies
           dependencies
       in
@@ -174,12 +206,12 @@ let ofDir (cfg : Config.t) =
         StringMap.exists
           (fun _k dep ->
             match dep with
-              | Package.Dependency pkg
-              | Package.BuildTimeDependency pkg
-              | Package.OptDependency pkg ->
+              | Dependency pkg
+              | BuildTimeDependency pkg
+              | OptDependency pkg ->
                 pkg.build.sourceType = Manifest.SourceType.Transient
-              | Package.DevDependency _
-              | Package.InvalidDependency _ -> false)
+              | DevDependency _
+              | InvalidDependency _ -> false)
           dependencies
       in
 
@@ -193,13 +225,12 @@ let ofDir (cfg : Config.t) =
           | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
         in
         let pkg = {
-          Package.
           id = Path.toString path;
           name = Manifest.name manifest;
           version = Manifest.version manifest;
           dependencies = StringMap.values dependencies;
           build = {build with sourceType};
-          sourcePath = Config.Path.ofPath cfg.buildConfig sourcePath;
+          sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
           resolution = Manifest.uniqueDistributionId manifest;
         } in
         return (`PackageWithBuild (pkg, manifest))
@@ -218,7 +249,7 @@ let ofDir (cfg : Config.t) =
         return path
     in
 
-    let asRoot = Path.equal sourcePath cfg.buildConfig.sandboxPath in
+    let asRoot = Path.equal sourcePath sandboxPath in
     match%bind Manifest.ofDir ~asRoot sourcePath with
     | Some (manifest, pathSet) ->
       let%bind pkg = packageOfManifest ~sourcePath manifest pathSet in
@@ -231,7 +262,7 @@ let ofDir (cfg : Config.t) =
     Memoize.compute packageCache path compute
   in
 
-  match%bind loadPackageCached cfg.buildConfig.sandboxPath [] with
+  match%bind loadPackageCached sandboxPath [] with
   | `PackageWithBuild (root, manifest), _ ->
     let%bind manifestInfo =
       let statPath path =
@@ -245,9 +276,112 @@ let ofDir (cfg : Config.t) =
     in
     let%bind scripts = RunAsync.ofRun (Manifest.scripts manifest) in
     let%bind env = RunAsync.ofRun (Manifest.sandboxEnv manifest) in
-    return ({root; scripts; env;}, manifestInfo)
+
+    return ({cfg; buildConfig; root; scripts; env;}, manifestInfo)
 
   | _ ->
     error "root package missing esy config"
 
 let isSandbox = Manifest.dirHasManifest
+
+let initStore (path: Path.t) =
+  let open RunAsync.Syntax in
+  let%bind () = Fs.createDir(Path.(path / "i")) in
+  let%bind () = Fs.createDir(Path.(path / "b")) in
+  let%bind () = Fs.createDir(Path.(path / "s")) in
+  return ()
+
+let init sandbox =
+  let open RunAsync.Syntax in
+  let%bind () = initStore sandbox.buildConfig.storePath in
+  let%bind () = initStore sandbox.buildConfig.localStorePath in
+  let%bind () =
+    let storeLinkPath = Path.(sandbox.cfg.prefixPath / Store.version) in
+    if%bind Fs.exists storeLinkPath
+    then return ()
+    else Fs.symlink ~src:sandbox.buildConfig.storePath storeLinkPath
+  in
+  return ()
+
+let compare_pkg (a : pkg) (b : pkg) = String.compare a.id b.id
+
+let compare_dependency a b =
+  match a, b with
+  | Dependency a, Dependency b -> compare_pkg a b
+  | OptDependency a, OptDependency b -> compare_pkg  a b
+  | BuildTimeDependency a, BuildTimeDependency b -> compare_pkg a b
+  | DevDependency a, DevDependency b -> compare_pkg a b
+  | InvalidDependency a, InvalidDependency b -> String.compare a.name b.name
+  | Dependency _, _ -> 1
+  | OptDependency _, Dependency _ -> -1
+  | OptDependency _, _ -> 1
+  | BuildTimeDependency _, Dependency _ -> -1
+  | BuildTimeDependency _, OptDependency _ -> -1
+  | BuildTimeDependency _, _ -> 1
+  | DevDependency _, Dependency _ -> -1
+  | DevDependency _, OptDependency _ -> -1
+  | DevDependency _, BuildTimeDependency _ -> -1
+  | DevDependency _, _ -> 1
+  | InvalidDependency _, _ -> -1
+
+let pp_dependency fmt dep =
+  match dep with
+  | Dependency p -> Fmt.pf fmt "Dependency %s" p.id
+  | OptDependency p -> Fmt.pf fmt "OptDependency %s" p.id
+  | DevDependency p -> Fmt.pf fmt "DevDependency %s" p.id
+  | BuildTimeDependency p -> Fmt.pf fmt "BuildTimeDependency %s" p.id
+  | InvalidDependency p -> Fmt.pf fmt "InvalidDependency %s" p.name
+
+let packageOf (dep : dependency) = match dep with
+| Dependency pkg
+| OptDependency pkg
+| DevDependency pkg
+| BuildTimeDependency pkg -> Some pkg
+| InvalidDependency _ -> None
+
+module PackageMap = Map.Make(struct
+  type t = pkg
+  let compare = compare_pkg
+end)
+
+module PackageGraph = DependencyGraph.Make(struct
+
+  type t = pkg
+
+  let compare = compare_pkg
+
+  module Dependency = struct
+    type t = dependency
+    let compare = compare_dependency
+  end
+
+  let id (pkg : t) = pkg.id
+
+  let traverse pkg =
+    let f acc dep = match dep with
+      | Dependency pkg
+      | OptDependency pkg
+      | DevDependency pkg
+      | BuildTimeDependency pkg -> (pkg, dep)::acc
+      | InvalidDependency _ -> acc
+    in
+    pkg.dependencies
+    |> List.fold_left ~f ~init:[]
+    |> List.rev
+
+end)
+
+module DependencySet = Set.Make(struct
+  type t = dependency
+  let compare = compare_dependency
+end)
+
+module DependencyMap = Map.Make(struct
+  type t = dependency
+  let compare = compare_dependency
+end)
+
+module Value = EsyBuildPackage.Config.Value
+module Environment = EsyBuildPackage.Config.Environment
+module Path = EsyBuildPackage.Config.Path
+

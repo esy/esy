@@ -8,11 +8,9 @@ type t = {
   info : Sandbox.info;
 }
 
-let cachePath (cfg : Config.t) =
+let cachePath (cfg : Config.t) projectPath =
   let hash = [
-    Path.toString cfg.buildConfig.storePath;
-    Path.toString cfg.buildConfig.localStorePath;
-    Path.toString cfg.buildConfig.sandboxPath;
+    Path.toString cfg.storePath;
     cfg.esyVersion
   ]
     |> String.concat "$$"
@@ -20,7 +18,7 @@ let cachePath (cfg : Config.t) =
     |> Digest.to_hex
   in
   let name = Printf.sprintf "sandbox-%s" hash in
-  Path.(cfg.buildConfig.sandboxPath / "node_modules" / ".cache" / "_esy" / name)
+  Path.(projectPath / "_esy" / name)
 
 let writeCache (cfg : Config.t) (info : t) =
   let open RunAsync.Syntax in
@@ -32,7 +30,7 @@ let writeCache (cfg : Config.t) (info : t) =
         let%lwt () = Lwt_io.flush oc in
         return ()
       in
-      let cachePath = cachePath cfg in
+      let cachePath = cachePath cfg info.sandbox.buildConfig.sandboxPath in
       let%bind () = Fs.createDir (Path.parent cachePath) in
       Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString cachePath) f
     in
@@ -47,7 +45,7 @@ let writeCache (cfg : Config.t) (info : t) =
         Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
       in
       let sandboxBin = Path.(
-          cfg.buildConfig.sandboxPath
+          info.sandbox.buildConfig.sandboxPath
           / "node_modules"
           / ".cache"
           / "_esy"
@@ -80,10 +78,10 @@ let writeCache (cfg : Config.t) (info : t) =
 
   in Perf.measureLwt ~label:"writing sandbox info cache" f
 
-let readCache (cfg : Config.t) =
+let readCache (cfg : Config.t) projectPath =
   let open RunAsync.Syntax in
   let f () =
-    let cachePath = cachePath cfg in
+    let cachePath = cachePath cfg projectPath in
     let f ic =
       let%lwt info = (Lwt_io.read_value ic : t Lwt.t) in
       let%bind isStale =
@@ -107,28 +105,29 @@ let readCache (cfg : Config.t) =
     with | Unix.Unix_error _ -> return None
   in Perf.measureLwt ~label:"reading sandbox info cache" f
 
-let ofConfig (cfg : Config.t) =
+let ofConfig (cfg : Config.t) projectPath =
   let open RunAsync.Syntax in
   let makeInfo () =
     let f () =
-      let%bind sandbox, info = Sandbox.ofDir cfg in
+      let%bind sandbox, info = Sandbox.ofDir cfg projectPath in
+      let%bind () = Sandbox.init sandbox in
       let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind task = Task.ofSandbox sandbox in
         let%bind commandEnv =
           let%bind env = Task.commandEnv task in
-          return (Config.Environment.Bindings.render cfg.buildConfig env)
+          return (Sandbox.Environment.Bindings.render sandbox.buildConfig env)
         in
         let%bind sandboxEnv =
           let%bind env = Task.sandboxEnv task in
-          return (Config.Environment.Bindings.render cfg.buildConfig env)
+          return (Sandbox.Environment.Bindings.render sandbox.buildConfig env)
         in
         return (task, commandEnv, sandboxEnv)
       ) in
       return {task; sandbox; commandEnv; sandboxEnv; info}
     in Perf.measureLwt ~label:"constructing sandbox info" f
   in
-  match%bind readCache cfg with
+  match%bind readCache cfg projectPath with
   | Some info -> return info
   | None ->
     let%bind info = makeInfo () in
@@ -142,13 +141,13 @@ let findTaskByName ~pkgName root =
   in
   Task.Graph.find ~f root
 
-let resolvePackage ~pkgName ~cfg info =
+let resolvePackage ~pkgName ~sandbox info =
   let open RunAsync.Syntax in
   match findTaskByName ~pkgName info.task
   with
   | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
   | Some task ->
-    let installPath = Config.Path.toPath cfg.Config.buildConfig (Task.installPath task) in
+    let installPath = Sandbox.Path.toPath sandbox.Sandbox.buildConfig (Task.installPath task) in
     let%bind built = Fs.exists installPath in
     if built
     then return installPath
@@ -166,12 +165,13 @@ let splitBy line ch =
     Some (key, val_)
   | exception Not_found -> None
 
-let libraries ~cfg ~ocamlfind ?builtIns ?task () =
+let libraries ~sandbox ~ocamlfind ?builtIns ?task () =
   let open RunAsync.Syntax in
   let ocamlpath =
     match task with
     | Some task ->
-      Config.Path.(Task.installPath task / "lib" |> toPath cfg.Config.buildConfig)
+      Sandbox.Path.(Task.installPath task / "lib")
+      |> Sandbox.Path.toPath sandbox.Sandbox.buildConfig
       |> Path.toString
     | None -> ""
   in
@@ -228,10 +228,11 @@ module Findlib = struct
     location : string;
   }
 
-  let query ~cfg ~ocamlfind ~task lib =
+  let query ~sandbox ~ocamlfind ~task lib =
     let open RunAsync.Syntax in
     let ocamlpath =
-      Config.Path.(Task.installPath task / "lib" |> toPath cfg.Config.buildConfig)
+      Sandbox.Path.(Task.installPath task / "lib")
+      |> Sandbox.Path.toPath sandbox.Sandbox.buildConfig
     in
     let env =
       `CustomEnv Astring.String.Map.(

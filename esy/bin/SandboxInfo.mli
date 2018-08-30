@@ -12,21 +12,21 @@ type t = private {
   info : Sandbox.info;
 }
 
-val ofConfig : Config.t -> t RunAsync.t
+val ofConfig : Config.t -> Path.t -> t RunAsync.t
 
-val ocaml : cfg:Config.t -> t -> Path.t RunAsync.t
-val ocamlfind : cfg:Config.t -> t -> Path.t RunAsync.t
+val ocaml : sandbox:Sandbox.t -> t -> Path.t RunAsync.t
+val ocamlfind : sandbox:Sandbox.t -> t -> Path.t RunAsync.t
 
 val libraries :
-  cfg:Config.t
-  -> ocamlfind:Fpath.t
+  sandbox:Sandbox.t
+  -> ocamlfind:Path.t
   -> ?builtIns:string list
   -> ?task:Task.t
   -> unit
   -> string list RunAsync.t
 
 val modules :
-  ocamlobjinfo:Fpath.t
+  ocamlobjinfo:Path.t
   -> string
   -> string list RunAsync.t
 
@@ -40,8 +40,8 @@ module Findlib : sig
   }
 
   val query :
-    cfg:Config.t
-    -> ocamlfind:Fpath.t
+    sandbox:Sandbox.t
+    -> ocamlfind:Path.t
     -> task:Task.t
     -> string
     -> meta RunAsync.t
