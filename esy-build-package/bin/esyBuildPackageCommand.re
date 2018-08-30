@@ -11,7 +11,7 @@ type verb =
 type commonOpts = {
   buildPath: option(Fpath.t),
   storePath: option(Fpath.t),
-  localStorePath: option(Fpath.t),
+  sandboxPath: option(Fpath.t),
   projectPath: option(Fpath.t),
   logLevel: option(Logs.level),
 };
@@ -26,7 +26,7 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {storePath, localStorePath, projectPath, _} = copts;
+  let {storePath, sandboxPath, projectPath, _} = copts;
   let%bind fastreplacestringPath = {
     let program = Sys.argv[0];
     let%bind program = realpath(v(program));
@@ -46,7 +46,7 @@ let createConfig = (copts: commonOpts) => {
   Config.make(
     ~fastreplacestringPath,
     ~storePath?,
-    ~localStorePath?,
+    ~sandboxPath?,
     ~projectPath?,
     (),
   );
@@ -204,7 +204,7 @@ let () = {
     let docs = Manpage.s_common_options;
     let projectPath = {
       let doc = "Specifies esy project path.";
-      let env = Arg.env_var("ESY__PROJECT", ~doc);
+      let env = Arg.env_var("ESY__PROJECT_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
@@ -213,20 +213,20 @@ let () = {
     };
     let storePath = {
       let doc = "Specifies esy store path.";
-      let env = Arg.env_var("ESY__STORE", ~doc);
+      let env = Arg.env_var("ESY__STORE_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
         & info(["store-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
-    let localStorePath = {
-      let doc = "Specifies esy local store path.";
-      let env = Arg.env_var("ESY__LOCAL_STORE", ~doc);
+    let sandboxPath = {
+      let doc = "Specifies esy sandbox path.";
+      let env = Arg.env_var("ESY__SANDBOX_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
-        & info(["local-store-path"], ~env, ~docs, ~docv="PATH", ~doc)
+        & info(["sandbox-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
     let buildPath = {
@@ -244,9 +244,9 @@ let () = {
         $ Fmt_cli.style_renderer()
         $ Logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
       );
-    let parse = (projectPath, storePath, localStorePath, buildPath, logLevel) => {
+    let parse = (projectPath, storePath, sandboxPath, buildPath, logLevel) => {
       storePath,
-      localStorePath,
+      sandboxPath,
       projectPath,
       buildPath,
       logLevel,
@@ -255,7 +255,7 @@ let () = {
       const(parse)
       $ projectPath
       $ storePath
-      $ localStorePath
+      $ sandboxPath
       $ buildPath
       $ setupLogT
     );

@@ -1,15 +1,16 @@
 type t = pri {
   fastreplacestringPath: Fpath.t,
   projectPath: Fpath.t,
+  sandboxPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
 };
 
 let make : (
   ~fastreplacestringPath: Fpath.t=?,
-  ~storePath: Fpath.t=?,
-  ~localStorePath: Fpath.t=?,
   ~projectPath: Fpath.t=?,
+  ~sandboxPath: Fpath.t=?,
+  ~storePath: Fpath.t=?,
   unit
 ) => Run.t(t, _);
 

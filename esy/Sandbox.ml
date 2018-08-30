@@ -83,7 +83,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   let%bind buildConfig = RunAsync.ofBosError (
     EsyBuildPackage.Config.make
       ~storePath:cfg.storePath
-      ~localStorePath:Path.(projectPath / "_esy" / sandboxName / "store")
+      ~sandboxPath:Path.(projectPath / "_esy" / sandboxName)
       ~projectPath
       ()
   ) in

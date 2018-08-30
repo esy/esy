@@ -21,7 +21,7 @@ let run
         sandbox.cfg.esyBuildPackageCommand
         % action
         % "--store-path" % p sandbox.buildConfig.storePath
-        % "--local-store-path" % p sandbox.buildConfig.localStorePath
+        % "--sandbox-path" % p sandbox.buildConfig.sandboxPath
         % "--project-path" % p sandbox.buildConfig.projectPath
         % "--build" % p buildJsonFilename
         |> addArgs args

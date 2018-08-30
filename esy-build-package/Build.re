@@ -32,8 +32,8 @@ let regex = (base, segments) => {
 module type LIFECYCLE = {
   let getRootPath: build => Path.t;
   let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
-  let prepare: build => Run.t(unit, _);
-  let finalize: build => Run.t(unit, _);
+  let prepare: (Config.t, build) => Run.t(unit, _);
+  let finalize: (Config.t, build) => Run.t(unit, _);
 };
 
 /*
@@ -46,7 +46,7 @@ module type LIFECYCLE = {
 module OutOfSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.sourcePath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
-  let prepare = _build => Ok();
+  let prepare = (_cfg, _build) => Ok();
 
   let setupSymlinkToBuildDir = (build: build) => {
     let source = build.sourcePath / "_build";
@@ -60,7 +60,7 @@ module OutOfSourceLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let finalize = (build: build) =>
+  let finalize = (_cfg, build: build) =>
     if (isRoot(build)) {
       setupSymlinkToBuildDir(build);
     } else {
@@ -84,7 +84,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.buildPath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
-  let prepare = (build: build) => {
+  let prepare = (_cfg, build: build) => {
     let%bind () = rm(build.buildPath);
     let%bind () = mkdir(build.buildPath);
     let%bind () = {
@@ -102,7 +102,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let finalize = _build => Ok();
+  let finalize = (_cfg, _build) => Ok();
 };
 
 /*
@@ -159,7 +159,7 @@ module JBuilderLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let prepare = (build: build) =>
+  let prepare = (_cfg, build: build) =>
     if (isRoot(build)) {
       let duneBuildDir = build.sourcePath / "_build";
       let%bind () =
@@ -173,7 +173,7 @@ module JBuilderLifecycle: LIFECYCLE = {
       prepareImpl(build);
     };
 
-  let finalize = (build: build) =>
+  let finalize = (_cfg, build: build) =>
     if (isRoot(build)) {
       ok;
     } else {
@@ -199,8 +199,8 @@ module UnsafeLifecycle: LIFECYCLE = {
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[Subpath(Path.toString(sourcePath))];
 
-  let prepare = _build => Ok();
-  let finalize = _build => Ok();
+  let prepare = (_cfg, _build) => Ok();
+  let finalize = (_cfg, _build) => Ok();
 };
 
 let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
@@ -533,7 +533,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(build.stagePath / "share");
     let%bind () = mkdir(build.stagePath / "doc");
     let%bind () = mkdir(build.stagePath / "_esy");
-    let%bind () = Lifecycle.prepare(build);
+    let%bind () = Lifecycle.prepare(cfg, build);
     let%bind () = mkdir(build.buildPath);
     let%bind () = mkdir(build.buildPath / "_esy");
 
@@ -548,10 +548,10 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
           } else {
             ok;
           };
-        let%bind () = Lifecycle.finalize(build);
+        let%bind () = Lifecycle.finalize(cfg, build);
         ok;
       | error =>
-        let%bind () = Lifecycle.finalize(build);
+        let%bind () = Lifecycle.finalize(cfg, build);
         error;
       };
 
