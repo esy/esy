@@ -48,8 +48,8 @@ module OutOfSourceLifecycle: LIFECYCLE = {
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
   let prepare = (_cfg, _build) => Ok();
 
-  let setupSymlinkToBuildDir = (build: build) => {
-    let source = build.sourcePath / "_build";
+  let setupSymlinkToBuildDir = (cfg: Config.t, build: build) => {
+    let source = cfg.sandboxPath / "build";
     let target = build.buildPath;
     let%bind () =
       switch (lstat(source)) {
@@ -60,9 +60,9 @@ module OutOfSourceLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let finalize = (_cfg, build: build) =>
+  let finalize = (cfg, build: build) =>
     if (isRoot(build)) {
-      setupSymlinkToBuildDir(build);
+      setupSymlinkToBuildDir(cfg, build);
     } else {
       ok;
     };
