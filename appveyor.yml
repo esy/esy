@@ -20,8 +20,8 @@ build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
     - esy build
-    - npm run make:test
-    - npm run bootstrap:make-release-package
+#    - npm run make:test
+#    - npm run bootstrap:make-release-package
 
 artifacts:
     - path: _platformrelease/*.tgz
