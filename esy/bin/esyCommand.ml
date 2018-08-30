@@ -19,8 +19,7 @@ module SandboxInfo = struct
       |> Digest.string
       |> Digest.to_hex
     in
-    let name = Printf.sprintf "sandbox-%s" hash in
-    Path.(sandboxPath / name)
+    Path.(sandboxPath / "cache" / ("sandbox-" ^ hash))
 
   let writeCache (cfg : Config.t) sandboxPath (info : t) =
     let open RunAsync.Syntax in
@@ -46,14 +45,7 @@ module SandboxInfo = struct
           in
           Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
         in
-        let sandboxBin = Path.(
-            info.sandbox.buildConfig.projectPath
-            / "node_modules"
-            / ".cache"
-            / "_esy"
-            / "build"
-            / "bin"
-        ) in
+        let sandboxBin = Path.(sandboxPath / "bin") in
         let%bind () = Fs.createDir sandboxBin in
 
         let%bind commandEnv = RunAsync.ofRun (
