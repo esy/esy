@@ -6,7 +6,10 @@ cache:
     - C:\Users\appveyor\.esytest
 
 install:
+    # The x64 is required as a workaround for esy/esy#412
+    - ps: Install-Product node 8 x64
     - npm install -g rimraf
+    - npm install -g esy-bash@0.1.22
     - npm install -g esy@0.2.9
     - appveyor-retry esy install
 

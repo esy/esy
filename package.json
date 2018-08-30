@@ -31,6 +31,7 @@
     "buildsInSource": "_build"
   },
   "scripts": {
+    "windows:pre-install": "npm install esy-bash@0.1.22",
     "make:bootstrap": "esy-bash make bootstrap",
     "make:test": "esy-bash make test",
     "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
@@ -75,25 +76,25 @@
     "ocaml": "~4.6.0"
   },
   "devDependencies": {
-    "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
-    "esy-bash": "0.1.22",
-    "ocaml": "~4.6.0",
+    "@opam/utop": "*",
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "del": "^3.0.0",
+    "esy-bash": "^0.1.22",
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",
-    "prettier": "^1.13.7",
     "klaw": "^2.1.1",
     "minimatch": "^3.0.4",
+    "ocaml": "~4.6.0",
+    "outdent": "^0.3.0",
+    "prettier": "^1.13.7",
+    "rimraf": "^2.6.2",
     "semver": "^5.5.0",
     "super-resolve": "^1.0.0",
     "tar": "^4.4.4",
     "tar-fs": "^1.16.0",
-    "tmp": "^0.0.33",
-    "outdent": "^0.3.0",
-    "rimraf": "^2.6.2"
+    "tmp": "^0.0.33"
   }
 }
