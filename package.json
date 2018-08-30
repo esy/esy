@@ -39,7 +39,8 @@
     "bootstrap:build": "esy-bash make bootstrap",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
-    "test-e2e": "jest --runInBand test-e2e"
+    "test-e2e": "jest --runInBand test-e2e",
+    "postinstall": "echo Hello World!"
   },
   "resolutions": {
     "@opam/merlin-extend": "0.3"
