@@ -24,7 +24,7 @@ let make = (~fastreplacestringPath=?, ~prefixPath=?, ~sandboxPath=?, ()) =>
         switch (prefixPath) {
         | Some(v) => Ok(v)
         | None =>
-          let%bind home = Bos.OS.Dir.user();
+          let home = EsyLib.Path.homePath();
           Ok(home / ".esy");
         };
       let%bind sandboxPath =
