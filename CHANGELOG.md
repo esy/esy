@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.10 @ latest
+
+- Fix bug with `optDependencies` not being processed correctly.
+
 ## 0.2.9 @ latest
 
 - Support for installing dependencies specified via npm dist-tags:
