@@ -80,18 +80,13 @@ let ofDir (cfg : Config.t) =
       let rec tryResolve names =
         match names with
         | [] -> Lwt.return_ok ("ignore", `Ignored)
+        | name::[] ->
+          resolve ~ignoreCircularDep name
         | name::names ->
-          if StringMap.mem name prevDependencies
-          then Lwt.return_ok ("ignore", `Ignored)
-          else
-            begin match%lwt resolve ~ignoreCircularDep name with
-            | Ok (name, `Unresolved) ->
-              begin match names with
-              | [] -> Lwt.return_ok (name, `Unresolved)
-              | names -> tryResolve names
-              end
-            | res -> Lwt.return res
-            end
+          begin match%lwt resolve ~ignoreCircularDep name with
+          | Ok (_, `Unresolved) -> tryResolve names
+          | res -> Lwt.return res
+          end
       in
 
       let%lwt dependencies =
@@ -126,31 +121,41 @@ let ofDir (cfg : Config.t) =
     in
 
     let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
-      let (>>=) = Lwt.(>>=) in
-      Lwt.return StringMap.empty
-      >>= (fun dependencies ->
-          if Path.equal cfg.buildConfig.sandboxPath path
-          then
-            addDependencies
-              ~ignoreCircularDep ~skipUnresolved:true
-              ~make:(fun pkg -> Package.DevDependency pkg)
-              deps.devDependencies
-              dependencies
-          else
-            Lwt.return dependencies)
-      >>= addDependencies
+      let dependencies = StringMap.empty in
+      let%lwt dependencies =
+        if Path.equal cfg.buildConfig.sandboxPath path
+        then
+          addDependencies
+            ~ignoreCircularDep ~skipUnresolved:true
+            ~make:(fun pkg -> Package.DevDependency pkg)
+            deps.devDependencies
+            dependencies
+        else
+          Lwt.return dependencies
+      in
+      let%lwt dependencies =
+        addDependencies
           ~ignoreCircularDep
           ~make:(fun pkg -> Package.BuildTimeDependency pkg)
           deps.buildTimeDependencies
-      >>= addDependencies
+          dependencies
+      in
+      let%lwt dependencies =
+        addDependencies
           ~ignoreCircularDep
           ~skipUnresolved:true
           ~make:(fun pkg -> Package.OptDependency pkg)
           deps.optDependencies
-      >>= addDependencies
+          dependencies
+      in
+      let%lwt dependencies =
+        addDependencies
           ~ignoreCircularDep
           ~make:(fun pkg -> Package.Dependency pkg)
           deps.dependencies
+          dependencies
+      in
+      Lwt.return dependencies
     in
 
     let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
