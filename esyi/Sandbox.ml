@@ -122,19 +122,21 @@ let ofDir ~cfg (path : Path.t) =
   match%bind readPackageJsonManifest path with
   | Some (manifest, resolutions, origin) ->
 
-    let reqs =
-      Package.NpmDependencies.override
-        manifest.PackageJson.dependencies
-        manifest.devDependencies
-    in
-
-    let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in
-
     let root =
       let source = Package.Source.LocalPath path in
       let version = Package.Version.Source source in
       let name = Path.basename path in
       PackageJson.toPackage ~name ~version ~source:(Package.Source source) manifest
+    in
+
+    let sandboxDependencies, ocamlReq =
+      match root.Package.dependencies with
+      | Package.Dependencies.OpamFormula _ ->
+        root.dependencies, Some ocamlReqAny
+      | Package.Dependencies.NpmFormula reqs ->
+        let reqs = Package.NpmDependencies.override reqs manifest.devDependencies in
+        Package.Dependencies.NpmFormula reqs,
+        Package.NpmDependencies.find ~name:"ocaml" reqs
     in
 
     return {
@@ -143,7 +145,7 @@ let ofDir ~cfg (path : Path.t) =
       root;
       resolutions;
       ocamlReq;
-      dependencies = Package.Dependencies.NpmFormula reqs;
+      dependencies = sandboxDependencies;
       origin;
     }
   | None ->
