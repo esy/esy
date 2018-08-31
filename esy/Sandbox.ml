@@ -128,19 +128,6 @@ let ofDir (cfg : Config.t) =
     let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let (>>=) = Lwt.(>>=) in
       Lwt.return StringMap.empty
-      >>= addDependencies
-          ~ignoreCircularDep
-          ~make:(fun pkg -> Package.Dependency pkg)
-          deps.dependencies
-      >>= addDependencies
-          ~ignoreCircularDep
-          ~make:(fun pkg -> Package.BuildTimeDependency pkg)
-          deps.buildTimeDependencies
-      >>= addDependencies
-          ~ignoreCircularDep
-          ~skipUnresolved:true
-          ~make:(fun pkg -> Package.OptDependency pkg)
-          deps.optDependencies
       >>= (fun dependencies ->
           if Path.equal cfg.buildConfig.sandboxPath path
           then
@@ -151,6 +138,19 @@ let ofDir (cfg : Config.t) =
               dependencies
           else
             Lwt.return dependencies)
+      >>= addDependencies
+          ~ignoreCircularDep
+          ~make:(fun pkg -> Package.BuildTimeDependency pkg)
+          deps.buildTimeDependencies
+      >>= addDependencies
+          ~ignoreCircularDep
+          ~skipUnresolved:true
+          ~make:(fun pkg -> Package.OptDependency pkg)
+          deps.optDependencies
+      >>= addDependencies
+          ~ignoreCircularDep
+          ~make:(fun pkg -> Package.Dependency pkg)
+          deps.dependencies
     in
 
     let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
