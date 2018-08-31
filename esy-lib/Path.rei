@@ -16,8 +16,8 @@ let append : (t, t) => t;
 
 let ofString : string => result(t, [> |`Msg(string)]);
 let current : unit => Run.t(t);
-let homeDir : unit => Run.t(t);
-let dataPath : unit => Run.t(t);
+let homePath : unit => t;
+let dataPath : unit => t;
 
 let isPrefix : (t, t) => bool;
 let remPrefix : (t, t) => option(t);

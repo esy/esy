@@ -31,7 +31,7 @@ let create
       match prefixPath with
       | Some v -> return v
       | None ->
-        let%bind home = Path.ofString(System.Environment.homeDir ()) in
+        let home = Path.homePath () in
         return Path.(home / ".esy")
     in
 

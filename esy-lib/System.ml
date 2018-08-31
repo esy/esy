@@ -87,9 +87,6 @@ module Arch = struct
 end
 
 module Environment = struct
-
-  exception EnvironmentNotFound of string
-
   let sep ?(platform=Platform.host) ?name () =
     match name, platform with
     (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)
@@ -113,16 +110,5 @@ module Environment = struct
     match StringMap.find_opt "PATH" current with
     | Some path -> String.split_on_char sep.[0] path
     | None -> []
-
-  let homeDir () =
-    match Sys.getenv_opt "HOME", Platform.host with
-    | Some dir, _ -> dir      
-    | None, Platform.Windows -> Sys.getenv "USERPROFILE"
-    | None, _ -> raise (EnvironmentNotFound "Could not find HOME dir")
-
-  let dataPath () =
-    match Platform.host with
-    | Platform.Windows -> Sys.getenv "LOCALAPPDATA"
-    | _ -> Sys.getenv "HOME"
 
 end
