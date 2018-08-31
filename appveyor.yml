@@ -1,10 +1,6 @@
 platform:
     - x64
 
-cache:
-    - C:\Users\appveyor\.esy
-    - C:\Users\appveyor\.esytest
-
 environment:
    HOME: C:\Users\appveyor
 
