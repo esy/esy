@@ -34,4 +34,5 @@ module Environment : sig
 
   (** Value of $PATH environment variable. *)
   val path : string list
+
 end

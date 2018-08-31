@@ -87,7 +87,6 @@ module Arch = struct
 end
 
 module Environment = struct
-
   let sep ?(platform=Platform.host) ?name () =
     match name, platform with
     (* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator *)

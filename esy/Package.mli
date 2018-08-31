@@ -28,6 +28,8 @@ val packageOf : dependency -> t option
 module DependencySet : Set.S with type elt = dependency
 module DependencyMap : Map.S with type key = dependency
 
+module Map : Map.S with type key = t
+
 module Graph : DependencyGraph.DependencyGraph
   with type node = t
   and type dependency := dependency

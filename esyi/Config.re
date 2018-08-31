@@ -51,7 +51,7 @@ let make =
             switch (cachePath) {
             | Some(cachePath) => return(cachePath)
             | None =>
-              let%bind userDir = Path.user();
+              let userDir = Path.homePath();
               return(Path.(userDir / ".esy"));
             }
           ),

@@ -198,18 +198,18 @@ let ofPackage
       | Package.Dependency depPkg
       | Package.OptDependency depPkg ->
         let%bind task = taskOfPackageCached depPkg in
-        return (Some (Dependency task))
+        return (Some (Dependency task, depPkg))
       | Package.BuildTimeDependency depPkg ->
         if direct
         then
           let%bind task = taskOfPackageCached depPkg in
-          return (Some (BuildTimeDependency task))
+          return (Some (BuildTimeDependency task, depPkg))
         else return None
       | Package.DevDependency depPkg ->
         if direct
         then
           let%bind task = taskOfPackageCached depPkg in
-          return (Some (DevDependency task))
+          return (Some (DevDependency task, depPkg))
         else return None
       | Package.InvalidDependency { name; reason = `Missing; } ->
         Run.errorf "package %s is missing, run 'esy install' to fix that" name
@@ -218,11 +218,18 @@ let ofPackage
     in
 
     let rec aux ?(direct=true) (map, order) dep =
-      match direct, Package.DependencyMap.find_opt dep map with
-      | false, Some _ -> return (map, order)
-      | true, Some (true, _) -> return (map, order)
-      | true, Some (false, deptask) ->
-        let map = Package.DependencyMap.add dep (true, deptask) map in
+      let seenDep =
+        let open Option.Syntax in
+        let%bind pkg = Package.packageOf dep in
+        let%bind direct, task = Package.Map.find_opt pkg map in
+        return (direct, task, pkg)
+      in
+      match direct, seenDep with
+      | false, Some (false, _, _) -> return (map, order)
+      | false, Some (true, _, _) -> return (map, order)
+      | true, Some (true, _, _) -> return (map, order)
+      | true, Some (false, deptask, pkg) ->
+        let map = Package.Map.add pkg (true, deptask) map in
         return (map, order)
       | _, None ->
         begin match Package.packageOf dep with
@@ -234,8 +241,8 @@ let ofPackage
             depPkg.dependencies
           in
           begin match%bind addDependency ~direct dep with
-          | Some deptask ->
-            let map = Package.DependencyMap.add dep (direct, deptask) map in
+          | Some (deptask, pkg) ->
+            let map = Package.Map.add pkg (direct, deptask) map in
             let order = dep::order in
             return (map, order)
           | None ->
@@ -247,12 +254,18 @@ let ofPackage
       let%bind map, order =
         Result.List.foldLeft
           ~f:(aux ~direct:true)
-          ~init:(Package.DependencyMap.empty, [])
+          ~init:(Package.Map.empty, [])
           pkg.dependencies
       in
       return (
         let f dep =
-          match Package.DependencyMap.find_opt dep map with
+          let task =
+            let open Option.Syntax in
+            let%bind pkg = Package.packageOf dep in
+            let%bind direct, task = Package.Map.find_opt pkg map in
+            return (direct, task)
+          in
+          match task with
           | Some v -> v
           | None ->
             let msg = Format.asprintf "task wasn't found: %a" Package.pp_dependency dep in
