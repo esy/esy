@@ -95,3 +95,8 @@ module DependencyMap = Map.Make(struct
   type t = dependency
   let compare = compare_dependency
 end)
+
+module Map = Map.Make(struct
+  type t = pkg
+  let compare = compare
+end)
