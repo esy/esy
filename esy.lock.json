@@ -150,7 +150,7 @@
         "name": "wrap-ansi",
         "version": "2.1.0",
         "source":
-          "archive:https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-2.1.0.tgz#sha1:d8fc3d284dd05794fe84973caecdd1cf824fdd85",
+          "archive:http://registry.npmjs.org/wrap-ansi/-/wrap-ansi-2.1.0.tgz#sha1:d8fc3d284dd05794fe84973caecdd1cf824fdd85",
         "files": [],
         "opam": null
       },
