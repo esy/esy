@@ -1,6 +1,6 @@
 {
-  "hash": "4c78491c573a54fc77d87cc5d250957c",
-  "root": "esy-test-build@path:.",
+  "hash": "1c887ea10b6c4b5460e9828b736fcffe",
+  "root": "esy@path:.",
   "node": {
     "yauzl@2.10.0": {
       "record": {
@@ -5450,38 +5450,6 @@
       },
       "dependencies": [ "merge@1.2.0" ]
     },
-    "esy-test-build@path:.": {
-      "record": {
-        "name": "esy-test-build",
-        "version": "path:.",
-        "source": "path:.",
-        "files": [],
-        "opam": null
-      },
-      "dependencies": [
-        "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/merlin@3.0.5005",
-        "@esy-ocaml/reason@3.2.0", "@opam/bos@opam:0.2.0",
-        "@opam/cmdliner@opam:1.0.2", "@opam/cudf@opam:0.9",
-        "@opam/dose3@opam:5.0.1", "@opam/dune@github:bryphe/dune#c4fe437",
-        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
-        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
-        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
-        "@opam/menhir@opam:20170712", "@opam/opam-core@opam:2.0.0",
-        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
-        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
-        "@opam/ppx_deriving_yojson@opam:3.1",
-        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
-        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
-        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
-        "esy-solve-cudf@0.1.6",
-        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
-        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
-        "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
-        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
-        "tar-fs@1.16.3", "tmp@0.0.33"
-      ]
-    },
     "esy-solve-cudf@0.1.6": {
       "record": {
         "name": "esy-solve-cudf",
@@ -5503,6 +5471,38 @@
         "opam": null
       },
       "dependencies": [ "download@7.1.0", "mkdirp@0.5.1" ]
+    },
+    "esy@path:.": {
+      "record": {
+        "name": "esy",
+        "version": "path:.",
+        "source": "path:.",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": [
+        "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/merlin@3.0.5005",
+        "@esy-ocaml/reason@3.2.0", "@opam/bos@opam:0.2.0",
+        "@opam/cmdliner@opam:1.0.2", "@opam/cudf@opam:0.9",
+        "@opam/dose3@opam:5.0.1", "@opam/dune@github:bryphe/dune#c4fe43",
+        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
+        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
+        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
+        "@opam/menhir@opam:20170712", "@opam/opam-core@opam:2.0.0",
+        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
+        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
+        "@opam/ppx_deriving_yojson@opam:3.1",
+        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
+        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
+        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
+        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
+        "esy-solve-cudf@0.1.6",
+        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
+        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
+        "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
+        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
+        "tar-fs@1.16.3", "tmp@0.0.33"
+      ]
     },
     "esutils@2.0.2": {
       "record": {
@@ -7950,7 +7950,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/camomile@opam:1.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@opam/camomile@opam:1.0.1", "@opam/jbuilder@opam:transition",
         "@opam/react@opam:1.2.1"
       ]
     },
@@ -7974,7 +7974,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/biniou@opam:1.2.0",
         "@opam/cppo@opam:1.6.4", "@opam/easy-format@opam:1.3.1",
-        "@opam/jbuilder@opam:1.0+beta19"
+        "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/utop@opam:2.2.0": {
@@ -8011,7 +8011,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-threads@opam:base",
         "@opam/base-unix@opam:base", "@opam/camomile@opam:1.0.1",
-        "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:1.0+beta19",
+        "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:transition",
         "@opam/lambda-term@opam:1.13", "@opam/lwt@opam:4.1.0",
         "@opam/lwt_react@opam:1.1.1", "@opam/ocamlfind@opam:1.8.0",
         "@opam/react@opam:1.2.1"
@@ -8079,7 +8079,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/jbuilder@opam:1.0+beta19"
+        "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/sexplib0@opam:v0.11.0": {
@@ -8100,7 +8100,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/seq@opam:0.1": {
@@ -8166,7 +8166,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/react@opam:1.2.1": {
@@ -8209,32 +8209,32 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/seq@opam:0.1"
       ]
     },
-    "@opam/ppxlib@opam:0.2.0": {
+    "@opam/ppxlib@opam:0.3.0": {
       "record": {
         "name": "@opam/ppxlib",
-        "version": "opam:0.2.0",
+        "version": "opam:0.3.0",
         "source": [
-          "archive:https://opam.ocaml.org/archives/ppxlib.0.2.0+opam.tar.gz#md5:65e050fe17150119164f6acb3b0cdd59",
-          "archive:https://github.com/ocaml-ppx/ppxlib/releases/download/0.2.0/ppxlib-0.2.0.tbz#md5:f01c8af982e96c73513745727ee6d04e"
+          "archive:https://opam.ocaml.org/archives/ppxlib.0.3.0+opam.tar.gz#md5:01a1c0c788d392f9b846248803e24051",
+          "archive:https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz#md5:e6ff83b1643a44fcb6b0acde4d2aa299"
         ],
         "files": [],
         "opam": {
           "name": "ppxlib",
-          "version": "0.2.0",
+          "version": "0.3.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ppxlib\"\nversion: \"0.2.0\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/ocaml-ppx/ppxlib\"\nbug-reports: \"https://github.com/ocaml-ppx/ppxlib/issues\"\ndepends: [\n  \"base\" {>= \"v0.11.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n  \"ocaml-compiler-libs\" {>= \"v0.11.0\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.9\"}\n  \"ppx_derivers\" {>= \"1.0\"}\n  \"stdio\" {>= \"v0.11.0\"}\n]\nconflicts: [\"dune\"]\navailable: ocaml-version >= \"4.04.1\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ppxlib.git\"",
+            "opam-version: \"1.2\"\nname: \"ppxlib\"\nversion: \"0.3.0\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/ocaml-ppx/ppxlib\"\nbug-reports: \"https://github.com/ocaml-ppx/ppxlib/issues\"\ndepends: [\n  \"base\" {>= \"v0.11.0\"}\n  \"dune\" {build}\n  \"ocaml-compiler-libs\" {>= \"v0.11.0\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.9\"}\n  \"ppx_derivers\" {>= \"1.0\"}\n  \"stdio\" {>= \"v0.11.0\"}\n]\navailable: ocaml-version >= \"4.04.1\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ppxlib.git\"",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/jbuilder@opam:1.0+beta19",
+        "@opam/dune@github:bryphe/dune#c4fe43",
         "@opam/ocaml-compiler-libs@opam:v0.11.0",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.10",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0"
       ]
     },
@@ -8256,8 +8256,8 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.10"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11"
       ]
     },
     "@opam/ppx_tools@opam:5.1+4.06.0": {
@@ -8300,9 +8300,9 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/jbuilder@opam:1.0+beta19",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.10",
-        "@opam/ppxlib@opam:0.2.0"
+        "@opam/jbuilder@opam:transition",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+        "@opam/ppxlib@opam:0.3.0"
       ]
     },
     "@opam/ppx_inline_test@opam:v0.11.0": {
@@ -8324,9 +8324,9 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/jbuilder@opam:1.0+beta19",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.10",
-        "@opam/ppxlib@opam:0.2.0"
+        "@opam/jbuilder@opam:transition",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+        "@opam/ppxlib@opam:0.3.0"
       ]
     },
     "@opam/ppx_deriving_yojson@opam:3.1": {
@@ -8414,7 +8414,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
         "@opam/cppo_ocamlbuild@opam:1.6.0",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.10",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlbuild@opam:0.12.0", "@opam/ocamlfind@opam:1.8.0",
         "@opam/ppx_derivers@opam:1.0", "@opam/ppx_tools@opam:5.1+4.06.0",
         "@opam/result@opam:1.3"
@@ -8438,7 +8438,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/opam-state@opam:2.0.0": {
@@ -8459,7 +8459,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/opam-repository@opam:2.0.0"
       ]
     },
@@ -8481,7 +8481,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/opam-format@opam:2.0.0"
       ]
     },
@@ -8503,7 +8503,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0"
       ]
     },
@@ -8546,7 +8546,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
         "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.4",
-        "@opam/jbuilder@opam:1.0+beta19", "@opam/ocamlgraph@opam:1.8.8",
+        "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
         "@opam/re@opam:1.8.0"
       ]
     },
@@ -8668,25 +8668,25 @@
       },
       "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
     },
-    "@opam/ocaml-migrate-parsetree@opam:1.0.10": {
+    "@opam/ocaml-migrate-parsetree@opam:1.0.11": {
       "record": {
         "name": "@opam/ocaml-migrate-parsetree",
-        "version": "opam:1.0.10",
+        "version": "opam:1.0.11",
         "source": [
-          "archive:https://opam.ocaml.org/archives/ocaml-migrate-parsetree.1.0.10+opam.tar.gz#md5:8f5db9fc773c270f26fbcaa361e21992",
-          "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/archive/v1.0.10.tar.gz#md5:7eb12fa82ea70bd89478e18464f39949"
+          "archive:https://opam.ocaml.org/archives/ocaml-migrate-parsetree.1.0.11+opam.tar.gz#md5:d3ac8978ae2f0554ac77912e94abed3b",
+          "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz#md5:26bb1b038de81a79d43ed95c282b2b71"
         ],
         "files": [],
         "opam": {
           "name": "ocaml-migrate-parsetree",
-          "version": "1.0.10",
+          "version": "1.0.11",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.0.10\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"result\"\n  \"ocamlfind\" {build}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n]\nconflicts: [\"dune\"]\navailable: ocaml-version >= \"4.02.0\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"",
+            "opam-version: \"1.2\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.0.11\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"result\"\n  \"ocamlfind\" {build}\n  \"dune\" {build}\n]\navailable: ocaml-version >= \"4.02.0\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"",
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#c4fe43",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
       ]
     },
@@ -8708,7 +8708,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/merlin-extend@opam:0.3": {
@@ -8805,7 +8805,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/lwt@opam:4.1.0", "@opam/react@opam:1.2.1"
       ]
     },
@@ -8827,8 +8827,8 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
-        "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.0.10",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+        "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_tools_versioned@opam:5.2.1"
       ]
     },
@@ -8850,7 +8850,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/lwt@opam:4.1.0"
       ]
     },
@@ -8873,7 +8873,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
-        "@opam/jbuilder@opam:1.0+beta19", "@opam/ocamlfind@opam:1.8.0",
+        "@opam/jbuilder@opam:transition", "@opam/ocamlfind@opam:1.8.0",
         "@opam/result@opam:1.3"
       ]
     },
@@ -8933,29 +8933,29 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/camomile@opam:1.0.1",
-        "@opam/jbuilder@opam:1.0+beta19", "@opam/lwt@opam:4.1.0",
+        "@opam/jbuilder@opam:transition", "@opam/lwt@opam:4.1.0",
         "@opam/lwt_log@opam:1.1.0", "@opam/lwt_react@opam:1.1.1",
         "@opam/react@opam:1.2.1", "@opam/zed@opam:1.6"
       ]
     },
-    "@opam/jbuilder@opam:1.0+beta19": {
+    "@opam/jbuilder@opam:transition": {
       "record": {
         "name": "@opam/jbuilder",
-        "version": "opam:1.0+beta19",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/jbuilder.1.0+beta19+opam.tar.gz#md5:0b5a688c59828f369c56148bc9c3a310",
-          "archive:https://github.com/ocaml/dune/releases/download/1.0+beta19/jbuilder-1.0.beta19.tbz#md5:d2ee57533935bca101a960bc282e1b42"
-        ],
+        "version": "opam:transition",
+        "source": "no-source:",
         "files": [],
         "opam": {
           "name": "jbuilder",
-          "version": "1.0+beta19",
+          "version": "transition",
           "opam":
-            "opam-version: \"1.2\"\nname: \"jbuilder\"\nversion: \"1.0+beta19\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib]\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"",
-          "override": null
+            "opam-version: \"1.2\"\nname: \"jbuilder\"\nversion: \"transition\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\ndepends: [\"dune\"]\npost-messages:\n  \"Jbuilder has been renamed and the jbuilder package is now a transition package. Use the dune package instead.\"\ndev-repo: \"git+https://github.com/ocaml/dune.git\"",
+          "override": { "dependencies": { "@opam/ocamlfind": "*" } }
         }
       },
-      "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#c4fe43",
+        "@opam/ocamlfind@opam:1.8.0"
+      ]
     },
     "@opam/fpath@opam:0.7.2": {
       "record": {
@@ -9044,14 +9044,14 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
-    "@opam/dune@github:bryphe/dune#c4fe437": {
+    "@opam/dune@github:bryphe/dune#c4fe43": {
       "record": {
         "name": "@opam/dune",
-        "version": "github:bryphe/dune#c4fe437",
-        "source": "github:bryphe/dune#c4fe437",
+        "version": "github:bryphe/dune#c4fe43",
+        "source": "github:bryphe/dune#c4fe43",
         "files": [],
         "opam": null
       },
@@ -9159,7 +9159,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
-        "@opam/jbuilder@opam:1.0+beta19", "@opam/ocamlbuild@opam:0.12.0"
+        "@opam/jbuilder@opam:transition", "@opam/ocamlbuild@opam:0.12.0"
       ]
     },
     "@opam/cppo@opam:1.6.4": {
@@ -9181,7 +9181,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/base-unix@opam:base", "@opam/jbuilder@opam:1.0+beta19"
+        "@opam/base-unix@opam:base", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/conf-which@opam:1": {
@@ -9273,7 +9273,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/bos@opam:0.2.0": {
@@ -9320,7 +9320,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/conf-which@opam:1",
-        "@opam/easy-format@opam:1.3.1", "@opam/jbuilder@opam:1.0+beta19"
+        "@opam/easy-format@opam:1.3.1", "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/base-unix@opam:base": {
@@ -9421,7 +9421,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:1.0+beta19",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/sexplib0@opam:v0.11.0"
       ]
     },
@@ -9470,9 +9470,9 @@
       },
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
-        "@opam/jbuilder@opam:1.0+beta19", "@opam/menhir@opam:20170712",
+        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170712",
         "@opam/merlin-extend@opam:0.3",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.10",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
       ]
     },

@@ -5,12 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": [
-      [
-        "dune",
-        "build",
-        "-j",
-        "4"
-      ],
+      ["dune", "build", "-j", "4"],
       [
         "dune",
         "build",
@@ -19,14 +14,8 @@
       ]
     ],
     "install": [
-      [
-        "esy-installer",
-        "./esy-build-package.install"
-      ],
-      [
-        "esy-installer",
-        "./esy.install"
-      ]
+      ["esy-installer", "./esy-build-package.install"],
+      ["esy-installer", "./esy.install"]
     ],
     "buildsInSource": "_build"
   },
@@ -43,7 +32,8 @@
     "postinstall": "echo Hello World!"
   },
   "resolutions": {
-    "@opam/merlin-extend": "0.3"
+    "@opam/merlin-extend": "0.3",
+    "@opam/dune": "github:bryphe/dune#c4fe43"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
@@ -54,7 +44,7 @@
     "@opam/dose3": "*",
     "@opam/fmt": "^0.8.4",
     "@opam/fpath": "^0.7.2",
-    "@opam/dune": "bryphe/dune#c4fe437",
+    "@opam/dune": "*",
     "@opam/lambda-term": "^1.11.0",
     "@opam/logs": "^0.6.2",
     "@opam/lwt": "^4.0.0",
