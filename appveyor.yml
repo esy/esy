@@ -8,15 +8,15 @@ install:
     # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
     - npm install -g rimraf
-    - npm install -g esy-bash@0.1.22
     - npm install -g esy@0.2.9
+    # Monkey patch for Cygwin 2.11.0 regression
+    - cp cygwin1.dll C:/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/.cygwin/bin/cygwin1.dll
     - appveyor-retry appveyor-retry esy install
 
 build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
      - echo $PATH
-     - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
      - esy build
 #    - npm run make:test
 #    - npm run bootstrap:make-release-package
