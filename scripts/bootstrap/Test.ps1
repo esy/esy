@@ -17,10 +17,6 @@ Write-Host "Clone complete!"
 cd C:/erp
 ls
 
-mkdir C:/esy-home
-$env:HOME="C:/esy-home"
-
-
 # Install esy's dependencies so that we can run the jest tests
 
 cd C:/projects/esy
