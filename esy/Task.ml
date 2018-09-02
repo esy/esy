@@ -293,8 +293,8 @@ let ofPackage
         let dependencies =
           let f (direct, dependency) =
             match direct, dependency with
-            | true, Dependency task -> Some task.id
-            | true, BuildTimeDependency task -> Some task.id
+            | true, Dependency task -> Some ("dep-" ^ task.id)
+            | true, BuildTimeDependency task -> Some ("buildDep-" ^ task.id)
             | true, DevDependency _ -> None
             | false, _ -> None
           in
