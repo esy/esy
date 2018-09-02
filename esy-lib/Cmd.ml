@@ -121,7 +121,10 @@ let resolveCmd path cmd =
   let rec resolve =
     function
     | [] ->
-      Error (`Msg ("unable to resolve command: " ^ cmd))
+       if cmd = "refmterr" then
+         Error (`Msg ("esy build not run"))
+       else
+         Error (`Msg ("unable to resolve command: " ^ cmd))
     | ""::xs -> resolve xs
     | x::xs ->
       begin match find x with

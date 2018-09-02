@@ -135,7 +135,24 @@ let exec = (copts, command) => {
 
 let runToCompletion = (~forceExitOnError=false, run) =>
   switch (run) {
-  | Error(`Msg(msg)) => `Error((false, msg))
+  | Error(`Msg(msg)) =>
+    if (msg == "esy build not run") {
+      let () =
+        print_endline(
+          "
+Error: You have attempted to build before installing. First run
+
+    esy install
+
+Then run
+
+    esy build
+",
+        );
+      `Ok();
+    } else {
+      `Error((false, msg));
+    }
   | Error(`CommandError(cmd, status)) =>
     let exitCode =
       switch (status) {
