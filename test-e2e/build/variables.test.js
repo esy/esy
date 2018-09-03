@@ -238,39 +238,21 @@ build_dep_etc=<novalue>
 export_root_id=${rootId}
 export_root_name=root
 export_root_version=0.1.0
-export_root_root=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'b',
-      rootId,
-    )}
+export_root_root=${path.join(p.projectPath, '_esy', 'default', 'store', 'b', rootId)}
 export_root_original_root=${p.projectPath}
 export_root_target_dir=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'b',
       rootId,
     )}
-export_root_install=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      rootId,
-    )}
+export_root_install=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', rootId)}
 export_root_bin=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -278,9 +260,8 @@ export_root_bin=${path.join(
     )}
 export_root_sbin=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -288,9 +269,8 @@ export_root_sbin=${path.join(
     )}
 export_root_lib=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -298,9 +278,8 @@ export_root_lib=${path.join(
     )}
 export_root_man=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -308,9 +287,8 @@ export_root_man=${path.join(
     )}
 export_root_doc=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -318,9 +296,8 @@ export_root_doc=${path.join(
     )}
 export_root_stublibs=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -328,9 +305,8 @@ export_root_stublibs=${path.join(
     )}
 export_root_toplevel=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -338,9 +314,8 @@ export_root_toplevel=${path.join(
     )}
 export_root_share=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -348,9 +323,8 @@ export_root_share=${path.join(
     )}
 export_root_etc=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       rootId,
@@ -358,89 +332,27 @@ export_root_etc=${path.join(
     )}
 export_dep_name=dep
 export_dep_version=0.2.0
-export_dep_root=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'b',
-      depId,
-    )}
+export_dep_root=${path.join(p.projectPath, '_esy', 'default', 'store', 'b', depId)}
 export_dep_original_root=${path.join(p.projectPath, 'node_modules', 'dep')}
-export_dep_target_dir=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'b',
-      depId,
-    )}
-export_dep_install=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      depId,
-    )}
-export_dep_bin=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      depId,
-      'bin',
-    )}
+export_dep_target_dir=${path.join(p.projectPath, '_esy', 'default', 'store', 'b', depId)}
+export_dep_install=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', depId)}
+export_dep_bin=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', depId, 'bin')}
 export_dep_sbin=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       depId,
       'sbin',
     )}
-export_dep_lib=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      depId,
-      'lib',
-    )}
-export_dep_man=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      depId,
-      'man',
-    )}
-export_dep_doc=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      depId,
-      'doc',
-    )}
+export_dep_lib=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', depId, 'lib')}
+export_dep_man=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', depId, 'man')}
+export_dep_doc=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', depId, 'doc')}
 export_dep_stublibs=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       depId,
@@ -448,9 +360,8 @@ export_dep_stublibs=${path.join(
     )}
 export_dep_toplevel=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       depId,
@@ -458,24 +369,14 @@ export_dep_toplevel=${path.join(
     )}
 export_dep_share=${path.join(
       p.projectPath,
-      'node_modules',
-      '.cache',
       '_esy',
+      'default',
       'store',
       'i',
       depId,
       'share',
     )}
-export_dep_etc=${path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-      depId,
-      'etc',
-    )}
+export_dep_etc=${path.join(p.projectPath, '_esy', 'default', 'store', 'i', depId, 'etc')}
     `);
   });
 });
