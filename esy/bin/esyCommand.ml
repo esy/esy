@@ -37,6 +37,9 @@ module SandboxInfo = struct
       in
 
       let%bind () =
+        match info.sandbox.name with
+        | Some _ -> return ()
+        | None ->
         let writeData filename data =
           let f oc =
             let%lwt () = Lwt_io.write oc data in
@@ -45,7 +48,7 @@ module SandboxInfo = struct
           in
           Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
         in
-        let sandboxBin = Path.(sandboxPath / "bin") in
+        let sandboxBin = Path.(sandboxPath / "node_modules" / ".cache" / "_esy" / "build" / "bin") in
         let%bind () = Fs.createDir sandboxBin in
 
         let%bind commandEnv = RunAsync.ofRun (
@@ -64,11 +67,9 @@ module SandboxInfo = struct
           let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
           let%bind () = writeData filename commandExec in
           let%bind () = Fs.chmod 0o755 filename in
-
           return ()
         in
         return ()
-
       in
 
       return ()
@@ -129,7 +130,7 @@ module SandboxInfo = struct
         return {task; sandbox; commandEnv; sandboxEnv; info}
       in Perf.measureLwt ~label:"constructing sandbox info" f
     in
-    let sandboxPath = 
+    let sandboxPath =
       match name with
       | None -> Path.(project.path / "_esy" / "default")
       | Some name -> Path.(project.path / "_esy" / name)
