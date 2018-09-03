@@ -110,7 +110,7 @@ const fixture = [
   ),
 ];
 
-describe('Common - symlink workflow', () => {
+describe('Symlink workflow', () => {
   let p;
   let appEsy;
 
