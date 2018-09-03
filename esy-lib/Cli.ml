@@ -175,7 +175,7 @@ let setupLogTerm =
           let%lwt () =
             withPreserveStatus begin fun () ->
               match level with
-              | Logs.App -> Lwt_io.write Lwt_io.stderr (app_flush ())
+              | Logs.App -> Lwt_io.write Lwt_io.stdout (app_flush ())
               | _ -> Lwt_io.write Lwt_io.stderr (dst_flush ())
             end
           in
