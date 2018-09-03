@@ -546,8 +546,6 @@ module Opam : sig
 
   val ofFiles : Path.t list -> t RunAsync.t
   val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
-  val ofDirAsAggregatedRoot : Path.t -> (t * Path.Set.t) option RunAsync.t
-  val hasMultipleOpamFiles : t -> bool
 end = struct
   type t =
     | Installed of {
@@ -555,11 +553,6 @@ end = struct
         override : OpamOverride.t option;
       }
     | AggregatedRoot of (string * OpamFile.OPAM.t) list
-
-  let hasMultipleOpamFiles = function
-    | Installed _ -> false
-    | AggregatedRoot ([] | [_]) -> false
-    | AggregatedRoot _ -> true
 
   let opamName = function
     | Installed {opam;_} ->
@@ -716,30 +709,6 @@ end = struct
 
     return (AggregatedRoot (List.filterNone opams))
 
-  let ofDirAsAggregatedRoot (path : Path.t) =
-    let open RunAsync.Syntax in
-
-    let%bind paths =
-      let isOpamPath path =
-        Path.hasExt ".opam" path
-        || Path.basename path = "opam"
-      in
-      let%bind paths = Fs.listDir path in
-      let paths =
-        paths
-        |> List.map ~f:(fun name -> Path.(path / name))
-        |> List.filter ~f:isOpamPath
-      in
-      return paths
-    in
-
-    match paths with
-    | [] -> return None
-    | paths ->
-      let%bind manifest = ofFiles paths in
-      let files = Path.Set.of_list paths in
-      return (Some (manifest, files))
-
   let release _ = None
   let uniqueDistributionId m = Some ("opam:" ^ version m)
   let description _ = None
@@ -845,7 +814,7 @@ module EsyOrOpamManifest : sig
 
   val dirHasManifest : Path.t -> bool RunAsync.t
   val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
-  val ofDir : ?asRoot:bool -> Path.t -> (t * Path.Set.t) option RunAsync.t
+  val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
 end = struct
   type t =
     | Esy of Esy.t
@@ -901,46 +870,16 @@ end = struct
     | Opam m -> Opam.sandboxEnv m
     | Esy m -> Esy.sandboxEnv m
 
-  let ofDir ?(asRoot=false) (path : Path.t) =
-
-    let relative p =
-      match Path.relativize ~root:path p with
-      | Some p -> p
-      | None -> p
-    in
-
-    let ppPaths fmt paths =
-      let paths = Path.Set.map relative paths in
-      let pp = Path.Set.pp ~sep:(Fmt.unit ", ") Path.pp in
-      pp fmt paths
-    in
+  let ofDir (path : Path.t) =
 
     let open RunAsync.Syntax in
     match%bind Esy.ofDir path with
     | Some (manifest, paths) ->
-      let%lwt () =
-        if asRoot
-        then Logs_lwt.app (fun m -> m "found esy manifests: %a" ppPaths paths)
-        else Lwt.return ()
-      in
       return (Some (Esy manifest, paths))
     | None ->
-      let opam =
-        if asRoot
-        then Opam.ofDirAsAggregatedRoot path
-        else Opam.ofDirAsInstalled path
-      in
+      let opam = Opam.ofDirAsInstalled path in
       begin match%bind opam with
       | Some (manifest, paths) ->
-        let%lwt () =
-          if asRoot
-          then (
-            Logs_lwt.app (fun m -> m "found opam manifests: %a" ppPaths paths);%lwt
-            if Opam.hasMultipleOpamFiles manifest
-            then Logs_lwt.warn (fun m -> m "build commands from opam files won't be executed")
-            else Lwt.return ()
-          ) else Lwt.return ()
-        in
         return (Some (Opam manifest, paths))
       | None -> return None
       end

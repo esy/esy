@@ -87,10 +87,8 @@ describe('build opam sandbox', () => {
       ),
     );
 
-    const {stderr} = await p.esy('build');
-    expect(stderr).toEqual(
-      expect.stringContaining("warn build commands from opam files won't be executed"),
-    );
+    await p.esy('build');
+    await p.esy('build which ocamlopt');
   });
 
   it('variables stress test', async () => {
