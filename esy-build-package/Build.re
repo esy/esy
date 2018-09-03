@@ -84,24 +84,19 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.buildPath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
-  let prepare = (cfg: Config.t, build: build) => {
+  let prepare = (_cfg, build: build) => {
     let%bind () = rm(build.buildPath);
     let%bind () = mkdir(build.buildPath);
     let%bind () = {
       let ignore = [
         "node_modules",
+        "_esy",
         "_build",
         "_install",
         "_release",
         "_esybuild",
         "_esyinstall",
       ];
-      let ignore =
-        if (build.sourcePath == cfg.projectPath) {
-          ["_esy", ...ignore];
-        } else {
-          ignore;
-        };
       copyContents(~from=build.sourcePath, ~ignore, build.buildPath);
     };
     ok;
