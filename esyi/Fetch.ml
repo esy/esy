@@ -793,4 +793,14 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       return ()
   in
 
+  (* place dune with ignored_subdirs stanza inside node_modiles *)
+
+  let%bind () =
+    let%bind packagesPath = Sandbox.packagesPath sandbox in
+    let%bind items = Fs.listDir packagesPath in
+    let items = String.concat " " items in
+    let data = "(ignored_subdirs (" ^ items ^ "))\n" in
+    Fs.writeFile ~data Path.(packagesPath / "dune")
+  in
+
   return ()
