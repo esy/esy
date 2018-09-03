@@ -780,5 +780,17 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     |> RunAsync.List.waitAll
   in
 
+  (* link default sandbox node_modules to <projectPath>/node_modules *)
+
+  let%bind () =
+    match sandbox.name with
+    | Some _ -> return ()
+    | None ->
+      let%bind packagesPath = Sandbox.packagesPath sandbox in
+      let targetPath = Path.(sandbox.path / "node_modules") in
+      let%bind () = Fs.rmPath targetPath in
+      let%bind () = Fs.symlink ~src:packagesPath targetPath in
+      return ()
+  in
 
   return ()
