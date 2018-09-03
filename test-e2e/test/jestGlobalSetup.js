@@ -50,7 +50,7 @@ async function buildOcamlPackage() {
       name: 'root-project',
       version: '1.0.0',
       dependencies: {
-        ocaml: 'esy-ocaml/ocaml#6aacc05',
+        ocaml: '~4.6.0',
       },
       esy: {
         build: [],
