@@ -26,8 +26,6 @@ module Package : sig
       reason: [ | `Reason of string | `Missing ];
     }
 
-  val packageOf : dependency -> t option
-
   val pp : t Fmt.t
   val compare : t -> t -> int
 

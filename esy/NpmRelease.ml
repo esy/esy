@@ -83,13 +83,13 @@ let configure ~(sandbox : Sandbox.t) =
 
 let dependenciesForRelease (task : Task.t) =
   let f deps dep = match dep with
-    | Task.Dependency depTask
-    | Task.BuildTimeDependency depTask ->
+    | Task.Dependency, depTask
+    | Task.BuildTimeDependency, depTask ->
       begin match Task.sourceType depTask with
       | Manifest.SourceType.Immutable -> (depTask, dep)::deps
       | _ -> deps
       end
-    | Task.DevDependency _ -> deps
+    | Task.DevDependency, _ -> deps
   in
   Task.dependencies task
   |> List.fold_left ~f ~init:[]

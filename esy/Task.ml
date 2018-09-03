@@ -2,6 +2,12 @@
  * Build task.
  *)
 
+type dependencyKind =
+  | Dependency
+  | DevDependency
+  | BuildTimeDependency
+  [@@deriving ord]
+
 type t = {
   id : string;
   pkg : Sandbox.Package.t;
@@ -21,31 +27,22 @@ type t = {
   platform : System.Platform.t;
 }
 
-and dependency =
-  | Dependency of t
-  | DevDependency of t
-  | BuildTimeDependency of t
+and dependency = dependencyKind * t
 
 let pp_dependency fmt (dep : dependency) =
   match dep with
-  | Dependency t -> Fmt.pf fmt "Dependency %s" t.id
-  | DevDependency t -> Fmt.pf fmt "DevDependency %s" t.id
-  | BuildTimeDependency t -> Fmt.pf fmt "BuildTimeDependency %s" t.id
+  | Dependency, t -> Fmt.pf fmt "Dependency %s" t.id
+  | DevDependency, t -> Fmt.pf fmt "DevDependency %s" t.id
+  | BuildTimeDependency, t -> Fmt.pf fmt "BuildTimeDependency %s" t.id
 
 let compare a b =
   String.compare a.id b.id
 
-let compare_dependency a b =
-  match a, b with
-  | Dependency a, Dependency b -> compare a b
-  | DevDependency a, DevDependency b -> compare a b
-  | BuildTimeDependency a, BuildTimeDependency b -> compare a b
-  | Dependency _, DevDependency _ -> 1
-  | Dependency _, BuildTimeDependency _ -> 1
-  | DevDependency _, Dependency _ -> -1
-  | DevDependency _, BuildTimeDependency _ -> 1
-  | BuildTimeDependency _, Dependency _ -> -1
-  | BuildTimeDependency _, DevDependency _ -> -1
+let compare_dependency (ka, pa) (kb, pb) =
+  let c = compare_dependencyKind ka kb in
+  if c = 0
+  then compare pa pb
+  else c
 
 let id t = t.id
 let pkg t = t.pkg
@@ -188,62 +185,52 @@ let ofSandbox
 
   let rec allDependenciesOf (pkg : Sandbox.Package.t) =
 
-    let addDependency ~direct dep =
-      match dep with
-      | Sandbox.Package.Dependency depPkg
-      | Sandbox.Package.OptDependency depPkg ->
-        let%bind task = taskOfPackageCached depPkg in
-        return (Some (Dependency task, depPkg))
-      | Sandbox.Package.BuildTimeDependency depPkg ->
-        if direct
-        then
-          let%bind task = taskOfPackageCached depPkg in
-          return (Some (BuildTimeDependency task, depPkg))
-        else return None
-      | Sandbox.Package.DevDependency depPkg ->
-        if direct
-        then
-          let%bind task = taskOfPackageCached depPkg in
-          return (Some (DevDependency task, depPkg))
-        else return None
-      | Sandbox.Package.InvalidDependency { name; reason = `Missing; } ->
-        Run.errorf "package %s is missing, run 'esy install' to fix that" name
-      | Sandbox.Package.InvalidDependency { name; reason = `Reason reason; } ->
-        Run.errorf "invalid package %s: %s" name reason
-    in
-
     let rec aux ?(direct=true) (map, order) dep =
-      let seenDep =
-        let open Option.Syntax in
-        let%bind pkg = Sandbox.Package.packageOf dep in
-        let%bind direct, task = Sandbox.Package.Map.find_opt pkg map in
-        return (direct, task, pkg)
+
+      let%bind dpkg =
+        match dep with
+        | Sandbox.Package.Dependency dpkg
+        | Sandbox.Package.OptDependency dpkg -> return (Some (dpkg, Dependency))
+        | Sandbox.Package.BuildTimeDependency dpkg ->
+          if direct
+          then return (Some (dpkg, BuildTimeDependency))
+          else return None
+        | Sandbox.Package.DevDependency dpkg ->
+          if direct
+          then return (Some (dpkg, DevDependency))
+          else return None
+        | Sandbox.Package.InvalidDependency { name; reason = `Missing; } ->
+          Run.errorf "package %s is missing, run 'esy install' to fix that" name
+        | Sandbox.Package.InvalidDependency { name; reason = `Reason reason; } ->
+          Run.errorf "invalid package %s: %s" name reason
       in
-      match direct, seenDep with
-      | false, Some (false, _, _) -> return (map, order)
-      | false, Some (true, _, _) -> return (map, order)
-      | true, Some (true, _, _) -> return (map, order)
-      | true, Some (false, deptask, pkg) ->
-        let map = Sandbox.Package.Map.add pkg (true, deptask) map in
-        return (map, order)
-      | _, None ->
-        begin match Sandbox.Package.packageOf dep with
-        | None -> return (map, order)
-        | Some depPkg ->
+
+      match dpkg with
+      | None -> return (map, order)
+      | Some (dpkg, dkind) ->
+
+        let seenDep =
+          let open Option.Syntax in
+          let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
+          return (direct, task, dpkg)
+        in
+        match direct, seenDep with
+        | false, Some (false, _, _) -> return (map, order)
+        | false, Some (true, _, _) -> return (map, order)
+        | true, Some (true, _, _) -> return (map, order)
+        | true, Some (false, deptask, pkg) ->
+          let map = Sandbox.Package.Map.add pkg (true, deptask) map in
+          return (map, order)
+        | _, None ->
           let%bind (map, order) = Result.List.foldLeft
             ~f:(aux ~direct:false)
             ~init:(map, order)
-            depPkg.dependencies
+            dpkg.dependencies
           in
-          begin match%bind addDependency ~direct dep with
-          | Some (deptask, pkg) ->
-            let map = Sandbox.Package.Map.add pkg (direct, deptask) map in
-            let order = dep::order in
-            return (map, order)
-          | None ->
-            return (map, order)
-            end
-          end
+          let%bind dtask = taskOfPackageCached dpkg in
+          let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
+          let order = dpkg::order in
+          return (map, order)
       in
 
       let%bind map, order =
@@ -252,18 +239,18 @@ let ofSandbox
           ~init:(Sandbox.Package.Map.empty, [])
           pkg.dependencies
       in
+
       return (
-        let f dep =
+        let f dpkg =
           let task =
             let open Option.Syntax in
-            let%bind pkg = Sandbox.Package.packageOf dep in
-            let%bind direct, task = Sandbox.Package.Map.find_opt pkg map in
+            let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
             return (direct, task)
           in
           match task with
           | Some v -> v
           | None ->
-            let msg = Format.asprintf "task wasn't found: %a" Sandbox.Package.pp_dependency dep in
+            let msg = Format.asprintf "task wasn't found: %a" Sandbox.Package.pp dpkg in
             failwith msg
         in
         List.rev_map ~f order
@@ -288,9 +275,9 @@ let ofSandbox
         let dependencies =
           let f (direct, dependency) =
             match direct, dependency with
-            | true, Dependency task -> Some ("dep-" ^ task.id)
-            | true, BuildTimeDependency task -> Some ("buildDep-" ^ task.id)
-            | true, DevDependency _ -> None
+            | true, (Dependency, task) -> Some ("dep-" ^ task.id)
+            | true, (BuildTimeDependency, task) -> Some ("buildDep-" ^ task.id)
+            | true, (DevDependency, _) -> None
             | false, _ -> None
           in
           dependencies
@@ -382,9 +369,9 @@ let ofSandbox
       let _, exportedScope, buildScope =
         let f (seen, exportedScope, buildScope) (direct, dep) =
           match dep with
-          | DevDependency _ -> seen, exportedScope, buildScope
-          | Dependency task
-          | BuildTimeDependency task ->
+          | DevDependency, _ -> seen, exportedScope, buildScope
+          | Dependency, task
+          | BuildTimeDependency, task ->
             if StringSet.mem task.id seen
             then seen, exportedScope, buildScope
             else
@@ -476,7 +463,7 @@ let exposeUserEnv scope =
 let exposeDevDependenciesEnv task scope =
   let f scope dep =
     match dep with
-    | DevDependency task -> Scope.add ~direct:true ~dep:task.exportedScope scope
+    | DevDependency, task -> Scope.add ~direct:true ~dep:task.exportedScope scope
     | _ -> scope
   in
   List.fold_left ~f ~init:scope task.dependencies
@@ -510,9 +497,9 @@ module Graph = DependencyGraph.Make(struct
 
     let traverse task =
       let f dep = match dep with
-        | Dependency task
-        | BuildTimeDependency task
-        | DevDependency task -> (task, dep)
+        | Dependency, task
+        | BuildTimeDependency, task
+        | DevDependency, task -> (task, dep)
       in
       List.map ~f task.dependencies
   end)

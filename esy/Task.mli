@@ -5,10 +5,12 @@
 
 type t
 
-type dependency =
-  | Dependency of t
-  | DevDependency of t
-  | BuildTimeDependency of t
+and dependency = dependencyKind * t
+
+and dependencyKind =
+  | Dependency
+  | DevDependency
+  | BuildTimeDependency
 
 val pp_dependency : dependency Fmt.t
 

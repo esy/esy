@@ -54,13 +54,6 @@ module Package = struct
     | BuildTimeDependency p -> Fmt.pf fmt "BuildTimeDependency %s" p.id
     | InvalidDependency p -> Fmt.pf fmt "InvalidDependency %s" p.name
 
-  let packageOf (dep : dependency) = match dep with
-  | Dependency pkg
-  | OptDependency pkg
-  | DevDependency pkg
-  | BuildTimeDependency pkg -> Some pkg
-  | InvalidDependency _ -> None
-
   module Map = Map.Make(struct
     type nonrec t = t
     let compare = compare
