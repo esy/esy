@@ -33,7 +33,7 @@
   },
   "resolutions": {
     "@opam/merlin-extend": "0.3",
-    "@opam/dune": "github:bryphe/dune#c4fe43"
+    "@opam/dune": "github:bryphe/dune#cd1b021"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",

@@ -1,6 +1,6 @@
 {
-  "hash": "1c887ea10b6c4b5460e9828b736fcffe",
-  "root": "esy@path:.",
+  "hash": "2754c30584eaa807e561c7a0593156de",
+  "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
       "record": {
@@ -2465,12 +2465,12 @@
       },
       "dependencies": []
     },
-    "nwsapi@2.0.8": {
+    "nwsapi@2.0.9": {
       "record": {
         "name": "nwsapi",
-        "version": "2.0.8",
+        "version": "2.0.9",
         "source":
-          "archive:https://registry.npmjs.org/nwsapi/-/nwsapi-2.0.8.tgz#sha1:e3603579b7e162b3dbedae4fb24e46f771d8fa24",
+          "archive:https://registry.npmjs.org/nwsapi/-/nwsapi-2.0.9.tgz#sha1:77ac0cdfdcad52b6a1151a84e73254edc33ed016",
         "files": [],
         "opam": null
       },
@@ -3318,7 +3318,7 @@
         "abab@2.0.0", "acorn@5.7.2", "acorn-globals@4.1.0",
         "array-equal@1.0.0", "cssom@0.3.4", "cssstyle@1.1.1",
         "data-urls@1.0.1", "domexception@1.0.1", "escodegen@1.11.0",
-        "html-encoding-sniffer@1.0.2", "left-pad@1.3.0", "nwsapi@2.0.8",
+        "html-encoding-sniffer@1.0.2", "left-pad@1.3.0", "nwsapi@2.0.9",
         "parse5@4.0.0", "pn@1.1.0", "request@2.88.0",
         "request-promise-native@1.0.5", "sax@1.2.4", "symbol-tree@3.2.2",
         "tough-cookie@2.4.3", "w3c-hr-time@1.0.1",
@@ -5450,6 +5450,38 @@
       },
       "dependencies": [ "merge@1.2.0" ]
     },
+    "esy-test-build@path:.": {
+      "record": {
+        "name": "esy-test-build",
+        "version": "path:.",
+        "source": "path:.",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": [
+        "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/merlin@3.0.5005",
+        "@esy-ocaml/reason@3.2.0", "@opam/bos@opam:0.2.0",
+        "@opam/cmdliner@opam:1.0.2", "@opam/cudf@opam:0.9",
+        "@opam/dose3@opam:5.0.1", "@opam/dune@github:bryphe/dune#cd1b021",
+        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
+        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
+        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
+        "@opam/menhir@opam:20170712", "@opam/opam-core@opam:2.0.0",
+        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
+        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
+        "@opam/ppx_deriving_yojson@opam:3.1",
+        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
+        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
+        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
+        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
+        "esy-solve-cudf@0.1.6",
+        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
+        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
+        "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
+        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
+        "tar-fs@1.16.3", "tmp@0.0.33"
+      ]
+    },
     "esy-solve-cudf@0.1.6": {
       "record": {
         "name": "esy-solve-cudf",
@@ -5471,38 +5503,6 @@
         "opam": null
       },
       "dependencies": [ "download@7.1.0", "mkdirp@0.5.1" ]
-    },
-    "esy@path:.": {
-      "record": {
-        "name": "esy",
-        "version": "path:.",
-        "source": "path:.",
-        "files": [],
-        "opam": null
-      },
-      "dependencies": [
-        "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/merlin@3.0.5005",
-        "@esy-ocaml/reason@3.2.0", "@opam/bos@opam:0.2.0",
-        "@opam/cmdliner@opam:1.0.2", "@opam/cudf@opam:0.9",
-        "@opam/dose3@opam:5.0.1", "@opam/dune@github:bryphe/dune#c4fe43",
-        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
-        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
-        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
-        "@opam/menhir@opam:20170712", "@opam/opam-core@opam:2.0.0",
-        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
-        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
-        "@opam/ppx_deriving_yojson@opam:3.1",
-        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
-        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
-        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
-        "esy-solve-cudf@0.1.6",
-        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
-        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
-        "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
-        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
-        "tar-fs@1.16.3", "tmp@0.0.33"
-      ]
     },
     "esutils@2.0.2": {
       "record": {
@@ -8232,7 +8232,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/dune@github:bryphe/dune#c4fe43",
+        "@opam/dune@github:bryphe/dune#cd1b021",
         "@opam/ocaml-compiler-libs@opam:v0.11.0",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0"
@@ -8592,7 +8592,7 @@
               "bin: [\n  \"src/findlib/ocamlfind\" {\"ocamlfind\"}\n  \"?src/findlib/ocamlfind_opt\" {\"ocamlfind\"}\n  \"?tools/safe_camlp4\"\n]\ntoplevel: [\"src/findlib/topfind\"]\n"
           },
           {
-            "name": "_esy/build",
+            "name": "esy-build",
             "content":
               "#!/bin/bash\n\nset -euo pipefail\nset -x\n\n#\n# Shim OCAMLLIB so that we can write topfind there\n#\n\nREAL_OCAMLLIB=\"$1\"\n\nmkdir -p $cur__install/lib/ocaml\ncd $cur__install/lib/ocaml\n\nfor filename in `ls -1 $REAL_OCAMLLIB`; do\n  ln -s $REAL_OCAMLLIB/$filename $filename;\ndone\n\n#\n# Build\n#\n\ncd $cur__root\n\nexport OCAMLLIB=\"$cur__install/lib/ocaml\"\n\n./configure \\\n  -bindir $cur__install/bin \\\n  -sitelib $cur__install/lib \\\n  -mandir $cur__install/man \\\n  -config $cur__install/lib/findlib.conf \\\n  -no-custom \\\n  -no-camlp4\n\nmake all\nmake opt\nmake install\n\n(opam-installer --prefix=$cur__install || true)\n"
           }
@@ -8603,7 +8603,7 @@
           "opam":
             "opam-version: \"1.2\"\nname: \"ocamlfind\"\nversion: \"1.8.0\"\nmaintainer: \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\nauthors: \"Gerd Stolpmann <gerd@gerd-stolpmann.de>\"\nhomepage: \"http://projects.camlcity.org/projects/findlib.html\"\nbug-reports: \"https://gitlab.camlcity.org/gerd/lib-findlib/issues\"\ndepends: [\n  \"conf-m4\" {build}\n]\navailable: ocaml-version >= \"4.00.0\"\nbuild: [\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-custom\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"all\"]\n  [make \"opt\"] {ocaml-native}\n]\ninstall: [\n  [make \"install\"]\n  [\"install\" \"-m\" \"0755\" \"ocaml-stub\" \"%{bin}%/ocaml\"] {preinstalled}\n]\nremove: [\n  [\"ocamlfind\" \"remove\" \"bytes\"]\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"uninstall\"]\n  [\"rm\" \"-f\" \"%{bin}%/ocaml\"] {preinstalled}\n]\ndev-repo: \"git+https://gitlab.camlcity.org/gerd/lib-findlib.git\"",
           "override": {
-            "build": [ [ "bash", "./_esy/build", "#{ocaml.lib / 'ocaml'}" ] ],
+            "build": [ [ "bash", "./esy-build", "#{ocaml.lib / 'ocaml'}" ] ],
             "exportedEnv": {
               "OCAMLLIB": {
                 "val": "#{@opam/ocamlfind.install / 'lib' / 'ocaml'}",
@@ -8686,7 +8686,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#c4fe43",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#cd1b021",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
       ]
     },
@@ -8953,7 +8953,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#c4fe43",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#cd1b021",
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
@@ -9047,11 +9047,11 @@
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
-    "@opam/dune@github:bryphe/dune#c4fe43": {
+    "@opam/dune@github:bryphe/dune#cd1b021": {
       "record": {
         "name": "@opam/dune",
-        "version": "github:bryphe/dune#c4fe43",
-        "source": "github:bryphe/dune#c4fe43",
+        "version": "github:bryphe/dune#cd1b021",
+        "source": "github:bryphe/dune#cd1b021",
         "files": [],
         "opam": null
       },
