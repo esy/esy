@@ -393,16 +393,6 @@ module PackageGraph = DependencyGraph.Make(struct
 
 end)
 
-module DependencySet = Set.Make(struct
-  type t = dependency
-  let compare = compare_dependency
-end)
-
-module DependencyMap = Map.Make(struct
-  type t = dependency
-  let compare = compare_dependency
-end)
-
 module Value = EsyBuildPackage.Config.Value
 module Environment = EsyBuildPackage.Config.Environment
 module Path = EsyBuildPackage.Config.Path

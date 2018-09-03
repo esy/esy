@@ -42,9 +42,6 @@ module PackageGraph : DependencyGraph.DependencyGraph
 
 module PackageMap : Map.S with type key = pkg
 
-module DependencySet : Set.S with type elt = dependency
-module DependencyMap : Map.S with type key = dependency
-
 type info = (Path.t * float) list
 
 (** Check if a directory is a sandbox *)
