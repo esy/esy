@@ -87,8 +87,8 @@ async function crawlPackage(
   }
 }
 
-function crawl(directory: string) {
-  return crawlPackage(directory, path.join(directory, '_esy', 'default', 'node_modules'));
+function crawl(directory: string, sandbox?: string = 'default') {
+  return crawlPackage(directory, path.join(directory, '_esy', sandbox, 'node_modules'));
 }
 
 module.exports = {crawl};
