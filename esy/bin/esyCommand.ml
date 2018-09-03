@@ -1082,18 +1082,6 @@ let lsModules {CommonOptions. cfg; project; sandbox; _} only () =
   in
   makeLsCommand ~computeTermNode ~includeTransitive:false info
 
-(* let lockfilePath (sandbox : EsyInstall.Sandbox.t) = *)
-(*   let open RunAsync.Syntax in *)
-(*   let filename = Path.(sandbox.path / "esyi.lock.json") in *)
-(*   if%bind Fs.exists filename *)
-(*   then *)
-(*     let%lwt () = *)
-(*       Logs_lwt.warn *)
-(*         (fun m -> m "found esyi.lock.json, please rename it to esy.lock.json") in *)
-(*     return filename *)
-(*   else *)
-(*     return Path.(sandbox.path / "esy.lock.json") *)
-
 let getSandboxSolution installSandbox =
   let open EsyInstall in
   let open RunAsync.Syntax in
