@@ -90,8 +90,8 @@ describe('Build - with linked dep', () => {
   it('should rebuild if file has been added', async () => {
     await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
 
-    const rebuild = await p.esy('build');
+    const {stdout} = await p.esy('build');
     // TODO: why is this on stderr?
-    expect(rebuild.stderr).toEqual(expect.stringMatching('Building dep@1.0.0: starting'));
+    expect(stdout).toEqual(expect.stringMatching('Building dep@1.0.0: starting'));
   });
 });
