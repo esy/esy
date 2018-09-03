@@ -96,6 +96,7 @@ module Package = struct
 end
 
 type t = {
+  name : string option;
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
@@ -148,16 +149,22 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
 
   let sandboxName =
     match sandbox with
-    | Project.Esy { name = Some name; _ } -> name
-    | Project.Esy { name = None; _ } -> "default"
-    | Project.Opam _ -> "default"
-    | Project.AggregatedOpam _ -> "default"
+    | Project.Esy { name = Some name; _ } -> Some name
+    | Project.Esy { name = None; _ }
+    | Project.Opam _
+    | Project.AggregatedOpam _ -> None
+  in
+
+  let sandboxTree =
+    match sandboxName with
+    | Some name -> name
+    | None -> "default"
   in
 
   let%bind buildConfig = RunAsync.ofBosError (
     EsyBuildPackage.Config.make
       ~storePath:cfg.storePath
-      ~sandboxPath:Path.(projectPath / "_esy" / sandboxName)
+      ~sandboxPath:Path.(projectPath / "_esy" / sandboxTree)
       ~projectPath
       ()
   ) in
@@ -342,7 +349,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       if asRoot
       then
         let%bind m = Manifest.ofSandbox sandbox in
-        return (Some m, Path.(projectPath / "_esy" / sandboxName))
+        return (Some m, Path.(projectPath / "_esy" / sandboxTree))
       else
         let%bind m = Manifest.ofDir sourcePath in
         return (m, sourcePath)
@@ -374,7 +381,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     let%bind scripts = RunAsync.ofRun (Manifest.scripts manifest) in
     let%bind env = RunAsync.ofRun (Manifest.sandboxEnv manifest) in
 
-    return ({cfg; buildConfig; root; scripts; env;}, manifestInfo)
+    return ({name = sandboxName; cfg; buildConfig; root; scripts; env;}, manifestInfo)
 
   | _ ->
     error "root package missing esy config"

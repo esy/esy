@@ -42,6 +42,7 @@ module Package : sig
 end
 
 type t = {
+  name : string option;
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
