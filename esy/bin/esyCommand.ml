@@ -573,7 +573,7 @@ module CommonOptions = struct
           in
           Project.initByName
             ?name:sandbox
-            ~init:(fun _path sandbox -> Sandbox.make ~cfg sandbox)
+            ~init:(Sandbox.make ~cfg)
             project
         in
         return {sandbox; project; cfg; installSandbox;}

@@ -36,7 +36,7 @@ and origin =
   | Opam of Path.t
   | AggregatedOpam of Path.t list
 
-val make : cfg:Config.t -> Project.sandbox -> t RunAsync.t
+val make : cfg:Config.t -> Path.t -> Project.sandbox -> t RunAsync.t
 
 val lockfilePath : t -> Path.t RunAsync.t
 (** Path to the sandbox lockfile. *)

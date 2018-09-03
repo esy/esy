@@ -20,202 +20,179 @@ module PackageJsonWithResolutions = struct
   } [@@deriving of_yojson { strict = false }]
 end
 
-let readPackageJsonManifest (path : Path.t) =
-  let open RunAsync.Syntax in
-  let%bind json = Fs.readJsonFile path in
-  let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith PackageJson.of_yojson json) in
-  let%bind resolutions = RunAsync.ofRun (Json.parseJsonWith PackageJsonWithResolutions.of_yojson json) in
-  return (Some (pkgJson, resolutions.PackageJsonWithResolutions.resolutions, Esy path))
-
-(* let readAggregatedOpamManifest (path : Path.t) = *)
-(*   let open RunAsync.Syntax in *)
-
-(*   let%bind opams = *)
-(*     let version = OpamPackage.Version.of_string "dev" in *)
-
-(*     let isOpamPath path = *)
-(*       Path.hasExt ".opam" path *)
-(*       || Path.basename path = "opam" *)
-(*     in *)
-
-(*     let readOpam (path : Path.t) = *)
-(*       let%bind data = Fs.readFile path in *)
-(*       if String.trim data = "" *)
-(*       then return None *)
-(*       else *)
-(*         let name = Path.(path |> remExt |> basename) in *)
-(*         let%bind manifest = *)
-(*           OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path *)
-(*         in *)
-(*         return (Some (name, manifest, path)) *)
-(*     in *)
-
-(*     let%bind paths = Fs.listDir path in *)
-
-(*     let%bind opams = *)
-(*       paths *)
-(*       |> List.map ~f:(fun name -> Path.(path / name)) *)
-(*       |> List.filter ~f:isOpamPath *)
-(*       |> List.map ~f:readOpam *)
-(*       |> RunAsync.List.joinAll *)
-(*     in *)
-
-(*     return (List.filterNone opams) *)
-(*   in *)
-
-(*   let namesPresent = *)
-(*     let f names (name, _, _) = StringSet.add ("@opam/" ^ name) names in *)
-(*     List.fold_left ~f ~init:StringSet.empty opams *)
-(*   in *)
-
-(*   let filterFormulaWithNamesPresent (deps : Package.Dep.t list list) = *)
-(*     let filterDep (dep : Package.Dep.t) = not (StringSet.mem dep.name namesPresent) in *)
-(*     let filterDisj deps = *)
-(*       match List.filter ~f:filterDep deps with *)
-(*       | [] -> None *)
-(*       | f -> Some f *)
-(*     in *)
-(*     deps *)
-(*     |> List.map ~f:filterDisj *)
-(*     |> List.filterNone *)
-(*   in *)
-
-(*   match opams with *)
-(*   | [] -> return None *)
-(*   | opams -> *)
-(*     let%bind pkgs = *)
-(*       let version = Package.Version.Source (Package.Source.LocalPath path) in *)
-(*       let f (name, opam, _) = *)
-(*         match%bind OpamManifest.toPackage ~name ~version opam with *)
-(*         | Ok pkg -> return pkg *)
-(*         | Error err -> error err *)
-(*       in *)
-(*       RunAsync.List.joinAll (List.map ~f opams) *)
-(*     in *)
-(*     let dependencies, devDependencies = *)
-(*       let f (dependencies, devDependencies) (pkg : Package.t) = *)
-(*         match pkg.dependencies, pkg.devDependencies with *)
-(*         | Package.Dependencies.OpamFormula du, Package.Dependencies.OpamFormula ddu -> *)
-(*           (filterFormulaWithNamesPresent du) @ dependencies, *)
-(*           (filterFormulaWithNamesPresent ddu) @ devDependencies *)
-(*         | _ -> assert false *)
-(*       in *)
-(*       List.fold_left ~f ~init:([], []) pkgs *)
-(*     in *)
-(*     let origin = *)
-(*       let f (_, _, paths) = paths in *)
-(*       let paths = List.map ~f opams in *)
-(*       match paths with *)
-(*       | [path] -> Opam path *)
-(*       | paths -> AggregatedOpam paths *)
-(*     in *)
-(*     return (Some (dependencies, devDependencies, origin)) *)
-
 let ocamlReqAny =
   let spec = Package.VersionSpec.Npm SemverVersion.Formula.any in
   Package.Req.ofSpec ~name:"ocaml" ~spec
 
-(* let ofDir ~cfg (path : Path.t) = *)
-(*   let open RunAsync.Syntax in *)
-(*   match%bind readPackageJsonManifest path with *)
-(*   | Some (manifest, resolutions, origin) -> *)
-
-(*     let reqs = *)
-(*       Package.NpmDependencies.override *)
-(*         manifest.PackageJson.dependencies *)
-(*         manifest.devDependencies *)
-(*     in *)
-
-(*     let ocamlReq = Package.NpmDependencies.find ~name:"ocaml" reqs in *)
-
-(*     let root = *)
-(*       let source = Package.Source.LocalPath path in *)
-(*       let version = Package.Version.Source source in *)
-(*       let name = Path.basename path in *)
-(*       PackageJson.toPackage ~name ~version ~source:(Package.Source source) manifest *)
-(*     in *)
-
-(*     return { *)
-(*       cfg; *)
-(*       path; *)
-(*       root; *)
-(*       resolutions; *)
-(*       ocamlReq; *)
-(*       dependencies = Package.Dependencies.NpmFormula reqs; *)
-(*       origin; *)
-(*       name = None; *)
-(*     } *)
-(*   | None -> *)
-(*     begin match%bind readAggregatedOpamManifest path with *)
-(*       | Some (dependencies, devDependencies, origin) -> *)
-
-(*         let root = { *)
-(*           Package. *)
-(*           name = "root"; *)
-(*           version = Package.Version.Source (Package.Source.LocalPath path); *)
-(*           originalVersion = None; *)
-(*           source = Package.Source (Package.Source.LocalPath path), []; *)
-(*           dependencies = Package.Dependencies.OpamFormula dependencies; *)
-(*           devDependencies = Package.Dependencies.OpamFormula devDependencies; *)
-(*           opam = None; *)
-(*           kind = Package.Esy; *)
-(*         } in *)
-
-(*         let dependencies = *)
-(*           Package.Dependencies.OpamFormula (dependencies @ devDependencies) *)
-(*         in *)
-
-(*         return { *)
-(*           cfg; *)
-(*           path; *)
-(*           root; *)
-(*           resolutions = Package.Resolutions.empty; *)
-(*           dependencies; *)
-(*           ocamlReq = Some ocamlReqAny; *)
-(*           origin; *)
-(*           name = None; *)
-(*         } *)
-(*       | None -> error "unable to find either package.json or opam files" *)
-(*     end *)
-
-let make ~cfg (sandbox : Project.sandbox) =
+let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
+
+  let%bind opams =
+
+    let readOpam (path : Path.t) =
+      let%bind data = Fs.readFile path in
+      if String.trim data = ""
+      then return None
+      else
+        let name = Path.(path |> remExt |> basename) in
+        let%bind manifest =
+          let version = OpamPackage.Version.of_string "dev" in
+          OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path
+        in
+        return (Some (name, manifest, path))
+    in
+
+    let%bind opams =
+      paths
+      |> List.map ~f:readOpam
+      |> RunAsync.List.joinAll
+    in
+
+    return (List.filterNone opams)
+  in
+
+  let namesPresent =
+    let f names (name, _, _) = StringSet.add ("@opam/" ^ name) names in
+    List.fold_left ~f ~init:StringSet.empty opams
+  in
+
+  let filterFormulaWithNamesPresent (deps : Package.Dep.t list list) =
+    let filterDep (dep : Package.Dep.t) = not (StringSet.mem dep.name namesPresent) in
+    let filterDisj deps =
+      match List.filter ~f:filterDep deps with
+      | [] -> None
+      | f -> Some f
+    in
+    deps
+    |> List.map ~f:filterDisj
+    |> List.filterNone
+  in
+
+  let source = Package.Source.LocalPath projectPath in
+  let version = Package.Version.Source source in
+
+  match opams with
+  | [] ->
+    let dependencies = Package.Dependencies.NpmFormula [] in
+    return {
+      cfg;
+      path = projectPath;
+      root = {
+        name = "empty";
+        version;
+        originalVersion = None;
+        source = Source source, [];
+        dependencies;
+        devDependencies = dependencies;
+        opam = None;
+        kind = Esy;
+      };
+      resolutions = Package.Resolutions.empty;
+      dependencies = Package.Dependencies.NpmFormula [];
+      ocamlReq = Some ocamlReqAny;
+      origin = Opam projectPath;
+      name = None;
+    }
+  | opams ->
+    let%bind pkgs =
+      let f (name, opam, _) =
+        match%bind OpamManifest.toPackage ~name ~version opam with
+        | Ok pkg -> return pkg
+        | Error err -> error err
+      in
+      RunAsync.List.joinAll (List.map ~f opams)
+    in
+    let dependencies, devDependencies =
+      let f (dependencies, devDependencies) (pkg : Package.t) =
+        match pkg.dependencies, pkg.devDependencies with
+        | Package.Dependencies.OpamFormula du, Package.Dependencies.OpamFormula ddu ->
+          (filterFormulaWithNamesPresent du) @ dependencies,
+          (filterFormulaWithNamesPresent ddu) @ devDependencies
+        | _ -> assert false
+      in
+      List.fold_left ~f ~init:([], []) pkgs
+    in
+    let origin =
+      let f (_, _, paths) = paths in
+      let paths = List.map ~f opams in
+      match paths with
+      | [path] -> Opam path
+      | paths -> AggregatedOpam paths
+    in
+    let root = {
+      Package.
+      name = "root";
+      version;
+      originalVersion = None;
+      source = Package.Source source, [];
+      dependencies = Package.Dependencies.OpamFormula dependencies;
+      devDependencies = Package.Dependencies.OpamFormula devDependencies;
+      opam = None;
+      kind = Package.Esy;
+    } in
+
+    let dependencies =
+      Package.Dependencies.OpamFormula (dependencies @ devDependencies)
+    in
+
+    return {
+      cfg;
+      path = projectPath;
+      root;
+      resolutions = Package.Resolutions.empty;
+      dependencies;
+      ocamlReq = Some ocamlReqAny;
+      origin;
+      name = None;
+    }
+
+let makeEsySandbox ?name ~cfg projectPath path =
+  let open RunAsync.Syntax in
+  let%bind json = Fs.readJsonFile path in
+
+  let%bind pkgJson = RunAsync.ofRun (
+    Json.parseJsonWith PackageJson.of_yojson json
+  ) in
+
+  let%bind resolutions = RunAsync.ofRun (
+    let open Run.Syntax in
+    let%bind data = Json.parseJsonWith PackageJsonWithResolutions.of_yojson json in
+    return data.PackageJsonWithResolutions.resolutions
+  ) in
+
+  let root =
+    let source = Package.Source.LocalPath projectPath in
+    let version = Package.Version.Source source in
+    let name = Path.basename projectPath in
+    PackageJson.toPackage ~name ~version ~source:(Package.Source source) pkgJson
+  in
+
+  let sandboxDependencies, ocamlReq =
+    match root.Package.dependencies with
+    | Package.Dependencies.OpamFormula _ ->
+      root.dependencies, Some ocamlReqAny
+    | Package.Dependencies.NpmFormula reqs ->
+      let reqs = Package.NpmDependencies.override reqs pkgJson.devDependencies in
+      Package.Dependencies.NpmFormula reqs,
+      Package.NpmDependencies.find ~name:"ocaml" reqs
+  in
+
+  return {
+    cfg;
+    path = projectPath;
+    root;
+    resolutions;
+    ocamlReq;
+    dependencies = sandboxDependencies;
+    origin = Esy path;
+    name;
+  }
+
+let make ~cfg projectPath (sandbox : Project.sandbox) =
   match sandbox with
-  | Project.Esy {path; name} ->
-    begin match%bind readPackageJsonManifest path with
-    | None -> error "oops"
-    | Some (manifest, resolutions, origin) ->
-
-      let root =
-        let source = Package.Source.LocalPath path in
-        let version = Package.Version.Source source in
-        let name = Path.basename path in
-        PackageJson.toPackage ~name ~version ~source:(Package.Source source) manifest
-      in
-
-      let sandboxDependencies, ocamlReq =
-        match root.Package.dependencies with
-        | Package.Dependencies.OpamFormula _ ->
-          root.dependencies, Some ocamlReqAny
-        | Package.Dependencies.NpmFormula reqs ->
-          let reqs = Package.NpmDependencies.override reqs manifest.devDependencies in
-          Package.Dependencies.NpmFormula reqs,
-          Package.NpmDependencies.find ~name:"ocaml" reqs
-      in
-
-      return {
-        cfg;
-        path = Path.parent path;
-        root;
-        resolutions;
-        ocamlReq;
-        dependencies = sandboxDependencies;
-        origin;
-        name;
-      }
-    end
-  | Project.Opam _ -> failwith "not implemented"
-  | Project.AggregatedOpam _ -> failwith "not implemented"
+  | Project.Esy {path; name} -> makeEsySandbox ?name ~cfg projectPath path
+  | Project.Opam { path } -> makeOpamSandbox ~cfg projectPath [path]
+  | Project.AggregatedOpam { paths } -> makeOpamSandbox ~cfg projectPath paths
 
 let lockfilePath sandbox =
   let filename =
