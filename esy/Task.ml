@@ -4,7 +4,7 @@
 
 type t = {
   id : string;
-  pkg : Sandbox.pkg;
+  pkg : Sandbox.Package.t;
 
   buildScope : Scope.t;
   exportedScope : Scope.t;
@@ -186,37 +186,37 @@ let ofSandbox
 
   let open Run.Syntax in
 
-  let rec allDependenciesOf (pkg : Sandbox.pkg) =
+  let rec allDependenciesOf (pkg : Sandbox.Package.t) =
 
     let addDependency ~direct dep =
       match dep with
-      | Sandbox.Dependency depPkg
-      | Sandbox.OptDependency depPkg ->
+      | Sandbox.Package.Dependency depPkg
+      | Sandbox.Package.OptDependency depPkg ->
         let%bind task = taskOfPackageCached depPkg in
         return (Some (Dependency task, depPkg))
-      | Sandbox.BuildTimeDependency depPkg ->
+      | Sandbox.Package.BuildTimeDependency depPkg ->
         if direct
         then
           let%bind task = taskOfPackageCached depPkg in
           return (Some (BuildTimeDependency task, depPkg))
         else return None
-      | Sandbox.DevDependency depPkg ->
+      | Sandbox.Package.DevDependency depPkg ->
         if direct
         then
           let%bind task = taskOfPackageCached depPkg in
           return (Some (DevDependency task, depPkg))
         else return None
-      | Sandbox.InvalidDependency { name; reason = `Missing; } ->
+      | Sandbox.Package.InvalidDependency { name; reason = `Missing; } ->
         Run.errorf "package %s is missing, run 'esy install' to fix that" name
-      | Sandbox.InvalidDependency { name; reason = `Reason reason; } ->
+      | Sandbox.Package.InvalidDependency { name; reason = `Reason reason; } ->
         Run.errorf "invalid package %s: %s" name reason
     in
 
     let rec aux ?(direct=true) (map, order) dep =
       let seenDep =
         let open Option.Syntax in
-        let%bind pkg = Sandbox.packageOf dep in
-        let%bind direct, task = Sandbox.PackageMap.find_opt pkg map in
+        let%bind pkg = Sandbox.Package.packageOf dep in
+        let%bind direct, task = Sandbox.Package.Map.find_opt pkg map in
         return (direct, task, pkg)
       in
       match direct, seenDep with
@@ -224,10 +224,10 @@ let ofSandbox
       | false, Some (true, _, _) -> return (map, order)
       | true, Some (true, _, _) -> return (map, order)
       | true, Some (false, deptask, pkg) ->
-        let map = Sandbox.PackageMap.add pkg (true, deptask) map in
+        let map = Sandbox.Package.Map.add pkg (true, deptask) map in
         return (map, order)
       | _, None ->
-        begin match Sandbox.packageOf dep with
+        begin match Sandbox.Package.packageOf dep with
         | None -> return (map, order)
         | Some depPkg ->
           let%bind (map, order) = Result.List.foldLeft
@@ -237,7 +237,7 @@ let ofSandbox
           in
           begin match%bind addDependency ~direct dep with
           | Some (deptask, pkg) ->
-            let map = Sandbox.PackageMap.add pkg (direct, deptask) map in
+            let map = Sandbox.Package.Map.add pkg (direct, deptask) map in
             let order = dep::order in
             return (map, order)
           | None ->
@@ -249,31 +249,31 @@ let ofSandbox
       let%bind map, order =
         Result.List.foldLeft
           ~f:(aux ~direct:true)
-          ~init:(Sandbox.PackageMap.empty, [])
+          ~init:(Sandbox.Package.Map.empty, [])
           pkg.dependencies
       in
       return (
         let f dep =
           let task =
             let open Option.Syntax in
-            let%bind pkg = Sandbox.packageOf dep in
-            let%bind direct, task = Sandbox.PackageMap.find_opt pkg map in
+            let%bind pkg = Sandbox.Package.packageOf dep in
+            let%bind direct, task = Sandbox.Package.Map.find_opt pkg map in
             return (direct, task)
           in
           match task with
           | Some v -> v
           | None ->
-            let msg = Format.asprintf "task wasn't found: %a" Sandbox.pp_dependency dep in
+            let msg = Format.asprintf "task wasn't found: %a" Sandbox.Package.pp_dependency dep in
             failwith msg
         in
         List.rev_map ~f order
       )
 
-  and taskOfPackage (pkg : Sandbox.pkg) =
+  and taskOfPackage (pkg : Sandbox.Package.t) =
 
     let ocamlVersion =
-      let f pkg = pkg.Sandbox.name = "ocaml" in
-      match Sandbox.PackageGraph.find ~f pkg with
+      let f pkg = pkg.Sandbox.Package.name = "ocaml" in
+      match Sandbox.Package.Graph.find ~f pkg with
       | Some pkg -> Some (toOCamlVersion pkg.version)
       | None -> None
     in
@@ -457,7 +457,7 @@ let ofSandbox
 
     return task
 
-  and taskOfPackageCached (pkg : Sandbox.pkg) =
+  and taskOfPackageCached (pkg : Sandbox.Package.t) =
     Run.contextf
       (Memoize.compute cache pkg.id (fun () -> taskOfPackage pkg))
       "processing package: %s@%s"

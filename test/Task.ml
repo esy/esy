@@ -40,7 +40,7 @@ module TestCommandExpr = struct
     let commands = List.map (List.map Sandbox.Value.toString) commands in
     commandsEqual commands expectation
 
-  let dep = Sandbox.{
+  let dep = Sandbox.Package.{
     id = "%dep%";
     name = "dep";
     version = "1.0.0";
@@ -71,11 +71,11 @@ module TestCommandExpr = struct
       ];
       buildEnv = [];
     };
-    sourcePath = Path.v "/path";
+    sourcePath = Sandbox.Path.v "/path";
     resolution = Some "ok";
   }
 
-  let pkg = Sandbox.{
+  let pkg = Sandbox.Package.{
     id = "%pkg%";
     name = "pkg";
     version = "1.0.0";
@@ -96,7 +96,7 @@ module TestCommandExpr = struct
       exportedEnv = [];
       buildEnv = [];
     };
-    sourcePath = Path.v "/path";
+    sourcePath = Sandbox.Path.v "/path";
     resolution = Some "ok";
   }
 
@@ -121,7 +121,7 @@ module TestCommandExpr = struct
     )
 
   let%test "#{...} inside esy.build / esy.install (depends on os)" =
-    let pkg = Sandbox.{
+    let pkg = Sandbox.Package.{
       pkg with
       build = {
         pkg.build with
@@ -214,7 +214,7 @@ let checkEnvExists ~name ~value task =
     (EsyLib.Environment.renderToList bindings)
 
   let%test "#{OCAMLPATH} depending on os" =
-    let dep = Sandbox.{
+    let dep = Sandbox.Package.{
       dep with
       build = {
         dep.build with
@@ -243,7 +243,7 @@ let checkEnvExists ~name ~value task =
         ];
       };
     } in
-    let pkg = Sandbox.{
+    let pkg = Sandbox.Package.{
       pkg with
       dependencies = [Dependency dep];
     } in

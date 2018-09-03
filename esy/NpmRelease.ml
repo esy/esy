@@ -178,11 +178,11 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
       let pkg = sandbox.Sandbox.root in
       let sandbox =
         let root = {
-          Sandbox.
+          Sandbox.Package.
           id = "__release_env__";
           name = "release-env";
           version = pkg.version;
-          dependencies = [Sandbox.Dependency pkg];
+          dependencies = [Sandbox.Package.Dependency pkg];
           build = {
             Manifest.Build.
             sourceType = Manifest.SourceType.Transient;

@@ -2,45 +2,52 @@
  * This represents sandbox.
  *)
 
+module Package : sig
+  type t = {
+    id : string;
+    name : string;
+    version : string;
+    dependencies : dependencies;
+    build : Manifest.Build.t;
+    sourcePath : EsyBuildPackage.Config.Path.t;
+    resolution : string option;
+  }
+
+  and dependencies =
+    dependency list
+
+  and dependency =
+    | Dependency of t
+    | OptDependency of t
+    | DevDependency of t
+    | BuildTimeDependency of t
+    | InvalidDependency of {
+      name: string;
+      reason: [ | `Reason of string | `Missing ];
+    }
+
+  val packageOf : dependency -> t option
+
+  val pp : t Fmt.t
+  val compare : t -> t -> int
+
+  val pp_dependency : dependency Fmt.t
+  val compare_dependency : dependency -> dependency -> int
+
+  module Graph : DependencyGraph.DependencyGraph
+    with type node = t
+    and type dependency := dependency
+
+  module Map : Map.S with type key = t
+end
+
 type t = {
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
-  root : pkg;
+  root : Package.t;
   scripts : Manifest.Scripts.t;
   env : Manifest.Env.t;
 }
-
-and pkg = {
-  id : string;
-  name : string;
-  version : string;
-  dependencies : dependencies;
-  build : Manifest.Build.t;
-  sourcePath : EsyBuildPackage.Config.Path.t;
-  resolution : string option;
-}
-
-and dependencies =
-  dependency list
-
-and dependency =
-  | Dependency of pkg
-  | OptDependency of pkg
-  | DevDependency of pkg
-  | BuildTimeDependency of pkg
-  | InvalidDependency of {
-    name: string;
-    reason: [ | `Reason of string | `Missing ];
-  }
-
-val pp_dependency : dependency Fmt.t
-val packageOf : dependency -> pkg option
-
-module PackageGraph : DependencyGraph.DependencyGraph
-  with type node = pkg
-  and type dependency := dependency
-
-module PackageMap : Map.S with type key = pkg
 
 type info = (Path.t * float) list
 

@@ -13,7 +13,7 @@ type dependency =
 val pp_dependency : dependency Fmt.t
 
 val id : t -> string
-val pkg : t -> Sandbox.pkg
+val pkg : t -> Sandbox.Package.t
 val plan : t -> EsyBuildPackage.Plan.t
 
 val storePath : t -> Sandbox.Path.t

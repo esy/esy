@@ -57,14 +57,17 @@ module SandboxInfo = struct
         ) in
         let%bind () =
           let filename = Path.(sandboxBin / "command-env") in
-          writeData filename commandEnv in
+          writeData filename commandEnv
+        in
         let%bind () =
           let filename = Path.(sandboxBin / "command-exec") in
           let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
           let%bind () = writeData filename commandExec in
           let%bind () = Fs.chmod 0o755 filename in
+
           return ()
-        in return ()
+        in
+        return ()
 
       in
 
@@ -742,7 +745,7 @@ let makeEnvCommand ~computeEnv ~header {CommonOptions. cfg; project; sandbox; _}
 
 let buildEnv =
   let open Run.Syntax in
-  let header (pkg : Sandbox.pkg) =
+  let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
   in
   let computeEnv (info : SandboxInfo.t) =
@@ -754,7 +757,7 @@ let buildEnv =
 
 let commandEnv =
   let open Run.Syntax in
-  let header (pkg : Sandbox.pkg) =
+  let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
   let computeEnv (info : SandboxInfo.t) =
@@ -766,7 +769,7 @@ let commandEnv =
 
 let sandboxEnv =
   let open Run.Syntax in
-  let header (pkg : Sandbox.pkg) =
+  let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
   let computeEnv (info : SandboxInfo.t) =

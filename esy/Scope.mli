@@ -6,7 +6,7 @@ val make :
   -> id:string
   -> sourceType:Manifest.SourceType.t
   -> buildIsInProgress:bool
-  -> Sandbox.pkg
+  -> Sandbox.Package.t
   -> t
 (** An initial scope for the package. *)
 

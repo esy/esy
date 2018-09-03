@@ -6,7 +6,7 @@ module PackageScope : sig
     id:string
     -> sourceType:Manifest.SourceType.t
     -> buildIsInProgress:bool
-    -> Sandbox.pkg
+    -> Sandbox.Package.t
     -> t
 
   val id : t -> string
@@ -33,14 +33,14 @@ module PackageScope : sig
 end = struct
   type t = {
     id: string;
-    pkg : Sandbox.pkg;
+    pkg : Sandbox.Package.t;
     sourceType : Manifest.SourceType.t;
     buildIsInProgress : bool;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;
   }
 
-  let make ~id ~sourceType ~buildIsInProgress (pkg : Sandbox.pkg) =
+  let make ~id ~sourceType ~buildIsInProgress (pkg : Sandbox.Package.t) =
     let exportedEnvGlobal, exportedEnvLocal =
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
