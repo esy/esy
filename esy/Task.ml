@@ -176,11 +176,6 @@ let renderExpression ~sandbox ~task expr =
   let expr = Sandbox.Value.render sandbox.Sandbox.buildConfig expr in
   return expr
 
-module DependencySet = Set.Make(struct
-  type t = dependency
-  let compare = compare_dependency
-end)
-
 let ofSandbox
     ?(forceImmutable=false)
     ?(platform=System.Platform.host)
