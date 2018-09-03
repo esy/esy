@@ -1,5 +1,7 @@
 open Esy
 
+let sandboxRef = ref None
+
 module SandboxInfo = struct
   type t = {
     sandbox : Sandbox.t;
@@ -391,15 +393,6 @@ module CommonOptions = struct
       & info ["project-path"] ~env ~docs ~doc
     )
 
-  let sandbox =
-    let doc = "Specifies esy sandbox." in
-    let env = Arg.env_var "ESY__SANDBOX" ~doc in
-    Arg.(
-      value
-      & opt (some string) None
-      & info ["sandbox"; "s"] ~env ~docs ~doc
-    )
-
   let opamRepositoryArg =
     let doc = "Specifies an opam repository to use." in
     let docv = "REMOTE[:LOCAL]" in
@@ -489,7 +482,6 @@ module CommonOptions = struct
     let parse
       prefixPath
       projectPath
-      sandbox
       cachePath
       cacheTarballsPath
       opamRepository
@@ -572,11 +564,11 @@ module CommonOptions = struct
               ()
           in
           Project.initByName
-            ?name:sandbox
+            ?name:!sandboxRef
             ~init:(Sandbox.make ~cfg)
             project
         in
-        return {sandbox; project; cfg; installSandbox;}
+        return {sandbox = !sandboxRef; project; cfg; installSandbox;}
       in
       match Lwt_main.run copts with
       | Ok v -> `Ok v
@@ -586,7 +578,6 @@ module CommonOptions = struct
       const parse
       $ prefixPath
       $ projectPath
-      $ sandbox
       $ cachePathArg
       $ cacheTarballsPath
       $ opamRepositoryArg
@@ -1743,16 +1734,30 @@ let () =
     Term.(exit @@ eval_choice ~argv defaultCommand commands);
   in
 
-  let commandName =
-    let open Option.Syntax in
-    let%bind commandName =
-      try Some Sys.argv.(1)
-      with Invalid_argument _ -> None
+  let argv, commandName, sandbox =
+    let argv = Array.to_list Sys.argv in
+
+    let sandbox, argv =
+      match argv with
+      | [] -> None, argv
+      | prg::elem::rest when String.get elem 0 = '@' ->
+        let sandbox = String.sub elem 1 (String.length elem - 1) in
+        Some sandbox, prg::rest
+      | _ -> None, argv
     in
-    if String.get commandName 0 = '-'
-    then None
-    else Some commandName
+
+    let commandName, argv =
+      match argv with
+      | [] -> None, argv
+      | _prg::elem::_rest when String.get elem 0 = '-' -> None, argv
+      | _prg::elem::_rest -> Some elem, argv
+      | _ -> None, argv
+    in
+
+    Array.of_list argv, commandName, sandbox
   in
+
+  sandboxRef := sandbox;
 
   match commandName with
 
@@ -1768,7 +1773,7 @@ let () =
   | Some "b"
   | Some "build" ->
     let argv =
-      match Array.to_list Sys.argv with
+      match Array.to_list argv with
       | (_prg::_command::"--help"::[]) as argv -> argv
       | prg::command::rest -> prg::command::"--"::rest
       | argv -> argv
@@ -1777,7 +1782,7 @@ let () =
     runCmdliner argv
 
   | Some "" ->
-    runCmdliner Sys.argv
+    runCmdliner argv
 
   (*
    * Fix
@@ -1788,10 +1793,10 @@ let () =
    *)
   | Some commandName ->
     if hasCommand commandName
-    then runCmdliner Sys.argv
+    then runCmdliner argv
     else
       let argv =
-        match Array.to_list Sys.argv with
+        match Array.to_list argv with
         | prg::rest -> prg::"--"::rest
         | argv -> argv
       in
@@ -1799,4 +1804,4 @@ let () =
       runCmdliner argv
 
   | _ ->
-    runCmdliner Sys.argv
+    runCmdliner argv
