@@ -31,6 +31,7 @@ let makeSandbox pkg =
     scripts = Manifest.Scripts.empty;
     env = Manifest.Env.empty;
     root = pkg;
+    name = None;
   }
 
 module TestCommandExpr = struct
@@ -167,7 +168,7 @@ module TestCommandExpr = struct
 
   let%test "#{...} inside esy.exportedEnv" =
     check (makeSandbox pkg) (fun task ->
-      let [Task.Dependency dep] =
+      let [Task.Dependency, dep] =
         Task.dependencies task
         [@@ocaml.warning "-8"]
       in
