@@ -195,19 +195,18 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       (dependencies : string list list)
       (prevDependencies : Package.dependency StringMap.t) =
 
-      let rec tryResolve names =
-        match names with
-        | [] -> Lwt.return_ok ("ignore", `Ignored)
-        | name::[] ->
-          resolve ~ignoreCircularDep ~packagesPath name
-        | name::names ->
-          begin match%lwt resolve ~ignoreCircularDep ~packagesPath name with
-          | Ok (_, `Unresolved) -> tryResolve names
-          | res -> Lwt.return res
-          end
-      in
-
       let%lwt dependencies =
+        let rec tryResolve names =
+          match names with
+          | [] -> Lwt.return_ok ("ignore", `Ignored)
+          | name::[] ->
+            resolve ~ignoreCircularDep ~packagesPath name
+          | name::names ->
+            begin match%lwt resolve ~ignoreCircularDep ~packagesPath name with
+            | Ok (_, `Unresolved) -> tryResolve names
+            | res -> Lwt.return res
+            end
+        in
         Lwt_list.map_s tryResolve dependencies
       in
 
@@ -326,9 +325,8 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         return (`Package dependencies)
     in
 
-    let pathToEsyLink = Path.(path / "_esylink") in
-
     let%bind sourcePath =
+      let pathToEsyLink = Path.(path / "_esylink") in
       if%bind Fs.exists pathToEsyLink
       then
         let%bind path = Fs.readFile pathToEsyLink in
@@ -345,7 +343,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         return (Some m, Path.(projectPath / "_esy" / sandboxTree))
       else
         let%bind m = Manifest.ofDir sourcePath in
-        return (m, sourcePath)
+        return (m, path)
     in
     match manifest with
     | Some (manifest, pathSet) ->
