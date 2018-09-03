@@ -26,14 +26,14 @@ async function crawlDependencies(nodeModulesPath) {
           const items = await fsUtils.readdir(scopedNodeModulesPath);
           for (const name of items) {
             const depDirectory = path.join(scopedNodeModulesPath, name);
-            const dep = await crawl(depDirectory);
+            const dep = await crawlPackage(depDirectory);
             if (dep != null) {
               dependencies[dep.name] = dep;
             }
           }
         } else {
           const depDirectory = path.join(nodeModulesPath, name);
-          const dep = await crawl(depDirectory);
+          const dep = await crawlPackage(depDirectory);
           if (dep != null) {
             dependencies[dep.name] = dep;
           }
@@ -44,9 +44,14 @@ async function crawlDependencies(nodeModulesPath) {
   return dependencies;
 }
 
-async function crawl(directory: string): Promise<?Package> {
+async function crawlPackage(
+  directory: string,
+  nodeModulesPath?: string,
+): Promise<?Package> {
   const esyLinkPath = path.join(directory, '_esylink');
-  const nodeModulesPath = path.join(directory, 'node_modules');
+  if (nodeModulesPath == null) {
+    nodeModulesPath = path.join(directory, 'node_modules');
+  }
 
   let packageJsonPath;
   let opamPath;
@@ -70,7 +75,6 @@ async function crawl(directory: string): Promise<?Package> {
       dependencies,
     };
   } else if (await fsUtils.exists(opamPath)) {
-    console.log('x');
     const dependencies = await crawlDependencies(nodeModulesPath);
     return {
       name: path.basename(directory),
@@ -81,6 +85,10 @@ async function crawl(directory: string): Promise<?Package> {
   } else {
     return null;
   }
+}
+
+function crawl(directory: string) {
+  return crawlPackage(directory, path.join(directory, '_esy', 'default', 'node_modules'));
 }
 
 module.exports = {crawl};
