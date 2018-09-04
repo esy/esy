@@ -534,10 +534,10 @@ module CommonOptions = struct
           let createProgressReporter ~name () =
             let progress msg =
               let status = Format.asprintf ".... %s %s" name msg in
-              Cli.Progress.setStatus status
+              Cli.ProgressReporter.setStatus status
             in
             let finish () =
-              let%lwt () = Cli.Progress.clearStatus () in
+              let%lwt () = Cli.ProgressReporter.clearStatus () in
               Logs_lwt.app (fun m -> m "%s: done" name)
             in
             (progress, finish)

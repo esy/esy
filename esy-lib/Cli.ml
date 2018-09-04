@@ -4,85 +4,68 @@ let isCi =
   | None -> false
 
 module ProgressReporter : sig
-  type t
-  val make : unit -> t
-  val status : t -> string
-  val setStatus : string -> t -> unit Lwt.t
-  val clearStatus : t -> unit Lwt.t
+  val status : unit -> string option
+  val setStatus : string -> unit Lwt.t
+  val clearStatus : unit -> unit Lwt.t
 end = struct
 
   type t = {
-    mutable status : string;
+    mutable status : string option;
     statusLock : Lwt_mutex.t;
     enabled : bool;
   }
 
-  let make () =
-    let enabled = (not isCi) && Unix.isatty Unix.stderr in
-    {status = ""; statusLock = Lwt_mutex.create (); enabled}
+  let reporter =
+    let isatty = Unix.isatty Unix.stderr in
+    let enabled = (not isCi) && isatty in
+    {
+      status = None;
+      statusLock = Lwt_mutex.create ();
+      enabled;
+    }
 
   let hide s =
-    let len = String.length s in
-    if len > 0
-    then
-      let s = Printf.sprintf "\r%*s\r" len "" in
-      Lwt_io.write Lwt_io.stderr s
-    else
-      Lwt.return ()
+    match s with
+    | None -> Lwt.return ()
+    | Some s ->
+      let len = String.length s in
+      if len > 0
+      then
+        let s = Printf.sprintf "\r%*s\r" len "" in
+        Lwt_io.write Lwt_io.stderr s
+      else
+        Lwt.return ()
 
   let show s =
-    Lwt_io.write Lwt_io.stderr s
+    match s with
+    | Some s -> Lwt_io.write Lwt_io.stderr s
+    | None -> Lwt.return ()
 
-  let status r =
-    r.status
+  let status () =
+    reporter.status
 
-  let clearStatus r =
-    if r.enabled
+  let setStatus status =
+    if reporter.enabled
     then
-      Lwt_mutex.with_lock r.statusLock begin fun () ->
-        hide r.status;%lwt
+      Lwt_mutex.with_lock reporter.statusLock begin fun () ->
+        hide reporter.status;%lwt
+        reporter.status <- Some status;
+        show reporter.status;%lwt
         Lwt_io.flush Lwt_io.stderr;%lwt
-        r.status <- "";
         Lwt.return ()
       end
     else Lwt.return ()
 
-  let setStatus status r =
-    if r.enabled
+  let clearStatus () =
+    if reporter.enabled
     then
-      Lwt_mutex.with_lock r.statusLock begin fun () ->
-        hide r.status;%lwt
-        r.status <- status;
-        show r.status
+      Lwt_mutex.with_lock reporter.statusLock begin fun () ->
+        hide reporter.status;%lwt
+        Lwt_io.flush Lwt_io.stderr;%lwt
+        reporter.status <- None;
+        Lwt.return ()
       end
     else Lwt.return ()
-end
-
-module Progress = struct
-  let reporter = ref None
-
-  let init () =
-    reporter := Some (ProgressReporter.make ())
-
-  let finish () =
-    match !reporter with
-    | None -> ()
-    | Some reporter -> Lwt_main.run (ProgressReporter.clearStatus reporter)
-
-  let setStatus status =
-    match !reporter with
-    | None -> Lwt.return ()
-    | Some reporter -> ProgressReporter.setStatus status reporter
-
-  let clearStatus () =
-    match !reporter with
-    | None -> Lwt.return ()
-    | Some reporter -> ProgressReporter.clearStatus reporter
-
-  let status () =
-    match !reporter with
-    | None -> ""
-    | Some reporter -> ProgressReporter.status reporter
 end
 
 let pathConv =
@@ -159,30 +142,43 @@ let setupLogTerm =
       Fmt.with_buffer ~like b,
       fun () -> let m = Buffer.contents b in Buffer.reset b; m
     in
+    let mutex = Lwt_mutex.create () in
     let app, app_flush = buf_fmt ~like:Fmt.stdout in
     let dst, dst_flush = buf_fmt ~like:Fmt.stderr in
     let reporter = Logs_fmt.reporter ~pp_header ~app ~dst () in
-    let withPreserveStatus f =
-      let status = Progress.status () in
-      let%lwt () = Progress.clearStatus () in
-      let%lwt () = f () in
-      let%lwt () = Progress.setStatus status in
-      Lwt.return ()
-    in
     let report src level ~over k msgf =
       let k () =
         let write () =
           let%lwt () =
-            withPreserveStatus begin fun () ->
-              match level with
-              | Logs.App -> Lwt_io.write Lwt_io.stdout (app_flush ())
-              | _ -> Lwt_io.write Lwt_io.stderr (dst_flush ())
-            end
+            match level with
+            | Logs.App ->
+              let msg = app_flush () in
+              Lwt_io.write Lwt_io.stdout msg;%lwt
+              Lwt_io.flush Lwt_io.stdout;%lwt
+              Lwt.return ()
+            | _ ->
+              let msg = dst_flush () in
+              Lwt_io.write Lwt_io.stderr msg;%lwt
+              Lwt_io.flush Lwt_io.stderr;%lwt
+              Lwt.return ()
           in
           Lwt.return ()
         in
+        let writeAndPreserveProgress () =
+          Lwt_mutex.with_lock mutex begin fun () ->
+            match ProgressReporter.status () with
+            | None ->
+              write ();%lwt
+              Lwt.return ()
+            | Some status ->
+              ProgressReporter.clearStatus ();%lwt
+              write ();%lwt
+              ProgressReporter.setStatus status;%lwt
+              Lwt.return ()
+          end
+        in
         let unblock () = over (); Lwt.return_unit in
-        Lwt.finalize write unblock |> Lwt.ignore_result;
+        Lwt.finalize writeAndPreserveProgress unblock |> Lwt.ignore_result;
         k ()
       in
       reporter.Logs.report src level ~over:(fun () -> ()) k msgf;
@@ -197,7 +193,6 @@ let setupLogTerm =
     Fmt_tty.setup_std_outputs ~style_renderer ();
     Logs.set_level level;
     Logs.set_reporter (lwt_reporter ());
-    Progress.init ()
   in
   let open Cmdliner in
   Term.(
@@ -207,5 +202,5 @@ let setupLogTerm =
 
 let eval ?(argv=Sys.argv) ~defaultCommand ~commands () =
   let result = Cmdliner.Term.eval_choice ~argv defaultCommand commands in
-  Lwt_main.run (Progress.clearStatus ());
+  Lwt_main.run (ProgressReporter.clearStatus ());
   result
