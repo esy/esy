@@ -265,9 +265,7 @@ module LockfileV1 = struct
             Fmt.pf fmt "%a" Package.SourceSpec.pp src
         in
         let ppReq fmt req =
-          let name = Package.Req.name req in
-          let spec = Package.Req.spec req in
-          Fmt.fmt "%s@%a" fmt name ppVersionSpec spec
+          Fmt.fmt "%s@%a" fmt req.Package.Req.name ppVersionSpec req.spec
         in
         Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
       in

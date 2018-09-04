@@ -22,7 +22,7 @@ end
 
 let ocamlReqAny =
   let spec = Package.VersionSpec.Npm SemverVersion.Formula.any in
-  Package.Req.ofSpec ~name:"ocaml" ~spec
+  Package.Req.make ~name:"ocaml" ~spec
 
 let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in

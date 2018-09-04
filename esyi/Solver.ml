@@ -342,7 +342,7 @@ let add ~(dependencies : Dependencies.t) solver =
 
     return (
       match spec with
-      | Some spec -> Req.ofSpec ~name:req.name ~spec
+      | Some spec -> Req.make ~name:req.name ~spec
       | None -> req
     )
   in
@@ -703,7 +703,7 @@ let solve (sandbox : Sandbox.t) =
         match ocamlVersion, sandbox.dependencies with
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
           let ocamlSpec = Package.VersionSpec.ofVersion ocamlVersion in
-          let ocamlReq = Req.ofSpec ~name:"ocaml" ~spec:ocamlSpec in
+          let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
           let reqs = Package.NpmDependencies.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->

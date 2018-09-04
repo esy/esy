@@ -5,11 +5,13 @@
                   ppx_deriving.std
                   ppx_deriving_yojson
                   ppxlib
+                  ppx_tyre
                   ppx_inline_test))
   (inline_tests)
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
             EsyLib
+            tyre
             str
             cudf
             ppx_deriving_yojson.runtime
