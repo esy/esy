@@ -75,6 +75,9 @@ module VersionSpec : sig
   val toString : t -> string
   val to_yojson : t -> [> `String of string ]
 
+  val parseAsNpm : string -> (t, string) result
+  val parseAsOpam : string -> (t, string) result
+
   val matches : version:Version.t -> t -> bool
   val ofVersion : Version.t -> t
 end
@@ -85,13 +88,11 @@ module Req : sig
   val pp : Format.formatter -> t -> unit
 
   val toString : t -> string
-  val to_yojson : t -> [> `String of string ]
+  val to_yojson : t Json.encoder
 
-  val make : name:string -> spec:string -> (t, string) result
-  val ofSpec : name:string -> spec:VersionSpec.t -> t
+  val parse : string -> (t, string) result
 
-  val name : t -> string
-  val spec : t -> VersionSpec.t
+  val make : name:string -> spec:VersionSpec.t -> t
 
   val matches : name:string -> version:Version.t -> t -> bool
 end

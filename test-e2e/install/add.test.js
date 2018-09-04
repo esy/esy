@@ -48,6 +48,48 @@ describe('adding dependencies', function() {
     expect(packageJson.dependencies['new-dep']).toEqual('^2.0.0');
   });
 
+  test(`simply add a new dep with constraint`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {},
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage({
+      name: 'new-dep',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {},
+    });
+    await p.defineNpmPackage({
+      name: 'new-dep',
+      version: '2.0.0',
+      esy: {},
+      dependencies: {},
+    });
+
+    await p.esy(`add new-dep@^1.0.0`);
+
+    await expect(helpers.crawlLayout(p.projectPath)).resolves.toMatchObject({
+      dependencies: {
+        'new-dep': {
+          name: 'new-dep',
+          version: '1.0.0',
+        },
+      },
+    });
+
+    const packageJsonData = await helpers.readFile(
+      path.join(p.projectPath, 'package.json'),
+      'utf8',
+    );
+    const packageJson = JSON.parse(packageJsonData);
+    expect(packageJson.dependencies['new-dep']).toEqual('^1.0.0');
+  });
+
   test(`adding multiple deps`, async () => {
     const fixture = [
       helpers.packageJson({

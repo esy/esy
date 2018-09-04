@@ -5,8 +5,22 @@ type 'a disj = 'a list [@@deriving eq]
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list [@@deriving eq]
 
-module Parse = struct
-  let cutWith sep v =
+module AdHocParse : sig
+  type 'a t = string -> ('a, string) result
+
+  val (or) : 'a t -> 'a t -> 'a t
+
+  val cut : sep:string -> string -> (string * string, string) result
+
+end = struct
+  type 'a t = string -> ('a, string) result
+
+  let (or) a b s =
+    match a s with
+    | Ok v -> Ok v
+    | Error _ -> b s
+
+  let cut ~sep v =
     match String.cut ~sep v with
     | Some (l, r) -> Ok (l, r)
     | None -> Error ("missing " ^ sep)
@@ -37,16 +51,16 @@ module Source = struct
 
   let parse v =
     let open Result.Syntax in
-    match%bind Parse.cutWith ":" v with
+    match%bind AdHocParse.cut ~sep:":" v with
     | "github", v ->
-      let%bind user, v = Parse.cutWith "/" v in
-      let%bind repo, commit = Parse.cutWith "#" v in
+      let%bind user, v = AdHocParse.cut ~sep:"/" v in
+      let%bind repo, commit = AdHocParse.cut ~sep:"#" v in
       return (Github {user; repo; commit})
     | "git", v ->
-      let%bind remote, commit = Parse.cutWith "#" v in
+      let%bind remote, commit = AdHocParse.cut ~sep:"#" v in
       return (Git {remote; commit})
     | "archive", v ->
-      let%bind url, checksum = Parse.cutWith "#" v in
+      let%bind url, checksum = AdHocParse.cut ~sep:"#" v in
       let%bind checksum = Checksum.parse checksum in
       return (Archive {url; checksum})
     | "no-source", "" ->
@@ -100,7 +114,7 @@ module Version = struct
 
   let parse ?(tryAsOpam=false) v =
     let open Result.Syntax in
-    match tryAsOpam, Parse.cutWith ":" v with
+    match tryAsOpam, AdHocParse.cut ~sep:":" v with
     | false, Error _ ->
       let%bind v = SemverVersion.Version.parse v in
       return (Npm v)
@@ -322,6 +336,148 @@ module VersionSpec = struct
     | Version.Source src ->
       let srcSpec = SourceSpec.ofSource src in
       Source srcSpec
+
+  module Parse = struct
+
+    let parseRef spec =
+      match String.cut ~sep:"#" spec with
+      | None -> spec, None
+      | Some (spec, "") -> spec, None
+      | Some (spec, ref) -> spec, Some ref
+
+    let parseChecksum spec =
+      let open Result.Syntax in
+      match parseRef spec with
+      | spec, None -> return (spec, None)
+      | spec, Some checksum ->
+        let%bind checksum = Checksum.parse checksum in
+        return (spec, Some checksum)
+
+    let github text =
+
+      let normalizeGithubRepo repo =
+        match String.cut ~sep:".git" repo with
+        | Some (repo, "") -> repo
+        | Some _ -> repo
+        | None -> repo
+      in
+
+      let parts = Str.split (Str.regexp_string "/") text in
+      match parts with
+      | user::rest::[] ->
+        let repo, ref = parseRef rest in
+        Ok (Source (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref}))
+      | _ -> Error "not a github source"
+
+    let protoRe =
+      let open Re in
+      let proto = alt [
+        str "file:";
+        str "https:";
+        str "http:";
+        str "git:";
+        str "npm:";
+        str "link:";
+        str "git+";
+      ] in
+      compile (seq [bos; group proto; group (rep any); eos])
+
+    let parseProto v =
+      match Re.exec_opt protoRe v with
+      | Some m ->
+        let proto = Re.Group.get m 1 in
+        let body = Re.Group.get m 2 in
+        Some (proto, body)
+      | None -> None
+
+    let sourceWithProto v =
+      let open Result.Syntax in
+      match parseProto v with
+      | Some ("link:", path) ->
+        let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+        let spec = SourceSpec.LocalPathLink path in
+        return (Source spec)
+      | Some ("file:", path) ->
+        let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+        let spec = SourceSpec.LocalPath path in
+        return (Source spec)
+      | Some ("https:", _)
+      | Some ("http:", _) ->
+        let%bind url, checksum = parseChecksum v in
+        let spec = SourceSpec.Archive {url; checksum} in
+        return (Source spec)
+      | Some ("git+", v) ->
+        let remote, ref = parseRef v in
+        let spec = SourceSpec.Git {remote;ref;} in
+        return (Source spec)
+      | Some ("git:", _) ->
+        let remote, ref = parseRef v in
+        let spec = SourceSpec.Git {remote;ref;} in
+        return (Source spec)
+      | Some ("npm:", v) ->
+        begin match String.cut ~rev:true ~sep:"@" v with
+        | None ->
+          let%bind v = SemverVersion.Formula.parse v in
+          return (Npm v)
+        | Some (_, v) ->
+          let%bind v = SemverVersion.Formula.parse v in
+          return (Npm v)
+        end
+      | Some _
+      | None -> Error "unknown proto"
+
+    let path spec =
+      if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
+      then Ok (Source (SourceSpec.LocalPath (Path.v spec)))
+      else Error "not a path"
+
+    let opamConstraint spec =
+      match OpamPackageVersion.Formula.parse spec with
+      | Ok v -> Ok (Opam v)
+      | Error err -> Error err
+
+    let npmDistTag spec =
+      let isNpmDistTag v =
+        (* npm dist tags can be any strings which cannot be npm version ranges,
+          * this is a simplified check for that. *)
+        match v.[0] with
+        | 'v' -> false
+        | '0'..'9' -> false
+        | _ -> true
+      in
+      if isNpmDistTag spec
+      then Ok (NpmDistTag (spec, None))
+      else Error "not an npm dist-tag"
+
+    let npmAnyConstraint spec =
+      Logs.warn (fun m -> m "error parsing version: %s" spec);
+      Ok (Npm [[SemverVersion.Constraint.ANY]])
+
+    let npmConstraint spec =
+      match SemverVersion.Formula.parse spec with
+      | Ok v -> Ok (Npm v)
+      | Error err -> Error err
+
+    let opamComplete = AdHocParse.(
+      path
+      or sourceWithProto
+      or github
+      or opamConstraint
+    )
+
+    let npmComplete = AdHocParse.(
+      path
+      or sourceWithProto
+      or github
+      or npmConstraint
+      or npmDistTag
+      or npmAnyConstraint
+    )
+  end
+
+  let parseAsNpm = Parse.npmComplete
+  let parseAsOpam = Parse.opamComplete
+
 end
 
 module Req = struct
@@ -347,227 +503,290 @@ module Req = struct
   let matches ~name ~version req =
     name = req.name && VersionSpec.matches ~version req.spec
 
-  let parseRef spec =
-    match String.cut ~sep:"#" spec with
-    | None -> spec, None
-    | Some (spec, "") -> spec, None
-    | Some (spec, ref) -> spec, Some ref
-
-  let parseChecksum spec =
+  let parse =
+    let name = Tyre.pcre {|[^@]+|} in
+    let opamscope = Tyre.(str "@opam/" *> name) in
+    let npmscope = Tyre.(seq (str "@" *> name) (str "/" *> name)) in
+    let spec = Tyre.(str "@" *> pcre ".*") in
+    let opamWithSpec = Tyre.(start *> seq opamscope spec <* stop) in
+    let opamWithoutSpec = Tyre.(start *> opamscope <* stop) in
+    let npmScopeWithSpec = Tyre.(start *> seq npmscope spec <* stop) in
+    let npmScopeWithoutSpec = Tyre.(start *> npmscope <* stop) in
+    let npmWithSpec = Tyre.(start *> seq name spec <* stop) in
+    let npmWithoutSpec = Tyre.(start *> name <* stop) in
     let open Result.Syntax in
-    match parseRef spec with
-    | spec, None -> return (spec, None)
-    | spec, Some checksum ->
-      let%bind checksum = Checksum.parse checksum in
-      return (spec, Some checksum)
-
-  let tryParseGitHubSpec text =
-
-    let normalizeGithubRepo repo =
-      match String.cut ~sep:".git" repo with
-      | Some (repo, "") -> repo
-      | Some _ -> repo
-      | None -> repo
+    let re = Tyre.(route [
+      (opamWithSpec --> function
+        | opamname, "" ->
+          let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
+          return {name = "@opam/" ^ opamname; spec};
+        | opamname, spec ->
+          let%bind spec = VersionSpec.parseAsOpam spec in
+          return {name = "@opam/" ^ opamname; spec});
+      (npmScopeWithSpec --> function
+        | (scope, name), "" ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name = "@" ^ scope ^ "/" ^ name; spec};
+        | (scope, name), spec ->
+          let%bind spec = VersionSpec.parseAsNpm spec in
+          return {name = "@" ^ scope ^ "/" ^ name; spec});
+      (npmWithSpec --> function
+        | name, "" ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name; spec};
+        | name, spec ->
+          let%bind spec = VersionSpec.parseAsNpm spec in
+          return {name; spec});
+      (opamWithoutSpec --> fun opamname ->
+          let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
+          return {name = "@opam/" ^ opamname; spec});
+      (npmScopeWithoutSpec --> function
+        | (scope, name) ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name = "@" ^ scope ^ "/" ^ name; spec});
+      (npmWithoutSpec --> function
+        | name ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name; spec});
+    ]) in
+    let parse spec =
+      match Tyre.exec re spec with
+      | Ok (Ok v) -> Ok v
+      | Ok (Error err) -> Error err
+      | Error (`ConverterFailure _) -> Error "error parsing"
+      | Error (`NoMatch _) -> Error "error parsing"
     in
-
-    let parts = Str.split (Str.regexp_string "/") text in
-    match parts with
-    | user::rest::[] ->
-      let repo, ref = parseRef rest in
-      Some (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref})
-    | _ -> None
-
-  let protoRe =
-    let open Re in
-    let proto = alt [
-      str "file:";
-      str "https:";
-      str "http:";
-      str "git:";
-      str "npm:";
-      str "link:";
-      str "git+";
-    ] in
-    compile (seq [bos; group proto; group (rep any); eos])
-
-  let parseProto v =
-    match Re.exec_opt protoRe v with
-    | Some m ->
-      let proto = Re.Group.get m 1 in
-      let body = Re.Group.get m 2 in
-      Some (proto, body)
-    | None -> None
-
-  let tryParseProto v =
-    let open Result.Syntax in
-    match parseProto v with
-    | Some ("link:", path) ->
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let spec = SourceSpec.LocalPathLink path in
-      return (Some (VersionSpec.Source spec))
-    | Some ("file:", path) ->
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let spec = SourceSpec.LocalPath path in
-      return (Some (VersionSpec.Source spec))
-    | Some ("https:", _)
-    | Some ("http:", _) ->
-      let%bind url, checksum = parseChecksum v in
-      let spec = SourceSpec.Archive {url; checksum} in
-      return (Some (VersionSpec.Source spec))
-    | Some ("git+", v) ->
-      let remote, ref = parseRef v in
-      let spec = SourceSpec.Git {remote;ref;} in
-      return (Some (VersionSpec.Source spec))
-    | Some ("git:", _) ->
-      let remote, ref = parseRef v in
-      let spec = SourceSpec.Git {remote;ref;} in
-      return (Some (VersionSpec.Source spec))
-    | Some ("npm:", v) ->
-      begin match String.cut ~rev:true ~sep:"@" v with
-      | None ->
-        let%bind v = SemverVersion.Formula.parse v in
-        return (Some (VersionSpec.Npm v))
-      | Some (_, v) ->
-        let%bind v = SemverVersion.Formula.parse v in
-        return (Some (VersionSpec.Npm v))
-      end
-    | Some _
-    | None ->
-      begin match tryParseGitHubSpec v with
-      | Some spec -> return (Some (VersionSpec.Source spec))
-      | None -> return None
-      end
-
-  let make ~name ~spec =
-    let open Result.Syntax in
-
-    let isNpmDistTag v =
-      (* npm dist tags can be any strings which cannot be npm version ranges,
-       * this is a simplified check for that. *)
-      match v.[0] with
-      | 'v' -> false
-      | '0'..'9' -> false
-      | _ -> true
-    in
-
-    if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
-    then
-      let spec = VersionSpec.Source (SourceSpec.LocalPath (Path.v spec)) in
-      Ok {name; spec}
-    else
-      let%bind spec =
-        match String.cut ~sep:"/" name with
-        | Some ("@opam", _opamName) -> begin
-          match%bind tryParseProto spec with
-          | Some v -> Ok v
-          | None -> Ok (VersionSpec.Opam (OpamPackageVersion.Formula.parseExn spec))
-          end
-        | Some _
-        | None -> begin
-          match%bind tryParseProto spec with
-          | Some v -> Ok v
-          | None ->
-            begin match SemverVersion.Formula.parse spec with
-              | Ok v -> Ok (VersionSpec.Npm v)
-              | Error _ ->
-                if isNpmDistTag spec
-                then Ok (VersionSpec.NpmDistTag (spec, None))
-                else (
-                  Logs.warn (fun m -> m "error parsing version: %s" spec);
-                  Ok (VersionSpec.Npm [[SemverVersion.Constraint.ANY]])
-                )
-            end
-          end
-      in
-      Ok {name; spec;}
+    parse
 
   let%test_module "parsing" = (module struct
 
     let cases = [
-      make ~name:"pkg" ~spec:"git+https://some/repo",
-      VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      parse "name",
+      {
+        name = "name";
+        spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
+      };
+      parse "name@",
+      {
+        name = "name";
+        spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
+      };
+      parse "name@*",
+      {
+        name = "name";
+        spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
+      };
 
-      make ~name:"pkg" ~spec:"git://github.com/caolan/async.git",
-      VersionSpec.Source (SourceSpec.Git {
-        remote = "git://github.com/caolan/async.git";
-        ref = None
-      });
+      parse "@scope/name",
+      {
+        name = "@scope/name";
+        spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
+      };
+      parse "@scope/name@",
+      {
+        name = "@scope/name";
+        spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
+      };
+      parse "@scope/name@*",
+      {
+        name = "@scope/name";
+        spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
+      };
 
-      make ~name:"pkg" ~spec:"git+https://some/repo#ref",
-      VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
+      parse "@opam/name",
+      {
+        name = "@opam/name";
+        spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]];
+      };
+      parse "@opam/name@",
+      {
+        name = "@opam/name";
+        spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]];
+      };
+      parse "@opam/name@*",
+      {
+        name = "@opam/name";
+        spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]];
+      };
 
-      make ~name:"pkg" ~spec:"https://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive {
-        url = "https://some/url";
-        checksum = Some (Checksum.Sha1, "checksum");
-      });
+      parse "name@git+https://some/repo",
+      {
+        name = "name";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "name.dot@git+https://some/repo",
+      {
+        name = "name.dot";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "name-dash@git+https://some/repo",
+      {
+        name = "name-dash";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "name_underscore@git+https://some/repo",
+      {
+        name = "name_underscore";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "@opam/name@git+https://some/repo",
+      {
+        name = "@opam/name";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "@scope/name@git+https://some/repo",
+      {
+        name = "@scope/name";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "@scope-dash/name@git+https://some/repo",
+      {
+        name = "@scope-dash/name";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "@scope.dot/name@git+https://some/repo",
+      {
+        name = "@scope.dot/name";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
+      parse "@scope_underscore/name@git+https://some/repo",
+      {
+        name = "@scope_underscore/name";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
 
-      make ~name:"pkg" ~spec:"http://some/url#checksum",
-      VersionSpec.Source (SourceSpec.Archive {
-        url = "http://some/url";
-        checksum = Some (Checksum.Sha1, "checksum");
-      });
+      parse "pkg@git+https://some/repo",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+      };
 
-      make ~name:"pkg" ~spec:"http://some/url#sha1:checksum",
-      VersionSpec.Source (SourceSpec.Archive {
-        url = "http://some/url";
-        checksum = Some (Checksum.Sha1, "checksum");
-      });
+      parse "pkg@git+https://some/repo#ref",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
+      };
 
-      make ~name:"pkg" ~spec:"http://some/url#md5:checksum",
-      VersionSpec.Source (SourceSpec.Archive {
-        url = "http://some/url";
-        checksum = Some (Checksum.Md5, "checksum");
-      });
-
-      make ~name:"pkg" ~spec:"file:./some/file",
-      VersionSpec.Source (SourceSpec.LocalPath (Path.v "some/file"));
-
-      make ~name:"pkg" ~spec:"link:./some/file",
-      VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "some/file"));
-      make ~name:"pkg" ~spec:"link:../reason-wall-demo",
-      VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "../reason-wall-demo"));
-
-      make
-        ~name:"eslint"
-        ~spec:"git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
-      VersionSpec.Source (
-        SourceSpec.Git {
-          remote = "https://github.com/eslint/eslint.git";
-          ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
+      parse "pkg@https://some/url#checksum",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Archive {
+          url = "https://some/url";
+          checksum = Some (Checksum.Sha1, "checksum");
         });
+      };
+
+      parse "pkg@http://some/url#checksum",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Archive {
+          url = "http://some/url";
+          checksum = Some (Checksum.Sha1, "checksum");
+        });
+      };
+
+      parse "pkg@http://some/url#sha1:checksum",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Archive {
+          url = "http://some/url";
+          checksum = Some (Checksum.Sha1, "checksum");
+        });
+      };
+
+      parse "pkg@http://some/url#md5:checksum",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Archive {
+          url = "http://some/url";
+          checksum = Some (Checksum.Md5, "checksum");
+        });
+      };
+
+      parse "pkg@file:./some/file",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.LocalPath (Path.v "some/file"));
+      };
+
+      parse "pkg@link:./some/file",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "some/file"));
+      };
+      parse "pkg@link:../reason-wall-demo",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "../reason-wall-demo"));
+      };
+
+      parse "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
+      {
+        name = "eslint";
+        spec = VersionSpec.Source (
+          SourceSpec.Git {
+            remote = "https://github.com/eslint/eslint.git";
+            ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
+          });
+      };
 
       (* npm *)
-      make ~name:"pkg" ~spec:"4.1.0",
-      VersionSpec.Npm (SemverVersion.Formula.parseExn "4.1.0");
-      make ~name:"pkg" ~spec:"~4.1.0",
-      VersionSpec.Npm (SemverVersion.Formula.parseExn "~4.1.0");
-      make ~name:"pkg" ~spec:"^4.1.0",
-      VersionSpec.Npm (SemverVersion.Formula.parseExn "^4.1.0");
-      make ~name:"pkg" ~spec:"npm:>4.1.0",
-      VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
-      make ~name:"pkg" ~spec:"npm:name@>4.1.0",
-      VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
+      parse "pkg@4.1.0",
+      {
+        name = "pkg";
+        spec = VersionSpec.Npm (SemverVersion.Formula.parseExn "4.1.0");
+      };
+      parse "pkg@~4.1.0",
+      {
+        name = "pkg";
+        spec = VersionSpec.Npm (SemverVersion.Formula.parseExn "~4.1.0");
+      };
+      parse "pkg@^4.1.0",
+      {
+        name = "pkg";
+        spec = VersionSpec.Npm (SemverVersion.Formula.parseExn "^4.1.0");
+      };
+      parse "pkg@npm:>4.1.0",
+      {
+        name = "pkg";
+        spec = VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
+      };
+      parse "pkg@npm:name@>4.1.0",
+      {
+        name = "pkg";
+        spec = VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
+      };
 
       (* npm tags *)
-      make ~name:"pkg" ~spec:"latest",
-      VersionSpec.NpmDistTag ("latest", None);
-      make ~name:"pkg" ~spec:"next",
-      VersionSpec.NpmDistTag ("next", None);
-      make ~name:"pkg" ~spec:"alpha",
-      VersionSpec.NpmDistTag ("alpha", None);
-      make ~name:"pkg" ~spec:"beta",
-      VersionSpec.NpmDistTag ("beta", None);
+      parse "pkg@latest",
+      {
+        name = "pkg";
+        spec = VersionSpec.NpmDistTag ("latest", None);
+      };
+      parse "pkg@next",
+      {
+        name = "pkg";
+        spec = VersionSpec.NpmDistTag ("next", None);
+      };
+      parse "pkg@alpha",
+      {
+        name = "pkg";
+        spec = VersionSpec.NpmDistTag ("alpha", None);
+      };
+      parse "pkg@beta",
+      {
+        name = "pkg";
+        spec = VersionSpec.NpmDistTag ("beta", None);
+      };
     ]
 
     let expectParsesTo req e =
       match req with
       | Ok req ->
-        if VersionSpec.equal req.spec e
+        if equal req e
         then true
         else (
-          Format.printf "@[<v>     got: %a@\nexpected: %a@\n@]"
-            VersionSpec.pp req.spec VersionSpec.pp e;
+          Format.printf "@[<v>     got: %a@\nexpected: %a@\n@]" pp req pp e;
           false
         )
       | Error err ->
@@ -584,11 +803,8 @@ module Req = struct
   end)
 
 
-  let ofSpec ~name ~spec =
+  let make ~name ~spec =
     {name; spec}
-
-  let name req = req.name
-  let spec req = req.spec
 end
 
 module Dep = struct
@@ -638,7 +854,7 @@ module NpmDependencies = struct
     let%bind items = Json.Parse.assoc json in
     let f deps (name, json) =
       let%bind spec = Json.Parse.string json in
-      let%bind req = Req.make ~name ~spec in
+      let%bind req = Req.parse (name ^ "@" ^ spec) in
       return (req::deps)
     in
     Result.List.foldLeft ~f ~init:empty items
