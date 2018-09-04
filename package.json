@@ -5,7 +5,12 @@
   "license": "MIT",
   "esy": {
     "build": [
-      ["dune", "build", "-j", "4"],
+      [
+        "dune",
+        "build",
+        "-j",
+        "4"
+      ],
       [
         "dune",
         "build",
@@ -14,8 +19,14 @@
       ]
     ],
     "install": [
-      ["esy-installer", "./esy-build-package.install"],
-      ["esy-installer", "./esy.install"]
+      [
+        "esy-installer",
+        "./esy-build-package.install"
+      ],
+      [
+        "esy-installer",
+        "./esy.install"
+      ]
     ],
     "buildsInSource": "_build"
   },
@@ -33,8 +44,6 @@
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
     "@esy-ocaml/reason": "~3.2.0",
-    "@opam/tyre": "*",
-    "@opam/ppx_tyre": "*",
     "@opam/bos": "^0.2.0",
     "@opam/cmdliner": "^1.0.2",
     "@opam/cudf": "0.9",
