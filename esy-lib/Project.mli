@@ -16,9 +16,8 @@ and sandbox =
 val ofDir : Path.t -> t option RunAsync.t
 (** Read project repr of a directory path. Returns None if no project is found. *)
 
-val initByName :
-  init:(Path.t -> sandbox -> 'sandbox RunAsync.t)
-  -> ?name:string
-  -> t
-  -> 'sandbox RunAsync.t
-(** Init project from a description. *)
+val find : name:string option -> t -> sandbox option
+(** Find a sandbox by name within the project. *)
+
+val sandboxes : t -> sandbox list
+(** List of sandboxes within the project. *)

@@ -110,10 +110,9 @@ module SandboxInfo = struct
     let makeInfo () =
       let f () =
         let%bind sandbox, info =
-          Project.initByName
-            ~init:(Sandbox.make ~cfg)
-            ?name
-            project
+          match Project.find ~name project with
+          | Some sandbox -> Sandbox.make ~cfg project.path sandbox
+          | None -> errorf "no sandbox %a found" Fmt.(option ~none:(unit "default") string) name
         in
         let%bind () = Sandbox.init sandbox in
         let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun (
@@ -563,10 +562,9 @@ module CommonOptions = struct
               ?solveTimeout
               ()
           in
-          Project.initByName
-            ?name:!sandboxRef
-            ~init:(Sandbox.make ~cfg)
-            project
+          match Project.find ~name:!sandboxRef project with
+          | Some sandbox -> Sandbox.make ~cfg project.path sandbox
+          | None -> errorf "no sandbox %a found" Fmt.(option ~none:(unit "default") string) !sandboxRef
         in
         return {sandbox = !sandboxRef; project; cfg; installSandbox;}
       in
@@ -917,7 +915,6 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
       computeTermNode task children
     )
   in
-
   match%bind Task.Graph.fold ~f ~init:(return None) info.task with
   | Some tree -> return (print_endline (TermTree.toString tree))
   | None -> return ()
@@ -1358,6 +1355,63 @@ let release ({CommonOptions. cfg; project; sandbox; _} as copts) () =
     ~concurrency:EsyRuntime.concurrency
     ~sandbox:info.SandboxInfo.sandbox
 
+let gc (copts : CommonOptions.t) dryRun (roots : Path.t list) () =
+  let open RunAsync.Syntax in
+
+  let perform path =
+    if dryRun
+    then (
+      print_endline (Path.toString path);
+      return ()
+    ) else Fs.rmPath path
+  in
+
+  let%bind () =
+    let%bind () = perform Path.(copts.cfg.storePath / Store.stageTree) in
+    let%bind () = perform Path.(copts.cfg.storePath / Store.buildTree) in
+    return ()
+  in
+
+  let%bind () =
+    let%bind keep =
+      let visitSandbox project keep sandbox =
+        let%bind sandbox, _ = Sandbox.make ~cfg:copts.cfg project.Project.path sandbox in
+        let%bind task = RunAsync.ofRun (Task.ofSandbox sandbox) in
+        let f ~foldDependencies keep task =
+          let deps = foldDependencies () in
+          let f keep (_, k) = StringSet.union keep k in
+          let keep = List.fold_left ~f ~init:keep deps in
+          StringSet.add (Task.id task) keep
+        in
+        return (Task.Graph.fold ~init:keep ~f task)
+      in
+      let visitProject keep root =
+        match%lwt Project.ofDir root with
+        | Ok (Some project) ->
+          let sandboxes = Project.sandboxes project in
+          RunAsync.List.foldLeft ~f:(visitSandbox project) ~init:keep sandboxes
+        | Ok None -> errorf "no project found at %a" Path.pp root
+        | Error err -> Lwt.return (Error err)
+      in
+      RunAsync.List.foldLeft ~f:visitProject ~init:StringSet.empty roots
+    in
+
+    let queue = LwtTaskQueue.create ~concurrency:40 () in
+    let%bind buildsIds =
+      Fs.listDir Path.(copts.cfg.storePath / Store.installTree)
+    in
+    let removeBuild buildId =
+      if StringSet.mem buildId keep
+      then return ()
+      else LwtTaskQueue.submit
+        queue
+        (fun () -> perform Path.(copts.cfg.storePath / Store.installTree / buildId))
+    in
+    RunAsync.List.waitAll (List.map ~f:removeBuild buildsIds)
+  in
+
+  return ()
+
 let makeCommand
   ?(header=`Standard)
   ?(sdocs=Cmdliner.Manpage.s_common_options)
@@ -1700,6 +1754,26 @@ let () =
       Term.(
         const release
         $ CommonOptions.term
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"gc"
+      ~doc:"Perform garbage collection of unused build artifacts."
+      ~header:`No
+      Term.(
+        const gc
+        $ CommonOptions.term
+        $ Arg.(
+            value
+            & flag
+            & info ["dry-run";] ~doc:"Only print directories to which should be removed."
+          )
+        $ Arg.(
+            non_empty
+            & (pos_all resolvedPathTerm [])
+            & info [] ~docv:"ROOT" ~doc:"Project roots for which built artifacts must be kept"
+          )
         $ Cli.setupLogTerm
       );
 
