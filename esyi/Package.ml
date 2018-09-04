@@ -504,41 +504,51 @@ module Req = struct
     name = req.name && VersionSpec.matches ~version req.spec
 
   let parse =
-    let id = [%tyre {|[a-zA-Z][a-zA-Z0-9\-_\.]+|}] in
+    let name = Tyre.pcre {|[^@]+|} in
+    let opamscope = Tyre.(str "@opam/" *> name) in
+    let npmscope = Tyre.(seq (str "@" *> name) (str "/" *> name)) in
+    let spec = Tyre.(str "@" *> pcre ".*") in
+    let opamWithSpec = Tyre.(start *> seq opamscope spec <* stop) in
+    let opamWithoutSpec = Tyre.(start *> opamscope <* stop) in
+    let npmScopeWithSpec = Tyre.(start *> seq npmscope spec <* stop) in
+    let npmScopeWithoutSpec = Tyre.(start *> npmscope <* stop) in
+    let npmWithSpec = Tyre.(start *> seq name spec <* stop) in
+    let npmWithoutSpec = Tyre.(start *> name <* stop) in
     let open Result.Syntax in
-    let re =
-      function%tyre
-      | {|(?<name>@opam/(?&id))@(?<spec>.+)|} ->
-        let%bind spec = VersionSpec.parseAsOpam spec in
-        return {name = "@opam/" ^ name; spec}
-      | {|(?<name>@opam/(?&id))@|} ->
-        let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
-        return {name = "@opam/" ^ name; spec}
-      | {|(?<name>@opam/(?&id))|} ->
-        let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
-        return {name = "@opam/" ^ name; spec}
-      | {|(?<name>@(?&id)/(?&id))@(?<spec>.+)|} ->
-        let scope, name = name in
-        let%bind spec = VersionSpec.parseAsNpm spec in
-        return {name = "@" ^ scope ^ "/" ^ name; spec}
-      | {|(?<name>@(?&id)/(?&id))@|} ->
-        let scope, name = name in
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name = "@" ^ scope ^ "/" ^ name; spec}
-      | {|(?<name>@(?&id)/(?&id))|} ->
-        let scope, name = name in
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name = "@" ^ scope ^ "/" ^ name; spec}
-      | {|(?<name>(?&id))@(?<spec>.+)|} ->
-        let%bind spec = VersionSpec.parseAsNpm spec in
-        return {name; spec}
-      | {|(?<name>(?&id))@|} ->
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name; spec}
-      | {|(?<name>(?&id))|} ->
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name; spec}
-    in
+    let re = Tyre.(route [
+      (opamWithSpec --> function
+        | opamname, "" ->
+          let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
+          return {name = "@opam/" ^ opamname; spec};
+        | opamname, spec ->
+          let%bind spec = VersionSpec.parseAsOpam spec in
+          return {name = "@opam/" ^ opamname; spec});
+      (npmScopeWithSpec --> function
+        | (scope, name), "" ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name = "@" ^ scope ^ "/" ^ name; spec};
+        | (scope, name), spec ->
+          let%bind spec = VersionSpec.parseAsNpm spec in
+          return {name = "@" ^ scope ^ "/" ^ name; spec});
+      (npmWithSpec --> function
+        | name, "" ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name; spec};
+        | name, spec ->
+          let%bind spec = VersionSpec.parseAsNpm spec in
+          return {name; spec});
+      (opamWithoutSpec --> fun opamname ->
+          let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
+          return {name = "@opam/" ^ opamname; spec});
+      (npmScopeWithoutSpec --> function
+        | (scope, name) ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name = "@" ^ scope ^ "/" ^ name; spec});
+      (npmWithoutSpec --> function
+        | name ->
+          let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+          return {name; spec});
+    ]) in
     let parse spec =
       match Tyre.exec re spec with
       | Ok (Ok v) -> Ok v
