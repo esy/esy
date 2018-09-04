@@ -5,8 +5,22 @@ type 'a disj = 'a list [@@deriving eq]
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list [@@deriving eq]
 
-module Parse = struct
-  let cutWith sep v =
+module AdHocParse : sig
+  type 'a t = string -> ('a, string) result
+
+  val (or) : 'a t -> 'a t -> 'a t
+
+  val cut : sep:string -> string -> (string * string, string) result
+
+end = struct
+  type 'a t = string -> ('a, string) result
+
+  let (or) a b s =
+    match a s with
+    | Ok v -> Ok v
+    | Error _ -> b s
+
+  let cut ~sep v =
     match String.cut ~sep v with
     | Some (l, r) -> Ok (l, r)
     | None -> Error ("missing " ^ sep)
@@ -37,16 +51,16 @@ module Source = struct
 
   let parse v =
     let open Result.Syntax in
-    match%bind Parse.cutWith ":" v with
+    match%bind AdHocParse.cut ~sep:":" v with
     | "github", v ->
-      let%bind user, v = Parse.cutWith "/" v in
-      let%bind repo, commit = Parse.cutWith "#" v in
+      let%bind user, v = AdHocParse.cut ~sep:"/" v in
+      let%bind repo, commit = AdHocParse.cut ~sep:"#" v in
       return (Github {user; repo; commit})
     | "git", v ->
-      let%bind remote, commit = Parse.cutWith "#" v in
+      let%bind remote, commit = AdHocParse.cut ~sep:"#" v in
       return (Git {remote; commit})
     | "archive", v ->
-      let%bind url, checksum = Parse.cutWith "#" v in
+      let%bind url, checksum = AdHocParse.cut ~sep:"#" v in
       let%bind checksum = Checksum.parse checksum in
       return (Archive {url; checksum})
     | "no-source", "" ->
@@ -100,7 +114,7 @@ module Version = struct
 
   let parse ?(tryAsOpam=false) v =
     let open Result.Syntax in
-    match tryAsOpam, Parse.cutWith ":" v with
+    match tryAsOpam, AdHocParse.cut ~sep:":" v with
     | false, Error _ ->
       let%bind v = SemverVersion.Version.parse v in
       return (Npm v)
@@ -322,6 +336,145 @@ module VersionSpec = struct
     | Version.Source src ->
       let srcSpec = SourceSpec.ofSource src in
       Source srcSpec
+
+  module Parse = struct
+
+    let parseRef spec =
+      match String.cut ~sep:"#" spec with
+      | None -> spec, None
+      | Some (spec, "") -> spec, None
+      | Some (spec, ref) -> spec, Some ref
+
+    let parseChecksum spec =
+      let open Result.Syntax in
+      match parseRef spec with
+      | spec, None -> return (spec, None)
+      | spec, Some checksum ->
+        let%bind checksum = Checksum.parse checksum in
+        return (spec, Some checksum)
+
+    let github text =
+
+      let normalizeGithubRepo repo =
+        match String.cut ~sep:".git" repo with
+        | Some (repo, "") -> repo
+        | Some _ -> repo
+        | None -> repo
+      in
+
+      let parts = Str.split (Str.regexp_string "/") text in
+      match parts with
+      | user::rest::[] ->
+        let repo, ref = parseRef rest in
+        Ok (Source (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref}))
+      | _ -> Error "not a github source"
+
+    let protoRe =
+      let open Re in
+      let proto = alt [
+        str "file:";
+        str "https:";
+        str "http:";
+        str "git:";
+        str "npm:";
+        str "link:";
+        str "git+";
+      ] in
+      compile (seq [bos; group proto; group (rep any); eos])
+
+    let parseProto v =
+      match Re.exec_opt protoRe v with
+      | Some m ->
+        let proto = Re.Group.get m 1 in
+        let body = Re.Group.get m 2 in
+        Some (proto, body)
+      | None -> None
+
+    let sourceWithProto v =
+      let open Result.Syntax in
+      match parseProto v with
+      | Some ("link:", path) ->
+        let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+        let spec = SourceSpec.LocalPathLink path in
+        return (Source spec)
+      | Some ("file:", path) ->
+        let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+        let spec = SourceSpec.LocalPath path in
+        return (Source spec)
+      | Some ("https:", _)
+      | Some ("http:", _) ->
+        let%bind url, checksum = parseChecksum v in
+        let spec = SourceSpec.Archive {url; checksum} in
+        return (Source spec)
+      | Some ("git+", v) ->
+        let remote, ref = parseRef v in
+        let spec = SourceSpec.Git {remote;ref;} in
+        return (Source spec)
+      | Some ("git:", _) ->
+        let remote, ref = parseRef v in
+        let spec = SourceSpec.Git {remote;ref;} in
+        return (Source spec)
+      | Some ("npm:", v) ->
+        begin match String.cut ~rev:true ~sep:"@" v with
+        | None ->
+          let%bind v = SemverVersion.Formula.parse v in
+          return (Npm v)
+        | Some (_, v) ->
+          let%bind v = SemverVersion.Formula.parse v in
+          return (Npm v)
+        end
+      | Some _
+      | None -> Error "unknown proto"
+
+    let path spec =
+      if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
+      then Ok (Source (SourceSpec.LocalPath (Path.v spec)))
+      else Error "not a path"
+
+    let opamConstraint spec =
+      match OpamPackageVersion.Formula.parse spec with
+      | Ok v -> Ok (Opam v)
+      | Error err -> Error err
+
+    let npmDistTag spec =
+      let isNpmDistTag v =
+        (* npm dist tags can be any strings which cannot be npm version ranges,
+          * this is a simplified check for that. *)
+        match v.[0] with
+        | 'v' -> false
+        | '0'..'9' -> false
+        | _ -> true
+      in
+      if isNpmDistTag spec
+      then Ok (NpmDistTag (spec, None))
+      else Error "not an npm dist-tag"
+
+    let npmAnyConstraint spec =
+      Logs.warn (fun m -> m "error parsing version: %s" spec);
+      Ok (Npm [[SemverVersion.Constraint.ANY]])
+
+    let npmConstraint spec =
+      match SemverVersion.Formula.parse spec with
+      | Ok v -> Ok (Npm v)
+      | Error err -> Error err
+
+    let opamComplete = AdHocParse.(
+      path
+      or sourceWithProto
+      or github
+      or opamConstraint
+    )
+
+    let npmComplete = AdHocParse.(
+      path
+      or sourceWithProto
+      or github
+      or npmConstraint
+      or npmDistTag
+      or npmAnyConstraint
+    )
+  end
+
 end
 
 module Req = struct
@@ -347,108 +500,8 @@ module Req = struct
   let matches ~name ~version req =
     name = req.name && VersionSpec.matches ~version req.spec
 
-  let parseRef spec =
-    match String.cut ~sep:"#" spec with
-    | None -> spec, None
-    | Some (spec, "") -> spec, None
-    | Some (spec, ref) -> spec, Some ref
-
-  let parseChecksum spec =
-    let open Result.Syntax in
-    match parseRef spec with
-    | spec, None -> return (spec, None)
-    | spec, Some checksum ->
-      let%bind checksum = Checksum.parse checksum in
-      return (spec, Some checksum)
-
-  let tryParseGitHubSpec text =
-
-    let normalizeGithubRepo repo =
-      match String.cut ~sep:".git" repo with
-      | Some (repo, "") -> repo
-      | Some _ -> repo
-      | None -> repo
-    in
-
-    let parts = Str.split (Str.regexp_string "/") text in
-    match parts with
-    | user::rest::[] ->
-      let repo, ref = parseRef rest in
-      Some (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref})
-    | _ -> None
-
-  let protoRe =
-    let open Re in
-    let proto = alt [
-      str "file:";
-      str "https:";
-      str "http:";
-      str "git:";
-      str "npm:";
-      str "link:";
-      str "git+";
-    ] in
-    compile (seq [bos; group proto; group (rep any); eos])
-
-  let parseProto v =
-    match Re.exec_opt protoRe v with
-    | Some m ->
-      let proto = Re.Group.get m 1 in
-      let body = Re.Group.get m 2 in
-      Some (proto, body)
-    | None -> None
-
-  let tryParseProto v =
-    let open Result.Syntax in
-    match parseProto v with
-    | Some ("link:", path) ->
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let spec = SourceSpec.LocalPathLink path in
-      return (Some (VersionSpec.Source spec))
-    | Some ("file:", path) ->
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let spec = SourceSpec.LocalPath path in
-      return (Some (VersionSpec.Source spec))
-    | Some ("https:", _)
-    | Some ("http:", _) ->
-      let%bind url, checksum = parseChecksum v in
-      let spec = SourceSpec.Archive {url; checksum} in
-      return (Some (VersionSpec.Source spec))
-    | Some ("git+", v) ->
-      let remote, ref = parseRef v in
-      let spec = SourceSpec.Git {remote;ref;} in
-      return (Some (VersionSpec.Source spec))
-    | Some ("git:", _) ->
-      let remote, ref = parseRef v in
-      let spec = SourceSpec.Git {remote;ref;} in
-      return (Some (VersionSpec.Source spec))
-    | Some ("npm:", v) ->
-      begin match String.cut ~rev:true ~sep:"@" v with
-      | None ->
-        let%bind v = SemverVersion.Formula.parse v in
-        return (Some (VersionSpec.Npm v))
-      | Some (_, v) ->
-        let%bind v = SemverVersion.Formula.parse v in
-        return (Some (VersionSpec.Npm v))
-      end
-    | Some _
-    | None ->
-      begin match tryParseGitHubSpec v with
-      | Some spec -> return (Some (VersionSpec.Source spec))
-      | None -> return None
-      end
-
   let make ~name ~spec =
     let open Result.Syntax in
-
-    let isNpmDistTag v =
-      (* npm dist tags can be any strings which cannot be npm version ranges,
-       * this is a simplified check for that. *)
-      match v.[0] with
-      | 'v' -> false
-      | '0'..'9' -> false
-      | _ -> true
-    in
 
     if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
     then
@@ -457,27 +510,9 @@ module Req = struct
     else
       let%bind spec =
         match String.cut ~sep:"/" name with
-        | Some ("@opam", _opamName) -> begin
-          match%bind tryParseProto spec with
-          | Some v -> Ok v
-          | None -> Ok (VersionSpec.Opam (OpamPackageVersion.Formula.parseExn spec))
-          end
+        | Some ("@opam", _opamName) -> VersionSpec.Parse.opamComplete spec
         | Some _
-        | None -> begin
-          match%bind tryParseProto spec with
-          | Some v -> Ok v
-          | None ->
-            begin match SemverVersion.Formula.parse spec with
-              | Ok v -> Ok (VersionSpec.Npm v)
-              | Error _ ->
-                if isNpmDistTag spec
-                then Ok (VersionSpec.NpmDistTag (spec, None))
-                else (
-                  Logs.warn (fun m -> m "error parsing version: %s" spec);
-                  Ok (VersionSpec.Npm [[SemverVersion.Constraint.ANY]])
-                )
-            end
-          end
+        | None -> VersionSpec.Parse.npmComplete spec
       in
       Ok {name; spec;}
 
