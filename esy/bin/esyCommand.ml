@@ -1110,7 +1110,7 @@ let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
     let%bind () = fetch copts () in
     return ()
 
-let add ({CommonOptions. installSandbox; _} as copts) (packages : string list) () =
+let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
   let module NpmDependencies = Package.NpmDependencies in
@@ -1118,16 +1118,10 @@ let add ({CommonOptions. installSandbox; _} as copts) (packages : string list) (
     "The esy add command doesn't work with opam sandboxes. "
     ^ "Please send a pull request to fix this!"
   in
-  let makeReqs ?(specFun= fun _ -> "") names =
-    names
-    |> Result.List.map
-        ~f:(fun name ->
-              let spec = specFun name in
-              Package.Req.make ~name ~spec)
-    |> RunAsync.ofStringError
-  in
 
-  let%bind reqs = makeReqs packages in
+  let%bind reqs = RunAsync.ofStringError (
+    Result.List.map ~f:Package.Req.parse reqs
+  ) in
 
   let addReqs origDeps =
     let open Package.Dependencies in
@@ -1156,7 +1150,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (packages : string list) (
       Solution.Record.Set.fold f (Solution.records solution) StringMap.empty
     in
     let addedDependencies =
-      let f name =
+      let f {Package.Req. name; _} =
         match StringMap.find name records with
         | Some record ->
           let constr =
@@ -1172,7 +1166,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (packages : string list) (
           name, `String constr
         | None -> assert false
       in
-      List.map ~f packages
+      List.map ~f reqs
     in
     let%bind path =
       match copts.installSandbox.Sandbox.origin with
