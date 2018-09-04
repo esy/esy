@@ -1,5 +1,6 @@
 type t = pri {
   fastreplacestringPath: Fpath.t,
+  projectPath: Fpath.t,
   sandboxPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
@@ -7,8 +8,9 @@ type t = pri {
 
 let make : (
   ~fastreplacestringPath: Fpath.t=?,
-  ~prefixPath: Fpath.t=?,
+  ~projectPath: Fpath.t=?,
   ~sandboxPath: Fpath.t=?,
+  ~storePath: Fpath.t=?,
   unit
 ) => Run.t(t, _);
 
@@ -19,7 +21,7 @@ module Value: {
   include EsyLib.Abstract.STRING with type ctx = config;
   let store : t;
   let localStore : t;
-  let sandbox : t;
+  let project : t;
 };
 
 module Path: {
@@ -27,7 +29,7 @@ module Path: {
   let toValue: t => Value.t;
   let store : t;
   let localStore : t;
-  let sandbox : t;
+  let project : t;
 }
 
 module Environment : EsyLib.Environment.S

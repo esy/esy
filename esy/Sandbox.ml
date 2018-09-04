@@ -1,15 +1,106 @@
+module Package = struct
+
+  type dependencyError =
+    | InvalidDependency of { name : string; message : string; }
+    | MissingDependency of { name : string; }
+    [@@deriving ord]
+
+  type dependencyKind =
+    | Dependency
+    | OptDependency
+    | DevDependency
+    | BuildTimeDependency
+    [@@deriving ord]
+
+  type t = {
+    id : string;
+    name : string;
+    version : string;
+    dependencies : dependency list;
+    build : Manifest.Build.t;
+    sourcePath : EsyBuildPackage.Config.Path.t;
+    resolution : string option;
+  }
+
+  and dependency = (dependencyKind * t, dependencyError) result
+
+  let pp fmt p = Fmt.string fmt p.id
+
+  let compare a b = String.compare a.id b.id
+
+  let compare_dependency a b =
+    match a, b with
+    | Ok (ka, a), Ok (kb, b) ->
+      let c = compare_dependencyKind ka kb in
+      if c = 0
+      then compare a b
+      else c
+    | Error a, Error b -> compare_dependencyError a b
+    | Ok _, Error _ -> 1
+    | Error _, Ok _ -> -1
+
+  let pp_dependency fmt dep =
+    match dep with
+    | Ok (Dependency, p) -> Fmt.pf fmt "Dependency %s" p.id
+    | Ok (OptDependency, p) -> Fmt.pf fmt "OptDependency %s" p.id
+    | Ok (DevDependency, p) -> Fmt.pf fmt "DevDependency %s" p.id
+    | Ok (BuildTimeDependency, p) -> Fmt.pf fmt "BuildTimeDependency %s" p.id
+    | Error (InvalidDependency p) -> Fmt.pf fmt "InvalidDependency %s" p.name
+    | Error (MissingDependency p) -> Fmt.pf fmt "MissingDependency %s" p.name
+
+  module Map = Map.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+
+  module Graph = DependencyGraph.Make(struct
+
+    type nonrec t = t
+
+    let compare = compare
+
+    module Dependency = struct
+      type t = dependency
+      let compare = compare_dependency
+    end
+
+    let id (pkg : t) = pkg.id
+
+    let traverse pkg =
+      let f acc dep =
+        match dep with
+        | Ok (Dependency, pkg)
+        | Ok (OptDependency, pkg)
+        | Ok (DevDependency, pkg)
+        | Ok (BuildTimeDependency, pkg) -> (pkg, dep)::acc
+        | Error _ -> acc
+      in
+      pkg.dependencies
+      |> List.fold_left ~f ~init:[]
+      |> List.rev
+
+  end)
+
+end
+
 type t = {
+  name : string option;
+  cfg : Config.t;
+  buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
   scripts : Manifest.Scripts.t;
-  manifestInfo : (Path.t * float) list;
+  env : Manifest.Env.t;
 }
 
-let packagePathAt ?scope ~name basedir =
-  match scope with
-  | Some scope -> Path.(basedir / "node_modules" / scope / name)
-  | None -> Path.(basedir / "node_modules" / name)
+type info = (Path.t * float) list
 
 let rec resolvePackage (name : string) (basedir : Path.t) =
+
+  let packagePathAt ?scope ~name basedir =
+    match scope with
+    | Some scope -> Path.(basedir / "node_modules" / scope / name)
+    | None -> Path.(basedir / "node_modules" / name)
+  in
 
   let packagePath basedir =
     match name.[0] with
@@ -36,12 +127,35 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
   resolve basedir
 
-let ofDir (cfg : Config.t) =
+let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   let open RunAsync.Syntax in
 
   let manifestInfo = ref Path.Set.empty in
 
   let resolutionCache = Memoize.make ~size:200 () in
+  let packageCache = Memoize.make ~size:200 () in
+
+  let sandboxName =
+    match sandbox with
+    | Project.Esy { name = Some name; _ } -> Some name
+    | Project.Esy { name = None; _ }
+    | Project.Opam _
+    | Project.AggregatedOpam _ -> None
+  in
+
+  let sandboxTree =
+    match sandboxName with
+    | Some name -> name
+    | None -> "default"
+  in
+
+  let%bind buildConfig = RunAsync.ofBosError (
+    EsyBuildPackage.Config.make
+      ~storePath:cfg.storePath
+      ~sandboxPath:Path.(projectPath / "_esy" / sandboxTree)
+      ~projectPath
+      ()
+  ) in
 
   let resolvePackageCached pkgName basedir =
     let key = (pkgName, basedir) in
@@ -49,12 +163,10 @@ let ofDir (cfg : Config.t) =
     Memoize.compute resolutionCache key compute
   in
 
-  let packageCache = Memoize.make ~size:200 () in
-
   let rec loadPackage (path : Path.t) (stack : Path.t list) =
 
-    let resolve ~ignoreCircularDep (pkgName : string) =
-      match%lwt resolvePackageCached pkgName path with
+    let resolve ~ignoreCircularDep ~packagesPath (pkgName : string) =
+      match%lwt resolvePackageCached pkgName packagesPath with
       | Ok (Some depPackagePath) ->
         if List.mem depPackagePath ~set:stack
         then
@@ -72,26 +184,25 @@ let ofDir (cfg : Config.t) =
 
     let addDependencies
       ?(skipUnresolved= false)
+      ~packagesPath
       ~ignoreCircularDep
       ~make
       (dependencies : string list list)
       (prevDependencies : Package.dependency StringMap.t) =
 
-      let rec tryResolve names =
-        match names with
-        | [] -> Lwt.return_ok ("ignore", `Ignored)
-        | name::[] ->
-          resolve ~ignoreCircularDep name
-        | name::names ->
-          begin match%lwt resolve ~ignoreCircularDep name with
-          | Ok (_, `Unresolved) -> tryResolve names
-          | res -> Lwt.return res
-          end
-      in
-
       let%lwt dependencies =
-        dependencies
-        |> Lwt_list.map_s tryResolve
+        let rec tryResolve names =
+          match names with
+          | [] -> Lwt.return_ok ("ignore", `Ignored)
+          | name::[] ->
+            resolve ~ignoreCircularDep ~packagesPath name
+          | name::names ->
+            begin match%lwt resolve ~ignoreCircularDep ~packagesPath name with
+            | Ok (_, `Unresolved) -> tryResolve names
+            | res -> Lwt.return res
+            end
+        in
+        Lwt_list.map_s tryResolve dependencies
       in
 
       let f dependencies =
@@ -111,23 +222,24 @@ let ofDir (cfg : Config.t) =
           if skipUnresolved
           then dependencies
           else
-            let dep = Package.InvalidDependency {name; reason = `Missing;} in
+            let dep = Error (Package.MissingDependency {name}) in
             StringMap.add name dep dependencies
-        | Error (name, reason) ->
-          let dep = Package.InvalidDependency {name;reason = `Reason reason;} in
+        | Error (name, message) ->
+          let dep = Error (Package.InvalidDependency {name; message;}) in
           StringMap.add name dep dependencies
       in
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
     in
 
-    let loadDependencies ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
+    let loadDependencies ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let dependencies = StringMap.empty in
       let%lwt dependencies =
-        if Path.equal cfg.buildConfig.sandboxPath path
+        if Path.equal buildConfig.EsyBuildPackage.Config.projectPath path
         then
           addDependencies
             ~ignoreCircularDep ~skipUnresolved:true
-            ~make:(fun pkg -> Package.DevDependency pkg)
+            ~packagesPath
+            ~make:(fun pkg -> Ok (DevDependency, pkg))
             deps.devDependencies
             dependencies
         else
@@ -136,48 +248,51 @@ let ofDir (cfg : Config.t) =
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
-          ~make:(fun pkg -> Package.BuildTimeDependency pkg)
+          ~packagesPath
+          ~make:(fun pkg -> Ok (BuildTimeDependency, pkg))
           deps.buildTimeDependencies
           dependencies
       in
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
+          ~packagesPath
           ~skipUnresolved:true
-          ~make:(fun pkg -> Package.OptDependency pkg)
+          ~make:(fun pkg -> Ok (OptDependency, pkg))
           deps.optDependencies
           dependencies
       in
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
-          ~make:(fun pkg -> Package.Dependency pkg)
+          ~packagesPath
+          ~make:(fun pkg -> Ok (Dependency, pkg))
           deps.dependencies
           dependencies
       in
       Lwt.return dependencies
     in
 
-    let packageOfManifest ~sourcePath (manifest : Manifest.t) pathSet =
+    let packageOfManifest ~sourcePath ~packagesPath (manifest : Manifest.t) pathSet =
       manifestInfo := (Path.Set.union pathSet (!manifestInfo));
 
       let build = Manifest.build manifest in
 
       let%lwt dependencies =
         let ignoreCircularDep = Option.isNone build in
-        loadDependencies ~ignoreCircularDep (Manifest.dependencies manifest)
+        loadDependencies ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
       in
 
       let hasDepWithSourceTypeDevelopment =
         StringMap.exists
           (fun _k dep ->
             match dep with
-              | Package.Dependency pkg
-              | Package.BuildTimeDependency pkg
-              | Package.OptDependency pkg ->
-                pkg.build.sourceType = Manifest.SourceType.Transient
-              | Package.DevDependency _
-              | Package.InvalidDependency _ -> false)
+              | Ok (Package.Dependency, pkg)
+              | Ok (Package.BuildTimeDependency, pkg)
+              | Ok (Package.OptDependency, pkg) ->
+                pkg.Package.build.sourceType = Manifest.SourceType.Transient
+              | Ok (Package.DevDependency, _)
+              | Error _ -> false)
           dependencies
       in
 
@@ -197,7 +312,7 @@ let ofDir (cfg : Config.t) =
           version = Manifest.version manifest;
           dependencies = StringMap.values dependencies;
           build = {build with sourceType};
-          sourcePath = Config.Path.ofPath cfg.buildConfig sourcePath;
+          sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
           resolution = Manifest.uniqueDistributionId manifest;
         } in
         return (`PackageWithBuild (pkg, manifest))
@@ -205,9 +320,8 @@ let ofDir (cfg : Config.t) =
         return (`Package dependencies)
     in
 
-    let pathToEsyLink = Path.(path / "_esylink") in
-
     let%bind sourcePath =
+      let pathToEsyLink = Path.(path / "_esylink") in
       if%bind Fs.exists pathToEsyLink
       then
         let%bind path = Fs.readFile pathToEsyLink in
@@ -216,10 +330,19 @@ let ofDir (cfg : Config.t) =
         return path
     in
 
-    let asRoot = Path.equal sourcePath cfg.buildConfig.sandboxPath in
-    match%bind Manifest.ofDir ~asRoot sourcePath with
+    let asRoot = Path.equal sourcePath projectPath in
+    let%bind manifest, packagesPath =
+      if asRoot
+      then
+        let%bind m = Manifest.ofSandbox sandbox in
+        return (Some m, Path.(projectPath / "_esy" / sandboxTree))
+      else
+        let%bind m = Manifest.ofDir sourcePath in
+        return (m, path)
+    in
+    match manifest with
     | Some (manifest, pathSet) ->
-      let%bind pkg = packageOfManifest ~sourcePath manifest pathSet in
+      let%bind pkg = packageOfManifest ~sourcePath ~packagesPath manifest pathSet in
       return (pkg, pathSet)
     | None ->
       error "unable to find manifest"
@@ -229,7 +352,7 @@ let ofDir (cfg : Config.t) =
     Memoize.compute packageCache path compute
   in
 
-  match%bind loadPackageCached cfg.buildConfig.sandboxPath [] with
+  match%bind loadPackageCached projectPath [] with
   | `PackageWithBuild (root, manifest), _ ->
     let%bind manifestInfo =
       let statPath path =
@@ -241,12 +364,36 @@ let ofDir (cfg : Config.t) =
       |> List.map ~f:statPath
       |> RunAsync.List.joinAll
     in
-    let%bind scripts =
-      RunAsync.ofRun (Manifest.scripts manifest)
-    in
-    return {root; scripts; manifestInfo}
+    let%bind scripts = RunAsync.ofRun (Manifest.scripts manifest) in
+    let%bind env = RunAsync.ofRun (Manifest.sandboxEnv manifest) in
+
+    return ({name = sandboxName; cfg; buildConfig; root; scripts; env;}, manifestInfo)
 
   | _ ->
     error "root package missing esy config"
 
 let isSandbox = Manifest.dirHasManifest
+
+let initStore (path: Path.t) =
+  let open RunAsync.Syntax in
+  let%bind () = Fs.createDir(Path.(path / "i")) in
+  let%bind () = Fs.createDir(Path.(path / "b")) in
+  let%bind () = Fs.createDir(Path.(path / "s")) in
+  return ()
+
+let init sandbox =
+  let open RunAsync.Syntax in
+  let%bind () = initStore sandbox.buildConfig.storePath in
+  let%bind () = initStore sandbox.buildConfig.localStorePath in
+  let%bind () =
+    let storeLinkPath = Path.(sandbox.cfg.prefixPath / Store.version) in
+    if%bind Fs.exists storeLinkPath
+    then return ()
+    else Fs.symlink ~src:sandbox.buildConfig.storePath storeLinkPath
+  in
+  return ()
+
+module Value = EsyBuildPackage.Config.Value
+module Environment = EsyBuildPackage.Config.Environment
+module Path = EsyBuildPackage.Config.Path
+

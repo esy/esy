@@ -22,7 +22,7 @@ type t = {
 type build = t;
 
 let isRoot = (build: t) =>
-  Config.Value.equal(build.plan.sourcePath, Config.Value.sandbox);
+  Config.Value.equal(build.plan.sourcePath, Config.Value.project);
 
 let regex = (base, segments) => {
   let pat = String.concat(Path.dirSep, [Path.toString(base), ...segments]);
@@ -32,8 +32,8 @@ let regex = (base, segments) => {
 module type LIFECYCLE = {
   let getRootPath: build => Path.t;
   let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
-  let prepare: build => Run.t(unit, _);
-  let finalize: build => Run.t(unit, _);
+  let prepare: (Config.t, build) => Run.t(unit, _);
+  let finalize: (Config.t, build) => Run.t(unit, _);
 };
 
 /*
@@ -46,10 +46,10 @@ module type LIFECYCLE = {
 module OutOfSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.sourcePath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
-  let prepare = _build => Ok();
+  let prepare = (_cfg, _build) => Ok();
 
-  let setupSymlinkToBuildDir = (build: build) => {
-    let source = build.sourcePath / "_build";
+  let setupSymlinkToBuildDir = (cfg: Config.t, build: build) => {
+    let source = cfg.sandboxPath / "build";
     let target = build.buildPath;
     let%bind () =
       switch (lstat(source)) {
@@ -60,9 +60,9 @@ module OutOfSourceLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let finalize = (build: build) =>
+  let finalize = (cfg, build: build) =>
     if (isRoot(build)) {
-      setupSymlinkToBuildDir(build);
+      setupSymlinkToBuildDir(cfg, build);
     } else {
       ok;
     };
@@ -84,12 +84,13 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   let getRootPath = build => build.buildPath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
-  let prepare = (build: build) => {
+  let prepare = (_cfg, build: build) => {
     let%bind () = rm(build.buildPath);
     let%bind () = mkdir(build.buildPath);
     let%bind () = {
       let ignore = [
         "node_modules",
+        "_esy",
         "_build",
         "_install",
         "_release",
@@ -101,7 +102,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let finalize = _build => Ok();
+  let finalize = (_cfg, _build) => Ok();
 };
 
 /*
@@ -158,7 +159,7 @@ module JBuilderLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let prepare = (build: build) =>
+  let prepare = (_cfg, build: build) =>
     if (isRoot(build)) {
       let duneBuildDir = build.sourcePath / "_build";
       let%bind () =
@@ -172,7 +173,7 @@ module JBuilderLifecycle: LIFECYCLE = {
       prepareImpl(build);
     };
 
-  let finalize = (build: build) =>
+  let finalize = (_cfg, build: build) =>
     if (isRoot(build)) {
       ok;
     } else {
@@ -198,8 +199,8 @@ module UnsafeLifecycle: LIFECYCLE = {
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[Subpath(Path.toString(sourcePath))];
 
-  let prepare = _build => Ok();
-  let finalize = _build => Ok();
+  let prepare = (_cfg, _build) => Ok();
+  let finalize = (_cfg, _build) => Ok();
 };
 
 let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
@@ -406,8 +407,18 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         );
       /* Replace escaped slashes: `\\` (#399) */
       let forwardSlashRegex = Str.regexp("/");
-      let escapedOrigPrefix = Str.global_replace(forwardSlashRegex, "\\\\\\\\", normalizedOrigPrefix);
-      let escapedDestPrefix = Str.global_replace(forwardSlashRegex, "\\\\\\\\", normalizedDestPrefix);
+      let escapedOrigPrefix =
+        Str.global_replace(
+          forwardSlashRegex,
+          "\\\\\\\\",
+          normalizedOrigPrefix,
+        );
+      let escapedDestPrefix =
+        Str.global_replace(
+          forwardSlashRegex,
+          "\\\\\\\\",
+          normalizedDestPrefix,
+        );
       let%bind () =
         rewritePrefixInFile(
           ~origPrefix=escapedOrigPrefix,
@@ -522,30 +533,11 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(build.stagePath / "share");
     let%bind () = mkdir(build.stagePath / "doc");
     let%bind () = mkdir(build.stagePath / "_esy");
-    let%bind () = Lifecycle.prepare(build);
+    let%bind () = Lifecycle.prepare(cfg, build);
     let%bind () = mkdir(build.buildPath);
     let%bind () = mkdir(build.buildPath / "_esy");
 
     let rootPath = Lifecycle.getRootPath(build);
-
-    /*
-       Detect if there's dune-project which means this is a dune based sandbox,
-       we need to make dune ignore node_modules as it might recurse into it and
-       error.
-     */
-    let%bind () = {
-      let%bind hasDune = exists(rootPath / "dune-project");
-      let%bind hasNodeModules = exists(rootPath / "node_modules");
-      if (hasDune && hasNodeModules) {
-        let%bind items = ls(rootPath / "node_modules");
-        let items = items |> List.map(Path.toString) |> String.concat(" ");
-        let data = "(ignored_subdirs (" ++ items ++ "))\n";
-        let%bind () = write(~data, rootPath / "node_modules" / "dune");
-        ok;
-      } else {
-        ok;
-      };
-    };
 
     let%bind () =
       switch (withCwd(rootPath, ~f=() => f(build))) {
@@ -556,10 +548,10 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
           } else {
             ok;
           };
-        let%bind () = Lifecycle.finalize(build);
+        let%bind () = Lifecycle.finalize(cfg, build);
         ok;
       | error =>
-        let%bind () = Lifecycle.finalize(build);
+        let%bind () = Lifecycle.finalize(cfg, build);
         error;
       };
 

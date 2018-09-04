@@ -4,7 +4,7 @@ let run
     ?(stderrout=`Log)
     ?(args=[])
     action
-    (cfg : Config.t)
+    (sandbox : Sandbox.t)
     (task : Task.t) =
   let open RunAsync.Syntax in
 
@@ -18,12 +18,12 @@ let run
     let%bind command = RunAsync.ofRun (
       let open Run.Syntax in
       return Cmd.(
-        cfg.esyBuildPackageCommand
+        sandbox.cfg.esyBuildPackageCommand
         % action
-        % "--prefix-path" % p cfg.prefixPath
-        % "--sandbox-path" % p cfg.buildConfig.sandboxPath
-        % "--build"
-        % Path.toString buildJsonFilename
+        % "--store-path" % p sandbox.buildConfig.storePath
+        % "--sandbox-path" % p sandbox.buildConfig.sandboxPath
+        % "--project-path" % p sandbox.buildConfig.projectPath
+        % "--build" % p buildJsonFilename
         |> addArgs args
       )
     ) in
@@ -35,7 +35,7 @@ let run
 
     let%bind stdout, stderr, log = match stderrout with
     | `Log ->
-      let logPath = Config.Path.toPath cfg.buildConfig (Task.logPath task) in
+      let logPath = Sandbox.Path.toPath sandbox.buildConfig (Task.logPath task) in
       let%lwt fd = Lwt_unix.openfile
         (Path.toString logPath)
         Lwt_unix.[O_WRONLY; O_CREAT]
@@ -68,7 +68,7 @@ let build
     ?(buildOnly=false)
     ?(quiet=false)
     ?(stderrout : [`Keep | `Log] option)
-    cfg
+    sandbox
     task
     =
   let open RunAsync.Syntax in
@@ -81,7 +81,7 @@ let build
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in
-  let%bind status, log = run ~args ?stderrout `Build cfg task in
+  let%bind status, log = run ~args ?stderrout `Build sandbox task in
   match status, log with
   | Unix.WEXITED 0, Some (_, fd)  ->
     UnixLabels.close fd;
@@ -95,14 +95,14 @@ let build
   | _, None ->
     error "build failed"
 
-let buildShell cfg task =
+let buildShell sandbox task =
   let open RunAsync.Syntax in
-  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Shell cfg task in
+  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Shell sandbox task in
   return status
 
-let buildExec cfg task cmd =
+let buildExec sandbox task cmd =
   let open RunAsync.Syntax in
   let tool, args = Cmd.getToolAndArgs cmd in
   let args = "--"::tool::args in
-  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Exec ~args cfg task in
+  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Exec ~args sandbox task in
   return status

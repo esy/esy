@@ -26,6 +26,8 @@ type t = {
 
   (** Type of configuration origin of the sandbox. *)
   origin : origin;
+
+  name : string option;
 }
 
 (** Types of configuration files containing their paths. *)
@@ -34,5 +36,10 @@ and origin =
   | Opam of Path.t
   | AggregatedOpam of Path.t list
 
-(** Read sandbox out of directory given the config. *)
-val ofDir : cfg:Config.t -> Path.t -> t RunAsync.t
+val make : cfg:Config.t -> Path.t -> Project.sandbox -> t RunAsync.t
+
+val lockfilePath : t -> Path.t RunAsync.t
+(** Path to the sandbox lockfile. *)
+
+val packagesPath : t -> Path.t RunAsync.t
+(** Path to the sandbox packages path (node_modules for default sandbox). *)

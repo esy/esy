@@ -6,23 +6,42 @@ module System = EsyLib.System
 
 let cfg =
   let prefixPath = Path.v "/tmp/__prefix__" in
+  let storePath = Path.v "/tmp/__prefix__/store" in
   {
     Config.
     esyVersion = "0.x.x";
     prefixPath;
-    buildConfig = EsyBuildPackage.(Run.runExn (Config.make ~prefixPath ()));
+    storePath;
     fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
     esyBuildPackageCommand = Cmd.v "esy-build-package";
+  }
+
+let buildConfig =
+  let open EsyBuildPackage in
+  Run.runExn (
+    Config.make
+      ~projectPath:(Path.v "/project")
+      ~storePath:(Path.v "/store")
+      ())
+
+let makeSandbox pkg =
+  Sandbox.{
+    cfg;
+    buildConfig;
+    scripts = Manifest.Scripts.empty;
+    env = Manifest.Env.empty;
+    root = pkg;
+    name = None;
   }
 
 module TestCommandExpr = struct
 
   let commandsEqual = [%derive.eq: string list list]
   let checkCommandsEqual commands expectation =
-    let commands = List.map (List.map Config.Value.toString) commands in
+    let commands = List.map (List.map Sandbox.Value.toString) commands in
     commandsEqual commands expectation
 
-  let dep = Package.{
+  let dep = Sandbox.Package.{
     id = "%dep%";
     name = "dep";
     version = "1.0.0";
@@ -51,18 +70,17 @@ module TestCommandExpr = struct
           scope = Local;
         }
       ];
-      sandboxEnv = [];
       buildEnv = [];
     };
-    sourcePath = Config.Path.ofPath cfg.buildConfig (Path.v "/path");
+    sourcePath = Sandbox.Path.v "/path";
     resolution = Some "ok";
   }
 
-  let pkg = Package.{
+  let pkg = Sandbox.Package.{
     id = "%pkg%";
     name = "pkg";
     version = "1.0.0";
-    dependencies = [Dependency dep];
+    dependencies = [Ok (Dependency, dep)];
     build = {
       Manifest.Build.
       buildCommands = EsyCommands (Some [
@@ -78,14 +96,13 @@ module TestCommandExpr = struct
       sourceType = Manifest.SourceType.Immutable;
       exportedEnv = [];
       buildEnv = [];
-      sandboxEnv = [];
     };
-    sourcePath = Config.Path.ofPath cfg.buildConfig (Path.v "/path");
+    sourcePath = Sandbox.Path.v "/path";
     resolution = Some "ok";
   }
 
-  let check ?platform pkg f =
-    match Task.ofPackage ?platform pkg with
+  let check ?platform sandbox f =
+    match Task.ofSandbox ?platform sandbox with
     | Ok task ->
       f task
     | Error err ->
@@ -93,7 +110,7 @@ module TestCommandExpr = struct
       false
 
   let%test "#{...} inside esy.build" =
-    check pkg (fun task ->
+    check (makeSandbox pkg) (fun task ->
       let plan = Task.plan task in
       let id = Task.id task in
       checkCommandsEqual
@@ -105,7 +122,7 @@ module TestCommandExpr = struct
     )
 
   let%test "#{...} inside esy.build / esy.install (depends on os)" =
-    let pkg = Package.{
+    let pkg = Sandbox.Package.{
       pkg with
       build = {
         pkg.build with
@@ -118,7 +135,7 @@ module TestCommandExpr = struct
         buildType = Manifest.BuildType.InSource;
       }
     } in
-    check ~platform:System.Platform.Linux pkg (fun task ->
+    check ~platform:System.Platform.Linux (makeSandbox pkg) (fun task ->
       let plan = Task.plan task in
       checkCommandsEqual
         plan.EsyBuildPackage.Plan.build
@@ -129,7 +146,7 @@ module TestCommandExpr = struct
         [["make"; "install-linux"]]
     )
     &&
-    check ~platform:System.Platform.Darwin pkg (fun task ->
+    check ~platform:System.Platform.Darwin (makeSandbox pkg) (fun task ->
       let plan = Task.plan task in
       checkCommandsEqual
         plan.EsyBuildPackage.Plan.build
@@ -141,7 +158,7 @@ module TestCommandExpr = struct
     )
 
   let%test "#{self...} inside esy.install" =
-    check pkg (fun task ->
+    check (makeSandbox pkg) (fun task ->
       let id = Task.id task in
       let plan = Task.plan task in
       checkCommandsEqual
@@ -150,8 +167,8 @@ module TestCommandExpr = struct
     )
 
   let%test "#{...} inside esy.exportedEnv" =
-    check pkg (fun task ->
-      let [Task.Dependency dep] =
+    check (makeSandbox pkg) (fun task ->
+      let [Task.Dependency, dep] =
         Task.dependencies task
         [@@ocaml.warning "-8"]
       in
@@ -160,14 +177,14 @@ module TestCommandExpr = struct
       let f = function
         | "OK", value ->
           let expected =
-            Fpath.(cfg.buildConfig.storePath / "i" / id / "ok")
+            Fpath.(buildConfig.storePath / "i" / id / "ok")
             |> Fpath.to_string
             |> EsyLib.Path.normalizePathSlashes
           in
           Some (value = expected)
         | "OK_BY_NAME", value ->
           let expected =
-            Fpath.(cfg.buildConfig.storePath / "i" / id / "ok-by-name")
+            Fpath.(buildConfig.storePath / "i" / id / "ok-by-name")
             |> Fpath.to_string
             |> EsyLib.Path.normalizePathSlashes
           in
@@ -177,7 +194,7 @@ module TestCommandExpr = struct
       in
       not (
         bindings
-        |> Config.Environment.Bindings.render cfg.buildConfig
+        |> Sandbox.Environment.Bindings.render buildConfig
         |> EsyLib.Environment.renderToList
         |> List.map f
         |> List.exists (function | Some false -> true | _ -> false)
@@ -186,7 +203,7 @@ module TestCommandExpr = struct
 
 let checkEnvExists ~name ~value task =
   let bindings =
-    Config.Environment.Bindings.render cfg.buildConfig (Run.runExn (Task.buildEnv task))
+    Sandbox.Environment.Bindings.render buildConfig (Run.runExn (Task.buildEnv task))
   in
   List.exists
     (function
@@ -198,7 +215,7 @@ let checkEnvExists ~name ~value task =
     (EsyLib.Environment.renderToList bindings)
 
   let%test "#{OCAMLPATH} depending on os" =
-    let dep = Package.{
+    let dep = Sandbox.Package.{
       dep with
       build = {
         dep.build with
@@ -227,17 +244,17 @@ let checkEnvExists ~name ~value task =
         ];
       };
     } in
-    let pkg = Package.{
+    let pkg = Sandbox.Package.{
       pkg with
-      dependencies = [Dependency dep];
+      dependencies = [Ok (Dependency, dep)];
     } in
-    check ~platform:System.Platform.Linux pkg (fun task ->
+    check ~platform:System.Platform.Linux (makeSandbox pkg) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib" task
     )
     &&
-    check ~platform:System.Platform.Windows pkg (fun task ->
+    check ~platform:System.Platform.Windows (makeSandbox pkg) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one;two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin;/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib/ocaml" task

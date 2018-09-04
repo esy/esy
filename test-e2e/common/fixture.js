@@ -23,7 +23,7 @@ const simpleProject = [
     },
   }),
   dir(
-    'node_modules',
+    ['_esy', 'default', 'node_modules'],
     dir(
       'dep',
       packageJson({

@@ -26,6 +26,7 @@ module Env : sig
   and item = { name : string; value : string; }
   val empty : t
   val show : t -> string
+  val to_yojson : t Json.encoder
 end
 
 module ExportedEnv : sig
@@ -71,7 +72,6 @@ module Build : sig
     patches : (Path.t * OpamTypes.filter option) list;
     substs : Path.t list;
     exportedEnv : ExportedEnv.t;
-    sandboxEnv : Env.t;
     buildEnv : Env.t;
   }
 
@@ -140,6 +140,9 @@ module type MANIFEST = sig
    *)
   val scripts : t -> Scripts.t Run.t
 
+  val sandboxEnv : t -> Env.t Run.t
+  (** Extract sandbox environment from manifest. *)
+
   (**
    * Unique id of the release.
    *
@@ -161,6 +164,8 @@ include MANIFEST
  * If manifest was found then returns also a set of paths which were used to
  * load manifest. Client code can check those paths to invalidate caches.
  *)
-val ofDir : ?asRoot:bool -> Fpath.t -> (t * Fpath.set) option RunAsync.t
+val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
+
+val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

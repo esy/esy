@@ -5,7 +5,7 @@ let waitForDependencies dependencies =
   |> List.map ~f:(fun (_, dep) -> dep)
   |> RunAsync.List.waitAll
 
-let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
+let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly sandbox (task : Task.t) =
   let pkg = Task.pkg task in
   let f () =
     let open RunAsync.Syntax in
@@ -16,7 +16,7 @@ let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly cfg (task : Task.t) =
     in
     let%bind () =
       RunAsync.context (
-        PackageBuilder.build ~quiet ?stderrout ?force ~buildOnly cfg task
+        PackageBuilder.build ~quiet ?stderrout ?force ~buildOnly sandbox task
       ) context
     in
     let%lwt () = if not quiet
@@ -34,7 +34,7 @@ let runTask
   ~queue
   ~allDependencies:_
   ~dependencies
-  (cfg : Config.t)
+  (sandbox : Sandbox.t)
   (rootTask : Task.t)
   (task : Task.t) =
 
@@ -43,7 +43,7 @@ let runTask
   let%bind () = waitForDependencies dependencies in
 
   let isRoot = Task.id task == Task.id rootTask in
-  let installPath = Config.Path.toPath cfg.buildConfig (Task.installPath task) in
+  let installPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in
 
   let buildOnly = match buildOnly with
   | `ForRoot -> isRoot
@@ -55,10 +55,10 @@ let runTask
     let f () =
       let infoPath =
         Task.buildInfoPath task
-        |> Config.Path.toPath cfg.buildConfig
+        |> Sandbox.Path.toPath sandbox.buildConfig
       and sourcePath =
         Task.sourcePath task
-        |> Config.Path.toPath cfg.buildConfig
+        |> Sandbox.Path.toPath sandbox.buildConfig
       in
       match%lwt Fs.readFile infoPath with
       | Ok data ->
@@ -66,7 +66,7 @@ let runTask
           Json.parseStringWith EsyBuildPackage.BuildInfo.of_yojson data
         ) in
         begin match buildInfo.EsyBuildPackage.BuildInfo.sourceModTime with
-        | None -> buildTask ~buildOnly cfg task
+        | None -> buildTask ~buildOnly sandbox task
         | Some buildMtime ->
           let skipTraverse path = match Path.basename path with
           | "node_modules"
@@ -85,10 +85,10 @@ let runTask
           in
           let%bind curMtime = Fs.fold ~skipTraverse ~f ~init:0.0 sourcePath in
           if curMtime > buildMtime
-          then buildTask ~buildOnly cfg task
+          then buildTask ~buildOnly sandbox task
           else return ()
         end
-      | Error _ -> buildTask ~buildOnly cfg task
+      | Error _ -> buildTask ~buildOnly sandbox task
     in
     let label = Printf.sprintf "checking mtime for %s" (Task.id task) in
     Perf.measureLwt ~label f
@@ -100,14 +100,14 @@ let runTask
     | Manifest.SourceType.Immutable ->
       if%bind Fs.exists installPath
       then return ()
-      else buildTask ~buildOnly cfg task
+      else buildTask ~buildOnly sandbox task
     | Manifest.SourceType.Transient ->
-      if Task.isRoot ~cfg task then
-        buildTask ~buildOnly cfg task
+      if Task.isRoot ~sandbox task then
+        buildTask ~buildOnly sandbox task
       else (
         if%bind Fs.exists installPath
         then checkSourceModTime ()
-        else buildTask ~buildOnly cfg task
+        else buildTask ~buildOnly sandbox task
       )
     in LwtTaskQueue.submit queue f
   in
@@ -115,15 +115,15 @@ let runTask
   match force with
   | `ForRoot ->
     if isRoot
-    then buildTask ~force:true ~buildOnly cfg task
+    then buildTask ~force:true ~buildOnly sandbox task
     else performBuildIfNeeded ()
   | `No ->
     performBuildIfNeeded ()
   | `Yes ->
-    buildTask ~force:true ~buildOnly cfg task
+    buildTask ~force:true ~buildOnly sandbox task
   | `Select items ->
     if StringSet.mem (Task.id task) items
-    then buildTask ~force:true ~buildOnly cfg task
+    then buildTask ~force:true ~buildOnly sandbox task
     else performBuildIfNeeded ()
 
 (**
@@ -133,11 +133,11 @@ let buildAll
     ?force
     ?buildOnly
     ~concurrency
-    (cfg : Config.t)
+    (sandbox : Sandbox.t)
     (rootTask : Task.t)
     =
   let queue = LwtTaskQueue.create ~concurrency () in
-  let f = runTask ?force ?buildOnly ~queue cfg rootTask in
+  let f = runTask ?force ?buildOnly ~queue sandbox rootTask in
   Task.Graph.foldWithAllDependencies ~f rootTask
 
 (**
@@ -147,7 +147,7 @@ let buildDependencies
     ?force
     ?buildOnly
     ~concurrency
-    (cfg : Config.t)
+    (sandbox : Sandbox.t)
     (rootTask : Task.t)
     =
   let open RunAsync.Syntax in
@@ -157,6 +157,7 @@ let buildDependencies
     then (
       let%bind () = waitForDependencies dependencies in
       return ()
-    ) else runTask ?force ?buildOnly ~allDependencies ~dependencies ~queue cfg rootTask task
+    )
+    else runTask ?force ?buildOnly ~allDependencies ~dependencies ~queue sandbox rootTask task
   in
   Task.Graph.foldWithAllDependencies ~f rootTask
