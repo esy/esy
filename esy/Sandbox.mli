@@ -3,28 +3,28 @@
  *)
 
 module Package : sig
+
   type t = {
     id : string;
     name : string;
     version : string;
-    dependencies : dependencies;
+    dependencies : dependency list;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
     resolution : string option;
   }
 
-  and dependencies =
-    dependency list
+  and dependency = (dependencyKind * t, dependencyError) result
 
-  and dependency =
-    | Dependency of t
-    | OptDependency of t
-    | DevDependency of t
-    | BuildTimeDependency of t
-    | InvalidDependency of {
-      name: string;
-      reason: [ | `Reason of string | `Missing ];
-    }
+  and dependencyError =
+    | InvalidDependency of { name : string; message : string; }
+    | MissingDependency of { name : string; }
+
+  and dependencyKind =
+    | Dependency
+    | OptDependency
+    | DevDependency
+    | BuildTimeDependency
 
   val pp : t Fmt.t
   val compare : t -> t -> int

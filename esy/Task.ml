@@ -189,20 +189,20 @@ let ofSandbox
 
       let%bind dpkg =
         match dep with
-        | Sandbox.Package.Dependency dpkg
-        | Sandbox.Package.OptDependency dpkg -> return (Some (dpkg, Dependency))
-        | Sandbox.Package.BuildTimeDependency dpkg ->
+        | Ok (Sandbox.Package.Dependency, dpkg)
+        | Ok (Sandbox.Package.OptDependency, dpkg) -> return (Some (dpkg, Dependency))
+        | Ok (Sandbox.Package.BuildTimeDependency, dpkg) ->
           if direct
           then return (Some (dpkg, BuildTimeDependency))
           else return None
-        | Sandbox.Package.DevDependency dpkg ->
+        | Ok (Sandbox.Package.DevDependency, dpkg) ->
           if direct
           then return (Some (dpkg, DevDependency))
           else return None
-        | Sandbox.Package.InvalidDependency { name; reason = `Missing; } ->
+        | Error (Sandbox.Package.MissingDependency {name;}) ->
           Run.errorf "package %s is missing, run 'esy install' to fix that" name
-        | Sandbox.Package.InvalidDependency { name; reason = `Reason reason; } ->
-          Run.errorf "invalid package %s: %s" name reason
+        | Error (Sandbox.Package.InvalidDependency {name; message;}) ->
+          Run.errorf "invalid package %s: %s" name message
       in
 
       match dpkg with

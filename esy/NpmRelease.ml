@@ -182,7 +182,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
           id = "__release_env__";
           name = "release-env";
           version = pkg.version;
-          dependencies = [Sandbox.Package.Dependency pkg];
+          dependencies = [Ok (Sandbox.Package.Dependency, pkg)];
           build = {
             Manifest.Build.
             sourceType = Manifest.SourceType.Transient;

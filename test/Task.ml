@@ -80,7 +80,7 @@ module TestCommandExpr = struct
     id = "%pkg%";
     name = "pkg";
     version = "1.0.0";
-    dependencies = [Dependency dep];
+    dependencies = [Ok (Dependency, dep)];
     build = {
       Manifest.Build.
       buildCommands = EsyCommands (Some [
@@ -246,7 +246,7 @@ let checkEnvExists ~name ~value task =
     } in
     let pkg = Sandbox.Package.{
       pkg with
-      dependencies = [Dependency dep];
+      dependencies = [Ok (Dependency, dep)];
     } in
     check ~platform:System.Platform.Linux (makeSandbox pkg) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task

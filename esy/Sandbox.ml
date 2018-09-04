@@ -1,27 +1,28 @@
 module Package = struct
 
+  type dependencyError =
+    | InvalidDependency of { name : string; message : string; }
+    | MissingDependency of { name : string; }
+    [@@deriving ord]
+
+  type dependencyKind =
+    | Dependency
+    | OptDependency
+    | DevDependency
+    | BuildTimeDependency
+    [@@deriving ord]
+
   type t = {
     id : string;
     name : string;
     version : string;
-    dependencies : dependencies;
+    dependencies : dependency list;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
     resolution : string option;
   }
 
-  and dependencies =
-    dependency list
-
-  and dependency =
-    | Dependency of t
-    | OptDependency of t
-    | DevDependency of t
-    | BuildTimeDependency of t
-    | InvalidDependency of {
-      name: string;
-      reason: [ | `Reason of string | `Missing ];
-    }
+  and dependency = (dependencyKind * t, dependencyError) result
 
   let pp fmt p = Fmt.string fmt p.id
 
@@ -29,30 +30,23 @@ module Package = struct
 
   let compare_dependency a b =
     match a, b with
-    | Dependency a, Dependency b -> compare a b
-    | OptDependency a, OptDependency b -> compare  a b
-    | BuildTimeDependency a, BuildTimeDependency b -> compare a b
-    | DevDependency a, DevDependency b -> compare a b
-    | InvalidDependency a, InvalidDependency b -> String.compare a.name b.name
-    | Dependency _, _ -> 1
-    | OptDependency _, Dependency _ -> -1
-    | OptDependency _, _ -> 1
-    | BuildTimeDependency _, Dependency _ -> -1
-    | BuildTimeDependency _, OptDependency _ -> -1
-    | BuildTimeDependency _, _ -> 1
-    | DevDependency _, Dependency _ -> -1
-    | DevDependency _, OptDependency _ -> -1
-    | DevDependency _, BuildTimeDependency _ -> -1
-    | DevDependency _, _ -> 1
-    | InvalidDependency _, _ -> -1
+    | Ok (ka, a), Ok (kb, b) ->
+      let c = compare_dependencyKind ka kb in
+      if c = 0
+      then compare a b
+      else c
+    | Error a, Error b -> compare_dependencyError a b
+    | Ok _, Error _ -> 1
+    | Error _, Ok _ -> -1
 
   let pp_dependency fmt dep =
     match dep with
-    | Dependency p -> Fmt.pf fmt "Dependency %s" p.id
-    | OptDependency p -> Fmt.pf fmt "OptDependency %s" p.id
-    | DevDependency p -> Fmt.pf fmt "DevDependency %s" p.id
-    | BuildTimeDependency p -> Fmt.pf fmt "BuildTimeDependency %s" p.id
-    | InvalidDependency p -> Fmt.pf fmt "InvalidDependency %s" p.name
+    | Ok (Dependency, p) -> Fmt.pf fmt "Dependency %s" p.id
+    | Ok (OptDependency, p) -> Fmt.pf fmt "OptDependency %s" p.id
+    | Ok (DevDependency, p) -> Fmt.pf fmt "DevDependency %s" p.id
+    | Ok (BuildTimeDependency, p) -> Fmt.pf fmt "BuildTimeDependency %s" p.id
+    | Error (InvalidDependency p) -> Fmt.pf fmt "InvalidDependency %s" p.name
+    | Error (MissingDependency p) -> Fmt.pf fmt "MissingDependency %s" p.name
 
   module Map = Map.Make(struct
     type nonrec t = t
@@ -73,12 +67,13 @@ module Package = struct
     let id (pkg : t) = pkg.id
 
     let traverse pkg =
-      let f acc dep = match dep with
-        | Dependency pkg
-        | OptDependency pkg
-        | DevDependency pkg
-        | BuildTimeDependency pkg -> (pkg, dep)::acc
-        | InvalidDependency _ -> acc
+      let f acc dep =
+        match dep with
+        | Ok (Dependency, pkg)
+        | Ok (OptDependency, pkg)
+        | Ok (DevDependency, pkg)
+        | Ok (BuildTimeDependency, pkg) -> (pkg, dep)::acc
+        | Error _ -> acc
       in
       pkg.dependencies
       |> List.fold_left ~f ~init:[]
@@ -227,10 +222,10 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           if skipUnresolved
           then dependencies
           else
-            let dep = Package.InvalidDependency {name; reason = `Missing;} in
+            let dep = Error (Package.MissingDependency {name}) in
             StringMap.add name dep dependencies
-        | Error (name, reason) ->
-          let dep = Package.InvalidDependency {name;reason = `Reason reason;} in
+        | Error (name, message) ->
+          let dep = Error (Package.InvalidDependency {name; message;}) in
           StringMap.add name dep dependencies
       in
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
@@ -244,7 +239,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           addDependencies
             ~ignoreCircularDep ~skipUnresolved:true
             ~packagesPath
-            ~make:(fun pkg -> DevDependency pkg)
+            ~make:(fun pkg -> Ok (DevDependency, pkg))
             deps.devDependencies
             dependencies
         else
@@ -254,7 +249,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         addDependencies
           ~ignoreCircularDep
           ~packagesPath
-          ~make:(fun pkg -> BuildTimeDependency pkg)
+          ~make:(fun pkg -> Ok (BuildTimeDependency, pkg))
           deps.buildTimeDependencies
           dependencies
       in
@@ -263,7 +258,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           ~ignoreCircularDep
           ~packagesPath
           ~skipUnresolved:true
-          ~make:(fun pkg -> OptDependency pkg)
+          ~make:(fun pkg -> Ok (OptDependency, pkg))
           deps.optDependencies
           dependencies
       in
@@ -271,7 +266,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         addDependencies
           ~ignoreCircularDep
           ~packagesPath
-          ~make:(fun pkg -> Dependency pkg)
+          ~make:(fun pkg -> Ok (Dependency, pkg))
           deps.dependencies
           dependencies
       in
@@ -292,12 +287,12 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         StringMap.exists
           (fun _k dep ->
             match dep with
-              | Package.Dependency pkg
-              | BuildTimeDependency pkg
-              | OptDependency pkg ->
-                pkg.build.sourceType = Manifest.SourceType.Transient
-              | DevDependency _
-              | InvalidDependency _ -> false)
+              | Ok (Package.Dependency, pkg)
+              | Ok (Package.BuildTimeDependency, pkg)
+              | Ok (Package.OptDependency, pkg) ->
+                pkg.Package.build.sourceType = Manifest.SourceType.Transient
+              | Ok (Package.DevDependency, _)
+              | Error _ -> false)
           dependencies
       in
 
