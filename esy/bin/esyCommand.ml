@@ -110,10 +110,9 @@ module SandboxInfo = struct
     let makeInfo () =
       let f () =
         let%bind sandbox, info =
-          Project.initByName
-            ~init:(Sandbox.make ~cfg)
-            ?name
-            project
+          match Project.find ~name project with
+          | Some sandbox -> Sandbox.make ~cfg project.path sandbox
+          | None -> errorf "no sandbox %a found" Fmt.(option ~none:(unit "default") string) name
         in
         let%bind () = Sandbox.init sandbox in
         let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun (
@@ -563,10 +562,9 @@ module CommonOptions = struct
               ?solveTimeout
               ()
           in
-          Project.initByName
-            ?name:!sandboxRef
-            ~init:(Sandbox.make ~cfg)
-            project
+          match Project.find ~name:!sandboxRef project with
+          | Some sandbox -> Sandbox.make ~cfg project.path sandbox
+          | None -> errorf "no sandbox %a found" Fmt.(option ~none:(unit "default") string) !sandboxRef
         in
         return {sandbox = !sandboxRef; project; cfg; installSandbox;}
       in

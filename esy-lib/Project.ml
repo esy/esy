@@ -73,13 +73,11 @@ let ofDir path =
   | None, false -> return None
   | Some sandbox, _ -> return (Some {path; sandbox; sandboxByName;})
 
-let initByName ~init ?name project =
-  let open RunAsync.Syntax in
+let find ~name project =
   match name with
-  | None -> init project.path project.sandbox
-  | Some "default" -> init project.path project.sandbox
-  | Some name ->
-    begin match StringMap.find name project.sandboxByName with
-    | Some sandbox -> init project.path sandbox
-    | None -> errorf "no sandbox %s found" name
-    end
+  | None
+  | Some "default" -> Some project.sandbox
+  | Some name -> StringMap.find name project.sandboxByName
+
+let sandboxes project =
+  project.sandbox::(StringMap.values project.sandboxByName)
