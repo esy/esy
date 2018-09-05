@@ -15,7 +15,7 @@ let coerceFromClosed = x => (
     t(_, _)
 );
 
-let ok = Result.ok;
+let ok = Result.Ok();
 let return = v => Ok(v);
 let error = msg => Error(`Msg(msg));
 
@@ -58,13 +58,13 @@ let rm = path =>
     switch (System.Platform.host) {
     | Windows => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
     | _ =>
-        switch (Bos.OS.U.unlink(path)) {
-        | Ok () => ok
-        | Error(`Unix(err)) =>
-          let msg = Unix.error_message(err);
-          error(msg);
-        };
-    };
+      switch (Bos.OS.U.unlink(path)) {
+      | Ok () => ok
+      | Error(`Unix(err)) =>
+        let msg = Unix.error_message(err);
+        error(msg);
+      }
+    }
   | Ok({Unix.st_kind: _, _}) => Bos.OS.Path.delete(~must_exist=false, path)
   | Error(_) => ok
   };

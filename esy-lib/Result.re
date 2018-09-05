@@ -1,20 +1,16 @@
-include Rresult;
-let ok = Ok();
+type t('v, 'err) = result('v, 'err) = | Ok('v) | Error('err);
+
 let join = rr =>
   switch (rr) {
   | Ok(Ok(v)) => Ok(v)
   | Ok(v) => v
   | Error(msg) => Error(msg)
   };
+
 let map = f =>
   fun
   | Ok(v) => Ok(f(v))
   | Error(err) => Error(err);
-let (>>) = (a, b) =>
-  switch (a) {
-  | Ok () => b()
-  | Error(msg) => Error(msg)
-  };
 
 module List = {
   let map =
@@ -45,6 +41,10 @@ module List = {
 module Syntax = {
   let return = v => Ok(v);
   let error = err => Error(err);
+  let errorf = fmt => {
+    let kerr = _ => Error(Format.flush_str_formatter());
+    Format.kfprintf(kerr, Format.str_formatter, fmt);
+  };
 
   module Let_syntax = {
     let bind = (~f, v) =>
