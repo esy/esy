@@ -129,8 +129,8 @@ let package ~(resolution : Resolution.t) resolver =
   let key = (resolution.name, resolution.version) in
   PackageCache.compute resolver.pkgCache key begin fun _ ->
     match resolution.version with
-    | Version.Source ((Source.LocalPath path) as source)
-    | Version.Source ((Source.LocalPathLink path) as source) ->
+    | Version.Source ((Source.LocalPath {path;}) as source)
+    | Version.Source ((Source.LocalPathLink {path;}) as source) ->
       let%bind manifest = PackageJson.ofDir path in
       let pkg =
         PackageJson.toPackage
@@ -244,11 +244,11 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
     | SourceSpec.Archive {url; checksum = Some checksum} ->
       return (Source.Archive {url; checksum})
 
-    | SourceSpec.LocalPath p ->
-      return (Source.LocalPath p)
+    | SourceSpec.LocalPath {path;} ->
+      return (Source.LocalPath {path;})
 
-    | SourceSpec.LocalPathLink p ->
-      return (Source.LocalPathLink p)
+    | SourceSpec.LocalPathLink {path;} ->
+      return (Source.LocalPathLink {path;})
   end
 
 let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =

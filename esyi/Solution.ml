@@ -46,8 +46,8 @@ module Record = struct
   let mapVersion ~f (record : t) =
     let version =
       match record.version with
-      | Version.Source (Package.Source.LocalPath p) ->
-        Version.Source (Package.Source.LocalPath (f p))
+      | Version.Source (Package.Source.LocalPath {path;}) ->
+        Version.Source (Package.Source.LocalPath {path = f path;})
       | Version.Npm _
       | Version.Opam _
       | Version.Source _ -> record.version
@@ -55,10 +55,10 @@ module Record = struct
     let source =
       let f source =
         match source with
-        | Package.Source.LocalPathLink p ->
-          Package.Source.LocalPathLink (f p)
-        | Package.Source.LocalPath p ->
-          Package.Source.LocalPath (f p)
+        | Package.Source.LocalPathLink {path;} ->
+          Package.Source.LocalPathLink {path = f path;}
+        | Package.Source.LocalPath {path;} ->
+          Package.Source.LocalPath {path = f path;}
         | Package.Source.Archive _
         | Package.Source.Git _
         | Package.Source.Github _
@@ -111,8 +111,8 @@ module Id = struct
   let mapVersion ~f ((name, version) : t) =
     let version =
       match version with
-      | Version.Source (Source.LocalPath p) ->
-        Version.Source (Source.LocalPath (f p))
+      | Version.Source (Source.LocalPath {path;}) ->
+        Version.Source (Source.LocalPath {path = f path;})
       | Version.Npm _
       | Version.Opam _
       | Version.Source _ -> version

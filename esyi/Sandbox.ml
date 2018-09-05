@@ -68,7 +68,7 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
     |> List.filterNone
   in
 
-  let source = Package.Source.LocalPath projectPath in
+  let source = Package.Source.LocalPath {path = projectPath;} in
   let version = Package.Version.Source source in
 
   match opams with
@@ -161,7 +161,7 @@ let makeEsySandbox ?name ~cfg projectPath path =
   ) in
 
   let root =
-    let source = Package.Source.LocalPath projectPath in
+    let source = Package.Source.LocalPath {path = projectPath;} in
     let version = Package.Version.Source source in
     let name = Path.basename projectPath in
     PackageJson.toPackage ~name ~version ~source:(Package.Source source) pkgJson

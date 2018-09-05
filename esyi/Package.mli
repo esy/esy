@@ -10,8 +10,8 @@ module Source : sig
     | Archive of {url : string ; checksum : Checksum.t}
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
-    | LocalPath of Path.t
-    | LocalPathLink of Path.t
+    | LocalPath of {path : Path.t;}
+    | LocalPathLink of {path : Path.t;}
     | NoSource
 
   include S.COMMON with type t := t
@@ -48,8 +48,8 @@ module SourceSpec : sig
     | Archive of {url : string ; checksum : Checksum.t option}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
-    | LocalPath of Path.t
-    | LocalPathLink of Path.t
+    | LocalPath of {path : Path.t;}
+    | LocalPathLink of {path : Path.t;}
     | NoSource
 
   val toString : t -> string

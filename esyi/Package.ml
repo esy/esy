@@ -32,8 +32,8 @@ module Source = struct
     | Archive of {url : string ; checksum : Checksum.t }
     | Git of {remote : string; commit : string}
     | Github of {user : string; repo : string; commit : string}
-    | LocalPath of Path.t
-    | LocalPathLink of Path.t
+    | LocalPath of {path : Path.t;}
+    | LocalPathLink of {path : Path.t;}
     | NoSource
     [@@deriving (ord, eq)]
 
@@ -43,8 +43,8 @@ module Source = struct
     | Git {remote; commit; _} ->
       Printf.sprintf "git:%s#%s" remote commit
     | Archive {url; checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
-    | LocalPath path -> "path:" ^ Path.toString(path)
-    | LocalPathLink path -> "link:" ^ Path.toString(path)
+    | LocalPath {path;} -> "path:" ^ Path.toString(path)
+    | LocalPathLink {path;} -> "link:" ^ Path.toString(path)
     | NoSource -> "no-source:"
 
   let show = toString
@@ -67,10 +67,10 @@ module Source = struct
       return NoSource
     | "path", path ->
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      return (LocalPath path)
+      return (LocalPath {path;})
     | "link", path ->
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      return (LocalPathLink path)
+      return (LocalPathLink {path;})
     | _, _ ->
       let msg = Printf.sprintf "unknown source: %s" v in
       error msg
@@ -208,8 +208,8 @@ module SourceSpec = struct
     | Archive of {url : string; checksum : Checksum.t option;}
     | Git of {remote : string; ref : string option}
     | Github of {user : string; repo : string; ref : string option}
-    | LocalPath of Path.t
-    | LocalPathLink of Path.t
+    | LocalPath of {path : Path.t;}
+    | LocalPathLink of {path : Path.t;}
     | NoSource
     [@@deriving (eq, ord)]
 
@@ -220,8 +220,8 @@ module SourceSpec = struct
     | Git {remote; ref = Some ref} -> Printf.sprintf "git:%s#%s" remote ref
     | Archive {url; checksum = Some checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
     | Archive {url; checksum = None} -> "archive:" ^ url
-    | LocalPath path -> "path:" ^ Path.toString(path)
-    | LocalPathLink path -> "link:" ^ Path.toString(path)
+    | LocalPath {path;} -> "path:" ^ Path.toString path
+    | LocalPathLink {path;} -> "link:" ^ Path.toString path
     | NoSource -> "no-source:"
 
   let to_yojson src = `String (toString src)
@@ -233,8 +233,8 @@ module SourceSpec = struct
       Git {remote; ref =  Some commit}
     | Source.Github {user; repo; commit} ->
       Github {user; repo; ref = Some commit}
-    | Source.LocalPath p -> LocalPath p
-    | Source.LocalPathLink p -> LocalPathLink p
+    | Source.LocalPath {path;} -> LocalPath {path;}
+    | Source.LocalPathLink {path;} -> LocalPathLink {path;}
     | Source.NoSource -> NoSource
 
   let pp fmt spec =
@@ -242,13 +242,13 @@ module SourceSpec = struct
 
   let matches ~source spec =
     match spec, source with
-    | LocalPath p1, Source.LocalPath p2 ->
+    | LocalPath {path = p1;}, Source.LocalPath {path = p2;} ->
       Path.equal p1 p2
-    | LocalPath p1, Source.LocalPathLink p2 ->
+    | LocalPath {path = p1;}, Source.LocalPathLink {path = p2;} ->
       Path.equal p1 p2
     | LocalPath _, _ -> false
 
-    | LocalPathLink p1, Source.LocalPathLink p2 ->
+    | LocalPathLink {path = p1;}, Source.LocalPathLink {path = p2;} ->
       Path.equal p1 p2
     | LocalPathLink _, _ -> false
 
@@ -395,11 +395,11 @@ module VersionSpec = struct
       match parseProto v with
       | Some ("link:", path) ->
         let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-        let spec = SourceSpec.LocalPathLink path in
+        let spec = SourceSpec.LocalPathLink {path;} in
         return (Source spec)
       | Some ("file:", path) ->
         let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-        let spec = SourceSpec.LocalPath path in
+        let spec = SourceSpec.LocalPath {path;} in
         return (Source spec)
       | Some ("https:", _)
       | Some ("http:", _) ->
@@ -428,7 +428,7 @@ module VersionSpec = struct
 
     let path spec =
       if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
-      then Ok (Source (SourceSpec.LocalPath (Path.v spec)))
+      then Ok (Source (SourceSpec.LocalPath {path = Path.v spec;}))
       else Error "not a path"
 
     let opamConstraint spec =
@@ -706,18 +706,18 @@ module Req = struct
       parse "pkg@file:./some/file",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.LocalPath (Path.v "some/file"));
+        spec = VersionSpec.Source (SourceSpec.LocalPath {path = Path.v "some/file";});
       };
 
       parse "pkg@link:./some/file",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "some/file"));
+        spec = VersionSpec.Source (SourceSpec.LocalPathLink {path = Path.v "some/file";});
       };
       parse "pkg@link:../reason-wall-demo",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.LocalPathLink (Path.v "../reason-wall-demo"));
+        spec = VersionSpec.Source (SourceSpec.LocalPathLink {path = Path.v "../reason-wall-demo";});
       };
 
       parse "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
