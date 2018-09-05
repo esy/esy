@@ -7,11 +7,29 @@ type 'a conj = 'a list
  *)
 module Source : sig
   type t =
-    | Archive of {url : string ; checksum : Checksum.t}
-    | Git of {remote : string; commit : string}
-    | Github of {user : string; repo : string; commit : string}
-    | LocalPath of {path : Path.t;}
-    | LocalPathLink of {path : Path.t;}
+    | Archive of {
+        url : string;
+        checksum : Checksum.t;
+      }
+    | Git of {
+        remote : string;
+        commit : string;
+        manifestFilename : string option;
+      }
+    | Github of {
+        user : string;
+        repo : string;
+        commit : string;
+        manifestFilename : string option;
+      }
+    | LocalPath of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
+    | LocalPathLink of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
     | NoSource
 
   include S.COMMON with type t := t
@@ -45,11 +63,29 @@ end
  *)
 module SourceSpec : sig
   type t =
-    | Archive of {url : string ; checksum : Checksum.t option}
-    | Git of {remote : string; ref : string option}
-    | Github of {user : string; repo : string; ref : string option}
-    | LocalPath of {path : Path.t;}
-    | LocalPathLink of {path : Path.t;}
+    | Archive of {
+        url : string;
+        checksum : Checksum.t option;
+      }
+    | Git of {
+        remote : string;
+        ref : string option;
+        manifestFilename : string option;
+      }
+    | Github of {
+        user : string;
+        repo : string;
+        ref : string option;
+        manifestFilename : string option;
+      }
+    | LocalPath of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
+    | LocalPathLink of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
     | NoSource
 
   val toString : t -> string

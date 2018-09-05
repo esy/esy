@@ -18,6 +18,9 @@ val of_yojson : t Json.decoder
 val findInDir : Path.t -> Path.t option RunAsync.t
 (** Find package.json (or esy.json) in a directory *)
 
+val ofFile : Path.t -> t RunAsync.t
+(** Read package.json (or esy.json) from a file *)
+
 val ofDir : Path.t -> t RunAsync.t
 (** Read package.json (or esy.json) from a directory *)
 

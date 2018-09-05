@@ -26,25 +26,91 @@ end = struct
     | None -> Error ("missing " ^ sep)
 end
 
+module SourceParamSyntax : sig
+  type t = string option * string StringMap.t
+
+  val parse : t AdHocParse.t
+  val extract : (string * t) AdHocParse.t
+
+end = struct
+
+  type t = string option * string StringMap.t
+
+  let empty = None, StringMap.empty
+
+  let parse value =
+    let open Result.Syntax in
+    let parts = String.cuts ~sep:"&" value in
+    let%bind default, named =
+      let f (default, named) part =
+        match default, String.cut ~sep:"=" part with
+        | None, None -> return (Some part, named)
+        | Some _, None -> error "invalid source parameter"
+        | _, Some ("", _) -> error "invalid source parameter"
+        | _, Some (k, v) -> return (default, StringMap.add k v named)
+      in
+      Result.List.foldLeft ~f ~init:(None, StringMap.empty) parts
+    in
+    return (default, named)
+
+  let extract value =
+    let open Result.Syntax in
+    match String.cut ~sep:"#" value with
+    | None -> return (value, empty)
+    | Some (_, "") -> error "empty parameters"
+    | Some (value, params) ->
+      let%bind params = parse params in
+      return (value, params)
+end
+
 module Source = struct
 
   type t =
-    | Archive of {url : string ; checksum : Checksum.t }
-    | Git of {remote : string; commit : string}
-    | Github of {user : string; repo : string; commit : string}
-    | LocalPath of {path : Path.t;}
-    | LocalPathLink of {path : Path.t;}
+    | Archive of {
+        url : string;
+        checksum : Checksum.t;
+      }
+    | Git of {
+        remote : string;
+        commit : string;
+        manifestFilename : string option;
+      }
+    | Github of {
+        user : string;
+        repo : string;
+        commit : string;
+        manifestFilename : string option;
+      }
+    | LocalPath of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
+    | LocalPathLink of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
     | NoSource
     [@@deriving (ord, eq)]
 
   let toString = function
-    | Github {user; repo; commit; _} ->
+    | Github {user; repo; commit; manifestFilename = None;} ->
       Printf.sprintf "github:%s/%s#%s" user repo commit
-    | Git {remote; commit; _} ->
+    | Github {user; repo; commit; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "github:%s/%s#%s&manifestFilename=%s" user repo commit manifestFilename
+    | Git {remote; commit; manifestFilename = None;} ->
       Printf.sprintf "git:%s#%s" remote commit
-    | Archive {url; checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
-    | LocalPath {path;} -> "path:" ^ Path.toString(path)
-    | LocalPathLink {path;} -> "link:" ^ Path.toString(path)
+    | Git {remote; commit; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "git:%s#%s&manifestFilename=%s" remote commit manifestFilename
+    | Archive {url; checksum} ->
+      Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
+    | LocalPath {path; manifestFilename = None;} ->
+      Printf.sprintf "path:%s" (Path.toString path)
+    | LocalPath {path; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "path:%s#manifestFilename=%s" (Path.toString path) manifestFilename
+    | LocalPathLink {path; manifestFilename = None;} ->
+      Printf.sprintf "link:%s" (Path.toString path)
+    | LocalPathLink {path; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "link:%s#manifestFilename=%s" (Path.toString path) manifestFilename
     | NoSource -> "no-source:"
 
   let show = toString
@@ -54,23 +120,54 @@ module Source = struct
     match%bind AdHocParse.cut ~sep:":" v with
     | "github", v ->
       let%bind user, v = AdHocParse.cut ~sep:"/" v in
-      let%bind repo, commit = AdHocParse.cut ~sep:"#" v in
-      return (Github {user; repo; commit})
+      let%bind repo, (commit, params) = SourceParamSyntax.extract v in
+      let%bind commit =
+        match commit with
+        | None -> error "missing commit"
+        | Some commit -> return commit
+      in
+      return (Github {
+        user;
+        repo;
+        commit;
+        manifestFilename = StringMap.find "manifestFilename" params;
+      })
     | "git", v ->
-      let%bind remote, commit = AdHocParse.cut ~sep:"#" v in
-      return (Git {remote; commit})
+      let%bind remote, (commit, params) = SourceParamSyntax.extract v in
+      let%bind commit =
+        match commit with
+        | None -> error "missing commit"
+        | Some commit -> return commit
+      in
+      return (Git {
+        remote;
+        commit;
+        manifestFilename = StringMap.find "manifestFilename" params;
+      })
     | "archive", v ->
-      let%bind url, checksum = AdHocParse.cut ~sep:"#" v in
-      let%bind checksum = Checksum.parse checksum in
+      let%bind url, (checksum, _params) = SourceParamSyntax.extract v in
+      let%bind checksum =
+        match checksum with
+        | None -> error "missing commit"
+        | Some checksum -> Checksum.parse checksum
+      in
       return (Archive {url; checksum})
     | "no-source", "" ->
       return NoSource
-    | "path", path ->
+    | "path", v ->
+      let%bind path, (_commit, params) = SourceParamSyntax.extract v in
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      return (LocalPath {path;})
-    | "link", path ->
+      return (LocalPath {
+        path;
+        manifestFilename = StringMap.find "manifestFilename" params;
+      })
+    | "link", v ->
+      let%bind path, (_commit, params) = SourceParamSyntax.extract v in
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      return (LocalPathLink {path;})
+      return (LocalPathLink {
+        path;
+        manifestFilename = StringMap.find "manifestFilename" params;
+      })
     | _, _ ->
       let msg = Printf.sprintf "unknown source: %s" v in
       error msg
@@ -205,23 +302,64 @@ end
  *)
 module SourceSpec = struct
   type t =
-    | Archive of {url : string; checksum : Checksum.t option;}
-    | Git of {remote : string; ref : string option}
-    | Github of {user : string; repo : string; ref : string option}
-    | LocalPath of {path : Path.t;}
-    | LocalPathLink of {path : Path.t;}
+    | Archive of {
+        url : string;
+        checksum : Checksum.t option;
+      }
+    | Git of {
+        remote : string;
+        ref : string option;
+        manifestFilename : string option;
+      }
+    | Github of {
+        user : string;
+        repo : string;
+        ref : string option;
+        manifestFilename : string option;
+      }
+    | LocalPath of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
+    | LocalPathLink of {
+        path : Path.t;
+        manifestFilename : string option;
+      }
     | NoSource
     [@@deriving (eq, ord)]
 
   let toString = function
-    | Github {user; repo; ref = None} -> Printf.sprintf "github:%s/%s" user repo
-    | Github {user; repo; ref = Some ref} -> Printf.sprintf "github:%s/%s#%s" user repo ref
-    | Git {remote; ref = None} -> Printf.sprintf "git:%s" remote
-    | Git {remote; ref = Some ref} -> Printf.sprintf "git:%s#%s" remote ref
+    | Github {user; repo; ref = None; manifestFilename = None;} ->
+      Printf.sprintf "github:%s/%s" user repo
+    | Github {user; repo; ref = None; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "github:%s/%s#manifestFilename=%s" user repo manifestFilename
+    | Github {user; repo; ref = Some ref; manifestFilename = None} ->
+      Printf.sprintf "github:%s/%s#%s" user repo ref
+    | Github {user; repo; ref = Some ref; manifestFilename = Some manifestFilename} ->
+      Printf.sprintf "github:%s/%s#%s&manifestFilename=%s" user repo ref manifestFilename
+
+    | Git {remote; ref = None; manifestFilename = None;} ->
+      Printf.sprintf "git:%s" remote
+    | Git {remote; ref = None; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "git:%s#manifestFilename=%s" remote manifestFilename
+    | Git {remote; ref = Some ref; manifestFilename = None} ->
+      Printf.sprintf "git:%s#%s" remote ref
+    | Git {remote; ref = Some ref; manifestFilename = Some manifestFilename} ->
+      Printf.sprintf "git:%s#%s&manifestFilename=%s" remote ref manifestFilename
+
     | Archive {url; checksum = Some checksum} -> "archive:" ^ url ^ "#" ^ (Checksum.show checksum)
     | Archive {url; checksum = None} -> "archive:" ^ url
-    | LocalPath {path;} -> "path:" ^ Path.toString path
-    | LocalPathLink {path;} -> "link:" ^ Path.toString path
+
+    | LocalPath {path; manifestFilename = None;} ->
+      Printf.sprintf "path:%s" (Path.toString path)
+    | LocalPath {path; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "path:%s#manifestFilename=%s" (Path.toString path) manifestFilename
+
+    | LocalPathLink {path; manifestFilename = None;} ->
+      Printf.sprintf "link:%s" (Path.toString path)
+    | LocalPathLink {path; manifestFilename = Some manifestFilename;} ->
+      Printf.sprintf "link:%s#manifestFilename=%s" (Path.toString path) manifestFilename
+
     | NoSource -> "no-source:"
 
   let to_yojson src = `String (toString src)
@@ -229,46 +367,56 @@ module SourceSpec = struct
   let ofSource (source : Source.t) =
     match source with
     | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}
-    | Source.Git {remote; commit} ->
-      Git {remote; ref =  Some commit}
-    | Source.Github {user; repo; commit} ->
-      Github {user; repo; ref = Some commit}
-    | Source.LocalPath {path;} -> LocalPath {path;}
-    | Source.LocalPathLink {path;} -> LocalPathLink {path;}
+    | Source.Git {remote; commit; manifestFilename;} ->
+      Git {remote; ref =  Some commit; manifestFilename;}
+    | Source.Github {user; repo; commit; manifestFilename;} ->
+      Github {user; repo; ref = Some commit; manifestFilename;}
+    | Source.LocalPath {path; manifestFilename;} ->
+      LocalPath {path; manifestFilename;}
+    | Source.LocalPathLink {path; manifestFilename;} ->
+      LocalPathLink {path; manifestFilename;}
     | Source.NoSource -> NoSource
 
   let pp fmt spec =
     Fmt.pf fmt "%s" (toString spec)
 
   let matches ~source spec =
+    let eqManifestName = [%derive.eq: string option] in
     match spec, source with
-    | LocalPath {path = p1;}, Source.LocalPath {path = p2;} ->
-      Path.equal p1 p2
-    | LocalPath {path = p1;}, Source.LocalPathLink {path = p2;} ->
-      Path.equal p1 p2
+    | LocalPath {path = p1; manifestFilename = m1},
+      Source.LocalPath {path = p2; manifestFilename = m2} ->
+      Path.equal p1 p2 && eqManifestName m1 m2
+    | LocalPath {path = p1; manifestFilename = m1},
+      Source.LocalPathLink {path = p2; manifestFilename = m2} ->
+      Path.equal p1 p2 && eqManifestName m1 m2
     | LocalPath _, _ -> false
 
-    | LocalPathLink {path = p1;}, Source.LocalPathLink {path = p2;} ->
-      Path.equal p1 p2
+    | LocalPathLink {path = p1; manifestFilename = m1},
+      Source.LocalPathLink {path = p2; manifestFilename = m2} ->
+      Path.equal p1 p2 && eqManifestName m1 m2
     | LocalPathLink _, _ -> false
 
-    | Github ({ref = Some specRef; _} as spec), Source.Github src ->
+    | Github ({ref = Some specRef; manifestFilename = m1; _} as spec), Source.Github src ->
       String.(
         equal src.user spec.user
         && equal src.repo spec.repo
         && equal src.commit specRef
-      )
+      ) && eqManifestName src.manifestFilename m1
     | Github ({ref = None; _} as spec), Source.Github src ->
-      String.(equal spec.user src.user && equal spec.repo src.repo)
+      String.(
+        equal spec.user src.user
+        && equal spec.repo src.repo
+      ) && eqManifestName spec.manifestFilename src.manifestFilename
     | Github _, _ -> false
 
     | Git ({ref = Some specRef; _} as spec), Source.Git src ->
       String.(
         equal spec.remote src.remote
         && equal specRef src.commit
-      )
+      ) && eqManifestName spec.manifestFilename src.manifestFilename
     | Git ({ref = None; _} as spec), Source.Git src ->
       String.(equal spec.remote src.remote)
+      && eqManifestName spec.manifestFilename src.manifestFilename
     | Git _, _ -> false
 
     | Archive {url = url1; _}, Source.Archive {url = url2; _}  ->
@@ -353,7 +501,8 @@ module VersionSpec = struct
         let%bind checksum = Checksum.parse checksum in
         return (spec, Some checksum)
 
-    let github text =
+    let github spec =
+      let open Result.Syntax in
 
       let normalizeGithubRepo repo =
         match String.cut ~sep:".git" repo with
@@ -362,12 +511,16 @@ module VersionSpec = struct
         | None -> repo
       in
 
-      let parts = Str.split (Str.regexp_string "/") text in
-      match parts with
-      | user::rest::[] ->
-        let repo, ref = parseRef rest in
-        Ok (Source (SourceSpec.Github {user; repo = normalizeGithubRepo repo; ref}))
-      | _ -> Error "not a github source"
+      match String.cut ~sep:"/" spec with
+      | Some (user, rest) ->
+        let%bind repo, (ref, params) = SourceParamSyntax.extract rest in
+        return (Source (SourceSpec.Github {
+          user;
+          repo = normalizeGithubRepo repo;
+          ref;
+          manifestFilename = StringMap.find "manifestFilename" params;
+        }))
+      | _ -> error "not a github source"
 
     let protoRe =
       let open Re in
@@ -390,29 +543,45 @@ module VersionSpec = struct
         Some (proto, body)
       | None -> None
 
-    let sourceWithProto v =
+    let sourceWithProto spec =
       let open Result.Syntax in
-      match parseProto v with
-      | Some ("link:", path) ->
+      match parseProto spec with
+      | Some ("link:", spec) ->
+        let%bind path, (_, params) = SourceParamSyntax.extract spec in
         let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-        let spec = SourceSpec.LocalPathLink {path;} in
+        let spec = SourceSpec.LocalPathLink {
+          path;
+          manifestFilename = StringMap.find "manifestFilename" params;
+        } in
         return (Source spec)
-      | Some ("file:", path) ->
+      | Some ("file:", spec) ->
+        let%bind path, (_, params) = SourceParamSyntax.extract spec in
         let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-        let spec = SourceSpec.LocalPath {path;} in
+        let spec = SourceSpec.LocalPath {
+          path;
+          manifestFilename = StringMap.find "manifestFilename" params;
+        } in
         return (Source spec)
       | Some ("https:", _)
       | Some ("http:", _) ->
-        let%bind url, checksum = parseChecksum v in
+        let%bind url, checksum = parseChecksum spec in
         let spec = SourceSpec.Archive {url; checksum} in
         return (Source spec)
-      | Some ("git+", v) ->
-        let remote, ref = parseRef v in
-        let spec = SourceSpec.Git {remote;ref;} in
+      | Some ("git+", spec) ->
+        let%bind remote, (ref, params) = SourceParamSyntax.extract spec in
+        let spec = SourceSpec.Git {
+          remote;
+          ref;
+          manifestFilename = StringMap.find "manifestFilename" params;
+        } in
         return (Source spec)
       | Some ("git:", _) ->
-        let remote, ref = parseRef v in
-        let spec = SourceSpec.Git {remote;ref;} in
+        let%bind remote, (ref, params) = SourceParamSyntax.extract spec in
+        let spec = SourceSpec.Git {
+          remote;
+          ref;
+          manifestFilename = StringMap.find "manifestFilename" params;
+        } in
         return (Source spec)
       | Some ("npm:", v) ->
         begin match String.cut ~rev:true ~sep:"@" v with
@@ -427,9 +596,17 @@ module VersionSpec = struct
       | None -> Error "unknown proto"
 
     let path spec =
+      let open Result.Syntax in
       if String.is_prefix ~affix:"." spec || String.is_prefix ~affix:"/" spec
-      then Ok (Source (SourceSpec.LocalPath {path = Path.v spec;}))
-      else Error "not a path"
+      then
+        let%bind path, (_, params) = SourceParamSyntax.extract spec in
+        let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
+        return (Source (SourceSpec.LocalPath {
+          path;
+          manifestFilename = StringMap.find "manifestFilename" params;
+        }))
+      else
+        error "not a path"
 
     let opamConstraint spec =
       match OpamPackageVersion.Formula.parse spec with
@@ -612,59 +789,103 @@ module Req = struct
       parse "name@git+https://some/repo",
       {
         name = "name";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "name.dot@git+https://some/repo",
       {
         name = "name.dot";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "name-dash@git+https://some/repo",
       {
         name = "name-dash";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "name_underscore@git+https://some/repo",
       {
         name = "name_underscore";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "@opam/name@git+https://some/repo",
       {
         name = "@opam/name";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "@scope/name@git+https://some/repo",
       {
         name = "@scope/name";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "@scope-dash/name@git+https://some/repo",
       {
         name = "@scope-dash/name";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "@scope.dot/name@git+https://some/repo",
       {
         name = "@scope.dot/name";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
       parse "@scope_underscore/name@git+https://some/repo",
       {
         name = "@scope_underscore/name";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
 
       parse "pkg@git+https://some/repo",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = None});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = None;
+          manifestFilename = None;
+        });
       };
 
       parse "pkg@git+https://some/repo#ref",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.Git {remote = "https://some/repo"; ref = Some "ref"});
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "https://some/repo";
+          ref = Some "ref";
+          manifestFilename = None;
+        });
       };
 
       parse "pkg@https://some/url#checksum",
@@ -706,18 +927,27 @@ module Req = struct
       parse "pkg@file:./some/file",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.LocalPath {path = Path.v "some/file";});
+        spec = VersionSpec.Source (SourceSpec.LocalPath {
+          path = Path.v "some/file";
+          manifestFilename = None;
+        });
       };
 
       parse "pkg@link:./some/file",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.LocalPathLink {path = Path.v "some/file";});
+        spec = VersionSpec.Source (SourceSpec.LocalPathLink {
+          path = Path.v "some/file";
+          manifestFilename = None;
+        });
       };
       parse "pkg@link:../reason-wall-demo",
       {
         name = "pkg";
-        spec = VersionSpec.Source (SourceSpec.LocalPathLink {path = Path.v "../reason-wall-demo";});
+        spec = VersionSpec.Source (SourceSpec.LocalPathLink {
+          path = Path.v "../reason-wall-demo";
+          manifestFilename = None;
+        });
       };
 
       parse "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
@@ -726,7 +956,8 @@ module Req = struct
         spec = VersionSpec.Source (
           SourceSpec.Git {
             remote = "https://github.com/eslint/eslint.git";
-            ref = Some "9d6223040316456557e0a2383afd96be90d28c5a"
+            ref = Some "9d6223040316456557e0a2383afd96be90d28c5a";
+            manifestFilename = None;
           });
       };
 

@@ -252,7 +252,7 @@ let install ~cfg:_ ~path dist =
   let {Dist. tarballPath; source; _} = dist in
   match source, tarballPath with
 
-  | Source.LocalPathLink {path = orig;}, _ ->
+  | Source.LocalPathLink {path = orig; manifestFilename = _;}, _ ->
     let%bind () = Fs.createDir path in
     let%bind () =
       let data = (Path.toString orig) ^ "\n" in

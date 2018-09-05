@@ -25,6 +25,11 @@ let findInDir (path : Path.t) =
   then return (Some packageJson)
   else return None
 
+let ofFile path =
+  let open RunAsync.Syntax in
+  let%bind json = Fs.readJsonFile path in
+  RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+
 let ofDir path =
   let open RunAsync.Syntax in
   match%bind findInDir path with
