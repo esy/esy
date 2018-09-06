@@ -1,3 +1,5 @@
+let return = v => Some(v);
+
 let orDefault = (~default) =>
   fun
   | None => default
