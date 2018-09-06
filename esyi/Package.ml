@@ -137,55 +137,55 @@ module Req = struct
   let%test_module "parsing" = (module struct
 
     let cases = [
-      parse "name",
+      "name",
       {
         name = "name";
         spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
       };
-      parse "name@",
+      "name@",
       {
         name = "name";
         spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
       };
-      parse "name@*",
+      "name@*",
       {
         name = "name";
         spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
       };
 
-      parse "@scope/name",
+      "@scope/name",
       {
         name = "@scope/name";
         spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
       };
-      parse "@scope/name@",
+      "@scope/name@",
       {
         name = "@scope/name";
         spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
       };
-      parse "@scope/name@*",
+      "@scope/name@*",
       {
         name = "@scope/name";
         spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]];
       };
 
-      parse "@opam/name",
+      "@opam/name",
       {
         name = "@opam/name";
         spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]];
       };
-      parse "@opam/name@",
+      "@opam/name@",
       {
         name = "@opam/name";
         spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]];
       };
-      parse "@opam/name@*",
+      "@opam/name@*",
       {
         name = "@opam/name";
         spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]];
       };
 
-      parse "name@git+https://some/repo",
+      "name@git+https://some/repo",
       {
         name = "name";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -194,7 +194,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "name.dot@git+https://some/repo",
+      "name.dot@git+https://some/repo",
       {
         name = "name.dot";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -203,7 +203,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "name-dash@git+https://some/repo",
+      "name-dash@git+https://some/repo",
       {
         name = "name-dash";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -212,7 +212,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "name_underscore@git+https://some/repo",
+      "name_underscore@git+https://some/repo",
       {
         name = "name_underscore";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -221,7 +221,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "@opam/name@git+https://some/repo",
+      "@opam/name@git+https://some/repo",
       {
         name = "@opam/name";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -230,7 +230,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "@scope/name@git+https://some/repo",
+      "@scope/name@git+https://some/repo",
       {
         name = "@scope/name";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -239,7 +239,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "@scope-dash/name@git+https://some/repo",
+      "@scope-dash/name@git+https://some/repo",
       {
         name = "@scope-dash/name";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -248,7 +248,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "@scope.dot/name@git+https://some/repo",
+      "@scope.dot/name@git+https://some/repo",
       {
         name = "@scope.dot/name";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -257,7 +257,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "@scope_underscore/name@git+https://some/repo",
+      "@scope_underscore/name@git+https://some/repo",
       {
         name = "@scope_underscore/name";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -267,7 +267,7 @@ module Req = struct
         });
       };
 
-      parse "pkg@git+https://some/repo",
+      "pkg@git+https://some/repo",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -277,7 +277,7 @@ module Req = struct
         });
       };
 
-      parse "pkg@git+https://some/repo#ref",
+      "pkg@git+https://some/repo#ref",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.Git {
@@ -287,43 +287,43 @@ module Req = struct
         });
       };
 
-      parse "pkg@https://some/url#checksum",
+      "pkg@https://some/url#abc123",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.Archive {
           url = "https://some/url";
-          checksum = Some (Checksum.Sha1, "checksum");
+          checksum = Some (Checksum.Sha1, "abc123");
         });
       };
 
-      parse "pkg@http://some/url#checksum",
+      "pkg@http://some/url#abc123",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.Archive {
           url = "http://some/url";
-          checksum = Some (Checksum.Sha1, "checksum");
+          checksum = Some (Checksum.Sha1, "abc123");
         });
       };
 
-      parse "pkg@http://some/url#sha1:checksum",
+      "pkg@http://some/url#sha1:abc123",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.Archive {
           url = "http://some/url";
-          checksum = Some (Checksum.Sha1, "checksum");
+          checksum = Some (Checksum.Sha1, "abc123");
         });
       };
 
-      parse "pkg@http://some/url#md5:checksum",
+      "pkg@http://some/url#md5:abc123",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.Archive {
           url = "http://some/url";
-          checksum = Some (Checksum.Md5, "checksum");
+          checksum = Some (Checksum.Md5, "abc123");
         });
       };
 
-      parse "pkg@file:./some/file",
+      "pkg@file:./some/file",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.LocalPath {
@@ -332,7 +332,7 @@ module Req = struct
         });
       };
 
-      parse "pkg@link:./some/file",
+      "pkg@link:./some/file",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.LocalPathLink {
@@ -340,7 +340,7 @@ module Req = struct
           manifestFilename = None;
         });
       };
-      parse "pkg@link:../reason-wall-demo",
+      "pkg@link:../reason-wall-demo",
       {
         name = "pkg";
         spec = VersionSpec.Source (SourceSpec.LocalPathLink {
@@ -349,7 +349,7 @@ module Req = struct
         });
       };
 
-      parse "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
+      "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
       {
         name = "eslint";
         spec = VersionSpec.Source (
@@ -361,66 +361,66 @@ module Req = struct
       };
 
       (* npm *)
-      parse "pkg@4.1.0",
+      "pkg@4.1.0",
       {
         name = "pkg";
         spec = VersionSpec.Npm (SemverVersion.Formula.parseExn "4.1.0");
       };
-      parse "pkg@~4.1.0",
+      "pkg@~4.1.0",
       {
         name = "pkg";
         spec = VersionSpec.Npm (SemverVersion.Formula.parseExn "~4.1.0");
       };
-      parse "pkg@^4.1.0",
+      "pkg@^4.1.0",
       {
         name = "pkg";
         spec = VersionSpec.Npm (SemverVersion.Formula.parseExn "^4.1.0");
       };
-      parse "pkg@npm:>4.1.0",
+      "pkg@npm:>4.1.0",
       {
         name = "pkg";
         spec = VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
       };
-      parse "pkg@npm:name@>4.1.0",
+      "pkg@npm:name@>4.1.0",
       {
         name = "pkg";
         spec = VersionSpec.Npm (SemverVersion.Formula.parseExn ">4.1.0");
       };
 
       (* npm tags *)
-      parse "pkg@latest",
+      "pkg@latest",
       {
         name = "pkg";
         spec = VersionSpec.NpmDistTag ("latest", None);
       };
-      parse "pkg@next",
+      "pkg@next",
       {
         name = "pkg";
         spec = VersionSpec.NpmDistTag ("next", None);
       };
-      parse "pkg@alpha",
+      "pkg@alpha",
       {
         name = "pkg";
         spec = VersionSpec.NpmDistTag ("alpha", None);
       };
-      parse "pkg@beta",
+      "pkg@beta",
       {
         name = "pkg";
         spec = VersionSpec.NpmDistTag ("beta", None);
       };
     ]
 
-    let expectParsesTo req e =
-      match req with
+    let expectParsesTo input e =
+      match parse input with
       | Ok req ->
         if equal req e
         then true
         else (
-          Format.printf "@[<v>     got: %a@\nexpected: %a@\n@]" pp req pp e;
+          Format.printf "@[<v>parsing: %s@\n     got: %a@\nexpected: %a@\n@]@\n" input pp req pp e;
           false
         )
       | Error err ->
-        Format.printf "@[<v>     error: %s@]" err;
+        Format.printf "@[<v>parsing: %s@\n  error: %s@]@\n" input err;
         false
 
     let%test "parsing" =

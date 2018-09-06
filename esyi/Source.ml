@@ -86,7 +86,7 @@ module Parse = struct
   let pathLike ~prefix make =
     let path = take_while1 (fun c -> c <> '#') in
     let make path =
-      let path = Path.v path in
+      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifestFilename =
         let basename = Path.basename path in
         match basename, Path.getExt path with

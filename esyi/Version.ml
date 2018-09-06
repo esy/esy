@@ -19,23 +19,19 @@ module Parse = struct
   include Parse
 
   let npm =
-    let%bind string = take_while1 (function _ -> true) in
-    match SemverVersion.Version.parse string with
-    | Ok v -> return (Npm v)
-    | Error msg -> fail msg
+    let%map v = SemverVersion.Version.parser in
+    Npm v
 
   let opam =
-    let%bind string = take_while1 (function _ -> true) in
-    match OpamPackageVersion.Version.parse string with
-    | Ok v -> return (Opam v)
-    | Error msg -> fail msg
+    let%map v = OpamPackageVersion.Version.parser in
+    Opam v
 
   let opamWithPrefix =
     string "opam:" *> opam
 
   let source =
-    let%bind source = Source.parser in
-    return (Source source)
+    let%map source = Source.parser in
+    Source source
 end
 
 let parse ?(tryAsOpam=false) =

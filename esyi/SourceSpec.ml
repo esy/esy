@@ -184,7 +184,7 @@ module Parse = struct
   let pathWithoutProto make =
     let path = take_while1 (fun _ -> true) in
     let make path =
-      let path = Path.v path in
+      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifestFilename =
         let basename = Path.basename path in
         match basename, Path.getExt path with
@@ -447,22 +447,22 @@ let%test_module "parsing" = (module struct
   let%test "./some/path" =
     expectParses
       "./some/path"
-      (LocalPath {path = Path.v "./some/path"; manifestFilename = None;})
+      (LocalPath {path = Path.v "some/path"; manifestFilename = None;})
 
   let%test "./some/path/opam" =
     expectParses
       "./some/path/opam"
-      (LocalPath {path = Path.v "./some/path"; manifestFilename = Some "opam";})
+      (LocalPath {path = Path.v "some/path"; manifestFilename = Some "opam";})
 
   let%test "./some/path/lwt.opam" =
     expectParses
       "./some/path/lwt.opam"
-      (LocalPath {path = Path.v "./some/path"; manifestFilename = Some "lwt.opam";})
+      (LocalPath {path = Path.v "some/path"; manifestFilename = Some "lwt.opam";})
 
   let%test "./some/path/package.json" =
     expectParses
       "./some/path/package.json"
-      (LocalPath {path = Path.v "./some/path"; manifestFilename = Some "package.json";})
+      (LocalPath {path = Path.v "some/path"; manifestFilename = Some "package.json";})
 
 end)
 

@@ -1,54 +1,3 @@
-module AdHocParse : sig
-  type 'a t = string -> ('a, string) result
-
-  val (or) : 'a t -> 'a t -> 'a t
-
-end = struct
-  type 'a t = string -> ('a, string) result
-
-  let (or) a b s =
-    match a s with
-    | Ok v -> Ok v
-    | Error _ -> b s
-
-end
-
-module SourceParamSyntax : sig
-  type t = string option * string StringMap.t
-
-  val extract : (string * t) AdHocParse.t
-
-end = struct
-
-  type t = string option * string StringMap.t
-
-  let empty = None, StringMap.empty
-
-  let parse value =
-    let open Result.Syntax in
-    let parts = Astring.String.cuts ~sep:"&" value in
-    let%bind default, named =
-      let f (default, named) part =
-        match default, Astring.String.cut ~sep:"=" part with
-        | None, None -> return (Some part, named)
-        | Some _, None -> error "invalid source parameter"
-        | _, Some ("", _) -> error "invalid source parameter"
-        | _, Some (k, v) -> return (default, StringMap.add k v named)
-      in
-      Result.List.foldLeft ~f ~init:(None, StringMap.empty) parts
-    in
-    return (default, named)
-
-  let extract value =
-    let open Result.Syntax in
-    match Astring.String.cut ~sep:"#" value with
-    | None -> return (value, empty)
-    | Some (_, "") -> error "empty parameters"
-    | Some (value, params) ->
-      let%bind params = parse params in
-      return (value, params)
-end
-
 type t =
   | Npm of SemverVersion.Formula.DNF.t
   | NpmDistTag of string * SemverVersion.Version.t option
@@ -97,171 +46,56 @@ let ofVersion (version : Version.t) =
     Source srcSpec
 
 module Parse = struct
+  include Parse
 
-  let parseRef spec =
-    match Astring.String.cut ~sep:"#" spec with
-    | None -> spec, None
-    | Some (spec, "") -> spec, None
-    | Some (spec, ref) -> spec, Some ref
-
-  let parseChecksum spec =
-    let open Result.Syntax in
-    match parseRef spec with
-    | spec, None -> return (spec, None)
-    | spec, Some checksum ->
-      let%bind checksum = Checksum.parse checksum in
-      return (spec, Some checksum)
-
-  let github spec =
-    let open Result.Syntax in
-
-    let normalizeGithubRepo repo =
-      match Astring.String.cut ~sep:".git" repo with
-      | Some (repo, "") -> repo
-      | Some _ -> repo
-      | None -> repo
+  let npmDistTag =
+    (* npm dist tags can be any strings which cannot be npm version ranges,
+     * this is a simplified check for that. *)
+    let p =
+      let%map tag = take_while1 (fun _ -> true) in
+      NpmDistTag (tag, None)
     in
+    match%bind peek_char_fail with
+    | 'v' | '0'..'9' -> fail "unable to parse npm tag"
+    | _ -> p
 
-    match Astring.String.cut ~sep:"/" spec with
-    | Some (user, rest) ->
-      let%bind repo, (ref, params) = SourceParamSyntax.extract rest in
-      return (Source (SourceSpec.Github {
-        user;
-        repo = normalizeGithubRepo repo;
-        ref;
-        manifestFilename = StringMap.find "manifestFilename" params;
-      }))
-    | _ -> error "not a github source"
+  let sourceSpec =
+    let%map sourceSpec = SourceSpec.parser in
+    Source sourceSpec
 
-  let protoRe =
-    let open Re in
-    let proto = alt [
-      str "file:";
-      str "https:";
-      str "http:";
-      str "git:";
-      str "npm:";
-      str "link:";
-      str "git+";
-    ] in
-    compile (seq [bos; group proto; group (rep any); eos])
-
-  let parseProto v =
-    match Re.exec_opt protoRe v with
-    | Some m ->
-      let proto = Re.Group.get m 1 in
-      let body = Re.Group.get m 2 in
-      Some (proto, body)
-    | None -> None
-
-  let sourceWithProto spec =
-    let open Result.Syntax in
-    match parseProto spec with
-    | Some ("link:", spec) ->
-      let%bind path, (_, params) = SourceParamSyntax.extract spec in
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let spec = SourceSpec.LocalPathLink {
-        path;
-        manifestFilename = StringMap.find "manifestFilename" params;
-      } in
-      return (Source spec)
-    | Some ("file:", spec) ->
-      let%bind path, (_, params) = SourceParamSyntax.extract spec in
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let spec = SourceSpec.LocalPath {
-        path;
-        manifestFilename = StringMap.find "manifestFilename" params;
-      } in
-      return (Source spec)
-    | Some ("https:", _)
-    | Some ("http:", _) ->
-      let%bind url, checksum = parseChecksum spec in
-      let spec = SourceSpec.Archive {url; checksum} in
-      return (Source spec)
-    | Some ("git+", spec) ->
-      let%bind remote, (ref, params) = SourceParamSyntax.extract spec in
-      let spec = SourceSpec.Git {
-        remote;
-        ref;
-        manifestFilename = StringMap.find "manifestFilename" params;
-      } in
-      return (Source spec)
-    | Some ("git:", _) ->
-      let%bind remote, (ref, params) = SourceParamSyntax.extract spec in
-      let spec = SourceSpec.Git {
-        remote;
-        ref;
-        manifestFilename = StringMap.find "manifestFilename" params;
-      } in
-      return (Source spec)
-    | Some ("npm:", v) ->
-      begin match Astring.String.cut ~rev:true ~sep:"@" v with
-      | None ->
-        let%bind v = SemverVersion.Formula.parse v in
-        return (Npm v)
-      | Some (_, v) ->
-        let%bind v = SemverVersion.Formula.parse v in
-        return (Npm v)
-      end
-    | Some _
-    | None -> Error "unknown proto"
-
-  let path spec =
-    let open Result.Syntax in
-    if Astring.String.is_prefix ~affix:"." spec || Astring.String.is_prefix ~affix:"/" spec
-    then
-      let%bind path, (_, params) = SourceParamSyntax.extract spec in
-      let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      return (Source (SourceSpec.LocalPath {
-        path;
-        manifestFilename = StringMap.find "manifestFilename" params;
-      }))
-    else
-      error "not a path"
-
-  let opamConstraint spec =
+  let opamConstraint =
+    let%bind spec = take_while1 (fun _ -> true) in
     match OpamPackageVersion.Formula.parse spec with
-    | Ok v -> Ok (Opam v)
-    | Error err -> Error err
+    | Ok v -> return (Opam v)
+    | Error msg -> fail msg
 
-  let npmDistTag spec =
-    let isNpmDistTag v =
-      (* npm dist tags can be any strings which cannot be npm version ranges,
-        * this is a simplified check for that. *)
-      match v.[0] with
-      | 'v' -> false
-      | '0'..'9' -> false
-      | _ -> true
-    in
-    if isNpmDistTag spec
-    then Ok (NpmDistTag (spec, None))
-    else Error "not an npm dist-tag"
+  let npmAnyConstraint =
+    return (Npm [[SemverVersion.Constraint.ANY]])
 
-  let npmAnyConstraint spec =
-    Logs.warn (fun m -> m "error parsing version: %s" spec);
-    Ok (Npm [[SemverVersion.Constraint.ANY]])
-
-  let npmConstraint spec =
+  let npmConstraint =
+    let%bind spec = take_while1 (fun _ -> true) in
     match SemverVersion.Formula.parse spec with
-    | Ok v -> Ok (Npm v)
-    | Error err -> Error err
+    | Ok v -> return (Npm v)
+    | Error msg -> fail msg
 
-  let opamComplete = AdHocParse.(
-    path
-    or sourceWithProto
-    or github
-    or opamConstraint
-  )
 
-  let npmComplete = AdHocParse.(
-    path
-    or sourceWithProto
-    or github
-    or npmConstraint
-    or npmDistTag
-    or npmAnyConstraint
-  )
+  let npmWithProto =
+    let prefix = string "npm:" in
+    let withName = take_while1 (fun c -> c <> '@') *> char '@' *> npmConstraint in
+    let withoutName = npmConstraint in
+    prefix *> (withName <|> withoutName)
+
+  let opamComplete =
+    sourceSpec
+    <|> opamConstraint
+
+  let npmComplete =
+    sourceSpec
+    <|> npmWithProto
+    <|> npmConstraint
+    <|> npmDistTag
+    <|> npmAnyConstraint
 end
 
-let parseAsNpm = Parse.npmComplete
-let parseAsOpam = Parse.opamComplete
+let parseAsNpm = Parse.(parse npmComplete)
+let parseAsOpam = Parse.(parse opamComplete)
