@@ -28,14 +28,17 @@ let show v =
   | Sha256, v -> "sha256:" ^ v
   | Sha512, v -> "sha512:" ^ v
 
-let parse v =
-  match Astring.String.cut ~sep:":" v with
-  | Some ("md5", v) -> Ok (Md5, v)
-  | Some ("sha1", v) -> Ok (Sha1, v)
-  | Some ("sha256", v) -> Ok (Sha256, v)
-  | Some ("sha512", v) -> Ok (Sha512, v)
-  | Some (kind, _) -> Error ("unknown checkum kind: " ^ kind)
-  | None -> Ok (Sha1, v)
+let parser =
+  let open Parse in
+  let md5 = ignore (string "md5") <* char ':' >>| fun () -> Md5 in
+  let sha1 = ignore (string "sha1" <* char ':') >>| (fun () -> Sha1) in
+  let sha256 = ignore (string "sha256" <* char ':') >>| (fun () -> Sha256) in
+  let sha512 = ignore (string "sha512" <* char ':') >>| (fun () -> Sha512) in
+  let kind = md5 <|> sha1 <|> sha256 <|> sha512 <?> "kind" in
+  pair (option Sha1 kind) hex <?> "checksum"
+
+let parse =
+  Parse.parse parser
 
 let to_yojson v = `String (show v)
 let of_yojson json =
