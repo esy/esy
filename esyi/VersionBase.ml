@@ -3,6 +3,7 @@ module type VERSION = sig
 
   include S.COMMON with type t := t
 
+  val parser : t Parse.t
   val parse : string -> (t, string) result
   val parseExn : string -> t
 
@@ -367,6 +368,7 @@ let%test_module "Formula" = (module struct
     let show = string_of_int
     let prerelease _ = false
     let stripPrerelease v = v
+    let parser = Parse.(take_while1 (function | '0'..'9' -> true | _ -> false) >>| int_of_string)
     let parse v =
       match int_of_string_opt v with
       | Some v -> Ok v

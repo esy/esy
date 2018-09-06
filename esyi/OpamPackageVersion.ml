@@ -9,6 +9,12 @@ module Version = struct
   let show = OpamPackage.Version.to_string
   let pp fmt v = Fmt.pf fmt "opam:%s" (show v)
   let parse v = Ok (OpamPackage.Version.of_string v)
+  let parser =
+    Parse.(
+      let%bind input = take_while1 (fun _ -> true) in
+      try return (OpamPackage.Version.of_string input)
+      with _ -> fail "cannot parse opam version"
+    )
   let parseExn v = OpamPackage.Version.of_string v
   let majorMinorPatch _v = None
   let prerelease _v = false

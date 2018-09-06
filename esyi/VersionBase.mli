@@ -12,6 +12,7 @@ module type VERSION  = sig
 
   include S.COMMON with type t := t
 
+  val parser : t Parse.t
   val parse : string -> (t, string) result
   val parseExn : string -> t
 
