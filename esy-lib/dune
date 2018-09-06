@@ -3,6 +3,7 @@
   (preprocess (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
   (flags (:standard (-w -39)))
   (libraries
+            angstrom
             lwt
             lwt.unix
             cmdliner
