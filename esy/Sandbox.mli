@@ -11,7 +11,7 @@ module Package : sig
     dependencies : dependency list;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
-    resolution : string option;
+    source : Manifest.Source.t option;
   }
 
   and dependency = (dependencyKind * t, dependencyError) result

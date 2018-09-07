@@ -167,7 +167,7 @@ let makeEsySandbox ?name ~cfg projectPath path =
     let source = Source.LocalPath {path = projectPath; manifest = None;} in
     let version = Version.Source source in
     let name = Path.basename projectPath in
-    PackageJson.toPackage ~name ~version ~source:(Package.Source source) pkgJson
+    Package.ofPackageJson ~name ~version ~source:(Package.Source source) pkgJson
   in
 
   let sandboxDependencies, ocamlReq =
@@ -175,9 +175,9 @@ let makeEsySandbox ?name ~cfg projectPath path =
     | Package.Dependencies.OpamFormula _ ->
       root.dependencies, Some ocamlReqAny
     | Package.Dependencies.NpmFormula reqs ->
-      let reqs = Package.NpmDependencies.override reqs pkgJson.devDependencies in
+      let reqs = PackageJson.Dependencies.override reqs pkgJson.devDependencies in
       Package.Dependencies.NpmFormula reqs,
-      Package.NpmDependencies.find ~name:"ocaml" reqs
+      PackageJson.Dependencies.find ~name:"ocaml" reqs
   in
 
   return {

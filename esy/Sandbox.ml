@@ -19,7 +19,7 @@ module Package = struct
     dependencies : dependency list;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
-    resolution : string option;
+    source : Manifest.Source.t option;
   }
 
   and dependency = (dependencyKind * t, dependencyError) result
@@ -312,7 +312,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           dependencies = StringMap.values dependencies;
           build = {build with sourceType};
           sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
-          resolution = Manifest.uniqueDistributionId manifest;
+          source = Manifest.source manifest;
         } in
         return (`PackageWithBuild (pkg, manifest))
       | None ->

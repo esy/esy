@@ -217,6 +217,31 @@ let convertOpamUrl (manifest : t) =
   | None ->
     Ok (main, mirrors)
 
+let toOpamFormula reqs =
+  let f reqs (req : Req.t) =
+    let update =
+      match req.spec with
+      | VersionSpec.Npm formula ->
+        let f (c : SemverVersion.Constraint.t) =
+          {Package.Dep. name = req.name; req = Npm c}
+        in
+        let formula = SemverVersion.Formula.ofDnfToCnf formula in
+        List.map ~f:(List.map ~f) formula
+      | VersionSpec.NpmDistTag (tag, _) ->
+        [[{Package.Dep. name = req.name; req = NpmDistTag tag}]]
+      | VersionSpec.Opam formula ->
+        let f (c : OpamPackageVersion.Constraint.t) =
+          {Package.Dep. name = req.name; req = Opam c}
+        in
+        let formula = OpamPackageVersion.Formula.ofDnfToCnf formula in
+        List.map ~f:(List.map ~f) formula
+      | VersionSpec.Source spec ->
+        [[{Package.Dep. name = req.name; req = Source spec}]]
+    in
+    reqs @ update
+  in
+  List.fold_left ~f ~init:[] reqs
+
 let convertDependencies manifest =
   let open Result.Syntax in
   let filterAndConvertOpamFormula ~build ~post ~test ~doc ~dev f =
@@ -252,8 +277,8 @@ let convertDependencies manifest =
             req = Npm SemverVersion.Constraint.ANY;
           }];
         ]
-      @ Package.NpmDependencies.toOpamFormula manifest.override.dependencies
-      @ Package.NpmDependencies.toOpamFormula manifest.override.peerDependencies
+      @ toOpamFormula manifest.override.dependencies
+      @ toOpamFormula manifest.override.peerDependencies
     in return (Package.Dependencies.OpamFormula formula)
   in
 

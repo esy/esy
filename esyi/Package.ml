@@ -83,73 +83,6 @@ module Dep = struct
 
 end
 
-module NpmDependencies = struct
-
-  type t = Req.t conj [@@deriving eq]
-
-  let empty = []
-
-  let pp fmt deps =
-    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
-
-  let of_yojson json =
-    let open Result.Syntax in
-    let%bind items = Json.Parse.assoc json in
-    let f deps (name, json) =
-      let%bind spec = Json.Parse.string json in
-      let%bind req = Req.parse (name ^ "@" ^ spec) in
-      return (req::deps)
-    in
-    Result.List.foldLeft ~f ~init:empty items
-
-  let to_yojson (reqs : t) =
-    let items =
-      let f (req : Req.t) = (req.name, VersionSpec.to_yojson req.spec) in
-      List.map ~f reqs
-    in
-    `Assoc items
-
-  let toOpamFormula reqs =
-    let f reqs (req : Req.t) =
-      let update =
-        match req.spec with
-        | VersionSpec.Npm formula ->
-          let f (c : SemverVersion.Constraint.t) =
-            {Dep. name = req.name; req = Npm c}
-          in
-          let formula = SemverVersion.Formula.ofDnfToCnf formula in
-          List.map ~f:(List.map ~f) formula
-        | VersionSpec.NpmDistTag (tag, _) ->
-          [[{Dep. name = req.name; req = NpmDistTag tag}]]
-        | VersionSpec.Opam formula ->
-          let f (c : OpamPackageVersion.Constraint.t) =
-            {Dep. name = req.name; req = Opam c}
-          in
-          let formula = OpamPackageVersion.Formula.ofDnfToCnf formula in
-          List.map ~f:(List.map ~f) formula
-        | VersionSpec.Source spec ->
-          [[{Dep. name = req.name; req = Source spec}]]
-      in
-      reqs @ update
-    in
-    List.fold_left ~f ~init:[] reqs
-
-  let override deps update =
-    let map =
-      let f map (req : Req.t) = StringMap.add req.name req map in
-      let map = StringMap.empty in
-      let map = List.fold_left ~f ~init:map deps in
-      let map = List.fold_left ~f ~init:map update in
-      map
-    in
-    StringMap.values map
-
-  let find ~name reqs =
-    let f (req : Req.t) = req.name = name in
-    List.find_opt ~f reqs
-end
-
-
 module Dependencies = struct
 
   type t =
@@ -215,64 +148,10 @@ module Dependencies = struct
         | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Dep.pp) deps
       in
       Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
-    | NpmFormula deps -> NpmDependencies.pp fmt deps
+    | NpmFormula deps -> PackageJson.Dependencies.pp fmt deps
 
   let show deps =
     Format.asprintf "%a" pp deps
-end
-
-module ExportedEnv = struct
-
-  [@@@ocaml.warning "-32"]
-  type t = item list [@@deriving (show, eq)]
-
-  and item = {
-    name : string;
-    value : string;
-    scope : scope;
-  }
-
-  and scope = [ `Global  | `Local ]
-
-  let empty = []
-
-  let scope_to_yojson =
-    function
-    | `Global -> `String "global"
-    | `Local -> `String "local"
-
-  let scope_of_yojson (json : Json.t) =
-    let open Result.Syntax in
-    match json with
-    | `String "global" -> return `Global
-    | `String "local" -> return `Local
-    | _ -> error "invalid scope value"
-
-  let of_yojson json =
-    let open Result.Syntax in
-    let f (name, v) =
-      match v with
-      | `String value -> return { name; value; scope = `Global }
-      | `Assoc _ ->
-        let%bind value = Json.Parse.field ~name:"val" v in
-        let%bind value = Json.Parse.string value in
-        let%bind scope = Json.Parse.field ~name:"scope" v in
-        let%bind scope = scope_of_yojson scope in
-        return { name; value; scope }
-      | _ -> error "env value should be a string or an object"
-    in
-    let%bind items = Json.Parse.assoc json in
-    Result.List.map ~f items
-
-  let to_yojson (items : t) =
-    let f { name; value; scope } =
-      name, `Assoc [
-        "val", `String value;
-        "scope", scope_to_yojson scope]
-    in
-    let items = List.map ~f items in
-    `Assoc items
-
 end
 
 module File = struct
@@ -282,7 +161,7 @@ module File = struct
     content : string;
     (* file, permissions add 0o644 default for backward compat. *)
     perm : (int [@default 0o644]);
-  } [@@deriving (yojson, show, eq)]
+  } [@@deriving (yojson, show, ord, eq)]
 end
 
 module OpamOverride = struct
@@ -291,7 +170,7 @@ module OpamOverride = struct
     type t = {
       source: (source option [@default None]);
       files: (File.t list [@default []]);
-    } [@@deriving (yojson, eq, show)]
+    } [@@deriving (yojson, eq, ord, show)]
 
     and source = {
       url: string;
@@ -302,44 +181,24 @@ module OpamOverride = struct
 
   end
 
-  module Command = struct
-    [@@@ocaml.warning "-32"]
-    type t =
-      | Args of string list
-      | Line of string
-      [@@deriving (eq, show)]
-
-    let of_yojson (json : Json.t) =
-      let open Result.Syntax in
-      match json with
-      | `List _ ->
-        let%bind args = Json.Parse.(list string) json in
-        return (Args args)
-      | `String line -> return (Line line)
-      | _ -> error "expected either a list or a string"
-
-    let to_yojson (cmd : t) =
-      match cmd with
-      | Args args -> `List (List.map ~f:(fun arg -> `String arg) args)
-      | Line line -> `String line
-  end
-
   type t = {
-    build: (Command.t list option [@default None]);
-    install: (Command.t list option [@default None]);
-    dependencies: (NpmDependencies.t [@default NpmDependencies.empty]);
-    peerDependencies: (NpmDependencies.t [@default NpmDependencies.empty]) ;
-    exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
+    build: (PackageJson.CommandList.t [@default PackageJson.CommandList.empty]);
+    install: (PackageJson.CommandList.t [@default PackageJson.CommandList.empty]);
+    dependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
+    peerDependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]) ;
+    exportedEnv: (PackageJson.ExportedEnv.t [@default PackageJson.ExportedEnv.empty]);
     opam: (Opam.t [@default Opam.empty]);
-  } [@@deriving (yojson, eq, show)]
+  } [@@deriving (yojson, eq, ord, show)]
+
+  let toString = show
 
   let empty =
     {
-      build = None;
-      install = None;
-      dependencies = NpmDependencies.empty;
-      peerDependencies = NpmDependencies.empty;
-      exportedEnv = ExportedEnv.empty;
+      build = PackageJson.CommandList.empty;
+      install = PackageJson.CommandList.empty;
+      dependencies = PackageJson.Dependencies.empty;
+      peerDependencies = PackageJson.Dependencies.empty;
+      exportedEnv = PackageJson.ExportedEnv.empty;
       opam = Opam.empty;
     }
 end
@@ -415,6 +274,31 @@ let compare pkga pkgb =
   if name = 0
   then Version.compare pkga.version pkgb.version
   else name
+
+let ofPackageJson ~name ~version ~source (pkgJson : PackageJson.t) =
+  let originalVersion =
+    match pkgJson.version with
+    | Some version -> Some (Version.Npm version)
+    | None -> None
+  in
+  let dependencies =
+    match pkgJson.esy with
+    | None
+    | Some {PackageJson.EsyPackageJson. _dependenciesForNewEsyInstaller= None} ->
+      pkgJson.dependencies
+    | Some {PackageJson.EsyPackageJson. _dependenciesForNewEsyInstaller= Some dependencies} ->
+      dependencies
+  in
+  {
+    name;
+    version;
+    originalVersion;
+    dependencies = Dependencies.NpmFormula dependencies;
+    devDependencies = Dependencies.NpmFormula pkgJson.devDependencies;
+    source = source, [];
+    opam = None;
+    kind = if Option.isSome pkgJson.esy then Esy else Npm;
+  }
 
 module Map = Map.Make(struct
   type nonrec t = t

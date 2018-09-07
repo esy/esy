@@ -1,7 +1,6 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
-(** A single dependency constraint. *)
 module Dep : sig
   type t = {
     name : string;
@@ -42,27 +41,6 @@ module Dependencies : sig
   val applyResolutions : Resolutions.t -> t -> t
 end
 
-module ExportedEnv : sig
-  type t = item list
-  and item = { name : string; value : string; scope : scope; }
-  and scope = [ `Global | `Local ]
-
-  val empty : t
-  val of_yojson : t Json.decoder
-  val to_yojson : t Json.encoder
-end
-
-module NpmDependencies : sig
-  type t = Req.t conj
-  val empty : t
-  val pp : t Fmt.t
-  val of_yojson : t Json.decoder
-  val to_yojson : t Json.encoder
-  val toOpamFormula : t -> Dep.t disj conj
-  val override : t -> t -> t
-  val find : name:string -> t -> Req.t option
-end
-
 module File : sig
   type t = {
     name : Path.t;
@@ -90,26 +68,20 @@ module OpamOverride : sig
     val empty : t
   end
 
-  module Command : sig
-    type t =
-      | Args of string list
-      | Line of string
-  end
-
   type t = {
-    build : Command.t list option;
-    install : Command.t list option;
-    dependencies : NpmDependencies.t;
-    peerDependencies : NpmDependencies.t;
-    exportedEnv : ExportedEnv.t;
+    build : PackageJson.Command.t list option;
+    install : PackageJson.Command.t list option;
+    dependencies : PackageJson.Dependencies.t;
+    peerDependencies : PackageJson.Dependencies.t;
+    exportedEnv : PackageJson.ExportedEnv.t;
     opam : Opam.t;
   }
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
-  val equal : t -> t -> bool
-  val pp : Format.formatter -> t -> unit
-  val show : t -> string
+
   val empty : t
+
+  include S.JSONABLE with type t := t
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
 end
 
 module Opam : sig
@@ -166,6 +138,14 @@ and kind =
 val isOpamPackageName : string -> bool
 val pp : t Fmt.t
 val compare : t -> t -> int
+
+val ofPackageJson :
+  name:string
+  -> version:Version.t
+  -> source:source
+  -> PackageJson.t
+  -> t
+(** Convert package.json into a package *)
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

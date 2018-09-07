@@ -96,7 +96,7 @@ let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="mast
         begin match classifyManifest (Path.v filename) with
         | Ok `PackageJson ->
           let%bind manifest = RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data) in
-          return (PackageJson.toPackage ~name ~version ~source manifest)
+          return (Package.ofPackageJson ~name ~version ~source manifest)
         | Ok `Opam opamname ->
           let opamname =
             match opamname with
@@ -132,7 +132,7 @@ let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
         match classifyManifest path with
         | Ok `PackageJson ->
           let%bind manifest = PackageJson.ofFile path in
-          return (PackageJson.toPackage ~name ~version ~source manifest)
+          return (Package.ofPackageJson ~name ~version ~source manifest)
         | Ok (`Opam opamname) ->
           let opamname =
             match opamname with

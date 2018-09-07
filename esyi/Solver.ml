@@ -1,5 +1,4 @@
 module Dependencies = Package.Dependencies
-module NpmDependencies = Package.NpmDependencies
 module Resolutions = Package.Resolutions
 
 module Strategy = struct
@@ -699,7 +698,7 @@ let solve (sandbox : Sandbox.t) =
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
           let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = Package.NpmDependencies.override reqs [ocamlReq] in
+          let reqs = PackageJson.Dependencies.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =

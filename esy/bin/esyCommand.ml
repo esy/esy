@@ -850,16 +850,16 @@ let devExec {CommonOptions. cfg; project; sandbox; _} cmd () =
         tool
         info.SandboxInfo.sandbox.scripts
     in
-    let renderCommand (cmd : Manifest.CommandList.Command.t) =
+    let renderCommand (cmd : Manifest.Command.t) =
       match cmd with
-      | Manifest.CommandList.Command.Parsed args ->
+      | Parsed args ->
         let%bind args =
           Result.List.map
             ~f:(Task.renderExpression ~sandbox:info.sandbox ~task:info.task)
             args
         in
         return (Cmd.ofListExn args)
-      | Manifest.CommandList.Command.Unparsed line ->
+      | Unparsed line ->
         let%bind string = Task.renderExpression ~sandbox:info.sandbox ~task:info.task line in
         let%bind args = ShellSplit.split string in
         return (Cmd.ofListExn args)
@@ -1110,7 +1110,6 @@ let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
 let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let module NpmDependencies = Package.NpmDependencies in
   let aggOpamErrorMsg =
     "The esy add command doesn't work with opam sandboxes. "
     ^ "Please send a pull request to fix this!"

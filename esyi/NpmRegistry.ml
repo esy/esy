@@ -4,8 +4,8 @@ module PackageJson = struct
   type t = {
     name : string;
     version : string;
-    dependencies : (Package.NpmDependencies.t [@default Package.NpmDependencies.empty]);
-    devDependencies : (Package.NpmDependencies.t [@default Package.NpmDependencies.empty]);
+    dependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
+    devDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
     dist : dist;
     esy : (PackageJson.EsyPackageJson.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
