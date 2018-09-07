@@ -35,7 +35,7 @@ const fixture = [
         ],
         install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
       },
-      _resolved: '...',
+      '_esy.source': 'path:./',
       dependencies: {
         ocaml: `link:${ocamlPackagePath}`,
       },

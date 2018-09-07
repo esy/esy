@@ -319,6 +319,15 @@ describe('build opam sandbox', () => {
                 name: "dep"
                 `,
               ),
+              file(
+                'esy-opam.json',
+                `
+                {
+                  "source": "path:.",
+                  "override": null
+                }
+                `,
+              ),
             ),
           ),
         ),

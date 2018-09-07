@@ -40,7 +40,7 @@ const fixture = [
         dependencies: {
           ocaml: '*',
         },
-        _resolved: '...',
+        '_esy.source': 'path:./',
       }),
       file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
