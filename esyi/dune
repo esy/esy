@@ -11,7 +11,6 @@
   (libraries
             EsyLib
             angstrom
-            tyre
             str
             cudf
             ppx_deriving_yojson.runtime

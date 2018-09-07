@@ -1,5 +1,5 @@
 {
-  "hash": "255ac4a4877d43bd04cab4d0d9df0191",
+  "hash": "a7e014ff04e93df443ba31a52d299c63",
   "root": "esy@path:.",
   "node": {
     "yargs-parser@9.0.2": {
@@ -4734,10 +4734,9 @@
         "@opam/ppx_deriving@opam:4.2.1",
         "@opam/ppx_deriving_yojson@opam:3.1",
         "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-        "@opam/re@opam:1.8.0", "@opam/tyre@opam:0.4.1",
-        "@opam/utop@opam:2.2.0", "@opam/yojson@opam:1.4.1",
-        "babel-preset-env@1.7.0", "babel-preset-flow@6.23.0", "del@3.0.0",
-        "esy-solve-cudf@0.1.6",
+        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
+        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
+        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-solve-cudf@0.1.6",
         "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
         "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
         "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
@@ -6970,28 +6969,6 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/ocamlbuild@opam:0.12.0"
-      ]
-    },
-    "@opam/tyre@opam:0.4.1": {
-      "record": {
-        "name": "@opam/tyre",
-        "version": "opam:0.4.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/tyre.0.4.1+opam.tar.gz#md5:c5a3e988b7051126a389807dbdb9395b",
-          "archive:https://github.com/Drup/tyre/releases/download/0.4.1/tyre-0.4.1.tbz#md5:41923cb08a11f93d704b79f7bb078640"
-        ],
-        "files": [],
-        "opam": {
-          "name": "tyre",
-          "version": "0.4.1",
-          "opam":
-            "opam-version: \"1.2\"\nname: \"tyre\"\nversion: \"0.4.1\"\nmaintainer: \"Gabriel Radanne <drupyog@zoho.com>\"\nauthors: \"Gabriel Radanne <drupyog@zoho.com>\"\nlicense: \"ISC\"\ntags: \"regex\"\nhomepage: \"https://github.com/Drup/tyre\"\ndoc: \"https://drup.github.io/tyre/doc/0.4/tyre/Tyre/\"\nbug-reports: \"https://github.com/Drup/tyre/issues\"\ndepends: [\n  \"jbuilder\" {build}\n  \"re\" {>= \"1.8.0\"}\n  \"alcotest\" {test & >= \"0.8.0\"}\n  \"result\"\n  \"seq\"\n]\navailable: ocaml-version >= \"4.02.0\"\nbuild: [\n  [\"jbuilder\" \"subst\"] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/Drup/tyre.git\"",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/re@opam:1.8.0", "@opam/result@opam:1.3", "@opam/seq@opam:0.1"
       ]
     },
     "@opam/topkg@opam:0.9.1": {
