@@ -91,7 +91,7 @@ async function buildOcamlPackage() {
           `chmod +x #{self.bin / '${ocamloptName}'}`,
         ],
       },
-      '_esy.source': 'ocaml@1.0.0',
+      '_esy.source': 'path:./',
     }),
   );
 
