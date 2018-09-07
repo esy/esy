@@ -70,7 +70,7 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
 
   let source = Source.LocalPath {
     path = projectPath;
-    manifestFilename = None;
+    manifest = None;
   } in
   let version = Version.Source source in
 
@@ -164,7 +164,7 @@ let makeEsySandbox ?name ~cfg projectPath path =
   ) in
 
   let root =
-    let source = Source.LocalPath {path = projectPath; manifestFilename = None;} in
+    let source = Source.LocalPath {path = projectPath; manifest = None;} in
     let version = Version.Source source in
     let name = Path.basename projectPath in
     PackageJson.toPackage ~name ~version ~source:(Package.Source source) pkgJson

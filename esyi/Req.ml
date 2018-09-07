@@ -130,7 +130,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "name.dot@git+https://some/repo",
@@ -139,7 +139,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "name-dash@git+https://some/repo",
@@ -148,7 +148,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "name_underscore@git+https://some/repo",
@@ -157,7 +157,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "@opam/name@git+https://some/repo",
@@ -166,7 +166,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "@scope/name@git+https://some/repo",
@@ -175,7 +175,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "@scope-dash/name@git+https://some/repo",
@@ -184,7 +184,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "@scope.dot/name@git+https://some/repo",
@@ -193,7 +193,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "@scope_underscore/name@git+https://some/repo",
@@ -202,7 +202,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
 
@@ -212,7 +212,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "git://github.com/yarnpkg/example-yarn-package.git";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
 
@@ -222,7 +222,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
-        manifestFilename = None;
+        manifest = None;
       });
     };
 
@@ -232,7 +232,7 @@ let%test_module "parsing" = (module struct
       spec = VersionSpec.Source (SourceSpec.Git {
         remote = "https://some/repo";
         ref = Some "ref";
-        manifestFilename = None;
+        manifest = None;
       });
     };
 
@@ -277,7 +277,7 @@ let%test_module "parsing" = (module struct
       name = "pkg";
       spec = VersionSpec.Source (SourceSpec.LocalPath {
         path = Path.v "some/file";
-        manifestFilename = None;
+        manifest = None;
       });
     };
 
@@ -286,7 +286,7 @@ let%test_module "parsing" = (module struct
       name = "pkg";
       spec = VersionSpec.Source (SourceSpec.LocalPathLink {
         path = Path.v "some/file";
-        manifestFilename = None;
+        manifest = None;
       });
     };
     "pkg@link:../reason-wall-demo",
@@ -294,7 +294,7 @@ let%test_module "parsing" = (module struct
       name = "pkg";
       spec = VersionSpec.Source (SourceSpec.LocalPathLink {
         path = Path.v "../reason-wall-demo";
-        manifestFilename = None;
+        manifest = None;
       });
     };
 
@@ -305,7 +305,7 @@ let%test_module "parsing" = (module struct
         SourceSpec.Git {
           remote = "https://github.com/eslint/eslint.git";
           ref = Some "9d6223040316456557e0a2383afd96be90d28c5a";
-          manifestFilename = None;
+          manifest = None;
         });
     };
 

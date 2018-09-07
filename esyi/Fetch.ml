@@ -156,7 +156,7 @@ module Layout = struct
             | Source.Github _
             | Source.LocalPath _
             | Source.NoSource -> path
-            | Source.LocalPathLink {path; manifestFilename = _;} -> path
+            | Source.LocalPathLink {path; manifest = _;} -> path
           in
           let installation = {
             path;

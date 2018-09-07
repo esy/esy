@@ -6,21 +6,21 @@ type t =
   | Git of {
       remote : string;
       commit : string;
-      manifestFilename : string option;
+      manifest : string option;
     }
   | Github of {
       user : string;
       repo : string;
       commit : string;
-      manifestFilename : string option;
+      manifest : string option;
     }
   | LocalPath of {
       path : Path.t;
-      manifestFilename : string option;
+      manifest : string option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifestFilename : string option;
+      manifest : string option;
     }
   | NoSource
 

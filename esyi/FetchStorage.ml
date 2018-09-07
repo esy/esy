@@ -251,10 +251,10 @@ let install ~cfg:_ ~path dist =
   let {Dist. tarballPath; source; _} = dist in
   match source, tarballPath with
 
-  | Source.LocalPathLink {path = orig; manifestFilename;}, _ ->
+  | Source.LocalPathLink {path = orig; manifest;}, _ ->
     let%bind () = Fs.createDir path in
     let%bind () =
-      let link = EsyLinkFile.{path = orig; manifest = manifestFilename;} in
+      let link = EsyLinkFile.{path = orig; manifest;} in
       EsyLinkFile.toFile link Path.(path / "_esylink")
     in
     return ()

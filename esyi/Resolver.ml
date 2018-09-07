@@ -69,7 +69,7 @@ let classifyManifest path =
   | "opam", "" -> return (`Opam None)
   | _ -> errorf "unknown manifest: %s" basename
 
-let loadPackageOfGithub ?manifestFilename ~name ~version ~source ~user ~repo ?(ref="master") () =
+let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="master") () =
   let open RunAsync.Syntax in
   let fetchFile name =
     let url =
@@ -81,8 +81,8 @@ let loadPackageOfGithub ?manifestFilename ~name ~version ~source ~user ~repo ?(r
   in
 
   let filenames =
-    match manifestFilename with
-    | Some manifestFilename -> [manifestFilename]
+    match manifest with
+    | Some manifest -> [manifest]
     | None -> ["esy.json"; "package.json"]
   in
 
@@ -119,7 +119,7 @@ let loadPackageOfGithub ?manifestFilename ~name ~version ~source ~user ~repo ?(r
 
   tryFilename filenames
 
-let loadPackageOfPath ?manifestFilename ~name ~version ~source (path : Path.t) =
+let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
   let open RunAsync.Syntax in
 
   let rec tryFilename filenames =
@@ -154,8 +154,8 @@ let loadPackageOfPath ?manifestFilename ~name ~version ~source (path : Path.t) =
         tryFilename rest
   in
   let filenames =
-    match manifestFilename with
-    | Some manifestFilename -> [manifestFilename]
+    match manifest with
+    | Some manifest -> [manifest]
     | None -> ["esy.json"; "package.json"]
   in
   tryFilename filenames
@@ -197,22 +197,22 @@ let package ~(resolution : Resolution.t) resolver =
   let key = (resolution.name, resolution.version) in
   PackageCache.compute resolver.pkgCache key begin fun _ ->
     match resolution.version with
-    | Version.Source ((Source.LocalPath {path; manifestFilename}) as source)
-    | Version.Source ((Source.LocalPathLink {path; manifestFilename}) as source) ->
+    | Version.Source ((Source.LocalPath {path; manifest}) as source)
+    | Version.Source ((Source.LocalPathLink {path; manifest}) as source) ->
       let%bind pkg = loadPackageOfPath
-        ?manifestFilename
+        ?manifest
         ~name:resolution.name
         ~version:resolution.version
         ~source:(Package.Source source)
         path
       in
       return (Ok pkg)
-    | Version.Source (Git {remote; commit; manifestFilename;} as source) ->
+    | Version.Source (Git {remote; commit; manifest;} as source) ->
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
         let%bind pkg = loadPackageOfPath
-          ?manifestFilename
+          ?manifest
           ~name:resolution.name
           ~version:resolution.version
           ~source:(Package.Source source)
@@ -220,10 +220,10 @@ let package ~(resolution : Resolution.t) resolver =
         in
         return (Ok pkg)
       end
-    | Version.Source ((Github {user; repo; commit; manifestFilename;}) as source) ->
+    | Version.Source ((Github {user; repo; commit; manifest;}) as source) ->
       let%bind pkg =
         loadPackageOfGithub
-          ?manifestFilename
+          ?manifest
           ~name:resolution.name
           ~version:resolution.version
           ~source:(Package.Source source)
@@ -272,28 +272,28 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
     let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
     match sourceSpec with
-    | SourceSpec.Github {user; repo; ref; manifestFilename;} ->
+    | SourceSpec.Github {user; repo; ref; manifest;} ->
       let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
       let%bind commit = Git.lsRemote ?ref ~remote () in
       begin match commit, ref with
       | Some commit, _ ->
-        return (Source.Github {user; repo; commit; manifestFilename;})
+        return (Source.Github {user; repo; commit; manifest;})
       | None, Some ref ->
         if Git.isCommitLike ref
-        then return (Source.Github {user; repo; commit = ref; manifestFilename;})
+        then return (Source.Github {user; repo; commit = ref; manifest;})
         else errorResolvingSource "cannot resolve commit"
       | None, None ->
         errorResolvingSource "cannot resolve commit"
       end
 
-    | SourceSpec.Git {remote; ref; manifestFilename;} ->
+    | SourceSpec.Git {remote; ref; manifest;} ->
       let%bind commit = Git.lsRemote ?ref ~remote () in
       begin match commit, ref  with
       | Some commit, _ ->
-        return (Source.Git {remote; commit; manifestFilename;})
+        return (Source.Git {remote; commit; manifest;})
       | None, Some ref ->
         if Git.isCommitLike ref
-        then return (Source.Git {remote; commit = ref; manifestFilename;})
+        then return (Source.Git {remote; commit = ref; manifest;})
         else errorResolvingSource "cannot resolve commit"
       | None, None ->
         errorResolvingSource "cannot resolve commit"
@@ -307,11 +307,11 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
     | SourceSpec.Archive {url; checksum = Some checksum} ->
       return (Source.Archive {url; checksum})
 
-    | SourceSpec.LocalPath {path; manifestFilename;} ->
-      return (Source.LocalPath {path; manifestFilename;})
+    | SourceSpec.LocalPath {path; manifest;} ->
+      return (Source.LocalPath {path; manifest;})
 
-    | SourceSpec.LocalPathLink {path; manifestFilename;} ->
-      return (Source.LocalPathLink {path; manifestFilename;})
+    | SourceSpec.LocalPathLink {path; manifest;} ->
+      return (Source.LocalPathLink {path; manifest;})
   end
 
 let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
