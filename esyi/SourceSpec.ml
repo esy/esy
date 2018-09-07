@@ -137,7 +137,7 @@ module Parse = struct
     let user = take_while1 (fun c -> c <> '/') in
     let repo =
       many_till any_char (string ".git") >>| collectString
-      <|> take_while1 (fun c -> c <> '#' && c <> ':')
+      <|> take_while1 (fun c -> c <> '#' && c <> ':' && c <> '/')
     in
     let manifestFilename = maybe (char ':' *> take_while1 (fun c -> c <> '#')) in
     let ref = maybe (char '#' *> take_while1 (fun _ -> true)) in
@@ -323,6 +323,30 @@ let%test_module "parsing" = (module struct
     expectParses
       "git+rsync://example.com/repo.git:lwt.opam#ref"
       (Git {remote = "rsync://example.com/repo.git"; ref = Some "ref"; manifestFilename = Some "lwt.opam"})
+
+  let%test "git://example.com/repo.git" =
+    expectParses
+      "git://example.com/repo.git"
+      (Git {remote = "git://example.com/repo.git"; ref = None; manifestFilename = None;})
+
+  let%test "git://example.com/repo.git#ref" =
+    expectParses
+      "git://example.com/repo.git#ref"
+      (Git {remote = "git://example.com/repo.git"; ref = Some "ref"; manifestFilename = None;})
+
+  let%test "git://example.com/repo.git:lwt.opam#ref" =
+    expectParses
+      "git://example.com/repo.git:lwt.opam#ref"
+      (Git {remote = "git://example.com/repo.git"; ref = Some "ref"; manifestFilename = Some "lwt.opam";})
+
+  let%test "git://github.com/yarnpkg/example-yarn-package.git" =
+    expectParses
+      "git://github.com/yarnpkg/example-yarn-package.git"
+      (Git {
+        remote = "git://github.com/yarnpkg/example-yarn-package.git";
+        ref = None;
+        manifestFilename = None;
+      })
 
   let%test "user/repo" =
     expectParses

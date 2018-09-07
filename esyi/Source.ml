@@ -67,13 +67,14 @@ module Parse = struct
 
   let git =
     let prefix = string "git:" in
+    let proto = take_while1 (fun c -> c <> ':') in
     let remote = take_while1 (fun c -> c <> '#' && c <> ':') in
     let commit = char '#' *> take_while1 (fun c -> c <> '&') <|> fail "missing commit" in
     let manifestFilename = maybe (char ':' *> take_while1 (fun c -> c <> '#')) in
-    let make remote manifestFilename commit =
-      Git { remote; commit; manifestFilename; }
+    let make proto remote manifestFilename commit =
+      Git { remote = proto ^ ":" ^ remote; commit; manifestFilename; }
     in
-    prefix *> (make <$> remote <*> manifestFilename <*> commit)
+    prefix *> (make <$> proto <* char ':' <*> remote <*> manifestFilename <*> commit)
 
   let archive =
     let prefix = string "archive:" in
@@ -145,15 +146,20 @@ let%test_module "parsing" = (module struct
       "gh:user/repo:lwt.opam#commit"
       (Github {user = "user"; repo = "repo"; commit = "commit"; manifestFilename = Some "lwt.opam"})
 
-  let%test "git:example.com/repo#commit" =
+  let%test "git:http://example.com/repo#commit" =
     expectParses
-      "git:example.com/repo#commit"
-      (Git {remote = "example.com/repo"; commit = "commit"; manifestFilename = None})
+      "git:http://example.com/repo#commit"
+      (Git {remote = "http://example.com/repo"; commit = "commit"; manifestFilename = None})
 
-  let%test "git:example.com/repo:lwt.opam#commit" =
+  let%test "git:http://example.com/repo:lwt.opam#commit" =
     expectParses
-      "git:example.com/repo:lwt.opam#commit"
-      (Git {remote = "example.com/repo"; commit = "commit"; manifestFilename = Some "lwt.opam"})
+      "git:http://example.com/repo:lwt.opam#commit"
+      (Git {remote = "http://example.com/repo"; commit = "commit"; manifestFilename = Some "lwt.opam"})
+
+  let%test "git:git://example.com/repo:lwt.opam#commit" =
+    expectParses
+      "git:git://example.com/repo:lwt.opam#commit"
+      (Git {remote = "git://example.com/repo"; commit = "commit"; manifestFilename = Some "lwt.opam"})
 
   let%test "archive:http://example.com#abc123" =
     expectParses

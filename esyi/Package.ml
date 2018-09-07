@@ -267,6 +267,16 @@ module Req = struct
         });
       };
 
+      "pkg@git://github.com/yarnpkg/example-yarn-package.git",
+      {
+        name = "pkg";
+        spec = VersionSpec.Source (SourceSpec.Git {
+          remote = "git://github.com/yarnpkg/example-yarn-package.git";
+          ref = None;
+          manifestFilename = None;
+        });
+      };
+
       "pkg@git+https://some/repo",
       {
         name = "pkg";
