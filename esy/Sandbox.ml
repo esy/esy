@@ -324,8 +324,8 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       let pathToEsyLink = Path.(path / "_esylink") in
       if%bind Fs.exists pathToEsyLink
       then
-        let%bind path = Fs.readFile pathToEsyLink in
-        return (Path.v (String.trim path))
+        let%bind link = EsyLinkFile.ofFile pathToEsyLink in
+        return link.EsyLinkFile.path
       else
         return path
     in
