@@ -1,4 +1,15 @@
-type t = private {name : string; spec : VersionSpec.t}
+(**
+
+  Request for a package, a pair of package name and a version spec (constraint
+  or source spec).
+
+
+ *)
+
+type t = private {
+  name : string;
+  spec : VersionSpec.t
+}
 
 include S.COMPARABLE with type t := t
 include S.PRINTABLE with type t := t

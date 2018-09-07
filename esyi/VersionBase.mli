@@ -95,7 +95,7 @@ module type FORMULA = sig
    *)
   val ofDnfToCnf : DNF.t -> CNF.t
 
-  module Parse : sig
+  module ParseUtils : sig
     val conjunction : parse:(string -> 'a) -> string -> 'a disj
     val disjunction : parse:(string -> constr disj) -> string -> constr disj disj
   end

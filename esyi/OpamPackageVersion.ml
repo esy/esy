@@ -1,4 +1,5 @@
 module String = Astring.String
+module P = Parse
 
 (** opam versions are Debian-style versions *)
 module Version = struct
@@ -120,7 +121,7 @@ module Formula = struct
         | Ok v -> v
         | Error err -> failwith ("Error: " ^ err)
       in
-      let (conjs) = Parse.conjunction ~parse v in
+      let (conjs) = ParseUtils.conjunction ~parse v in
       let conjs =
         let f conjs c = conjs @ c in
         List.fold_left ~init:[] ~f conjs
@@ -128,10 +129,16 @@ module Formula = struct
       let conjs = match conjs with | [] -> [C.ANY] | conjs -> conjs in
       conjs
     in
-    Parse.disjunction ~parse:parseSimple v
+    ParseUtils.disjunction ~parse:parseSimple v
 
   let parse v =
     Ok (parseExn v)
+
+  let parserDnf =
+    P.(
+      let%bind input = take_while1 (fun _ -> true) in
+      return (parseExn input)
+    )
 
   let%test_module "parse" = (module struct
     let v = Version.parseExn

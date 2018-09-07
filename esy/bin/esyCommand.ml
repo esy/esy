@@ -1117,7 +1117,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
   in
 
   let%bind reqs = RunAsync.ofStringError (
-    Result.List.map ~f:Package.Req.parse reqs
+    Result.List.map ~f:Req.parse reqs
   ) in
 
   let addReqs origDeps =
@@ -1147,18 +1147,18 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
       Solution.Record.Set.fold f (Solution.records solution) StringMap.empty
     in
     let addedDependencies =
-      let f {Package.Req. name; _} =
+      let f {Req. name; _} =
         match StringMap.find name records with
         | Some record ->
           let constr =
             match record.Solution.Record.version with
-            | Package.Version.Npm version ->
+            | Version.Npm version ->
               SemverVersion.Formula.DNF.toString
                 (SemverVersion.caretRangeOfVersion version)
-            | Package.Version.Opam version ->
+            | Version.Opam version ->
               OpamPackage.Version.to_string version
-            | Package.Version.Source _ ->
-              Package.Version.toString record.Solution.Record.version
+            | Version.Source _ ->
+              Version.toString record.Solution.Record.version
           in
           name, `String constr
         | None -> assert false

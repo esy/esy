@@ -670,7 +670,7 @@ module Formula = struct
         let msg = Printf.sprintf "invalid version: %s" v in
         failwith msg
 
-    let parse = Parse.disjunction ~parse:parseNpmRange
+    let parse = ParseUtils.disjunction ~parse:parseNpmRange
   end
 
   let parse formula =
@@ -696,6 +696,14 @@ module Formula = struct
     | Ok f -> f
     | Error err -> raise (Invalid_argument err)
 
+  let parserDnf =
+    let p = parse in
+    P.(
+      let%bind input = take_while1 (fun _ -> true) in
+      match p input with
+      | Ok v -> return v
+      | Error msg -> fail msg
+    )
   let%test_module "parse" = (module struct
 
     let expectParsesTo v e =

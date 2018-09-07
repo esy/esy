@@ -15,8 +15,8 @@ val to_yojson : t -> [> `String of string ]
 
 include S.COMPARABLE with type t := t
 
-val parseAsNpm : string -> (t, string) result
-val parseAsOpam : string -> (t, string) result
+val parserNpm : t Parse.t
+val parserOpam : t Parse.t
 
 val matches : version:Version.t -> t -> bool
 val ofVersion : Version.t -> t

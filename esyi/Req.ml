@@ -17,60 +17,61 @@ let pp fmt req =
 let matches ~name ~version req =
   name = req.name && VersionSpec.matches ~version req.spec
 
-let parse =
-  let name = Tyre.pcre {|[^@]+|} in
-  let opamscope = Tyre.(str "@opam/" *> name) in
-  let npmscope = Tyre.(seq (str "@" *> name) (str "/" *> name)) in
-  let spec = Tyre.(str "@" *> pcre ".*") in
-  let opamWithSpec = Tyre.(start *> seq opamscope spec <* stop) in
-  let opamWithoutSpec = Tyre.(start *> opamscope <* stop) in
-  let npmScopeWithSpec = Tyre.(start *> seq npmscope spec <* stop) in
-  let npmScopeWithoutSpec = Tyre.(start *> npmscope <* stop) in
-  let npmWithSpec = Tyre.(start *> seq name spec <* stop) in
-  let npmWithoutSpec = Tyre.(start *> name <* stop) in
-  let open Result.Syntax in
-  let re = Tyre.(route [
-    (opamWithSpec --> function
-      | opamname, "" ->
-        let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
-        return {name = "@opam/" ^ opamname; spec};
-      | opamname, spec ->
-        let%bind spec = VersionSpec.parseAsOpam spec in
-        return {name = "@opam/" ^ opamname; spec});
-    (npmScopeWithSpec --> function
-      | (scope, name), "" ->
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name = "@" ^ scope ^ "/" ^ name; spec};
-      | (scope, name), spec ->
-        let%bind spec = VersionSpec.parseAsNpm spec in
-        return {name = "@" ^ scope ^ "/" ^ name; spec});
-    (npmWithSpec --> function
-      | name, "" ->
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
+module Parse = struct
+  include Parse
+
+  let name = take_while1 (function
+    | '@' | '/' -> false
+    | _ -> true
+  )
+  let opamPackageName =
+    let make scope name = `opam (scope ^ name) in
+    make <$> (string "@opam/") <*> name
+
+  let npmPackageNameWithScope =
+    let make scope name = `npm ("@" ^ scope ^ "/" ^ name) in
+    make <$> char '@' *> name <*> char '/' *> name
+
+  let npmPackageName =
+    let make name = `npm name in
+    make <$> name
+
+  let packageName =
+    opamPackageName <|> npmPackageNameWithScope <|> npmPackageName
+
+  let parser =
+    let%bind name = packageName in
+    match%bind peek_char with
+    | None ->
+      let name, spec =
+        match name with
+        | `npm name -> name, VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+        | `opam name -> name, VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
+      in
+      return {name; spec};
+    | Some '@' ->
+      let%bind () = advance 1 in
+      let%bind nextChar = peek_char in
+      begin match nextChar, name with
+      | None, _ ->
+        let name, spec =
+          match name with
+          | `npm name -> name, VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+          | `opam name -> name, VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
+        in
         return {name; spec};
-      | name, spec ->
-        let%bind spec = VersionSpec.parseAsNpm spec in
-        return {name; spec});
-    (opamWithoutSpec --> fun opamname ->
-        let spec = VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] in
-        return {name = "@opam/" ^ opamname; spec});
-    (npmScopeWithoutSpec --> function
-      | (scope, name) ->
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name = "@" ^ scope ^ "/" ^ name; spec});
-    (npmWithoutSpec --> function
-      | name ->
-        let spec = VersionSpec.Npm [[SemverVersion.Constraint.ANY]] in
-        return {name; spec});
-  ]) in
-  let parse spec =
-    match Tyre.exec re spec with
-    | Ok (Ok v) -> Ok v
-    | Ok (Error err) -> Error err
-    | Error (`ConverterFailure _) -> Error "error parsing"
-    | Error (`NoMatch _) -> Error "error parsing"
-  in
-  parse
+      | Some _, `opam name ->
+        let%bind spec = VersionSpec.parserOpam in
+        return {name; spec};
+      | Some _, `npm name ->
+        let%bind spec = VersionSpec.parserNpm in
+        return {name; spec};
+      end
+    | _ -> fail "cannot parse request"
+end
+
+let parse =
+  Parse.(parse parser)
 
 let%test_module "parsing" = (module struct
 

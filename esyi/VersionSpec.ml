@@ -85,11 +85,11 @@ module Parse = struct
     let withoutName = npmConstraint in
     prefix *> (withName <|> withoutName)
 
-  let opamComplete =
+  let parserOpam =
     sourceSpec
     <|> opamConstraint
 
-  let npmComplete =
+  let parserNpm =
     sourceSpec
     <|> npmWithProto
     <|> npmConstraint
@@ -97,5 +97,5 @@ module Parse = struct
     <|> npmAnyConstraint
 end
 
-let parseAsNpm = Parse.(parse npmComplete)
-let parseAsOpam = Parse.(parse opamComplete)
+let parserNpm = Parse.parserNpm
+let parserOpam = Parse.parserOpam
