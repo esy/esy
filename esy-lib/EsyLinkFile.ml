@@ -1,6 +1,6 @@
 type t = {
   path : Path.t;
-  manifest : string option;
+  manifest : ManifestFilename.t option;
 } [@@deriving yojson]
 
 let ofFile path =

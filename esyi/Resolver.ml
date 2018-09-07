@@ -82,7 +82,7 @@ let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="mast
 
   let filenames =
     match manifest with
-    | Some manifest -> [manifest]
+    | Some manifest -> [ManifestFilename.toString manifest]
     | None -> ["esy.json"; "package.json"]
   in
 
@@ -155,7 +155,7 @@ let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
   in
   let filenames =
     match manifest with
-    | Some manifest -> [manifest]
+    | Some manifest -> [ManifestFilename.toString manifest]
     | None -> ["esy.json"; "package.json"]
   in
   tryFilename filenames

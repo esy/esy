@@ -10,6 +10,12 @@ let ignore p =
 
 let maybe p = option None (p >>| fun v -> Some v)
 
+let till c p =
+  let%bind input = take_while1 c in
+  match parse_string p input with
+  | Ok fname -> return fname
+  | Error msg -> fail msg
+
 let pair =
   let pair x y = x, y in
   fun a b -> lift2 pair a b

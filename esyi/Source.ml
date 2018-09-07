@@ -6,21 +6,21 @@ type t =
   | Git of {
       remote : string;
       commit : string;
-      manifest : string option;
+      manifest : ManifestFilename.t option;
     }
   | Github of {
       user : string;
       repo : string;
       commit : string;
-      manifest : string option;
+      manifest : ManifestFilename.t option;
     }
   | LocalPath of {
       path : Path.t;
-      manifest : string option;
+      manifest : ManifestFilename.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : string option;
+      manifest : ManifestFilename.t option;
     }
   | NoSource
   [@@deriving (ord, eq)]
@@ -29,21 +29,21 @@ let toString = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo manifest commit
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestFilename.toString manifest) commit
   | Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
   | Git {remote; commit; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s#%s" remote manifest commit
+    Printf.sprintf "git:%s:%s#%s" remote (ManifestFilename.toString manifest) commit
   | Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (Path.toString path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.toString path) manifest
+    Printf.sprintf "path:%s/%s" (Path.toString path) (ManifestFilename.toString manifest)
   | LocalPathLink {path; manifest = None;} ->
     Printf.sprintf "link:%s" (Path.toString path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.toString path) manifest
+    Printf.sprintf "link:%s/%s" (Path.toString path) (ManifestFilename.toString manifest)
   | NoSource -> "no-source:"
 
 let show = toString
@@ -54,12 +54,15 @@ let pp fmt src =
 module Parse = struct
   include Parse
 
+  let manifestFilenameBeforeSharp =
+    till (fun c -> c <> '#') ManifestFilename.parser
+
   let github =
     let prefix = string "github:" <|> string "gh:" in
     let user = take_while1 (fun c -> c <> '/') <?> "user" in
     let repo = take_while1 (fun c -> c <> '#' && c <> ':') <?> "repo" in
     let commit = (char '#' *> take_while1 (fun _ -> true)) <|> fail "missing commit" in
-    let manifest = maybe (char ':' *> take_while1 (fun c -> c <> '#')) in
+    let manifest = maybe (char ':' *> manifestFilenameBeforeSharp) in
     let make user repo manifest commit =
       Github { user; repo; commit; manifest; }
     in
@@ -70,7 +73,7 @@ module Parse = struct
     let proto = take_while1 (fun c -> c <> ':') in
     let remote = take_while1 (fun c -> c <> '#' && c <> ':') in
     let commit = char '#' *> take_while1 (fun c -> c <> '&') <|> fail "missing commit" in
-    let manifest = maybe (char ':' *> take_while1 (fun c -> c <> '#')) in
+    let manifest = maybe (char ':' *> manifestFilenameBeforeSharp) in
     let make proto remote manifest commit =
       Git { remote = proto ^ ":" ^ remote; commit; manifest; }
     in
@@ -88,12 +91,11 @@ module Parse = struct
     let path = take_while1 (fun c -> c <> '#') in
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
-      let path, manifest =
-        let basename = Path.basename path in
-        match basename, Path.getExt path with
-        | _, ".opam" | _, ".json" | "opam", "" ->
-          Path.(remEmptySeg (parent path)), Some basename
-        | _ -> path, None
+      let basename = Path.basename path in
+      let path, manifest = 
+        match ManifestFilename.parse basename with
+        | Ok manifest -> Path.(remEmptySeg (parent path)), Some manifest
+        | Error _ -> path, None
       in
       make path manifest
     in
@@ -134,7 +136,12 @@ let%test_module "parsing" = (module struct
   let%test "github:user/repo/lwt.opam#commit" =
     expectParses
       "github:user/repo:lwt.opam#commit"
-      (Github {user = "user"; repo = "repo"; commit = "commit"; manifest = Some "lwt.opam"})
+      (Github {
+        user = "user";
+        repo = "repo";
+        commit = "commit";
+        manifest = Some (ManifestFilename.parseExn "lwt.opam");
+      })
 
   let%test "gh:user/repo#commit" =
     expectParses
@@ -144,7 +151,12 @@ let%test_module "parsing" = (module struct
   let%test "gh:user/repo:lwt.opam#commit" =
     expectParses
       "gh:user/repo:lwt.opam#commit"
-      (Github {user = "user"; repo = "repo"; commit = "commit"; manifest = Some "lwt.opam"})
+      (Github {
+        user = "user";
+        repo = "repo";
+        commit = "commit";
+        manifest = Some (ManifestFilename.parseExn "lwt.opam");
+      })
 
   let%test "git:http://example.com/repo#commit" =
     expectParses
@@ -154,12 +166,20 @@ let%test_module "parsing" = (module struct
   let%test "git:http://example.com/repo:lwt.opam#commit" =
     expectParses
       "git:http://example.com/repo:lwt.opam#commit"
-      (Git {remote = "http://example.com/repo"; commit = "commit"; manifest = Some "lwt.opam"})
+      (Git {
+        remote = "http://example.com/repo";
+        commit = "commit";
+        manifest = Some (ManifestFilename.parseExn "lwt.opam");
+      })
 
   let%test "git:git://example.com/repo:lwt.opam#commit" =
     expectParses
       "git:git://example.com/repo:lwt.opam#commit"
-      (Git {remote = "git://example.com/repo"; commit = "commit"; manifest = Some "lwt.opam"})
+      (Git {
+        remote = "git://example.com/repo";
+        commit = "commit";
+        manifest = Some (ManifestFilename.parseExn "lwt.opam");
+      })
 
   let%test "archive:http://example.com#abc123" =
     expectParses
@@ -184,7 +204,10 @@ let%test_module "parsing" = (module struct
   let%test "path:/some/path/lwt.opam" =
     expectParses
       "path:/some/path/lwt.opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some "lwt.opam";})
+      (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestFilename.parseExn "lwt.opam");
+      })
 
   let%test "link:/some/path" =
     expectParses
@@ -194,7 +217,10 @@ let%test_module "parsing" = (module struct
   let%test "link:/some/path/lwt.opam" =
     expectParses
       "link:/some/path/lwt.opam"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some "lwt.opam";})
+      (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestFilename.parseExn "lwt.opam");
+      })
 
   let%test "no-source:" =
     expectParses
