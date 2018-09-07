@@ -20,7 +20,7 @@ opam install --yes ppx_deriving_yojson
 opam install --yes yojson
 opam install --yes bos
 opam install --yes re
-opam install --yes tyre
+opam install --yes angstrom
 opam install --yes opam-format
 opam install --yes opam-state
 opam install --yes cudf
