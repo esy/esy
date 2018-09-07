@@ -26,7 +26,7 @@ let cacheId source (record : Solution.Record.t) =
   let source = Source.toString source in
   match record.opam with
   | None ->
-    Printf.sprintf "%s__%s__%s" record.name version (hash [source])
+    Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
   | Some opam ->
     let h = hash [
       source;
@@ -40,7 +40,7 @@ let cacheId source (record : Solution.Record.t) =
         |> Yojson.Safe.to_string
       | None -> "");
     ] in
-    Printf.sprintf "%s__%s__%s" record.name version h
+    Printf.sprintf "%s__%s__%s_v2" record.name version h
 
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
@@ -97,7 +97,6 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   in
 
   let commit path source =
-    let key = cacheId source record in
 
     let removeEsyJsonIfExists () =
       let esyJson = Path.(path / "esy.json") in
@@ -120,11 +119,12 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
         let%bind () = Fs.createDir Path.(path / "_esy") in
         let%bind () = Fs.writeFile ~data Path.(path / "_esy" / "opam") in
         let%bind () =
-          match override with
-          | Some override ->
-            let json = Package.OpamOverride.to_yojson override in
-            Fs.writeJsonFile ~json Path.(path / "_esy" / "override.json")
-          | None -> return ()
+          let info = {
+            EsyOpamFile.
+            override;
+            source;
+          } in
+          EsyOpamFile.toFile info Path.(path / "_esy" / "esy-opam.json")
         in
         return ()
       | None -> return ()
@@ -151,7 +151,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       let addResolvedFieldToPackageJson filename =
         match%bind Fs.readJsonFile filename with
         | `Assoc items ->
-          let json = `Assoc (("_resolved", `String key)::items) in
+          let json = `Assoc (("_esy.source", `String (Source.toString source))::items) in
           let data = Yojson.Safe.pretty_to_string json in
           Fs.writeFile ~data filename
         | _ -> error "invalid package.json"
