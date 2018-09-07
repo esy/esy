@@ -1,5 +1,4 @@
 module Dependencies = Package.Dependencies
-module Req = Package.Req
 
 module CudfName = struct
 
@@ -230,14 +229,14 @@ let toCudf ?(installed=Package.Set.empty) univ =
       (univ, cudfUniv, cudfVersionMap)
   in
 
-  let encodeNpmReq (req : Package.Req.t) =
+  let encodeNpmReq (req : Req.t) =
     let versions = findVersions ~name:req.name univ in
     if not (seen req.name) then (
       markAsSeen req.name;
       updateVersionMap versions;
     );
     let matches pkg =
-      Package.Req.matches
+      Req.matches
         ~name:pkg.Package.name
         ~version:pkg.Package.version
         req
@@ -255,7 +254,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       List.map ~f deps
     | Package.Dependencies.NpmFormula reqs ->
       let reqs =
-        let f (req : Package.Req.t) = StringMap.mem req.name univ.pkgs in
+        let f (req : Req.t) = StringMap.mem req.name univ.pkgs in
         List.filter ~f reqs
       in
       List.map ~f:encodeNpmReq reqs

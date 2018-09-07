@@ -4,7 +4,7 @@ type t = {
   root : Package.t;
   dependencies : Package.Dependencies.t;
   resolutions : Package.Resolutions.t;
-  ocamlReq : Package.Req.t option;
+  ocamlReq : Req.t option;
   origin: origin;
   name : string option;
 }
@@ -22,7 +22,7 @@ end
 
 let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
-  Package.Req.make ~name:"ocaml" ~spec
+  Req.make ~name:"ocaml" ~spec
 
 let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in

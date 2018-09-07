@@ -1,6 +1,5 @@
 module Dependencies = Package.Dependencies
 module NpmDependencies = Package.NpmDependencies
-module Req = Package.Req
 module Resolutions = Package.Resolutions
 
 module Strategy = struct

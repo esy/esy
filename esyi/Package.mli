@@ -1,21 +1,6 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
-module Req : sig
-  type t = private {name : string; spec : VersionSpec.t}
-
-  val pp : Format.formatter -> t -> unit
-
-  val toString : t -> string
-  val to_yojson : t Json.encoder
-
-  val parse : string -> (t, string) result
-
-  val make : name:string -> spec:VersionSpec.t -> t
-
-  val matches : name:string -> version:Version.t -> t -> bool
-end
-
 (** A single dependency constraint. *)
 module Dep : sig
   type t = {

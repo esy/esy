@@ -1,5 +1,3 @@
-module Req = Package.Req
-
 module Resolution = struct
   type t = {
     name: string;

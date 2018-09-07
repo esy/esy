@@ -1,5 +1,3 @@
-module Req = Package.Req
-
 module Record = struct
 
   module Opam = struct
@@ -263,7 +261,7 @@ module LockfileV1 = struct
             Fmt.pf fmt "%a" SourceSpec.pp src
         in
         let ppReq fmt req =
-          Fmt.fmt "%s@%a" fmt req.Package.Req.name ppVersionSpec req.spec
+          Fmt.fmt "%s@%a" fmt req.Req.name ppVersionSpec req.spec
         in
         Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
       in
