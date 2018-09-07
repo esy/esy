@@ -2,6 +2,10 @@ type t('v, 'err) = result('v, 'err) =
   | Ok('v)
   | Error('err)
 
+let return: 'v => t('v, _);
+let error: 'err => t(_, 'err);
+let errorf : format4('a, Format.formatter, unit, t(_, string)) => 'a;
+
 let map : ('a => 'b, result('a, 'err)) => result('b, 'err);
 let join : t(t('a, 'b), 'b) => t('a, 'b);
 
