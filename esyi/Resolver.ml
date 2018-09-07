@@ -1,7 +1,3 @@
-module VersionSpec = Package.VersionSpec
-module SourceSpec = Package.SourceSpec
-module Version = Package.Version
-module Source = Package.Source
 module Req = Package.Req
 
 module Resolution = struct
@@ -20,7 +16,7 @@ module Resolution = struct
 end
 
 module PackageCache = Memoize.Make(struct
-  type key = (string * Package.Version.t)
+  type key = (string * Version.t)
   type value = (Package.t, string) result RunAsync.t
 end)
 
@@ -41,7 +37,7 @@ let toOpamName name =
 
 let toOpamOcamlVersion version =
   match version with
-  | Some (Package.Version.Npm { major; minor; patch; _ }) ->
+  | Some (Version.Npm { major; minor; patch; _ }) ->
     let minor =
       if minor < 10
       then "0" ^ (string_of_int minor)
@@ -59,8 +55,8 @@ let toOpamOcamlVersion version =
       | Error msg -> failwith msg
     in
     Some v
-  | Some (Package.Version.Opam v) -> Some v
-  | Some (Package.Version.Source _) -> None
+  | Some (Version.Opam v) -> Some v
+  | Some (Version.Source _) -> None
   | None -> None
 
 let classifyManifest path =
@@ -172,7 +168,7 @@ type t = {
   srcCache: SourceCache.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
-  ocamlVersion : Package.Version.t option;
+  ocamlVersion : Version.t option;
   resolutionCache : ResolutionCache.t;
 }
 
@@ -349,7 +345,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
 
       let resolutions =
         let f version =
-          let version = Package.Version.Npm version in
+          let version = Version.Npm version in
           {Resolution. name; version}
         in
         List.map ~f versions

@@ -1,6 +1,4 @@
 module Dependencies = Package.Dependencies
-module Version = Package.Version
-module VersionSpec = Package.VersionSpec
 module Req = Package.Req
 
 module CudfName = struct
@@ -53,7 +51,7 @@ let findVersionExn ~name ~version (univ : t) =
     let msg =
       Printf.sprintf
         "inconsistent state: package not in the universr %s@%s"
-        name (Package.Version.toString version)
+        name (Version.toString version)
     in
     failwith msg
 
@@ -67,12 +65,10 @@ let findVersions ~name (univ : t) =
 
 module CudfVersionMap = struct
 
-  module VersionSet = Set.Make(Package.Version)
-
   type t = {
-    cudfVersionToVersion: ((string * int), Package.Version.t) Hashtbl.t ;
-    versionToCudfVersion: ((string * Package.Version.t), int) Hashtbl.t;
-    versions : (string, VersionSet.t) Hashtbl.t;
+    cudfVersionToVersion: ((string * int), Version.t) Hashtbl.t ;
+    versionToCudfVersion: ((string * Version.t), int) Hashtbl.t;
+    versions : (string, Version.Set.t) Hashtbl.t;
   }
 
   let make ?(size=100) () = {
@@ -87,9 +83,9 @@ module CudfVersionMap = struct
     let () =
       let versions =
         try Hashtbl.find map.versions name
-        with _ -> VersionSet.empty
+        with _ -> Version.Set.empty
       in
-      let versions = VersionSet.add version versions in
+      let versions = Version.Set.add version versions in
       Hashtbl.replace map.versions name versions
     in
     ()
@@ -122,7 +118,7 @@ module CudfVersionMap = struct
       let msg =
         Printf.sprintf
           "inconsistent state: found a package not in the cudf version map %s@%s"
-          name (Package.Version.toString version)
+          name (Version.toString version)
       in
       failwith msg
 

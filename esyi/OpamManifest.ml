@@ -165,7 +165,7 @@ let convertOpamUrl (manifest : t) =
     let convert (url : OpamUrl.t) =
       match url.backend with
       | `http ->
-        return (Package.Source (Package.Source.Archive {
+        return (Package.Source (Source.Archive {
           url = OpamUrl.to_string url;
           checksum;
         }))
@@ -190,7 +190,7 @@ let convertOpamUrl (manifest : t) =
   let%bind main, mirrors =
     match manifest.override.Override.opam.Override.Opam.source with
     | Some source ->
-      let main = Package.Source (Package.Source.Archive {
+      let main = Package.Source (Source.Archive {
         url = source.url;
         checksum = Checksum.Md5, source.checksum;
       }) in
@@ -199,7 +199,7 @@ let convertOpamUrl (manifest : t) =
       match manifest.url with
       | Some url -> sourceOfOpamUrl url
       | None ->
-        let main = Package.Source Package.Source.NoSource in
+        let main = Package.Source Source.NoSource in
         Ok (main, [])
       end
   in
@@ -208,7 +208,7 @@ let convertOpamUrl (manifest : t) =
   | Some archive ->
     let mirrors = main::mirrors in
     let main =
-      Package.Source (Package.Source.Archive {
+      Package.Source (Source.Archive {
         url = archive.url;
         checksum = Checksum.Md5, archive.md5;
       })

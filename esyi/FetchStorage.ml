@@ -1,16 +1,15 @@
 module String = Astring.String
-module Source = Package.Source
 
 module Dist = struct
   type t = {
     name : string;
-    version : Package.Version.t;
-    source : Package.Source.t;
+    version : Version.t;
+    source : Source.t;
     tarballPath : Path.t option;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name Package.Version.pp dist.version
+    Fmt.pf fmt "%s@%a" dist.name Version.pp dist.version
 end
 
 let cacheId source (record : Solution.Record.t) =
@@ -23,8 +22,8 @@ let cacheId source (record : Solution.Record.t) =
     |> String.Sub.v ~start:0 ~stop:8
     |> String.Sub.to_string
   in
-  let version = Package.Version.toString record.version in
-  let source = Package.Source.toString source in
+  let version = Version.toString record.version in
+  let source = Source.toString source in
   match record.opam with
   | None ->
     Printf.sprintf "%s__%s__%s" record.name version (hash [source])
@@ -49,18 +48,18 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let doFetch path source =
     match source with
 
-    | Package.Source.LocalPath _ ->
+    | Source.LocalPath _ ->
       let msg = "Fetching " ^ record.name ^ ": NOT IMPLEMENTED" in
       failwith msg
 
-    | Package.Source.LocalPathLink _ ->
+    | Source.LocalPathLink _ ->
       (* this case is handled separately *)
       return `Done
 
-    | Package.Source.NoSource ->
+    | Source.NoSource ->
       return `Done
 
-    | Package.Source.Archive {url; checksum}  ->
+    | Source.Archive {url; checksum}  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
@@ -73,7 +72,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       in
       Fs.withTempDir f
 
-    | Package.Source.Github github ->
+    | Source.Github github ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -90,7 +89,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       in
       Fs.withTempDir f
 
-    | Package.Source.Git git ->
+    | Source.Git git ->
       let%bind () = Git.clone ~dst:path ~remote:git.remote () in
       let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
       let%bind () = Fs.rmPath Path.(path / ".git") in
@@ -200,7 +199,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
               return `Done
             | `TryNext err -> return (`TryNext err)
           )
-          "fetching %a" Package.Source.pp source
+          "fetching %a" Source.pp source
         in
 
         match fetched with
@@ -230,7 +229,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
           let ppErr fmt (source, err) =
             Fmt.pf fmt
               "source: %a@\nerror: %a"
-              Package.Source.pp source
+              Source.pp source
               Run.ppError err
           in
           m "unable to fetch %a:@[<v 2>@\n%a@]"

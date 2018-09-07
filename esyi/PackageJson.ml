@@ -41,7 +41,7 @@ let ofDir path =
 let toPackage ~name ~version ~source (pkgJson : t) =
   let originalVersion =
     match pkgJson.version with
-    | Some version -> Some (Package.Version.Npm version)
+    | Some version -> Some (Version.Npm version)
     | None -> None
   in
   let dependencies =

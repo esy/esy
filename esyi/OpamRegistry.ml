@@ -1,6 +1,3 @@
-module Source = Package.Source
-module Version = Package.Version
-module SourceSpec = Package.SourceSpec
 module String = Astring.String
 module Override = Package.OpamOverride
 

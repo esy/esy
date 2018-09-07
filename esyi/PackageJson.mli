@@ -26,7 +26,7 @@ val ofDir : Path.t -> t RunAsync.t
 
 val toPackage :
   name:string
-  -> version:Package.Version.t
+  -> version:Version.t
   -> source:Package.source
   -> t
   -> Package.t

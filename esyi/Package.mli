@@ -1,11 +1,6 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
-module Source : module type of Source
-module Version : module type of Version
-module SourceSpec : module type of SourceSpec
-module VersionSpec : module type of VersionSpec
-
 module Req : sig
   type t = private {name : string; spec : VersionSpec.t}
 

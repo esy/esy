@@ -41,7 +41,7 @@ val toPackage :
   ?ignoreFiles:bool
   -> ?source:Package.source
   -> name : string
-  -> version : Package.Version.t
+  -> version : Version.t
   -> t
   -> (Package.t, string) result RunAsync.t
 (** Convert opam manifest to a package. *)

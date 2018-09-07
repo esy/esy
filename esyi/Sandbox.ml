@@ -21,7 +21,7 @@ module PackageJsonWithResolutions = struct
 end
 
 let ocamlReqAny =
-  let spec = Package.VersionSpec.Npm SemverVersion.Formula.any in
+  let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Package.Req.make ~name:"ocaml" ~spec
 
 let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
@@ -68,11 +68,11 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
     |> List.filterNone
   in
 
-  let source = Package.Source.LocalPath {
+  let source = Source.LocalPath {
     path = projectPath;
     manifestFilename = None;
   } in
-  let version = Package.Version.Source source in
+  let version = Version.Source source in
 
   match opams with
   | [] ->
@@ -164,8 +164,8 @@ let makeEsySandbox ?name ~cfg projectPath path =
   ) in
 
   let root =
-    let source = Package.Source.LocalPath {path = projectPath; manifestFilename = None;} in
-    let version = Package.Version.Source source in
+    let source = Source.LocalPath {path = projectPath; manifestFilename = None;} in
+    let version = Version.Source source in
     let name = Path.basename projectPath in
     PackageJson.toPackage ~name ~version ~source:(Package.Source source) pkgJson
   in
