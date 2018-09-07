@@ -163,23 +163,23 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     Memoize.compute resolutionCache key compute
   in
 
-  let rec loadPackage (path : Path.t) (stack : Path.t list) =
+  let rec loadPackage ?name (path : Path.t) (stack : Path.t list) =
 
-    let resolve ~ignoreCircularDep ~packagesPath (pkgName : string) =
-      match%lwt resolvePackageCached pkgName packagesPath with
+    let resolve ~ignoreCircularDep ~packagesPath (name : string) =
+      match%lwt resolvePackageCached name packagesPath with
       | Ok (Some depPackagePath) ->
         if List.mem depPackagePath ~set:stack
         then
           (if ignoreCircularDep
-          then Lwt.return_ok (pkgName, `Ignored)
+          then Lwt.return_ok (name, `Ignored)
           else
-            Lwt.return_error (pkgName, "circular dependency"))
-        else begin match%lwt loadPackageCached depPackagePath (path :: stack) with
-          | Ok (pkg, _) -> Lwt.return_ok (pkgName, pkg)
-          | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
+            Lwt.return_error (name, "circular dependency"))
+        else begin match%lwt loadPackageCached ~name depPackagePath (path :: stack) with
+          | Ok (pkg, _) -> Lwt.return_ok (name, pkg)
+          | Error err -> Lwt.return_error (name, (Run.formatError err))
         end
-      | Ok None -> Lwt.return_ok (pkgName, `Unresolved)
-      | Error err -> Lwt.return_error (pkgName, (Run.formatError err))
+      | Ok None -> Lwt.return_ok (name, `Unresolved)
+      | Error err -> Lwt.return_error (name, (Run.formatError err))
     in
 
     let addDependencies
@@ -273,7 +273,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       Lwt.return dependencies
     in
 
-    let packageOfManifest ~sourcePath ~packagesPath (manifest : Manifest.t) pathSet =
+    let packageOfManifest ~forceTransient ~sourcePath ~packagesPath (manifest : Manifest.t) pathSet =
       manifestInfo := (Path.Set.union pathSet (!manifestInfo));
 
       let build = Manifest.build manifest in
@@ -296,14 +296,13 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           dependencies
       in
 
-
       match build with
       | Some build ->
         let sourceType =
-          match hasDepWithSourceTypeDevelopment, build.Manifest.Build.sourceType with
-          | true, _
-          | false, Manifest.SourceType.Transient -> Manifest.SourceType.Transient
-          | false, Manifest.SourceType.Immutable -> Manifest.SourceType.Immutable
+          match hasDepWithSourceTypeDevelopment, forceTransient with
+          | true, _ -> Manifest.SourceType.Transient
+          | _, true -> Manifest.SourceType.Transient
+          | false, false -> build.Manifest.Build.sourceType
         in
         let pkg = {
           Package.
@@ -320,36 +319,39 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         return (`Package dependencies)
     in
 
-    let%bind sourcePath =
-      let pathToEsyLink = Path.(path / "_esylink") in
-      if%bind Fs.exists pathToEsyLink
-      then
-        let%bind link = EsyLinkFile.ofFile pathToEsyLink in
-        return link.EsyLinkFile.path
-      else
-        return path
-    in
-
-    let asRoot = Path.equal sourcePath projectPath in
-    let%bind manifest, packagesPath =
+    let%bind manifest, forceTransient, sourcePath, packagesPath =
+      let asRoot = Path.equal path projectPath in
       if asRoot
       then
         let%bind m = Manifest.ofSandbox sandbox in
-        return (Some m, Path.(projectPath / "_esy" / sandboxTree))
+        return (Some m, false, path, Path.(projectPath / "_esy" / sandboxTree))
       else
-        let%bind m = Manifest.ofDir sourcePath in
-        return (m, path)
+        let%bind forceTransient, sourcePath, manifestFilename =
+          let pathToEsyLink = Path.(path / "_esylink") in
+          if%bind Fs.exists pathToEsyLink
+          then
+            let%bind link = EsyLinkFile.ofFile pathToEsyLink in
+            return (true, link.EsyLinkFile.path, link.manifest)
+          else
+            return (false, path, None)
+        in
+        let%bind m = Manifest.ofDir
+          ?name
+          ?filename:manifestFilename
+          sourcePath
+        in
+        return (m, forceTransient, sourcePath, path)
     in
     match manifest with
     | Some (manifest, pathSet) ->
-      let%bind pkg = packageOfManifest ~sourcePath ~packagesPath manifest pathSet in
+      let%bind pkg = packageOfManifest ~forceTransient ~sourcePath ~packagesPath manifest pathSet in
       return (pkg, pathSet)
     | None ->
       error "unable to find manifest"
 
-  and loadPackageCached (path : Path.t) stack =
-    let compute () = loadPackage path stack in
-    Memoize.compute packageCache path compute
+  and loadPackageCached ?name (path : Path.t) stack =
+    let compute () = loadPackage ?name path stack in
+    Memoize.compute packageCache (path, name) compute
   in
 
   match%bind loadPackageCached projectPath [] with

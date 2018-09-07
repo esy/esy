@@ -545,22 +545,33 @@ module Opam : sig
   include MANIFEST
 
   val ofFiles : Path.t list -> t RunAsync.t
+  val ofFile :
+    ?name:string
+    -> ?overridePath:Path.t
+    -> Path.t
+    -> t RunAsync.t
+
   val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
 end = struct
   type t =
     | Installed of {
+        name : string option;
         opam : OpamFile.OPAM.t;
         override : OpamOverride.t option;
       }
     | AggregatedRoot of (string * OpamFile.OPAM.t) list
 
   let opamName = function
-    | Installed {opam;_} ->
+    | Installed {opam; _} ->
       let name = OpamFile.OPAM.name opam in
       OpamPackage.Name.to_string name
     | AggregatedRoot _ -> "root"
 
   let name manifest =
+    match manifest with
+    | Installed {name = Some name; _} ->
+      name
+    | manifest ->
     "@opam/" ^ (opamName manifest)
 
   let version = function
@@ -599,7 +610,7 @@ end = struct
         dependencies
       in
       match manifest with
-      | Installed {opam; override} ->
+      | Installed {opam; override; name = _} ->
         let dependencies = dependsOfOpam opam in
         begin
         match override with
@@ -663,30 +674,37 @@ end = struct
       optDependencies;
     }
 
+  let ofFile ?name ?overridePath (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind opam =
+      let%bind data = Fs.readFile path in
+      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+      let opam = OpamFile.OPAM.read_from_string ~filename data in
+      let opam = OpamFormatUpgrade.opam_file ~filename opam in
+      return opam
+    in
+    let%bind manifest =
+      match overridePath with
+      | Some overridePath ->
+        if%bind Fs.exists overridePath
+        then
+          let%bind override = OpamOverride.ofFile overridePath in
+          return (Installed {opam; override = Some override; name})
+        else
+          return (Installed {opam; override = None; name})
+      | None -> return (Installed {opam; override = None; name})
+    in
+    return manifest
+
   let ofDirAsInstalled (path : Path.t) =
     let open RunAsync.Syntax in
-    let filename = Path.(path / "_esy" / "opam") in
-    let overrideFilename = Path.(path / "_esy" / "override.json") in
-    if%bind Fs.exists filename
+    let overridePath = Path.(path / "_esy" / "override.json") in
+    let manifestPath = Path.(path / "_esy" / "opam") in
+    if%bind Fs.exists manifestPath
     then
-      let%bind opam =
-        let%bind data = Fs.readFile filename in
-        let filename = OpamFile.make (OpamFilename.of_string (Path.toString filename)) in
-        let opam = OpamFile.OPAM.read_from_string ~filename data in
-        let opam = OpamFormatUpgrade.opam_file ~filename opam in
-        return opam
-      in
-      let%bind manifest =
-        if%bind Fs.exists overrideFilename
-        then
-          let%bind override = OpamOverride.ofFile overrideFilename in
-          return (Installed {opam; override = Some override})
-        else
-          return (Installed {opam; override = None})
-      in
-      return (Some (manifest, Path.Set.singleton filename))
-    else
-      return None
+      let%bind manifest = ofFile ~overridePath manifestPath in
+      return (Some (manifest, Path.Set.singleton manifestPath))
+    else return None
 
   let ofFiles paths =
     let open RunAsync.Syntax in
@@ -814,7 +832,11 @@ module EsyOrOpamManifest : sig
 
   val dirHasManifest : Path.t -> bool RunAsync.t
   val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
-  val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
+  val ofDir :
+    ?name:string
+    -> ?filename:ManifestFilename.t
+    -> Path.t
+    -> (t * Path.Set.t) option RunAsync.t
 end = struct
   type t =
     | Esy of Esy.t
@@ -870,29 +892,42 @@ end = struct
     | Opam m -> Opam.sandboxEnv m
     | Esy m -> Esy.sandboxEnv m
 
-  let ofDir (path : Path.t) =
-
+  let ofDir ?name ?filename (path : Path.t) =
     let open RunAsync.Syntax in
-    match%bind Esy.ofDir path with
-    | Some (manifest, paths) ->
-      return (Some (Esy manifest, paths))
-    | None ->
-      let opam = Opam.ofDirAsInstalled path in
-      begin match%bind opam with
+
+    let discoverOfDir path =
+      match%bind Esy.ofDir path with
       | Some (manifest, paths) ->
-        return (Some (Opam manifest, paths))
-      | None -> return None
-      end
+        return (Some (Esy manifest, paths))
+      | None ->
+        let opam = Opam.ofDirAsInstalled path in
+        begin match%bind opam with
+        | Some (manifest, paths) ->
+          return (Some (Opam manifest, paths))
+        | None -> return None
+        end
+    in
+
+    match filename with
+    | None -> discoverOfDir path
+    | Some (ManifestFilename.Esy fname) -> 
+      let path = Path.(path / fname) in
+      let%bind manifest = Esy.ofFile path in
+      return (Some (Esy manifest, Path.Set.singleton path))
+    | Some (ManifestFilename.Opam fname) -> 
+      let path = Path.(path / fname) in
+      let%bind manifest = Opam.ofFile ?name path in
+      return (Some (Opam manifest, Path.Set.singleton path))
 
   let ofSandbox (sandbox : Project.sandbox) =
     let open RunAsync.Syntax in
     match sandbox with
     | Project.Esy {path; _} ->
       let%bind manifest = Esy.ofFile path in
-      return (Esy manifest, Path.Set.(empty |> add path))
+      return (Esy manifest, Path.Set.singleton path)
     | Project.Opam {path; _} ->
       let%bind manifest = Opam.ofFiles [path] in
-      return (Opam manifest, Path.Set.(empty |> add path))
+      return (Opam manifest, Path.Set.singleton path)
     | Project.AggregatedOpam {paths} -> 
       let%bind manifest = Opam.ofFiles paths in
       return (Opam manifest, Path.Set.of_list paths)
