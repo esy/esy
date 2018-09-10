@@ -482,7 +482,8 @@ let findSourceModTime = (build: build) => {
         Ok(time > maxTime ? time : maxTime);
       }
     | error => error;
-  let traverse =
+  let traverse = {
+    let isHidden = fname => String.length(fname) > 0 && fname.[0] == '.';
     `Sat(
       path =>
         switch (Path.basename(path)) {
@@ -491,10 +492,11 @@ let findSourceModTime = (build: build) => {
         | "_release" => Ok(false)
         | "_build" => Ok(false)
         | "_install" => Ok(false)
-        | base when base.[0] == '.' => Ok(false)
+        | fname when isHidden(fname) => Ok(false)
         | _ => Ok(true)
         },
     );
+  };
   EsyLib.Result.join(
     Bos.OS.Path.fold(
       ~dotfiles=true,
