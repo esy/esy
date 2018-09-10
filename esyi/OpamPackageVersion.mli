@@ -13,6 +13,7 @@ module Formula : sig
 
   val any : DNF.t
 
+  val parserDnf : DNF.t Parse.t
   val parse : string -> (DNF.t, string) result
   val parseExn : string -> DNF.t
 end

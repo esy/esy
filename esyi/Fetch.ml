@@ -1,4 +1,3 @@
-module Version = Package.Version
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
@@ -152,12 +151,12 @@ module Layout = struct
           let sourcePath =
             let main, _ = record.Record.source in
             match main with
-            | Package.Source.Archive _
-            | Package.Source.Git _
-            | Package.Source.Github _
-            | Package.Source.LocalPath _
-            | Package.Source.NoSource -> path
-            | Package.Source.LocalPathLink path -> path
+            | Source.Archive _
+            | Source.Git _
+            | Source.Github _
+            | Source.LocalPath _
+            | Source.NoSource -> path
+            | Source.LocalPathLink {path; manifest = _;} -> path
           in
           let installation = {
             path;
@@ -240,7 +239,7 @@ module Layout = struct
       Record.
       name;
       version = Version.Npm (parseVersionExn version);
-      source = Package.Source.NoSource, [];
+      source = Source.NoSource, [];
       files = [];
       opam = None;
     } : Record.t)

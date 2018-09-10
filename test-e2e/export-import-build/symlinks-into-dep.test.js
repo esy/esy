@@ -42,7 +42,7 @@ const fixture = [
         dependencies: {
           subdep: '*',
         },
-        _resolved: 'http://sometarball.gz',
+        '_esy.source': 'path:./',
       }),
       dir(
         'node_modules',
@@ -60,7 +60,7 @@ const fixture = [
             dependencies: {
               ocaml: '*',
             },
-            _resolved: '...',
+            '_esy.source': 'path:./',
           }),
           file('subdep.ml', 'let () = print_endline "__subdep__"'),
         ),

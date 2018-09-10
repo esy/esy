@@ -1,10 +1,4 @@
-module Source = Package.Source
-module SourceSpec = Package.SourceSpec
-module Version = Package.Version
-module VersionSpec = Package.VersionSpec
 module Dependencies = Package.Dependencies
-module NpmDependencies = Package.NpmDependencies
-module Req = Package.Req
 module Resolutions = Package.Resolutions
 
 module Strategy = struct
@@ -702,16 +696,16 @@ let solve (sandbox : Sandbox.t) =
       let dependencies =
         match ocamlVersion, sandbox.dependencies with
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
-          let ocamlSpec = Package.VersionSpec.ofVersion ocamlVersion in
+          let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = Package.NpmDependencies.override reqs [ocamlReq] in
+          let reqs = PackageJson.Dependencies.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =
             match ocamlVersion with
-            | Package.Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
-            | Package.Version.Source src -> Package.Dep.Source (Package.SourceSpec.ofSource src)
-            | Package.Version.Opam v -> Package.Dep.Opam (OpamPackageVersion.Constraint.EQ v)
+            | Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
+            | Version.Source src -> Package.Dep.Source (SourceSpec.ofSource src)
+            | Version.Opam v -> Package.Dep.Opam (OpamPackageVersion.Constraint.EQ v)
           in
           let ocamlDep = {Package.Dep. name = "ocaml"; req;} in
           Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])

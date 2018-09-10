@@ -2,10 +2,10 @@
 module Resolution : sig
   type t = private {
     name: string;
-    version: Package.Version.t
+    version: Version.t
   }
 
-  val make : string -> Package.Version.t -> t
+  val make : string -> Version.t -> t
   val pp : t Fmt.t
   val compare : t -> t -> int
   val equal : t -> t -> bool
@@ -16,7 +16,7 @@ type t
 
 (** Make new resolver *)
 val make :
-  ?ocamlVersion:Package.Version.t
+  ?ocamlVersion:Version.t
   -> ?npmRegistry:NpmRegistry.t
   -> ?opamRegistry:OpamRegistry.t
   -> cfg:Config.t
@@ -29,18 +29,18 @@ val make :
 val resolve :
   ?fullMetadata:bool
   -> name:string
-  -> ?spec:Package.VersionSpec.t
+  -> ?spec:VersionSpec.t
   -> t
-  -> (Resolution.t list * Package.VersionSpec.t option) RunAsync.t
+  -> (Resolution.t list * VersionSpec.t option) RunAsync.t
 
 (**
  * Resolve source spec into source.
  *)
 val resolveSource :
   name:string
-  -> sourceSpec:Package.SourceSpec.t
+  -> sourceSpec:SourceSpec.t
   -> t
-  -> Package.Source.t RunAsync.t
+  -> Source.t RunAsync.t
 
 (**
  * Fetch the package metadata given the resolution.

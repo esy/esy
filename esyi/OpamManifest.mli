@@ -5,7 +5,7 @@
 type t = {
   name: OpamPackage.Name.t;
   version: OpamPackage.Version.t;
-  path : Path.t;
+  path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
   override : Package.OpamOverride.t;
@@ -24,6 +24,12 @@ module File : sig
     -> OpamFile.OPAM.t RunAsync.t
 end
 
+val ofString :
+  name:OpamTypes.name
+  -> version:OpamTypes.version
+  -> string
+  -> t Run.t
+
 val ofPath :
   name:OpamTypes.name
   -> version:OpamTypes.version
@@ -32,8 +38,10 @@ val ofPath :
 (** Load opam manifest of path. *)
 
 val toPackage :
-  name : string
-  -> version : Package.Version.t
+  ?ignoreFiles:bool
+  -> ?source:Package.source
+  -> name : string
+  -> version : Version.t
   -> t
   -> (Package.t, string) result RunAsync.t
 (** Convert opam manifest to a package. *)

@@ -1,6 +1,3 @@
-module Source = Package.Source
-module Version = Package.Version
-module SourceSpec = Package.SourceSpec
 module String = Astring.String
 module Override = Package.OpamOverride
 
@@ -221,7 +218,15 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
           end
       in
       let archive = OpamRegistryArchiveIndex.find ~name ~version registry.archiveIndex in
-      return {OpamManifest.name; version; opam; url; path; override = Override.empty; archive}
+      return {
+        OpamManifest.name;
+        version;
+        opam;
+        url;
+        path = Some path;
+        override = Override.empty;
+        archive;
+      }
     in
     begin match%bind OpamOverrides.find ~name ~version registry.overrides with
     | None -> return (Some pkg)

@@ -97,13 +97,13 @@ let renderEsyCommands ~env scope commands =
 
   let renderCommand =
     function
-    | Manifest.CommandList.Command.Parsed args ->
+    | Manifest.Command.Parsed args ->
       let f arg =
         let%bind arg = renderArg arg in
         return (Sandbox.Value.v arg)
       in
       Result.List.map ~f args
-    | Manifest.CommandList.Command.Unparsed line ->
+    | Manifest.Command.Unparsed line ->
       let%bind line = renderArg line in
       let%bind args = ShellSplit.split line in
       return (List.map ~f:Sandbox.Value.v args)
@@ -296,9 +296,9 @@ let ofSandbox
 
         (* a special tag which is communicated by the installer and specifies
          * the version of distribution of vcs commit sha *)
-        let resolution =
-          match pkg.resolution with
-          | Some v -> v
+        let source =
+          match pkg.source with
+          | Some source -> Manifest.Source.toString source
           | None -> ""
         in
 
@@ -308,7 +308,7 @@ let ofSandbox
           |> Yojson.Safe.to_string
         in
 
-        String.concat "__" (sandboxEnv::resolution::self::dependencies)
+        String.concat "__" (sandboxEnv::source::self::dependencies)
         |> Digest.string
         |> Digest.to_hex
         |> fun hash -> String.sub hash 0 8

@@ -38,7 +38,7 @@ function makePackage(
       },
       dependencies,
       devDependencies,
-      _resolved: '...',
+      '_esy.source': 'path:./',
     }),
     file(`${name}.ml`, `let () = print_endline "__${name}__"`),
     ...items,

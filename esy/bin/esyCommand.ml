@@ -850,16 +850,16 @@ let devExec {CommonOptions. cfg; project; sandbox; _} cmd () =
         tool
         info.SandboxInfo.sandbox.scripts
     in
-    let renderCommand (cmd : Manifest.CommandList.Command.t) =
+    let renderCommand (cmd : Manifest.Command.t) =
       match cmd with
-      | Manifest.CommandList.Command.Parsed args ->
+      | Parsed args ->
         let%bind args =
           Result.List.map
             ~f:(Task.renderExpression ~sandbox:info.sandbox ~task:info.task)
             args
         in
         return (Cmd.ofListExn args)
-      | Manifest.CommandList.Command.Unparsed line ->
+      | Unparsed line ->
         let%bind string = Task.renderExpression ~sandbox:info.sandbox ~task:info.task line in
         let%bind args = ShellSplit.split string in
         return (Cmd.ofListExn args)
@@ -1110,14 +1110,13 @@ let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
 let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let module NpmDependencies = Package.NpmDependencies in
   let aggOpamErrorMsg =
     "The esy add command doesn't work with opam sandboxes. "
     ^ "Please send a pull request to fix this!"
   in
 
   let%bind reqs = RunAsync.ofStringError (
-    Result.List.map ~f:Package.Req.parse reqs
+    Result.List.map ~f:Req.parse reqs
   ) in
 
   let addReqs origDeps =
@@ -1147,18 +1146,18 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
       Solution.Record.Set.fold f (Solution.records solution) StringMap.empty
     in
     let addedDependencies =
-      let f {Package.Req. name; _} =
+      let f {Req. name; _} =
         match StringMap.find name records with
         | Some record ->
           let constr =
             match record.Solution.Record.version with
-            | Package.Version.Npm version ->
+            | Version.Npm version ->
               SemverVersion.Formula.DNF.toString
                 (SemverVersion.caretRangeOfVersion version)
-            | Package.Version.Opam version ->
+            | Version.Opam version ->
               OpamPackage.Version.to_string version
-            | Package.Version.Source _ ->
-              Package.Version.toString record.Solution.Record.version
+            | Version.Source _ ->
+              Version.toString record.Solution.Record.version
           in
           name, `String constr
         | None -> assert false

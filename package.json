@@ -5,34 +5,34 @@
   "license": "MIT",
   "esy": {
     "build": [
-      [ "dune", "build", "-j", "4" ],
+      ["dune", "build", "-j", "4"],
       [
-        "dune", "build", "esy/bin/esyCommand.exe",
+        "dune",
+        "build",
+        "esy/bin/esyCommand.exe",
         "esy-build-package/bin/esyBuildPackageCommand.exe"
       ]
     ],
     "install": [
-      [ "esy-installer", "./esy-build-package.install" ],
-      [ "esy-installer", "./esy.install" ]
+      ["esy-installer", "./esy-build-package.install"],
+      ["esy-installer", "./esy.install"]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
-    "bootstrap:install-opam":
-      "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
-    "bootstrap:install-dependencies":
-      "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
+    "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
+    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
     "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
-    "bootstrap:make-release-package":
-      "node ./scripts/bootstrap/make-release-package.js",
+    "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
     "test-e2e": "jest --runInBand test-e2e"
   },
-  "resolutions": { "@opam/merlin-extend": "0.3" },
+  "resolutions": {"@opam/merlin-extend": "0.3"},
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
     "@esy-ocaml/reason": "~3.2.0",
     "@opam/bos": "^0.2.0",
+    "@opam/angstrom": "*",
     "@opam/cmdliner": "^1.0.2",
     "@opam/cudf": "0.9",
     "@opam/dose3": "*",
@@ -53,12 +53,11 @@
     "@opam/ppx_inline_test": "*",
     "@opam/ppx_let": "*",
     "@opam/re": "^1.7.1",
-    "@opam/tyre": "0.4.1",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.6",
     "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
-  "peerDependencies": { "ocaml": "~4.6.0" },
+  "peerDependencies": {"ocaml": "~4.6.0"},
   "devDependencies": {
     "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",

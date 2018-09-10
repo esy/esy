@@ -22,7 +22,7 @@ type t = {
   resolutions : Package.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
-  ocamlReq : Package.Req.t option;
+  ocamlReq : Req.t option;
 
   (** Type of configuration origin of the sandbox. *)
   origin : origin;

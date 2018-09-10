@@ -4,7 +4,7 @@ type t = {
   root : Package.t;
   dependencies : Package.Dependencies.t;
   resolutions : Package.Resolutions.t;
-  ocamlReq : Package.Req.t option;
+  ocamlReq : Req.t option;
   origin: origin;
   name : string option;
 }
@@ -21,8 +21,8 @@ module PackageJsonWithResolutions = struct
 end
 
 let ocamlReqAny =
-  let spec = Package.VersionSpec.Npm SemverVersion.Formula.any in
-  Package.Req.make ~name:"ocaml" ~spec
+  let spec = VersionSpec.Npm SemverVersion.Formula.any in
+  Req.make ~name:"ocaml" ~spec
 
 let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
@@ -68,8 +68,11 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
     |> List.filterNone
   in
 
-  let source = Package.Source.LocalPath projectPath in
-  let version = Package.Version.Source source in
+  let source = Source.LocalPath {
+    path = projectPath;
+    manifest = None;
+  } in
+  let version = Version.Source source in
 
   match opams with
   | [] ->
@@ -161,10 +164,10 @@ let makeEsySandbox ?name ~cfg projectPath path =
   ) in
 
   let root =
-    let source = Package.Source.LocalPath projectPath in
-    let version = Package.Version.Source source in
+    let source = Source.LocalPath {path = projectPath; manifest = None;} in
+    let version = Version.Source source in
     let name = Path.basename projectPath in
-    PackageJson.toPackage ~name ~version ~source:(Package.Source source) pkgJson
+    Package.ofPackageJson ~name ~version ~source:(Package.Source source) pkgJson
   in
 
   let sandboxDependencies, ocamlReq =
@@ -172,9 +175,9 @@ let makeEsySandbox ?name ~cfg projectPath path =
     | Package.Dependencies.OpamFormula _ ->
       root.dependencies, Some ocamlReqAny
     | Package.Dependencies.NpmFormula reqs ->
-      let reqs = Package.NpmDependencies.override reqs pkgJson.devDependencies in
+      let reqs = PackageJson.Dependencies.override reqs pkgJson.devDependencies in
       Package.Dependencies.NpmFormula reqs,
-      Package.NpmDependencies.find ~name:"ocaml" reqs
+      PackageJson.Dependencies.find ~name:"ocaml" reqs
   in
 
   return {

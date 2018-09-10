@@ -73,7 +73,7 @@ module TestCommandExpr = struct
       buildEnv = [];
     };
     sourcePath = Sandbox.Path.v "/path";
-    resolution = Some "ok";
+    source = None;
   }
 
   let pkg = Sandbox.Package.{
@@ -84,11 +84,11 @@ module TestCommandExpr = struct
     build = {
       Manifest.Build.
       buildCommands = EsyCommands (Some [
-        Manifest.CommandList.Command.Unparsed "cp ./hello #{self.bin}";
-        Manifest.CommandList.Command.Unparsed "cp ./hello2 #{pkg.bin}";
+        Manifest.Command.Unparsed "cp ./hello #{self.bin}";
+        Manifest.Command.Unparsed "cp ./hello2 #{pkg.bin}";
       ]);
       installCommands = EsyCommands (Some [
-        Manifest.CommandList.Command.Parsed ["cp"; "./man"; "#{self.man}"]
+        Manifest.Command.Parsed ["cp"; "./man"; "#{self.man}"]
       ]);
       patches = [];
       substs = [];
@@ -98,7 +98,7 @@ module TestCommandExpr = struct
       buildEnv = [];
     };
     sourcePath = Sandbox.Path.v "/path";
-    resolution = Some "ok";
+    source = None;
   }
 
   let check ?platform sandbox f =
@@ -127,10 +127,10 @@ module TestCommandExpr = struct
       build = {
         pkg.build with
         buildCommands = EsyCommands (Some [
-          Manifest.CommandList.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
+          Manifest.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
         ]);
         installCommands = EsyCommands (Some [
-          Manifest.CommandList.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
+          Manifest.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
         ]);
         buildType = Manifest.BuildType.InSource;
       }

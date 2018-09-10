@@ -23,7 +23,7 @@ let runGit cmd =
     let msg = Unix.error_message err in
     RunAsync.error msg
   | _ ->
-    RunAsync.error "error running subprocess"
+    RunAsync.errorf "cannot execute command: %a" Cmd.pp cmd
 
 let clone ?branch ?depth ~dst ~remote () =
   let cmd =

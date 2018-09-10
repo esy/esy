@@ -1,16 +1,15 @@
 module String = Astring.String
-module Source = Package.Source
 
 module Dist = struct
   type t = {
     name : string;
-    version : Package.Version.t;
-    source : Package.Source.t;
+    version : Version.t;
+    source : Source.t;
     tarballPath : Path.t option;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name Package.Version.pp dist.version
+    Fmt.pf fmt "%s@%a" dist.name Version.pp dist.version
 end
 
 let cacheId source (record : Solution.Record.t) =
@@ -23,11 +22,11 @@ let cacheId source (record : Solution.Record.t) =
     |> String.Sub.v ~start:0 ~stop:8
     |> String.Sub.to_string
   in
-  let version = Package.Version.toString record.version in
-  let source = Package.Source.toString source in
+  let version = Version.toString record.version in
+  let source = Source.toString source in
   match record.opam with
   | None ->
-    Printf.sprintf "%s__%s__%s" record.name version (hash [source])
+    Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
   | Some opam ->
     let h = hash [
       source;
@@ -41,7 +40,7 @@ let cacheId source (record : Solution.Record.t) =
         |> Yojson.Safe.to_string
       | None -> "");
     ] in
-    Printf.sprintf "%s__%s__%s" record.name version h
+    Printf.sprintf "%s__%s__%s_v2" record.name version h
 
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
@@ -49,18 +48,18 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let doFetch path source =
     match source with
 
-    | Package.Source.LocalPath _ ->
+    | Source.LocalPath _ ->
       let msg = "Fetching " ^ record.name ^ ": NOT IMPLEMENTED" in
       failwith msg
 
-    | Package.Source.LocalPathLink _ ->
+    | Source.LocalPathLink _ ->
       (* this case is handled separately *)
       return `Done
 
-    | Package.Source.NoSource ->
+    | Source.NoSource ->
       return `Done
 
-    | Package.Source.Archive {url; checksum}  ->
+    | Source.Archive {url; checksum}  ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / Filename.basename url) in
@@ -73,7 +72,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       in
       Fs.withTempDir f
 
-    | Package.Source.Github github ->
+    | Source.Github github ->
       let f tempPath =
         let%bind () = Fs.createDir tempPath in
         let tarballPath = Path.(tempPath / "package.tgz") in
@@ -90,7 +89,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       in
       Fs.withTempDir f
 
-    | Package.Source.Git git ->
+    | Source.Git git ->
       let%bind () = Git.clone ~dst:path ~remote:git.remote () in
       let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
       let%bind () = Fs.rmPath Path.(path / ".git") in
@@ -98,7 +97,6 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   in
 
   let commit path source =
-    let key = cacheId source record in
 
     let removeEsyJsonIfExists () =
       let esyJson = Path.(path / "esy.json") in
@@ -121,11 +119,12 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
         let%bind () = Fs.createDir Path.(path / "_esy") in
         let%bind () = Fs.writeFile ~data Path.(path / "_esy" / "opam") in
         let%bind () =
-          match override with
-          | Some override ->
-            let json = Package.OpamOverride.to_yojson override in
-            Fs.writeJsonFile ~json Path.(path / "_esy" / "override.json")
-          | None -> return ()
+          let info = {
+            EsyOpamFile.
+            override;
+            source;
+          } in
+          EsyOpamFile.toFile info Path.(path / "_esy" / "esy-opam.json")
         in
         return ()
       | None -> return ()
@@ -152,7 +151,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       let addResolvedFieldToPackageJson filename =
         match%bind Fs.readJsonFile filename with
         | `Assoc items ->
-          let json = `Assoc (("_resolved", `String key)::items) in
+          let json = `Assoc (("_esy.source", `String (Source.toString source))::items) in
           let data = Yojson.Safe.pretty_to_string json in
           Fs.writeFile ~data filename
         | _ -> error "invalid package.json"
@@ -200,7 +199,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
               return `Done
             | `TryNext err -> return (`TryNext err)
           )
-          "fetching %a" Package.Source.pp source
+          "fetching %a" Source.pp source
         in
 
         match fetched with
@@ -230,7 +229,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
           let ppErr fmt (source, err) =
             Fmt.pf fmt
               "source: %a@\nerror: %a"
-              Package.Source.pp source
+              Source.pp source
               Run.ppError err
           in
           m "unable to fetch %a:@[<v 2>@\n%a@]"
@@ -252,11 +251,11 @@ let install ~cfg:_ ~path dist =
   let {Dist. tarballPath; source; _} = dist in
   match source, tarballPath with
 
-  | Source.LocalPathLink orig, _ ->
+  | Source.LocalPathLink {path = orig; manifest;}, _ ->
     let%bind () = Fs.createDir path in
     let%bind () =
-      let data = (Path.toString orig) ^ "\n" in
-      Fs.writeFile ~data Path.(path / "_esylink")
+      let link = EsyLinkFile.{path = orig; manifest;} in
+      EsyLinkFile.toFile link Path.(path / "_esylink")
     in
     return ()
 

@@ -13,7 +13,7 @@ const {
   skipSuiteOnWindows,
 } = require('../test/helpers');
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
   packageJson({
@@ -48,7 +48,7 @@ const fixture = [
         dependencies: {
           ocaml: '*',
         },
-        _resolved: '...',
+        '_esy.source': 'path:./',
       }),
       file(
         'buildTimeDep.ml',
@@ -75,7 +75,7 @@ const fixture = [
         buildTimeDependencies: {
           buildTimeDep: '*',
         },
-        _resolved: '...',
+        '_esy.source': 'path:./',
       }),
       dir(
         'node_modules',
@@ -91,7 +91,7 @@ const fixture = [
             dependencies: {
               ocaml: '*',
             },
-            _resolved: '...',
+            '_esy.source': 'path:./',
           }),
           file(
             'buildTimeDep.ml',

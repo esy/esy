@@ -3,6 +3,7 @@ module type VERSION = sig
 
   include S.COMMON with type t := t
 
+  val parser : t Parse.t
   val parse : string -> (t, string) result
   val parseExn : string -> t
 
@@ -71,7 +72,7 @@ module type FORMULA = sig
 
   val ofDnfToCnf : DNF.t -> CNF.t
 
-  module Parse : sig
+  module ParseUtils : sig
     val conjunction : parse:(string -> 'a) -> string -> 'a disj
     val disjunction : parse:(string -> constr disj) -> string -> constr disj disj
   end
@@ -330,7 +331,7 @@ module Formula = struct
           conjs
       in f
 
-    module Parse = struct
+    module ParseUtils = struct
       let conjunction ~parse item =
         let item =
           item
@@ -367,6 +368,7 @@ let%test_module "Formula" = (module struct
     let show = string_of_int
     let prerelease _ = false
     let stripPrerelease v = v
+    let parser = Parse.(take_while1 (function | '0'..'9' -> true | _ -> false) >>| int_of_string)
     let parse v =
       match int_of_string_opt v with
       | Some v -> Ok v

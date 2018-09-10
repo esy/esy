@@ -2,21 +2,17 @@
  * This module represents manifests and info which can be parsed out of it.
  *)
 
-module CommandList :sig
-  module Command : sig
-    type t =
-      | Parsed of string list
-      | Unparsed of string
-  end
+module BuildType : module type of EsyBuildPackage.BuildType
+module SourceType : module type of EsyBuildPackage.SourceType
 
-  type t = Command.t list option
-  val empty : t
-  val show : t -> string
-end
+module Source : module type of EsyInstall.Source
+module Command : module type of EsyInstall.PackageJson.Command
+module CommandList : module type of EsyInstall.PackageJson.CommandList
+module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
 
 module Scripts : sig
   type t = script StringMap.t
-  and script = { command : CommandList.Command.t; }
+  and script = { command : Command.t; }
   val empty : t
   val find : string -> t -> script option
 end
@@ -28,23 +24,6 @@ module Env : sig
   val show : t -> string
   val to_yojson : t Json.encoder
 end
-
-module ExportedEnv : sig
-  type t = item list
-  and item = {
-    name : string;
-    value : string;
-    scope : scope;
-    exclusive : bool;
-  }
-  and scope = Local | Global
-
-  val show : t -> string
-  val empty : t
-end
-
-module BuildType : module type of EsyBuildPackage.BuildType
-module SourceType : module type of EsyBuildPackage.SourceType
 
 (**
  * Release configuration.
@@ -151,7 +130,7 @@ module type MANIFEST = sig
    *
    * This info is used to construct a build key for the corresponding package.
    *)
-  val uniqueDistributionId : t -> string option
+  val source : t -> EsyInstall.Source.t option
 end
 
 include MANIFEST
@@ -164,7 +143,11 @@ include MANIFEST
  * If manifest was found then returns also a set of paths which were used to
  * load manifest. Client code can check those paths to invalidate caches.
  *)
-val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
+val ofDir :
+  ?name:string
+  -> ?filename:ManifestFilename.t
+  -> Path.t
+  -> (t * Path.Set.t) option RunAsync.t
 
 val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
 
