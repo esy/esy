@@ -118,13 +118,13 @@ module Path: {
       project;
     } else {
       switch (remPrefix(cfg.storePath, p)) {
-      | Some(suffix) => store /\/ suffix
+      | Some(suffix) => normalizeAndRemoveEmptySeg(store /\/ suffix)
       | None =>
         switch (remPrefix(cfg.localStorePath, p)) {
-        | Some(suffix) => localStore /\/ suffix
+        | Some(suffix) => normalizeAndRemoveEmptySeg(localStore /\/ suffix)
         | None =>
           switch (remPrefix(cfg.projectPath, p)) {
-          | Some(suffix) => project /\/ suffix
+          | Some(suffix) => normalizeAndRemoveEmptySeg(project /\/ suffix)
           | None => p
           }
         }
