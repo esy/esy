@@ -189,19 +189,19 @@ let ofSandbox
 
       let%bind dpkg =
         match dep with
-        | Ok (Sandbox.Package.Dependency, dpkg)
-        | Ok (Sandbox.Package.OptDependency, dpkg) -> return (Some (dpkg, Dependency))
-        | Ok (Sandbox.Package.BuildTimeDependency, dpkg) ->
+        | Ok (Sandbox.Dependency.Dependency, dpkg)
+        | Ok (Sandbox.Dependency.OptDependency, dpkg) -> return (Some (dpkg, Dependency))
+        | Ok (Sandbox.Dependency.BuildTimeDependency, dpkg) ->
           if direct
           then return (Some (dpkg, BuildTimeDependency))
           else return None
-        | Ok (Sandbox.Package.DevDependency, dpkg) ->
+        | Ok (Sandbox.Dependency.DevDependency, dpkg) ->
           if direct
           then return (Some (dpkg, DevDependency))
           else return None
-        | Error (Sandbox.Package.MissingDependency {name;}) ->
+        | Error (Sandbox.Dependency.MissingDependency {name;}) ->
           Run.errorf "package %s is missing, run 'esy install' to fix that" name
-        | Error (Sandbox.Package.InvalidDependency {name; message;}) ->
+        | Error (Sandbox.Dependency.InvalidDependency {name; message;}) ->
           Run.errorf "invalid package %s: %s" name message
       in
 
@@ -225,7 +225,7 @@ let ofSandbox
           let%bind (map, order) = Result.List.foldLeft
             ~f:(aux ~direct:false)
             ~init:(map, order)
-            dpkg.dependencies
+            (Sandbox.dependencies dpkg sandbox)
           in
           let%bind dtask = taskOfPackageCached dpkg in
           let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
@@ -237,7 +237,7 @@ let ofSandbox
         Result.List.foldLeft
           ~f:(aux ~direct:true)
           ~init:(Sandbox.Package.Map.empty, [])
-          pkg.dependencies
+          (Sandbox.dependencies pkg sandbox)
       in
 
       return (
@@ -260,8 +260,8 @@ let ofSandbox
 
     let ocamlVersion =
       let f pkg = pkg.Sandbox.Package.name = "ocaml" in
-      match Sandbox.Package.Graph.find ~f pkg with
-      | Some pkg -> Some (toOCamlVersion pkg.version)
+      match Sandbox.findPackage f sandbox with
+      | Some pkg -> Some (toOCamlVersion pkg.Sandbox.Package.version)
       | None -> None
     in
 
@@ -506,11 +506,7 @@ module Graph = DependencyGraph.Make(struct
 
 (** Check if task is a root task with the current config. *)
 let isRoot ~sandbox task =
-  let sourcePath =
-    let path = Scope.sourcePath task.exportedScope in
-    Sandbox.Path.toPath sandbox.Sandbox.buildConfig path
-  in
-  Path.equal sandbox.Sandbox.buildConfig.projectPath sourcePath
+  sandbox.Sandbox.root.id = task.pkg.id
 
 let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
   let open RunAsync.Syntax in

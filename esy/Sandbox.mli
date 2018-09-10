@@ -3,47 +3,45 @@
  *)
 
 module Package : sig
-
   type t = {
     id : string;
     name : string;
     version : string;
-    dependencies : dependency list;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
     source : Manifest.Source.t option;
   }
 
-  and dependency = (dependencyKind * t, dependencyError) result
+  val pp : t Fmt.t
+  val compare : t -> t -> int
 
-  and dependencyError =
-    | InvalidDependency of { name : string; message : string; }
-    | MissingDependency of { name : string; }
+  module Map : Map.S with type key = t
+end
 
-  and dependencyKind =
+module Dependency : sig
+  type t = (kind * Package.t, error) result
+
+  and kind =
     | Dependency
     | OptDependency
     | DevDependency
     | BuildTimeDependency
 
+  and error =
+    | InvalidDependency of { name : string; message : string; }
+    | MissingDependency of { name : string; }
+
   val pp : t Fmt.t
   val compare : t -> t -> int
-
-  val pp_dependency : dependency Fmt.t
-  val compare_dependency : dependency -> dependency -> int
-
-  module Graph : DependencyGraph.DependencyGraph
-    with type node = t
-    and type dependency := dependency
-
-  module Map : Map.S with type key = t
 end
+
 
 type t = {
   name : string option;
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
+  dependencies : Dependency.t list Package.Map.t;
   scripts : Manifest.Scripts.t;
   env : Manifest.Env.t;
 }
@@ -57,6 +55,10 @@ val isSandbox : Path.t -> bool RunAsync.t
 val make : cfg:Config.t -> Path.t -> Project.sandbox -> (t * info) RunAsync.t
 
 val init : t -> unit RunAsync.t
+
+val findPackage : (Package.t -> bool) -> t -> Package.t option
+
+val dependencies : Package.t -> t -> Dependency.t list
 
 module Value : module type of EsyBuildPackage.Config.Value
 module Environment : module type of EsyBuildPackage.Config.Environment
