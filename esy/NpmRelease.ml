@@ -194,6 +194,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
             exportedEnv = [];
           };
           sourcePath = pkg.sourcePath;
+          originPath = pkg.originPath;
           source = None;
         } in
         {

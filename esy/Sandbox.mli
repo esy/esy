@@ -9,6 +9,7 @@ module Package : sig
     version : string;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
+    originPath : Path.Set.t;
     source : Manifest.Source.t option;
   }
 

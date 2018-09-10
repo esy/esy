@@ -5,6 +5,7 @@ module Package = struct
     version : string;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
+    originPath : Path.Set.t;
     source : Manifest.Source.t option;
   }
 
@@ -163,10 +164,11 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           then Lwt.return_ok (name, `Ignored)
           else
             Lwt.return_error (name, "circular dependency"))
-        else begin match%lwt loadPackageCached ~name depPackagePath (path :: stack) with
-          | Ok (pkg, _) -> Lwt.return_ok (name, pkg)
+        else
+          begin match%lwt loadPackageCached ~name depPackagePath (path :: stack) with
+          | Ok pkg -> Lwt.return_ok (name, pkg)
           | Error err -> Lwt.return_error (name, (Run.formatError err))
-        end
+          end
       | Ok None -> Lwt.return_ok (name, `Unresolved)
       | Error err -> Lwt.return_error (name, (Run.formatError err))
     in
@@ -262,56 +264,6 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       Lwt.return dependencies
     in
 
-    let packageOfManifest ~forceTransient ~sourcePath ~packagesPath (manifest : Manifest.t) pathSet =
-      manifestInfo := (Path.Set.union pathSet (!manifestInfo));
-
-      let build = Manifest.build manifest in
-
-      let%lwt dependencies =
-        let ignoreCircularDep = Option.isNone build in
-        loadDependencies ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
-      in
-
-      let hasDepWithSourceTypeDevelopment =
-        StringMap.exists
-          (fun _k dep ->
-            match dep with
-              | Ok (Dependency.Dependency, pkg)
-              | Ok (Dependency.BuildTimeDependency, pkg)
-              | Ok (Dependency.OptDependency, pkg) ->
-                pkg.Package.build.sourceType = Manifest.SourceType.Transient
-              | Ok (Dependency.DevDependency, _)
-              | Error _ -> false)
-          dependencies
-      in
-
-      match build with
-      | Some build ->
-        let sourceType =
-          match hasDepWithSourceTypeDevelopment, forceTransient with
-          | true, _ -> Manifest.SourceType.Transient
-          | _, true -> Manifest.SourceType.Transient
-          | false, false -> build.Manifest.Build.sourceType
-        in
-        let pkg = {
-          Package.
-          id = Path.toString path;
-          name = Manifest.name manifest;
-          version = Manifest.version manifest;
-          build = {build with sourceType};
-          sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
-          source = Manifest.source manifest;
-        } in
-
-        dependenciesByPackage :=
-          Package.Map.add pkg (StringMap.values dependencies)
-          !dependenciesByPackage;
-
-        return (`PackageWithBuild (pkg, manifest))
-      | None ->
-        return (`Package dependencies)
-    in
-
     let%bind manifest, forceTransient, sourcePath, packagesPath =
       let asRoot = Path.equal path projectPath in
       if asRoot
@@ -336,9 +288,58 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         return (m, forceTransient, sourcePath, path)
     in
     match manifest with
-    | Some (manifest, pathSet) ->
-      let%bind pkg = packageOfManifest ~forceTransient ~sourcePath ~packagesPath manifest pathSet in
-      return (pkg, pathSet)
+    | Some (manifest, originPath) ->
+      manifestInfo := (Path.Set.union originPath (!manifestInfo));
+      let%bind pkg =
+        let build = Manifest.build manifest in
+
+        let%lwt dependencies =
+          let ignoreCircularDep = Option.isNone build in
+          loadDependencies ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
+        in
+
+        let hasDepWithSourceTypeDevelopment =
+          StringMap.exists
+            (fun _k dep ->
+              match dep with
+                | Ok (Dependency.Dependency, pkg)
+                | Ok (Dependency.BuildTimeDependency, pkg)
+                | Ok (Dependency.OptDependency, pkg) ->
+                  pkg.Package.build.sourceType = Manifest.SourceType.Transient
+                | Ok (Dependency.DevDependency, _)
+                | Error _ -> false)
+            dependencies
+        in
+
+        match build with
+        | Some build ->
+          let sourceType =
+            match hasDepWithSourceTypeDevelopment, forceTransient with
+            | true, _ -> Manifest.SourceType.Transient
+            | _, true -> Manifest.SourceType.Transient
+            | false, false -> build.Manifest.Build.sourceType
+          in
+
+          let pkg = {
+            Package.
+            id = Path.toString path;
+            name = Manifest.name manifest;
+            version = Manifest.version manifest;
+            build = {build with sourceType};
+            sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
+            originPath;
+            source = Manifest.source manifest;
+          } in
+
+          dependenciesByPackage :=
+            Package.Map.add pkg (StringMap.values dependencies)
+            !dependenciesByPackage;
+
+          return (`PackageWithBuild (pkg, manifest))
+        | None ->
+          return (`Package dependencies)
+      in
+      return pkg
     | None ->
       error "unable to find manifest"
 
@@ -348,7 +349,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   in
 
   match%bind loadPackageCached projectPath [] with
-  | `PackageWithBuild (root, manifest), _ ->
+  | `PackageWithBuild (root, manifest) ->
     let%bind manifestInfo =
       let statPath path =
         let%bind stat = Fs.stat path in

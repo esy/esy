@@ -80,6 +80,7 @@ module TestCommandExpr = struct
       buildEnv = [];
     };
     sourcePath = Sandbox.Path.v "/path";
+    originPath = Path.Set.empty;
     source = None;
   }
 
@@ -103,6 +104,7 @@ module TestCommandExpr = struct
       exportedEnv = [];
       buildEnv = [];
     };
+    originPath = Path.Set.empty;
     sourcePath = Sandbox.Path.v "/path";
     source = None;
   }
