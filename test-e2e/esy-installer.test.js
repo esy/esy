@@ -344,6 +344,12 @@ describe('esy-installer', () => {
       ],
     };
 
+    const toplevel = {
+      type: 'dir',
+      basename: 'toplevel',
+      nodes: [],
+    };
+
     expect(node).toMatchObject({
       type: 'dir',
       nodes: [
@@ -355,6 +361,7 @@ describe('esy-installer', () => {
         man,
         sbin,
         share,
+        toplevel,
       ],
     });
   });

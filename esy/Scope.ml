@@ -392,7 +392,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   let opamOsFamily = opamOs in
   let opamOsDistribution = opamOs in
 
-  let opamName (scope : PackageScope.t) =
+  let opamname (scope : PackageScope.t) =
     let name = PackageScope.name scope in
     match Astring.String.cut ~sep:"@opam/" name with
     | Some ("", name) -> name
@@ -400,7 +400,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   in
 
   let opamPackageScope ?namespace (scope : PackageScope.t) name =
-    let opamName = opamName scope in
+    let opamname = opamname scope in
     let installPath =
       if PackageScope.buildIsInProgress scope
       then PackageScope.stagePath scope
@@ -417,7 +417,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
       Some (string ocamlVersion)
 
     | _, "hash" -> Some (string "")
-    | _, "name" -> Some (string opamName)
+    | _, "name" -> Some (string opamname)
     | _, "version" -> Some (string (PackageScope.version scope))
     | _, "build-id" -> Some (string (PackageScope.id scope))
     | _, "dev" -> Some (bool (
@@ -427,16 +427,16 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
     | _, "prefix" -> Some (configPath installPath)
     | _, "bin" -> Some (configPath Sandbox.Path.(installPath / "bin"))
     | _, "sbin" -> Some (configPath Sandbox.Path.(installPath / "sbin"))
-    | _, "etc" -> Some (configPath Sandbox.Path.(installPath / "etc" / opamName))
-    | _, "doc" -> Some (configPath Sandbox.Path.(installPath / "doc" / opamName))
+    | _, "etc" -> Some (configPath Sandbox.Path.(installPath / "etc" / opamname))
+    | _, "doc" -> Some (configPath Sandbox.Path.(installPath / "doc" / opamname))
     | _, "man" -> Some (configPath Sandbox.Path.(installPath / "man"))
-    | _, "share" -> Some (configPath Sandbox.Path.(installPath / "share" / opamName))
+    | _, "share" -> Some (configPath Sandbox.Path.(installPath / "share" / opamname))
     | _, "share_root" -> Some (configPath Sandbox.Path.(installPath / "share"))
     | _, "stublibs" -> Some (configPath Sandbox.Path.(installPath / "stublibs"))
     | _, "toplevel" -> Some (configPath Sandbox.Path.(installPath / "toplevel"))
-    | _, "lib" -> Some (configPath Sandbox.Path.(installPath / "lib" / opamName))
+    | _, "lib" -> Some (configPath Sandbox.Path.(installPath / "lib" / opamname))
     | _, "lib_root" -> Some (configPath Sandbox.Path.(installPath / "lib"))
-    | _, "libexec" -> Some (configPath Sandbox.Path.(installPath / "lib" / opamName))
+    | _, "libexec" -> Some (configPath Sandbox.Path.(installPath / "lib" / opamname))
     | _, "libexec_root" -> Some (configPath Sandbox.Path.(installPath / "lib"))
     | _, "build" -> Some (configPath (PackageScope.buildPath scope))
     | _ -> None
@@ -470,7 +470,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   | Full.Global, "lib" -> Some (configPath Sandbox.Path.(installPath / "lib"))
   | Full.Global, "libexec" -> Some (configPath Sandbox.Path.(installPath / "lib"))
   | Full.Global, "version" -> Some (string (PackageScope.version scope.self))
-  | Full.Global, "name" -> Some (string (opamName scope.self))
+  | Full.Global, "name" -> Some (string (opamname scope.self))
 
   | Full.Global, _ -> None
 

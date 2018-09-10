@@ -156,7 +156,12 @@ let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
   let filenames =
     match manifest with
     | Some manifest -> [ManifestFilename.toString manifest]
-    | None -> ["esy.json"; "package.json"]
+    | None -> [
+      "esy.json";
+      "package.json";
+      "opam";
+      Path.basename path ^ ".opam";
+    ]
   in
   tryFilename filenames
 

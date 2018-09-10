@@ -205,7 +205,6 @@ end
 module Esy : sig
   include MANIFEST
 
-  val ofDir : Path.t -> (t * Path.Set.t) option RunAsync.t
   val ofFile : Path.t -> t RunAsync.t
 end = struct
 
@@ -355,25 +354,6 @@ end = struct
     let manifest = ofJsonManifest jsonManifest path in
     return (manifest, json)
 
-  let findOfDir (path : Path.t) =
-    let open RunAsync.Syntax in
-    let filename = Path.(path / "esy.json") in
-    if%bind Fs.exists filename
-    then return (Some filename)
-    else
-      let filename = Path.(path / "package.json") in
-      if%bind Fs.exists filename
-      then return (Some filename)
-      else return None
-
-  let ofDir (path : Path.t) =
-    let open RunAsync.Syntax in
-    match%bind findOfDir path with
-    | Some filename ->
-      let%bind manifest = ofFile filename in
-      return (Some (manifest, Path.Set.singleton filename))
-    | None -> return None
-
 end
 
 module Opam : sig
@@ -382,11 +362,9 @@ module Opam : sig
   val ofFiles : Path.t list -> t RunAsync.t
   val ofFile :
     ?name:string
-    -> ?esyOpamPath:Path.t
     -> Path.t
     -> t RunAsync.t
 
-  val ofDirAsInstalled : Path.t -> (t * Path.Set.t) option RunAsync.t
 end = struct
   type t =
     | Installed of {
@@ -396,7 +374,7 @@ end = struct
       }
     | AggregatedRoot of (string * OpamFile.OPAM.t) list
 
-  let opamName = function
+  let opamname = function
     | Installed {opam; _} ->
       let name = OpamFile.OPAM.name opam in
       OpamPackage.Name.to_string name
@@ -404,15 +382,14 @@ end = struct
 
   let name manifest =
     match manifest with
-    | Installed {name = Some name; _} ->
-      name
-    | manifest ->
-    "@opam/" ^ (opamName manifest)
+    | Installed {name = Some name; _} -> "@opam/" ^ name
+    | manifest -> "@opam/" ^ (opamname manifest)
 
   let version = function
-    | Installed {opam;_} ->
-      let version = OpamFile.OPAM.version opam in
-      OpamPackage.Version.to_string version
+    | Installed {opam;_} -> (
+        try OpamPackage.Version.to_string (OpamFile.OPAM.version opam)
+        with _ -> "dev"
+      )
     | AggregatedRoot _ -> "dev"
 
   let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
@@ -508,7 +485,7 @@ end = struct
       optDependencies;
     }
 
-  let ofFile ?name ?esyOpamPath (path : Path.t) =
+  let ofFile ?name (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind opam =
       let%bind data = Fs.readFile path in
@@ -518,25 +495,17 @@ end = struct
       return opam
     in
     let%bind info =
-      match esyOpamPath with
-      | None -> return {
+      let esyOpamPath = Path.(parent path / "esy-opam.json") in
+      if%bind Fs.exists esyOpamPath
+      then EsyInstall.EsyOpamFile.ofFile esyOpamPath
+      else
+        return {
           EsyInstall.EsyOpamFile.
           override = None;
           source = Source.LocalPath {path; manifest = None;};
         }
-      | Some esyOpamPath -> EsyInstall.EsyOpamFile.ofFile esyOpamPath
     in
     return (Installed {opam; info; name})
-
-  let ofDirAsInstalled (path : Path.t) =
-    let open RunAsync.Syntax in
-    let esyOpamPath = Path.(path / "_esy" / "esy-opam.json") in
-    let manifestPath = Path.(path / "_esy" / "opam") in
-    if%bind Fs.exists manifestPath
-    then
-      let%bind manifest = ofFile ~esyOpamPath manifestPath in
-      return (Some (manifest, Path.Set.singleton manifestPath))
-    else return None
 
   let ofFiles paths =
     let open RunAsync.Syntax in
@@ -732,16 +701,36 @@ end = struct
     let open RunAsync.Syntax in
 
     let discoverOfDir path =
-      match%bind Esy.ofDir path with
-      | Some (manifest, paths) ->
-        return (Some (Esy manifest, paths))
-      | None ->
-        let opam = Opam.ofDirAsInstalled path in
-        begin match%bind opam with
-        | Some (manifest, paths) ->
-          return (Some (Opam manifest, paths))
-        | None -> return None
-        end
+
+      let filenames =
+        let dirname = Path.basename path in
+        [
+          `Esy, Path.v "esy.json";
+          `Esy, Path.v "package.json";
+          `Opam, Path.(v "_esy" / "opam");
+          `Opam, Path.(v dirname |> addExt ".opam");
+          `Opam, Path.v "opam";
+        ] 
+      in
+
+      let rec tryLoad = function
+        | [] -> return None
+        | (kind, name)::rest ->
+          let filename = Path.(path // name) in
+          if%bind Fs.exists filename
+          then (
+            match kind with
+            | `Esy -> 
+              let%bind manifest = Esy.ofFile filename in
+              return (Some (Esy manifest, Path.Set.singleton filename))
+            | `Opam ->
+              let%bind manifest = Opam.ofFile ~name:(Path.basename path) filename in
+              return (Some (Opam manifest, Path.Set.singleton filename))
+          )
+          else tryLoad rest
+      in
+
+      tryLoad filenames
     in
 
     match filename with
