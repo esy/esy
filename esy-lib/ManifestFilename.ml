@@ -3,23 +3,22 @@ type t =
   | Opam of string
   [@@deriving (eq, ord)]
 
-let hasOpamExtension =
+let hasExtension ext =
   let re =
     let open Re in
-    compile (seq [bos; rep1 any; str ".opam"; eos])
+    compile (seq [bos; rep1 any; str ext; eos])
   in
   Re.execp re
 
 let parse fname =
   let open Result.Syntax in
-  match fname with
-  | "package.json" -> return (Esy "package.json")
-  | "esy.json" -> return (Esy "esy.json")
-  | "opam" -> return (Opam "opam")
-  | fname ->
-    if hasOpamExtension fname
-    then return (Opam fname)
-    else errorf "invalid manifest filename: %s" fname
+  if fname = "opam"
+  then return (Opam fname)
+  else if hasExtension ".opam" fname
+  then return (Opam fname)
+  else if hasExtension ".json" fname
+  then return (Esy fname)
+  else errorf "invalid manifest filename: %s" fname
 
 let parseExn fname =
   match parse fname with
