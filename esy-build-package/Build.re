@@ -533,6 +533,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(build.stagePath / "sbin");
     let%bind () = mkdir(build.stagePath / "man");
     let%bind () = mkdir(build.stagePath / "share");
+    let%bind () = mkdir(build.stagePath / "toplevel");
     let%bind () = mkdir(build.stagePath / "doc");
     let%bind () = mkdir(build.stagePath / "_esy");
     let%bind () = Lifecycle.prepare(~cfg, build);
