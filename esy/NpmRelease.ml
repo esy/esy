@@ -182,7 +182,6 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
           id = "__release_env__";
           name = "release-env";
           version = pkg.version;
-          dependencies = [Ok (Sandbox.Package.Dependency, pkg)];
           build = {
             Manifest.Build.
             sourceType = Manifest.SourceType.Transient;
@@ -195,9 +194,18 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
             exportedEnv = [];
           };
           sourcePath = pkg.sourcePath;
+          originPath = pkg.originPath;
           source = None;
         } in
-        {sandbox with root}
+        {
+          sandbox with
+          root;
+          dependencies =
+            Sandbox.Package.Map.add
+              root
+              [Ok (Sandbox.Dependency.Dependency, pkg)]
+              sandbox.dependencies;
+        }
       in
       let%bind task = Task.ofSandbox ~forceImmutable:true sandbox in
       let%bind bindings = Task.sandboxEnv task in

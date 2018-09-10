@@ -617,16 +617,15 @@ let withBuildTaskByPath
   let open RunAsync.Syntax in
   match packagePath with
   | Some packagePath ->
-    let resolvedPath = packagePath |> Path.remEmptySeg |> Path.toString in
+    let packagePath = Path.remEmptySeg packagePath in
     let findByPath (task : Task.t) =
       let pkg = Task.pkg task in
-      String.equal resolvedPath pkg.id
+      Path.Set.mem packagePath pkg.originPath
+      || String.equal (Path.toString packagePath) pkg.id
     in
     begin match Task.Graph.find ~f:findByPath info.task with
-      | None ->
-        let msg = Printf.sprintf "No package found at %s" resolvedPath in
-        error msg
-      | Some pkg -> f pkg
+    | None -> errorf "No package found at %a" Path.pp packagePath
+    | Some pkg -> f pkg
     end
   | None -> f info.task
 

@@ -24,13 +24,21 @@ let buildConfig =
       ~storePath:(Path.v "/store")
       ())
 
-let makeSandbox pkg =
-  Sandbox.{
+let makeSandbox root dependencies =
+  let dependencies =
+    Sandbox.Package.Map.(
+      empty
+      |> add root dependencies
+    )
+  in
+  {
+    Sandbox.
     cfg;
     buildConfig;
     scripts = Manifest.Scripts.empty;
     env = Manifest.Env.empty;
-    root = pkg;
+    root;
+    dependencies;
     name = None;
   }
 
@@ -45,7 +53,6 @@ module TestCommandExpr = struct
     id = "%dep%";
     name = "dep";
     version = "1.0.0";
-    dependencies = [];
     build = {
       Manifest.Build.
       buildCommands = EsyCommands None;
@@ -73,6 +80,7 @@ module TestCommandExpr = struct
       buildEnv = [];
     };
     sourcePath = Sandbox.Path.v "/path";
+    originPath = Path.Set.empty;
     source = None;
   }
 
@@ -80,7 +88,6 @@ module TestCommandExpr = struct
     id = "%pkg%";
     name = "pkg";
     version = "1.0.0";
-    dependencies = [Ok (Dependency, dep)];
     build = {
       Manifest.Build.
       buildCommands = EsyCommands (Some [
@@ -97,9 +104,12 @@ module TestCommandExpr = struct
       exportedEnv = [];
       buildEnv = [];
     };
+    originPath = Path.Set.empty;
     sourcePath = Sandbox.Path.v "/path";
     source = None;
   }
+
+  let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)]
 
   let check ?platform sandbox f =
     match Task.ofSandbox ?platform sandbox with
@@ -110,7 +120,7 @@ module TestCommandExpr = struct
       false
 
   let%test "#{...} inside esy.build" =
-    check (makeSandbox pkg) (fun task ->
+    check (makeSandbox pkg dependencies) (fun task ->
       let plan = Task.plan task in
       let id = Task.id task in
       checkCommandsEqual
@@ -135,7 +145,7 @@ module TestCommandExpr = struct
         buildType = Manifest.BuildType.InSource;
       }
     } in
-    check ~platform:System.Platform.Linux (makeSandbox pkg) (fun task ->
+    check ~platform:System.Platform.Linux (makeSandbox pkg dependencies) (fun task ->
       let plan = Task.plan task in
       checkCommandsEqual
         plan.EsyBuildPackage.Plan.build
@@ -146,7 +156,7 @@ module TestCommandExpr = struct
         [["make"; "install-linux"]]
     )
     &&
-    check ~platform:System.Platform.Darwin (makeSandbox pkg) (fun task ->
+    check ~platform:System.Platform.Darwin (makeSandbox pkg dependencies) (fun task ->
       let plan = Task.plan task in
       checkCommandsEqual
         plan.EsyBuildPackage.Plan.build
@@ -158,7 +168,7 @@ module TestCommandExpr = struct
     )
 
   let%test "#{self...} inside esy.install" =
-    check (makeSandbox pkg) (fun task ->
+    check (makeSandbox pkg dependencies) (fun task ->
       let id = Task.id task in
       let plan = Task.plan task in
       checkCommandsEqual
@@ -167,7 +177,7 @@ module TestCommandExpr = struct
     )
 
   let%test "#{...} inside esy.exportedEnv" =
-    check (makeSandbox pkg) (fun task ->
+    check (makeSandbox pkg dependencies) (fun task ->
       let [Task.Dependency, dep] =
         Task.dependencies task
         [@@ocaml.warning "-8"]
@@ -244,17 +254,15 @@ let checkEnvExists ~name ~value task =
         ];
       };
     } in
-    let pkg = Sandbox.Package.{
-      pkg with
-      dependencies = [Ok (Dependency, dep)];
-    } in
-    check ~platform:System.Platform.Linux (makeSandbox pkg) (fun task ->
+    let pkg = pkg in
+    let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)] in
+    check ~platform:System.Platform.Linux (makeSandbox pkg dependencies) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib" task
     )
     &&
-    check ~platform:System.Platform.Windows (makeSandbox pkg) (fun task ->
+    check ~platform:System.Platform.Windows (makeSandbox pkg dependencies) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one;two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin;/usr/bin" task
       && checkEnvExists ~name:"OCAMLLIB" ~value:"lib/ocaml" task

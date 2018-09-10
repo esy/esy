@@ -1,85 +1,49 @@
 module Package = struct
-
-  type dependencyError =
-    | InvalidDependency of { name : string; message : string; }
-    | MissingDependency of { name : string; }
-    [@@deriving ord]
-
-  type dependencyKind =
-    | Dependency
-    | OptDependency
-    | DevDependency
-    | BuildTimeDependency
-    [@@deriving ord]
-
   type t = {
     id : string;
     name : string;
     version : string;
-    dependencies : dependency list;
     build : Manifest.Build.t;
     sourcePath : EsyBuildPackage.Config.Path.t;
+    originPath : Path.Set.t;
     source : Manifest.Source.t option;
   }
 
-  and dependency = (dependencyKind * t, dependencyError) result
-
-  let pp fmt p = Fmt.string fmt p.id
+  let pp fmt p =
+    Fmt.pf fmt "Package %s" p.id
 
   let compare a b = String.compare a.id b.id
-
-  let compare_dependency a b =
-    match a, b with
-    | Ok (ka, a), Ok (kb, b) ->
-      let c = compare_dependencyKind ka kb in
-      if c = 0
-      then compare a b
-      else c
-    | Error a, Error b -> compare_dependencyError a b
-    | Ok _, Error _ -> 1
-    | Error _, Ok _ -> -1
-
-  let pp_dependency fmt dep =
-    match dep with
-    | Ok (Dependency, p) -> Fmt.pf fmt "Dependency %s" p.id
-    | Ok (OptDependency, p) -> Fmt.pf fmt "OptDependency %s" p.id
-    | Ok (DevDependency, p) -> Fmt.pf fmt "DevDependency %s" p.id
-    | Ok (BuildTimeDependency, p) -> Fmt.pf fmt "BuildTimeDependency %s" p.id
-    | Error (InvalidDependency p) -> Fmt.pf fmt "InvalidDependency %s" p.name
-    | Error (MissingDependency p) -> Fmt.pf fmt "MissingDependency %s" p.name
 
   module Map = Map.Make(struct
     type nonrec t = t
     let compare = compare
   end)
 
-  module Graph = DependencyGraph.Make(struct
+end
 
-    type nonrec t = t
+module Dependency = struct
+  type t =
+    (kind * Package.t, error) result
+    [@@deriving ord]
 
-    let compare = compare
+  and kind =
+    | Dependency
+    | OptDependency
+    | DevDependency
+    | BuildTimeDependency
 
-    module Dependency = struct
-      type t = dependency
-      let compare = compare_dependency
-    end
+  and error =
+    | InvalidDependency of { name : string; message : string; }
+    | MissingDependency of { name : string; }
 
-    let id (pkg : t) = pkg.id
-
-    let traverse pkg =
-      let f acc dep =
-        match dep with
-        | Ok (Dependency, pkg)
-        | Ok (OptDependency, pkg)
-        | Ok (DevDependency, pkg)
-        | Ok (BuildTimeDependency, pkg) -> (pkg, dep)::acc
-        | Error _ -> acc
-      in
-      pkg.dependencies
-      |> List.fold_left ~f ~init:[]
-      |> List.rev
-
-  end)
+  let pp fmt dep =
+    match dep with
+    | Ok (Dependency, p) -> Fmt.pf fmt "Dependency %s" p.Package.id
+    | Ok (OptDependency, p) -> Fmt.pf fmt "OptDependency %s" p.Package.id
+    | Ok (DevDependency, p) -> Fmt.pf fmt "DevDependency %s" p.Package.id
+    | Ok (BuildTimeDependency, p) -> Fmt.pf fmt "BuildTimeDependency %s" p.Package.id
+    | Error (InvalidDependency p) -> Fmt.pf fmt "InvalidDependency %s" p.name
+    | Error (MissingDependency p) -> Fmt.pf fmt "MissingDependency %s" p.name
 
 end
 
@@ -88,19 +52,44 @@ type t = {
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
+  dependencies : Dependency.t list Package.Map.t;
   scripts : Manifest.Scripts.t;
   env : Manifest.Env.t;
 }
 
-type info = (Path.t * float) list
+let dependencies pkg sandbox =
+  match Package.Map.find_opt pkg sandbox.dependencies with
+  | Some deps -> deps
+  | None -> []
 
-let rec resolvePackage (name : string) (basedir : Path.t) =
+let findPackage cond sandbox =
+  let rec checkPkg pkg =
+    if cond pkg
+    then Some pkg
+    else
+      match Package.Map.find_opt pkg sandbox.dependencies with
+      | None -> None
+      | Some deps -> checkDeps deps
+  and checkDeps deps =
+    match deps with
+    | [] -> None
+    | Ok (_, pkg)::deps ->
+      begin match checkPkg pkg with
+      | None -> checkDeps deps
+      | Some r -> Some r
+      end
+    | Error _::deps -> checkDeps deps
+  in
+  checkPkg sandbox.root
+
+type info = (Path.t * float) list
 
   let packagePathAt ?scope ~name basedir =
     match scope with
     | Some scope -> Path.(basedir / "node_modules" / scope / name)
     | None -> Path.(basedir / "node_modules" / name)
-  in
+
+let rec resolvePackage (name : string) (basedir : Path.t) =
 
   let packagePath basedir =
     match name.[0] with
@@ -131,6 +120,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   let open RunAsync.Syntax in
 
   let manifestInfo = ref Path.Set.empty in
+  let dependenciesByPackage = ref Package.Map.empty in
 
   let resolutionCache = Memoize.make ~size:200 () in
   let packageCache = Memoize.make ~size:200 () in
@@ -174,10 +164,11 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           then Lwt.return_ok (name, `Ignored)
           else
             Lwt.return_error (name, "circular dependency"))
-        else begin match%lwt loadPackageCached ~name depPackagePath (path :: stack) with
-          | Ok (pkg, _) -> Lwt.return_ok (name, pkg)
+        else
+          begin match%lwt loadPackageCached ~name depPackagePath (path :: stack) with
+          | Ok pkg -> Lwt.return_ok (name, pkg)
           | Error err -> Lwt.return_error (name, (Run.formatError err))
-        end
+          end
       | Ok None -> Lwt.return_ok (name, `Unresolved)
       | Error err -> Lwt.return_error (name, (Run.formatError err))
     in
@@ -188,7 +179,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       ~ignoreCircularDep
       ~make
       (dependencies : string list list)
-      (prevDependencies : Package.dependency StringMap.t) =
+      (prevDependencies : Dependency.t StringMap.t) =
 
       let%lwt dependencies =
         let rec tryResolve names =
@@ -222,10 +213,10 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
           if skipUnresolved
           then dependencies
           else
-            let dep = Error (Package.MissingDependency {name}) in
+            let dep = Error (Dependency.MissingDependency {name}) in
             StringMap.add name dep dependencies
         | Error (name, message) ->
-          let dep = Error (Package.InvalidDependency {name; message;}) in
+          let dep = Error (Dependency.InvalidDependency {name; message;}) in
           StringMap.add name dep dependencies
       in
       Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
@@ -273,52 +264,6 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
       Lwt.return dependencies
     in
 
-    let packageOfManifest ~forceTransient ~sourcePath ~packagesPath (manifest : Manifest.t) pathSet =
-      manifestInfo := (Path.Set.union pathSet (!manifestInfo));
-
-      let build = Manifest.build manifest in
-
-      let%lwt dependencies =
-        let ignoreCircularDep = Option.isNone build in
-        loadDependencies ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
-      in
-
-      let hasDepWithSourceTypeDevelopment =
-        StringMap.exists
-          (fun _k dep ->
-            match dep with
-              | Ok (Package.Dependency, pkg)
-              | Ok (Package.BuildTimeDependency, pkg)
-              | Ok (Package.OptDependency, pkg) ->
-                pkg.Package.build.sourceType = Manifest.SourceType.Transient
-              | Ok (Package.DevDependency, _)
-              | Error _ -> false)
-          dependencies
-      in
-
-      match build with
-      | Some build ->
-        let sourceType =
-          match hasDepWithSourceTypeDevelopment, forceTransient with
-          | true, _ -> Manifest.SourceType.Transient
-          | _, true -> Manifest.SourceType.Transient
-          | false, false -> build.Manifest.Build.sourceType
-        in
-        let pkg = {
-          Package.
-          id = Path.toString path;
-          name = Manifest.name manifest;
-          version = Manifest.version manifest;
-          dependencies = StringMap.values dependencies;
-          build = {build with sourceType};
-          sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
-          source = Manifest.source manifest;
-        } in
-        return (`PackageWithBuild (pkg, manifest))
-      | None ->
-        return (`Package dependencies)
-    in
-
     let%bind manifest, forceTransient, sourcePath, packagesPath =
       let asRoot = Path.equal path projectPath in
       if asRoot
@@ -343,9 +288,58 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         return (m, forceTransient, sourcePath, path)
     in
     match manifest with
-    | Some (manifest, pathSet) ->
-      let%bind pkg = packageOfManifest ~forceTransient ~sourcePath ~packagesPath manifest pathSet in
-      return (pkg, pathSet)
+    | Some (manifest, originPath) ->
+      manifestInfo := (Path.Set.union originPath (!manifestInfo));
+      let%bind pkg =
+        let build = Manifest.build manifest in
+
+        let%lwt dependencies =
+          let ignoreCircularDep = Option.isNone build in
+          loadDependencies ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
+        in
+
+        let hasDepWithSourceTypeDevelopment =
+          StringMap.exists
+            (fun _k dep ->
+              match dep with
+                | Ok (Dependency.Dependency, pkg)
+                | Ok (Dependency.BuildTimeDependency, pkg)
+                | Ok (Dependency.OptDependency, pkg) ->
+                  pkg.Package.build.sourceType = Manifest.SourceType.Transient
+                | Ok (Dependency.DevDependency, _)
+                | Error _ -> false)
+            dependencies
+        in
+
+        match build with
+        | Some build ->
+          let sourceType =
+            match hasDepWithSourceTypeDevelopment, forceTransient with
+            | true, _ -> Manifest.SourceType.Transient
+            | _, true -> Manifest.SourceType.Transient
+            | false, false -> build.Manifest.Build.sourceType
+          in
+
+          let pkg = {
+            Package.
+            id = Path.toString path;
+            name = Manifest.name manifest;
+            version = Manifest.version manifest;
+            build = {build with sourceType};
+            sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
+            originPath;
+            source = Manifest.source manifest;
+          } in
+
+          dependenciesByPackage :=
+            Package.Map.add pkg (StringMap.values dependencies)
+            !dependenciesByPackage;
+
+          return (`PackageWithBuild (pkg, manifest))
+        | None ->
+          return (`Package dependencies)
+      in
+      return pkg
     | None ->
       error "unable to find manifest"
 
@@ -355,7 +349,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   in
 
   match%bind loadPackageCached projectPath [] with
-  | `PackageWithBuild (root, manifest), _ ->
+  | `PackageWithBuild (root, manifest) ->
     let%bind manifestInfo =
       let statPath path =
         let%bind stat = Fs.stat path in
@@ -369,7 +363,15 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     let%bind scripts = RunAsync.ofRun (Manifest.scripts manifest) in
     let%bind env = RunAsync.ofRun (Manifest.sandboxEnv manifest) in
 
-    return ({name = sandboxName; cfg; buildConfig; root; scripts; env;}, manifestInfo)
+    return ({
+      name = sandboxName;
+      cfg;
+      buildConfig;
+      root;
+      scripts;
+      dependencies = !dependenciesByPackage;
+      env;
+    }, manifestInfo)
 
   | _ ->
     error "root package missing esy config"
