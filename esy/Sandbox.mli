@@ -38,7 +38,7 @@ end
 
 
 type t = {
-  name : string option;
+  spec : SandboxSpec.t;
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
@@ -53,7 +53,7 @@ type info = (Path.t * float) list
 val isSandbox : Path.t -> bool RunAsync.t
 
 (** Init sandbox from given the config *)
-val make : cfg:Config.t -> Path.t -> Project.sandbox -> (t * info) RunAsync.t
+val make : cfg:Config.t -> SandboxSpec.t -> (t * info) RunAsync.t
 
 val init : t -> unit RunAsync.t
 

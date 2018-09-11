@@ -296,7 +296,7 @@ module LockfileV1 = struct
     Digest.to_hex digest
 
   let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
-    let derelativize path = Path.(sandbox.path // path |> normalize) in
+    let derelativize path = Path.(sandbox.spec.path // path |> normalize) in
     let root = Id.mapVersion ~f:derelativize root in
     let f id {record; dependencies} sol =
       let record = Record.mapVersion ~f:derelativize record in
@@ -309,9 +309,9 @@ module LockfileV1 = struct
 
   let lockfileOfSolution ~(sandbox : Sandbox.t) (sol : solution) =
     let relativize path =
-      if Path.equal path sandbox.path
+      if Path.equal path sandbox.spec.path
       then Path.(v ".")
-      else match Path.relativize ~root:sandbox.path path with
+      else match Path.relativize ~root:sandbox.spec.path path with
       | Some path -> path
       | None -> path
     in
@@ -350,7 +350,7 @@ module LockfileV1 = struct
         let path =
           Option.orDefault
             ~default:path
-            (Path.relativize ~root:sandbox.path path)
+            (Path.relativize ~root:sandbox.spec.path path)
         in
         errorf
           "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"

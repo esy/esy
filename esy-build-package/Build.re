@@ -49,14 +49,13 @@ module OutOfSourceLifecycle: LIFECYCLE = {
   let prepare = (~cfg as _, _build) => Ok();
 
   let setupSymlinkToBuildDir = (~cfg: Config.t, build: build) => {
-    let source = cfg.sandboxPath / "build";
     let target = build.buildPath;
     let%bind () =
-      switch (lstat(source)) {
-      | Ok(_) => rm(source)
+      switch (lstat(cfg.buildPath)) {
+      | Ok(_) => rm(cfg.buildPath)
       | Error(_) => ok
       };
-    let%bind () = symlink(~target, source);
+    let%bind () = symlink(~target, cfg.buildPath);
     ok;
   };
 

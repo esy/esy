@@ -1,18 +1,11 @@
 type t = {
   cfg : Config.t;
-  path : Path.t;
+  spec : SandboxSpec.t;
   root : Package.t;
   dependencies : Package.Dependencies.t;
   resolutions : Package.Resolutions.t;
   ocamlReq : Req.t option;
-  origin: origin;
-  name : string option;
 }
-
-and origin =
-  | Esy of Path.t
-  | Opam of Path.t
-  | AggregatedOpam of Path.t list
 
 module PackageJsonWithResolutions = struct
   type t = {
@@ -24,7 +17,7 @@ let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Req.make ~name:"ocaml" ~spec
 
-let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
+let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
   let%bind opams =
@@ -79,7 +72,7 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
     let dependencies = Package.Dependencies.NpmFormula [] in
     return {
       cfg;
-      path = projectPath;
+      spec;
       root = {
         name = "empty";
         version;
@@ -93,8 +86,6 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
       resolutions = Package.Resolutions.empty;
       dependencies = Package.Dependencies.NpmFormula [];
       ocamlReq = Some ocamlReqAny;
-      origin = Opam projectPath;
-      name = None;
     }
   | opams ->
     let%bind pkgs =
@@ -115,13 +106,6 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
       in
       List.fold_left ~f ~init:([], []) pkgs
     in
-    let origin =
-      let f (_, _, paths) = paths in
-      let paths = List.map ~f opams in
-      match paths with
-      | [path] -> Opam path
-      | paths -> AggregatedOpam paths
-    in
     let root = {
       Package.
       name = "root";
@@ -140,16 +124,14 @@ let makeOpamSandbox ~cfg projectPath (paths : Path.t list) =
 
     return {
       cfg;
-      path = projectPath;
+      spec;
       root;
       resolutions = Package.Resolutions.empty;
       dependencies;
       ocamlReq = Some ocamlReqAny;
-      origin;
-      name = None;
     }
 
-let makeEsySandbox ?name ~cfg projectPath path =
+let makeEsySandbox ~cfg ~spec projectPath path =
   let open RunAsync.Syntax in
   let%bind json = Fs.readJsonFile path in
 
@@ -182,32 +164,19 @@ let makeEsySandbox ?name ~cfg projectPath path =
 
   return {
     cfg;
-    path = projectPath;
+    spec;
     root;
     resolutions;
     ocamlReq;
     dependencies = sandboxDependencies;
-    origin = Esy path;
-    name;
   }
 
-let make ~cfg projectPath (sandbox : Project.sandbox) =
-  match sandbox with
-  | Project.Esy {path; name} -> makeEsySandbox ?name ~cfg projectPath path
-  | Project.Opam { path } -> makeOpamSandbox ~cfg projectPath [path]
-  | Project.AggregatedOpam { paths } -> makeOpamSandbox ~cfg projectPath paths
-
-let lockfilePath sandbox =
-  let filename =
-    match sandbox.name with
-    | Some name -> "esy." ^ name ^ ".lock.json"
-    | None -> "esy.lock.json"
-  in
-  RunAsync.return Path.(sandbox.path / filename)
-
-let packagesPath sandbox =
-  RunAsync.return (
-    match sandbox.name with
-    | Some name -> Path.(sandbox.path / "_esy" / name / "node_modules")
-    | None -> Path.(sandbox.path / "_esy" / "default" / "node_modules")
-  )
+let make ~cfg (spec : SandboxSpec.t) =
+  match spec.manifest with
+  | SandboxSpec.ManifestSpec.Esy fname ->
+    makeEsySandbox ~cfg ~spec spec.path Path.(spec.path / fname)
+  | SandboxSpec.ManifestSpec.Opam fname ->
+    makeOpamSandbox ~cfg ~spec spec.path [Path.(spec.path / fname)]
+  | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
+    let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
+    makeOpamSandbox ~cfg ~spec spec.path paths

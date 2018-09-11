@@ -22,6 +22,8 @@ let buildConfig =
     Config.make
       ~projectPath:(Path.v "/project")
       ~storePath:(Path.v "/store")
+      ~localStorePath:(Path.v "/local-store")
+      ~buildPath:(Path.v "/build")
       ())
 
 let makeSandbox root dependencies =
@@ -33,13 +35,17 @@ let makeSandbox root dependencies =
   in
   {
     Sandbox.
+    spec = {
+      EsyLib.SandboxSpec.
+      path = Path.v "/sandbox";
+      manifest = EsyLib.SandboxSpec.ManifestSpec.Esy "package.json";
+    };
     cfg;
     buildConfig;
     scripts = Manifest.Scripts.empty;
     env = Manifest.Env.empty;
     root;
     dependencies;
-    name = None;
   }
 
 module TestCommandExpr = struct

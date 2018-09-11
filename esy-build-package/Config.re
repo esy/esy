@@ -3,7 +3,7 @@ module Store = EsyLib.Store;
 type t = {
   fastreplacestringPath: Fpath.t,
   projectPath: Fpath.t,
-  sandboxPath: Fpath.t,
+  buildPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
 };
@@ -15,21 +15,17 @@ let cwd = EsyLib.Path.v(Sys.getcwd());
 let make =
     (
       ~fastreplacestringPath=?,
-      ~projectPath=?,
-      ~sandboxPath=?,
       ~storePath=?,
+      ~projectPath,
+      ~buildPath,
+      ~localStorePath,
       (),
     ) =>
   Run.(
     {
-      let%bind projectPath =
-        switch (projectPath) {
-        | Some(v) => return(v)
-        | None => Bos.OS.Dir.current()
-        };
       let%bind storePath =
         switch (storePath) {
-        | Some(v) => return(v)
+        | Some(p) => return(p)
         | None =>
           let home = EsyLib.Path.homePath();
           let prefixPath = home / ".esy";
@@ -41,18 +37,12 @@ let make =
         | Some(p) => p
         | None => Fpath.v("fastreplacestring.exe")
         };
-      let sandboxPath =
-        switch (sandboxPath) {
-        | Some(v) => v
-        | None => projectPath / "_esy" / "default"
-        };
-      let localStorePath = sandboxPath / "store";
       return({
         fastreplacestringPath,
         projectPath,
-        sandboxPath,
         storePath,
         localStorePath,
+        buildPath,
       });
     }
   );

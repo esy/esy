@@ -1,6 +1,6 @@
 type t = {
   path : Path.t;
-  manifest : ManifestFilename.t option;
+  manifest : SandboxSpec.ManifestSpec.t option;
 } [@@deriving yojson]
 
 let ofFile path =

@@ -48,7 +48,7 @@ module Dependency = struct
 end
 
 type t = {
-  name : string option;
+  spec : SandboxSpec.t;
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
@@ -116,7 +116,7 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
   resolve basedir
 
-let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
+let make ~(cfg : Config.t) (spec : SandboxSpec.t) =
   let open RunAsync.Syntax in
 
   let manifestInfo = ref Path.Set.empty in
@@ -125,25 +125,12 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
   let resolutionCache = Memoize.make ~size:200 () in
   let packageCache = Memoize.make ~size:200 () in
 
-  let sandboxName =
-    match sandbox with
-    | Project.Esy { name = Some name; _ } -> Some name
-    | Project.Esy { name = None; _ }
-    | Project.Opam _
-    | Project.AggregatedOpam _ -> None
-  in
-
-  let sandboxTree =
-    match sandboxName with
-    | Some name -> name
-    | None -> "default"
-  in
-
   let%bind buildConfig = RunAsync.ofBosError (
     EsyBuildPackage.Config.make
       ~storePath:cfg.storePath
-      ~sandboxPath:Path.(projectPath / "_esy" / sandboxTree)
-      ~projectPath
+      ~projectPath:spec.path
+      ~localStorePath:(SandboxSpec.storePath spec)
+      ~buildPath:(SandboxSpec.buildPath spec)
       ()
   ) in
 
@@ -265,11 +252,11 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     in
 
     let%bind manifest, forceTransient, sourcePath, packagesPath =
-      let asRoot = Path.equal path projectPath in
+      let asRoot = Path.equal path spec.path in
       if asRoot
       then
-        let%bind m = Manifest.ofSandbox sandbox in
-        return (Some m, false, path, Path.(projectPath / "_esy" / sandboxTree))
+        let%bind m = Manifest.ofSandboxSpec spec in
+        return (Some m, false, path, SandboxSpec.nodeModulesPath spec)
       else
         let%bind forceTransient, sourcePath, manifestFilename =
           let pathToEsyLink = Path.(path / "_esylink") in
@@ -282,7 +269,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
         in
         let%bind m = Manifest.ofDir
           ?name
-          ?filename:manifestFilename
+          ?manifest:manifestFilename
           sourcePath
         in
         return (m, forceTransient, sourcePath, path)
@@ -348,7 +335,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     Memoize.compute packageCache (path, name) compute
   in
 
-  match%bind loadPackageCached projectPath [] with
+  match%bind loadPackageCached spec.path [] with
   | `PackageWithBuild (root, manifest) ->
     let%bind manifestInfo =
       let statPath path =
@@ -364,7 +351,7 @@ let make ~(cfg : Config.t) projectPath (sandbox : Project.sandbox) =
     let%bind env = RunAsync.ofRun (Manifest.sandboxEnv manifest) in
 
     return ({
-      name = sandboxName;
+      spec;
       cfg;
       buildConfig;
       root;
