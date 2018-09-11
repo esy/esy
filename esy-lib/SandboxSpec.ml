@@ -149,7 +149,7 @@ let ofPath path =
   in
 
   let ofFile path =
-    let sandboxPath = Path.parent path in
+    let sandboxPath = Path.(remEmptySeg (parent path)) in
     let fname = Path.basename path in
     if fname = "opam"
     then return {path = sandboxPath; manifest = Opam fname}
