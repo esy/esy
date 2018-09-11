@@ -284,7 +284,7 @@ module LockfileV1 = struct
       in
       List.fold_left
         ~f ~init:digest
-        (Package.Resolutions.entries resolutions)
+        (PackageJson.Resolutions.entries resolutions)
     in
     let digest =
       Digest.string ""

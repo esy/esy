@@ -1,5 +1,5 @@
 module Dependencies = Package.Dependencies
-module Resolutions = Package.Resolutions
+module Resolutions = PackageJson.Resolutions
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"

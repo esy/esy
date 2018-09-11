@@ -5,51 +5,6 @@ type 'a disj = 'a list [@@deriving eq]
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list [@@deriving eq]
 
-module Resolutions = struct
-  type t = Version.t StringMap.t
-
-  let empty = StringMap.empty
-
-  let find resolutions pkgName =
-    StringMap.find_opt pkgName resolutions
-
-  let entries = StringMap.bindings
-
-  let to_yojson v =
-    let items =
-      let f k v items = (k, (`String (Version.toString v)))::items in
-      StringMap.fold f v []
-    in
-    `Assoc items
-
-  let of_yojson =
-    let open Result.Syntax in
-    let parseKey k =
-      match PackagePath.parse k with
-      | Ok ((_path, name)) -> Ok name
-      | Error err -> Error err
-    in
-    let parseValue key =
-      function
-      | `String v -> begin
-        match String.cut ~sep:"/" key with
-        | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
-        | _ -> Version.parse v
-        end
-      | _ -> Error "expected string"
-    in
-    function
-    | `Assoc items ->
-      let f res (key, json) =
-        let%bind key = parseKey key in
-        let%bind value = parseValue key json in
-        Ok (StringMap.add key value res)
-      in
-      Result.List.foldLeft ~f ~init:empty items
-    | _ -> Error "expected object"
-
-end
-
 module Dep = struct
   type t = {
     name : string;
@@ -114,7 +69,7 @@ module Dependencies = struct
     match deps with
     | OpamFormula deps ->
       let applyToDep (dep : Dep.t) =
-        match Resolutions.find resolutions dep.name with
+        match PackageJson.Resolutions.find resolutions dep.name with
         | Some version ->
           let req =
             match version with
@@ -129,7 +84,7 @@ module Dependencies = struct
       OpamFormula deps
     | NpmFormula reqs ->
       let applyToReq (req : Req.t) =
-        match Resolutions.find resolutions req.name with
+        match PackageJson.Resolutions.find resolutions req.name with
         | Some version ->
           let spec = VersionSpec.ofVersion version in
           Req.make ~name:req.name ~spec

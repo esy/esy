@@ -235,7 +235,51 @@ module Dependencies = struct
     List.find_opt ~f reqs
 end
 
+module Resolutions = struct
+  type t = Version.t StringMap.t
 
+
+  let empty = StringMap.empty
+
+  let find resolutions pkgName =
+    StringMap.find_opt pkgName resolutions
+
+  let entries = StringMap.bindings
+
+  let to_yojson v =
+    let items =
+      let f k v items = (k, (`String (Version.toString v)))::items in
+      StringMap.fold f v []
+    in
+    `Assoc items
+
+  let of_yojson =
+    let open Result.Syntax in
+    let parseKey k =
+      match PackagePath.parse k with
+      | Ok ((_path, name)) -> Ok name
+      | Error err -> Error err
+    in
+    let parseValue key =
+      function
+      | `String v -> begin
+        match Astring.String.cut ~sep:"/" key with
+        | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
+        | _ -> Version.parse v
+        end
+      | _ -> Error "expected string"
+    in
+    function
+    | `Assoc items ->
+      let f res (key, json) =
+        let%bind key = parseKey key in
+        let%bind value = parseValue key json in
+        Ok (StringMap.add key value res)
+      in
+      Result.List.foldLeft ~f ~init:empty items
+    | _ -> Error "expected object"
+
+end
 
 module EsyPackageJson = struct
   type t = {

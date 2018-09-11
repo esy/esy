@@ -3,13 +3,13 @@ type t = {
   spec : SandboxSpec.t;
   root : Package.t;
   dependencies : Package.Dependencies.t;
-  resolutions : Package.Resolutions.t;
+  resolutions : PackageJson.Resolutions.t;
   ocamlReq : Req.t option;
 }
 
 module PackageJsonWithResolutions = struct
   type t = {
-    resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
+    resolutions : (PackageJson.Resolutions.t [@default PackageJson.Resolutions.empty]);
   } [@@deriving of_yojson { strict = false }]
 end
 
@@ -83,7 +83,7 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
         opam = None;
         kind = Esy;
       };
-      resolutions = Package.Resolutions.empty;
+      resolutions = PackageJson.Resolutions.empty;
       dependencies = Package.Dependencies.NpmFormula [];
       ocamlReq = Some ocamlReqAny;
     }
@@ -126,7 +126,7 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
       cfg;
       spec;
       root;
-      resolutions = Package.Resolutions.empty;
+      resolutions = PackageJson.Resolutions.empty;
       dependencies;
       ocamlReq = Some ocamlReqAny;
     }

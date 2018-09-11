@@ -77,6 +77,17 @@ module EsyPackageJson : sig
   val of_yojson : t Json.decoder
 end
 
+module Resolutions : sig
+  type t
+
+  val empty : t
+  val find : t -> string -> Version.t option
+
+  val entries : t -> (string * Version.t) list
+
+  include S.JSONABLE with type t := t
+end
+
 type t = {
   name : string option;
   version : SemverVersion.Version.t option;
