@@ -93,5 +93,11 @@ describe('projects with multiple sandboxes', function() {
     }
 
     expect(p.esy('@package.custom.json default-dep')).rejects.toThrow();
+
+    {
+      // .json extension could be dropped
+      const {stdout} = await p.esy('@package.custom custom-dep');
+      expect(stdout.trim()).toBe('__custom-dep__');
+    }
   });
 });

@@ -150,14 +150,26 @@ let ofPath path =
 
   let ofFile path =
     let sandboxPath = Path.(remEmptySeg (parent path)) in
+
+    let rec tryLoad = function
+      | [] -> errorf "cannot load sandbox manifest at: %a" Path.pp path
+      | fname::rest ->
+        let fpath = Path.(sandboxPath / fname) in
+        if%bind Fs.exists fpath
+        then (
+          if fname = "opam"
+          then
+            return {path = sandboxPath; manifest = Opam fname}
+          else
+            match Path.getExt fpath with
+            | ".json" -> return {path = sandboxPath; manifest = Esy fname}
+            | ".opam" -> return {path = sandboxPath; manifest = Opam fname}
+            | _ -> tryLoad rest
+        ) else
+          tryLoad rest
+    in
     let fname = Path.basename path in
-    if fname = "opam"
-    then return {path = sandboxPath; manifest = Opam fname}
-    else
-      match Path.getExt path with
-      | ".json" -> return {path = sandboxPath; manifest = Esy fname}
-      | ".opam" -> return {path = sandboxPath; manifest = Opam fname}
-      | _ -> errorf "unknown sandbox manifest: %a" Path.pp path
+    tryLoad [fname; fname ^ ".json"; fname ^ ".opam";]
   in
 
   if%bind Fs.isDir path
