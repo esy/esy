@@ -1,7 +1,5 @@
 open Esy
 
-let sandboxRef = ref None
-
 module SandboxInfo = struct
   type t = {
     sandbox : Sandbox.t;
@@ -477,7 +475,7 @@ module CommonOptions = struct
     let%bind projectPath = climb currentPath in
     return projectPath
 
-  let term =
+  let term sandboxName =
     let parse
       prefixPath
       projectPath
@@ -562,11 +560,12 @@ module CommonOptions = struct
               ?solveTimeout
               ()
           in
-          match Project.find ~name:!sandboxRef project with
+          match Project.find ~name:sandboxName project with
           | Some sandbox -> Sandbox.make ~cfg project.path sandbox
-          | None -> errorf "no sandbox %a found" Fmt.(option ~none:(unit "default") string) !sandboxRef
+          | None ->
+            errorf "no sandbox %a found" Fmt.(option ~none:(unit "default") string) sandboxName
         in
-        return {sandbox = !sandboxRef; project; cfg; installSandbox;}
+        return {sandbox = sandboxName; project; cfg; installSandbox;}
       in
       match Lwt_main.run copts with
       | Ok v -> `Ok v
@@ -1453,8 +1452,10 @@ let makeAlias command alias =
   let doc = Printf.sprintf "An alias for $(b,%s) command" name in
   term, Cmdliner.Term.info alias ~version:EsyRuntime.version ~doc
 
-let () =
+let makeCommands ~sandbox () =
   let open Cmdliner in
+
+  let commonOpts = CommonOptions.term sandbox in
 
   let defaultCommand =
     let run copts cmd () =
@@ -1476,7 +1477,7 @@ let () =
       ~header:`No
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
-      Term.(const run $ CommonOptions.term $ cmdTerm $ Cli.setupLogTerm)
+      Term.(const run $ commonOpts $ cmdTerm $ Cli.setupLogTerm)
   in
 
   let commands =
@@ -1498,7 +1499,7 @@ let () =
         ~doc:"Build the entire sandbox"
         Term.(
           const run
-          $ CommonOptions.term
+          $ commonOpts
           $ Cli.cmdOptionTerm
               ~doc:"Command to execute within the build environment."
               ~docv:"COMMAND"
@@ -1512,7 +1513,7 @@ let () =
         ~doc:"Solve & fetch dependencies"
         Term.(
           const solveAndFetch
-          $ CommonOptions.term
+          $ commonOpts
           $ Cli.setupLogTerm
         )
     in
@@ -1529,7 +1530,7 @@ let () =
       ~doc:"Print build plan to stdout"
       Term.(
         const buildPlan
-        $ CommonOptions.term
+        $ commonOpts
         $ pkgPathTerm
         $ Cli.setupLogTerm
       );
@@ -1539,7 +1540,7 @@ let () =
       ~doc:"Enter the build shell"
       Term.(
         const buildShell
-        $ CommonOptions.term
+        $ commonOpts
         $ pkgPathTerm
         $ Cli.setupLogTerm
       );
@@ -1549,7 +1550,7 @@ let () =
       ~doc:"Build specified package"
       Term.(
         const buildPackage
-        $ CommonOptions.term
+        $ commonOpts
         $ pkgPathTerm
         $ Cli.setupLogTerm
       );
@@ -1560,7 +1561,7 @@ let () =
       ~doc:"Enter esy sandbox shell"
       Term.(
         const devShell
-        $ CommonOptions.term
+        $ commonOpts
         $ Cli.setupLogTerm
       );
 
@@ -1570,7 +1571,7 @@ let () =
       ~doc:"Print build environment to stdout"
       Term.(
         const buildEnv
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ pkgPathTerm
         $ Cli.setupLogTerm
@@ -1582,7 +1583,7 @@ let () =
       ~doc:"Print command environment to stdout"
       Term.(
         const commandEnv
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ pkgPathTerm
         $ Cli.setupLogTerm
@@ -1594,7 +1595,7 @@ let () =
       ~doc:"Print sandbox environment to stdout"
       Term.(
         const sandboxEnv
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ pkgPathTerm
         $ Cli.setupLogTerm
@@ -1605,7 +1606,7 @@ let () =
       ~doc:"Output a tree of packages in the sandbox along with their status"
       Term.(
         const lsBuilds
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             value
             & flag
@@ -1618,7 +1619,7 @@ let () =
       ~doc:"Output a tree of packages along with the set of libraries made available by each package dependency."
       Term.(
         const lsLibs
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             value
             & flag
@@ -1631,7 +1632,7 @@ let () =
       ~doc:"Output a tree of packages along with the set of libraries and modules made available by each package dependency."
       Term.(
         const lsModules
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             value
             & (pos_all string [])
@@ -1644,7 +1645,7 @@ let () =
       ~doc:"Export sandbox dependendencies as prebuilt artifacts"
       Term.(
         const exportDependencies
-        $ CommonOptions.term
+        $ commonOpts
         $ Cli.setupLogTerm
       );
 
@@ -1653,7 +1654,7 @@ let () =
       ~doc:"Import sandbox dependencies"
       Term.(
         const importDependencies
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             value
             & pos 0  (some resolvedPathTerm) None
@@ -1668,7 +1669,7 @@ let () =
       ~doc:"Execute command as if the package is installed"
       Term.(
         const exec
-        $ CommonOptions.term
+        $ commonOpts
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
@@ -1680,7 +1681,7 @@ let () =
       ~doc:"Export build from the store"
       Term.(
         const exportBuild
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             required
             & pos 0  (some resolvedPathTerm) None
@@ -1694,7 +1695,7 @@ let () =
       ~doc:"Import build into the store"
       Term.(
         const importBuild
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             value
             & opt (some resolvedPathTerm) None
@@ -1713,7 +1714,7 @@ let () =
       ~doc:"Add a new dependency"
       Term.(
         const add
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             non_empty
             & pos_all string []
@@ -1727,7 +1728,7 @@ let () =
       ~doc:"Solve dependencies and store the solution as a lockfile"
       Term.(
         const solve
-        $ CommonOptions.term
+        $ commonOpts
         $ Cli.setupLogTerm
       );
 
@@ -1736,7 +1737,7 @@ let () =
       ~doc:"Fetch dependencies using the solution in a lockfile"
       Term.(
         const fetch
-        $ CommonOptions.term
+        $ commonOpts
         $ Cli.setupLogTerm
       );
 
@@ -1745,7 +1746,7 @@ let () =
       ~doc:"Produce npm package with prebuilt artifacts"
       Term.(
         const release
-        $ CommonOptions.term
+        $ commonOpts
         $ Cli.setupLogTerm
       );
 
@@ -1755,7 +1756,7 @@ let () =
       ~header:`No
       Term.(
         const gc
-        $ CommonOptions.term
+        $ commonOpts
         $ Arg.(
             value
             & flag
@@ -1790,15 +1791,9 @@ let () =
     makeAlias installCommand "i";
   ] in
 
-  let hasCommand name =
-    List.exists
-      ~f:(fun (_cmd, info) -> Term.name info = name)
-      commands
-  in
+  defaultCommand, commands
 
-  let runCmdliner argv =
-    Term.(exit @@ eval_choice ~argv defaultCommand commands);
-  in
+let () =
 
   let argv, commandName, sandbox =
     let argv = Array.to_list Sys.argv in
@@ -1823,7 +1818,17 @@ let () =
     Array.of_list argv, commandName, sandbox
   in
 
-  sandboxRef := sandbox;
+  let defaultCommand, commands = makeCommands ~sandbox () in
+
+  let hasCommand name =
+    List.exists
+      ~f:(fun (_cmd, info) -> Cmdliner.Term.name info = name)
+      commands
+  in
+
+  let runCmdliner argv =
+    Cmdliner.Term.(exit @@ eval_choice ~argv defaultCommand commands);
+  in
 
   match commandName with
 
@@ -1869,5 +1874,4 @@ let () =
       let argv = Array.of_list argv in
       runCmdliner argv
 
-  | _ ->
-    runCmdliner argv
+  | _ -> runCmdliner argv
