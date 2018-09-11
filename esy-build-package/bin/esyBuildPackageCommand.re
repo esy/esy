@@ -9,9 +9,10 @@ type verb =
   | Verbose;
 
 type commonOpts = {
+  planPath: option(Fpath.t),
   buildPath: option(Fpath.t),
   storePath: option(Fpath.t),
-  sandboxPath: option(Fpath.t),
+  localStorePath: option(Fpath.t),
   projectPath: option(Fpath.t),
   logLevel: option(Logs.level),
 };
@@ -26,7 +27,7 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {storePath, sandboxPath, projectPath, _} = copts;
+  let {storePath, buildPath, localStorePath, projectPath, _} = copts;
   let%bind fastreplacestringPath = {
     let program = Sys.argv[0];
     let%bind program = realpath(v(program));
@@ -43,31 +44,35 @@ let createConfig = (copts: commonOpts) => {
     | None => Error(`Msg("unable to find fastreplacestring command"))
     };
   };
+  let%bind currentPath = Bos.OS.Dir.current();
+  let projectPath = Option.orDefault(~default=currentPath, projectPath);
   Config.make(
     ~fastreplacestringPath,
     ~storePath?,
-    ~sandboxPath?,
-    ~projectPath?,
+    ~buildPath=Option.orDefault(~default=projectPath / "_build", buildPath),
+    ~localStorePath=
+      Option.orDefault(~default=projectPath / "_store", localStorePath),
+    ~projectPath,
     (),
   );
 };
 
 let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
   open Run;
-  let {buildPath, _} = copts;
-  let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
+  let {planPath, _} = copts;
+  let planPath = Option.orDefault(~default=v("build.json"), planPath);
   let%bind cfg = createConfig(copts);
-  let%bind plan = Plan.ofFile(buildPath);
+  let%bind plan = Plan.ofFile(planPath);
   let%bind () = Build.build(~buildOnly, ~force, ~cfg, plan);
   Ok();
 };
 
 let shell = (copts: commonOpts) => {
   open Run;
-  let {buildPath, _} = copts;
-  let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
+  let {planPath, _} = copts;
+  let planPath = Option.orDefault(~default=v("build.json"), planPath);
   let%bind cfg = createConfig(copts);
-  let%bind plan = Plan.ofFile(buildPath);
+  let%bind plan = Plan.ofFile(planPath);
 
   let ppBanner = (build: Build.t) => {
     open Fmt;
@@ -128,14 +133,14 @@ let shell = (copts: commonOpts) => {
 
 let exec = (copts, command) => {
   open Run;
-  let {buildPath, _} = copts;
-  let buildPath = Option.orDefault(~default=v("build.json"), buildPath);
+  let {planPath, _} = copts;
+  let planPath = Option.orDefault(~default=v("build.json"), planPath);
   let%bind cfg = createConfig(copts);
   let runCommand = build => {
     let cmd = Cmd.of_list(command);
     Build.runCommandInteractive(build, cmd);
   };
-  let%bind plan = Plan.ofFile(buildPath);
+  let%bind plan = Plan.ofFile(planPath);
   let%bind () = Build.withBuild(~cfg, plan, runCommand);
   ok;
 };
@@ -220,22 +225,31 @@ let () = {
         & info(["store-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
-    let sandboxPath = {
+    let localStorePath = {
       let doc = "Specifies esy sandbox path.";
-      let env = Arg.env_var("ESY__SANDBOX_PATH", ~doc);
+      let env = Arg.env_var("ESY__LOCAL_STORE_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
-        & info(["sandbox-path"], ~env, ~docs, ~docv="PATH", ~doc)
+        & info(["local-store-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
     let buildPath = {
-      let doc = "Specifies path to build plan.";
-      let env = Arg.env_var("ESY__BUILD_PLAN", ~doc);
+      let doc = "Specifies esy build path.";
+      let env = Arg.env_var("ESY__BUILD_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
-        & info(["build", "b"], ~env, ~docs, ~docv="PATH", ~doc)
+        & info(["build-path"], ~env, ~docs, ~docv="PATH", ~doc)
+      );
+    };
+    let planPath = {
+      let doc = "Specifies path to build plan.";
+      let env = Arg.env_var("ESY__PLAN", ~doc);
+      Arg.(
+        value
+        & opt(some(path), None)
+        & info(["plan", "p"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
     let setupLogT =
@@ -244,19 +258,29 @@ let () = {
         $ Fmt_cli.style_renderer()
         $ Logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
       );
-    let parse = (projectPath, storePath, sandboxPath, buildPath, logLevel) => {
-      storePath,
-      sandboxPath,
+    let parse =
+        (
+          projectPath,
+          storePath,
+          localStorePath,
+          buildPath,
+          planPath,
+          logLevel,
+        ) => {
       projectPath,
+      storePath,
+      localStorePath,
       buildPath,
+      planPath,
       logLevel,
     };
     Term.(
       const(parse)
       $ projectPath
       $ storePath
-      $ sandboxPath
+      $ localStorePath
       $ buildPath
+      $ planPath
       $ setupLogT
     );
   };

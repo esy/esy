@@ -145,10 +145,10 @@ include MANIFEST
  *)
 val ofDir :
   ?name:string
-  -> ?filename:ManifestFilename.t
+  -> ?manifest:SandboxSpec.ManifestSpec.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 
-val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
+val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

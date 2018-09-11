@@ -14,7 +14,7 @@ type t = {
 
   (** Optional manifest. If no specified then manifest resolution will be
       performed. *)
-  manifest : ManifestFilename.t option;
+  manifest : SandboxSpec.ManifestSpec.t option;
 }
 
 val ofFile : Path.t -> t RunAsync.t

@@ -13,10 +13,6 @@ describe('ejected command-env', () => {
     const p = await createTestSandbox(...fixture.simpleProject);
     await p.esy('build');
 
-    await fs.symlink(
-      path.join(p.projectPath, '_esy/default/node_modules'),
-      path.join(p.projectPath, 'node_modules'),
-    );
     await expect(
       promiseExec('. ./node_modules/.cache/_esy/build/bin/command-env && dep', {
         cwd: p.projectPath,

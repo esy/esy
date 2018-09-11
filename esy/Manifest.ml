@@ -382,7 +382,7 @@ end = struct
 
   let name manifest =
     match manifest with
-    | Installed {name = Some name; _} -> "@opam/" ^ name
+    | Installed {name = Some name; _} -> name
     | manifest -> "@opam/" ^ (opamname manifest)
 
   let version = function
@@ -636,12 +636,13 @@ module EsyOrOpamManifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
-  val ofSandbox : Project.sandbox -> (t * Path.Set.t) RunAsync.t
+  val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
   val ofDir :
     ?name:string
-    -> ?filename:ManifestFilename.t
+    -> ?manifest:SandboxSpec.ManifestSpec.t
     -> Path.t
     -> (t * Path.Set.t) option RunAsync.t
+
 end = struct
   type t =
     | Esy of Esy.t
@@ -697,7 +698,7 @@ end = struct
     | Opam m -> Opam.sandboxEnv m
     | Esy m -> Esy.sandboxEnv m
 
-  let ofDir ?name ?filename (path : Path.t) =
+  let ofDir ?name ?manifest (path : Path.t) =
     let open RunAsync.Syntax in
 
     let discoverOfDir path =
@@ -710,22 +711,27 @@ end = struct
           `Opam, Path.(v "_esy" / "opam");
           `Opam, Path.(v dirname |> addExt ".opam");
           `Opam, Path.v "opam";
-        ] 
+        ]
       in
 
       let rec tryLoad = function
         | [] -> return None
-        | (kind, name)::rest ->
-          let filename = Path.(path // name) in
-          if%bind Fs.exists filename
+        | (kind, fname)::rest ->
+          let fname = Path.(path // fname) in
+          if%bind Fs.exists fname
           then (
             match kind with
-            | `Esy -> 
-              let%bind manifest = Esy.ofFile filename in
-              return (Some (Esy manifest, Path.Set.singleton filename))
+            | `Esy ->
+              let%bind manifest = Esy.ofFile fname in
+              return (Some (Esy manifest, Path.Set.singleton fname))
             | `Opam ->
-              let%bind manifest = Opam.ofFile ~name:(Path.basename path) filename in
-              return (Some (Opam manifest, Path.Set.singleton filename))
+              let name =
+                match name with
+                | Some name -> name
+                | None -> Path.basename path
+              in
+              let%bind manifest = Opam.ofFile ~name fname in
+              return (Some (Opam manifest, Path.Set.singleton fname))
           )
           else tryLoad rest
       in
@@ -733,27 +739,32 @@ end = struct
       tryLoad filenames
     in
 
-    match filename with
+    match manifest with
     | None -> discoverOfDir path
-    | Some (ManifestFilename.Esy fname) -> 
+    | Some (SandboxSpec.ManifestSpec.OpamAggregated _) ->
+      errorf "unable to load manifest from aggregated opam files"
+    | Some (SandboxSpec.ManifestSpec.Esy fname) ->
       let path = Path.(path / fname) in
       let%bind manifest = Esy.ofFile path in
       return (Some (Esy manifest, Path.Set.singleton path))
-    | Some (ManifestFilename.Opam fname) -> 
+    | Some (SandboxSpec.ManifestSpec.Opam fname) ->
       let path = Path.(path / fname) in
       let%bind manifest = Opam.ofFile ?name path in
       return (Some (Opam manifest, Path.Set.singleton path))
 
-  let ofSandbox (sandbox : Project.sandbox) =
+  let ofSandboxSpec (spec : SandboxSpec.t) =
     let open RunAsync.Syntax in
-    match sandbox with
-    | Project.Esy {path; _} ->
+    match spec.manifest with
+    | SandboxSpec.ManifestSpec.Esy fname ->
+      let path = Path.(spec.path / fname) in
       let%bind manifest = Esy.ofFile path in
       return (Esy manifest, Path.Set.singleton path)
-    | Project.Opam {path; _} ->
+    | SandboxSpec.ManifestSpec.Opam fname ->
+      let path = Path.(spec.path / fname) in
       let%bind manifest = Opam.ofFiles [path] in
       return (Opam manifest, Path.Set.singleton path)
-    | Project.AggregatedOpam {paths} -> 
+    | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
+      let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
       let%bind manifest = Opam.ofFiles paths in
       return (Opam manifest, Path.Set.of_list paths)
 

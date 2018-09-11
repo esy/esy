@@ -67,7 +67,7 @@ describe('projects with multiple sandboxes', function() {
           helpers.ocamlPackage(),
         ),
         dir(
-          ['custom', 'node_modules'],
+          ['package.custom', 'node_modules'],
           makePackage({name: 'custom-dep', dependencies: {ocaml: '*'}}),
           helpers.ocamlPackage(),
         ),
@@ -85,13 +85,19 @@ describe('projects with multiple sandboxes', function() {
 
     expect(p.esy('custom-dep')).rejects.toThrow();
 
-    await p.esy('@custom build');
+    await p.esy('@package.custom.json build');
 
     {
-      const {stdout} = await p.esy('@custom custom-dep');
+      const {stdout} = await p.esy('@package.custom.json custom-dep');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
 
-    expect(p.esy('@custom default-dep')).rejects.toThrow();
+    expect(p.esy('@package.custom.json default-dep')).rejects.toThrow();
+
+    {
+      // .json extension could be dropped
+      const {stdout} = await p.esy('@package.custom custom-dep');
+      expect(stdout.trim()).toBe('__custom-dep__');
+    }
   });
 });
