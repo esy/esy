@@ -19,6 +19,24 @@ module CommandList : sig
   val empty : t
 end
 
+module Scripts : sig
+  type t = script StringMap.t
+  and script = { command : Command.t; }
+  val empty : t
+  val find : string -> t -> script option
+
+  val of_yojson : t Json.decoder
+end
+
+module Env : sig
+  type t = item list
+  and item = { name : string; value : string; }
+  val empty : t
+  val show : t -> string
+
+  include S.JSONABLE with type t := t
+end
+
 module ExportedEnv : sig
   type t = item list
 
