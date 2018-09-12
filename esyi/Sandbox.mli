@@ -4,8 +4,7 @@ type t = {
   (** Configuration. *)
   cfg : Config.t;
 
-  (** Path to sandbox root. *)
-  path : Path.t;
+  spec : SandboxSpec.t;
 
   (** Root package. *)
   root : Package.t;
@@ -22,17 +21,7 @@ type t = {
   resolutions : Package.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
-  ocamlReq : Package.Req.t option;
-
-  (** Type of configuration origin of the sandbox. *)
-  origin : origin;
+  ocamlReq : Req.t option;
 }
 
-(** Types of configuration files containing their paths. *)
-and origin =
-  | Esy of Path.t
-  | Opam of Path.t
-  | AggregatedOpam of Path.t list
-
-(** Read sandbox out of directory given the config. *)
-val ofDir : cfg:Config.t -> Path.t -> t RunAsync.t
+val make : cfg:Config.t -> SandboxSpec.t -> t RunAsync.t

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.2.11 @ latest
+
+- Bust cache to workaround buggy 0.2.9 poisoned build artifacts.
+
+## 0.2.10 @ latest
+
+- Fix bug with `optDependencies` not being processed correctly.
+
 ## 0.2.9 @ latest
 
 - Support for installing dependencies specified via npm dist-tags:

@@ -1,4 +1,3 @@
-module Version = Package.Version
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
@@ -99,7 +98,7 @@ module Layout = struct
   let pp =
     Fmt.(list ~sep:(unit "@\n") pp_installation)
 
-  let ofSolution ~path (sol : Solution.t) =
+  let ofSolution ~nodeModulesPath (sol : Solution.t) =
     match Solution.root sol with
     | None -> []
     | Some root ->
@@ -152,12 +151,12 @@ module Layout = struct
           let sourcePath =
             let main, _ = record.Record.source in
             match main with
-            | Package.Source.Archive _
-            | Package.Source.Git _
-            | Package.Source.Github _
-            | Package.Source.LocalPath _
-            | Package.Source.NoSource -> path
-            | Package.Source.LocalPathLink path -> path
+            | Source.Archive _
+            | Source.Git _
+            | Source.Github _
+            | Source.LocalPath _
+            | Source.NoSource -> path
+            | Source.LocalPathLink {path; manifest = _;} -> path
           in
           let installation = {
             path;
@@ -185,7 +184,7 @@ module Layout = struct
           let path =
             match breadcrumb with
             | (_modules, path)::_ -> Path.(path // v record.Record.name / "node_modules")
-            | [] -> Path.(path / "node_modules")
+            | [] -> nodeModulesPath
           in
           modules, path
         in
@@ -240,7 +239,7 @@ module Layout = struct
       Record.
       name;
       version = Version.Npm (parseVersionExn version);
-      source = Package.Source.NoSource, [];
+      source = Source.NoSource, [];
       files = [];
       opam = None;
     } : Record.t)
@@ -272,7 +271,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -285,7 +284,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -299,7 +298,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -314,7 +313,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -330,7 +329,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -348,7 +347,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "shared@1.0.0", "./node_modules/a/node_modules/shared";
@@ -366,7 +365,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "c@1.0.0", "./node_modules/a/node_modules/c";
@@ -383,7 +382,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -401,7 +400,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "c@1.0.0", "./node_modules/a/node_modules/c";
@@ -421,7 +420,7 @@ module Layout = struct
         |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "c@1.0.0", "./node_modules/a/node_modules/c";
@@ -440,7 +439,7 @@ module Layout = struct
         |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "d" "2"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -458,7 +457,7 @@ module Layout = struct
         |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "c@1.0.0", "./node_modules/a/node_modules/c";
@@ -478,7 +477,7 @@ module Layout = struct
         |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "c@1.0.0", "./node_modules/a/node_modules/c";
@@ -497,7 +496,7 @@ module Layout = struct
         |> add ~record:(r "browserify" "1") ~dependencies:[id "punycode" "1"; id "url" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "browserify" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "browserify@1.0.0", "./node_modules/browserify";
         "punycode@1.0.0", "./node_modules/punycode";
@@ -512,7 +511,7 @@ module Layout = struct
         |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -526,7 +525,7 @@ module Layout = struct
         |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -541,7 +540,7 @@ module Layout = struct
         |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"; id "c" "1"]
         |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
       ) in
-      let layout = ofSolution ~path:(Path.v ".") sol in
+      let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
         "a@1.0.0", "./node_modules/a";
         "b@1.0.0", "./node_modules/b";
@@ -613,7 +612,8 @@ let runLifecycle ~installation ~(manifest : Manifest.t) () =
 
 let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-  let layout = Layout.ofSolution ~path:sandbox.path solution in
+  let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
+  let layout = Layout.ofSolution ~nodeModulesPath solution in
   let f installed {Layout.path;_} =
     if not installed
     then return installed
@@ -625,7 +625,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
-  let nodeModulesPath = Path.(sandbox.path / "node_modules") in
+  let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
 
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
@@ -700,7 +700,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
     let layout =
       Layout.ofSolution
-        ~path:sandbox.path
+        ~nodeModulesPath
         solution
     in
 
@@ -750,7 +750,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   (* populate node_modules/.bin with scripts defined for the direct dependencies *)
 
   let%bind () =
-    let binPath = Path.(sandbox.path / "node_modules" / ".bin") in
+    let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
+    let binPath = Path.(nodeModulesPath / ".bin") in
     let%bind () = Fs.createDir binPath in
 
     let installBinWrapper (name, path) =
@@ -778,5 +779,27 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     |> RunAsync.List.waitAll
   in
 
+  (* link default sandbox node_modules to <projectPath>/node_modules *)
+
+  let%bind () =
+    if SandboxSpec.isDefault sandbox.spec
+    then
+      let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
+      let targetPath = Path.(sandbox.spec.path / "node_modules") in
+      let%bind () = Fs.rmPath targetPath in
+      let%bind () = Fs.symlink ~src:nodeModulesPath targetPath in
+      return ()
+    else return ()
+  in
+
+  (* place dune with ignored_subdirs stanza inside node_modiles *)
+
+  let%bind () =
+    let packagesPath = SandboxSpec.nodeModulesPath sandbox.spec in
+    let%bind items = Fs.listDir packagesPath in
+    let items = String.concat " " items in
+    let data = "(ignored_subdirs (" ^ items ^ "))\n" in
+    Fs.writeFile ~data Path.(packagesPath / "dune")
+  in
 
   return ()

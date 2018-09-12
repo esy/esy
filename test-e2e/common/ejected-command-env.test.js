@@ -8,8 +8,8 @@ const fixture = require('./fixture.js');
 
 skipSuiteOnWindows('#301');
 
-describe('Common - ejected command env', () => {
-  it('Check that `esy build` ejects a command-env which contains deps and devDeps in $PATH', async () => {
+describe('ejected command-env', () => {
+  it('check that `esy build` ejects a command-env which contains deps and devDeps in $PATH', async () => {
     const p = await createTestSandbox(...fixture.simpleProject);
     await p.esy('build');
 

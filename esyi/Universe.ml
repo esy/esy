@@ -1,7 +1,4 @@
 module Dependencies = Package.Dependencies
-module Version = Package.Version
-module VersionSpec = Package.VersionSpec
-module Req = Package.Req
 
 module CudfName = struct
 
@@ -53,7 +50,7 @@ let findVersionExn ~name ~version (univ : t) =
     let msg =
       Printf.sprintf
         "inconsistent state: package not in the universr %s@%s"
-        name (Package.Version.toString version)
+        name (Version.toString version)
     in
     failwith msg
 
@@ -67,12 +64,10 @@ let findVersions ~name (univ : t) =
 
 module CudfVersionMap = struct
 
-  module VersionSet = Set.Make(Package.Version)
-
   type t = {
-    cudfVersionToVersion: ((string * int), Package.Version.t) Hashtbl.t ;
-    versionToCudfVersion: ((string * Package.Version.t), int) Hashtbl.t;
-    versions : (string, VersionSet.t) Hashtbl.t;
+    cudfVersionToVersion: ((string * int), Version.t) Hashtbl.t ;
+    versionToCudfVersion: ((string * Version.t), int) Hashtbl.t;
+    versions : (string, Version.Set.t) Hashtbl.t;
   }
 
   let make ?(size=100) () = {
@@ -87,9 +82,9 @@ module CudfVersionMap = struct
     let () =
       let versions =
         try Hashtbl.find map.versions name
-        with _ -> VersionSet.empty
+        with _ -> Version.Set.empty
       in
-      let versions = VersionSet.add version versions in
+      let versions = Version.Set.add version versions in
       Hashtbl.replace map.versions name versions
     in
     ()
@@ -122,7 +117,7 @@ module CudfVersionMap = struct
       let msg =
         Printf.sprintf
           "inconsistent state: found a package not in the cudf version map %s@%s"
-          name (Package.Version.toString version)
+          name (Version.toString version)
       in
       failwith msg
 
@@ -234,14 +229,14 @@ let toCudf ?(installed=Package.Set.empty) univ =
       (univ, cudfUniv, cudfVersionMap)
   in
 
-  let encodeNpmReq (req : Package.Req.t) =
+  let encodeNpmReq (req : Req.t) =
     let versions = findVersions ~name:req.name univ in
     if not (seen req.name) then (
       markAsSeen req.name;
       updateVersionMap versions;
     );
     let matches pkg =
-      Package.Req.matches
+      Req.matches
         ~name:pkg.Package.name
         ~version:pkg.Package.version
         req
@@ -259,7 +254,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       List.map ~f deps
     | Package.Dependencies.NpmFormula reqs ->
       let reqs =
-        let f (req : Package.Req.t) = StringMap.mem req.name univ.pkgs in
+        let f (req : Req.t) = StringMap.mem req.name univ.pkgs in
         List.filter ~f reqs
       in
       List.map ~f:encodeNpmReq reqs

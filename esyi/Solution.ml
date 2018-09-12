@@ -1,7 +1,3 @@
-module Version = Package.Version
-module Source = Package.Source
-module Req = Package.Req
-
 module Record = struct
 
   module Opam = struct
@@ -13,21 +9,21 @@ module Record = struct
     } [@@deriving yojson]
   end
 
-  module Source = struct
-    type t = Package.Source.t * Package.Source.t list
+  module SourceWithMirrors = struct
+    type t = Source.t * Source.t list
 
     let to_yojson = function
-      | main, [] -> Package.Source.to_yojson main
-      | main, mirrors -> `List (List.map ~f:Package.Source.to_yojson (main::mirrors))
+      | main, [] -> Source.to_yojson main
+      | main, mirrors -> `List (List.map ~f:Source.to_yojson (main::mirrors))
 
     let of_yojson (json : Json.t) =
       let open Result.Syntax in
       match json with
       | `String _ ->
-        let%bind source = Package.Source.of_yojson json in
+        let%bind source = Source.of_yojson json in
         return (source, [])
       | `List _ ->
-        begin match%bind Json.Parse.list Package.Source.of_yojson json with
+        begin match%bind Json.Parse.list Source.of_yojson json with
         | main::mirrors -> return (main, mirrors)
         | [] -> error "expected a non empty array or a string"
         end
@@ -38,7 +34,7 @@ module Record = struct
   type t = {
     name: string;
     version: Version.t;
-    source: Source.t;
+    source: SourceWithMirrors.t;
     files : Package.File.t list;
     opam : Opam.t option;
   } [@@deriving yojson]
@@ -46,8 +42,8 @@ module Record = struct
   let mapVersion ~f (record : t) =
     let version =
       match record.version with
-      | Version.Source (Package.Source.LocalPath p) ->
-        Version.Source (Package.Source.LocalPath (f p))
+      | Version.Source (Source.LocalPath info) ->
+        Version.Source (Source.LocalPath {info with path = f info.path;})
       | Version.Npm _
       | Version.Opam _
       | Version.Source _ -> record.version
@@ -55,14 +51,14 @@ module Record = struct
     let source =
       let f source =
         match source with
-        | Package.Source.LocalPathLink p ->
-          Package.Source.LocalPathLink (f p)
-        | Package.Source.LocalPath p ->
-          Package.Source.LocalPath (f p)
-        | Package.Source.Archive _
-        | Package.Source.Git _
-        | Package.Source.Github _
-        | Package.Source.NoSource -> source
+        | Source.LocalPathLink info ->
+          Source.LocalPathLink {info with path = f info.path;}
+        | Source.LocalPath info ->
+          Source.LocalPath {info with path = f info.path;}
+        | Source.Archive _
+        | Source.Git _
+        | Source.Github _
+        | Source.NoSource -> source
       in
       let main, mirrors = record.source in
       let main = f main in
@@ -88,7 +84,7 @@ module Record = struct
 end
 
 module Id = struct
-  type t = string * Package.Version.t [@@deriving (ord, eq)]
+  type t = string * Version.t [@@deriving (ord, eq)]
 
   let rec parse v =
     let open Result.Syntax in
@@ -111,8 +107,8 @@ module Id = struct
   let mapVersion ~f ((name, version) : t) =
     let version =
       match version with
-      | Version.Source (Source.LocalPath p) ->
-        Version.Source (Source.LocalPath (f p))
+      | Version.Source (Source.LocalPath info) ->
+        Version.Source (Source.LocalPath {info with path = f info.path;})
       | Version.Npm _
       | Version.Opam _
       | Version.Source _ -> version
@@ -255,19 +251,17 @@ module LockfileV1 = struct
         in
         let ppVersionSpec fmt spec =
           match spec with
-          | Package.VersionSpec.Npm f ->
+          | VersionSpec.Npm f ->
             ppDnf SemverVersion.Constraint.pp fmt f
-          | Package.VersionSpec.NpmDistTag (tag, _version) ->
+          | VersionSpec.NpmDistTag (tag, _version) ->
             Fmt.string fmt tag
-          | Package.VersionSpec.Opam f ->
+          | VersionSpec.Opam f ->
             ppDnf OpamPackageVersion.Constraint.pp fmt f
-          | Package.VersionSpec.Source src ->
-            Fmt.pf fmt "%a" Package.SourceSpec.pp src
+          | VersionSpec.Source src ->
+            Fmt.pf fmt "%a" SourceSpec.pp src
         in
         let ppReq fmt req =
-          let name = Package.Req.name req in
-          let spec = Package.Req.spec req in
-          Fmt.fmt "%s@%a" fmt name ppVersionSpec spec
+          Fmt.fmt "%s@%a" fmt req.Req.name ppVersionSpec req.spec
         in
         Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
       in
@@ -302,7 +296,7 @@ module LockfileV1 = struct
     Digest.to_hex digest
 
   let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
-    let derelativize path = Path.(sandbox.path // path |> normalize) in
+    let derelativize path = Path.(sandbox.spec.path // path |> normalize) in
     let root = Id.mapVersion ~f:derelativize root in
     let f id {record; dependencies} sol =
       let record = Record.mapVersion ~f:derelativize record in
@@ -315,9 +309,9 @@ module LockfileV1 = struct
 
   let lockfileOfSolution ~(sandbox : Sandbox.t) (sol : solution) =
     let relativize path =
-      if Path.equal path sandbox.path
+      if Path.equal path sandbox.spec.path
       then Path.(v ".")
-      else match Path.relativize ~root:sandbox.path path with
+      else match Path.relativize ~root:sandbox.spec.path path with
       | Some path -> path
       | None -> path
     in
@@ -356,7 +350,7 @@ module LockfileV1 = struct
         let path =
           Option.orDefault
             ~default:path
-            (Path.relativize ~root:sandbox.path path)
+            (Path.relativize ~root:sandbox.spec.path path)
         in
         errorf
           "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"

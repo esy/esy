@@ -1,9 +1,3 @@
-module VersionSpec = Package.VersionSpec
-module SourceSpec = Package.SourceSpec
-module Version = Package.Version
-module Source = Package.Source
-module Req = Package.Req
-
 module Resolution = struct
   type t = {
     name: string;
@@ -20,7 +14,7 @@ module Resolution = struct
 end
 
 module PackageCache = Memoize.Make(struct
-  type key = (string * Package.Version.t)
+  type key = (string * Version.t)
   type value = (Package.t, string) result RunAsync.t
 end)
 
@@ -41,7 +35,7 @@ let toOpamName name =
 
 let toOpamOcamlVersion version =
   match version with
-  | Some (Package.Version.Npm { major; minor; patch; _ }) ->
+  | Some (Version.Npm { major; minor; patch; _ }) ->
     let minor =
       if minor < 10
       then "0" ^ (string_of_int minor)
@@ -59,38 +53,117 @@ let toOpamOcamlVersion version =
       | Error msg -> failwith msg
     in
     Some v
-  | Some (Package.Version.Opam v) -> Some v
-  | Some (Package.Version.Source _) -> None
+  | Some (Version.Opam v) -> Some v
+  | Some (Version.Source _) -> None
   | None -> None
 
-module Github = struct
+let classifyManifest path =
+  let open Result.Syntax in
+  let basename = Path.basename path in
+  let ext = Path.getExt path in
+  match basename, ext with
+  | _, ".json" -> return `PackageJson
+  | _, ".opam" ->
+    let name = Path.(basename (remExt path)) in
+    return (`Opam (Some name))
+  | "opam", "" -> return (`Opam None)
+  | _ -> errorf "unknown manifest: %s" basename
 
-  let remote ~user ~repo =
-    Printf.sprintf "https://github.com/%s/%s.git" user repo
-
-  let getManifest ~user ~repo ?(ref="master") () =
-    let open RunAsync.Syntax in
-    let fetchFile name =
-      let url =
-        "https://raw.githubusercontent.com"
-        ^ "/" ^ user
-        ^ "/" ^ repo
-        ^ "/" ^ ref (* TODO: resolve default ref against GH instead *)
-        ^ "/" ^ name
-      in
-      Curl.get url
+let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="master") () =
+  let open RunAsync.Syntax in
+  let fetchFile name =
+    let url =
+      Printf.sprintf
+        "https://raw.githubusercontent.com/%s/%s/%s/%s"
+        user repo ref name
     in
-    match%lwt fetchFile "esy.json" with
-    | Ok data ->
-      RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data)
-    | Error _ ->
-      begin match%lwt fetchFile "package.json" with
-      | Ok text ->
-        RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson text)
-      | Error _ ->
-        error "no manifest found"
+    Curl.get url
+  in
+
+  let filenames =
+    match manifest with
+    | Some manifest -> [SandboxSpec.ManifestSpec.toString manifest]
+    | None -> ["esy.json"; "package.json"]
+  in
+
+  let rec tryFilename filenames =
+    match filenames with
+    | [] -> errorf "cannot find manifest at github:%s/%s#%s" user repo ref
+    | filename::rest ->
+      begin match%lwt fetchFile filename with
+      | Error _ -> tryFilename rest
+      | Ok data ->
+        begin match classifyManifest (Path.v filename) with
+        | Ok `PackageJson ->
+          let%bind manifest = RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data) in
+          return (Package.ofPackageJson ~name ~version ~source manifest)
+        | Ok `Opam opamname ->
+          let opamname =
+            match opamname with
+            | None -> repo
+            | Some name -> name
+          in
+          let%bind manifest =
+            let version = OpamPackage.Version.of_string "dev" in
+            let name = OpamPackage.Name.of_string opamname in
+            RunAsync.ofRun (OpamManifest.ofString ~name ~version data)
+          in
+          begin match%bind OpamManifest.toPackage ~name ~version ~source manifest with
+          | Ok pkg -> return pkg
+          | Error err -> error err
+          end
+        | Error err -> error err
+        end
       end
-end
+  in
+
+  tryFilename filenames
+
+let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
+  let open RunAsync.Syntax in
+
+  let rec tryFilename filenames =
+    match filenames with
+    | [] -> errorf "cannot find manifest at %a" Path.pp path
+    | filename::rest ->
+      let path = Path.(path / filename) in
+      if%bind Fs.exists path
+      then
+        match classifyManifest path with
+        | Ok `PackageJson ->
+          let%bind manifest = PackageJson.ofFile path in
+          return (Package.ofPackageJson ~name ~version ~source manifest)
+        | Ok (`Opam opamname) ->
+          let opamname =
+            match opamname with
+            | None -> Path.(basename (parent path))
+            | Some name -> name
+          in
+          let%bind manifest =
+            let version = OpamPackage.Version.of_string "dev" in
+            let name = OpamPackage.Name.of_string opamname in
+            OpamManifest.ofPath ~name ~version path
+          in
+          begin match%bind OpamManifest.toPackage ~name ~version ~source manifest with
+          | Ok pkg -> return pkg
+          | Error err -> error err
+          end
+        | Error err ->
+          error err
+      else
+        tryFilename rest
+  in
+  let filenames =
+    match manifest with
+    | Some manifest -> [SandboxSpec.ManifestSpec.toString manifest]
+    | None -> [
+      "esy.json";
+      "package.json";
+      "opam";
+      Path.basename path ^ ".opam";
+    ]
+  in
+  tryFilename filenames
 
 type t = {
   cfg: Config.t;
@@ -98,7 +171,7 @@ type t = {
   srcCache: SourceCache.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
-  ocamlVersion : Package.Version.t option;
+  ocamlVersion : Version.t option;
   resolutionCache : ResolutionCache.t;
 }
 
@@ -129,45 +202,40 @@ let package ~(resolution : Resolution.t) resolver =
   let key = (resolution.name, resolution.version) in
   PackageCache.compute resolver.pkgCache key begin fun _ ->
     match resolution.version with
-    | Version.Source ((Source.LocalPath path) as source)
-    | Version.Source ((Source.LocalPathLink path) as source) ->
-      let%bind manifest = PackageJson.ofDir path in
-      let pkg =
-        PackageJson.toPackage
-          ~name:resolution.name
-          ~version:resolution.version
-          ~source:(Package.Source source)
-          manifest
+    | Version.Source ((Source.LocalPath {path; manifest}) as source)
+    | Version.Source ((Source.LocalPathLink {path; manifest}) as source) ->
+      let%bind pkg = loadPackageOfPath
+        ?manifest
+        ~name:resolution.name
+        ~version:resolution.version
+        ~source:(Package.Source source)
+        path
       in
       return (Ok pkg)
-
-    | Version.Source (Git {remote; commit} as source) ->
+    | Version.Source (Git {remote; commit; manifest;} as source) ->
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
-        match%lwt PackageJson.ofDir repo with
-        | Ok manifest ->
-          let pkg =
-            PackageJson.toPackage
-              ~name:resolution.name
-              ~version:resolution.version
-              ~source:(Package.Source source)
-              manifest
-          in
-          return (Ok pkg)
-        | Error err ->
-          errorf
-            "cannot read manifest at %a: %s"
-            Source.pp source (Run.formatError err)
-      end
-    | Version.Source ((Github {user; repo; commit}) as source) ->
-      let%bind pkgJson = Github.getManifest ~user ~repo ~ref:commit () in
-      let pkg =
-        PackageJson.toPackage
+        let%bind pkg = loadPackageOfPath
+          ?manifest
           ~name:resolution.name
           ~version:resolution.version
           ~source:(Package.Source source)
-          pkgJson
+          repo
+        in
+        return (Ok pkg)
+      end
+    | Version.Source ((Github {user; repo; commit; manifest;}) as source) ->
+      let%bind pkg =
+        loadPackageOfGithub
+          ?manifest
+          ~name:resolution.name
+          ~version:resolution.version
+          ~source:(Package.Source source)
+          ~user
+          ~repo
+          ~ref:commit
+          ()
       in
       return (Ok pkg)
     | Version.Source Source.NoSource -> error "no source"
@@ -209,28 +277,28 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
     let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
     match sourceSpec with
-    | SourceSpec.Github {user; repo; ref} ->
-      let remote = Github.remote ~user ~repo in
+    | SourceSpec.Github {user; repo; ref; manifest;} ->
+      let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
       let%bind commit = Git.lsRemote ?ref ~remote () in
       begin match commit, ref with
       | Some commit, _ ->
-        return (Source.Github {user; repo; commit})
+        return (Source.Github {user; repo; commit; manifest;})
       | None, Some ref ->
         if Git.isCommitLike ref
-        then return (Source.Github {user; repo; commit = ref})
+        then return (Source.Github {user; repo; commit = ref; manifest;})
         else errorResolvingSource "cannot resolve commit"
       | None, None ->
         errorResolvingSource "cannot resolve commit"
       end
 
-    | SourceSpec.Git {remote; ref} ->
+    | SourceSpec.Git {remote; ref; manifest;} ->
       let%bind commit = Git.lsRemote ?ref ~remote () in
       begin match commit, ref  with
       | Some commit, _ ->
-        return (Source.Git {remote; commit})
+        return (Source.Git {remote; commit; manifest;})
       | None, Some ref ->
         if Git.isCommitLike ref
-        then return (Source.Git {remote; commit = ref})
+        then return (Source.Git {remote; commit = ref; manifest;})
         else errorResolvingSource "cannot resolve commit"
       | None, None ->
         errorResolvingSource "cannot resolve commit"
@@ -244,11 +312,11 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
     | SourceSpec.Archive {url; checksum = Some checksum} ->
       return (Source.Archive {url; checksum})
 
-    | SourceSpec.LocalPath p ->
-      return (Source.LocalPath p)
+    | SourceSpec.LocalPath {path; manifest;} ->
+      return (Source.LocalPath {path; manifest;})
 
-    | SourceSpec.LocalPathLink p ->
-      return (Source.LocalPathLink p)
+    | SourceSpec.LocalPathLink {path; manifest;} ->
+      return (Source.LocalPathLink {path; manifest;})
   end
 
 let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
@@ -280,7 +348,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
 
       let resolutions =
         let f version =
-          let version = Package.Version.Npm version in
+          let version = Version.Npm version in
           {Resolution. name; version}
         in
         List.map ~f versions

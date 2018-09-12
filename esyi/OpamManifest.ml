@@ -6,23 +6,26 @@ module File = struct
     type value = OpamFile.OPAM.t RunAsync.t
   end)
 
+  let ofString ?upgradeIfOpamVersionIsLessThan ?filename data =
+    let filename =
+      let filename = Option.orDefault ~default:"opam" filename in
+      OpamFile.make (OpamFilename.of_string filename)
+    in
+    let opam = OpamFile.OPAM.read_from_string ~filename data in
+    match upgradeIfOpamVersionIsLessThan with
+    | Some upgradeIfOpamVersionIsLessThan ->
+      let opamVersion = OpamFile.OPAM.opam_version opam in
+      if OpamVersion.compare opamVersion upgradeIfOpamVersionIsLessThan < 0
+      then OpamFormatUpgrade.opam_file ~filename opam
+      else opam
+    | None -> opam
+
   let ofPath ?upgradeIfOpamVersionIsLessThan ?cache path =
     let open RunAsync.Syntax in
     let load () =
       let%bind data = Fs.readFile path in
-      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
-      (* TODO: error handling here *)
-      let opam = OpamFile.OPAM.read_from_string ~filename data in
-      let opam =
-        match upgradeIfOpamVersionIsLessThan with
-        | Some upgradeIfOpamVersionIsLessThan ->
-          let opamVersion = OpamFile.OPAM.opam_version opam in
-          if OpamVersion.compare opamVersion upgradeIfOpamVersionIsLessThan < 0
-          then OpamFormatUpgrade.opam_file ~filename opam
-          else opam
-        | None -> opam
-      in
-      return opam
+      let filename = Path.toString path in
+      return (ofString ?upgradeIfOpamVersionIsLessThan ~filename data)
     in
     match cache with
     | Some cache -> Cache.compute cache path load
@@ -48,7 +51,7 @@ let readFiles (path : Path.t) () =
 type t = {
   name: OpamPackage.Name.t;
   version: OpamPackage.Version.t;
-  path : Path.t;
+  path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
   override : Override.t;
@@ -59,7 +62,22 @@ let ofPath ~name ~version (path : Path.t) =
   let open RunAsync.Syntax in
   let%bind opam = File.ofPath path in
   return {
-    name; version; path = Path.parent path;
+    name;
+    version;
+    path = Some (Path.parent path);
+    opam;
+    url = None;
+    override = Override.empty;
+    archive = None;
+  }
+
+let ofString ~name ~version (data : string) =
+  let open Run.Syntax in
+  let opam = File.ofString data in
+  return {
+    name;
+    version;
+    path = None;
     opam;
     url = None;
     override = Override.empty;
@@ -147,7 +165,7 @@ let convertOpamUrl (manifest : t) =
     let convert (url : OpamUrl.t) =
       match url.backend with
       | `http ->
-        return (Package.Source (Package.Source.Archive {
+        return (Package.Source (Source.Archive {
           url = OpamUrl.to_string url;
           checksum;
         }))
@@ -172,7 +190,7 @@ let convertOpamUrl (manifest : t) =
   let%bind main, mirrors =
     match manifest.override.Override.opam.Override.Opam.source with
     | Some source ->
-      let main = Package.Source (Package.Source.Archive {
+      let main = Package.Source (Source.Archive {
         url = source.url;
         checksum = Checksum.Md5, source.checksum;
       }) in
@@ -181,7 +199,7 @@ let convertOpamUrl (manifest : t) =
       match manifest.url with
       | Some url -> sourceOfOpamUrl url
       | None ->
-        let main = Package.Source Package.Source.NoSource in
+        let main = Package.Source Source.NoSource in
         Ok (main, [])
       end
   in
@@ -190,7 +208,7 @@ let convertOpamUrl (manifest : t) =
   | Some archive ->
     let mirrors = main::mirrors in
     let main =
-      Package.Source (Package.Source.Archive {
+      Package.Source (Source.Archive {
         url = archive.url;
         checksum = Checksum.Md5, archive.md5;
       })
@@ -198,6 +216,31 @@ let convertOpamUrl (manifest : t) =
     Ok (main, mirrors)
   | None ->
     Ok (main, mirrors)
+
+let toOpamFormula reqs =
+  let f reqs (req : Req.t) =
+    let update =
+      match req.spec with
+      | VersionSpec.Npm formula ->
+        let f (c : SemverVersion.Constraint.t) =
+          {Package.Dep. name = req.name; req = Npm c}
+        in
+        let formula = SemverVersion.Formula.ofDnfToCnf formula in
+        List.map ~f:(List.map ~f) formula
+      | VersionSpec.NpmDistTag (tag, _) ->
+        [[{Package.Dep. name = req.name; req = NpmDistTag tag}]]
+      | VersionSpec.Opam formula ->
+        let f (c : OpamPackageVersion.Constraint.t) =
+          {Package.Dep. name = req.name; req = Opam c}
+        in
+        let formula = OpamPackageVersion.Formula.ofDnfToCnf formula in
+        List.map ~f:(List.map ~f) formula
+      | VersionSpec.Source spec ->
+        [[{Package.Dep. name = req.name; req = Source spec}]]
+    in
+    reqs @ update
+  in
+  List.fold_left ~f ~init:[] reqs
 
 let convertDependencies manifest =
   let open Result.Syntax in
@@ -234,8 +277,8 @@ let convertDependencies manifest =
             req = Npm SemverVersion.Constraint.ANY;
           }];
         ]
-      @ Package.NpmDependencies.toOpamFormula manifest.override.dependencies
-      @ Package.NpmDependencies.toOpamFormula manifest.override.peerDependencies
+      @ toOpamFormula manifest.override.dependencies
+      @ toOpamFormula manifest.override.peerDependencies
     in return (Package.Dependencies.OpamFormula formula)
   in
 
@@ -249,7 +292,7 @@ let convertDependencies manifest =
 
   return (dependencies, devDependencies)
 
-let toPackage ~name ~version manifest =
+let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
   let open RunAsync.Syntax in
 
   let readOpamFilesForPackage path () =
@@ -266,7 +309,13 @@ let toPackage ~name ~version manifest =
 
   match converted with
   | Error err -> return (Error err)
-  | Ok (source, dependencies, devDependencies) ->
+  | Ok (sourceFromOpam, dependencies, devDependencies) ->
+
+    let source =
+      match source with
+      | None -> sourceFromOpam
+      | Some source -> source, []
+    in
 
     return (Ok {
       Package.
@@ -279,7 +328,12 @@ let toPackage ~name ~version manifest =
         Package.Opam.
         name = manifest.name;
         version = manifest.version;
-        files = readOpamFilesForPackage manifest.path;
+        files = (
+          match ignoreFiles, manifest.path with
+          | true, _
+          | false, None -> (fun () -> return [])
+          | false, Some path -> readOpamFilesForPackage path
+        );
         opam = manifest.opam;
         override = {manifest.override with opam = Override.Opam.empty};
       };

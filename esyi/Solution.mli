@@ -18,8 +18,8 @@ module Record : sig
 
   type t = {
     name: string;
-    version: Package.Version.t;
-    source: Package.Source.t * Package.Source.t list;
+    version: Version.t;
+    source: Source.t * Source.t list;
     files : Package.File.t list;
     opam : Opam.t option;
   }
@@ -32,7 +32,7 @@ module Record : sig
 end
 
 module Id : sig
-  type t = string * Package.Version.t
+  type t = string * Version.t
 
   module Map : Map.S with type key := t
   module Set : Set.S with type elt := t

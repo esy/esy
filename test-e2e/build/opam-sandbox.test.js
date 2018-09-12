@@ -87,10 +87,8 @@ describe('build opam sandbox', () => {
       ),
     );
 
-    const {stderr} = await p.esy('build');
-    expect(stderr).toEqual(
-      expect.stringContaining("warn build commands from opam files won't be executed"),
-    );
+    await p.esy('build');
+    await p.esy('build which ocamlopt');
   });
 
   it('variables stress test', async () => {
@@ -319,6 +317,15 @@ describe('build opam sandbox', () => {
                 opam-version: "1.2"
                 version: "1.0.0"
                 name: "dep"
+                `,
+              ),
+              file(
+                'esy-opam.json',
+                `
+                {
+                  "source": "path:.",
+                  "override": null
+                }
                 `,
               ),
             ),

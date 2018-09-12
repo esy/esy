@@ -6,7 +6,7 @@ module PackageScope : sig
     id:string
     -> sourceType:Manifest.SourceType.t
     -> buildIsInProgress:bool
-    -> Package.t
+    -> Sandbox.Package.t
     -> t
 
   val id : t -> string
@@ -15,14 +15,14 @@ module PackageScope : sig
   val sourceType : t -> Manifest.SourceType.t
 
   val buildIsInProgress : t -> bool
-  val storePath : t -> Config.Path.t
-  val rootPath : t -> Config.Path.t
-  val sourcePath : t -> Config.Path.t
-  val buildPath : t -> Config.Path.t
-  val buildInfoPath : t -> Config.Path.t
-  val stagePath : t -> Config.Path.t
-  val installPath : t -> Config.Path.t
-  val logPath : t -> Config.Path.t
+  val storePath : t -> Sandbox.Path.t
+  val rootPath : t -> Sandbox.Path.t
+  val sourcePath : t -> Sandbox.Path.t
+  val buildPath : t -> Sandbox.Path.t
+  val buildInfoPath : t -> Sandbox.Path.t
+  val stagePath : t -> Sandbox.Path.t
+  val installPath : t -> Sandbox.Path.t
+  val logPath : t -> Sandbox.Path.t
 
   val buildEnv : t -> (string * string) list
   val exportedEnvLocal : t -> (string * string) list
@@ -33,14 +33,14 @@ module PackageScope : sig
 end = struct
   type t = {
     id: string;
-    pkg : Package.t;
+    pkg : Sandbox.Package.t;
     sourceType : Manifest.SourceType.t;
     buildIsInProgress : bool;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;
   }
 
-  let make ~id ~sourceType ~buildIsInProgress (pkg : Package.t) =
+  let make ~id ~sourceType ~buildIsInProgress (pkg : Sandbox.Package.t) =
     let exportedEnvGlobal, exportedEnvLocal =
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
@@ -94,30 +94,30 @@ end = struct
 
   let storePath scope =
     match scope.sourceType with
-    | Manifest.SourceType.Immutable -> Config.Path.store
-    | Manifest.SourceType.Transient -> Config.Path.localStore
+    | Manifest.SourceType.Immutable -> Sandbox.Path.store
+    | Manifest.SourceType.Transient -> Sandbox.Path.localStore
 
   let buildPath scope =
     let storePath = storePath scope in
-    Config.Path.(storePath / Store.buildTree / scope.id)
+    Sandbox.Path.(storePath / Store.buildTree / scope.id)
 
   let buildInfoPath scope =
     let storePath = storePath scope in
     let name = scope.id ^ ".info" in
-    Config.Path.(storePath / Store.buildTree / name)
+    Sandbox.Path.(storePath / Store.buildTree / name)
 
   let stagePath scope =
     let storePath = storePath scope in
-    Config.Path.(storePath / Store.stageTree / scope.id)
+    Sandbox.Path.(storePath / Store.stageTree / scope.id)
 
   let installPath scope =
     let storePath = storePath scope in
-    Config.Path.(storePath / Store.installTree / scope.id)
+    Sandbox.Path.(storePath / Store.installTree / scope.id)
 
   let logPath scope =
     let storePath = storePath scope in
     let basename = scope.id ^ ".log" in
-    Config.Path.(storePath / Store.buildTree / basename)
+    Sandbox.Path.(storePath / Store.buildTree / basename)
 
   let rootPath scope =
     match scope.pkg.build.buildType, scope.sourceType with
@@ -134,7 +134,7 @@ end = struct
   let var scope id =
     let b v = Some (EsyCommandExpression.bool v) in
     let s v = Some (EsyCommandExpression.string v) in
-    let p v = Some (EsyCommandExpression.string (Config.Value.show (Config.Path.toValue v))) in
+    let p v = Some (EsyCommandExpression.string (Sandbox.Value.show (Sandbox.Path.toValue v))) in
     let installPath =
       if scope.buildIsInProgress
       then stagePath scope
@@ -148,15 +148,15 @@ end = struct
     | "original_root" -> p (sourcePath scope)
     | "target_dir" -> p (buildPath scope)
     | "install" -> p installPath
-    | "bin" -> p Config.Path.(installPath / "bin")
-    | "sbin" -> p Config.Path.(installPath / "sbin")
-    | "lib" -> p Config.Path.(installPath / "lib")
-    | "man" -> p Config.Path.(installPath / "man")
-    | "doc" -> p Config.Path.(installPath / "doc")
-    | "stublibs" -> p Config.Path.(installPath / "stublibs")
-    | "toplevel" -> p Config.Path.(installPath / "toplevel")
-    | "share" -> p Config.Path.(installPath / "share")
-    | "etc" -> p Config.Path.(installPath / "etc")
+    | "bin" -> p Sandbox.Path.(installPath / "bin")
+    | "sbin" -> p Sandbox.Path.(installPath / "sbin")
+    | "lib" -> p Sandbox.Path.(installPath / "lib")
+    | "man" -> p Sandbox.Path.(installPath / "man")
+    | "doc" -> p Sandbox.Path.(installPath / "doc")
+    | "stublibs" -> p Sandbox.Path.(installPath / "stublibs")
+    | "toplevel" -> p Sandbox.Path.(installPath / "toplevel")
+    | "share" -> p Sandbox.Path.(installPath / "share")
+    | "etc" -> p Sandbox.Path.(installPath / "etc")
     | "dev" -> b (
       match scope.sourceType with
       | EsyBuildPackage.SourceType.Immutable -> false
@@ -170,7 +170,7 @@ end = struct
       else installPath scope
     in
 
-    let p v = Config.Value.toString (Config.Path.toValue v) in
+    let p v = Sandbox.Value.toString (Sandbox.Path.toValue v) in
 
     (* add builtins *)
     let env =
@@ -181,16 +181,16 @@ end = struct
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));
         "cur__install", (p installPath);
-        "cur__bin", (p Config.Path.(installPath / "bin"));
-        "cur__sbin", (p Config.Path.(installPath / "sbin"));
-        "cur__lib", (p Config.Path.(installPath / "lib"));
-        "cur__man", (p Config.Path.(installPath / "man"));
-        "cur__doc", (p Config.Path.(installPath / "doc"));
-        "cur__stublibs", (p Config.Path.(installPath / "stublibs"));
-        "cur__toplevel", (p Config.Path.(installPath / "toplevel"));
-        "cur__share", (p Config.Path.(installPath / "share"));
-        "cur__etc", (p Config.Path.(installPath / "etc"));
-        "OCAMLFIND_DESTDIR", (p Config.Path.(installPath / "lib"));
+        "cur__bin", (p Sandbox.Path.(installPath / "bin"));
+        "cur__sbin", (p Sandbox.Path.(installPath / "sbin"));
+        "cur__lib", (p Sandbox.Path.(installPath / "lib"));
+        "cur__man", (p Sandbox.Path.(installPath / "man"));
+        "cur__doc", (p Sandbox.Path.(installPath / "doc"));
+        "cur__stublibs", (p Sandbox.Path.(installPath / "stublibs"));
+        "cur__toplevel", (p Sandbox.Path.(installPath / "toplevel"));
+        "cur__share", (p Sandbox.Path.(installPath / "share"));
+        "cur__etc", (p Sandbox.Path.(installPath / "etc"));
+        "OCAMLFIND_DESTDIR", (p Sandbox.Path.(installPath / "lib"));
         "OCAMLFIND_LDCONF", "ignore";
         "OCAMLFIND_COMMANDS", "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       ]
@@ -217,8 +217,8 @@ type t = {
   dependencies : t list;
   directDependencies : t StringMap.t;
 
-  sandboxEnv : Config.Environment.Bindings.t;
-  finalEnv : Config.Environment.Bindings.t;
+  sandboxEnv : Sandbox.Environment.Bindings.t;
+  finalEnv : Sandbox.Environment.Bindings.t;
 }
 
 let make ~platform ~sandboxEnv ~id ~sourceType ~buildIsInProgress pkg =
@@ -241,7 +241,7 @@ let make ~platform ~sandboxEnv ~id ~sourceType ~buildIsInProgress pkg =
           | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
           | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       in
-      Config.[
+      Sandbox.[
         Environment.Bindings.value "PATH" (Value.v defaultPath);
         Environment.Bindings.value "SHELL" (Value.v "env -i /bin/bash --norc --noprofile");
       ]
@@ -272,7 +272,7 @@ let exposeUserEnvWith makeBinding name scope =
     match Sys.getenv name with
     | exception Not_found -> scope.finalEnv
     | v ->
-      let binding = makeBinding name (Config.Value.v v) in
+      let binding = makeBinding name (Sandbox.Value.v v) in
       binding::scope.finalEnv
   in
   {scope with finalEnv}
@@ -321,7 +321,7 @@ let makeEnvBindings bindings scope =
         (renderCommandExpr ~environmentVariableName:name scope value)
         "processing exportedEnv $%s" name
     in
-    return (Config.Environment.Bindings.value ~origin name (Config.Value.v value))
+    return (Sandbox.Environment.Bindings.value ~origin name (Sandbox.Value.v value))
   in
   Result.List.map ~f bindings
 
@@ -387,12 +387,12 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
     | System.Platform.Unknown -> "unknown"
   in
 
-  let configPath v = string (Config.Value.show (Config.Path.toValue v)) in
+  let configPath v = string (Sandbox.Value.show (Sandbox.Path.toValue v)) in
 
   let opamOsFamily = opamOs in
   let opamOsDistribution = opamOs in
 
-  let opamName (scope : PackageScope.t) =
+  let opamname (scope : PackageScope.t) =
     let name = PackageScope.name scope in
     match Astring.String.cut ~sep:"@opam/" name with
     | Some ("", name) -> name
@@ -400,7 +400,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   in
 
   let opamPackageScope ?namespace (scope : PackageScope.t) name =
-    let opamName = opamName scope in
+    let opamname = opamname scope in
     let installPath =
       if PackageScope.buildIsInProgress scope
       then PackageScope.stagePath scope
@@ -417,7 +417,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
       Some (string ocamlVersion)
 
     | _, "hash" -> Some (string "")
-    | _, "name" -> Some (string opamName)
+    | _, "name" -> Some (string opamname)
     | _, "version" -> Some (string (PackageScope.version scope))
     | _, "build-id" -> Some (string (PackageScope.id scope))
     | _, "dev" -> Some (bool (
@@ -425,19 +425,19 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
       | Manifest.SourceType.Immutable -> false
       | Manifest.SourceType.Transient -> true))
     | _, "prefix" -> Some (configPath installPath)
-    | _, "bin" -> Some (configPath Config.Path.(installPath / "bin"))
-    | _, "sbin" -> Some (configPath Config.Path.(installPath / "sbin"))
-    | _, "etc" -> Some (configPath Config.Path.(installPath / "etc" / opamName))
-    | _, "doc" -> Some (configPath Config.Path.(installPath / "doc" / opamName))
-    | _, "man" -> Some (configPath Config.Path.(installPath / "man"))
-    | _, "share" -> Some (configPath Config.Path.(installPath / "share" / opamName))
-    | _, "share_root" -> Some (configPath Config.Path.(installPath / "share"))
-    | _, "stublibs" -> Some (configPath Config.Path.(installPath / "stublibs"))
-    | _, "toplevel" -> Some (configPath Config.Path.(installPath / "toplevel"))
-    | _, "lib" -> Some (configPath Config.Path.(installPath / "lib" / opamName))
-    | _, "lib_root" -> Some (configPath Config.Path.(installPath / "lib"))
-    | _, "libexec" -> Some (configPath Config.Path.(installPath / "lib" / opamName))
-    | _, "libexec_root" -> Some (configPath Config.Path.(installPath / "lib"))
+    | _, "bin" -> Some (configPath Sandbox.Path.(installPath / "bin"))
+    | _, "sbin" -> Some (configPath Sandbox.Path.(installPath / "sbin"))
+    | _, "etc" -> Some (configPath Sandbox.Path.(installPath / "etc" / opamname))
+    | _, "doc" -> Some (configPath Sandbox.Path.(installPath / "doc" / opamname))
+    | _, "man" -> Some (configPath Sandbox.Path.(installPath / "man"))
+    | _, "share" -> Some (configPath Sandbox.Path.(installPath / "share" / opamname))
+    | _, "share_root" -> Some (configPath Sandbox.Path.(installPath / "share"))
+    | _, "stublibs" -> Some (configPath Sandbox.Path.(installPath / "stublibs"))
+    | _, "toplevel" -> Some (configPath Sandbox.Path.(installPath / "toplevel"))
+    | _, "lib" -> Some (configPath Sandbox.Path.(installPath / "lib" / opamname))
+    | _, "lib_root" -> Some (configPath Sandbox.Path.(installPath / "lib"))
+    | _, "libexec" -> Some (configPath Sandbox.Path.(installPath / "lib" / opamname))
+    | _, "libexec_root" -> Some (configPath Sandbox.Path.(installPath / "lib"))
     | _, "build" -> Some (configPath (PackageScope.buildPath scope))
     | _ -> None
   in
@@ -459,18 +459,18 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   | Full.Global, "pinned" -> Some (bool false)
 
   | Full.Global, "prefix" -> Some (configPath installPath)
-  | Full.Global, "bin" -> Some (configPath Config.Path.(installPath / "bin"))
-  | Full.Global, "sbin" -> Some (configPath Config.Path.(installPath / "sbin"))
-  | Full.Global, "etc" -> Some (configPath Config.Path.(installPath / "etc"))
-  | Full.Global, "doc" -> Some (configPath Config.Path.(installPath / "doc"))
-  | Full.Global, "man" -> Some (configPath Config.Path.(installPath / "man"))
-  | Full.Global, "share" -> Some (configPath Config.Path.(installPath / "share"))
-  | Full.Global, "stublibs" -> Some (configPath Config.Path.(installPath / "stublibs"))
-  | Full.Global, "toplevel" -> Some (configPath Config.Path.(installPath / "toplevel"))
-  | Full.Global, "lib" -> Some (configPath Config.Path.(installPath / "lib"))
-  | Full.Global, "libexec" -> Some (configPath Config.Path.(installPath / "lib"))
+  | Full.Global, "bin" -> Some (configPath Sandbox.Path.(installPath / "bin"))
+  | Full.Global, "sbin" -> Some (configPath Sandbox.Path.(installPath / "sbin"))
+  | Full.Global, "etc" -> Some (configPath Sandbox.Path.(installPath / "etc"))
+  | Full.Global, "doc" -> Some (configPath Sandbox.Path.(installPath / "doc"))
+  | Full.Global, "man" -> Some (configPath Sandbox.Path.(installPath / "man"))
+  | Full.Global, "share" -> Some (configPath Sandbox.Path.(installPath / "share"))
+  | Full.Global, "stublibs" -> Some (configPath Sandbox.Path.(installPath / "stublibs"))
+  | Full.Global, "toplevel" -> Some (configPath Sandbox.Path.(installPath / "toplevel"))
+  | Full.Global, "lib" -> Some (configPath Sandbox.Path.(installPath / "lib"))
+  | Full.Global, "libexec" -> Some (configPath Sandbox.Path.(installPath / "lib"))
   | Full.Global, "version" -> Some (string (PackageScope.version scope.self))
-  | Full.Global, "name" -> Some (string (opamName scope.self))
+  | Full.Global, "name" -> Some (string (opamname scope.self))
 
   | Full.Global, _ -> None
 

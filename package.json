@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.2.9",
+  "version": "0.2.11",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
@@ -39,20 +39,21 @@
     "@esy-ocaml/esy-installer": "^0.0.0",
     "@esy-ocaml/reason": "~3.2.0",
     "@opam/bos": "^0.2.0",
+    "@opam/angstrom": "*",
     "@opam/cmdliner": "^1.0.2",
     "@opam/cudf": "0.9",
     "@opam/dose3": "*",
+    "@opam/dune": "*",
     "@opam/fmt": "^0.8.4",
     "@opam/fpath": "^0.7.2",
-    "@opam/dune": "*",
     "@opam/lambda-term": "^1.11.0",
     "@opam/logs": "^0.6.2",
     "@opam/lwt": "^4.0.0",
     "@opam/lwt_ppx": "^1.1.0",
     "@opam/menhir": "*",
+    "@opam/opam-core": "*",
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
-    "@opam/opam-core": "*",
     "@opam/opam-state": "*",
     "@opam/ppx_deriving": "*",
     "@opam/ppx_deriving_yojson": "*",
@@ -63,9 +64,7 @@
     "esy-solve-cudf": "^0.1.6",
     "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
-  "peerDependencies": {
-    "ocaml": "~4.6.0"
-  },
+  "peerDependencies": {"ocaml": "~4.6.0"},
   "devDependencies": {
     "@esy-ocaml/merlin": "*",
     "@opam/utop": "*",

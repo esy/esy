@@ -22,7 +22,7 @@ describe('Testing integrity of downloaded packages', function() {
         esy: {},
         dependencies: {},
       },
-      {shasum: 'dummy-invalid-shasum'},
+      {shasum: 'abc123'},
     );
 
     try {

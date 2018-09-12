@@ -50,7 +50,7 @@ val ofRun : 'a Run.t -> 'a t
 (**
  * Convert an Rresult into [t]
  *)
-val ofStringError: ('a, string) Result.result -> 'a t
+val ofStringError: ('a, string) result -> 'a t
 
 val ofBosError : ('a, [< `Msg of string | `CommandError of Bos.Cmd.t * Bos.OS.Cmd.status ]) result -> 'a t
 

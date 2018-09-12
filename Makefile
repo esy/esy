@@ -81,6 +81,21 @@ clean:
 build:
 	@esy b dune build -j 4 $(TARGETS)
 
+esy::
+	@esy b dune build -j 4 _build/default/esy/Esy.cmxa
+
+esyi::
+	@esy b dune build -j 4 _build/default/esyi/EsyInstall.cmxa
+
+esy-build-package::
+	@esy b dune build -j 4 _build/default/esy-build-package/EsyBuildPackage.cmxa
+
+esy-installer::
+	@esy b dune build -j 4 _build/default/esy-installer/EsyInstaller.cmxa
+
+esy-lib::
+	@esy b dune build -j 4 _build/default/esy-lib/EsyLib.cmxa
+
 doc:
 	@esy b dune build @doc
 

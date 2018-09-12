@@ -10,7 +10,7 @@ val build :
   -> ?buildOnly:bool
   -> ?quiet:bool
   -> ?stderrout:[ `Keep | `Log ]
-  -> Config.t
+  -> Sandbox.t
   -> Task.t
   -> unit RunAsync.t
 
@@ -18,7 +18,7 @@ val build :
  * Spawn an interactive shell inside tbuild environment of the task.
  *)
 val buildShell :
-  Config.t
+  Sandbox.t
   -> Task.t
   -> Unix.process_status RunAsync.t
 
@@ -26,7 +26,7 @@ val buildShell :
  * Execute a command inside build environment of the task.
  *)
 val buildExec :
-  Config.t
+  Sandbox.t
   -> Task.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t

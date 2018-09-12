@@ -2,21 +2,17 @@
  * This module represents manifests and info which can be parsed out of it.
  *)
 
-module CommandList :sig
-  module Command : sig
-    type t =
-      | Parsed of string list
-      | Unparsed of string
-  end
+module BuildType : module type of EsyBuildPackage.BuildType
+module SourceType : module type of EsyBuildPackage.SourceType
 
-  type t = Command.t list option
-  val empty : t
-  val show : t -> string
-end
+module Source : module type of EsyInstall.Source
+module Command : module type of EsyInstall.PackageJson.Command
+module CommandList : module type of EsyInstall.PackageJson.CommandList
+module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
 
 module Scripts : sig
   type t = script StringMap.t
-  and script = { command : CommandList.Command.t; }
+  and script = { command : Command.t; }
   val empty : t
   val find : string -> t -> script option
 end
@@ -26,24 +22,8 @@ module Env : sig
   and item = { name : string; value : string; }
   val empty : t
   val show : t -> string
+  val to_yojson : t Json.encoder
 end
-
-module ExportedEnv : sig
-  type t = item list
-  and item = {
-    name : string;
-    value : string;
-    scope : scope;
-    exclusive : bool;
-  }
-  and scope = Local | Global
-
-  val show : t -> string
-  val empty : t
-end
-
-module BuildType : module type of EsyBuildPackage.BuildType
-module SourceType : module type of EsyBuildPackage.SourceType
 
 (**
  * Release configuration.
@@ -71,7 +51,6 @@ module Build : sig
     patches : (Path.t * OpamTypes.filter option) list;
     substs : Path.t list;
     exportedEnv : ExportedEnv.t;
-    sandboxEnv : Env.t;
     buildEnv : Env.t;
   }
 
@@ -140,6 +119,9 @@ module type MANIFEST = sig
    *)
   val scripts : t -> Scripts.t Run.t
 
+  val sandboxEnv : t -> Env.t Run.t
+  (** Extract sandbox environment from manifest. *)
+
   (**
    * Unique id of the release.
    *
@@ -148,7 +130,7 @@ module type MANIFEST = sig
    *
    * This info is used to construct a build key for the corresponding package.
    *)
-  val uniqueDistributionId : t -> string option
+  val source : t -> EsyInstall.Source.t option
 end
 
 include MANIFEST
@@ -161,6 +143,12 @@ include MANIFEST
  * If manifest was found then returns also a set of paths which were used to
  * load manifest. Client code can check those paths to invalidate caches.
  *)
-val ofDir : ?asRoot:bool -> Fpath.t -> (t * Fpath.set) option RunAsync.t
+val ofDir :
+  ?name:string
+  -> ?manifest:SandboxSpec.ManifestSpec.t
+  -> Path.t
+  -> (t * Path.Set.t) option RunAsync.t
+
+val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

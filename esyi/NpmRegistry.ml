@@ -4,8 +4,8 @@ module PackageJson = struct
   type t = {
     name : string;
     version : string;
-    dependencies : (Package.NpmDependencies.t [@default Package.NpmDependencies.empty]);
-    devDependencies : (Package.NpmDependencies.t [@default Package.NpmDependencies.empty]);
+    dependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
+    devDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
     dist : dist;
     esy : (PackageJson.EsyPackageJson.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
@@ -33,18 +33,18 @@ let packageJsonToPackage ?name ?version (pkgJson : PackageJson.t) =
   let%bind originalVersion = Run.ofStringError (
     let open Result.Syntax in
     let%bind version = SemverVersion.Version.parse pkgJson.version in
-    return (Package.Version.Npm version)
+    return (Version.Npm version)
   ) in
   let version =
     match version with
-    | Some version -> Package.Version.Npm version
+    | Some version -> Version.Npm version
     | None -> originalVersion
   in
   let source =
     match version with
-    | Package.Version.Source src -> src
+    | Version.Source src -> src
     | _ ->
-      Package.Source.Archive {
+      Source.Archive {
         url = pkgJson.dist.tarball;
         checksum = Checksum.Sha1, pkgJson.dist.shasum;
       }

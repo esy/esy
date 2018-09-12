@@ -42,7 +42,7 @@ const fixture = [
         dependencies: {
           ocaml: '*',
         },
-        _resolved: 'http://sometarball.gz',
+        '_esy.source': 'path:.',
       }),
       file('dep.ml', 'let () = print_endline "__DEP__"'),
     ),

@@ -30,8 +30,18 @@ export type FixtureSymlink = {
   path: string,
 };
 
-function dir(name: string, ...items: Array<FixtureItem>): FixtureDir {
-  return {type: 'dir', name, items};
+function dir(name: string | string[], ...items: Array<FixtureItem>): FixtureDir {
+  if (Array.isArray(name)) {
+    if (name.length === 0) {
+      throw new Error('invalid fixture');
+    } else if (name.length === 1) {
+      return dir(name[0], ...items);
+    } else {
+      return dir(name[0], dir(name.slice(1), ...items));
+    }
+  } else {
+    return {type: 'dir', name, items};
+  }
 }
 
 function file(name: string, data: string): FixtureFile {

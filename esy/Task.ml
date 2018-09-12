@@ -2,17 +2,23 @@
  * Build task.
  *)
 
+type dependencyKind =
+  | Dependency
+  | DevDependency
+  | BuildTimeDependency
+  [@@deriving ord]
+
 type t = {
   id : string;
-  pkg : Package.t;
+  pkg : Sandbox.Package.t;
 
   buildScope : Scope.t;
   exportedScope : Scope.t;
 
-  build : Config.Value.t list list;
-  install : Config.Value.t list list;
+  build : Sandbox.Value.t list list;
+  install : Sandbox.Value.t list list;
 
-  env : Config.Environment.t;
+  env : Sandbox.Environment.t;
 
   sourceType : Manifest.SourceType.t;
 
@@ -21,31 +27,22 @@ type t = {
   platform : System.Platform.t;
 }
 
-and dependency =
-  | Dependency of t
-  | DevDependency of t
-  | BuildTimeDependency of t
+and dependency = dependencyKind * t
 
 let pp_dependency fmt (dep : dependency) =
   match dep with
-  | Dependency t -> Fmt.pf fmt "Dependency %s" t.id
-  | DevDependency t -> Fmt.pf fmt "DevDependency %s" t.id
-  | BuildTimeDependency t -> Fmt.pf fmt "BuildTimeDependency %s" t.id
+  | Dependency, t -> Fmt.pf fmt "Dependency %s" t.id
+  | DevDependency, t -> Fmt.pf fmt "DevDependency %s" t.id
+  | BuildTimeDependency, t -> Fmt.pf fmt "BuildTimeDependency %s" t.id
 
 let compare a b =
   String.compare a.id b.id
 
-let compare_dependency a b =
-  match a, b with
-  | Dependency a, Dependency b -> compare a b
-  | DevDependency a, DevDependency b -> compare a b
-  | BuildTimeDependency a, BuildTimeDependency b -> compare a b
-  | Dependency _, DevDependency _ -> 1
-  | Dependency _, BuildTimeDependency _ -> 1
-  | DevDependency _, Dependency _ -> -1
-  | DevDependency _, BuildTimeDependency _ -> 1
-  | BuildTimeDependency _, Dependency _ -> -1
-  | BuildTimeDependency _, DevDependency _ -> -1
+let compare_dependency (ka, pa) (kb, pb) =
+  let c = compare_dependencyKind ka kb in
+  if c = 0
+  then compare pa pb
+  else c
 
 let id t = t.id
 let pkg t = t.pkg
@@ -71,7 +68,7 @@ let plan t =
     buildType = t.pkg.build.buildType;
     build = t.build;
     install = t.install;
-    sourcePath = Config.Path.toValue t.pkg.sourcePath;
+    sourcePath = Sandbox.Path.toValue t.pkg.sourcePath;
     env = t.env;
   }
 
@@ -88,8 +85,8 @@ let toOCamlVersion version =
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
-    match Config.Environment.find name env with
-    | Some v -> Some (Config.Value.toString v)
+    match Sandbox.Environment.find name env with
+    | Some v -> Some (Sandbox.Value.toString v)
     | None -> None
   in
 
@@ -100,16 +97,16 @@ let renderEsyCommands ~env scope commands =
 
   let renderCommand =
     function
-    | Manifest.CommandList.Command.Parsed args ->
+    | Manifest.Command.Parsed args ->
       let f arg =
         let%bind arg = renderArg arg in
-        return (Config.Value.v arg)
+        return (Sandbox.Value.v arg)
       in
       Result.List.map ~f args
-    | Manifest.CommandList.Command.Unparsed line ->
+    | Manifest.Command.Unparsed line ->
       let%bind line = renderArg line in
       let%bind args = ShellSplit.split line in
-      return (List.map ~f:Config.Value.v args)
+      return (List.map ~f:Sandbox.Value.v args)
   in
 
   match commands with
@@ -124,7 +121,7 @@ let renderOpamCommands opamEnv commands =
   let open Run.Syntax in
   try
     let commands = OpamFilter.commands opamEnv commands in
-    let commands = List.map ~f:(List.map ~f:Config.Value.v) commands in
+    let commands = List.map ~f:(List.map ~f:Sandbox.Value.v) commands in
     return commands
   with
     | Failure msg -> error msg
@@ -134,7 +131,7 @@ let renderOpamSubstsAsCommands _opamEnv substs =
   let commands =
     let f path =
       let path = Path.addExt ".in" path in
-      [Config.Value.v "substs"; Config.Value.v (Path.toString path)]
+      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.toString path)]
     in
     List.map ~f substs
   in
@@ -156,7 +153,7 @@ let renderOpamPatchesToCommands opamEnv patches =
 
     let toCommand (path, _) =
       let cmd = ["patch"; "--strip"; "1"; "--input"; Path.toString path] in
-      List.map ~f:Config.Value.v cmd
+      List.map ~f:Sandbox.Value.v cmd
     in
 
     return (
@@ -169,117 +166,102 @@ let renderOpamPatchesToCommands opamEnv patches =
 type task = t
 type task_dependency = dependency
 
-let renderExpression ~cfg ~task expr =
+let renderExpression ~sandbox ~task expr =
   let open Run.Syntax in
   let%bind expr = Scope.renderCommandExpr task.exportedScope expr in
-  let expr = Config.Value.v expr in
-  let expr = Config.Value.render cfg.Config.buildConfig expr in
+  let expr = Sandbox.Value.v expr in
+  let expr = Sandbox.Value.render sandbox.Sandbox.buildConfig expr in
   return expr
 
-module DependencySet = Set.Make(struct
-  type t = dependency
-  let compare = compare_dependency
-end)
-
-let ofPackage
+let ofSandbox
     ?(forceImmutable=false)
     ?(platform=System.Platform.host)
-    (rootPkg : Package.t)
+    (sandbox : Sandbox.t)
   =
 
   let cache = Memoize.make ~size:200 () in
 
   let open Run.Syntax in
 
-  let rec allDependenciesOf (pkg : Package.t) =
-
-    let addDependency ~direct dep =
-      match dep with
-      | Package.Dependency depPkg
-      | Package.OptDependency depPkg ->
-        let%bind task = taskOfPackageCached depPkg in
-        return (Some (Dependency task, depPkg))
-      | Package.BuildTimeDependency depPkg ->
-        if direct
-        then
-          let%bind task = taskOfPackageCached depPkg in
-          return (Some (BuildTimeDependency task, depPkg))
-        else return None
-      | Package.DevDependency depPkg ->
-        if direct
-        then
-          let%bind task = taskOfPackageCached depPkg in
-          return (Some (DevDependency task, depPkg))
-        else return None
-      | Package.InvalidDependency { name; reason = `Missing; } ->
-        Run.errorf "package %s is missing, run 'esy install' to fix that" name
-      | Package.InvalidDependency { name; reason = `Reason reason; } ->
-        Run.errorf "invalid package %s: %s" name reason
-    in
+  let rec allDependenciesOf (pkg : Sandbox.Package.t) =
 
     let rec aux ?(direct=true) (map, order) dep =
-      let seenDep =
-        let open Option.Syntax in
-        let%bind pkg = Package.packageOf dep in
-        let%bind direct, task = Package.Map.find_opt pkg map in
-        return (direct, task, pkg)
+
+      let%bind dpkg =
+        match dep with
+        | Ok (Sandbox.Dependency.Dependency, dpkg)
+        | Ok (Sandbox.Dependency.OptDependency, dpkg) -> return (Some (dpkg, Dependency))
+        | Ok (Sandbox.Dependency.BuildTimeDependency, dpkg) ->
+          if direct
+          then return (Some (dpkg, BuildTimeDependency))
+          else return None
+        | Ok (Sandbox.Dependency.DevDependency, dpkg) ->
+          if direct
+          then return (Some (dpkg, DevDependency))
+          else return None
+        | Error (Sandbox.Dependency.MissingDependency {name;}) ->
+          Run.errorf "package %s is missing, run 'esy install' to fix that" name
+        | Error (Sandbox.Dependency.InvalidDependency {name; message;}) ->
+          Run.errorf "invalid package %s: %s" name message
       in
-      match direct, seenDep with
-      | false, Some (false, _, _) -> return (map, order)
-      | false, Some (true, _, _) -> return (map, order)
-      | true, Some (true, _, _) -> return (map, order)
-      | true, Some (false, deptask, pkg) ->
-        let map = Package.Map.add pkg (true, deptask) map in
-        return (map, order)
-      | _, None ->
-        begin match Package.packageOf dep with
-        | None -> return (map, order)
-        | Some depPkg ->
+
+      match dpkg with
+      | None -> return (map, order)
+      | Some (dpkg, dkind) ->
+
+        let seenDep =
+          let open Option.Syntax in
+          let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
+          return (direct, task, dpkg)
+        in
+        match direct, seenDep with
+        | false, Some (false, _, _) -> return (map, order)
+        | false, Some (true, _, _) -> return (map, order)
+        | true, Some (true, _, _) -> return (map, order)
+        | true, Some (false, deptask, pkg) ->
+          let map = Sandbox.Package.Map.add pkg (true, deptask) map in
+          return (map, order)
+        | _, None ->
           let%bind (map, order) = Result.List.foldLeft
             ~f:(aux ~direct:false)
             ~init:(map, order)
-            depPkg.dependencies
+            (Sandbox.dependencies dpkg sandbox)
           in
-          begin match%bind addDependency ~direct dep with
-          | Some (deptask, pkg) ->
-            let map = Package.Map.add pkg (direct, deptask) map in
-            let order = dep::order in
-            return (map, order)
-          | None ->
-            return (map, order)
-            end
-          end
+          let%bind dtask = taskOfPackageCached dpkg in
+          let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
+          let order = dpkg::order in
+          return (map, order)
       in
 
       let%bind map, order =
         Result.List.foldLeft
           ~f:(aux ~direct:true)
-          ~init:(Package.Map.empty, [])
-          pkg.dependencies
+          ~init:(Sandbox.Package.Map.empty, [])
+          (Sandbox.dependencies pkg sandbox)
       in
+
       return (
-        let f dep =
+        let f dpkg =
           let task =
             let open Option.Syntax in
-            let%bind pkg = Package.packageOf dep in
-            let%bind direct, task = Package.Map.find_opt pkg map in
+            let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
             return (direct, task)
           in
           match task with
           | Some v -> v
           | None ->
-            let msg = Format.asprintf "task wasn't found: %a" Package.pp_dependency dep in
+            let msg = Format.asprintf "task wasn't found: %a" Sandbox.Package.pp dpkg in
             failwith msg
         in
         List.rev_map ~f order
       )
 
-  and taskOfPackage (pkg : Package.t) =
+  and taskOfPackage (pkg : Sandbox.Package.t) =
 
     let ocamlVersion =
-      let f pkg = pkg.Package.name = "ocaml" in
-      match Package.Graph.find ~f pkg with
-      | Some pkg -> Some (toOCamlVersion pkg.version)
+      let f pkg = pkg.Sandbox.Package.name = "ocaml" in
+      match Sandbox.findPackage f sandbox with
+      | Some pkg -> Some (toOCamlVersion pkg.Sandbox.Package.version)
       | None -> None
     in
 
@@ -293,9 +275,9 @@ let ofPackage
         let dependencies =
           let f (direct, dependency) =
             match direct, dependency with
-            | true, Dependency task -> Some task.id
-            | true, BuildTimeDependency task -> Some task.id
-            | true, DevDependency _ -> None
+            | true, (Dependency, task) -> Some ("dep-" ^ task.id)
+            | true, (BuildTimeDependency, task) -> Some ("buildDep-" ^ task.id)
+            | true, (DevDependency, _) -> None
             | false, _ -> None
           in
           dependencies
@@ -314,13 +296,19 @@ let ofPackage
 
         (* a special tag which is communicated by the installer and specifies
          * the version of distribution of vcs commit sha *)
-        let resolution =
-          match pkg.resolution with
-          | Some v -> v
+        let source =
+          match pkg.source with
+          | Some source -> Manifest.Source.toString source
           | None -> ""
         in
 
-        String.concat "__" (resolution::self::dependencies)
+        let sandboxEnv =
+          sandbox.env
+          |> Manifest.Env.to_yojson
+          |> Yojson.Safe.to_string
+        in
+
+        String.concat "__" (sandboxEnv::source::self::dependencies)
         |> Digest.string
         |> Digest.to_hex
         |> fun hash -> String.sub hash 0 8
@@ -353,9 +341,9 @@ let ofPackage
 
       let sandboxEnv =
         let f {Manifest.Env. name; value} =
-          Config.Environment.Bindings.value name (Config.Value.v value)
+          Sandbox.Environment.Bindings.value name (Sandbox.Value.v value)
         in
-        List.map ~f pkg.build.sandboxEnv
+        List.map ~f sandbox.Sandbox.env
       in
 
       let exportedScope =
@@ -381,9 +369,9 @@ let ofPackage
       let _, exportedScope, buildScope =
         let f (seen, exportedScope, buildScope) (direct, dep) =
           match dep with
-          | DevDependency _ -> seen, exportedScope, buildScope
-          | Dependency task
-          | BuildTimeDependency task ->
+          | DevDependency, _ -> seen, exportedScope, buildScope
+          | Dependency, task
+          | BuildTimeDependency, task ->
             if StringSet.mem task.id seen
             then seen, exportedScope, buildScope
             else
@@ -400,7 +388,7 @@ let ofPackage
     let%bind buildEnv =
       let%bind bindings = Scope.env ~includeBuildEnv:true buildScope in
       Run.context
-        (Run.ofStringError (Config.Environment.Bindings.eval bindings))
+        (Run.ofStringError (Sandbox.Environment.Bindings.eval bindings))
         "evaluating environment"
     in
 
@@ -456,7 +444,7 @@ let ofPackage
 
     return task
 
-  and taskOfPackageCached (pkg : Package.t) =
+  and taskOfPackageCached (pkg : Sandbox.Package.t) =
     Run.contextf
       (Memoize.compute cache pkg.id (fun () -> taskOfPackage pkg))
       "processing package: %s@%s"
@@ -464,18 +452,18 @@ let ofPackage
       pkg.version
   in
 
-  taskOfPackageCached rootPkg
+  taskOfPackageCached sandbox.root
 
 let exposeUserEnv scope =
   scope
-  |> Scope.exposeUserEnvWith Config.Environment.Bindings.suffixValue "PATH"
-  |> Scope.exposeUserEnvWith Config.Environment.Bindings.suffixValue "MAN_PATH"
-  |> Scope.exposeUserEnvWith Config.Environment.Bindings.value "SHELL"
+  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "PATH"
+  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "MAN_PATH"
+  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.value "SHELL"
 
 let exposeDevDependenciesEnv task scope =
   let f scope dep =
     match dep with
-    | DevDependency task -> Scope.add ~direct:true ~dep:task.exportedScope scope
+    | DevDependency, task -> Scope.add ~direct:true ~dep:task.exportedScope scope
     | _ -> scope
   in
   List.fold_left ~f ~init:scope task.dependencies
@@ -509,20 +497,16 @@ module Graph = DependencyGraph.Make(struct
 
     let traverse task =
       let f dep = match dep with
-        | Dependency task
-        | BuildTimeDependency task
-        | DevDependency task -> (task, dep)
+        | Dependency, task
+        | BuildTimeDependency, task
+        | DevDependency, task -> (task, dep)
       in
       List.map ~f task.dependencies
   end)
 
 (** Check if task is a root task with the current config. *)
-let isRoot ~cfg task =
-  let sourcePath =
-    let path = Scope.sourcePath task.exportedScope in
-    Config.Path.toPath cfg.Config.buildConfig path
-  in
-  Path.equal cfg.Config.buildConfig.sandboxPath sourcePath
+let isRoot ~sandbox task =
+  sandbox.Sandbox.root.id = task.pkg.id
 
 let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
   let open RunAsync.Syntax in
@@ -561,7 +545,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     return (Path.v prevStorePrefix, Path.v nextStorePrefix)
   in
   let%bind stagePath =
-    let path = Path.(cfg.Config.buildConfig.storePath / "s" / buildId) in
+    let path = Path.(cfg.storePath / "s" / buildId) in
     let%bind () = Fs.rmPath path in
     let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
     return path
@@ -591,7 +575,7 @@ let importBuild (cfg : Config.t) buildPath =
       (buildPath |> Path.basename, `Dir)
   in
   let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
-  let outputPath = Path.(cfg.buildConfig.storePath / Store.installTree / buildId) in
+  let outputPath = Path.(cfg.storePath / Store.installTree / buildId) in
   if%bind Fs.exists outputPath
   then (
     let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
@@ -602,7 +586,7 @@ let importBuild (cfg : Config.t) buildPath =
         let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
         return (Path.v v)
       in
-      let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.buildConfig.storePath buildPath in
+      let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.storePath buildPath in
       let%bind () = Fs.rename ~src:buildPath outputPath in
       let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
       return ()
@@ -610,14 +594,14 @@ let importBuild (cfg : Config.t) buildPath =
     match kind with
     | `Dir ->
       let%bind stagePath =
-        let path = Path.(cfg.Config.buildConfig.storePath / "s" / buildId) in
+        let path = Path.(cfg.storePath / "s" / buildId) in
         let%bind () = Fs.rmPath path in
         let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
         return path
       in
       importFromDir stagePath
     | `Archive ->
-      let stagePath = Path.(cfg.buildConfig.storePath / Store.stageTree / buildId) in
+      let stagePath = Path.(cfg.storePath / Store.stageTree / buildId) in
       let%bind () =
         let cmd = Cmd.(
           v "tar"
@@ -629,9 +613,10 @@ let importBuild (cfg : Config.t) buildPath =
       in
       importFromDir stagePath
 
-let isBuilt ~cfg task =
+let isBuilt ~sandbox task =
   let installPath =
     let path = Scope.installPath task.exportedScope in
-    Config.Path.(path / "lib" |> toPath cfg.Config.buildConfig)
+    Sandbox.Path.(path / "lib")
+    |> Sandbox.Path.toPath sandbox.Sandbox.buildConfig
   in
   Fs.exists installPath

@@ -50,7 +50,7 @@ async function buildOcamlPackage() {
       name: 'root-project',
       version: '1.0.0',
       dependencies: {
-        ocaml: 'esy-ocaml/ocaml#6aacc05',
+        ocaml: '~4.6.0',
       },
       esy: {
         build: [],
@@ -91,7 +91,7 @@ async function buildOcamlPackage() {
           `chmod +x #{self.bin / '${ocamloptName}'}`,
         ],
       },
-      _resolved: 'ocaml@1.0.0',
+      '_esy.source': 'path:./',
     }),
   );
 

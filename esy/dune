@@ -4,9 +4,11 @@
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
             EsyLib
+            EsyInstall
             EsyCommandExpression
             EsyShellExpansion
             EsyYarnLockfile
+            EsyBuildPackage
             lwt
             lwt.unix
             cmdliner
@@ -23,7 +25,6 @@
             ppx_deriving_yojson.runtime
             str
             astring
-            EsyBuildPackage
             opam-format
             opam-state
             )

@@ -64,14 +64,7 @@ async function crawl(p: string): Promise<?Node> {
 
 describe('esy-installer', () => {
   async function getInstallDir(p) {
-    const iStore = path.join(
-      p.projectPath,
-      'node_modules',
-      '.cache',
-      '_esy',
-      'store',
-      'i',
-    );
+    const iStore = path.join(p.projectPath, '_esy', 'default', 'store', 'i');
     const items = await fsUtils.readdir(iStore);
     if (items.length !== 1) {
       throw new Error('expected single directory inside store/i');
@@ -351,6 +344,12 @@ describe('esy-installer', () => {
       ],
     };
 
+    const toplevel = {
+      type: 'dir',
+      basename: 'toplevel',
+      nodes: [],
+    };
+
     expect(node).toMatchObject({
       type: 'dir',
       nodes: [
@@ -362,6 +361,7 @@ describe('esy-installer', () => {
         man,
         sbin,
         share,
+        toplevel,
       ],
     });
   });

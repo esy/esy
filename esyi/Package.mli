@@ -1,102 +1,6 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
-(**
- * This represent the concrete and stable location from which we can download
- * some package.
- *)
-module Source : sig
-  type t =
-    | Archive of {url : string ; checksum : Checksum.t}
-    | Git of {remote : string; commit : string}
-    | Github of {user : string; repo : string; commit : string}
-    | LocalPath of Path.t
-    | LocalPathLink of Path.t
-    | NoSource
-
-  include S.COMMON with type t := t
-
-  val parse : string -> (t, string) result
-
-  module Map : Map.S with type key := t
-end
-
-(**
- * A concrete version.
- *)
-module Version : sig
-  type t =
-      Npm of SemverVersion.Version.t
-    | Opam of OpamPackageVersion.Version.t
-    | Source of Source.t
-
-  include S.COMMON with type t := t
-
-  val parse : ?tryAsOpam:bool -> string -> (t, string) result
-  val parseExn : string -> t
-  val toNpmVersion : t -> string
-
-  module Map : Map.S with type key := t
-end
-
-(**
- * This is a spec for a source, which at some point will be resolved to a
- * concrete source Source.t.
- *)
-module SourceSpec : sig
-  type t =
-    | Archive of {url : string ; checksum : Checksum.t option}
-    | Git of {remote : string; ref : string option}
-    | Github of {user : string; repo : string; ref : string option}
-    | LocalPath of Path.t
-    | LocalPathLink of Path.t
-    | NoSource
-
-  val toString : t -> string
-  val to_yojson : t -> [> `String of string ]
-  val pp : t Fmt.t
-  val ofSource : Source.t -> t
-
-  module Map : Map.S with type key := t
-end
-
-(**
- * This representes a concrete version which at some point will be resolved to a
- * concrete version Version.t.
- *)
-module VersionSpec : sig
-  type t =
-    | Npm of SemverVersion.Formula.DNF.t
-    | NpmDistTag of string * SemverVersion.Version.t option
-    | Opam of OpamPackageVersion.Formula.DNF.t
-    | Source of SourceSpec.t
-
-  val pp : t Fmt.t
-  val toString : t -> string
-  val to_yojson : t -> [> `String of string ]
-
-  val matches : version:Version.t -> t -> bool
-  val ofVersion : Version.t -> t
-end
-
-module Req : sig
-  type t = private {name : string; spec : VersionSpec.t}
-
-  val pp : Format.formatter -> t -> unit
-
-  val toString : t -> string
-  val to_yojson : t -> [> `String of string ]
-
-  val make : name:string -> spec:string -> (t, string) result
-  val ofSpec : name:string -> spec:VersionSpec.t -> t
-
-  val name : t -> string
-  val spec : t -> VersionSpec.t
-
-  val matches : name:string -> version:Version.t -> t -> bool
-end
-
-(** A single dependency constraint. *)
 module Dep : sig
   type t = {
     name : string;
@@ -137,27 +41,6 @@ module Dependencies : sig
   val applyResolutions : Resolutions.t -> t -> t
 end
 
-module ExportedEnv : sig
-  type t = item list
-  and item = { name : string; value : string; scope : scope; }
-  and scope = [ `Global | `Local ]
-
-  val empty : t
-  val of_yojson : t Json.decoder
-  val to_yojson : t Json.encoder
-end
-
-module NpmDependencies : sig
-  type t = Req.t conj
-  val empty : t
-  val pp : t Fmt.t
-  val of_yojson : t Json.decoder
-  val to_yojson : t Json.encoder
-  val toOpamFormula : t -> Dep.t disj conj
-  val override : t -> t -> t
-  val find : name:string -> t -> Req.t option
-end
-
 module File : sig
   type t = {
     name : Path.t;
@@ -185,26 +68,20 @@ module OpamOverride : sig
     val empty : t
   end
 
-  module Command : sig
-    type t =
-      | Args of string list
-      | Line of string
-  end
-
   type t = {
-    build : Command.t list option;
-    install : Command.t list option;
-    dependencies : NpmDependencies.t;
-    peerDependencies : NpmDependencies.t;
-    exportedEnv : ExportedEnv.t;
+    build : PackageJson.Command.t list option;
+    install : PackageJson.Command.t list option;
+    dependencies : PackageJson.Dependencies.t;
+    peerDependencies : PackageJson.Dependencies.t;
+    exportedEnv : PackageJson.ExportedEnv.t;
     opam : Opam.t;
   }
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> t Ppx_deriving_yojson_runtime.error_or
-  val equal : t -> t -> bool
-  val pp : Format.formatter -> t -> unit
-  val show : t -> string
+
   val empty : t
+
+  include S.JSONABLE with type t := t
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
 end
 
 module Opam : sig
@@ -261,6 +138,14 @@ and kind =
 val isOpamPackageName : string -> bool
 val pp : t Fmt.t
 val compare : t -> t -> int
+
+val ofPackageJson :
+  name:string
+  -> version:Version.t
+  -> source:source
+  -> PackageJson.t
+  -> t
+(** Convert package.json into a package *)
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

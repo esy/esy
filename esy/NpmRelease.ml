@@ -64,9 +64,9 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
       )
   |} environmentString bin bin
 
-let configure ~(cfg : Config.t) =
+let configure ~(sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
-  match%bind Manifest.ofDir cfg.Config.buildConfig.sandboxPath with
+  match%bind Manifest.ofDir sandbox.buildConfig.projectPath with
   | None -> error "no manifest found"
   | Some (manifest, _) ->
     let%bind releaseCfg =
@@ -83,24 +83,24 @@ let configure ~(cfg : Config.t) =
 
 let dependenciesForRelease (task : Task.t) =
   let f deps dep = match dep with
-    | Task.Dependency depTask
-    | Task.BuildTimeDependency depTask ->
+    | Task.Dependency, depTask
+    | Task.BuildTimeDependency, depTask ->
       begin match Task.sourceType depTask with
       | Manifest.SourceType.Immutable -> (depTask, dep)::deps
       | _ -> deps
       end
-    | Task.DevDependency _ -> deps
+    | Task.DevDependency, _ -> deps
   in
   Task.dependencies task
   |> List.fold_left ~f ~init:[]
   |> List.rev
 
-let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
+let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
 
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
-  let%bind releaseCfg = configure ~cfg in
+  let%bind releaseCfg = configure ~sandbox in
 
   (*
     * Construct a task tree with all tasks marked as immutable. This will make
@@ -108,7 +108,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     * the release tarball as only globally stored artefacts can be relocated
     * between stores (b/c of a fixed path length).
     *)
-  let%bind task = RunAsync.ofRun (Task.ofPackage ~forceImmutable:true sandbox.Sandbox.root) in
+  let%bind task = RunAsync.ofRun (Task.ofSandbox ~forceImmutable:true sandbox) in
 
   let tasks = Task.Graph.traverse ~traverse:dependenciesForRelease task in
 
@@ -146,7 +146,8 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       ~concurrency
       ~buildOnly:`No
       ~force:(`Select devModeIds)
-      cfg task
+      sandbox
+      task
   in
 
   let%bind () = Fs.createDir outputPath in
@@ -161,9 +162,9 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
         let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" (Task.id task)) in
         return ()
       else
-        let buildPath = Config.Path.toPath cfg.buildConfig (Task.installPath task) in
+        let buildPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg ~outputPrefixPath buildPath)
+        LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg:sandbox.cfg ~outputPrefixPath buildPath)
     in
     tasks |> List.map ~f |> RunAsync.List.waitAll
   in
@@ -175,28 +176,38 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
     let%bind bindings = RunAsync.ofRun (
       let open Run.Syntax in
       let pkg = sandbox.Sandbox.root in
-      let synPkg = {
-        Package.
-        id = "__release_env__";
-        name = "release-env";
-        version = pkg.version;
-        dependencies = [Package.Dependency pkg];
-        build = {
-          Manifest.Build.
-          sourceType = Manifest.SourceType.Transient;
-          sandboxEnv = pkg.build.sandboxEnv;
-          buildEnv = Manifest.Env.empty;
-          buildCommands = Manifest.Build.EsyCommands None;
-          installCommands = Manifest.Build.EsyCommands None;
-          buildType = Manifest.BuildType.OutOfSource;
-          patches = [];
-          substs = [];
-          exportedEnv = [];
-        };
-        sourcePath = pkg.sourcePath;
-        resolution = None;
-      } in
-      let%bind task = Task.ofPackage ~forceImmutable:true synPkg in
+      let sandbox =
+        let root = {
+          Sandbox.Package.
+          id = "__release_env__";
+          name = "release-env";
+          version = pkg.version;
+          build = {
+            Manifest.Build.
+            sourceType = Manifest.SourceType.Transient;
+            buildEnv = Manifest.Env.empty;
+            buildCommands = Manifest.Build.EsyCommands None;
+            installCommands = Manifest.Build.EsyCommands None;
+            buildType = Manifest.BuildType.OutOfSource;
+            patches = [];
+            substs = [];
+            exportedEnv = [];
+          };
+          sourcePath = pkg.sourcePath;
+          originPath = pkg.originPath;
+          source = None;
+        } in
+        {
+          sandbox with
+          root;
+          dependencies =
+            Sandbox.Package.Map.add
+              root
+              [Ok (Sandbox.Dependency.Dependency, pkg)]
+              sandbox.dependencies;
+        }
+      in
+      let%bind task = Task.ofSandbox ~forceImmutable:true sandbox in
       let%bind bindings = Task.sandboxEnv task in
       return bindings
     ) in
@@ -206,7 +217,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let bindings = Config.Environment.Bindings.render cfg.Config.buildConfig bindings in
+      let bindings = Sandbox.Environment.Bindings.render sandbox.buildConfig bindings in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
       let generateBinaryWrapper stagePath name =
@@ -243,12 +254,12 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~cfg ~sandbox =
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
         let nextStorePrefix =
-          String.make (String.length (Path.toString Config.(cfg.buildConfig.storePath))) '_'
+          String.make (String.length (Path.toString sandbox.buildConfig.storePath)) '_'
         in
-        (Config.(cfg.buildConfig.storePath), Path.v nextStorePrefix)
+        (sandbox.buildConfig.storePath, Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.toString destPrefix) Path.(binPath / "_storePath") in
-      Task.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
+      Task.rewritePrefix ~cfg:sandbox.cfg ~origPrefix ~destPrefix binPath
     in
 
     (* Emit package.json *)

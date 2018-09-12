@@ -31,7 +31,7 @@ const fixture = [
         esy: {
           buildsInSource: '_build',
           build: [
-            "mkdir #{self.root / '_build'}",
+            "mkdir -p #{self.root / '_build'}",
             "cp #{self.root / self.name}.ml #{self.root / '_build' / self.name}.ml",
             "ocamlopt -o #{self.root / '_build' / self.name}.exe #{self.root / '_build' / self.name}.ml",
           ],
@@ -40,7 +40,7 @@ const fixture = [
         dependencies: {
           ocaml: '*',
         },
-        _resolved: '...',
+        '_esy.source': 'path:./',
       }),
       file('dep.ml', 'let () = print_endline "__dep__"'),
     ),

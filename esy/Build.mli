@@ -9,7 +9,7 @@ val buildAll :
   ?force:[`ForRoot | `No | `Yes | `Select of Set.Make(String).t]
   -> ?buildOnly:[`ForRoot | `No | `Yes]
   -> concurrency:int
-  -> Config.t
+  -> Sandbox.t
   -> Task.t
   -> unit RunAsync.t
 
@@ -20,7 +20,7 @@ val buildDependencies :
   ?force:[`ForRoot | `No | `Yes | `Select of Set.Make(String).t]
   -> ?buildOnly:[`ForRoot | `No | `Yes]
   -> concurrency:int
-  -> Config.t
+  -> Sandbox.t
   -> Task.t
   -> unit RunAsync.t
 
@@ -32,6 +32,6 @@ val buildTask :
   -> ?force:bool
   -> ?stderrout:[`Keep | `Log]
   -> buildOnly:bool
-  -> Config.t
+  -> Sandbox.t
   -> Task.t
   -> unit RunAsync.t
