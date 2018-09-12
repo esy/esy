@@ -1,6 +1,6 @@
 module MS = SandboxSpec.ManifestSpec
 
-include Types.Source
+include Metadata.Source
 
 let toStringOrig = function
   | Github {user; repo; commit; manifest = None;} ->

@@ -6,7 +6,7 @@
 
  *)
 
-include module type of Types.Req
+include module type of Metadata.Req
 
 include S.COMPARABLE with type t := t
 include S.PRINTABLE with type t := t

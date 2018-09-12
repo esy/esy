@@ -3,7 +3,7 @@
  * concrete source Source.t.
  *)
 
-include module type of Types.SourceSpec
+include module type of Metadata.SourceSpec
 
 val toString : t -> string
 val to_yojson : t -> [> `String of string ]

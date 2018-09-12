@@ -1,6 +1,6 @@
 module MS = SandboxSpec.ManifestSpec
 
-include Types.SourceSpec
+include Metadata.SourceSpec
 
 let toStringOrig = function
   | Github {user; repo; ref = None; manifest = None;} ->
@@ -103,7 +103,7 @@ let matches ~(source : Source.t) (spec : t) =
     matchesOrig source sourceSpec
   | Source.Override {source; override = sourceOverride},
     Override {sourceSpec; override = sourceSpecOverride} ->
-    Types.SourceOverride.equal sourceOverride sourceSpecOverride
+    Metadata.SourceOverride.equal sourceOverride sourceSpecOverride
     && matchesOrig source sourceSpec
   | Source.Override _, Orig _ -> false
   | Source.Orig _, Override _ -> false

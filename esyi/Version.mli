@@ -1,4 +1,4 @@
-include module type of Types.Version
+include module type of Metadata.Version
 
 include S.COMMON with type t := t
 

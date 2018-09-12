@@ -1,4 +1,4 @@
-include Types.Req
+include Metadata.Req
 
 let toString {name; spec} =
   name ^ "@" ^ (VersionSpec.toString spec)

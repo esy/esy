@@ -1,5 +1,5 @@
 module Command : sig
-  include module type of Types.Command
+  include module type of Metadata.Command
 
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
@@ -7,7 +7,7 @@ module Command : sig
 end
 
 module CommandList : sig
-  include module type of Types.CommandList
+  include module type of Metadata.CommandList
 
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
@@ -26,7 +26,7 @@ module Scripts : sig
 end
 
 module Env : sig
-  include module type of Types.Env
+  include module type of Metadata.Env
 
   val empty : t
   val show : t -> string
@@ -35,7 +35,7 @@ module Env : sig
 end
 
 module ExportedEnv : sig
-  include module type of Types.ExportedEnv
+  include module type of Metadata.ExportedEnv
 
   val empty : t
 
@@ -46,7 +46,7 @@ module ExportedEnv : sig
 end
 
 module Dependencies : sig
-  include module type of Types.Dependencies
+  include module type of Metadata.Dependencies
 
   val empty : t
 
@@ -67,7 +67,7 @@ module EsyPackageJson : sig
 end
 
 module Resolutions : sig
-  include module type of Types.Resolutions
+  include module type of Metadata.Resolutions
 
   val empty : t
   val find : t -> string -> Version.t option

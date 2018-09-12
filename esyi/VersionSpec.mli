@@ -3,7 +3,7 @@
  * concrete version Version.t.
  *)
 
-include module type of Types.VersionSpec
+include module type of Metadata.VersionSpec
 
 val pp : t Fmt.t
 val toString : t -> string

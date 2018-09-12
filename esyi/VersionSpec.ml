@@ -1,4 +1,4 @@
-include Types.VersionSpec
+include Metadata.VersionSpec
 
 let toString = function
   | Npm formula -> SemverVersion.Formula.DNF.toString formula

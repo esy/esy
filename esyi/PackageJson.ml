@@ -1,6 +1,6 @@
 module Command = struct
 
-  include Types.Command
+  include Metadata.Command
 
   let toString = show
 
@@ -23,7 +23,7 @@ end
 
 module CommandList = struct
 
-  include Types.CommandList
+  include Metadata.CommandList
 
   let empty = None
 
@@ -85,7 +85,7 @@ end
 
 module Env = struct
 
-  include Types.Env
+  include Metadata.Env
 
   let empty = []
 
@@ -111,7 +111,7 @@ end
 
 module ExportedEnv = struct
 
-  include Types.ExportedEnv
+  include Metadata.ExportedEnv
 
   let scope_of_yojson = function
     | `String "global" -> Ok Global
@@ -162,7 +162,7 @@ module ExportedEnv = struct
 end
 
 module Dependencies = struct
-  include Types.Dependencies
+  include Metadata.Dependencies
 
   let empty = []
 
@@ -202,7 +202,7 @@ module Dependencies = struct
 end
 
 module Resolutions = struct
-  include Types.Resolutions
+  include Metadata.Resolutions
 
   let empty = StringMap.empty
 
