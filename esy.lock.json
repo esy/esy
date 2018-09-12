@@ -8443,7 +8443,8 @@
             "exportedEnv": {
               "OCAML_TOPLEVEL_PATH": {
                 "val": "#{self.toplevel}",
-                "scope": "global"
+                "scope": "global",
+                "exclusive": false
               }
             }
           }
@@ -8689,13 +8690,28 @@
           "archive:https://opam.ocaml.org/archives/lwt.4.1.0+opam.tar.gz#md5:5c73061ac341ca56c2f1bd62728a0ad9",
           "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7"
         ],
-        "files": [],
+        "files": [
+          {
+            "name": "_esy/lwt-4.1.0.patch",
+            "content":
+              "--- ./src/unix/config/discover.ml\n+++ ./src/unix/config/discover.ml\n@@ -326,12 +326,16 @@\n     Sys.command s = 0) fmt in\n   let obj_file = Filename.chop_suffix stub_file \".c\" ^ !ext_obj\n   in\n+  let obj_flag = match !system with\n+  | \"win32\" | \"win64\" -> \"-ccopt -Fo:\"\n+  | _ -> \"-ccopt -o -ccopt \" in\n   (* First compile the .c file using -ocamlc and CFLAGS (opt) *)\n   (cmd\n-    \"%s -c %s %s -ccopt -o -ccopt %s >> %s 2>&1\"\n+    \"%s -c %s %s %s%s >> %s 2>&1\"\n     !ocamlc\n     (String.concat \" \" (List.map (fun x -> \"-ccopt \" ^ x) (List.map Filename.quote opt)))\n     (Filename.quote stub_file)\n+    obj_flag\n     (Filename.quote obj_file)\n     (Filename.quote !log_file))\n   &&\n"
+          }
+        ],
         "opam": {
           "name": "lwt",
           "version": "4.1.0",
           "opam":
             "opam-version: \"1.2\"\nname: \"lwt\"\nversion: \"4.1.0\"\nmaintainer: [\n  \"Anton Bachin <antonbachin@yahoo.com>\"\n  \"Mauricio Fernandez <mfp@acm.org>\"\n  \"Simon Cruanes <simon.cruanes.2007@m4x.org>\"\n]\nauthors: [\"Jérôme Vouillon\" \"Jérémie Dimino\"]\nlicense: \"LGPL with OpenSSL linking exception\"\nhomepage: \"https://github.com/ocsigen/lwt\"\ndoc: \"https://ocsigen.org/lwt/manual/\"\nbug-reports: \"https://github.com/ocsigen/lwt/issues\"\ndepends: [\n  \"cppo\" {build & >= \"1.1.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta14\"}\n  \"ocamlfind\" {build & >= \"1.7.3-1\"}\n  \"result\"\n]\ndepopts: [\"base-threads\" \"base-unix\" \"conf-libev\"]\navailable: ocaml-version >= \"4.02.0\" & compiler != \"4.02.1+BER\"\nbuild: [\n  [\"ocaml\" \"src/util/configure.ml\" \"-use-libev\" \"%{conf-libev:installed}%\"]\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nmessages: [\n  \"For the PPX, please install package lwt_ppx\" {!lwt_ppx:installed}\n  \"For the Camlp4 syntax, please install package lwt_camlp4\"\n    {camlp4:installed & !lwt_camlp4:installed}\n  \"For Lwt_log and Lwt_daemon, please install package lwt_log\"\n    {!lwt_log:installed}\n]\ndev-repo: \"git+https://github.com/ocsigen/lwt.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/lwt-4.1.0.patch' : 'true'}"
+              ],
+              [ "ocaml", "src/util/configure.ml", "-use-libev", "false" ],
+              [ "jbuilder", "build", "-p", "lwt", "-j", "4" ]
+            ]
+          }
         }
       },
       "dependencies": [
