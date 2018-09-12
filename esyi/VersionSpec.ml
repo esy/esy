@@ -1,9 +1,4 @@
-type t =
-  | Npm of SemverVersion.Formula.DNF.t
-  | NpmDistTag of string * SemverVersion.Version.t option
-  | Opam of OpamPackageVersion.Formula.DNF.t
-  | Source of SourceSpec.t
-  [@@deriving (eq, ord)]
+include Types.VersionSpec
 
 let toString = function
   | Npm formula -> SemverVersion.Formula.DNF.toString formula

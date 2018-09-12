@@ -3,11 +3,7 @@
  * concrete version Version.t.
  *)
 
-type t =
-  | Npm of SemverVersion.Formula.DNF.t
-  | NpmDistTag of string * SemverVersion.Version.t option
-  | Opam of OpamPackageVersion.Formula.DNF.t
-  | Source of SourceSpec.t
+include module type of Types.VersionSpec
 
 val pp : t Fmt.t
 val toString : t -> string

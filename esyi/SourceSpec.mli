@@ -3,31 +3,7 @@
  * concrete source Source.t.
  *)
 
-type t =
-  | Archive of {
-      url : string;
-      checksum : Checksum.t option;
-    }
-  | Git of {
-      remote : string;
-      ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | Github of {
-      user : string;
-      repo : string;
-      ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPath of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | NoSource
+include module type of Types.SourceSpec
 
 val toString : t -> string
 val to_yojson : t -> [> `String of string ]

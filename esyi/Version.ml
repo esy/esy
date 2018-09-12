@@ -1,8 +1,4 @@
-type t =
-  | Npm of SemverVersion.Version.t
-  | Opam of OpamPackageVersion.Version.t
-  | Source of Source.t
-  [@@deriving (ord, eq)]
+include Types.Version
 
 let toString v =
   match v with
@@ -74,19 +70,25 @@ let%test_module "parsing" = (module struct
     expectParses
       parse
       "no-source:"
-      (Source Source.NoSource)
+      (Source (Orig NoSource))
 
   let%test "no-source:" =
     expectParses
       (parse ~tryAsOpam:true)
       "no-source:"
-      (Source Source.NoSource)
+      (Source (Orig NoSource))
 end)
 
 let parseExn v =
   match parse v with
   | Ok v -> v
   | Error err -> failwith err
+
+let mapPath ~f (version : t) =
+  match version with
+  | Npm _
+  | Opam _ -> version
+  | Source source -> Source (Source.mapPath ~f source)
 
 let to_yojson v = `String (toString v)
 

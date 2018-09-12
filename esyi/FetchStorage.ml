@@ -45,8 +45,13 @@ let cacheId source (record : Solution.Record.t) =
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
 
-  let doFetch path source =
-    match source with
+  let doFetch path (source : Source.t) =
+    let origSource =
+      match source with
+      | Source.Orig source
+      | Source.Override {source; _} -> source
+    in
+    match origSource with
 
     | Source.LocalPath _ ->
       let msg = "Fetching " ^ record.name ^ ": NOT IMPLEMENTED" in
@@ -184,7 +189,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
     let%bind tarballIsInCache = Fs.exists tarballPath in
 
     match source, tarballIsInCache with
-    | Source.LocalPathLink _, _ ->
+    | Orig Source.LocalPathLink _, _ ->
       return (`Done dist)
     | _, true ->
       return (`Done dist)
@@ -251,7 +256,7 @@ let install ~cfg:_ ~path dist =
   let {Dist. tarballPath; source; _} = dist in
   match source, tarballPath with
 
-  | Source.LocalPathLink {path = orig; manifest;}, _ ->
+  | Orig Source.LocalPathLink {path = orig; manifest;}, _ ->
     let%bind () = Fs.createDir path in
     let%bind () =
       let link = EsyLinkFile.{path = orig; manifest;} in

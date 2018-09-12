@@ -39,30 +39,12 @@ module Record = struct
     opam : Opam.t option;
   } [@@deriving yojson]
 
-  let mapVersion ~f (record : t) =
-    let version =
-      match record.version with
-      | Version.Source (Source.LocalPath info) ->
-        Version.Source (Source.LocalPath {info with path = f info.path;})
-      | Version.Npm _
-      | Version.Opam _
-      | Version.Source _ -> record.version
-    in
+  let mapPath ~f (record : t) =
+    let version = Version.mapPath ~f record.version in
     let source =
-      let f source =
-        match source with
-        | Source.LocalPathLink info ->
-          Source.LocalPathLink {info with path = f info.path;}
-        | Source.LocalPath info ->
-          Source.LocalPath {info with path = f info.path;}
-        | Source.Archive _
-        | Source.Git _
-        | Source.Github _
-        | Source.NoSource -> source
-      in
       let main, mirrors = record.source in
-      let main = f main in
-      let mirrors = List.map ~f mirrors in
+      let main = Source.mapPath ~f main in
+      let mirrors = List.map ~f:(Source.mapPath ~f) mirrors in
       main, mirrors
     in
     {record with source; version}
@@ -104,15 +86,10 @@ module Id = struct
     | `String v -> parse v
     | _ -> Error "expected string"
 
-  let mapVersion ~f ((name, version) : t) =
-    let version =
-      match version with
-      | Version.Source (Source.LocalPath info) ->
-        Version.Source (Source.LocalPath {info with path = f info.path;})
-      | Version.Npm _
-      | Version.Opam _
-      | Version.Source _ -> version
-    in
+  let pp fmt (name, version) = Fmt.pf fmt "%s@%a" name Version.pp version
+
+  let mapPath ~f ((name, version) : t) =
+    let version = Version.mapPath ~f version in
     ((name, version) : t)
 
   let ofRecord (record : Record.t) =
@@ -178,8 +155,9 @@ let dependencies (r : Record.t) sol =
         with Not_found ->
           let msg =
             Format.asprintf
-              "inconsistent solution, missing record for %a"
+              "inconsistent solution, missing record for %a, has:  %a"
               Fmt.(pair ~sep:(unit "@") string Version.pp) id
+              Fmt.(list ~sep:(unit "   ") Id.pp) (List.map ~f:fst (Id.Map.bindings sol.records))
           in
           failwith msg
       in
@@ -295,12 +273,24 @@ module LockfileV1 = struct
     in
     Digest.to_hex digest
 
+  let relativize sandbox path =
+    if Path.equal path sandbox.Sandbox.spec.path
+    then Path.(v ".")
+    else match Path.relativize ~root:sandbox.spec.path path with
+    | Some path -> Path.normalizeAndRemoveEmptySeg path
+    | None -> Path.normalizeAndRemoveEmptySeg path
+
+  let derelativize sandbox path =
+    if Path.isAbs path
+    then Path.normalizeAndRemoveEmptySeg path
+    else Path.(sandbox.Sandbox.spec.path // path |> normalizeAndRemoveEmptySeg)
+
   let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
-    let derelativize path = Path.(sandbox.spec.path // path |> normalize) in
-    let root = Id.mapVersion ~f:derelativize root in
+    let root = Id.mapPath ~f:(derelativize sandbox) root in
     let f id {record; dependencies} sol =
-      let record = Record.mapVersion ~f:derelativize record in
-      let id = Id.mapVersion ~f:derelativize id in
+      let id = Id.mapPath ~f:(derelativize sandbox) id in
+      let record = Record.mapPath ~f:(derelativize sandbox) record in
+      let dependencies = List.map ~f:(Id.mapPath ~f:(derelativize sandbox)) dependencies in
       if Id.equal root id
       then addRoot ~record ~dependencies sol
       else add ~record ~dependencies sol
@@ -308,25 +298,19 @@ module LockfileV1 = struct
     Id.Map.fold f node empty
 
   let lockfileOfSolution ~(sandbox : Sandbox.t) (sol : solution) =
-    let relativize path =
-      if Path.equal path sandbox.spec.path
-      then Path.(v ".")
-      else match Path.relativize ~root:sandbox.spec.path path with
-      | Some path -> path
-      | None -> path
-    in
     let node =
       let f id record nodes =
         let dependencies = Id.Map.find id sol.dependencies in
-        let id = Id.mapVersion ~f:relativize id in
-        let record = Record.mapVersion ~f:relativize record in
+        let id = Id.mapPath ~f:(relativize sandbox) id in
+        let record = Record.mapPath ~f:(relativize sandbox) record in
+        let dependencies = Id.Set.map (Id.mapPath ~f:(relativize sandbox)) dependencies in
         Id.Map.add id {record; dependencies = Id.Set.elements dependencies} nodes
       in
       Id.Map.fold f sol.records Id.Map.empty
     in
     let root =
       match sol.root with
-      | Some root -> Id.mapVersion ~f:relativize root
+      | Some root -> Id.mapPath ~f:(relativize sandbox) root
       | None -> failwith "empty solution"
     in
     root, node

@@ -6,10 +6,7 @@
 
  *)
 
-type t = private {
-  name : string;
-  spec : VersionSpec.t
-}
+include module type of Types.Req
 
 include S.COMPARABLE with type t := t
 include S.PRINTABLE with type t := t

@@ -405,7 +405,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     name = "ROOT";
     version = Version.parseExn "0.0.0";
     originalVersion = None;
-    source = Package.Source Source.NoSource, [];
+    source = Package.Source (Orig NoSource), [];
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];

@@ -1,10 +1,6 @@
 module Command = struct
 
-  [@@@ocaml.warning "-32"]
-  type t =
-    | Parsed of string list
-    | Unparsed of string
-    [@@deriving (show, eq, ord)]
+  include Types.Command
 
   let toString = show
 
@@ -27,10 +23,7 @@ end
 
 module CommandList = struct
 
-  [@@@ocaml.warning "-32"]
-  type t =
-    Command.t list option
-    [@@deriving (show, eq, ord)]
+  include Types.CommandList
 
   let empty = None
 
@@ -92,16 +85,7 @@ end
 
 module Env = struct
 
-  [@@@ocaml.warning "-32"]
-  type item = {
-    name : string;
-    value : string;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
+  include Types.Env
 
   let empty = []
 
@@ -127,11 +111,7 @@ end
 
 module ExportedEnv = struct
 
-  [@@@ocaml.warning "-32"]
-  type scope =
-    | Local
-    | Global
-    [@@deriving (show, eq, ord)]
+  include Types.ExportedEnv
 
   let scope_of_yojson = function
     | `String "global" -> Ok Global
@@ -148,21 +128,8 @@ module ExportedEnv = struct
       scope : (scope [@default Local]);
       exclusive : (bool [@default false]);
     }
-    [@@deriving yojson]
+    [@@deriving of_yojson]
   end
-
-  [@@@ocaml.warning "-32"]
-  type item = {
-    name : string;
-    value : string;
-    scope : scope;
-    exclusive : bool;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
 
   let toString = show
 
@@ -195,8 +162,7 @@ module ExportedEnv = struct
 end
 
 module Dependencies = struct
-
-  type t = Req.t list [@@deriving (eq, ord)]
+  include Types.Dependencies
 
   let empty = []
 
@@ -236,8 +202,7 @@ module Dependencies = struct
 end
 
 module Resolutions = struct
-  type t = Version.t StringMap.t
-
+  include Types.Resolutions
 
   let empty = StringMap.empty
 

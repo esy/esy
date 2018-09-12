@@ -44,10 +44,10 @@ let packageJsonToPackage ?name ?version (pkgJson : PackageJson.t) =
     match version with
     | Version.Source src -> src
     | _ ->
-      Source.Archive {
+      Orig (Archive {
         url = pkgJson.dist.tarball;
         checksum = Checksum.Sha1, pkgJson.dist.shasum;
-      }
+      })
   in
 
   let dependencies =

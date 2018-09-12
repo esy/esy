@@ -1,7 +1,5 @@
 module Command : sig
-  type t =
-    | Parsed of string list
-    | Unparsed of string
+  include module type of Types.Command
 
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
@@ -9,8 +7,7 @@ module Command : sig
 end
 
 module CommandList : sig
-
-  type t = Command.t list option
+  include module type of Types.CommandList
 
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
@@ -29,8 +26,8 @@ module Scripts : sig
 end
 
 module Env : sig
-  type t = item list
-  and item = { name : string; value : string; }
+  include module type of Types.Env
+
   val empty : t
   val show : t -> string
 
@@ -38,19 +35,10 @@ module Env : sig
 end
 
 module ExportedEnv : sig
-  type t = item list
-
-  and item = {
-    name : string;
-    value : string;
-    scope : scope;
-    exclusive : bool;
-  }
-
-  and scope = Local | Global
+  include module type of Types.ExportedEnv
 
   val empty : t
-  
+
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
   include S.PRINTABLE with type t := t
@@ -58,7 +46,8 @@ module ExportedEnv : sig
 end
 
 module Dependencies : sig
-  type t = Req.t list
+  include module type of Types.Dependencies
+
   val empty : t
 
   val override : t -> t -> t
@@ -78,7 +67,7 @@ module EsyPackageJson : sig
 end
 
 module Resolutions : sig
-  type t
+  include module type of Types.Resolutions
 
   val empty : t
   val find : t -> string -> Version.t option

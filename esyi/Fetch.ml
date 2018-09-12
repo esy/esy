@@ -98,6 +98,21 @@ module Layout = struct
   let pp =
     Fmt.(list ~sep:(unit "@\n") pp_installation)
 
+  let sourcePathOfRecord record =
+    let ofSource (source : Source.source) =
+      match source with
+      | Archive _
+      | Git _
+      | Github _
+      | LocalPath _
+      | NoSource -> None
+      | LocalPathLink {path; manifest = _;} -> Some path
+    in
+    let main, _ = record.Record.source in
+    match main with
+    | Source.Orig source
+    | Source.Override {source; override = _} -> ofSource source
+
   let ofSolution ~nodeModulesPath (sol : Solution.t) =
     match Solution.root sol with
     | None -> []
@@ -149,14 +164,9 @@ module Layout = struct
           markAsOccupied here (this::breadcrumb) record;
           let path = Path.(path // v record.Record.name) in
           let sourcePath =
-            let main, _ = record.Record.source in
-            match main with
-            | Source.Archive _
-            | Source.Git _
-            | Source.Github _
-            | Source.LocalPath _
-            | Source.NoSource -> path
-            | Source.LocalPathLink {path; manifest = _;} -> path
+            match sourcePathOfRecord record with
+            | None -> path
+            | Some path -> path
           in
           let installation = {
             path;
@@ -239,7 +249,7 @@ module Layout = struct
       Record.
       name;
       version = Version.Npm (parseVersionExn version);
-      source = Source.NoSource, [];
+      source = Orig Source.NoSource, [];
       files = [];
       opam = None;
     } : Record.t)

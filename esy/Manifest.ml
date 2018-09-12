@@ -438,7 +438,7 @@ end = struct
         return {
           EsyInstall.EsyOpamFile.
           override = None;
-          source = Source.LocalPath {path; manifest = None;};
+          source = Orig (LocalPath {path; manifest = None;});
         }
     in
     return (Installed {opam; info; name})
