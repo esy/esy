@@ -1,5 +1,5 @@
 {
-  "hash": "e32677ecfa9779259691d431d0e36a63",
+  "hash": "ff0403f790dd8e050c710d1e8212eb3d",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -5358,7 +5358,7 @@
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
         "@opam/dune@github:bryphe/dune#87a1993", "@opam/fmt@opam:0.8.5",
         "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
-        "@opam/logs@opam:0.6.2", "@opam/lwt@github:bryphe/lwt#fbc846d",
+        "@opam/logs@opam:0.6.2", "@opam/lwt@github:bryphe/lwt#9bfd6c1",
         "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20171013",
         "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
         "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
@@ -7836,7 +7836,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/base-threads@opam:base",
         "@opam/base-unix@opam:base", "@opam/camomile@opam:1.0.1",
         "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:transition",
-        "@opam/lambda-term@opam:1.13", "@opam/lwt@github:bryphe/lwt#fbc846d",
+        "@opam/lambda-term@opam:1.13", "@opam/lwt@github:bryphe/lwt#9bfd6c1",
         "@opam/lwt_react@opam:1.1.1", "@opam/ocamlfind@opam:1.8.0",
         "@opam/react@opam:1.2.1"
       ]
@@ -8633,7 +8633,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@github:bryphe/lwt#fbc846d", "@opam/react@opam:1.2.1"
+        "@opam/lwt@github:bryphe/lwt#9bfd6c1", "@opam/react@opam:1.2.1"
       ]
     },
     "@opam/lwt_ppx@opam:1.2.1": {
@@ -8655,7 +8655,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@github:bryphe/lwt#fbc846d",
+        "@opam/lwt@github:bryphe/lwt#9bfd6c1",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_tools_versioned@opam:5.2.1"
       ]
@@ -8679,14 +8679,14 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@github:bryphe/lwt#fbc846d"
+        "@opam/lwt@github:bryphe/lwt#9bfd6c1"
       ]
     },
-    "@opam/lwt@github:bryphe/lwt#fbc846d": {
+    "@opam/lwt@github:bryphe/lwt#9bfd6c1": {
       "record": {
         "name": "@opam/lwt",
-        "version": "github:bryphe/lwt#fbc846d",
-        "source": "github:bryphe/lwt#fbc846d",
+        "version": "github:bryphe/lwt#9bfd6c1",
+        "source": "github:bryphe/lwt#9bfd6c1",
         "files": [],
         "opam": null
       },
@@ -8752,7 +8752,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/camomile@opam:1.0.1",
         "@opam/jbuilder@opam:transition",
-        "@opam/lwt@github:bryphe/lwt#fbc846d", "@opam/lwt_log@opam:1.1.0",
+        "@opam/lwt@github:bryphe/lwt#9bfd6c1", "@opam/lwt_log@opam:1.1.0",
         "@opam/lwt_react@opam:1.1.1", "@opam/react@opam:1.2.1",
         "@opam/zed@opam:1.6"
       ]
