@@ -1,0 +1,4 @@
+- [ ] Make sure LocalPath/LocalPathLink paths are relative to the sandbox.
+- [ ] Untangle source & and source override right after reading metadata
+- [ ] Add missing overrides
+- [ ] Read overrides when reading sandbox root
