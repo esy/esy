@@ -1,5 +1,5 @@
 {
-  "hash": "32a94a2353c10e85b32171075bb16dce",
+  "hash": "5e561d5467b532a51345dc899f6362e0",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -5356,7 +5356,7 @@
         "@esy-ocaml/reason@3.2.0", "@opam/angstrom@opam:0.10.0",
         "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
-        "@opam/dune@github:bryphe/dune#5ae853c1", "@opam/fmt@opam:0.8.5",
+        "@opam/dune@github:bryphe/dune#31f5b7e9", "@opam/fmt@opam:0.8.5",
         "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
         "@opam/logs@opam:0.6.2", "@opam/lwt@opam:4.1.0",
         "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20171013",
@@ -8056,7 +8056,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/dune@github:bryphe/dune#5ae853c1",
+        "@opam/dune@github:bryphe/dune#31f5b7e9",
         "@opam/ocaml-compiler-libs@opam:v0.11.0",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0"
@@ -8513,7 +8513,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#5ae853c1",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#31f5b7e9",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
       ]
     },
@@ -8780,7 +8780,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#5ae853c1",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@github:bryphe/dune#31f5b7e9",
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
@@ -8874,11 +8874,11 @@
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
-    "@opam/dune@github:bryphe/dune#5ae853c1": {
+    "@opam/dune@github:bryphe/dune#31f5b7e9": {
       "record": {
         "name": "@opam/dune",
-        "version": "github:bryphe/dune#5ae853c1",
-        "source": "github:bryphe/dune#5ae853c1",
+        "version": "github:bryphe/dune#31f5b7e9",
+        "source": "github:bryphe/dune#31f5b7e9",
         "files": [],
         "opam": null
       },
