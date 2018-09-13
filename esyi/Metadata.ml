@@ -4,7 +4,9 @@ module rec R : sig
     type t =
       | Parsed of string list
       | Unparsed of string
-    [@@deriving (show, eq, ord)]
+
+    include S.PRINTABLE with type t := t
+    include S.COMPARABLE with type t := t
 
   end
 
@@ -12,7 +14,9 @@ module rec R : sig
 
     type t =
       Command.t list option
-      [@@deriving (show, eq, ord)]
+
+    include S.PRINTABLE with type t := t
+    include S.COMPARABLE with type t := t
   end
 
   module Env : sig
@@ -25,7 +29,10 @@ module rec R : sig
 
     type t =
       item list
-      [@@deriving (show, eq, ord)]
+
+    include S.PRINTABLE with type t := t
+    include S.COMPARABLE with type t := t
+
   end
 
   module ExportedEnv : sig
@@ -45,7 +52,9 @@ module rec R : sig
 
     type t =
       item list
-      [@@deriving (show, eq, ord)]
+
+    include S.PRINTABLE with type t := t
+    include S.COMPARABLE with type t := t
 
   end
 
@@ -79,7 +88,8 @@ module rec R : sig
           manifest : SandboxSpec.ManifestSpec.t option;
         }
       | NoSource
-      [@@deriving ord, eq]
+
+    include S.COMPARABLE with type t := t
   end
 
   module SourceSpec : sig
@@ -111,7 +121,8 @@ module rec R : sig
           manifest : SandboxSpec.ManifestSpec.t option;
         }
       | NoSource
-      [@@deriving (eq, ord)]
+
+    include S.COMPARABLE with type t := t
   end
 
   module Version : sig
@@ -128,26 +139,31 @@ module rec R : sig
       | NpmDistTag of string * SemverVersion.Version.t option
       | Opam of OpamPackageVersion.Formula.DNF.t
       | Source of SourceSpec.t
-      [@@deriving (eq, ord)]
+
+    include S.COMPARABLE with type t := t
   end
 
   module Req : sig
     type t = {
       name: string;
       spec: VersionSpec.t;
-    } [@@deriving (eq, ord)]
+    }
+    include S.COMPARABLE with type t := t
   end
+
 
   module Dependencies : sig
     type t =
       Req.t list
-      [@@deriving (eq, ord)]
+
+    include S.COMPARABLE with type t := t
   end
 
   module Resolutions : sig
     type t =
       Version.t StringMap.t
-      [@@deriving (eq, ord)]
+
+    include S.COMPARABLE with type t := t
   end
 
   module SourceOverride : sig
