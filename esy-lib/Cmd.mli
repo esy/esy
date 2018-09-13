@@ -56,3 +56,5 @@ val toBosCmd : t -> Bos.Cmd.t
 val ofBosCmd : Bos.Cmd.t -> (t, [> `Msg of string ]) result
 
 val ofListExn : string list -> t
+
+val of_yojson : ?errorMsg:string -> t Json.decoder

@@ -151,3 +151,21 @@ let ofBosCmd cmd =
 let ofListExn = function
   | [] -> raise (Invalid_argument "empty command")
   | tool::args -> v tool |> addArgs args
+
+let of_yojson ?(errorMsg="expected a string or an array of strings") (json : Json.t) =
+  let ofList = function
+  | [] -> Error "a command cannot be empty"
+  | cmd::args -> Ok (v cmd |> addArgs args)
+  in
+  match json with
+  | `List cmd ->
+    begin match Json.Decode.(list string) (`List cmd) with
+    | Ok cmd -> ofList cmd
+    | Error _ -> Error errorMsg
+    end
+  | `String cmd ->
+    begin match ShellSplit.split cmd with
+    | Ok argv -> ofList argv
+    | Error _ -> Error errorMsg
+    end
+  | _ -> Error errorMsg
