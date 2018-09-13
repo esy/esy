@@ -236,12 +236,80 @@ let%test_module "parsing" = (module struct
 
 end)
 
+let override_of_yojson =
+  let make name version build install =
+    {Metadata.SourceOverride. name; version; build; install}
+  in
+  Json.Decode.(
+    return make
+    <*> fieldOpt ~name:"name" string
+    <*> fieldOpt ~name:"version" string
+    <*> fieldOpt ~name:"build" (list (list string))
+    <*> fieldOpt ~name:"install" (list (list string))
+  )
+
+let%test "override_of_yojson" =
+  let json = Yojson.Safe.from_string {|{}|} in
+  override_of_yojson json = Ok {
+    Metadata.SourceOverride.
+    name = None;
+    version = None;
+    install = None;
+    build = None;
+  }
+
+let%test "override_of_yojson" =
+  let json = Yojson.Safe.from_string {|{build: [[]]}|} in
+  override_of_yojson json = Ok {
+    Metadata.SourceOverride.
+    name = None;
+    version = None;
+    install = None;
+    build = Some [[]];
+  }
+
+let override_to_yojson (override : Metadata.SourceOverride.t) =
+  let fields = [] in
+  let fields =
+    match override.name with
+    | None -> fields
+    | Some name -> ("name", `String name)::fields
+  in
+  let fields =
+    match override.version with
+    | None -> fields
+    | Some version -> ("version", `String version)::fields
+  in
+  let fields =
+    match override.build with
+    | None -> fields
+    | Some build -> ("build", Json.Encode.(list (list string)) build)::fields
+  in
+  let fields =
+    match override.install with
+    | None -> fields
+    | Some install -> ("install", Json.Encode.(list (list string)) install)::fields
+  in
+  `Assoc fields
+
 let to_yojson v =
-  `String (show v)
+  match v with
+  | Orig source -> `String (showOrig source)
+  | Override {source; override} ->
+    `Assoc [
+      "source", `String (showOrig source);
+      "override", override_to_yojson override;
+    ]
 
 let of_yojson json =
+  let open Result.Syntax in
   match json with
   | `String string -> parse string
+  | `Assoc _ ->
+    let%bind origSource = Json.Decode.(field ~name:"source" string) json in
+    let%bind origSource = Parse.(parse origSource) origSource in
+    let%bind override = Json.Decode.(field ~name:"override") override_of_yojson json in
+    return (Override {source = origSource; override})
   | _ -> Error "expected string"
 
 let mapPath ~f source =
